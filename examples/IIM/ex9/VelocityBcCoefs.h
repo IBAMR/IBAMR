@@ -11,31 +11,20 @@
 //
 // ---------------------------------------------------------------------
 
-
 #ifndef included_VelocityBcCoefs
 #define included_VelocityBcCoefs
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
-
-// VALVE TESTER INCLUDES
-//#include "CirculationModel.h"
-
-// IBTK INCLUDES
-#include <ibtk/ibtk_utilities.h>
-
-// IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
 
-// SAMRAI INCLUDES
-#include <RobinBcCoefStrategy.h>
-
-// NAMESPACE
-#include <ibamr/app_namespaces.h>
+#include <ibtk/ibtk_utilities.h>
 
 #include "BcData.h"
+
+#include <RobinBcCoefStrategy.h>
+
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -50,10 +39,8 @@ public:
     /*!
      * \brief Constructor
      */
-    VelocityBcCoefs(const INSHierarchyIntegrator* fluid_solver,
-                    const BcData,
-                    const int comp_idx);
-//    VelocityBcCoefs(const CirculationModel* circ_model, const int comp_idx);
+    VelocityBcCoefs(const INSHierarchyIntegrator* fluid_solver, const BcData, const int comp_idx);
+    //    VelocityBcCoefs(const CirculationModel* circ_model, const int comp_idx);
 
     /*!
      * \brief Destructor.
@@ -84,7 +71,7 @@ public:
     IntVector<NDIM> numberOfExtensionsFillable() const;
 
     //\}
-    
+
     double parabolic_flow(double t, double y, double r) const;
     double time_ramp(double t) const;
 
@@ -109,7 +96,7 @@ private:
      */
     VelocityBcCoefs& operator=(const VelocityBcCoefs& that);
 
-//    const CirculationModel* const d_circ_model;
+    //    const CirculationModel* const d_circ_model;
     const INSHierarchyIntegrator* const d_fluid_solver;
     const int d_comp_idx;
     const BcData d_bc_data;

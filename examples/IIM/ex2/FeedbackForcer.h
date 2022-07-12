@@ -16,15 +16,12 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// PETSC INCLUDES
-#include <petscsys.h>
-
-// IBAMR INCLUDES
 #include <ibamr/INSHierarchyIntegrator.h>
 
-// NAMESPACE
+#include <Patch.h>
+#include <Variable.h>
+
 #include <ibamr/app_namespaces.h>
-#include "ibtk/ibtk_utilities.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -64,7 +61,7 @@ public:
      * \brief Set data on the specified patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<Variable<NDIM> > var,
+                        Pointer<hier::Variable<NDIM> > var,
                         Pointer<Patch<NDIM> > patch,
                         double data_time,
                         bool initial_time = false,

@@ -11,15 +11,16 @@
 //
 // ---------------------------------------------------------------------
 
-#include "FeedbackForcer.h"
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// SAMRAI INCLUDES
+#include <tbox/Utilities.h>
+
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <SideData.h>
-#include <tbox/Utilities.h>
+
+// Application includes
+#include "FeedbackForcer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -27,11 +28,12 @@
 
 namespace
 {
-inline double smooth_kernel(const double r)
+inline double
+smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -51,17 +53,19 @@ FeedbackForcer::~FeedbackForcer()
     return;
 } // ~FeedbackForcer
 
-bool FeedbackForcer::isTimeDependent() const
+bool
+FeedbackForcer::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void FeedbackForcer::setDataOnPatch(const int data_idx,
-                                    Pointer<Variable<NDIM> > /*var*/,
-                                    Pointer<Patch<NDIM> > patch,
-                                    const double /*data_time*/,
-                                    const bool initial_time,
-                                    Pointer<PatchLevel<NDIM> > /*patch_level*/)
+void
+FeedbackForcer::setDataOnPatch(const int data_idx,
+                               Pointer<Variable<NDIM> > /*var*/,
+                               Pointer<Patch<NDIM> > patch,
+                               const double /*data_time*/,
+                               const bool initial_time,
+                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
     Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -136,7 +140,7 @@ void FeedbackForcer::setDataOnPatch(const int data_idx,
                     {
                         const double H = d_H;
                         const double D = d_D;
-                        if ((X[1] > 0.5*H - 0.5 * D) && (X[1] < 0.5 * H + 0.5 * D))
+                        if ((X[1] > 0.5 * H - 0.5 * D) && (X[1] < 0.5 * H + 0.5 * D))
                         {
                             fac = 0.0;
                         }

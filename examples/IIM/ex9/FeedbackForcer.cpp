@@ -15,21 +15,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#ifndef included_IBAMR_config
-#include <IBAMR_config.h>
-#define included_IBAMR_config
-#endif
+#include <tbox/Utilities.h>
 
-#ifndef included_SAMRAI_config
-#include <SAMRAI_config.h>
-#define included_SAMRAI_config
-#endif
-
-// SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <SideData.h>
-#include <tbox/Utilities.h>
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -37,32 +27,32 @@
 
 namespace
 {
+// static std::string inflow_data;
 
-//static std::string inflow_data;
+// static double wall = 0.24;
+// static double d_in = 2.19;
+// static double d_out = 7.62;
+// static double h1_in = 2.72;
+// static double h2_in = -2.72;
+// static double h_out = 0.0;
+// static double z_min = -2.95;
+// static double z_max = 8.95;
 
-//static double wall = 0.24;
-//static double d_in = 2.19;
-//static double d_out = 7.62;
-//static double h1_in = 2.72;
-//static double h2_in = -2.72;
-//static double h_out = 0.0;
-//static double z_min = -2.95;
-//static double z_max = 8.95;
-
-inline double smooth_kernel(const double r)
+inline double
+smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FeedbackForcer::FeedbackForcer(const INSHierarchyIntegrator* fluid_solver,
                                const Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                               const BcData &bc_data)
+                               const BcData& bc_data)
     : d_fluid_solver(fluid_solver), d_patch_hierarchy(patch_hierarchy), d_bc_data(bc_data)
 {
-    //d_bc_coefs is a vector of pointers to RobinBcCeofStrategy objects, which are themselves NDIM-d
+    // d_bc_coefs is a vector of pointers to RobinBcCeofStrategy objects, which are themselves NDIM-d
     // intentionally blank
     return;
 } // FeedbackForcer
@@ -73,27 +63,29 @@ FeedbackForcer::~FeedbackForcer()
     return;
 } // ~FeedbackForcer
 
-bool FeedbackForcer::isTimeDependent() const
+bool
+FeedbackForcer::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
-void FeedbackForcer::setDataOnPatch(const int data_idx,
-                                    Pointer<Variable<NDIM> > /*var*/,
-                                    Pointer<Patch<NDIM> > patch,
-                                    const double /*data_time*/,
-                                    const bool initial_time,
-                                    Pointer<PatchLevel<NDIM> > /*patch_level*/)
+void
+FeedbackForcer::setDataOnPatch(const int data_idx,
+                               Pointer<Variable<NDIM> > /*var*/,
+                               Pointer<Patch<NDIM> > patch,
+                               const double /*data_time*/,
+                               const bool initial_time,
+                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
-//    wall = d_input_db->getDoubleWithDefault("WALL", wall);
-//    d_in = d_input_db->getDoubleWithDefault("D_IN", d_in);
-//    d_out = d_input_db->getDoubleWithDefault("D_OUT", d_out);
-//    h1_in = d_input_db->getDoubleWithDefault("H1_IN", h1_in);
-//    h2_in = d_input_db->getDoubleWithDefault("H2_IN", h2_in);
-//    h_out = d_input_db->getDoubleWithDefault("H_OUT", h_out);
-//    z_min = d_input_db->getDoubleWithDefault("Z_MIN", z_min);
-//    z_max = d_input_db->getDoubleWithDefault("Z_MAX", z_max);
-    
+    //    wall = d_input_db->getDoubleWithDefault("WALL", wall);
+    //    d_in = d_input_db->getDoubleWithDefault("D_IN", d_in);
+    //    d_out = d_input_db->getDoubleWithDefault("D_OUT", d_out);
+    //    h1_in = d_input_db->getDoubleWithDefault("H1_IN", h1_in);
+    //    h2_in = d_input_db->getDoubleWithDefault("H2_IN", h2_in);
+    //    h_out = d_input_db->getDoubleWithDefault("H_OUT", h_out);
+    //    z_min = d_input_db->getDoubleWithDefault("Z_MIN", z_min);
+    //    z_max = d_input_db->getDoubleWithDefault("Z_MAX", z_max);
+
     Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data);
@@ -129,7 +121,7 @@ void FeedbackForcer::setDataOnPatch(const int data_idx,
 
     // Clamp the velocity along the top/bottom of the domain (but not in the
     // interior of the structure).
-    static const int axis = 2; //concerned with z_lo and z_hi faces
+    static const int axis = 2; // concerned with z_lo and z_hi faces
     const double L = 4.0 * dx_finest[axis];
     const int offset = static_cast<int>(L / dx[axis]);
     for (int side = 0; side <= 1; ++side)
@@ -151,19 +143,19 @@ void FeedbackForcer::setDataOnPatch(const int data_idx,
             {
                 for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box, component)); b; b++)
                 {
-                    double r_in = 0.5 * d_bc_data.d_in  - d_bc_data.wall; //d_bc_data.wall;
-                    double r_out = 0.5 * d_bc_data.d_out - d_bc_data.wall; //d_bc_data.wall;
+                    double r_in = 0.5 * d_bc_data.d_in - d_bc_data.wall;   // d_bc_data.wall;
+                    double r_out = 0.5 * d_bc_data.d_out - d_bc_data.wall; // d_bc_data.wall;
                     const Point& posn1 = Point(0.0, d_bc_data.h1_in, d_bc_data.z_min);
                     const Point& posn2 = Point(0.0, d_bc_data.h2_in, d_bc_data.z_min);
                     const Point& posn3 = Point(0.0, d_bc_data.h_out, d_bc_data.z_max);
-                    
-//                    double r_in = 0.5 * d_in  - wall; //d_bc_data.wall;
-//                    double r_out = 0.5 * d_out - wall; //d_bc_data.wall;
-//                    const Point& posn1 = Point(0.0, h1_in, z_min);
-//                    const Point& posn2 = Point(0.0, h2_in, z_min);
-//                    const Point& posn3 = Point(0.0, h_out, z_max);
-                    double r_sq1 = 0.0, r_sq2 =0.0, r_sq3 = 0.0;
-                    
+
+                    //                    double r_in = 0.5 * d_in  - wall; //d_bc_data.wall;
+                    //                    double r_out = 0.5 * d_out - wall; //d_bc_data.wall;
+                    //                    const Point& posn1 = Point(0.0, h1_in, z_min);
+                    //                    const Point& posn2 = Point(0.0, h2_in, z_min);
+                    //                    const Point& posn3 = Point(0.0, h_out, z_max);
+                    double r_sq1 = 0.0, r_sq2 = 0.0, r_sq3 = 0.0;
+
                     const hier::Index<NDIM>& i = b();
                     const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
                     const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
@@ -181,7 +173,7 @@ void FeedbackForcer::setDataOnPatch(const int data_idx,
                     const double r1 = sqrt(r_sq1);
                     const double r2 = sqrt(r_sq2);
                     const double r3 = sqrt(r_sq3);
-                    
+
                     double fac;
                     if (component == axis)
                     {
@@ -189,14 +181,13 @@ void FeedbackForcer::setDataOnPatch(const int data_idx,
                         {
                             fac = (r1 <= r_in || r2 <= r_in) ? 0.0 : 1.0;
                         }
-                        //side 1
+                        // side 1
                         else
                         {
                             fac = (r3 <= r_out) ? 0.0 : 1.0;
                         }
-                        
                     }
-                    //x, y component
+                    // x, y component
                     else
                     {
                         fac = 1.0;

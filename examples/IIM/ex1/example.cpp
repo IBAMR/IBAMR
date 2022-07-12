@@ -24,11 +24,10 @@
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_modification.h>
+#include <libmesh/mesh_refinement.h>
+#include <libmesh/mesh_tools.h>
 #include <libmesh/mesh_triangle_interface.h>
-#include "libmesh/mesh_refinement.h"
-#include "libmesh/mesh_modification.h"
-#include "libmesh/mesh_tools.h"
-
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -60,8 +59,7 @@ struct TetherData
     const double eta_s_surface;
 
     TetherData(tbox::Pointer<tbox::Database> input_db)
-        : kappa_s_surface(input_db->getDouble("KAPPA_S_SURFACE")),
-          eta_s_surface(input_db->getDouble("ETA_S_SURFACE"))
+        : kappa_s_surface(input_db->getDouble("KAPPA_S_SURFACE")), eta_s_surface(input_db->getDouble("ETA_S_SURFACE"))
     {
     }
 };
@@ -183,21 +181,29 @@ main(int argc, char* argv[])
         string elem_type = input_db->getString("ELEM_TYPE");
         if (NDIM == 2)
         {
-		   MeshTools::Generation::build_square(solid_mesh, static_cast<int>(ceil(R_D / ds)),
-												static_cast<int>(ceil(R_D / ds)), -R_D / 2.0,
-												R_D / 2.0, -R_D / 2.0, R_D / 2.0,
-												Utility::string_to_enum<ElemType>(elem_type));	
-		}
-		else
-		{
-		   MeshTools::Generation::build_cube(solid_mesh, static_cast<int>(ceil(R_D / ds)),
-												static_cast<int>(ceil(R_D / ds)), 
-												static_cast<int>(ceil(R_D / ds)), 
-												R_D / 2.0, -R_D / 2.0, -R_D / 2.0,
-												R_D / 2.0, -R_D / 2.0, R_D / 2.0,
-												Utility::string_to_enum<ElemType>(elem_type));	
-			
-		}
+            MeshTools::Generation::build_square(solid_mesh,
+                                                static_cast<int>(ceil(R_D / ds)),
+                                                static_cast<int>(ceil(R_D / ds)),
+                                                -R_D / 2.0,
+                                                R_D / 2.0,
+                                                -R_D / 2.0,
+                                                R_D / 2.0,
+                                                Utility::string_to_enum<ElemType>(elem_type));
+        }
+        else
+        {
+            MeshTools::Generation::build_cube(solid_mesh,
+                                              static_cast<int>(ceil(R_D / ds)),
+                                              static_cast<int>(ceil(R_D / ds)),
+                                              static_cast<int>(ceil(R_D / ds)),
+                                              R_D / 2.0,
+                                              -R_D / 2.0,
+                                              -R_D / 2.0,
+                                              R_D / 2.0,
+                                              -R_D / 2.0,
+                                              R_D / 2.0,
+                                              Utility::string_to_enum<ElemType>(elem_type));
+        }
         solid_mesh.prepare_for_use();
 
         BoundaryMesh boundary_mesh(solid_mesh.comm(), solid_mesh.mesh_dimension() - 1);
@@ -243,7 +249,8 @@ main(int argc, char* argv[])
                                               navier_stokes_integrator);
         tbox::Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
+            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         tbox::Pointer<StandardTagAndInitialize<NDIM> > error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
@@ -257,7 +264,7 @@ main(int argc, char* argv[])
                                         error_detector,
                                         box_generator,
                                         load_balancer);
-          
+
         // Configure the IBFE solver.
         TetherData tether_data(input_db);
         void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
@@ -267,21 +274,17 @@ main(int argc, char* argv[])
 
         vector<SystemData> sys_data(1, SystemData(IIMethod::VELOCITY_SYSTEM_NAME, vars));
         tbox::Pointer<IIMethod> ibfe_ops = ib_ops;
-        
-        // Whether to use discontinuous basis functions with element-local support  
-        // We ask this before initializing the FE equation system                               
+
+        // Whether to use discontinuous basis functions with element-local support
+        // We ask this before initializing the FE equation system
         const bool USE_DISCON_ELEMS = input_db->getBool("USE_DISCON_ELEMS");
-		if (USE_DISCON_ELEMS)
-			ibfe_ops->registerDisconElemFamilyForJumps();
-			
-			
+        if (USE_DISCON_ELEMS) ibfe_ops->registerDisconElemFamilyForJumps();
+
         ibfe_ops->initializeFEEquationSystems();
         equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
         IIMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data, tether_data_ptr);
         ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
 
-
-			
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {

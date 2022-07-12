@@ -11,16 +11,16 @@
 //
 // ---------------------------------------------------------------------
 
-#include "FeedbackForcer.h"
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <tbox/Utilities.h>
 
-// SAMRAI INCLUDES
 #include <CartesianGridGeometry.h>
 #include <CartesianPatchGeometry.h>
 #include <SideData.h>
-#include <tbox/Utilities.h>
+
+// Application includes
+#include "FeedbackForcer.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -28,16 +28,17 @@
 
 namespace
 {
-inline double smooth_kernel(const double r)
+inline double
+smooth_kernel(const double r)
 {
     return std::abs(r) < 1.0 ? 0.5 * (cos(M_PI * r) + 1.0) : 0.0;
 } // smooth_kernel
-}
+} // namespace
 
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FeedbackForcer::FeedbackForcer(const double center1,
-							   const double center2,
+                               const double center2,
                                const double diameter,
                                const INSHierarchyIntegrator* fluid_solver,
                                const Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
@@ -53,7 +54,8 @@ FeedbackForcer::~FeedbackForcer()
     return;
 } // ~FeedbackForcer
 
-bool FeedbackForcer::isTimeDependent() const
+bool
+FeedbackForcer::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
@@ -139,7 +141,7 @@ FeedbackForcer::setDataOnPatch(const int data_idx,
                         const double XC1 = d_XC1;
                         const double XC2 = d_XC2;
                         const double D = d_D;
-                        if ((sqrt((X[0]- XC1)*(X[0]- XC1)) < D/2) || sqrt((X[0]- XC2)*(X[0]- XC2)) < D/2)
+                        if ((sqrt((X[0] - XC1) * (X[0] - XC1)) < D / 2) || sqrt((X[0] - XC2) * (X[0] - XC2)) < D / 2)
                         {
                             fac = 0.0;
                         }
