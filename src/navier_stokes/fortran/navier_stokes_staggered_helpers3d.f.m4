@@ -2138,6 +2138,100 @@ c
       return
       end
 c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes pointwise error of mass conservation equation
+c     E = Rnew - Rold / dt + div[rhalf*u]
+c     E is a pointwise error.
+c     Rnew,Rold are cell-centered density fields from different RK stages
+c     rhalf is the face-centered interpolation of Rold
+c     u is the face-centered advection velocity
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine vc_mass_conservation_error3d(
+     &     dx,dt,
+     &     ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2,
+     &     nRnewgc0,nRnewgc1,nRnewgc2,
+     &     Rnew,
+     &     nRoldgc0,nRoldgc1,nRoldgc2,
+     &     Rold,
+     &     nugc0,nugc1,nugc2,
+     &     u0,u1,u2,
+     &     nrhalfgc0,nrhalfgc1,nrhalfgc2,
+     &     rhalf0,rhalf1,rhalf2,
+     &     nEgc0,nEgc1,nEgc2,
+     &     E)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ifirst0,ilast0,ifirst1,ilast1,ifirst2,ilast2
+
+      INTEGER nRnewgc0,nRnewgc1,nRnewgc2
+      INTEGER nRoldgc0,nRoldgc1,nRoldgc2
+      INTEGER nugc0,nugc1,nugc2
+      INTEGER nrhalfgc0,nrhalfgc1,nrhalfgc2
+      INTEGER nEgc0,nEgc1,nEgc2
+
+      REAL dx(0:NDIM-1),dt,a0,a1,a2
+
+      REAL Rnew(CELL3dVECG(ifirst,ilast,nRnewgc))
+      REAL Rold(CELL3dVECG(ifirst,ilast,nRoldgc))
+      REAL u0(FACE3d0VECG(ifirst,ilast,nugc))
+      REAL u1(FACE3d1VECG(ifirst,ilast,nugc))
+      REAL u2(FACE3d2VECG(ifirst,ilast,nugc))
+      REAL rhalf0(FACE3d0VECG(ifirst,ilast,nrhalfgc))
+      REAL rhalf1(FACE3d1VECG(ifirst,ilast,nrhalfgc))
+      REAL rhalf2(FACE3d2VECG(ifirst,ilast,nrhalfgc))
+c
+c     Input/Output.
+c
+      REAL E(CELL3dVECG(ifirst,ilast,nEgc))
+c
+c     Local variables.
+c
+      INTEGER ic0,ic1,ic2
+      REAL Px0,Px1,Px2
+c
+c     Compute E = Rnew - Rold / dt + (div[r_fc*u]).
+c
+      do ic2 = ifirst2,ilast2
+        do ic1 = ifirst1,ilast1
+          do ic0 = ifirst0,ilast0
+              Px0 = (rhalf0(ic0+1,ic1,ic2)*u0(ic0+1,ic1,ic2) -
+     &               rhalf0(ic0,ic1,ic2)*u0(ic0,ic1,ic2))/dx(0)
+              E(ic0,ic1,ic2) = (Rnew(ic0, ic1, ic2) -
+     &                  Rold(ic0, ic1, ic2))/dt + Px0
+          enddo
+        enddo
+      enddo
+
+      do ic0 = ifirst0,ilast0
+        do ic2 = ifirst2,ilast2
+          do ic1 = ifirst1,ilast1
+              Px1 = (rhalf1(ic1+1,ic2,ic0)*u1(ic1+1,ic2,ic0) -
+     &               rhalf1(ic1,ic2,ic0)*u1(ic1,ic2,ic0))/dx(1)
+              E(ic0,ic1,ic2) = E(ic0,ic1,ic2) + Px1
+          enddo
+        enddo
+      enddo
+
+      do ic1 = ifirst1,ilast1
+        do ic0 = ifirst0,ilast0
+          do ic2 = ifirst2,ilast2
+              Px2 = (rhalf2(ic2+1,ic0,ic1)*u2(ic2+1,ic0,ic1) -
+     &               rhalf2(ic2,ic0,ic1)*u2(ic2,ic0,ic1))/dx(2)
+              E(ic0,ic1,ic2) = E(ic0,ic1,ic2) + Px2
+          enddo
+        enddo
+      enddo
+
+c
+      return
+      end
+c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Convert a side-centered vector field into a face-centered vector

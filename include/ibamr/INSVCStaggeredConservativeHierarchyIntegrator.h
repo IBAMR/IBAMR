@@ -20,8 +20,8 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/MassIntegrator.h"
 
 #include <string>
 #include <vector>
@@ -292,7 +292,9 @@ private:
     /*
      * Conservative density and momentum integrator.
      */
-    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator> d_rho_p_integrator;
+    SAMRAI::tbox::Pointer<IBAMR::MassIntegrator> d_rho_p_integrator;
+
+    std::ofstream d_stokes_iteration_timestep;
 };
 } // namespace IBAMR
 
