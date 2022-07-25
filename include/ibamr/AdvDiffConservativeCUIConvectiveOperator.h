@@ -90,7 +90,8 @@ public:
                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q2_var,
                                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                              ConvectiveDifferencingType difference_form,
-                                             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
+                                             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q1_bc_coefs,
+                                             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q2_bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -196,7 +197,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg2;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy2;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds2;
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_Q1_bc_coefs, d_Q2_bc_coefs;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.

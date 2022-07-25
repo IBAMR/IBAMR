@@ -214,7 +214,6 @@ static Timer* t_apply;
 static Timer* t_initialize_operator_state;
 static Timer* t_deallocate_operator_state;
 } // namespace
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffConservativeCUIConvectiveOperator::AdvDiffConservativeCUIConvectiveOperator(
@@ -223,8 +222,13 @@ AdvDiffConservativeCUIConvectiveOperator::AdvDiffConservativeCUIConvectiveOperat
     Pointer<CellVariable<NDIM, double> > Q2_var,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
-    : ConvectiveOperator(std::move(object_name), difference_form), d_bc_coefs(std::move(bc_coefs)), d_Q1_var(Q1_var)
+    std::vector<RobinBcCoefStrategy<NDIM>*> Q1_bc_coefs,
+    std::vector<RobinBcCoefStrategy<NDIM>*> Q2_bc_coefs)
+    : ConvectiveOperator(std::move(object_name), difference_form),
+      d_Q1_var(Q1_var),
+      d_Q2_var(Q2_var),
+      d_Q1_bc_coefs(std::move(Q1_bc_coefs)),
+      d_Q2_bc_coefs(std::move(Q2_bc_coefs))
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -277,17 +281,11 @@ AdvDiffConservativeCUIConvectiveOperator::AdvDiffConservativeCUIConvectiveOperat
     TBOX_ASSERT(d_q_extrap_idx >= 0);
 #endif
 
-    //    const std::string q1_extrap_var_name = d_object_name + "::q1_extrap";
-    //    d_q1_extrap_var = new FaceVariable<NDIM, double>(q1_extrap_var_name, d_Q1_data_depth);
-    //    d_q1_extrap_idx = var_db->registerVariableAndContext(d_q1_extrap_var, context, IntVector<NDIM>(0));
     d_q1_extrap_idx = var_db->registerClonedPatchDataIndex(d_q_extrap_var, d_q_extrap_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_q1_extrap_idx >= 0);
 #endif
 
-    //    const std::string q2_extrap_var_name = d_object_name + "::q2_extrap";
-    //    d_q2_extrap_var = new FaceVariable<NDIM, double>(q2_extrap_var_name, d_Q2_data_depth);
-    //    d_q2_extrap_idx = var_db->registerVariableAndContext(d_q2_extrap_var, context, IntVector<NDIM>(0));
     d_q2_extrap_idx = var_db->registerClonedPatchDataIndex(d_q_extrap_var, d_q_extrap_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_q2_extrap_idx >= 0);
@@ -436,7 +434,7 @@ AdvDiffConservativeCUIConvectiveOperator::applyConvectiveOperator(const int Q1_i
                 Q1_data,
                 u_ADV_data,
                 patch,
-                d_bc_coefs,
+                d_Q1_bc_coefs,
                 d_solution_time,
                 /*inflow_boundary_only*/ d_outflow_bdry_extrap_type != "NONE",
                 d_homogeneous_bc);
@@ -446,7 +444,7 @@ AdvDiffConservativeCUIConvectiveOperator::applyConvectiveOperator(const int Q1_i
                 Q2_data,
                 u_ADV_data,
                 patch,
-                d_bc_coefs,
+                d_Q2_bc_coefs,
                 d_solution_time,
                 /*inflow_boundary_only*/ d_outflow_bdry_extrap_type != "NONE",
                 d_homogeneous_bc);

@@ -185,7 +185,7 @@ public:
     void registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx);
 
     /*!
-     * \brief Function to compute the variable surface tension  coefficient.
+     * \brief Function to compute the variable surface tension coefficient.
      */
     using ComputeSurfaceTensionCoefficientPtr = void (*)(int F_idx,
                                                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
