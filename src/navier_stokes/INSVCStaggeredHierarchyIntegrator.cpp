@@ -823,16 +823,10 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         d_F_scratch_idx = invalid_index;
     }
 
-    if (d_Q_fcn)
+    if (d_compute_continuity_source_fcns.size() > 0)
     {
-        registerVariable(d_Q_current_idx,
-                         d_Q_new_idx,
-                         d_Q_scratch_idx,
-                         d_Q_var,
-                         cell_ghosts,
-                         d_Q_coarsen_type,
-                         d_Q_refine_type,
-                         d_Q_fcn);
+        registerVariable(
+            d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx, d_Q_var, cell_ghosts, d_Q_coarsen_type, d_Q_refine_type);
     }
     else
     {
@@ -983,7 +977,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             }
         }
 
-        if (d_Q_fcn && d_output_Q)
+        if (d_compute_continuity_source_fcns.size() > 0 && d_output_Q)
         {
             d_visit_writer->registerPlotQuantity("Q", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
         }
@@ -1412,6 +1406,14 @@ INSVCStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidProp
 } // registerResetFluidViscosityFcn
 
 void
+INSVCStaggeredHierarchyIntegrator::registerContinuityEquationSourceFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+{
+    d_compute_continuity_source_fcns.push_back(callback);
+    d_compute_continuity_source_fcns_ctx.push_back(ctx);
+    return;
+} // registerContinuityEquationSourceFcn
+
+void
 INSVCStaggeredHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
     Pointer<BrinkmanPenalizationStrategy> brinkman_force)
 {
@@ -1803,7 +1805,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
 
-    if (d_Q_fcn)
+    if (d_compute_continuity_source_fcns.size() > 0)
     {
         InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
                                                          DATA_REFINE_TYPE,
