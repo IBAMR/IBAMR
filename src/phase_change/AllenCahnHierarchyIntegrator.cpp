@@ -265,9 +265,6 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
         d_visit_writer->registerPlotQuantity("zeta", "SCALAR", d_chemical_potential_idx);
     }
 
-    d_lf_pre_var = new CellVariable<NDIM, double>("lf_pre_var");
-    d_lf_pre_idx = var_db->registerVariableAndContext(d_lf_pre_var, getCurrentContext());
-
     d_grad_lf_var = new SideVariable<NDIM, double>(d_object_name + "::grad_lf");
     d_grad_lf_idx =
         var_db->registerVariableAndContext(d_grad_lf_var, var_db->getContext(d_object_name + "grad_lf::SCRATCH"));
@@ -322,7 +319,6 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         if (!level->checkAllocated(d_g_firstder_idx)) level->allocatePatchData(d_g_firstder_idx, current_time);
         if (!level->checkAllocated(d_g_secondder_idx)) level->allocatePatchData(d_g_secondder_idx, current_time);
         if (!level->checkAllocated(d_q_firstder_idx)) level->allocatePatchData(d_q_firstder_idx, current_time);
-        if (!level->checkAllocated(d_lf_pre_idx)) level->allocatePatchData(d_lf_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_lf_idx)) level->allocatePatchData(d_grad_lf_idx, current_time);
         if (!level->checkAllocated(d_H_sc_idx)) level->allocatePatchData(d_H_sc_idx, current_time);
     }
@@ -1179,7 +1175,6 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
         level->deallocatePatchData(d_g_firstder_idx);
         level->deallocatePatchData(d_g_secondder_idx);
         level->deallocatePatchData(d_q_firstder_idx);
-        level->deallocatePatchData(d_lf_pre_idx);
         level->deallocatePatchData(d_grad_lf_idx);
         level->deallocatePatchData(d_H_sc_idx);
         level->deallocatePatchData(d_H_pre_idx);
