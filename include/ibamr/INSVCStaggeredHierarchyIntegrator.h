@@ -276,6 +276,11 @@ public:
     void registerResetFluidViscosityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
 
     /*!
+     * \brief Register function to compute continuity equation source term.
+     */
+    void registerContinuityEquationSourceFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+
+    /*!
      * \brief Register BrinkmanPenalizationStrategy objects to add Brinkman penalization term
      * in the momentum equation.
      */
@@ -627,6 +632,12 @@ protected:
      */
     std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_mu_fcns;
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
+
+    /*!
+     * Functions to compute continuity equation RHS if they are maintained by this integrator.
+     */
+    std::vector<ResetFluidPropertiesFcnPtr> d_compute_continuity_source_fcns;
+    std::vector<void*> d_compute_continuity_source_fcns_ctx;
 
     /*!
      * Brinkman force strategy objects registered with this integrator.

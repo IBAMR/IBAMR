@@ -1076,6 +1076,24 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
     }
 
     // Setup the right-hand-side vector for the projection-Poisson solve.
+    if (d_compute_continuity_source_fcns.size() > 0)
+    {
+        const double apply_time = d_integrator_time;
+        const double current_time = d_integrator_time;
+        const double new_time = d_integrator_time;
+        for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
+        {
+            d_compute_continuity_source_fcns[k](d_Q_current_idx,
+                                                d_Q_var,
+                                                d_hier_math_ops,
+                                                -1 /*cycle_num*/,
+                                                apply_time,
+                                                current_time,
+                                                new_time,
+                                                d_compute_continuity_source_fcns_ctx[k]);
+        }
+    }
+
     d_hier_math_ops->div(d_Div_U_idx,
                          d_Div_U_var,
                          -1.0,
@@ -1439,6 +1457,26 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
+    // Account for continuity equation source term.
+    if (d_compute_continuity_source_fcns.size() > 0)
+    {
+        const double apply_time = current_time;
+        for (unsigned k = 0; k < d_compute_continuity_source_fcns.size(); ++k)
+        {
+            d_compute_continuity_source_fcns[k](d_Q_new_idx,
+                                                d_Q_var,
+                                                d_hier_math_ops,
+                                                -1 /*cycle_num*/,
+                                                apply_time,
+                                                current_time,
+                                                new_time,
+                                                d_compute_continuity_source_fcns_ctx[k]);
+        }
+
+        d_hier_cc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
+    }
+
     // Add Brinkman penalized velocity term.
     d_hier_sc_data_ops->add(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
@@ -1540,6 +1578,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     }
     d_hier_sc_data_ops->subtract(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
+
+    // Reset the right-hand side vector of continuity equation.
+    if (d_compute_continuity_source_fcns.size() > 0)
+        d_hier_cc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
 
     if (d_Q_fcn)
     {
