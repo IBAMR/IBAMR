@@ -158,49 +158,6 @@ public:
     void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* h_bc_coef);
 
     /*!
-     * \brief Function to reset the liquid fraction (fl) if they are
-     * maintained by this integrator.
-     */
-    using ResetLiquidFractionFcnPtr = void (*)(int lf_idx,
-                                               int lf_inverse_idx,
-                                               int dlf_dT_idx,
-                                               int T_idx,
-                                               int H_idx,
-                                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                               int cycle_num,
-                                               double time,
-                                               double current_time,
-                                               double new_time,
-                                               void* ctx);
-
-    /*!
-     * \brief Function to reset the dF/dT if they are
-     * maintained by this integrator.
-     */
-    using ResetLiquidFractionDerivativeFcnPtr = void (*)(double& dlf_dT_data, const double lf_data, void* ctx);
-
-    /*!
-     * \brief Function to reset the dF/dT if they are
-     * maintained by this integrator.
-     */
-    using ResetLiquidFractionInverseFcnPtr = void (*)(double& lf_inverse_data, const double lf_data, void* ctx);
-
-    /*!
-     * \brief Register function to reset fluid viscosity.
-     */
-    void registerResetLiquidFractionFcn(ResetLiquidFractionFcnPtr callback, void* ctx);
-
-    /*!
-     * \brief Register function to reset fluid viscosity.
-     */
-    void registerResetLiquidFractionDerivativeFcn(ResetLiquidFractionDerivativeFcnPtr callback, void* ctx);
-
-    /*!
-     * \brief Register function to reset fluid viscosity.
-     */
-    void registerResetLiquidFractionInverseFcn(ResetLiquidFractionInverseFcnPtr callback, void* ctx);
-
-    /*!
      * Write out specialized object state to the given database.
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
@@ -293,27 +250,11 @@ private:
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_h_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_material_derivative_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_T_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_pre_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dh_dT_var;
 
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_h_bc_coef = nullptr;
-
-    /*!
-     * Solvers and related data.
-     */
-
-    std::vector<ResetLiquidFractionFcnPtr> d_reset_liquid_fraction_fcns;
-    std::vector<void*> d_reset_liquid_fraction_fcns_ctx;
-
-    std::vector<ResetLiquidFractionDerivativeFcnPtr> d_reset_dlf_dT_fcns;
-    std::vector<void*> d_reset_dlf_dT_fcns_ctx;
-
-    std::vector<ResetLiquidFractionInverseFcnPtr> d_reset_lf_inverse_fcns;
-    std::vector<void*> d_reset_lf_inverse_fcns_ctx;
-
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef;
 
     /*!
      * Patch data descriptor indices for all "state" variables managed by the
@@ -336,7 +277,7 @@ private:
     /*!
      * Energy equation parameters.
      */
-    double d_liquidus_temperature, d_solidus_temperature, d_rho_solid, d_cp_liquid, d_cp_solid, d_cp_gas;
+    double d_liquidus_temperature, d_solidus_temperature, d_rho_solid, d_Cp_liquid, d_Cp_solid, d_Cp_gas;
 
     /*!
      * Inner iteration parameters.
