@@ -392,6 +392,9 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     d_H_pre_var = new CellVariable<NDIM, double>("H::pre");
     d_H_pre_idx = var_db->registerVariableAndContext(d_H_pre_var, getCurrentContext(), no_ghosts);
 
+    d_lf_pre_var = new CellVariable<NDIM, double>("lf_pre_var");
+    d_lf_pre_idx = var_db->registerVariableAndContext(d_lf_pre_var, getCurrentContext());
+
     d_T_temp_rhs_var = new CellVariable<NDIM, double>(d_T_var->getName() + "::temp_rhs");
     d_T_temp_rhs_idx = var_db->registerVariableAndContext(d_T_temp_rhs_var, getCurrentContext(), no_ghosts);
 
@@ -517,6 +520,7 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
         if (!level->checkAllocated(d_T_C_idx)) level->allocatePatchData(d_T_C_idx, current_time);
         if (!level->checkAllocated(d_T_temp_rhs_idx)) level->allocatePatchData(d_T_temp_rhs_idx, current_time);
         if (!level->checkAllocated(d_H_pre_idx)) level->allocatePatchData(d_H_pre_idx, current_time);
+        if (!level->checkAllocated(d_lf_pre_idx)) level->allocatePatchData(d_lf_pre_idx, current_time);
     }
     const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
     const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
@@ -604,6 +608,7 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
         level->deallocatePatchData(d_T_C_idx);
         level->deallocatePatchData(d_T_temp_rhs_idx);
         level->deallocatePatchData(d_H_pre_idx);
+        level->deallocatePatchData(d_lf_pre_idx);
     }
 
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
