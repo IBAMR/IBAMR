@@ -271,8 +271,6 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const double* const patch_dx = patch_geom->getDx();
-
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
                 const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
@@ -360,8 +358,6 @@ SetFluidProperties::setDiffusionCoefficientPatchData(int D_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
             const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
@@ -433,10 +429,7 @@ SetFluidProperties::setSpecificHeatPatchData(int Cp_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double* patch_X_lower = patch_geom->getXLower();
             const Box<NDIM>& patch_box = patch->getBox();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
 
             Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
@@ -508,10 +501,7 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double* patch_X_lower = patch_geom->getXLower();
             const Box<NDIM>& patch_box = patch->getBox();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
 
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
             Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);

@@ -163,6 +163,7 @@ main(int argc, char* argv[])
 
         Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = new EnthalpyHierarchyIntegrator(
             "EnthalpyHierarchyIntegrator", app_initializer->getComponentDatabase("EnthalpyHierarchyIntegrator"));
+        time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
