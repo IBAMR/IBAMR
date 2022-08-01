@@ -148,11 +148,6 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int cycle
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* patch_dx = patch_geom->getDx();
-        double vol_cell = 1.0;
-        for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-        const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
         Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
         Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
@@ -240,11 +235,6 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-        const double* patch_dx = patch_geom->getDx();
-        double vol_cell = 1.0;
-        for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-        const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
         Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
         Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
