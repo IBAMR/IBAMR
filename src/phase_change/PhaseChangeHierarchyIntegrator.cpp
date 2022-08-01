@@ -462,8 +462,8 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     d_updated_rho_var = new CellVariable<NDIM, double>(d_object_name + "::updated_rho");
     registerVariable(d_updated_rho_idx, d_updated_rho_var, no_ghosts, getCurrentContext());
 
-    d_div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::div_U_F_var");
-    registerVariable(d_div_U_F_idx, d_div_U_F_var, no_ghosts, getCurrentContext());
+    d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F_var");
+    registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());
 
     // Register variables for plotting.
     if (d_visit_writer)
@@ -794,10 +794,10 @@ PhaseChangeHierarchyIntegrator::getUpdatedDensityIndex()
 } // getUpdatedDensityIndex
 
 int
-PhaseChangeHierarchyIntegrator::getContinuityEquationSourceTermIndex()
+PhaseChangeHierarchyIntegrator::getDivergenceVelocitySourceTermIndex()
 {
-    return d_div_U_F_idx;
-} // getContinuityEquationSourceTermIndex
+    return d_Div_U_F_idx;
+} // getDivergenceVelocitySourceTermIndex
 
 void
 PhaseChangeHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>*& rho_bc_coef)
@@ -874,6 +874,7 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 
     db->putDouble("d_latent_heat", d_latent_heat);
     db->putDouble("d_rho_liquid", d_rho_liquid);
+    db->putDouble("d_rho_solid", d_rho_solid);
     db->putDouble("d_T_melt", d_T_melt);
     db->putBool("d_solve_mass_conservation", d_solve_mass_conservation);
 
@@ -1043,6 +1044,7 @@ PhaseChangeHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is
     {
         d_latent_heat = input_db->getDouble("latent_heat");
         d_rho_liquid = input_db->getDouble("rho_liquid");
+        d_rho_solid = input_db->getDouble("rho_solid");
         d_T_melt = input_db->getDouble("T_melt");
 
         if (input_db->keyExists("solve_mass_conservation"))
@@ -1117,6 +1119,7 @@ PhaseChangeHierarchyIntegrator::getFromRestart()
 
     d_latent_heat = db->getDouble("d_latent_heat");
     d_rho_liquid = db->getDouble("d_rho_liquid");
+    d_rho_solid = db->getDouble("d_rho_solid");
     d_T_melt = db->getDouble("d_T_melt");
     d_solve_mass_conservation = db->getBool("d_solve_mass_conservation");
 }

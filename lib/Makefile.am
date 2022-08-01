@@ -50,6 +50,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 ../src/IB/BrinkmanPenalizationStrategy.cpp \
+../src/IB/CarmanKozenyDragForce.cpp \
 ../src/IB/CIBMethod.cpp \
 ../src/IB/CIBMobilitySolver.cpp \
 ../src/IB/CIBSaddlePointSolver.cpp \
@@ -182,6 +183,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 ../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
 ../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+../src/phase_change/HeavisideForcingFunction.cpp \
+../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
 ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
 ../src/utilities/MassIntegrator.cpp \
@@ -241,6 +244,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/CIBStaggeredStokesOperator.h \
 ../include/ibamr/CIBStaggeredStokesSolver.h \
 ../include/ibamr/CIBStrategy.h \
+../include/ibamr/CarmanKozenyDragForce.h \
 ../include/ibamr/ConstraintIBKinematics.h \
 ../include/ibamr/ConstraintIBMethod.h \
 ../include/ibamr/ConvectiveOperator.h \
@@ -250,6 +254,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/FastSweepingLSMethod.h \
 ../include/ibamr/FifthOrderStokesWaveGenerator.h \
 ../include/ibamr/FirstOrderStokesWaveGenerator.h \
+../include/ibamr/HeavisideForcingFunction.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -317,6 +322,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/NonbondedForceEvaluator.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 ../include/ibamr/PenaltyIBMethod.h \
+../include/ibamr/PhaseChangeDivUSourceFunction.h \
 ../include/ibamr/PhaseChangeHierarchyIntegrator.h \
 ../include/ibamr/RelaxationLSBcCoefs.h \
 ../include/ibamr/RelaxationLSMethod.h \

@@ -218,9 +218,9 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
     d_lf_H_var = new CellVariable<NDIM, double>(d_object_name + "::lf_H");
     registerVariable(lf_H_scratch_idx, d_lf_H_var, cell_ghosts, getScratchContext());
 
-    int div_u_scratch_idx;
-    d_div_u_var = new CellVariable<NDIM, double>(d_object_name + "::div_u");
-    registerVariable(div_u_scratch_idx, d_div_u_var, no_ghosts, getScratchContext());
+    int Div_u_scratch_idx;
+    d_Div_u_var = new CellVariable<NDIM, double>(d_object_name + "::Div_u");
+    registerVariable(Div_u_scratch_idx, d_Div_u_var, no_ghosts, getScratchContext());
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_lf_C_var = new CellVariable<NDIM, double>(d_lf_var->getName() + "::C");
@@ -830,11 +830,11 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
 
     if (d_u_adv_var)
     {
-        // compute H \varphi div u.
-        int div_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_div_u_var, getScratchContext());
+        // compute H \varphi Div u.
+        int Div_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_Div_u_var, getScratchContext());
         const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getNewContext());
-        d_hier_math_ops->div(div_u_scratch_idx,
-                             d_div_u_var,
+        d_hier_math_ops->div(Div_u_scratch_idx,
+                             d_Div_u_var,
                              1.0,
                              u_new_idx,
                              d_u_adv_var,
@@ -843,8 +843,8 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
                              /*synch_cf_bdry*/ false);
 
         d_hier_cc_data_ops->multiply(lf_H_scratch_idx, lf_new_idx, H_new_idx);
-        d_hier_cc_data_ops->multiply(div_u_scratch_idx, lf_H_scratch_idx, div_u_scratch_idx);
-        d_hier_cc_data_ops->axpy(lf_F_scratch_idx, +1.0, div_u_scratch_idx, lf_F_scratch_idx);
+        d_hier_cc_data_ops->multiply(Div_u_scratch_idx, lf_H_scratch_idx, Div_u_scratch_idx);
+        d_hier_cc_data_ops->axpy(lf_F_scratch_idx, +1.0, Div_u_scratch_idx, lf_F_scratch_idx);
     }
     d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +1.0, lf_F_scratch_idx, lf_rhs_scratch_idx);
 
@@ -895,15 +895,11 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
 
     if (d_solve_energy)
     {
-        int rho_new_idx, rho_scratch_idx, rho_current_idx;
-        rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
-        rho_scratch_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getScratchContext());
-        rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
+        const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
+        const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
 
-        int Cp_new_idx, Cp_scratch_idx, Cp_current_idx;
-        Cp_new_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getNewContext());
-        Cp_scratch_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getScratchContext());
-        Cp_current_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getCurrentContext());
+        const int Cp_new_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getNewContext());
+        const int Cp_current_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getCurrentContext());
 
         const int T_current_idx = var_db->mapVariableAndContextToIndex(d_T_var, getCurrentContext());
         const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
@@ -1127,8 +1123,8 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
                  << "::integrateHierarchy():WARNING: linear solver iterations == max iterations\n";
         }
 
-        // Compute chemical potential using lf^n+1.
-        computeChemicalPotential(d_chemical_potential_idx, d_H_sc_idx, new_time);
+        // Compute the source term for a Div U equation
+        ComputeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
 
         // Reset the right-hand side vector.
         if (d_u_adv_var)
@@ -1356,6 +1352,128 @@ AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     return;
 } // putToDatabaseSpecialized
 
+void
+AllenCahnHierarchyIntegrator::computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
+    int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
+            Pointer<CellData<NDIM, double> > H_new_data = patch->getPatchData(H_new_idx);
+            Pointer<CellData<NDIM, double> > lf_current_data = patch->getPatchData(d_lf_current_idx);
+            Pointer<CellData<NDIM, double> > H_current_data = patch->getPatchData(H_current_idx);
+            Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                (*F_data)(ci) +=
+                    -d_rho_liquid * d_latent_heat *
+                    ((((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) /
+                     dt);
+            }
+        }
+    }
+    return;
+} // computeEnergyEquationSourceTerm
+
+void
+AllenCahnHierarchyIntegrator::ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
+    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
+    const int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
+    const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
+    const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
+
+    // Filling ghost cells for liquid fraction.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
+    lf_transaction_comps[0] = InterpolationTransactionComponent(lf_scratch_idx,
+                                                                lf_new_idx,
+                                                                "CONSERVATIVE_LINEAR_REFINE",
+                                                                false,
+                                                                "CONSERVATIVE_COARSEN",
+                                                                "LINEAR",
+                                                                false,
+                                                                d_lf_bc_coef);
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_bdry_fill->initializeOperatorState(lf_transaction_comps, d_hierarchy);
+    hier_bdry_fill->fillData(new_time);
+
+    // perform gradient of liquid fraction.
+    d_hier_math_ops->grad(d_grad_lf_idx, d_grad_lf_var, true, 1.0, lf_scratch_idx, d_lf_var, nullptr, new_time);
+
+    // compute H*grad_lf.
+    d_hier_sc_data_ops->multiply(d_grad_lf_idx, d_grad_lf_idx, d_H_sc_idx);
+
+    // compute div(H*grad_lf).
+    d_hier_math_ops->div(d_chemical_potential_idx,
+                         d_chemical_potential_var,
+                         1.0,
+                         d_grad_lf_idx,
+                         d_grad_lf_var,
+                         nullptr,
+                         new_time,
+                         false);
+
+    // update q' and g'.
+    computeInterpolationFunction(d_q_firstder_idx, lf_new_idx, T_new_idx);
+    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_new_idx);
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_new_idx);
+            Pointer<CellData<NDIM, double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
+            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
+            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_new_idx);
+            Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
+            Pointer<CellData<NDIM, double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
+            Pointer<CellData<NDIM, double> > chemical_potential_data = patch->getPatchData(d_chemical_potential_idx);
+            Pointer<CellData<NDIM, double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                double F = d_rho_liquid * d_latent_heat * (*H_data)(ci) * (*q_firstder_data)(ci) *
+                           (d_T_melt - (*T_data)(ci)) / d_T_melt;
+
+                // g' is linearized while solving AC eqn. But for Div U eqn, it is computed based on
+                // varphi^n+1,m+1.
+                (*chemical_potential_data)(ci) =
+                    -d_lambda_lf * (*chemical_potential_data)(ci) +
+                    (d_lambda_lf * (*H_data)(ci) / std::pow(d_eps_lf, 2.0) * (*g_firstder_data)(ci)) + F;
+
+                // Div_U_F = M_lf * zeta_lf * (rho_liquid - rho_solid) / rho
+                (*Div_U_F_data)(ci) =
+                    d_M_lf * (*chemical_potential_data)(ci) * (d_rho_liquid - d_rho_solid) / (*rho_data)(ci);
+            }
+        }
+    }
+
+    return;
+} // ComputeDivergenceVelocitySourceTerm
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -1550,118 +1668,6 @@ AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx,
     }
     return;
 } // computeLiquidFractionSourceTerm
-
-void
-AllenCahnHierarchyIntegrator::computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
-    int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
-            Pointer<CellData<NDIM, double> > H_new_data = patch->getPatchData(H_new_idx);
-            Pointer<CellData<NDIM, double> > lf_current_data = patch->getPatchData(d_lf_current_idx);
-            Pointer<CellData<NDIM, double> > H_current_data = patch->getPatchData(H_current_idx);
-            Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
-
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-
-                (*F_data)(ci) +=
-                    -d_rho_liquid * d_latent_heat *
-                    ((((*H_new_data)(ci) * (*lf_new_data)(ci)) - ((*H_current_data)(ci) * (*lf_current_data)(ci))) /
-                     dt);
-            }
-        }
-    }
-    return;
-} // computeEnergyEquationSourceTerm
-
-void
-AllenCahnHierarchyIntegrator::computeChemicalPotential(int chemical_potential_idx,
-                                                       const int H_sc_idx,
-                                                       const double new_time)
-{
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
-    int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
-    int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
-    int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
-
-    // Filling ghost cells for liquid fraction.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
-    lf_transaction_comps[0] = InterpolationTransactionComponent(lf_scratch_idx,
-                                                                lf_new_idx,
-                                                                "CONSERVATIVE_LINEAR_REFINE",
-                                                                false,
-                                                                "CONSERVATIVE_COARSEN",
-                                                                "LINEAR",
-                                                                false,
-                                                                d_lf_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(lf_transaction_comps, d_hierarchy);
-    hier_bdry_fill->fillData(new_time);
-
-    // perform gradient of liquid fraction.
-    d_hier_math_ops->grad(d_grad_lf_idx, d_grad_lf_var, true, 1.0, lf_scratch_idx, d_lf_var, nullptr, new_time);
-
-    // compute H*grad_lf.
-    d_hier_sc_data_ops->multiply(d_grad_lf_idx, d_grad_lf_idx, H_sc_idx);
-
-    // compute div(H*grad_lf).
-    d_hier_math_ops->div(
-        chemical_potential_idx, d_chemical_potential_var, 1.0, d_grad_lf_idx, d_grad_lf_var, nullptr, new_time, false);
-
-    // update p' and g'.
-    // Directly using p' calculated using var_phi^n+1,m and g'.
-    computeInterpolationFunction(d_q_firstder_idx, lf_new_idx, T_new_idx);
-    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_new_idx);
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_new_idx);
-            Pointer<CellData<NDIM, double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
-            Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
-            Pointer<CellData<NDIM, double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
-            Pointer<CellData<NDIM, double> > chemical_potential_data = patch->getPatchData(chemical_potential_idx);
-
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-
-                double F = d_rho_liquid * d_latent_heat * (*H_data)(ci) * (*q_firstder_data)(ci) *
-                           (d_T_melt - (*T_data)(ci)) / d_T_melt;
-
-                // g' is linearized while solving AC eqn. But in continuity eqn, it is computed based on
-                // varphi^n+1,m+1.
-                (*chemical_potential_data)(ci) =
-                    -d_lambda_lf * (*chemical_potential_data)(ci) +
-                    (d_lambda_lf * (*H_data)(ci) / std::pow(d_eps_lf, 2.0) * (*g_firstder_data)(ci)) + F;
-            }
-        }
-    }
-
-    return;
-} // computeChemicalPotential
 
 void
 AllenCahnHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)

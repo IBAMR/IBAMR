@@ -275,9 +275,14 @@ public:
     int getUpdatedDensityIndex();
 
     /*!
-     * Get the continuity equation source term patch data index.
+     * Get the source term patch data index for the Div U equation.
      */
-    int getContinuityEquationSourceTermIndex();
+    int getDivergenceVelocitySourceTermIndex();
+
+    /*!
+     * Compute the source term for the Div U equation.
+     */
+    virtual void ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) = 0;
 
     /*
      * \brief Supply boundary conditions for the cell-centered density field.
@@ -355,7 +360,7 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var, d_H_pre_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_D_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_updated_rho_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_U_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_adv_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_old_var;
 
@@ -464,12 +469,12 @@ protected:
     int d_lf_pre_idx = IBTK::invalid_index, d_H_pre_idx = IBTK::invalid_index;
     int d_C_rhs_scratch_idx = IBTK::invalid_index;
     int d_updated_rho_idx = IBTK::invalid_index;
-    int d_div_U_F_idx = IBTK::invalid_index;
+    int d_Div_U_F_idx = IBTK::invalid_index;
 
     /*!
      * Phase change parameters.
      */
-    double d_rho_liquid, d_T_melt, d_latent_heat;
+    double d_rho_liquid, d_rho_solid, d_T_melt, d_latent_heat;
 
     /*!
      * Variable to indicate the type of interpolation to be done for conductivity.

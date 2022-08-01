@@ -156,6 +156,11 @@ public:
     void computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt) override;
 
     /*!
+     * Compute the source term for the Div U equation.
+     */
+    void ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) override;
+
+    /*!
      * Set an object to provide boundary conditions for  \f$ \varphi \f$ variable,
      * that has been registered with the hierarchy integrator.
      */
@@ -251,12 +256,6 @@ private:
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
 
     /*!
-     * Compute the chemical potential of the Allen-Cahn equation using updated liquid fraction value at
-     * the cell-centers.
-     */
-    void computeChemicalPotential(int chemical_potential_idx, const int H_new_idx, const double new_time);
-
-    /*!
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_F_var;
@@ -272,7 +271,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_q_firstder_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_u_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
 
     /*!
@@ -325,8 +324,7 @@ private:
     int d_g_firstder_idx = IBTK::invalid_index, d_g_secondder_idx = IBTK::invalid_index,
         d_q_firstder_idx = IBTK::invalid_index;
     int d_chemical_potential_idx = IBTK::invalid_index, d_grad_lf_idx = IBTK::invalid_index;
-    int d_lf_sc_idx = IBTK::invalid_index;
-    int d_H_sc_idx = IBTK::invalid_index, d_M_idx = IBTK::invalid_index;
+    int d_H_sc_idx = IBTK::invalid_index;
     int d_T_lf_N_scratch_idx = IBTK::invalid_index;
 
     /*!

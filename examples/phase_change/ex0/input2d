@@ -1,7 +1,7 @@
 // constants
 PI = 3.1415926535897932
 
-// surface tension parameters
+// parameters
 RHO_L = 2475.0
 RHO_S = 2475.0
 KAPPA_L = 91.0
@@ -149,7 +149,7 @@ SOLVE_MASS_CONSERVATION = FALSE
 
 // AdvDiff solver parameters
 ADV_DIFF_SOLVER_TYPE        = "SEMI_IMPLICIT"   // the advection-diffusion solver to use
-ADV_DIFF_NUM_CYCLES         = 10                // number of cycles of fixed-point iteration
+ADV_DIFF_NUM_CYCLES         = 2                // number of cycles of fixed-point iteration
 ADV_DIFF_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // convective time stepping type
 ADV_DIFF_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
