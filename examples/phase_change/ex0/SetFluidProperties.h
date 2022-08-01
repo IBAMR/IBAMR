@@ -94,9 +94,9 @@ public:
      * The only constructor of this class.
      */
     SetFluidProperties(const std::string& object_name,
-                       SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
-                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef,
+                       const SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                       const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+                       const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef,
                        const double rho_liquid,
                        const double rho_solid,
                        const double kappa_liquid,
@@ -169,9 +169,10 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
-     * Liquid fraction variable
+     * Liquid fraction variable and its boundary condition pointer.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
 
     /*!
      * Density.
@@ -197,8 +198,6 @@ private:
      * Number of interface cells over which to smooth the material properties
      */
     double d_num_interface_cells;
-
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
 }; // SetFluidProperties
 
 #endif // #ifndef included_SetFluidProperties

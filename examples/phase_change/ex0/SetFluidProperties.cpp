@@ -35,8 +35,8 @@ callSetLiquidSolidDensityCallbackFunction(int rho_idx,
                                           void* ctx)
 {
     // Set the density from the level set information
-    static SetFluidProperties* ptr_SetFluidGasSolidDensity = static_cast<SetFluidProperties*>(ctx);
-    ptr_SetFluidGasSolidDensity->setDensityPatchData(
+    static SetFluidProperties* ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
+    ptr_SetFluidProperties->setDensityPatchData(
         rho_idx, rho_var, hier_math_ops, cycle_num, time, current_time, new_time);
 
     return;
@@ -83,9 +83,9 @@ callSetLiquidSolidConductivityCallbackFunction(int D_idx,
 /////////////////////////////// PUBLIC //////////////////////////////////////
 
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
-                                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                       Pointer<CellVariable<NDIM, double> > lf_var,
-                                       RobinBcCoefStrategy<NDIM>* lf_bc_coef,
+                                       const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                       const Pointer<CellVariable<NDIM, double> > lf_var,
+                                       const RobinBcCoefStrategy<NDIM>* lf_bc_coef,
                                        const double rho_liquid,
                                        const double rho_solid,
                                        const double kappa_liquid,
@@ -185,8 +185,8 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(lf_scratch_idx, time);
         }
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> ls_transaction(1);
-        ls_transaction[0] =
+        std::vector<InterpolationTransactionComponent> lf_transaction(1);
+        lf_transaction[0] =
             InterpolationTransactionComponent(lf_scratch_idx,
                                               // InterpolationTransactionComponent ls_transaction(lf_scratch_idx,
                                               lf_idx,
@@ -198,7 +198,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                                               lf_bc_coef);
 
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(ls_transaction, patch_hierarchy);
+        hier_bdry_fill->initializeOperatorState(lf_transaction, patch_hierarchy);
         hier_bdry_fill->fillData(time);
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

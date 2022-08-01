@@ -2175,7 +2175,7 @@ c
       INTEGER nrhalfgc0,nrhalfgc1,nrhalfgc2
       INTEGER nEgc0,nEgc1,nEgc2
 
-      REAL dx(0:NDIM-1),dt,a0,a1,a2
+      REAL dx(0:NDIM-1),dt
 
       REAL Rnew(CELL3dVECG(ifirst,ilast,nRnewgc))
       REAL Rold(CELL3dVECG(ifirst,ilast,nRoldgc))
