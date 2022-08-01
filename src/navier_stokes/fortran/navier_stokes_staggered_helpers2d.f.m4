@@ -1364,7 +1364,7 @@ c
       INTEGER nrhalfgc0,nrhalfgc1
       INTEGER nEgc0,nEgc1
 
-      REAL dx(0:NDIM-1),dt,a0,a1,a2
+      REAL dx(0:NDIM-1),dt
 
       REAL Rnew(CELL2dVECG(ifirst,ilast,nRnewgc))
       REAL Rold(CELL2dVECG(ifirst,ilast,nRoldgc))

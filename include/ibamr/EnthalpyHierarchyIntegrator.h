@@ -152,6 +152,11 @@ public:
     void computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt) override;
 
     /*!
+     * Compute the source term for the Div U equation.
+     */
+    void ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) override;
+
+    /*!
      * Set an object to provide boundary conditions for \f$ h \f$ variable,
      * that has been registered with the hierarchy integrator.
      */
@@ -200,17 +205,6 @@ private:
      * members.
      */
     void getFromRestart();
-
-    /*!
-     * Compute the RHS of continuity equation.
-     */
-    void computeContinuitySourceTerm(int div_U_F_idx,
-                                     const int T_new_idx,
-                                     const int h_new_idx,
-                                     const int rho_new_idx,
-                                     const int T_diff_coef_idx,
-                                     const int H_new_idx,
-                                     const double new_time);
 
     /*!
      * compute liquid fraction.
@@ -277,13 +271,13 @@ private:
     /*!
      * Energy equation parameters.
      */
-    double d_liquidus_temperature, d_solidus_temperature, d_rho_solid, d_Cp_liquid, d_Cp_solid, d_Cp_gas;
+    double d_liquidus_temperature, d_solidus_temperature, d_Cp_liquid, d_Cp_solid, d_Cp_gas;
 
     /*!
      * Inner iteration parameters.
      */
-    int d_max_inner_iterations = 2, d_num_cycles;
-    double d_lf_iteration_error_tolerance = 1e-6;
+    int d_max_inner_iterations = 5;
+    double d_lf_iteration_error_tolerance = 1e-8;
 };
 } // namespace IBAMR
 

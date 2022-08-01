@@ -35,6 +35,7 @@
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/CartSideDoubleDivPreservingRefine.h"
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
@@ -823,10 +824,16 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
         d_F_scratch_idx = invalid_index;
     }
 
-    if (d_compute_continuity_source_fcns.size() > 0)
+    if (d_Q_fcn)
     {
-        registerVariable(
-            d_Q_current_idx, d_Q_new_idx, d_Q_scratch_idx, d_Q_var, cell_ghosts, d_Q_coarsen_type, d_Q_refine_type);
+        registerVariable(d_Q_current_idx,
+                         d_Q_new_idx,
+                         d_Q_scratch_idx,
+                         d_Q_var,
+                         cell_ghosts,
+                         d_Q_coarsen_type,
+                         d_Q_refine_type,
+                         d_Q_fcn);
     }
     else
     {
@@ -924,6 +931,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());
 
 // Register scratch variables that are maintained by the
 // INSVCStaggeredHierarchyIntegrator.
@@ -977,7 +985,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             }
         }
 
-        if (d_compute_continuity_source_fcns.size() > 0 && d_output_Q)
+        if (d_Q_fcn && d_output_Q)
         {
             d_visit_writer->registerPlotQuantity("Q", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
         }
@@ -1406,20 +1414,43 @@ INSVCStaggeredHierarchyIntegrator::registerResetFluidViscosityFcn(ResetFluidProp
 } // registerResetFluidViscosityFcn
 
 void
-INSVCStaggeredHierarchyIntegrator::registerContinuityEquationSourceFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
-{
-    d_compute_continuity_source_fcns.push_back(callback);
-    d_compute_continuity_source_fcns_ctx.push_back(ctx);
-    return;
-} // registerContinuityEquationSourceFcn
-
-void
 INSVCStaggeredHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
     Pointer<BrinkmanPenalizationStrategy> brinkman_force)
 {
     d_brinkman_force.push_back(brinkman_force);
     return;
 } // registerBrinkmanPenalizationStrategy
+
+void
+INSVCStaggeredHierarchyIntegrator::registerDivergenceVelocitySourceFunction(Pointer<CartGridFunction> Div_U_F_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    if (d_Div_U_F_fcn)
+    {
+        Pointer<CartGridFunctionSet> p_F_fcn = d_Div_U_F_fcn;
+        if (!p_F_fcn)
+        {
+            pout << d_object_name << "::registerDivergenceVelocitySourceFunction(): WARNING:\n"
+                 << "  source term function has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered "
+                    "with "
+                    "the solver\n"
+                 << "  when evaluating the source term value for the div U equation.\n";
+            p_F_fcn = new CartGridFunctionSet(d_object_name + "::Div_U_F_function_set");
+            p_F_fcn->addFunction(d_Div_U_F_fcn);
+        }
+        p_F_fcn->addFunction(Div_U_F_fcn);
+        d_Div_U_F_fcn = p_F_fcn;
+    }
+    else
+    {
+        d_Div_U_F_fcn = Div_U_F_fcn;
+    }
+    return;
+} // registerDivergenceVelocitySourceFunction
 
 void
 INSVCStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Pointer<CartGridFunction> rho_init_fcn)
@@ -1805,7 +1836,7 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
 
-    if (d_compute_continuity_source_fcns.size() > 0)
+    if (d_Q_fcn)
     {
         InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
                                                          DATA_REFINE_TYPE,
