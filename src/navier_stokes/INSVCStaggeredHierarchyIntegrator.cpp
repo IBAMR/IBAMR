@@ -519,6 +519,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", NDIM);
 #endif
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
+    d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F");
 
 #if (NDIM == 3)
     d_Omega_Norm_var = new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
@@ -1596,6 +1597,8 @@ void
 INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
                                                                                const bool initial_time)
 {
+    if (initial_time) return;
+
     // Project the interpolated velocity if needed.
     if (initial_time || d_do_regrid_projection)
     {

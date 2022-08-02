@@ -511,8 +511,6 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
             {
                 CellIndex<NDIM> ci(it());
 
-                IBTK::Vector coord = IBTK::Vector::Zero();
-
                 const double liquid_fraction = (*lf_data)(ci);
                 const double heaviside = (*H_data)(ci);
                 (*mu_data)(ci) = d_mu_gas + (d_mu_solid - d_mu_gas) * heaviside +

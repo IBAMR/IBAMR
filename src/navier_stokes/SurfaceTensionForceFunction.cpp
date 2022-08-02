@@ -255,8 +255,10 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(hierarchy);
 #endif
 
-    d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy);
-    d_hier_sc_data_ops = new HierarchySideDataOpsReal<NDIM, double>(hierarchy, coarsest_ln_in, finest_ln_in);
+    const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
+    d_hier_sc_data_ops = new HierarchySideDataOpsReal<NDIM, double>(hierarchy, coarsest_ln, finest_ln);
 
     // Get the newest patch data index for the level set variable
     Pointer<CellVariable<NDIM, double> > phi_cc_var = d_ls_var;
@@ -278,9 +280,6 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     d_phi_idx =
         var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::Phi"), cell_ghosts);
 
-    const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
-    const int finest_ln =
-        (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(d_C_idx, data_time);
