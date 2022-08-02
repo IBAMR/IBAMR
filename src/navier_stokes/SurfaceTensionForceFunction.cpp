@@ -255,8 +255,10 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(hierarchy);
 #endif
 
-    d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy);
-    d_hier_sc_data_ops = new HierarchySideDataOpsReal<NDIM, double>(hierarchy, coarsest_ln_in, finest_ln_in);
+    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
+    d_hier_sc_data_ops = new HierarchySideDataOpsReal<NDIM, double>(hierarchy, coarsest_ln, finest_ln);
 
     // Get the newest patch data index for the level set variable
     Pointer<CellVariable<NDIM, double> > phi_cc_var = d_ls_var;

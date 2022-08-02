@@ -418,7 +418,7 @@ EnthalpyHierarchyIntegrator {
       }
 }
 
-BrinkmanPenalization {
+CarmanKozenyDragForce {
 num_interface_cells = NUMBER_OF_INTERFACE_CELLS
 }
 

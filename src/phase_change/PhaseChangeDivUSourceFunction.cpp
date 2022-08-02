@@ -48,6 +48,8 @@ PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
                                               const bool initial_time,
                                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
+    if (initial_time) return;
+
     // set -Div U = -S where source term S is computed from PhaseChangeHierarchyIntegrator.
     const int S_idx = d_pc_hier_integrator->getDivergenceVelocitySourceTermIndex();
 
@@ -56,8 +58,8 @@ PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
 
-    // Subtract S_idx to the Div_U_F_idx.
-    hier_cc_data_ops.axpy(data_idx, -1.0, S_idx, data_idx);
+    // Set Div_U_F_idx = - S_idx.
+    hier_cc_data_ops.scale(data_idx, -1.0, S_idx);
 
     return;
 } // setDataOnPatch
