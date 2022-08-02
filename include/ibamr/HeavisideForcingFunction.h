@@ -25,12 +25,13 @@
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
-
+namespace IBAMR
+{
 /*!
  * \brief Class HeavisideForcingFunction computes H*div u. This is required to solve
  * the advection equation for Heaviside in conservative form.
  */
-class HeavisideForcingFunction : public CartGridFunction
+class HeavisideForcingFunction : public IBTK::CartGridFunction
 {
 public:
     /*!
@@ -38,7 +39,6 @@ public:
      */
     HeavisideForcingFunction(const std::string& object_name,
                              SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                             SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > U_adv_var);
 
@@ -112,6 +112,11 @@ private:
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
     /*!
+     * Pointer to HierarchyCellDataOpsReal.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
+
+    /*!
      * Liquid fraction variable.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var;
@@ -123,6 +128,7 @@ private:
 
     int d_div_U_scratch_idx = IBTK::invalid_index;
 };
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 

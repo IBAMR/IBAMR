@@ -25,12 +25,10 @@
 
 HeavisideForcingFunction::HeavisideForcingFunction(const std::string& object_name,
                                                    const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                   const Pointer<HierarchyMathOps> hier_math_ops,
                                                    const Pointer<CellVariable<NDIM, double> > H_var,
                                                    const Pointer<FaceVariable<NDIM, double> > U_adv_var)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
-      d_hier_math_ops(hier_math_ops),
       d_H_var(H_var),
       d_U_adv_var(U_adv_var)
 {
@@ -56,6 +54,10 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
+    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
+    d_hier_cc_data_ops = new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, coarsest_ln, finest_ln);
 
     // Registering temporary variable div U.
     Pointer<CellVariable<NDIM, double> > div_U_var = d_H_var;
@@ -63,8 +65,6 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_div_U_scratch_idx = var_db->registerVariableAndContext(div_U_var, var_db->getContext(d_object_name + "::div_U"));
 
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(d_div_U_scratch_idx, data_time);
@@ -92,6 +92,8 @@ HeavisideForcingFunction::setDataOnPatch(const int data_idx,
                                          const bool initial_time,
                                          Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
+    if (initial_time) return;
+
     // Compute H*div U which is to be added in Heaviside transport equation.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int U_new_idx = var_db->mapVariableAndContextToIndex(d_U_adv_var, d_adv_diff_solver->getNewContext());
@@ -106,14 +108,9 @@ HeavisideForcingFunction::setDataOnPatch(const int data_idx,
                          data_time,
                          /*synch_cf_bdry*/ false);
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-
     // Multiply H with div U.
-    hier_cc_data_ops.multiply(d_div_U_scratch_idx, H_new_idx, d_div_U_scratch_idx);
-    hier_cc_data_ops.axpy(data_idx, +1.0, d_div_U_scratch_idx, data_idx);
+    d_hier_cc_data_ops->multiply(d_div_U_scratch_idx, H_new_idx, d_div_U_scratch_idx);
+    d_hier_cc_data_ops->copydata(data_idx, d_div_U_scratch_idx);
 
     return;
 } // setDataOnPatch
