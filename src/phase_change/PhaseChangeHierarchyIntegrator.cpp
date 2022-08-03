@@ -193,7 +193,7 @@ PhaseChangeHierarchyIntegrator::PhaseChangeHierarchyIntegrator(const std::string
     if (d_solve_mass_conservation)
         d_rho_p_integrator = new AdvDiffConservativeMassScalarTransportRKIntegrator(
             "AdvDiffConservativeMassScalarTransportRKIntegrator::MassTransportIntegrator",
-            input_db->getDatabase("mass_transport_integrator_db"));
+            input_db->getDatabase("mass_scalar_transport_integrator_db"));
 
     if (!(d_T_convective_op_type == "CUI" || d_T_convective_op_type == "PPM"))
     {

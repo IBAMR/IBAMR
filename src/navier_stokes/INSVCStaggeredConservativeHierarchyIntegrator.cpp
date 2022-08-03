@@ -1442,7 +1442,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     if (d_Div_U_F_fcn)
     {
         d_Div_U_F_fcn->setDataOnPatchHierarchy(d_Div_U_F_idx, d_Div_U_F_var, d_hierarchy, half_time);
-        d_hier_sc_data_ops->add(
+        d_hier_cc_data_ops->add(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
     }
 
@@ -1549,7 +1549,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
     // reset source term of a Div U equation.
     if (d_Div_U_F_fcn)
     {
-        d_hier_sc_data_ops->subtract(
+        d_hier_cc_data_ops->subtract(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
     }
 
