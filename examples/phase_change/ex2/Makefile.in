@@ -90,7 +90,7 @@ host_triplet = @host@
 EXTRA_PROGRAMS = $(am__EXEEXT_3)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @SAMRAI2D_ENABLED_TRUE@am__append_2 = $(EXAMPLES)
-subdir = examples/phase_change/ex1
+subdir = examples/phase_change/ex2
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
 	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
@@ -507,9 +507,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/phase_change/ex1/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/phase_change/ex2/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/phase_change/ex1/Makefile
+	  $(AUTOMAKE) --foreign examples/phase_change/ex2/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \

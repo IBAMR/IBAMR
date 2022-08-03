@@ -269,6 +269,7 @@ AC_CONFIG_FILES([
   examples/navier_stokes/ex6/Makefile
   examples/phase_change/ex0/Makefile
   examples/phase_change/ex1/Makefile
+  examples/phase_change/ex2/Makefile
   examples/vc_navier_stokes/Makefile
   examples/vc_navier_stokes/ex0/Makefile
   examples/vc_navier_stokes/ex1/Makefile
