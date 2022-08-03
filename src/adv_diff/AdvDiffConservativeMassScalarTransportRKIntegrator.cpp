@@ -1146,6 +1146,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeTimeIntegrator(
         if (!level->checkAllocated(d_Q_cc_scratch_idx)) level->allocatePatchData(d_Q_cc_scratch_idx);
         if (!level->checkAllocated(d_Q_cc_composite_idx)) level->allocatePatchData(d_Q_cc_composite_idx);
         if (!level->checkAllocated(d_S_scratch_idx)) level->allocatePatchData(d_S_scratch_idx);
+        if (!level->checkAllocated(d_E_scratch_idx)) level->allocatePatchData(d_E_scratch_idx);
     }
 
     if (!d_hier_math_ops_external)
