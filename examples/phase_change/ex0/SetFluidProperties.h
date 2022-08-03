@@ -96,7 +96,7 @@ public:
     SetFluidProperties(const std::string& object_name,
                        const SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                        const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
-                       const SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef,
+                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef,
                        const double rho_liquid,
                        const double rho_solid,
                        const double kappa_liquid,

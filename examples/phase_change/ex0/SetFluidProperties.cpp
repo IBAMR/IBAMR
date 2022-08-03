@@ -85,7 +85,7 @@ callSetLiquidSolidConductivityCallbackFunction(int D_idx,
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                        const Pointer<CellVariable<NDIM, double> > lf_var,
-                                       const RobinBcCoefStrategy<NDIM>* lf_bc_coef,
+                                       RobinBcCoefStrategy<NDIM>* lf_bc_coef,
                                        const double rho_liquid,
                                        const double rho_solid,
                                        const double kappa_liquid,
@@ -208,7 +208,6 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const double* const patch_dx = patch_geom->getDx();
 
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
@@ -275,7 +274,6 @@ SetFluidProperties::setDiffusionCoefficientPatchData(int D_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
 
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
@@ -331,10 +329,7 @@ SetFluidProperties::setSpecificHeatPatchData(int Cp_idx,
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            const double* patch_X_lower = patch_geom->getXLower();
             const Box<NDIM>& patch_box = patch->getBox();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
 
             Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
             Pointer<CellData<NDIM, double> > Cp_data = patch->getPatchData(Cp_idx);
