@@ -15,18 +15,18 @@ LIQUID_TEMPERATURE = 973.6
 SOLID_TEMPERATURE = 298.6
 INITIAL_INTERFACE_POSITION = 0.0
 
-LIQUIDUS_TEMPERATURE = 943.6
-SOLIDUS_TEMPERATURE = 923.6
+LIQUIDUS_TEMPERATURE = 938.6
+SOLIDUS_TEMPERATURE = 928.6
 
 // grid spacing parameters
-L          = 0.4
-H          = 0.4
+L          = 1.0
+H          = 0.05
 MAX_LEVELS = 1        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-Nx = 2000
-Ny = 5                                // coarsest grid spacing
+Nx = 1280
+Ny = 64                                // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
 
@@ -133,8 +133,8 @@ DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   10.0e0   // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS =   1 // 50000000  // max number of simulation timesteps
-REGRID_INTERVAL      =   5
+MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
+REGRID_INTERVAL      =   50000000
 CFL_MAX              =   0.5
 NUM_INS_CYCLES       =   1
 CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
@@ -158,7 +158,7 @@ TEMPERATURE_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // "FORWARD_EULER" // convectiv
 TEMPERATURE_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
 TEMPERATURE_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 TEMPERATURE_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the convective terms
-K_VC_INTERPOLATION_TYPE        = "VC_AVERAGE_INTERP"
+K_VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 
 EnthalpyHierarchyIntegrator {
    start_time                    = START_TIME
