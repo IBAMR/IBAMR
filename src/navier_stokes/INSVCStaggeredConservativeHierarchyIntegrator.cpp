@@ -1234,10 +1234,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
 #endif
 
-    // D_sc = -1/rho
+    // D_sc = -1/(rho + dt*chi/kappa)
     P_problem_coefs.setCZero();
+    d_hier_sc_data_ops->axpy(d_pressure_D_idx, dt, d_velocity_L_idx, d_rho_sc_scratch_idx, /*interior_only*/ false);
     d_hier_sc_data_ops->reciprocal(d_pressure_D_idx,
-                                   d_rho_sc_scratch_idx,
+                                   d_pressure_D_idx,
                                    /*interior_only*/ false);
     d_hier_sc_data_ops->scale(d_pressure_D_idx,
                               -1.0,

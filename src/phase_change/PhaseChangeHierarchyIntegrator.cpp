@@ -472,7 +472,7 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
 
         if (d_output_T) d_visit_writer->registerPlotQuantity("Temperature", "SCALAR", d_T_current_idx, 0);
 
-        if (d_output_rho) d_visit_writer->registerPlotQuantity("CC Density", "SCALAR", d_rho_current_idx, 0);
+        if (d_output_rho) d_visit_writer->registerPlotQuantity("rho_cc", "SCALAR", d_rho_current_idx, 0);
 
         if (d_output_Cp) d_visit_writer->registerPlotQuantity("Specific heat", "SCALAR", d_Cp_current_idx, 0);
     }
