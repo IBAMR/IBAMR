@@ -110,7 +110,7 @@ HeavisideForcingFunction::setDataOnPatch(const int data_idx,
 
     // Multiply H with div U.
     d_hier_cc_data_ops->multiply(d_div_U_scratch_idx, H_new_idx, d_div_U_scratch_idx);
-    d_hier_cc_data_ops->copydata(data_idx, d_div_U_scratch_idx);
+    d_hier_cc_data_ops->copyData(data_idx, d_div_U_scratch_idx);
 
     return;
 } // setDataOnPatch
