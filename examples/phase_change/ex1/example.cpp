@@ -384,7 +384,7 @@ main(int argc, char* argv[])
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
         SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
-                                                                            time_integrator,
+                                                                            adv_diff_integrator,
                                                                             lf_var,
                                                                             lf_bc_coef,
                                                                             H_var,

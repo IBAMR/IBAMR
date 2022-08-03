@@ -239,7 +239,7 @@ MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 ENABLE_LOGGING       = TRUE
 VISCOUS_TIME_STEPPING_TYPE = "TRAPEZOIDAL_RULE"
-SOLVE_MASS_CONSERVATION = FALSE
+SOLVE_MASS_CONSERVATION = TRUE
 
 // Application
 PRECOND_REINIT_INTERVAL      = 1
@@ -416,6 +416,14 @@ EnthalpyHierarchyIntegrator {
              pc_type = "jacobi"
           }
       }
+
+      mass_scalar_transport_integrator_db {
+            density_time_stepping_type = DENSITY_TS
+            temperature_convective_limiter = DENSITY_CONVECTIVE_LIMITER
+            specific_heat_convective_limiter = DENSITY_CONVECTIVE_LIMITER
+            density_convective_limiter = DENSITY_CONVECTIVE_LIMITER
+            enable_logging = ENABLE_LOGGING
+          }
 }
 
 CarmanKozenyDragForce {
