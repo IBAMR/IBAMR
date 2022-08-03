@@ -1563,8 +1563,10 @@ void
 INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
                                                                                const bool initial_time)
 {
+    if (initial_time) return;
+
     // Project the interpolated velocity if needed.
-    if (initial_time || d_do_regrid_projection)
+    if (d_do_regrid_projection)
     {
         plog << d_object_name << "::initializeCompositeHierarchyData():\n"
              << "  projecting the interpolated velocity field\n";
