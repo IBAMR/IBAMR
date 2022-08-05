@@ -378,8 +378,7 @@ protected:
     /*!
      * Boolean to output the variables in visit.
      */
-    bool d_output_lf = false, d_output_T = false, d_output_rho = false, d_output_Cp = false;
-    ;
+    bool d_output_lf = false, d_output_T = false, d_output_rho = false, d_output_Cp = false, d_output_Div_U_F = false;
 
     /*!
      * Data shynchronization operator.

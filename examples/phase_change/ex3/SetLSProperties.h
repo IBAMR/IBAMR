@@ -74,28 +74,25 @@ public:
 
 private:
     /*!
-     * Deleted default constructor.
+     * Default constructor is not implemented and should not be used.
      */
-    SetLSProperties() = delete;
+    SetLSProperties();
 
     /*!
-     * Deleted copy constructor.
+     * Default assignment operator is not implemented and should not be used.
      */
-    SetLSProperties(const SetLSProperties& from) = delete;
+    SetLSProperties& operator=(const SetLSProperties& that);
 
     /*!
-     * Deleted assignment operator.
+     * Default copy constructor is not implemented and should not be used.
      */
-    SetLSProperties& operator=(const SetLSProperties& that) = delete;
+    SetLSProperties(const SetLSProperties& from);
 
     /*!
      * Name of this object.
      */
     std::string d_object_name;
 
-    /*!
-     * Pointer to LSInitStrategy.
-     */
     SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> d_ls_ops;
 
 }; // SetLSProperties
