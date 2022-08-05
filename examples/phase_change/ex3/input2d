@@ -1,8 +1,6 @@
 // constants
 PI = 3.1415926535897932
 
-RADIUS = 0.2 // bubble radius
-
 // solid parameters
 RHO_S = 900.0
 KAPPA_S = 300.0
@@ -270,6 +268,7 @@ TEMPERATURE_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing di
 TEMPERATURE_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 TEMPERATURE_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the convective terms
 K_VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
+OUTPUT_DIV_U_F                 = TRUE
 
 INSVCStaggeredConservativeHierarchyIntegrator {
    start_time                 = START_TIME
@@ -384,6 +383,7 @@ EnthalpyHierarchyIntegrator {
    k_vc_interpolation_type       = K_VC_INTERPOLATION_TYPE
    liquidus_temperature           = LIQUIDUS_TEMPERATURE
    solidus_temperature            = SOLIDUS_TEMPERATURE
+   output_Div_U_F                 = OUTPUT_DIV_U_F
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
       T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
