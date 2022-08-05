@@ -50,7 +50,7 @@ TemperatureInitialConditions{
   function = "973.6"
 }
 
-VelocityInitialCondition{
+VelocityInitialConditions{
   function_0 = "0.0"
   function_1 = "0.0"
 }
