@@ -27,8 +27,8 @@ MELT_TEMPERATURE = 2.0
 INITIAL_INTERFACE_POSITION = 0.0
 NUMBER_OF_INTERFACE_CELLS  = 2
 
-LIQUIDUS_TEMPERATURE = 938.6
-SOLIDUS_TEMPERATURE = 928.6
+LIQUIDUS_TEMPERATURE = 2.1
+SOLIDUS_TEMPERATURE = 1.9
 
 // grid spacing parameters
 L          = 1.0
@@ -50,7 +50,7 @@ TemperatureInitialConditions{
   function = "3.0"
 }
 
-VelocityInitialCondition{
+VelocityInitialConditions{
   function_0 = "1.0"
   function_1 = "1.0"
 }

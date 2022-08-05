@@ -432,17 +432,6 @@ main(int argc, char* argv[])
             new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator, hier_math_ops);
         time_integrator->registerDivergenceVelocitySourceFunction(Div_U_forcing_fcn);
 
-        // Configure the drag force object to enforce solid velocity to be zero.
-        Pointer<CarmanKozenyDragForce> drag_force =
-            new CarmanKozenyDragForce("drag_force",
-                                      H_var,
-                                      lf_var,
-                                      adv_diff_integrator,
-                                      time_integrator,
-                                      app_initializer->getComponentDatabase("CarmanKozenyDragForce"),
-                                      /*register_for_restart*/ true);
-        time_integrator->registerBrinkmanPenalizationStrategy(drag_force);
-
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
