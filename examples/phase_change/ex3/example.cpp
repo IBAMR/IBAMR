@@ -24,6 +24,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/CarmanKozenyDragForce.h>
 #include <ibamr/EnthalpyHierarchyIntegrator.h>
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -46,10 +47,13 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
+#include "GravityForcing.h"
 #include "LSLocateInterface.h"
 #include "LevelSetInitialCondition.h"
+#include "LiquidFractionInitialCondition.h"
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
+#include "TemperatureInitialCondition.h"
 
 struct SynchronizeLevelSetCtx
 {
@@ -187,12 +191,11 @@ main(int argc, char* argv[])
         adv_diff_integrator->registerTransportedQuantity(ls_var, true);
         adv_diff_integrator->setDiffusionCoefficient(ls_var, 0.0);
 
-        const double bubble_radius = input_db->getDouble("RADIUS");
-        ;
+        const double initial_gas_pcm_interface_position = input_db->getDouble("INITIAL_GAS_PCM_INTERFACE_POSITION");
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
         LSLocateInterface* ptr_LSLocateInterface =
-            new LSLocateInterface("LSLocateInterface", adv_diff_integrator, ls_var, bubble_radius);
+            new LSLocateInterface("LSLocateInterface", adv_diff_integrator, ls_var, initial_gas_pcm_interface_position);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateInterface));
         SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
@@ -234,17 +237,21 @@ main(int argc, char* argv[])
         adv_diff_integrator->setResetPriority(H_var, 1);
 
         // set initial conditions for the variables.
-        Pointer<CartGridFunction> ls_init = new LevelSetInitialCondition("ls_init", bubble_radius);
+        Pointer<CartGridFunction> ls_init = new LevelSetInitialCondition("ls_init", initial_gas_pcm_interface_position);
         adv_diff_integrator->setInitialConditions(ls_var, ls_init);
 
         // Since H is synchronized with ls, the initial conditions for H is not rquired.
+        const double initial_liquid_solid_interface_position =
+            input_db->getDouble("INITIAL_LIQUID_SOLID_INTERFACE_POSITION");
+        const double initial_liquid_temperature = input_db->getDouble("INITIAL_LIQUID_TEMPERATURE");
+        const double initial_solid_temperature = input_db->getDouble("INITIAL_SOLID_TEMPERATURE");
 
-        Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
-            "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);
+        Pointer<CartGridFunction> T_init = new TemperatureInitialCondition(
+            "T_init", initial_liquid_solid_interface_position, initial_liquid_temperature, initial_solid_temperature);
         enthalpy_hier_integrator->setTemperatureInitialCondition(T_var, T_init);
 
-        Pointer<CartGridFunction> lf_init = new muParserCartGridFunction(
-            "lf_init", app_initializer->getComponentDatabase("LiquidFractionInitialConditions"), grid_geometry);
+        Pointer<CartGridFunction> lf_init =
+            new LiquidFractionInitialCondition("lf_init", initial_liquid_solid_interface_position);
         enthalpy_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
 
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -430,6 +437,28 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> Div_U_forcing_fcn =
             new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator, hier_math_ops);
         time_integrator->registerDivergenceVelocitySourceFunction(Div_U_forcing_fcn);
+
+        // Register gravity force.
+        std::vector<double> grav_const(NDIM);
+        input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
+        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
+        Pointer<CartGridFunction> grav_force;
+        if (grav_type == "FULL")
+        {
+            grav_force = new GravityForcing("GravityForcing", time_integrator, grav_const);
+        }
+        time_integrator->registerBodyForceFunction(grav_force);
+
+        // Configure the drag force object to enforce solid velocity to be zero.
+        Pointer<CarmanKozenyDragForce> drag_force =
+            new CarmanKozenyDragForce("drag_force",
+                                      H_var,
+                                      lf_var,
+                                      adv_diff_integrator,
+                                      time_integrator,
+                                      app_initializer->getComponentDatabase("CarmanKozenyDragForce"),
+                                      /*register_for_restart*/ true);
+        time_integrator->registerBrinkmanPenalizationStrategy(drag_force);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();

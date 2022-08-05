@@ -144,19 +144,19 @@ public:
 
 private:
     /*!
-     * Default constructor is not implemented and should not be used.
+     * Deleted default constructor.
      */
-    SetFluidProperties();
+    SetFluidProperties() = delete;
 
     /*!
-     * Default assignment operator is not implemented and should not be used.
+     * Deleted copy constructor.
      */
-    SetFluidProperties& operator=(const SetFluidProperties& that);
+    SetFluidProperties(const SetFluidProperties& from) = delete;
 
     /*!
-     * Default copy constructor is not implemented and should not be used.
+     * Deleted assignment operator.
      */
-    SetFluidProperties(const SetFluidProperties& from);
+    SetFluidProperties& operator=(const SetFluidProperties& that) = delete;
 
     /*!
      * Name of this object.
