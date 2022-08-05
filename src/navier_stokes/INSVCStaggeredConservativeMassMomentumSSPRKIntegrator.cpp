@@ -459,7 +459,6 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
                 }
             }
         }
-        std::cout << "steps\t" << step << std::endl;
     }
 
     // Refill boundary values of newest density

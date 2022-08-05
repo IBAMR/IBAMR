@@ -51,7 +51,7 @@ public:
     LSLocateInterface(const std::string& object_name,
                       SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
-                      const double initial_interface_position);
+                      const double initial_gas_pcm_interface_position);
 
     /*!
      * Destructor for this class.
@@ -98,9 +98,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
 
     /*!
-     * Initial position of interface
+     * Initial position of a gas-pcm interface position
      */
-    double d_initial_interface_position;
+    double d_initial_gas_pcm_interface_position;
 };
 
 #endif // #ifndef included_LSLocateInterface

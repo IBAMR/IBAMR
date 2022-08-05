@@ -475,6 +475,8 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
         if (d_output_rho) d_visit_writer->registerPlotQuantity("rho_cc", "SCALAR", d_rho_current_idx, 0);
 
         if (d_output_Cp) d_visit_writer->registerPlotQuantity("Specific heat", "SCALAR", d_Cp_current_idx, 0);
+
+        if (d_output_Div_U_F) d_visit_writer->registerPlotQuantity("Div_U_F", "SCALAR", d_Div_U_F_idx, 0);
     }
     if (d_solve_mass_conservation)
     {
@@ -877,6 +879,7 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("d_rho_solid", d_rho_solid);
     db->putDouble("d_T_melt", d_T_melt);
     db->putBool("d_solve_mass_conservation", d_solve_mass_conservation);
+    db->putBool("d_output_Div_U_F", d_output_Div_U_F);
 
     AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
@@ -1046,6 +1049,7 @@ PhaseChangeHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is
         d_rho_liquid = input_db->getDouble("rho_liquid");
         d_rho_solid = input_db->getDouble("rho_solid");
         d_T_melt = input_db->getDouble("T_melt");
+        d_output_Div_U_F = input_db->getBool("output_Div_U_F");
 
         if (input_db->keyExists("solve_mass_conservation"))
             d_solve_mass_conservation = input_db->getBool("solve_mass_conservation");
@@ -1122,6 +1126,7 @@ PhaseChangeHierarchyIntegrator::getFromRestart()
     d_rho_solid = db->getDouble("d_rho_solid");
     d_T_melt = db->getDouble("d_T_melt");
     d_solve_mass_conservation = db->getBool("d_solve_mass_conservation");
+    d_output_Div_U_F = db->getBool("d_output_Div_U_F");
 }
 
 //////////////////////////////////////////////////////////////////////////////
