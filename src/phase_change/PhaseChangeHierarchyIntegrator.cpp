@@ -1049,10 +1049,11 @@ PhaseChangeHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is
         d_rho_liquid = input_db->getDouble("rho_liquid");
         d_rho_solid = input_db->getDouble("rho_solid");
         d_T_melt = input_db->getDouble("T_melt");
-        d_output_Div_U_F = input_db->getBool("output_Div_U_F");
 
         if (input_db->keyExists("solve_mass_conservation"))
             d_solve_mass_conservation = input_db->getBool("solve_mass_conservation");
+
+        if (input_db->keyExists("output_Div_U_F")) d_output_Div_U_F = input_db->getBool("output_Div_U_F");
 
         if (input_db->keyExists("T_diffusion_time_stepping_type"))
             d_T_diffusion_time_stepping_type =
