@@ -104,14 +104,7 @@ LSLocateInterface::setLevelSetPatchData(int D_idx,
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
 
-                if (coord[1] >= d_initial_gas_pcm_interface_position)
-                {
-                    (*D_data)(ci) = 1.0;
-                }
-                else
-                {
-                    (*D_data)(ci) = 0.0;
-                }
+                (*D_data)(ci) = d_initial_gas_pcm_interface_position - coord[1];
             }
         }
     }
