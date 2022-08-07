@@ -962,30 +962,29 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
             {
                 CellIndex<NDIM> ci(it());
 
-                /*    if ((*H_data)(ci) >= 0.5)
-                    {
-                        if ((*T_data)(ci) < d_solidus_temperature)
-                            (*dh_dT_data)(ci) = d_cp_solid;
-                        else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
-                            (*dh_dT_data)(ci) =
-                                cp_avg + d_latent_heat_temp / (d_liquidus_temperature - d_solidus_temperature);
-                        else
-                            (*dh_dT_data)(ci) = d_cp_liquid;
+                if ((*H_data)(ci) >= 0.5)
+                {
+                    if ((*T_data)(ci) < d_solidus_temperature)
+                        (*dh_dT_data)(ci) = d_Cp_solid;
+                    else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+                        (*dh_dT_data)(ci) = Cp_avg + d_latent_heat / (d_liquidus_temperature - d_solidus_temperature);
+                    else
+                        (*dh_dT_data)(ci) = d_Cp_liquid;
                     }
                     else
-                        (*dh_dT_data)(ci) = d_cp_gas;*/
+                        (*dh_dT_data)(ci) = d_Cp_gas;
 
-                double dh_dT_pcm = 0.0, dh_dT_gas = 0.0;
-                if ((*T_data)(ci) < d_solidus_temperature)
-                    dh_dT_pcm = d_Cp_solid;
-                else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
-                    dh_dT_pcm = Cp_avg + d_latent_heat / (d_liquidus_temperature - d_solidus_temperature);
-                else
-                    dh_dT_pcm = d_Cp_liquid;
+                    /*  double dh_dT_pcm = 0.0, dh_dT_gas = 0.0;
+                      if ((*T_data)(ci) < d_solidus_temperature)
+                          dh_dT_pcm = d_Cp_solid;
+                      else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+                          dh_dT_pcm = Cp_avg + d_latent_heat / (d_liquidus_temperature - d_solidus_temperature);
+                      else
+                          dh_dT_pcm = d_Cp_liquid;
 
-                dh_dT_gas = d_Cp_gas;
+                      dh_dT_gas = d_Cp_gas;
 
-                (*dh_dT_data)(ci) = (1.0 - (*H_data)(ci)) * dh_dT_gas + (*H_data)(ci)*dh_dT_pcm;
+                      (*dh_dT_data)(ci) = (1.0 - (*H_data)(ci)) * dh_dT_gas + (*H_data)(ci)*dh_dT_pcm;*/
             }
         }
     }

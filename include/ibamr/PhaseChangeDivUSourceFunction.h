@@ -37,8 +37,7 @@ public:
      * \brief Class constructor.
      */
     PhaseChangeDivUSourceFunction(const std::string& object_name,
-                                  SAMRAI::tbox::Pointer<IBAMR::PhaseChangeHierarchyIntegrator> pc_hier_integrator,
-                                  SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
+                                  SAMRAI::tbox::Pointer<IBAMR::PhaseChangeHierarchyIntegrator> pc_hier_integrator);
 
     /*!
      * \brief Empty destructor.
@@ -50,6 +49,21 @@ public:
      * time-dependent.
      */
     bool isTimeDependent() const override;
+
+    /*!
+     * \brief Evaluate the function on the patch interiors on the specified
+     * levels of the patch hierarchy using the virtual function
+     * setDataOnPatch().
+     *
+     * \see setDataOnPatch
+     */
+    void setDataOnPatchHierarchy(int data_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 double data_time,
+                                 bool initial_time = false,
+                                 int coarsest_ln = -1,
+                                 int finest_ln = -1) override;
 
     /*!
      * \brief Evaluate the function on the patch interior.
@@ -90,9 +104,9 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::PhaseChangeHierarchyIntegrator> d_pc_hier_integrator;
 
     /*!
-     * Pointer to HierarchyMathOps.
+     * Pointer to HierarchyCellDataOpsReal.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
 };
 
 //////////////////////////////////////////////////////////////////////////////

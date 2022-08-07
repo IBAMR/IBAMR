@@ -422,11 +422,7 @@ main(int argc, char* argv[])
                                                                static_cast<void*>(ptr_SetFluidProperties));
 
         // Register H Div U term in the Heaviside equation.
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        Pointer<HierarchyMathOps> hier_math_ops =
-            new HierarchyMathOps("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
-        Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F");
+        Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>(H_var->getName() + "_F");
         adv_diff_integrator->registerSourceTerm(F_var, true);
         Pointer<CartGridFunction> H_forcing_fcn = new HeavisideForcingFunction(
             "H_forcing_fcn", adv_diff_integrator, H_var, time_integrator->getAdvectionVelocityVariable());
@@ -435,7 +431,7 @@ main(int argc, char* argv[])
 
         // Register source term for Div U equation.
         Pointer<CartGridFunction> Div_U_forcing_fcn =
-            new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator, hier_math_ops);
+            new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator);
         time_integrator->registerDivergenceVelocitySourceFunction(Div_U_forcing_fcn);
 
         // Register gravity force.
@@ -487,6 +483,23 @@ main(int argc, char* argv[])
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
+        // Tracking the mass of the PCM.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int rho_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, adv_diff_integrator->getCurrentContext());
+        const int H_idx = var_db->mapVariableAndContextToIndex(H_var, adv_diff_integrator->getCurrentContext());
+        const int pcm_mass_idx = var_db->registerClonedPatchDataIndex(H_var, H_idx);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(pcm_mass_idx, loop_time);
+        }
+        Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
+            new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
+        std::string FILE_NAME = input_db->getString("MASS_CONSERVATION_FILE_NAME");
+        std::ofstream pcm_mass_file;
+        pcm_mass_file.open(FILE_NAME);
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -509,6 +522,12 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
+
+            hier_cc_data_ops->multiply(pcm_mass_idx, rho_idx, H_idx);
+            HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
+            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+            const double mass = hier_cc_data_ops->integral(pcm_mass_idx, wgt_cc_idx);
+            pcm_mass_file << loop_time << "\t" << mass << "\n";
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -533,9 +552,17 @@ main(int argc, char* argv[])
             }
         }
 
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(pcm_mass_idx);
+        }
+
+        var_db->removePatchDataIndex(pcm_mass_idx);
+
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         delete ptr_SetFluidProperties;
+        pcm_mass_file.close();
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main
