@@ -57,21 +57,16 @@ namespace IBAMR
  * to impose no-slip boundary conditions on the liquid-solid and gas-solid interfaces
  * by enforing \f$ \bm{u}=\bm{u}_b\f$.
  *
- * The penalization force is taken to be \f$ A_d(\bm{u}_b
- * - \bm{u}^{n+1}) \f$. The class computes the coefficient \f$
- * A_d \f$ of the fluid velocity \f$ \bm{u}^{n+1} \f$ for the
- * variable-coefficient INS solvers of INSVCStaggeredHierarchyIntegrator. This
- * is done in the CarmanKozenyDragForce::demarcateBrinkmanZone
- * method. Here \f$ A_d = C_d\frac{\alpha_S}{(1-alpha_S)^3+e_d}\f$, \f$ \alpha_S \f$ is
- * the volume fraction of the solid, \f$ C_d\f$ and  \f$ e_d\f$ are the model parameters. The
- * rigid body velocity \f$\bm{u}_b\f$ is computed through Newton's law of
- * motion by netting the hydrodynamic and external forces and torques on the
- * body in the CarmanKozenyDragForce::computeBrinkmanVelocity
- * method. A simple forward-Euler scheme is employed for the second-law of
- * motion.
+ * The penalization force is taken to be \f$ A_d(\bm{u}_b - \bm{u}^{n+1}) \f$. The class
+ * computes the coefficient \f$A_d \f$ of the fluid velocity \f$ \bm{u}^{n+1} \f$ for the
+ * variable-coefficient INS solvers of INSVCStaggeredHierarchyIntegrator. This is done in
+ * the CarmanKozenyDragForce::demarcateBrinkmanZone method. Here \f$ A_d =
+ * C_d\frac{\alpha_S}{(1-alpha_S)^3+e_d}\f$, \f$ \alpha_S \f$ is the volume fraction of
+ * the solid, \f$ C_d\f$ and  \f$ e_d\f$ are the model parameters. The rigid body velocity
+ * \f$\bm{u}_b\f$ is taken to be zero. We aim to compute \f$\bm{u}_b\f$ from Newton's second
+ * law of motion as in BrinkmanPenalizationRigidBodyDynamics class in the future. The penalty
+ * parameter C_d is taken to be \f$C_d \sim (\Delta t/ \rho + h^2/\mu) \ll 1 \f$.
  *
- * For further information on applications of this class see
- * https://arxiv.org/abs/1904.04078.
  */
 class CarmanKozenyDragForce : public BrinkmanPenalizationStrategy
 {
