@@ -77,13 +77,6 @@ void BrinkmanPenalizationStrategy::putToDatabase(Pointer<Database> /*db*/)
     return;
 } // putToDatabase
 
-void
-BrinkmanPenalizationStrategy::setBrinkmanCoefficient(double chi)
-{
-    d_chi = chi;
-    return;
-} // setBrinkmanCoefficient
-
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBAMR
