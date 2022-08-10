@@ -102,6 +102,8 @@ static const int IEP_HIERARCHY_INTEGRATOR_VERSION = 4;
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int NOGHOSTS = 0;
+
+static const double H_LIM = 0.5;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -803,7 +805,7 @@ EnthalpyHierarchyIntegrator::ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx
                 CellIndex<NDIM> ci(it());
 
                 double material_derivative = 0.0;
-                if ((*h_data)(ci) >= h_s && (*h_data)(ci) <= h_l)
+                if ((*h_data)(ci) >= h_s && (*h_data)(ci) <= h_l && (*H_data)(ci) >= H_LIM)
                 {
                     const double denominator = (*rho_data)(ci)*std::pow(
                         (*h_data)(ci) * (d_rho_liquid - d_rho_solid) - d_rho_liquid * h_l + d_rho_solid * h_s, 2.0);
@@ -851,18 +853,26 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnNonLinearTemperature(int h_id
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) >= 0.5)
+                if ((*H_data)(ci) >= H_LIM)
                 {
                     if ((*T_data)(ci) < d_solidus_temperature)
+                    {
                         (*h_data)(ci) = d_Cp_solid * (*T_data)(ci);
+                    }
                     else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+                    {
                         (*h_data)(ci) = Cp_avg * ((*T_data)(ci)-d_solidus_temperature) + h_s +
                                         (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
+                    }
                     else
+                    {
                         (*h_data)(ci) = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
+                    }
                 }
                 else
+                {
                     (*h_data)(ci) = d_Cp_gas * (*T_data)(ci);
+                }
             }
         }
     }
@@ -893,18 +903,26 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnNonLinearEnthalpy(int T_id
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) >= 0.5)
+                if ((*H_data)(ci) >= H_LIM)
                 {
                     if ((*h_data)(ci) < h_s)
+                    {
                         (*T_data)(ci) = (*h_data)(ci) / d_Cp_solid;
+                    }
                     else if ((*h_data)(ci) >= h_s && (*h_data)(ci) <= h_l)
+                    {
                         (*T_data)(ci) = d_solidus_temperature + ((*h_data)(ci)-h_s) / (h_l - h_s) *
                                                                     (d_liquidus_temperature - d_solidus_temperature);
+                    }
                     else
+                    {
                         (*T_data)(ci) = d_liquidus_temperature + ((*h_data)(ci)-h_l) / d_Cp_liquid;
+                    }
                 }
                 else
+                {
                     (*T_data)(ci) = (*h_data)(ci) / d_Cp_gas;
+                }
             }
         }
     }
@@ -962,29 +980,25 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) >= 0.5)
+                if ((*H_data)(ci) >= H_LIM)
                 {
                     if ((*T_data)(ci) < d_solidus_temperature)
+                    {
                         (*dh_dT_data)(ci) = d_Cp_solid;
+                    }
                     else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+                    {
                         (*dh_dT_data)(ci) = Cp_avg + d_latent_heat / (d_liquidus_temperature - d_solidus_temperature);
-                    else
-                        (*dh_dT_data)(ci) = d_Cp_liquid;
                     }
                     else
-                        (*dh_dT_data)(ci) = d_Cp_gas;
-
-                    /*  double dh_dT_pcm = 0.0, dh_dT_gas = 0.0;
-                      if ((*T_data)(ci) < d_solidus_temperature)
-                          dh_dT_pcm = d_Cp_solid;
-                      else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
-                          dh_dT_pcm = Cp_avg + d_latent_heat / (d_liquidus_temperature - d_solidus_temperature);
-                      else
-                          dh_dT_pcm = d_Cp_liquid;
-
-                      dh_dT_gas = d_Cp_gas;
-
-                      (*dh_dT_data)(ci) = (1.0 - (*H_data)(ci)) * dh_dT_gas + (*H_data)(ci)*dh_dT_pcm;*/
+                    {
+                        (*dh_dT_data)(ci) = d_Cp_liquid;
+                    }
+                }
+                else
+                {
+                    (*dh_dT_data)(ci) = d_Cp_gas;
+                }
             }
         }
     }
@@ -1015,16 +1029,22 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) >= 0.5)
+                if ((*H_data)(ci) >= H_LIM)
                 {
                     if ((*h_data)(ci) < h_s)
+                    {
                         (*lf_data)(ci) = 0.0;
+                    }
                     else if ((*h_data)(ci) > h_l)
+                    {
                         (*lf_data)(ci) = 1.0;
+                    }
                     else
+                    {
                         (*lf_data)(ci) =
                             d_rho_solid * (h_s - (*h_data)(ci)) /
                             ((d_rho_liquid - d_rho_solid) * (*h_data)(ci)-d_rho_liquid * h_l + d_rho_solid * h_s);
+                    }
                 }
                 else
                 {

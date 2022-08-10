@@ -83,15 +83,9 @@ CarmanKozenyDragForce::CarmanKozenyDragForce(std::string object_name,
 } // CarmanKozenyDragForce
 
 void
-CarmanKozenyDragForce::preprocessComputeBrinkmanPenalization(double /*current_time*/,
-                                                             double /*new_time*/,
-                                                             int /*num_cycles*/)
+CarmanKozenyDragForce::preprocessComputeBrinkmanPenalization(double current_time, double new_time, int num_cycles)
 {
-    //    d_trans_vel_new = d_trans_vel_current;
-    //    d_rot_vel_new = d_rot_vel_current;
-    //    d_center_of_mass_new = d_center_of_mass_current;
-    //    d_quaternion_new = d_quaternion_current;
-
+    BrinkmanPenalizationStrategy::preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
     return;
 } // preprocessComputeBrinkmanPenalization
 
@@ -105,6 +99,9 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int cycle
 
     // Get the interpolated density variable
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
+
+    // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
+    const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
     // Ghost fill the heaviside and liquid fraction values.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -148,11 +145,14 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int cycle
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
 
         Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
         Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
         Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+        Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -169,7 +169,22 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int cycle
                 const double liquid_fraction = 0.5 * (lf_lower + lf_upper);
 
                 const double alpha_s = H * (1.0 - liquid_fraction);
-                const double penalty = (*rho_data)(s_i) / dt;
+
+                double penalty_rho_scale = 0.0, penalty_mu_scale = 0.0;
+                if (d_use_rho_scale)
+                {
+                    penalty_rho_scale = (*rho_data)(s_i) / dt;
+                }
+
+                const double mu_lower = (*mu_data)(s_i.toCell(0));
+                const double mu_upper = (*mu_data)(s_i.toCell(1));
+                const double mu = 0.5 * (mu_lower + mu_upper);
+                if (d_use_mu_scale)
+                {
+                    penalty_mu_scale = mu / std::pow(patch_dx[0], 2.0);
+                }
+                const double penalty = d_penalty_factor * (penalty_rho_scale + penalty_mu_scale);
+
                 const double solid_velocity = 0.0;
 
                 (*u_data)(s_i) = solid_velocity * penalty * alpha_s * alpha_s / (std::pow(1.0 - alpha_s, 3.0) + d_ed);
@@ -193,6 +208,9 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
 
     // Get the interpolated density variable
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
+
+    // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
+    const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int H_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
@@ -235,11 +253,14 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
     {
         Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const double* const patch_dx = patch_geom->getDx();
 
         Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
         Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
         Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+        Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -256,7 +277,20 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
                 const double liquid_fraction = 0.5 * (lf_lower + lf_upper);
 
                 const double alpha_s = H * (1.0 - liquid_fraction);
-                const double penalty = (*rho_data)(s_i) / dt;
+                double penalty_rho_scale = 0.0, penalty_mu_scale = 0.0;
+                if (d_use_rho_scale)
+                {
+                    penalty_rho_scale = (*rho_data)(s_i) / dt;
+                }
+
+                const double mu_lower = (*mu_data)(s_i.toCell(0));
+                const double mu_upper = (*mu_data)(s_i.toCell(1));
+                const double mu = 0.5 * (mu_lower + mu_upper);
+                if (d_use_mu_scale)
+                {
+                    penalty_mu_scale = mu / std::pow(patch_dx[0], 2.0);
+                }
+                const double penalty = d_penalty_factor * (penalty_rho_scale + penalty_mu_scale);
                 (*u_data)(s_i) = penalty * alpha_s * alpha_s / (std::pow(1.0 - alpha_s, 3.0) + d_ed);
             }
         }
@@ -276,6 +310,10 @@ CarmanKozenyDragForce::postprocessComputeBrinkmanPenalization(double current_tim
 void
 CarmanKozenyDragForce::putToDatabase(Pointer<Database> db)
 {
+    db->putDouble("d_num_interface_cells", d_num_interface_cells);
+    db->putDouble("d_penalty_factor", d_penalty_factor);
+    db->putBool("d_use_rho_scale", d_use_rho_scale);
+    db->putBool("d_use_mu_scale", d_use_mu_scale);
     return;
 } // postprocessComputeBrinkmanVelocity
 
@@ -284,9 +322,27 @@ CarmanKozenyDragForce::putToDatabase(Pointer<Database> db)
 void
 CarmanKozenyDragForce::getFromInput(Pointer<Database> input_db, bool is_from_restart)
 {
-    if (input_db->keyExists("num_interface_cells"))
+    if (!is_from_restart)
     {
-        d_num_interface_cells = input_db->getDouble("num_interface_cells");
+        if (input_db->keyExists("num_interface_cells"))
+        {
+            d_num_interface_cells = input_db->getDouble("num_interface_cells");
+        }
+
+        if (input_db->keyExists("penalty_factor"))
+        {
+            d_penalty_factor = input_db->getDouble("penalty_factor");
+        }
+
+        if (input_db->keyExists("use_rho_scale"))
+        {
+            d_use_rho_scale = input_db->getBool("use_rho_scale");
+        }
+
+        if (input_db->keyExists("use_mu_scale"))
+        {
+            d_use_mu_scale = input_db->getBool("use_mu_scale");
+        }
     }
     return;
 } // getFromInput
@@ -294,6 +350,21 @@ CarmanKozenyDragForce::getFromInput(Pointer<Database> input_db, bool is_from_res
 void
 CarmanKozenyDragForce::getFromRestart()
 {
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
+                                 << " not found in restart file." << std::endl);
+    }
+    d_num_interface_cells = db->getDouble("d_num_interface_cells");
+    d_penalty_factor = db->getDouble("d_penalty_factor");
+    d_use_rho_scale = db->getBool("d_use_rho_scale");
+    d_use_mu_scale = db->getBool("d_use_mu_scale");
     return;
 } // getFromRestart
 
