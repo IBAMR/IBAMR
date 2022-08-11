@@ -14,6 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/StaggeredStokesLevelRelaxationFACOperator.h"
+#include "ibamr/StaggeredStokesPETScLevelSolver.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/ibamr_utilities.h"
@@ -293,6 +294,19 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
+
+        Pointer<StaggeredStokesPETScLevelSolver> petsc_level_solver = level_solver;
+        const KSP& level_ksp = petsc_level_solver->getPETScKSP();
+        Mat level_mat;
+        int ierr;
+        ierr = KSPGetOperators(level_ksp, &level_mat, nullptr);
+        std::ostringstream P_filename;
+        PetscViewer matlab_viewer;
+        P_filename << "Stokes_Operator_" << ln;
+        PetscViewerBinaryOpen(PETSC_COMM_WORLD, P_filename.str().c_str(), FILE_MODE_WRITE, &matlab_viewer);
+        PetscViewerSetFormat(matlab_viewer, PETSC_VIEWER_NATIVE);
+        MatView(level_mat, matlab_viewer);
+        PetscViewerDestroy(&matlab_viewer);
     }
 
     // Nullify any fill pattern spec objects which maybe set by the base class.

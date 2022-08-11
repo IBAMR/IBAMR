@@ -311,6 +311,7 @@ AC_CONFIG_FILES([
   tests/physical_boundary/Makefile
   tests/refine/Makefile
   tests/spread/Makefile
+  tests/unfinished-tests/Stokes/test0/Makefile
   tests/vc_navier_stokes/Makefile
   tests/wave_tank/Makefile
 ])
