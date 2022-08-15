@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBTK_HierarchyInterpolator
-#define included_IBTK_HierarchyInterpolator
+#ifndef included_IBTK_HierarchyAveragedDataManager
+#define included_IBTK_HierarchyAveragedDataManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -39,11 +39,7 @@ namespace IBTK
 /*!
  * \brief Class HierarchyTimeInterpolator provides a method of determining and storing average fields over periodic
  * intervals. This class can also be used to determine intermediate velocity fields when at a periodic steady state.
- *
- * This class is templated over VariableType, which should be one of the SAMRAI variable types. This currently supports
- * double data at face centerings cell, face, side, edge, and node.
  */
-template <class VariableType>
 class HierarchyAveragedDataManager
 {
 public:
@@ -53,21 +49,27 @@ public:
      * be taken at equidistant points along the periodic interval.
      */
     HierarchyAveragedDataManager(std::string object_name,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 const std::string& dir_dump_name);
+                                 const std::string& dir_dump_name,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
+                                 bool register_for_restart = true);
 
     /*!
      * The constructor for class HierarchyTimeInterpolator sets some default values and determines data centering. In
      * this constructor, the times at which snapshots are taken are set, as well as the period length.
      */
     HierarchyAveragedDataManager(std::string object_name,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                  std::set<double> snapshot_time_points,
                                  double t_start,
                                  double t_end,
                                  const std::string& dir_dump_name,
-                                 int depth = 1);
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
+                                 bool output_data = true,
+                                 bool register_for_restart = true);
 
     /*!
      * \brief The destructor for class HierarchyTimeInterpolator deallocates patch data as needed.
@@ -133,7 +135,7 @@ public:
     /*!
      * Get the SnapshotCache object
      */
-    const std::unique_ptr<SnapshotCache<VariableType> >& getSnapshotCache()
+    const std::unique_ptr<SnapshotCache>& getSnapshotCache()
     {
         return d_snapshot_cache;
     }
@@ -177,9 +179,8 @@ private:
      * Data for tracking mean flow quantities.
      */
     unsigned int d_num_averaging_cycles = 0;
-    SAMRAI::tbox::Pointer<VariableType> d_scratch_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_var;
     int d_scratch_idx = IBTK::invalid_index;
-    int d_depth = 1;
     std::string d_mean_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
     /*
@@ -210,7 +211,7 @@ private:
      */
     std::set<double> d_snapshot_time_pts;
 
-    std::unique_ptr<SnapshotCache<VariableType> > d_snapshot_cache;
+    std::unique_ptr<SnapshotCache> d_snapshot_cache;
 
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_hier_data_ops;
 
@@ -221,6 +222,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dev_var;
     int d_dev_idx = IBTK::invalid_index;
     int d_visit_ts = 0;
+    bool d_output_data = true;
 };
 
 } // namespace IBTK

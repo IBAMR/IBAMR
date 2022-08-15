@@ -118,17 +118,12 @@ SnapshotCache::storeSnapshot(const int u_idx, const double time, Pointer<PatchHi
         // We've allocated data, now copy it
         // Note these levels should cover the same space, so we shouldn't need to have a refine operator.
         Pointer<PatchLevel<NDIM> > old_level = hierarchy->getPatchLevel(ln);
-        if (!old_level->checkAllocated(snapshot_idx)) old_level->allocatePatchData(snapshot_idx, time);
-        {
-            // First fill in from the snapshot hierarchy
-            Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-            Pointer<RefineOperator<NDIM> > refine_op = nullptr;
-            refine_alg->registerRefine(d_snapshot_idx, u_idx, u_idx, refine_op);
-            Pointer<RefineSchedule<NDIM> > schedule = refine_alg->createSchedule(snapshot_level, old_level);
-            schedule->fillData(time);
-        }
-
-        old_level->deallocatePatchData(snapshot_idx);
+        // First fill in from the snapshot hierarchy
+        Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+        refine_alg->registerRefine(d_snapshot_idx, u_idx, u_idx, refine_op);
+        Pointer<RefineSchedule<NDIM> > schedule = refine_alg->createSchedule(snapshot_level, old_level);
+        schedule->fillData(time);
     }
 
     // Store the index, time, hierarchy, and variable.
