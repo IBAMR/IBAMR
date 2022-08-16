@@ -52,7 +52,6 @@ public:
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 const std::string& dir_dump_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
                                  bool register_for_restart = true);
 
@@ -62,19 +61,18 @@ public:
      */
     HierarchyAveragedDataManager(std::string object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                  std::set<double> snapshot_time_points,
                                  double t_start,
                                  double t_end,
-                                 const std::string& dir_dump_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
-                                 bool output_data = true,
                                  bool register_for_restart = true);
 
     /*!
      * \brief The destructor for class HierarchyTimeInterpolator deallocates patch data as needed.
      */
-    ~HierarchyAveragedDataManager();
+    ~HierarchyAveragedDataManager() = default;
 
     /*!
      * Clear the snapshots taken with this class.
@@ -119,6 +117,15 @@ public:
     }
 
     /*!
+     * Return whether the point at the specified time is at a periodic steady state.
+     */
+    inline bool isAtPeriodicSteadyState(double time, const double tol)
+    {
+        time = getTimePt(time, tol);
+        return d_idx_steady_state_map.at(time);
+    }
+
+    /*!
      * Return the time points this class is storing.
      */
     inline const std::set<double>& getSnapshotTimePts()
@@ -138,6 +145,14 @@ public:
     const std::unique_ptr<SnapshotCache>& getSnapshotCache()
     {
         return d_snapshot_cache;
+    }
+
+    /*!
+     * Set the threshold for achieving a steady state.
+     */
+    void setSteadyStateThreshold(const double threshold)
+    {
+        d_periodic_thresh = threshold;
     }
 
 private:
@@ -223,6 +238,7 @@ private:
     int d_dev_idx = IBTK::invalid_index;
     int d_visit_ts = 0;
     bool d_output_data = true;
+    bool d_enable_logging = true;
 };
 
 } // namespace IBTK

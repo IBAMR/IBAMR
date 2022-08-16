@@ -81,14 +81,12 @@ HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_na
                                                            Pointer<Variable<NDIM> > var,
                                                            Pointer<Database> input_db,
                                                            Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                           const std::string& dir_dump_name,
                                                            Pointer<GridGeometry<NDIM> > grid_geom,
                                                            bool register_for_restart)
     : d_object_name(std::move(object_name)),
       d_var(var),
       d_snapshot_cache(
-          new SnapshotCache(d_object_name + "::SnapshotCache", var, input_db, grid_geom, register_for_restart)),
-      d_visit_data_writer(new VisItDataWriter<NDIM>(d_object_name + "::VisitWriter", dir_dump_name))
+          new SnapshotCache(d_object_name + "::SnapshotCache", var, input_db, grid_geom, register_for_restart))
 {
     // Fill in period information
     d_t_start = input_db->getDouble("t_start");
@@ -100,22 +98,17 @@ HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_na
     double dt = d_t_period / num_snapshots;
     for (int i = 0; i < num_snapshots; ++i) d_snapshot_time_pts.insert(d_t_start + static_cast<double>(i) * dt);
 
-    d_output_data = input_db->getBool("output_data");
-
-    // Set refine type
-    d_mean_refine_type = input_db->getStringWithDefault("refine_type", d_mean_refine_type);
     commonConstructor(input_db, hierarchy);
 }
 
 HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_name,
                                                            Pointer<Variable<NDIM> > var,
+                                                           Pointer<Database> input_db,
                                                            Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                            std::set<double> snapshot_time_points,
                                                            const double t_start,
                                                            const double t_end,
-                                                           const std::string& dir_dump_name,
                                                            Pointer<GridGeometry<NDIM> > grid_geom,
-                                                           bool output_data,
                                                            bool register_for_restart)
     : d_object_name(std::move(object_name)),
       d_var(var),
@@ -124,36 +117,67 @@ HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_na
       d_t_period(t_end - t_start),
       d_snapshot_time_pts(std::move(snapshot_time_points)),
       d_snapshot_cache(
-          new SnapshotCache(d_object_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart)),
-      d_visit_data_writer(new VisItDataWriter<NDIM>(d_object_name + "::VisitWriter", dir_dump_name)),
-      d_output_data(output_data)
+          new SnapshotCache(d_object_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart))
 {
-    commonConstructor(nullptr, hierarchy);
+    commonConstructor(input_db, hierarchy);
 }
 
 void
 HierarchyAveragedDataManager::commonConstructor(Pointer<Database> input_db, Pointer<PatchHierarchy<NDIM> > hierarchy)
 {
-    // Register the scratch variable
+    // Get some information from the database
+    d_enable_logging = input_db->getBool("enable_logging");
+    d_output_data = input_db->getBool("output_data");
+    std::string dir_dump_name = input_db->getStringWithDefault("dir_dump_name", "");
+    d_mean_refine_type = input_db->getStringWithDefault("refine_type", d_mean_refine_type);
+
+    // Register the scratch variable. Note we need the scratch variable to have sufficient ghost cell width for whatever
+    // refinement operation must be done. We should read this from the input database.
     auto var_db = VariableDatabase<NDIM>::getDatabase();
     d_scratch_idx =
         var_db->registerVariableAndContext(d_var, var_db->getContext(d_object_name + "::ctx"), 1 /*ghosts*/);
 
     // Create the hierarchy data ops
     auto hier_math_ops = HierarchyDataOpsManager<NDIM>::getManager();
-    d_hier_data_ops = hier_math_ops->getOperationsDouble(d_var, hierarchy, true);
+    d_hier_data_ops = hier_math_ops->getOperationsDouble(d_var, hierarchy, true /*get_unique*/);
 
-    d_mean_var = new CellVariable<NDIM, double>(d_object_name + "::MeanVar", NDIM);
-    d_dev_var = new CellVariable<NDIM, double>(d_object_name + "::DevVar", NDIM);
-    d_mean_idx = var_db->registerVariableAndContext(d_mean_var, var_db->getContext(d_object_name + "::ctx"), 1);
-    d_dev_idx = var_db->registerVariableAndContext(d_dev_var, var_db->getContext(d_object_name + "::ctx"), 1);
-    d_visit_data_writer->registerPlotQuantity("mean_flow_field", "VECTOR", d_mean_idx);
-    d_visit_data_writer->registerPlotQuantity("deviation", "VECTOR", d_dev_idx);
-}
-
-HierarchyAveragedDataManager::~HierarchyAveragedDataManager()
-{
-    clearSnapshots();
+    // Determine depth for drawing.
+    int depth = 1;
+    Pointer<CellVariable<NDIM, double> > c_var = d_var;
+    Pointer<NodeVariable<NDIM, double> > n_var = d_var;
+    Pointer<SideVariable<NDIM, double> > s_var = d_var;
+    Pointer<FaceVariable<NDIM, double> > f_var = d_var;
+    Pointer<EdgeVariable<NDIM, double> > e_var = d_var;
+    if (c_var)
+    {
+        Pointer<CellDataFactory<NDIM, double> > data_factory = c_var->getPatchDataFactory();
+        depth = data_factory->getDefaultDepth();
+    }
+    else if (n_var)
+    {
+        Pointer<NodeDataFactory<NDIM, double> > data_factory = n_var->getPatchDataFactory();
+        depth = data_factory->getDefaultDepth();
+    }
+    else if (s_var || f_var)
+    {
+        depth = NDIM;
+    }
+    else if (e_var)
+    {
+        Pointer<EdgeDataFactory<NDIM, double> > data_factory = e_var->getPatchDataFactory();
+        depth = data_factory->getDefaultDepth();
+    }
+    d_mean_var = new CellVariable<NDIM, double>(d_object_name + "::MeanVar", depth);
+    d_dev_var = new CellVariable<NDIM, double>(d_object_name + "::DevVar", depth);
+    if (d_output_data)
+    {
+        d_mean_idx = var_db->registerVariableAndContext(d_mean_var, var_db->getContext(d_object_name + "::ctx"), 1);
+        d_dev_idx = var_db->registerVariableAndContext(d_dev_var, var_db->getContext(d_object_name + "::ctx"), 1);
+        d_visit_data_writer = std::unique_ptr<VisItDataWriter<NDIM> >(
+            new VisItDataWriter<NDIM>(d_object_name + "::VisitWriter", dir_dump_name));
+        d_visit_data_writer->registerPlotQuantity("mean_flow_field", "VECTOR", d_mean_idx);
+        d_visit_data_writer->registerPlotQuantity("deviation", "VECTOR", d_dev_idx);
+    }
 }
 
 void
@@ -187,17 +211,16 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
     // If this is the first snapshot, record it.
     if (d_idx_num_updates_map[time] == 0)
     {
-        pout << "First recorded snapshot\n";
         d_snapshot_cache->storeSnapshot(u_idx, time, hierarchy);
         d_idx_steady_state_map[time] = false;
         d_idx_num_updates_map[time] = 1;
         return false;
     }
-    pout << "Updating mean\n";
+
     // Otherwise, we need to update the mean.
     // Fill the scratch index with the current snapshot
     allocate_patch_data(d_scratch_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
-    fill_snapshot_on_hierarchy(*d_snapshot_cache, d_scratch_idx, time, hierarchy, "CONSERVATIVE_LINEAR_REFINE", tol);
+    fill_snapshot_on_hierarchy(*d_snapshot_cache, d_scratch_idx, time, hierarchy, refine_type, tol);
     // The mean is updated via
     // u_avg^N = u_avg^(N-1) + (1/N)*(u - u_avg^(N-1))
     // Note first mean is already calculated, so we increment steady state idx.
@@ -232,7 +255,7 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
         if (ec_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, ec_var, ghost_fill, time);
         if (fc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, fc_var, ghost_fill, time, false);
         if (cc_var) d_hier_data_ops->copyData(d_mean_idx, d_scratch_idx);
-        // Compute the change in the norm.
+        // Determine our convergence criteria: ||1/(N + 1) * (u_avg - u)||
         d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
         if (sc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, sc_var, ghost_fill, time, false);
         if (nc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, nc_var, ghost_fill, time);
@@ -245,16 +268,20 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
     }
     else
     {
-        // Compute the change in the norm.
+        // Determine our convergence criteria: ||1/(N + 1) * (u_avg - u)||
         d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
     }
 
-    const double L1_norm = d_hier_data_ops->L1Norm(d_scratch_idx, wgt_idx);
     const double L2_norm = d_hier_data_ops->L2Norm(d_scratch_idx, wgt_idx);
-    const double max_norm = d_hier_data_ops->maxNorm(d_scratch_idx, wgt_idx);
-    plog << "At time " << time << ", the L^2 norm of the change in u_mean is " << L1_norm << "\n";
-    plog << "At time " << time << ", the L^1 norm of the change in u_mean is " << L2_norm << "\n";
-    plog << "At time " << time << ", the max norm of the change in u_mean is " << max_norm << "\n";
+    if (d_enable_logging)
+    {
+        // Print statistics to the log file.
+        const double L1_norm = d_hier_data_ops->L1Norm(d_scratch_idx, wgt_idx);
+        const double max_norm = d_hier_data_ops->maxNorm(d_scratch_idx, wgt_idx);
+        plog << "At time " << time << ", the L^1 norm of the change in u_mean is " << L1_norm << "\n";
+        plog << "At time " << time << ", the L^2 norm of the change in u_mean is " << L2_norm << "\n";
+        plog << "At time " << time << ", the max norm of the change in u_mean is " << max_norm << "\n";
+    }
 
     deallocate_patch_data(d_scratch_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
     if (L2_norm <= d_periodic_thresh)
