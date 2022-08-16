@@ -29,6 +29,7 @@ double
 map_to_period(const double t_start, const double t_end, double time)
 {
     const double period = t_end - t_start;
+    if (IBTK::abs_equal_eps(period, 0.0)) return t_start;
 #ifndef NDEBUG
     // We only deal with positive period lengths.
     TBOX_ASSERT(period > 0.0);
@@ -293,8 +294,9 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
 }
 
 double
-HierarchyAveragedDataManager::getTimePt(const double time, const double tol)
+HierarchyAveragedDataManager::getTimePt(double time, const double tol)
 {
+    time = map_to_period(d_t_start, d_t_end, time);
     auto it_up = d_snapshot_time_pts.upper_bound(time);
     auto it_low = std::next(it_up, -1);
     double t_low = *(it_low);
