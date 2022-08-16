@@ -37,16 +37,16 @@
 namespace IBTK
 {
 /*!
- * \brief Class HierarchyTimeInterpolator provides a method of determining and storing average fields over periodic
- * intervals. This class can also be used to determine intermediate velocity fields when at a periodic steady state.
+ * \brief Class HierarchyAveragedDataManager provides a method of determining and storing average fields over periodic
+ * intervals.
  */
 class HierarchyAveragedDataManager
 {
 public:
     /*!
-     * The constructor for class HierarchyTimeInterpolator sets some default values and determines data centering. The
-     * expected period and number of snapshots must be set in the input database. This class assumes the snapshots will
-     * be taken at equidistant points along the periodic interval.
+     * The constructor for class HierarchyAveragedDataManager sets some default values and determines data centering.
+     * The expected period and number of snapshots must be set in the input database. This class assumes the snapshots
+     * will be taken at equidistant points along the periodic interval.
      */
     HierarchyAveragedDataManager(std::string object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -56,8 +56,8 @@ public:
                                  bool register_for_restart = true);
 
     /*!
-     * The constructor for class HierarchyTimeInterpolator sets some default values and determines data centering. In
-     * this constructor, the times at which snapshots are taken are set, as well as the period length.
+     * The constructor for class HierarchyAveragedDataManager sets some default values and determines data centering. In
+     * this constructor, the times at which snapshots are taken are set by arguments.
      */
     HierarchyAveragedDataManager(std::string object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -70,7 +70,7 @@ public:
                                  bool register_for_restart = true);
 
     /*!
-     * \brief The destructor for class HierarchyTimeInterpolator deallocates patch data as needed.
+     * \brief The destructor for class HierarchyAveragedDataManager deallocates patch data as needed.
      */
     ~HierarchyAveragedDataManager() = default;
 
@@ -87,6 +87,9 @@ public:
      *
      * This function returns true if the snapshot is at a steady state, or that 1/N*||u - u_avg|| < threshold. Note that
      * a weight patch index should be supplied to accurately compute the norm.
+     *
+     * If specified in the constructor, this function also writes visualization files for both the mean field and the
+     * deviation.
      */
     inline bool updateTimeAveragedSnapshot(int u_idx,
                                            double time,
@@ -134,8 +137,8 @@ public:
     }
 
     /*!
-     * Returns the index of the snapshot, if that time point is stored. Otherwise returns -1 (the largest unsigned
-     * integer).
+     * Returns the exact data point at which points are being stored in the internal map. Note that if a time point is
+     * not found within the specified tolerance, an unrecoverable error occurs.
      */
     double getTimePt(double time, double tol);
 
