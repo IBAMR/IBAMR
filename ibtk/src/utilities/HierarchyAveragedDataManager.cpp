@@ -212,7 +212,10 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
     // If this is the first snapshot, record it.
     if (d_idx_num_updates_map[time] == 0)
     {
-        d_snapshot_cache->storeSnapshot(u_idx, time, hierarchy);
+        // Need to copy the data to the scratch index.
+        allocate_patch_data(d_scratch_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
+        d_hier_data_ops->copyData(d_scratch_idx, u_idx);
+        d_snapshot_cache->storeSnapshot(d_scratch_idx, time, hierarchy);
         d_idx_steady_state_map[time] = false;
         d_idx_num_updates_map[time] = 1;
         return false;

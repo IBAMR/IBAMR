@@ -38,7 +38,7 @@ namespace IBTK
 {
 /*!
  * \brief Class HierarchyAveragedDataManager provides a method of determining and storing average fields over periodic
- * intervals.
+ * intervals. Note this class supports a zero periodic interval.
  */
 class HierarchyAveragedDataManager
 {
@@ -47,6 +47,18 @@ public:
      * The constructor for class HierarchyAveragedDataManager sets some default values and determines data centering.
      * The expected period and number of snapshots must be set in the input database. This class assumes the snapshots
      * will be taken at equidistant points along the periodic interval.
+     *
+     * The input database is searched for the following keys:
+     *  - 't_start' : Double that represents the beginning of the period
+     *  - 't_end' : Double that represents the end of the period. For cases where the period is zero, t_end should be
+     * set to t_start.
+     *  - 'threshold' : Double to determine whether a given time point is at a periodic steady state.
+     *  - 'num_snapshots' : Integer to determine the number of snapshots taken, equally sampled between t_start and
+     * t_end.
+     *  - 'enable_logging' : Bool used to determine whether to print convergence information to the log file.
+     *  - 'output_data' : Bool used to determine whether to write visualization files for the mean and deviations.
+     *  - 'dir_dump_name' : String used to determine which folder to write visualization files to.
+     *  - 'refine_type' : String to determine which refine operator will be used by default.
      */
     HierarchyAveragedDataManager(std::string object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -58,6 +70,13 @@ public:
     /*!
      * The constructor for class HierarchyAveragedDataManager sets some default values and determines data centering. In
      * this constructor, the times at which snapshots are taken are set by arguments.
+     *
+     * The input database is searched for the following keys:
+     *  - 'enable_logging' : Bool used to determine whether to print convergence information to the log file.
+     *  - 'output_data' : Bool used to determine whether to write visualization files for the mean and deviations.
+     *  - 'dir_dump_name' : String used to determine which folder to write visualization files to. Defaults to "".
+     *  - 'refine_type' : String to determine which refine operator will be used by default. Defaults to
+     * "CONSERVATIVE_LINEAR_REFINE".
      */
     HierarchyAveragedDataManager(std::string object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -91,6 +110,7 @@ public:
      * If specified in the constructor, this function also writes visualization files for both the mean field and the
      * deviation.
      */
+    //\{
     inline bool updateTimeAveragedSnapshot(int u_idx,
                                            double time,
                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -99,12 +119,14 @@ public:
     {
         return updateTimeAveragedSnapshot(u_idx, time, hierarchy, d_mean_refine_type, wgt_idx, tol);
     }
+
     bool updateTimeAveragedSnapshot(int u_idx,
                                     double time,
                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                     const std::string& mean_refine_type,
                                     const int wgt_idx = IBTK::invalid_index,
                                     double tol = 1.0e-8);
+    //\}
 
     /*!
      * Return true if all the tracked mean fields are at a steady state.
@@ -120,7 +142,8 @@ public:
     }
 
     /*!
-     * Return whether the point at the specified time is at a periodic steady state.
+     * Return whether the point at the specified time is at a periodic steady state. If multiple time points are found
+     * within the provided tolerance, this function returns the closest time that is less than the requested time.
      */
     inline bool isAtPeriodicSteadyState(double time, const double tol)
     {
@@ -143,15 +166,16 @@ public:
     double getTimePt(double time, double tol);
 
     /*!
-     * Get the SnapshotCache object
+     * Get the SnapshotCache object.
      */
-    const std::unique_ptr<SnapshotCache>& getSnapshotCache()
+    SnapshotCache& getSnapshotCache()
     {
-        return d_snapshot_cache;
+        return *d_snapshot_cache;
     }
 
     /*!
-     * Set the threshold for achieving a steady state.
+     * Set the threshold for achieving a steady state. This class determines whether a periodic steady state has been
+     * achieved by checking the whether 1/N*||u - u_avg||_2 is less than the provided threshold.
      */
     void setSteadyStateThreshold(const double threshold)
     {
@@ -164,32 +188,6 @@ private:
      */
     void commonConstructor(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
-    /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    HierarchyAveragedDataManager() = delete;
-
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     *
-     * \param from The value to copy to this object.
-     */
-    HierarchyAveragedDataManager(const HierarchyAveragedDataManager& from) = delete;
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     *
-     * \param that The value to assign to this object.
-     *
-     * \return A reference to this object.
-     */
-    HierarchyAveragedDataManager& operator=(const HierarchyAveragedDataManager& that) = delete;
 
     std::string d_object_name;
 
