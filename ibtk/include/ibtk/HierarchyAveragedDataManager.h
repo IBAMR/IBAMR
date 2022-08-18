@@ -37,8 +37,52 @@
 namespace IBTK
 {
 /*!
- * \brief Class HierarchyAveragedDataManager provides a method of determining and storing average fields over periodic
- * intervals. Note this class supports a zero periodic interval.
+ * \brief Class HierarchyAveragedDataManager provides a method of tracking and determining periodic steady states of
+ * fields. In particular, this class can be used to determine the average of a field over several instances, for example
+ * determining the mean flow of a turbulent flow field.
+ *
+ * The average field is defined as \f$ \bar{u} = \lim_{N\rightarrow\infty}\frac{1}{N} \sum_{i = 0}^{N-1} u(x,t + i*P)
+ * \f$ in which \f$ P \f$ is the period. This class computes the average \f$ \bar{u}_N = \frac{1}{N} \sum_{i = 0}^{N-1}
+ * u(x,t + i*P) \f$ via the relation \f$ \bar{u}_N = \frac{N - 1}{N} \bar{u}_{N-1} + \frac{1}{N} u(x, t + (N-1)*P) \f$.
+ * The average is considered converged when the L2 norm of \f$ \frac{1}{N} (\bar{u}_N - u(x, t + (N-1)*P)) \f$ is less
+ * than some specified threshold.
+ *
+ * Note when the period is equal to 0.0, the average field reduces to \f$ \bar{u} = \lim_{T\rightarrow\infty}
+ * \frac{1}{T} \int_0^T u(x, t_0 + \tau)d\tau \f$. In this case, it is important that snapshots be taken at consistent
+ * time intervals to ensure the above recurrence relation still holds.
+ *
+ * If requested, this class can output visualization files corresponding to the tracked average and convergence criteria
+ * (called 'deviation'). Visualization files are written after every call to updateTimeAveragedSnapshot. Side and face
+ * centered variables are assumed to represent d-dimensional vector fields, while all other fields output a depth
+ * consistent with the provided variable in the constructor.
+ *
+ * A common use of this class is to determine an average flow field over the course of a simulation. For example, the
+ * below code will take snapshots of a flow field at specified intervals.
+ *
+ * \code
+ * while (t < T_final)
+ * {
+ *     // Advance flow field
+ *     ins_integrator->advanceHierarchy(dt);
+ *     t += dt;
+ *
+ *     // Take a snapshot if at the correct time.
+ *     if (t >= next_snap_time)
+ *     {
+ *         auto var_db = VariableDatabase<NDIM>::getDatabase();
+ *         const int u_idx = var_db->mapVariableAndContextToIndex(ins_hierarchy->getVelocityVariable(),
+ *                                                                ins_hierarchy->getCurrentContext());
+ *         HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
+ *         hier_math_ops.resetLevels(0, patch_hierarchy->getFinestLevelNumber());
+ *         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
+ *         bool at_steady_state = hier_avg_data_manager.updateTimeAveragedSnapshot(
+ *                  u_idx, t, patch_hierarchy, "CONSERVATIVE_LINEAR_REFINE", wgt_sc_idx, 1.0e-8);
+ *         if (at_steady_state)
+ *             pout << "Determined steady state!\n";
+ *     }
+ * }
+ * \endcode
+ *
  */
 class HierarchyAveragedDataManager
 {
@@ -100,7 +144,7 @@ public:
 
     /*!
      * Update the time averaged snapshot. The update is computed through the relation
-     * ``` u_avg = u_avg + 1/N * (u - u_avg)```
+     * \f$ u_avg = u_avg + 1/N * (u - u_avg) \f$
      * in which N is the number of updates to the snapshot. If this the first update after clearSnapshots() is called,
      * we simply copy data.
      *
@@ -175,7 +219,7 @@ public:
 
     /*!
      * Set the threshold for achieving a steady state. This class determines whether a periodic steady state has been
-     * achieved by checking the whether 1/N*||u - u_avg||_2 is less than the provided threshold.
+     * achieved by checking the whether \f$ \frac{1}{N}||u - u_avg||_2 \f$ is less than the provided threshold.
      */
     void setSteadyStateThreshold(const double threshold)
     {
