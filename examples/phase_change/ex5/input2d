@@ -105,10 +105,19 @@ SOLVE_MASS_CONSERVATION = FALSE
 // AdvDiff solver parameters
 ADV_DIFF_SOLVER_TYPE        = "SEMI_IMPLICIT"   // the advection-diffusion solver to use
 ADV_DIFF_NUM_CYCLES         = 2                // number of cycles of fixed-point iteration
+ADV_DIFF_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // convective time stepping type
+ADV_DIFF_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
+ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 
+TEMPERATURE_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // "FORWARD_EULER" // convective time stepping type
+TEMPERATURE_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
+TEMPERATURE_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 TEMPERATURE_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the diffusion terms
 K_VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 
+LIQUID_FRACTION_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // "FORWARD_EULER" // convective time stepping type
+LIQUID_FRACTION_CONVECTIVE_OP_TYPE = "CONSERVATIVE_CUI"             // convective differencing discretization type
+LIQUID_FRACTION_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 LIQUID_FRACTION_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the diffusion terms
 INTERPOLATION_FUNCTION_PROFILE       = "QUARTIC"
 
@@ -118,7 +127,7 @@ NU_LF          = 1.0
 ZETA_LF        = 2e-3
 M_LF           = 1.0 / (NU_LF * ZETA_LF * ZETA_LF * LATENT_HEAT)
 LAMBDA_LF      = 1.0 / (NU_LF * M_LF)
-ETA_LF         = sqrt(2.0 * A_LF) * ZETA_LF
+EPS_LF         = sqrt(2.0 * A_LF) * ZETA_LF
 SOLVE_ENERGY   = TRUE
 
 AllenCahnHierarchyIntegrator {
@@ -126,8 +135,17 @@ AllenCahnHierarchyIntegrator {
    end_time                      = END_TIME
    grow_dt                       = GROW_DT
    num_cycles                    = ADV_DIFF_NUM_CYCLES
+   convective_time_stepping_type = ADV_DIFF_CONVECTIVE_TS_TYPE
+   convective_op_type            = ADV_DIFF_CONVECTIVE_OP_TYPE
+   convective_difference_form    = ADV_DIFF_CONVECTIVE_FORM
    T_diffusion_time_stepping_type = TEMPERATURE_DIFFUSION_TS_TYPE
+   T_convective_time_stepping_type = TEMPERATURE_CONVECTIVE_TS_TYPE
+   T_convective_op_type            = TEMPERATURE_CONVECTIVE_OP_TYPE
+   T_convective_difference_form    = TEMPERATURE_CONVECTIVE_FORM
    lf_diffusion_time_stepping_type = LIQUID_FRACTION_DIFFUSION_TS_TYPE
+   lf_convective_time_stepping_type = LIQUID_FRACTION_CONVECTIVE_TS_TYPE
+   lf_convective_op_type            = LIQUID_FRACTION_CONVECTIVE_OP_TYPE
+   lf_convective_difference_form    = LIQUID_FRACTION_CONVECTIVE_FORM
    cfl                           = CFL_MAX
    dt_max                        = DT_MAX
    tag_buffer                    = TAG_BUFFER
@@ -142,7 +160,7 @@ AllenCahnHierarchyIntegrator {
    T_melt                        = MELT_TEMPERATURE
    M_lf                          = M_LF
    lambda_lf                     = LAMBDA_LF
-   eta_lf                        = ETA_LF
+   eps_lf                        = EPS_LF
    solve_mass_conservation       = SOLVE_MASS_CONSERVATION
    solve_energy                  = SOLVE_ENERGY
    k_vc_interpolation_type       = K_VC_INTERPOLATION_TYPE
