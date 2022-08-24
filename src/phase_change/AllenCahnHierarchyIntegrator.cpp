@@ -599,12 +599,6 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         d_hier_cc_data_ops->copyData(T_scratch_idx, T_current_idx, false);
         T_rhs_op->apply(*d_T_sol, *d_T_rhs);
 
-        if (d_T_convective_op_needs_init)
-        {
-            d_T_convective_op->initializeOperatorState(*d_T_sol, *d_T_rhs);
-            d_T_convective_op_needs_init = false;
-        }
-
         d_hier_cc_data_ops->copyData(T_new_idx, T_current_idx);
 
         if (d_u_adv_var)
