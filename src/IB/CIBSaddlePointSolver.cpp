@@ -886,6 +886,7 @@ CIBSaddlePointSolver::resetKSPPC()
 PetscErrorCode
 CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
     auto solver = static_cast<CIBSaddlePointSolver*>(p_ctx);
@@ -901,6 +902,7 @@ CIBSaddlePointSolver::MatVecMult_SaddlePoint(Mat A, Vec x, Vec y)
 PetscErrorCode
 CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     // Here we are solving the equation of the type : Py = x
     // in which P is the preconditioner.
     void* ctx;
@@ -1056,6 +1058,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
 PetscErrorCode
 CIBSaddlePointSolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*/)
 {
+    PetscFunctionBeginUser;
     Vec resid, rhs;
     PetscReal truenorm, bnorm;
     char print_normtype[256];

@@ -572,6 +572,7 @@ PETScNewtonKrylovSolver::resetSNESJacobian()
 PetscErrorCode
 PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x, Vec f, void* p_ctx)
 {
+    PetscFunctionBeginUser;
     auto newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
@@ -589,6 +590,7 @@ PETScNewtonKrylovSolver::FormFunction_SAMRAI(SNES /*snes*/, Vec x, Vec f, void* 
 PetscErrorCode
 PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/, void* p_ctx)
 {
+    PetscFunctionBeginUser;
     auto newton_solver = static_cast<PETScNewtonKrylovSolver*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(newton_solver);
@@ -620,6 +622,7 @@ PETScNewtonKrylovSolver::FormJacobian_SAMRAI(SNES snes, Vec x, Mat A, Mat /*B*/,
 PetscErrorCode
 PETScNewtonKrylovSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     int ierr;
     void* p_ctx;
     ierr = MatShellGetContext(A, &p_ctx);

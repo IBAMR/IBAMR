@@ -814,6 +814,7 @@ PETScLevelSolver::setupNullspace()
 PetscErrorCode
 PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
@@ -860,6 +861,7 @@ PETScLevelSolver::PCApply_Additive(PC pc, Vec x, Vec y)
 PetscErrorCode
 PETScLevelSolver::PCApply_Multiplicative(PC pc, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);

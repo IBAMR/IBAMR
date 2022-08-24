@@ -382,6 +382,7 @@ KrylovFreeBodyMobilitySolver::resetKSPPC()
 PetscErrorCode
 KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver(Mat A, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
     auto solver = static_cast<KrylovFreeBodyMobilitySolver*>(p_ctx);
@@ -411,6 +412,7 @@ KrylovFreeBodyMobilitySolver::MatVecMult_KFBMSolver(Mat A, Vec x, Vec y)
 PetscErrorCode
 KrylovFreeBodyMobilitySolver::PCApply_KFBMSolver(PC pc, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     // Here we are trying to the solve the problem of the type: Py = x for y.
     void* ctx;
     PCShellGetContext(pc, &ctx);
@@ -429,6 +431,7 @@ KrylovFreeBodyMobilitySolver::PCApply_KFBMSolver(PC pc, Vec x, Vec y)
 PetscErrorCode
 KrylovFreeBodyMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*/)
 {
+    PetscFunctionBeginUser;
     Vec resid, rhs;
     PetscReal truenorm, bnorm;
     char print_normtype[256];

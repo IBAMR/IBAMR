@@ -206,6 +206,7 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
 PetscErrorCode
 PETScMFFDJacobianOperator::FormFunction_SAMRAI(void* p_ctx, Vec x, Vec f)
 {
+    PetscFunctionBeginUser;
     auto jac_op = static_cast<PETScMFFDJacobianOperator*>(p_ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(jac_op);
