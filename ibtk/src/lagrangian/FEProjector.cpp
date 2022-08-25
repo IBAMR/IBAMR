@@ -688,6 +688,8 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
 
     if (close_F) F_vec.close();
     const System& system = d_fe_data->getEquationSystems()->get_system(system_name);
+    
+	FEType fe_type = system.get_dof_map().variable_type(0);
 
     // We can use the diagonal mass matrix directly if we do not need a
     // consistent mass matrix *and* there are no constraints.
@@ -705,8 +707,6 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
     {
         std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*> proj_solver_components =
             consistent_mass_matrix ? buildL2ProjectionSolver(system_name) : buildLumpedL2ProjectionSolver(system_name);
-        // always use the lumped matrix as the preconditioner:
-        PetscMatrix<double>& lumped_mass = *buildLumpedL2ProjectionSolver(system_name).second;
         PetscLinearSolver<double>* solver = proj_solver_components.first;
         PetscMatrix<double>* M_mat = proj_solver_components.second;
         PetscBool rtol_set;
@@ -724,8 +724,20 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
         FischerGuess& fischer_guess = (pair.first)->second;
 
         fischer_guess.guess(U_vec, F_vec);
-        solver->solve(
-            *M_mat, lumped_mass, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+        
+        if (fe_type.order == FIRST && fe_type.family == MONOMIAL)
+        {
+		solver->solve(
+			*M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+	}
+	else
+	{
+		
+		// use the lumped matrix as the preconditioner:
+		PetscMatrix<double>& lumped_mass = *buildLumpedL2ProjectionSolver(system_name).second;
+		solver->solve(
+			*M_mat, lumped_mass, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+	}
         KSPConvergedReason reason;
         ierr = KSPGetConvergedReason(solver->ksp(), &reason);
         IBTK_CHKERRQ(ierr);
