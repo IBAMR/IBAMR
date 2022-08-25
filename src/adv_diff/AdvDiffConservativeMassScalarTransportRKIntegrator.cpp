@@ -1079,11 +1079,12 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeTimeIntegrator(
 
     if (d_gamma_cc_var)
     {
-        d_gamma_cc_scratch_idx = var_db->registerVariableAndContext(d_gamma_cc_var,
-                                                                    var_db->getContext(d_gamma_cc_var->getName()),
-                                                                    IntVector<NDIM>(d_material_property_limiter_gcw));
+        d_gamma_cc_scratch_idx =
+            var_db->registerVariableAndContext(d_gamma_cc_var,
+                                               var_db->getContext(d_gamma_cc_var->getName() + "::SCRATCH"),
+                                               IntVector<NDIM>(d_material_property_limiter_gcw));
         d_gamma_cc_composite_idx = var_db->registerVariableAndContext(
-            d_gamma_cc_var, var_db->getContext(d_gamma_cc_var->getName()), IntVector<NDIM>(NOGHOSTS));
+            d_gamma_cc_var, var_db->getContext(d_gamma_cc_var->getName() + "::COMPOSITE"), IntVector<NDIM>(NOGHOSTS));
     }
 
     // Setup the interpolation transaction information.

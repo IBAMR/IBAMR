@@ -1066,7 +1066,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
         T_solver->initializeSolverState(*d_T_sol, *d_T_rhs);
         d_T_solver_needs_init = true;
 
-        if (d_T_var)
+        if (d_T_var && d_u_adv_var)
         {
             // Account for the convective term computed from MassIntegrator class.
             d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
