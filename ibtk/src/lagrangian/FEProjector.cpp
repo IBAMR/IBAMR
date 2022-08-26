@@ -125,15 +125,18 @@ qrule_is_nodal(const FEType& fe_type, const QBase* const qrule)
                 permitted_fe_families.end());
         if (fe_type.family == LAGRANGE || fe_type.family == L2_LAGRANGE || fe_type.family == MONOMIAL)
         {
-			return true;
-		}
-        else if ((fe_type.family == MONOMIAL && fe_order == CONSTANT) ||
+			if ((fe_type.family == MONOMIAL && fe_order == CONSTANT) ||
 				 ( fe_order == CONSTANT && qrule->type() == QGAUSS) ||
 				 (fe_order == FIRST && qrule->type() == QTRAP) ||
 				 (fe_order == SECOND && ((elem_type == EDGE3) || (elem_type == TRI6 || elem_type == QUAD9) ||
 							(elem_type == TET10 || elem_type == HEX27))))
-		{
-			return true;
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		}
 		else
 		{
