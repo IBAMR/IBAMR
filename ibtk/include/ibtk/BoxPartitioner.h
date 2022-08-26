@@ -24,9 +24,11 @@
 
 #include <ibtk/PartitioningBox.h>
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include <libmesh/mesh_base.h>
 #include <libmesh/partitioner.h>
 #include <libmesh/system.h>
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <memory>
 #include <string>
