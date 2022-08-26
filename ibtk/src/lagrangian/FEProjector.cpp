@@ -120,28 +120,25 @@ qrule_is_nodal(const FEType& fe_type, const QBase* const qrule)
 {
     auto fe_order = fe_type.order;
     auto elem_type = qrule->get_elem_type();
-    std::vector<FEFamily> permitted_fe_families{ LAGRANGE, L2_LAGRANGE, MONOMIAL };
-    TBOX_ASSERT(std::find(permitted_fe_families.begin(), permitted_fe_families.end(), fe_type.family) !=
-                permitted_fe_families.end());
         if (fe_type.family == LAGRANGE || fe_type.family == L2_LAGRANGE || fe_type.family == MONOMIAL)
         {
-			if ((fe_type.family == MONOMIAL && fe_order == CONSTANT) ||
+		if ((fe_type.family == MONOMIAL && fe_order == CONSTANT) ||
 				 ( fe_order == CONSTANT && qrule->type() == QGAUSS) ||
 				 (fe_order == FIRST && qrule->type() == QTRAP) ||
 				 (fe_order == SECOND && ((elem_type == EDGE3) || (elem_type == TRI6 || elem_type == QUAD9) ||
 							(elem_type == TET10 || elem_type == HEX27))))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+		{
+			return true;
 		}
 		else
 		{
 			return false;
 		}
+	}
+	else
+	{
+		return false;
+	}
 
 }
 
