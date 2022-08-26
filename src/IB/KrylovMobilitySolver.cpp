@@ -862,6 +862,7 @@ KrylovMobilitySolver::resetKSPPC()
 PetscErrorCode
 KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
     auto solver = static_cast<KrylovMobilitySolver*>(p_ctx);
@@ -941,6 +942,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
 // Routine to apply DirectMobility preconditioner
 PetscErrorCode KrylovMobilitySolver::PCApply_KMInv(PC /*pc*/, Vec /*x*/, Vec /*y*/)
 {
+    PetscFunctionBeginUser;
     TBOX_ERROR(
         "KrylovMobilitySolver::PCApply_KMInv(). Shell Preconditioner for KrylovMobilitySolver not implemented.\n");
     PetscFunctionReturn(0);
@@ -950,6 +952,7 @@ PetscErrorCode KrylovMobilitySolver::PCApply_KMInv(PC /*pc*/, Vec /*x*/, Vec /*y
 PetscErrorCode
 KrylovMobilitySolver::monitorKSP(KSP ksp, int it, PetscReal rnorm, void* /*mctx*/)
 {
+    PetscFunctionBeginUser;
     Vec resid, rhs;
     PetscReal truenorm, bnorm;
     char print_normtype[256];

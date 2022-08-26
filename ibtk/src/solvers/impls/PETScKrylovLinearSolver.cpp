@@ -707,6 +707,7 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
 PetscErrorCode
 PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     void* p_ctx;
     int ierr = MatShellGetContext(A, &p_ctx);
     CHKERRQ(ierr);
@@ -727,6 +728,7 @@ PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)
 PetscErrorCode
 PETScKrylovLinearSolver::PCApply_SAMRAI(PC pc, Vec x, Vec y)
 {
+    PetscFunctionBeginUser;
     int ierr;
     void* ctx;
     ierr = PCShellGetContext(pc, &ctx);
