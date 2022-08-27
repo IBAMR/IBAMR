@@ -120,8 +120,8 @@ qrule_is_nodal(const FEType& fe_type, const QBase* const qrule)
 {
     auto fe_order = fe_type.order;
     auto elem_type = qrule->get_elem_type();
-        if (fe_type.family == LAGRANGE || fe_type.family == L2_LAGRANGE || fe_type.family == MONOMIAL)
-        {
+    if (fe_type.family == LAGRANGE || fe_type.family == L2_LAGRANGE || fe_type.family == MONOMIAL)
+    {
 		if ((fe_type.family == MONOMIAL && fe_order == CONSTANT) ||
 				 ( fe_order == CONSTANT && qrule->type() == QGAUSS) ||
 				 (fe_order == FIRST && qrule->type() == QTRAP) ||
@@ -691,7 +691,7 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
     const MeshBase& mesh = d_fe_data->getEquationSystems()->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
     
-	FEType fe_type = system.get_dof_map().variable_type(0);
+    FEType fe_type = system.get_dof_map().variable_type(0);
 
     // We can use the diagonal mass matrix directly if we do not need a
     // consistent mass matrix *and* there are no constraints.
@@ -709,6 +709,8 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
     {
         std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*> proj_solver_components =
             consistent_mass_matrix ? buildL2ProjectionSolver(system_name) : buildLumpedL2ProjectionSolver(system_name);
+        // the lumped matrix as the preconditioner:
+        PetscMatrix<double>& lumped_mass = *buildLumpedL2ProjectionSolver(system_name).second;
         PetscLinearSolver<double>* solver = proj_solver_components.first;
         PetscMatrix<double>* M_mat = proj_solver_components.second;
         PetscBool rtol_set;
@@ -731,17 +733,16 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
         std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
         if (qrule_is_nodal(fe_type, qrule.get()))
         {
-			// use the lumped matrix as the preconditioner:
-			PetscMatrix<double>& lumped_mass = *buildLumpedL2ProjectionSolver(system_name).second;
-			solver->solve(
-				*M_mat, lumped_mass, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
-		}
-		else
-		{
-			solver->solve(
-				*M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+		// use the lumped matrix as the preconditioner:
+		solver->solve(
+			*M_mat, lumped_mass, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+	}
+	else
+	{
+		solver->solve(
+			*M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
 		
-		}
+	}
         KSPConvergedReason reason;
         ierr = KSPGetConvergedReason(solver->ksp(), &reason);
         IBTK_CHKERRQ(ierr);
