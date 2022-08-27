@@ -376,10 +376,13 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
+            fe->reinit(elem);
             if (!qrule_is_nodal(fe_type, qrule.get()))
                  TBOX_ERROR("FEProjector::assert_qrule_is_nodal(): unsupported element order "
-						<< Utility::enum_to_string<Order>(fe_type.order) << "\n");
-            fe->reinit(elem);
+						<< Utility::enum_to_string<Order>(fe_type.order) << "\n"
+						"for the FEFamily " << Utility::enum_to_string<FEFamily>(fe_type.family) << ",\n"
+						"for the element type " << Utility::enum_to_string<ElemType>(qrule.get()->get_elem_type()) << "\n");
+						
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
@@ -620,10 +623,13 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
+            fe->reinit(elem);
             if (!qrule_is_nodal(fe_type, qrule.get()))
                  TBOX_ERROR("FEProjector::assert_qrule_is_nodal(): unsupported element order "
-						<< Utility::enum_to_string<Order>(fe_type.order) << "\n");
-            fe->reinit(elem);
+						<< Utility::enum_to_string<Order>(fe_type.order) << "\n"
+						"for the FEFamily " << Utility::enum_to_string<FEFamily>(fe_type.family) << ",\n"
+						"for the element type " << Utility::enum_to_string<ElemType>(qrule.get()->get_elem_type()) << "\n");
+
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
