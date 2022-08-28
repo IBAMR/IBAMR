@@ -203,13 +203,9 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
                          lf_diff_coef_new_idx,
                          lf_diff_coef_scratch_idx,
                          d_lf_diffusion_coef_var,
-                         face_ghosts,
+                         no_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
-
-    int lf_diffusion_coef_rhs_scratch_idx;
-    d_lf_diffusion_coef_rhs_var = new SideVariable<NDIM, double>(d_lf_var->getName() + "::Diff");
-    registerVariable(lf_diffusion_coef_rhs_scratch_idx, d_lf_diffusion_coef_rhs_var, cell_ghosts, getScratchContext());
 
     int lf_rhs_scratch_idx;
     registerVariable(lf_rhs_scratch_idx, d_lf_rhs_var, cell_ghosts, getScratchContext());
@@ -1066,14 +1062,11 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
         T_solver->initializeSolverState(*d_T_sol, *d_T_rhs);
         d_T_solver_needs_init = true;
 
-        if (d_T_var && d_u_adv_var)
+        if (d_u_adv_var)
         {
             // Account for the convective term computed from MassIntegrator class.
             d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
-        }
 
-        if (d_u_adv_var)
-        {
             // Add div (u H lf).
             d_hier_cc_data_ops->scale(d_T_lf_N_scratch_idx, d_rho_liquid * d_latent_heat, lf_N_scratch_idx);
             if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
@@ -1167,7 +1160,6 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
         level->deallocatePatchData(d_q_firstder_idx);
         level->deallocatePatchData(d_grad_lf_idx);
         level->deallocatePatchData(d_H_sc_idx);
-        level->deallocatePatchData(d_H_pre_idx);
     }
 
     PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(
