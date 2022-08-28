@@ -470,6 +470,14 @@ main(int argc, char* argv[])
             time_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
         }
 
+        RobinBcCoefStrategy<NDIM>* Cp_bc_coef = NULL;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("SpecificHeatBcCoefs"))
+        {
+            Cp_bc_coef = new muParserRobinBcCoefs(
+                "Cp_bc_coef", app_initializer->getComponentDatabase("SpecificHeatBcCoefs"), grid_geometry);
+            ac_integrator->registerSpecificHeatBoundaryConditions(Cp_bc_coef);
+        }
+
         RobinBcCoefStrategy<NDIM>* ls_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("LevelSetBcCoefs"))
         {
