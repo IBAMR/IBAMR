@@ -98,6 +98,7 @@ static const int IEP_HIERARCHY_INTEGRATOR_VERSION = 4;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
+static const int SIDEG = 1;
 static const int FACEG = 1;
 static const int NOGHOSTS = 0;
 } // namespace
@@ -185,6 +186,7 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
 
     // Register additional variables required for present time stepping algorithm.
     const IntVector<NDIM> cell_ghosts = CELLG;
+    const IntVector<NDIM> side_ghosts = SIDEG;
     const IntVector<NDIM> face_ghosts = FACEG;
     const IntVector<NDIM> no_ghosts = NOGHOSTS;
 
@@ -203,7 +205,7 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
                          lf_diff_coef_new_idx,
                          lf_diff_coef_scratch_idx,
                          d_lf_diffusion_coef_var,
-                         no_ghosts,
+                         side_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
 
