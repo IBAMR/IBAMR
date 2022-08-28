@@ -429,6 +429,7 @@ main(int argc, char* argv[])
         {
             lf_bc_coef = new muParserRobinBcCoefs(
                 "lf_bc_coef", app_initializer->getComponentDatabase("LiquidFractionBcCoefs"), grid_geometry);
+            ac_hier_integrator->setLiquidFractionPhysicalBcCoef(T_var, T_bc_coef);
         }
 
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
@@ -475,7 +476,7 @@ main(int argc, char* argv[])
         {
             Cp_bc_coef = new muParserRobinBcCoefs(
                 "Cp_bc_coef", app_initializer->getComponentDatabase("SpecificHeatBcCoefs"), grid_geometry);
-            ac_integrator->registerSpecificHeatBoundaryConditions(Cp_bc_coef);
+            ac_hier_integrator->registerSpecificHeatBoundaryConditions(Cp_bc_coef);
         }
 
         RobinBcCoefStrategy<NDIM>* ls_bc_coef = NULL;
