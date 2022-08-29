@@ -429,7 +429,7 @@ main(int argc, char* argv[])
         {
             lf_bc_coef = new muParserRobinBcCoefs(
                 "lf_bc_coef", app_initializer->getComponentDatabase("LiquidFractionBcCoefs"), grid_geometry);
-            ac_hier_integrator->setLiquidFractionPhysicalBcCoef(T_var, T_bc_coef);
+            ac_hier_integrator->setLiquidFractionPhysicalBcCoef(lf_var, lf_bc_coef);
         }
 
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
@@ -477,6 +477,14 @@ main(int argc, char* argv[])
             Cp_bc_coef = new muParserRobinBcCoefs(
                 "Cp_bc_coef", app_initializer->getComponentDatabase("SpecificHeatBcCoefs"), grid_geometry);
             ac_hier_integrator->registerSpecificHeatBoundaryConditions(Cp_bc_coef);
+        }
+
+        RobinBcCoefStrategy<NDIM>* k_bc_coef = NULL;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("ThermalConductivityBcCoefs"))
+        {
+            k_bc_coef = new muParserRobinBcCoefs(
+                "k_bc_coef", app_initializer->getComponentDatabase("ThermalConductivityBcCoefs"), grid_geometry);
+            ac_hier_integrator->registerThermalConductivityBoundaryConditions(k_bc_coef);
         }
 
         RobinBcCoefStrategy<NDIM>* ls_bc_coef = NULL;
