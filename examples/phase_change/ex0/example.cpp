@@ -187,6 +187,14 @@ main(int argc, char* argv[])
                 "lf_bc_coef", app_initializer->getComponentDatabase("LiquidFractionBcCoefs"), grid_geometry);
         }
 
+        RobinBcCoefStrategy<NDIM>* k_bc_coef = NULL;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("ThermalConductivityBcCoefs"))
+        {
+            k_bc_coef = new muParserRobinBcCoefs(
+                "k_bc_coef", app_initializer->getComponentDatabase("ThermalConductivityBcCoefs"), grid_geometry);
+            enthalpy_hier_integrator->registerThermalConductivityBoundaryConditions(k_bc_coef);
+        }
+
         // Array for input into callback function
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
         const double kappa_solid = input_db->getDouble("KAPPA_S");
