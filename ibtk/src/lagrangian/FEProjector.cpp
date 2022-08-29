@@ -711,6 +711,7 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
     {
         std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*> proj_solver_components =
             consistent_mass_matrix ? buildL2ProjectionSolver(system_name) : buildLumpedL2ProjectionSolver(system_name);
+        PetscMatrix<double>& lumped_mass = *buildLumpedL2ProjectionSolver(system_name).second;
         PetscLinearSolver<double>* solver = proj_solver_components.first;
         PetscMatrix<double>* M_mat = proj_solver_components.second;
         PetscBool rtol_set;
@@ -734,7 +735,6 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
         if (qrule_is_nodal(fe_type, qrule.get()))
         {
 			// use the lumped matrix as the preconditioner:
-			PetscMatrix<double>& lumped_mass = *buildLumpedL2ProjectionSolver(system_name).second;
 			solver->solve(
 				*M_mat, lumped_mass, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
 		}
