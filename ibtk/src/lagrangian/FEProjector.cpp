@@ -115,36 +115,28 @@ build_nodal_qrule(const Order order, const unsigned int dim)
     return {};
 }
 
-inline void
-assert_qrule_is_nodal(const FEType& fe_type, const QBase* const qrule, const Elem* const elem)
+inline bool
+qrule_is_nodal(const FEType& fe_type, const QBase* const qrule)
 {
     auto fe_order = fe_type.order;
-    auto elem_type = elem->type();
-    std::vector<FEFamily> permitted_fe_families{ LAGRANGE, L2_LAGRANGE, MONOMIAL };
-    TBOX_ASSERT(std::find(permitted_fe_families.begin(), permitted_fe_families.end(), fe_type.family) !=
-                permitted_fe_families.end());
-    if (fe_type.family == MONOMIAL)
+    auto elem_type = qrule->get_elem_type();
+    bool nodal_cond = false;
+    if (fe_type.family == LAGRANGE || fe_type.family == L2_LAGRANGE || fe_type.family == MONOMIAL)
     {
-        // Monomials can only be considered nodal for piecewise constants
-        TBOX_ASSERT(fe_order == CONSTANT);
-    }
-    switch (fe_order)
-    {
-    case CONSTANT:
-        TBOX_ASSERT(qrule->type() == QGAUSS); // the midpoint rule
-        break;
-    case FIRST:
-        TBOX_ASSERT(qrule->type() == QTRAP);
-        break;
-    case SECOND:
-        TBOX_ASSERT(qrule->type() == QSIMPSON);
-        TBOX_ASSERT((elem_type == EDGE3) || (elem_type == TRI6 || elem_type == QUAD9) ||
-                    (elem_type == TET10 || elem_type == HEX27));
-        break;
-    default:
-        TBOX_ERROR("FEProjector::assert_qrule_is_nodal(): unsupported element order "
+		nodal_cond = true;
+		if (fe_type.family == MONOMIAL && fe_order != CONSTANT) return false;
+		if (fe_order == CONSTANT && qrule->type() != QGAUSS) return false;
+		if (fe_order == FIRST && qrule->type() != QTRAP) return false;
+		if (fe_order == SECOND && qrule->type() != QSIMPSON) return false;
+		if (fe_order == SECOND && !((elem_type == EDGE3) || (elem_type == TRI6 || elem_type == QUAD9) ||
+                    (elem_type == TET10 || elem_type == HEX27))) return false;
+        std::vector<Order> permitted_fe_orders{CONSTANT, FIRST, SECOND};
+		if (std::find(permitted_fe_orders.begin(), permitted_fe_orders.end(), fe_order) ==
+                permitted_fe_orders.end())
+            TBOX_ERROR("FEProjector::qrule_is_nodal(): unsupported element order "
                    << Utility::enum_to_string<Order>(fe_order) << "\n");
-    }
+	}
+	return nodal_cond;
 }
 
 } // namespace
@@ -381,8 +373,13 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
-            assert_qrule_is_nodal(fe_type, qrule.get(), elem);
             fe->reinit(elem);
+            if (!qrule_is_nodal(fe_type, qrule.get()))
+                 TBOX_ERROR("FEProjector::qrule_is_not_nodal(): unsupported element order "
+						<< Utility::enum_to_string<Order>(fe_type.order) << "\n"
+						"for the FEFamily " << Utility::enum_to_string<FEFamily>(fe_type.family) << ",\n"
+						"for the element type " << Utility::enum_to_string<ElemType>(qrule.get()->get_elem_type()) << "\n");
+						
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
@@ -623,8 +620,12 @@ FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
             const Elem* const elem = *el_it;
-            assert_qrule_is_nodal(fe_type, qrule.get(), elem);
             fe->reinit(elem);
+            if (!qrule_is_nodal(fe_type, qrule.get()))
+                 TBOX_ERROR("FEProjector::qrule_is_nodal(): unsupported element order "
+						<< Utility::enum_to_string<Order>(fe_type.order) << "\n"
+						"for the FEFamily " << Utility::enum_to_string<FEFamily>(fe_type.family) << ",\n"
+						"for the element type " << Utility::enum_to_string<ElemType>(qrule.get()->get_elem_type()) << "\n");
             const auto& dof_indices = dof_map_cache.dof_indices(elem);
             for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
             {
@@ -688,6 +689,11 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
 
     if (close_F) F_vec.close();
     const System& system = d_fe_data->getEquationSystems()->get_system(system_name);
+    
+    const MeshBase& mesh = d_fe_data->getEquationSystems()->get_mesh();
+    const unsigned int dim = mesh.mesh_dimension();
+    
+    FEType fe_type = system.get_dof_map().variable_type(0);
 
     // We can use the diagonal mass matrix directly if we do not need a
     // consistent mass matrix *and* there are no constraints.
@@ -705,7 +711,6 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
     {
         std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*> proj_solver_components =
             consistent_mass_matrix ? buildL2ProjectionSolver(system_name) : buildLumpedL2ProjectionSolver(system_name);
-        // always use the lumped matrix as the preconditioner:
         PetscMatrix<double>& lumped_mass = *buildLumpedL2ProjectionSolver(system_name).second;
         PetscLinearSolver<double>* solver = proj_solver_components.first;
         PetscMatrix<double>* M_mat = proj_solver_components.second;
@@ -724,8 +729,21 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
         FischerGuess& fischer_guess = (pair.first)->second;
 
         fischer_guess.guess(U_vec, F_vec);
-        solver->solve(
-            *M_mat, lumped_mass, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+       
+      
+        std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+        if (qrule_is_nodal(fe_type, qrule.get()))
+        {
+			// use the lumped matrix as the preconditioner:
+			solver->solve(
+				*M_mat, lumped_mass, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+		}
+		else
+		{
+			solver->solve(
+				*M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+			
+		}
         KSPConvergedReason reason;
         ierr = KSPGetConvergedReason(solver->ksp(), &reason);
         IBTK_CHKERRQ(ierr);
