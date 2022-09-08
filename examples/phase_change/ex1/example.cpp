@@ -441,7 +441,7 @@ main(int argc, char* argv[])
 
         // Register source term for Div U equation.
         Pointer<CartGridFunction> Div_U_forcing_fcn =
-            new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator, hier_math_ops);
+            new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator);
         time_integrator->registerDivergenceVelocitySourceFunction(Div_U_forcing_fcn);
 
         // Configure the drag force object to enforce solid velocity to be zero.
