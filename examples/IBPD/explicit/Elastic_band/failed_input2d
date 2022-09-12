@@ -6,9 +6,9 @@ MU  = 0.01
 RHO = 1.0
 L = 1.0
 
+POISSON_RATIO = 0.4
 SHEAR_MOD = 200.0
 HORIZON_SIZE = 3.015
-POISSON_RATIO = 0.49
 BULK_MOD = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
 DAMPING = 0.0
 
@@ -16,8 +16,8 @@ DAMPING = 0.0
 MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
 M = 80
-MFAC = 0.75
-N = MFAC * M                                         // actual    number of grid cells on coarsest grid level
+MFAC = 0.5
+N = MFAC * M                                   // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = L/N                                      // mesh width on coarsest grid level
 DX  = L/NFINEST                                // mesh width on finest   grid level
@@ -38,7 +38,7 @@ PressureInitialConditions {
 DELTA_FUNCTION      = "IB_4"
 SOLVER_TYPE         = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME          = 0.0e0                    // initial simulation time
-END_TIME            = 0.5                      // final simulation time
+END_TIME            = 0.25                      // final simulation time
 LOAD_TIME		     = 0.0           	        // time when load is fully applied
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
@@ -163,12 +163,12 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 500
+   viz_dump_interval           = 1000
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
+   restart_dump_interval       = 20000
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters

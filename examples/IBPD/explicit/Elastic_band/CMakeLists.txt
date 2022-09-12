@@ -13,9 +13,9 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex3-2d"
+    "IBPD-Elastic_band-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex3"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/Elastic_band"
   OUTPUT_NAME
     main2d
   EXAMPLE_GROUP
@@ -30,13 +30,13 @@ IBAMR_ADD_EXAMPLE(
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex3-generate-sheet2d"
+    "IBPD-Elastic_band-generate-band2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex3"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/Elastic_band"
   OUTPUT_NAME
-    sheet2d_generator
+    band2d_generator
   EXAMPLE_GROUP
     examples-IBPD
   SOURCES
-    generate_sheet2d.cpp
+    generate_band2d.cpp
   )

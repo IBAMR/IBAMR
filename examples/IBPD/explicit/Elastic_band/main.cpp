@@ -48,16 +48,16 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const string& data_dump_dirname);
 
 // material parameters
-static double DX;                                              // material grid size (cm)
-static double Horizon_size_temp;
-static double horizon;
-
-static const double y_begin = 0.1;
-static const double y_end = 0.9;
-
 static double G;                                               // shear modulus
 static double K_bulk;                                          // bulk modulus
 static double Damping;                                         // damping parameter
+
+static double DX;                                              // material grid size (cm)
+static double Horizon_size_temp;                               // 1.015, 2.015, 3.015
+static double horizon;                                         // horizon = horizon_size_temp * DX
+
+static const double y_begin = 0.1;
+static const double y_end = 0.9;
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -72,18 +72,18 @@ my_inf_fcn(double R0, double /*delta*/)
 
     double W;
 
-    double r = R0 / DX;
+    double r = 2.0 *  R0 / horizon;
     if (r < 1.0)
     {
-        W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
+     	W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
     }
     else if (r <= 2.0)
     {
-        W = C * std::pow((2.0 - r), 3) / 6.0;
+     	W = C * std::pow((2.0 - r), 3) / 6.0;
     }
     else
     {
-        W = 0.0;
+     	W = 0.0;
     }
 
     return W;
@@ -93,8 +93,7 @@ my_inf_fcn(double R0, double /*delta*/)
 double
 my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
-    // double horizon = 2.015 * DX;
-    double delta = DX;
+    double delta = DX / 2.0; // / 2.0
     double vol_frac;
     if (R0 <= (horizon - delta))
     {
@@ -116,7 +115,7 @@ my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 void
 my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
            const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF,
-           const Eigen::Map<const IBTK::Vector>& /*X0*/,
+           const Eigen::Map<const IBTK::Vector>& X0,
            int /*lag_idx*/)
 {
 
@@ -184,6 +183,7 @@ my_force_damage_fcn(const double /*horizon*/,
     #endif
     F_mastr += fail * (vol_frac * vol_slave) * trac * (vol_frac * DX * DX);
     F_slave += -fail * (vol_frac * vol_mastr) * trac * (vol_frac * DX * DX);
+
     // Compute damage.
     Eigen::Vector4d D;
     D(0) = vol_slave * vol_frac * fail;
@@ -259,7 +259,7 @@ public:
         const int struct_ln = d_hierarchy->getFinestLevelNumber();
         const int step_no = d_ib_solver->getIntegratorStep() + 1;
 
-        if (step_no % 1000 == 0)
+        if (step_no % 100 == 0)
         {
             Pointer<LData> D_LData = d_l_data_manager->getLData("damage", struct_ln);
             Vec D_petsc_vec_parallel = D_LData->getVec();
@@ -301,7 +301,7 @@ public:
 
                 std::fstream D_stream;
                 std::ostringstream D_sstream;
-                D_sstream << "./data/D_" << step_no << "_" << new_time;
+                D_sstream << "./data/D_" << step_no;
                 D_stream.open(D_sstream.str().c_str(), std::fstream::out);
 
                 int ib_pts;
