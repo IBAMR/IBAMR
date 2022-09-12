@@ -57,7 +57,8 @@ static double DX;
 static double DX0;
 static double G;
 static double K_bulk;
-static double Max_force_indi;
+static double current_time;
+static double load_time;
 static double Damping;
 
 // compressed block
@@ -69,8 +70,7 @@ static const double x_end = 30.0;
 static const double y_begin = 15.0;
 static const double y_end = 25.0;
 
-static const double appres = 200.0;                                      // External loading
-static double indi = 1.0;
+static const double appres = 200.0; // External loading
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -85,18 +85,18 @@ my_inf_fcn(double R0, double /*delta*/)
 
     double W;
 
-    double r = R0 / DX;
+    double r = 2.0 *  R0 / horizon;
     if (r < 1.0)
     {
-        W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
+     	W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
     }
     else if (r <= 2.0)
     {
-        W = C * std::pow((2.0 - r), 3) / 6.0;
+     	W = C * std::pow((2.0 - r), 3) / 6.0;
     }
     else
     {
-        W = 0.0;
+     	W = 0.0;
     }
 
     return W;
@@ -106,7 +106,6 @@ my_inf_fcn(double R0, double /*delta*/)
 double
 my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
-    // double horizon = 2.015 * DX;
     double delta = DX;
     double vol_frac;
     if (R0 <= (horizon - delta))
@@ -126,8 +125,8 @@ my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 
 } // my_vol_frac_fcn
 
-static double sigma_VM;
-static double jacobian;
+// static double sigma_VM;
+// static double jacobian;
 void
 my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
            const Eigen::Map<const Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> >& FF,
@@ -138,14 +137,14 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     static const mat_type II = mat_type::Identity();
 
     #if (NDIM == 3)
-    Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
-    F0 << FF(0), FF(1), 0.0, FF(3), FF(4), 0.0, 0.0, 0.0, 1.0;
+        Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
+        F0 << FF(0), FF(1), 0.0, FF(3), FF(4), 0.0, 0.0, 0.0, 1.0;
     // F0 << FF(0), FF(1), FF(2), FF(3), FF(4), FF(5), FF(6), FF(7), FF(8);
     // mat_type e = 0.5 * (F0.transpose() + F0) - II;
     #endif
     #if (NDIM == 2)
-    Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
-    F0 << FF(0), FF(1), FF(2), FF(3);
+        Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
+        F0 << FF(0), FF(1), FF(2), FF(3);
     // mat_type e = 0.5 * (FF.transpose() + FF) - II;
     #endif
 
@@ -153,14 +152,14 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     // const double tr_e = e.trace();
     // PK1 = L * tr_e * II + 2.0 * M * e;
 
-    // // Neo-hookean model
+    // // neo-Hookean model
     // const double J = std::abs(FF.determinant());
     // mat_type FF_trans = FF.transpose();
     // mat_type FF_inv_trans = FF_trans.inverse();
     // PK1 = G * FF + K * log(J) * FF_inv_trans;
 
-    // stabilized neo-hookean model
-    mat_type CC = F0.transpose()*F0;
+    // stabilized neo-Hookean model
+    mat_type CC = F0.transpose() * F0;
     mat_type FF_trans = F0.transpose();
     mat_type FF_inv_trans = FF_trans.inverse();
     const double tr_cc = CC.trace();
@@ -169,14 +168,14 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     const double Jp = J_cbrt_inv * J_cbrt_inv;
     PK1 = G * Jp * (F0 - tr_cc / 3.0 * FF_inv_trans) + K_bulk * log(J) * FF_inv_trans;
 
-    // Computing Von Mises stress at each point
-    mat_type sigma = 1.0 / J * PK1 * FF_trans;
-    mat_type sigma_sq = sigma * sigma;
-    const double tr_sig = sigma.trace();
-    const double tr_sig_sq = sigma_sq.trace();
-    sigma_VM = 1.0 / 2.0 * (tr_sig_sq - tr_sig * tr_sig / 3.0);
+    // // Compute Von Mises stress at each point
+    // mat_type sigma = 1.0 / J * PK1 * FF_trans;
+    // mat_type sigma_sq = sigma * sigma;
+    // const double tr_sig = sigma.trace();
+    // const double tr_sig_sq = sigma_sq.trace();
+    // sigma_VM = 1.0 / 2.0 * (tr_sig_sq - tr_sig * tr_sig / 3.0);
 
-    jacobian = J;
+    // jacobian = J;
 
     return;
 } // my_PK1_fcn
@@ -223,9 +222,8 @@ my_force_damage_fcn(const double /*horizon*/,
     my_PK1_fcn(PK1_mastr, FF_mastr, X0_mastr, lag_mastr_node_idx);
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
-    // Compute PD force.
-    // double horizon = 2.015 * DX;
-    const double penalty_fac = 0.0*18.0*K_bulk/(M_PI * pow(horizon,4.0));
+    // Compute PD force
+    const double penalty_fac = 0.0 * 18.0 * K_bulk / (M_PI * pow(horizon, 4.0));
     vec_type pen_trac = penalty_fac * W * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
     // vec_type pen_trac = penalty_fac * stretch * (X0_slave - X0_mastr) / R0;
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
@@ -234,56 +232,26 @@ my_force_damage_fcn(const double /*horizon*/,
     #endif
     F_mastr += fail * vol_frac * vol_slave * (trac + 2.0 * pen_trac);
     F_slave += -fail * vol_frac * vol_mastr * (trac + 2.0 * pen_trac);
-    
-    // // zero energy mode
-    // double horizon = 2.015 * DX;
-    // const double C_hg = 0.0;
-    // const double penalty_fac = C_hg*18.0*K_bulk/(M_PI * pow(horizon,4.0));
-    
-    // // vec_type hourglass_vec;
-    // // hourglass_vec = X_mastr - X_slave + FF_mastr*(X0_slave - X0_mastr);
-    // // double hourglass_proj = hourglass_vec(0)*(X0_slave(0) - X0_mastr(0)) + hourglass_vec(1)*(X0_slave(1) - X0_mastr(1));
-    // // vec_type pen_trac = - penalty_fac * hourglass_proj/R0 * (X_slave - X_mastr)/R;
-    // // vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    // // F_mastr += fail * vol_frac * vol_slave * (trac + pen_trac);
-    // // F_slave += -fail * vol_frac * vol_mastr * (trac + pen_trac);
-
-    // vec_type hourglass_vec_slave, hourglass_vec_mastr;
-    // static const mat_type II = mat_type::Identity();
-    // hourglass_vec_mastr = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_mastr - II)*(X0_slave - X0_mastr);
-    // hourglass_vec_slave = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_slave - II)*(X0_slave - X0_mastr);
-    // double hourglass_proj_mastr = hourglass_vec_mastr(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_mastr(1)*(X_slave(1) - X_mastr(1));
-    // double hourglass_proj_slave = hourglass_vec_slave(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_slave(1)*(X_slave(1) - X_mastr(1));
-    // vec_type pen_trac_mastr = - penalty_fac * hourglass_proj_mastr/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr;
-    // vec_type pen_trac_slave = - penalty_fac * hourglass_proj_slave/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr;
-    // vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    // F_mastr += fail * vol_frac * vol_slave * (trac + pen_trac_mastr + pen_trac_slave); // add an external force
-    // F_slave += -fail * vol_frac * vol_mastr * (trac + pen_trac_mastr + pen_trac_slave);
 
     // Compute damage.
     Eigen::Vector4d D;
-    // D(0) = vol_slave * vol_frac * fail;
-    // D(1) = vol_slave * vol_frac;
-    // D(2) = vol_mastr * vol_frac * fail;
-    // D(3) = vol_mastr * vol_frac;
-
-    D(0) = std::abs(FF_mastr.determinant());
-    D(1) = 1.0;
-    D(2) = std::abs(FF_mastr.determinant());
-    D(3) = 1.0;
+    D(0) = vol_slave * vol_frac * fail;
+    D(1) = vol_slave * vol_frac;
+    D(2) = vol_mastr * vol_frac * fail;
+    D(3) = vol_mastr * vol_frac;
 
     return D;
-    
+
 } // my_force_damage_fcn
 
 void
 my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
-                          const Eigen::Map<const IBTK::Vector>& X_target,
-                          const Eigen::Map<const IBTK::Vector>& U,
-                          int lag_idx,
-                          Eigen::Map<IBTK::Vector>& F)
+                      const Eigen::Map<const IBTK::Vector>& X_target,
+                      const Eigen::Map<const IBTK::Vector>& U,
+                      int lag_idx,
+                      Eigen::Map<IBTK::Vector>& F)
 {
-    //X_target is the material variable, X is the spatial variable
+    // X_target is the material variable, X is the spatial variable
     static double kappa = 1.0e6;
 
     // compressed block
@@ -294,13 +262,13 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
             F(0) += kappa * (X_target(0) - X(0));
             if (X_target(0) >= x_begin_1 && X_target(0) <= x_end_1)
             {
-                if (indi < Max_force_indi)
-                {
-                    F(1) += - appres / DX * indi / Max_force_indi;
+                if (current_time < load_time)
+                {   
+                    F(1) += -appres / DX * current_time / load_time;
                 }
                 else
                 {
-                    F(1) += - appres / DX;
+                    F(1) += -appres / DX;
                 }
             }
         }
@@ -317,10 +285,6 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
         }
     }
 
-    if (lag_idx == ((M_temp + 1) * (int(double(M_temp)/2.0) + 1) -1))
-    {
-        indi += 1.0;
-    }
     return;
 } // my_surface_force_func
 
@@ -334,7 +298,7 @@ my_target_point_force_fcn(const Eigen::Map<const IBTK::Vector>& X,
                           Eigen::Map<IBTK::Vector>& F)
 {
     // F += K * (X_target - X) - E * U;
-    F += - Damping * U;
+    F += -Damping * U;
 
     my_surface_force_func(X, X_target, U, lag_idx, F);
 
@@ -428,16 +392,16 @@ public:
                 {
                     const double X0_0 = X0[++counter_X0];
                     const double X0_1 = X0[++counter_X0];
-                    #if (NDIM == 3)
-                        const double X0_2 = X0[++counter_X0];
-                        (void)X0_2;
-                    #endif
+                #if (NDIM == 3)
+                    const double X0_2 = X0[++counter_X0];
+                    (void)X0_2;
+                #endif
                     const double X_0 = X[++counter_X];
                     const double X_1 = X[++counter_X];
-                    #if (NDIM == 3)
+                #if (NDIM == 3)
                     const double X_2 = X[++counter_X];
                     (void)X_2;
-                    #endif
+                #endif
                     const double dmg = D[++counter_D];
                     D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg
                              << std::endl;
@@ -460,147 +424,6 @@ public:
         return;
     } // postprocessIntegrateData
 
-    // void forwardEulerStep(const double current_time, const double new_time) override
-    // {
-    //     const double dt = new_time - current_time;
-    //     const int coarsest_ln = 0;
-    //     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    //     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    //     {
-    //         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
-    //         Pointer<LData> X_0_data = d_l_data_manager->getLData("X0", ln);
-    //         Pointer<LData> X_current_data = d_X_current_data[ln];
-    //         Pointer<LData> X_half_data = d_X_half_data[ln];
-    //         Pointer<LData> U_current_data = d_U_current_data[ln];
-
-    //         boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
-    //         boost::multi_array_ref<double, 2>& X_current_data_array = *X_current_data->getLocalFormVecArray();
-    //         boost::multi_array_ref<double, 2>& X_half_data_array = *X_half_data->getLocalFormVecArray();
-    //         boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
-
-    //         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
-    //         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    //         for (const auto& node : local_nodes)
-    //         {
-    //             const int local_idx = node->getLocalPETScIndex();
-
-    //             const double* U_current = &U_current_data_array[local_idx][0];
-    //             const double* X_current = &X_current_data_array[local_idx][0];
-    //             const double* X_0 = &X_0_data_array[local_idx][0];
-    //             double* X_half = &X_half_data_array[local_idx][0];
-
-    //               for (int d = 0; d < NDIM; ++d)
-    //                 {
-    //                   if (d == 2)
-    //                     {
-    //                       X_half[d] = X_current[d];
-    //                     }
-    //                   else
-    //                     {
-    //                       X_half[d] = X_current[d] + 0.5 * dt * (U_current[d]);
-    //                     }
-    //                 }
-
-    //         }
-
-    //         X_current_data->restoreArrays();
-    //         X_half_data->restoreArrays();
-    //         U_current_data->restoreArrays();
-    //     }
-    //     return;
-    // } // forwardEulerStep
-
-    // void midpointStep(const double current_time, const double new_time) override
-    // {
-    //     static const double cn = 0.05*G;
-    //     // static const double cn = 1.0e6;
-
-    //     const double dt = new_time - current_time;
-    //     const int coarsest_ln = 0;
-    //     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    //     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    //     {
-    //         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
-    //         Pointer<LData> X_0_data = d_l_data_manager->getLData("X0", ln);
-    //         Pointer<LData> X_current_data = d_X_current_data[ln];
-    //         Pointer<LData> X_new_data = d_X_new_data[ln];
-    //         Pointer<LData> U_current_data = d_U_current_data[ln];
-    //         Pointer<LData> U_new_data = d_U_new_data[ln];
-    //         Pointer<LData> F_half_data = d_F_half_data[ln];
-    //         // Pointer<LData> U_half_data = d_U_half_data[ln];
-
-    //         boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
-    //         boost::multi_array_ref<double, 2>& X_current_data_array = *X_current_data->getLocalFormVecArray();
-    //         boost::multi_array_ref<double, 2>& X_new_data_array = *X_new_data->getLocalFormVecArray();
-    //         boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
-    //         boost::multi_array_ref<double, 2>& U_new_data_array = *U_new_data->getLocalFormVecArray();
-    //         boost::multi_array_ref<double, 2>& F_half_data_array = *F_half_data->getLocalFormVecArray();
-    //         // boost::multi_array_ref<double, 2>& U_half_data_array = *U_half_data->getLocalFormVecArray();
-
-    //         const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
-    //         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-    //         for (const auto& node : local_nodes)
-    //         {
-    //             const int lag_idx = node->getLagrangianIndex();
-    //             const int local_idx = node->getLocalPETScIndex();
-
-    //             const double* U_current = &U_current_data_array[local_idx][0];
-    //             double* U_new = &U_new_data_array[local_idx][0];
-
-    //             const double* X_0 = &X_0_data_array[local_idx][0];
-    //             const double* X_current = &X_current_data_array[local_idx][0];
-    //             double* X_new = &X_new_data_array[local_idx][0];
-    //             double* F_half = &F_half_data_array[local_idx][0];
-    //             // double* U_half = &U_half_data_array[local_idx][0];
-
-    //                 for (int d = 0; d < NDIM; ++d)
-    //                 {
-    //                   if (d == 2)
-    //                   {
-    //                     U_new[d] = 0.0;
-    //                     X_new[d] = X_current[d];
-    //                   }
-    //                   else
-    //                   {
-    //                     U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * F_half[d];
-    //                     X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
-    //                     // X_new[d] = X_current[d] + 0.5 * dt * U_half[d];
-    //                   }
-    //                 }
-    //         }
-
-    //         X_0_data->restoreArrays();
-    //         X_current_data->restoreArrays();
-    //         X_new_data->restoreArrays();
-    //         F_half_data->restoreArrays();
-    //         U_current_data->restoreArrays();
-    //         U_new_data->restoreArrays();
-    //         // U_half_data->restoreArrays();
-    //     }
-
-    //     return;
-
-    // } // midpointStep
-
-    // void spreadForce(const int /*f_data_idx*/,
-    //                  RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
-    //                  const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
-    //                  const double /*data_time*/) override
-    // {
-    //     return;
-    // } // spreadForce
-
-    // void interpolateVelocity(const int /*u_data_idx*/,
-    //                          const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-    //                          const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-    //                          const double /*data_time*/) override
-    // {
-    //     return;
-    // } // interpolateVelocity
 };
 
 /*******************************************************************************
@@ -635,8 +458,7 @@ main(int argc, char* argv[])
         K_bulk = input_db->getDouble("BULK_MOD");
         Damping = input_db->getDouble("DAMPING");
         DX0 = input_db->getDouble("DX");
-        static const double d_dt = input_db->getDouble("DT");
-        Max_force_indi = (input_db->getDouble("LOAD_TIME")) / d_dt;
+        load_time = input_db->getDouble("LOAD_TIME");
         DX = (x_end - x_begin) / double(M_temp);
         horizon = Horizon_size_temp * DX;
         P = Poisson_ratio_temp;
@@ -788,6 +610,7 @@ main(int argc, char* argv[])
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
+            current_time = loop_time;
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";

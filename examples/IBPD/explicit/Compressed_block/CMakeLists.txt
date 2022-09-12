@@ -13,32 +13,32 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex0-3d"
+    "IBPD-Compressed_block-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex0"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/Compressed_block"
   OUTPUT_NAME
-    main3d
+    main2d
   EXAMPLE_GROUP
     examples-IBPD
   SOURCES
     main.cpp
   LINK_TARGETS
-    IBAMR3d
+    IBAMR2d
   INPUT_FILES
-    input3d
+    input2d
   EXTRA_FILES
-    read_file_ibamr3d.m
+    read_file_ibamr2d.m
   )
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex0-generate-membrane3d"
+    "IBPD-Compressed_block-generate-sheet2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex0"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/Compressed_block"
   OUTPUT_NAME
-    membrane3d_generator
+    sheet2d_generator
   EXAMPLE_GROUP
     examples-IBPD
   SOURCES
-    generate_membrane3d.cpp
+    generate_sheet2d.cpp
   )

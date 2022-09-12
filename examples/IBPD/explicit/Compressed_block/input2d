@@ -12,8 +12,8 @@ U_MAX = 5.0
 // grid spacing parameters
 MAX_LEVELS = 1                                    // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                    // refinement ratio between levels
-M = 32						                             // number of nodes per edge of Lagrangian mesh
-MFAC = 0.5	                                         // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular
+M = 16						                          // number of nodes per edge of Lagrangian mesh
+MFAC = 0.5	                                      // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular
 REF_FACTOR = (REF_RATIO^(MAX_LEVELS - 1))
 N = ceil(M * MFAC * L_X / L_D /REF_FACTOR)        // actual    number of grid cells on coarsest grid level
 NFINEST = REF_FACTOR*N      		                 // effective number of grid cells on finest   grid level
@@ -166,7 +166,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 1000
+   viz_dump_interval           = 100
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
