@@ -57,10 +57,10 @@ main(int /*argc*/, char** /*argv*/)
 {
     // Problem parameters
 
-    const int ndivx = 49;// num points in x direction.
-    const int ndivy = 9;  // num points in y direction.
+    const int ndivx = 13;// num points in x direction.
+    const int ndivy = 3;  // num points in y direction.
     const int nbnd = 0;
-    const int ndivz = 9; // num layers in z direction.
+    const int ndivz = 3; // num layers in z direction.
     const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd) * ndivz;
 
     // 3d beam
@@ -71,7 +71,7 @@ main(int /*argc*/, char** /*argv*/)
     const double dy = width / (ndivy - 1);  // spacing between material points in y direction
     const double dz = height / (ndivz - 1); // spacing between material points in zs direction
 
-    const double delta = 2.015 * dx;        // horizon
+    const double delta = 1.015 * dx;        // horizon
     const double thick = dx;                // thickness of the plate
     const double area = dx * dx;            // cross-sectional area
     const double vol = area * thick;        // volume of a material point

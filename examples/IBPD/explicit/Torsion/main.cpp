@@ -47,9 +47,9 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
-static const int nx = 49;
-static const int ny = 9;
-static const int nz = 9;
+static const int nx = 13;
+static const int ny = 3;
+static const int nz = 3;
 
 static int M_temp;
 static double Horizon_size_temp;
@@ -61,7 +61,8 @@ static double DX0;
 static double k1;
 static double k2;
 static double K_bulk;
-static double Max_force_indi;
+static double current_time;
+static double load_time;
 
 // 3d beam
 static const double x_begin = -3.0;                                         // left end of the beam
@@ -77,18 +78,18 @@ my_inf_fcn(double R0, double /*delta*/)
 
     double W;
 
-    double r = R0 / DX;
+    double r = 2.0 *  R0 / horizon;
     if (r < 1.0)
     {
-        W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
+     	W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
     }
     else if (r <= 2.0)
     {
-        W = C * std::pow((2.0 - r), 3) / 6.0;
+     	W = C * std::pow((2.0 - r), 3) / 6.0;
     }
     else
     {
-        W = 0.0;
+     	W = 0.0;
     }
 
     return W;
@@ -219,9 +220,9 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
     }
     else if (X_target(0) == x_end)
     {   
-        double angle = indi / Max_force_indi * M_PI * 2.5;
+        double angle = current_time / load_time * M_PI * 2.5;
 
-        if (indi > Max_force_indi)
+        if (current_time >= load_time)
         {
             angle = M_PI * 2.5;
         }
@@ -233,10 +234,6 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
         F(2) += kappa * (z - X(2));
     }
 
-    if (lag_idx == (nx*ny*nz -1))
-    {
-        indi += 1.0;
-    }
     return;
 } // my_surface_force_func
 
@@ -406,8 +403,7 @@ main(int argc, char* argv[])
         k2 = input_db->getDouble("K2");
         K_bulk = input_db->getDouble("BULK_MOD");
         DX0 = input_db->getDouble("DX");
-        static const double d_dt = input_db->getDouble("DT");
-        Max_force_indi = (input_db->getDouble("LOAD_TIME")) / d_dt;
+        load_time = input_db->getDouble("LOAD_TIME");
         DX = (x_end - x_begin) / double(6.0 * M_temp);
         horizon = Horizon_size_temp * DX;
         P = Poisson_ratio_temp;
@@ -560,6 +556,7 @@ main(int argc, char* argv[])
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
+            current_time = loop_time;
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";

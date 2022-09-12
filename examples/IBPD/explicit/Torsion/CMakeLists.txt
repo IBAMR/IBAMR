@@ -13,9 +13,9 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex0-3d"
+    "IBPD-Torsion-3d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex0"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/Torsion"
   OUTPUT_NAME
     main3d
   EXAMPLE_GROUP
@@ -32,9 +32,9 @@ IBAMR_ADD_EXAMPLE(
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex0-generate-beam3d"
+    "IBPD-Torsion-generate-beam3d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex0"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/Torsion"
   OUTPUT_NAME
     beam3d_generator
   EXAMPLE_GROUP

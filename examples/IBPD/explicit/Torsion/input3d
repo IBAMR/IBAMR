@@ -12,7 +12,7 @@ U_MAX = 5.0
 
 // model parameters
 POISSON_RATIO = 0.4
-HORIZON_SIZE = 2.015
+HORIZON_SIZE = 1.015
 K1 = 9.0e3
 K2 = 9.0e3
 C = 2.0 * (K1 + K2)
@@ -22,9 +22,9 @@ BULK_MOD = 2.0 * C * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
 MAX_LEVELS = 2                                     // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                     // refinement ratio between levels
 REFINE_FACTOR = REF_RATIO^(MAX_LEVELS - 1)
-M = 8					                              // number of nodes per edge of Lagrangian mesh
+M = 2					                                 // number of nodes per edge of Lagrangian mesh
 MFAC = 0.5                                   	   // ratio of Lagrangian mesh width to Cartesian mesh width
-N = ceil(M * MFAC * L_X / L_lag / REFINE_FACTOR)			// actual    number of grid cells on coarsest grid level
+N = ceil(M * MFAC * L_X / L_lag / REFINE_FACTOR)	// actual    number of grid cells on coarsest grid level
 NFINEST = REFINE_FACTOR * N           		         // effective number of grid cells on finest   grid level
 DX0 = L_X/N                                        // mesh width on coarsest grid level
 DX  = L_X/NFINEST                                  // mesh width on finest   grid level
@@ -34,7 +34,7 @@ N_Y = N_X * (L_Y / L_X)
 N_Z = N_X * (L_Z / L_X)
 
 // solver parameters
-DELTA_FUNCTION      = "IB_4"
+DELTA_FUNCTION      = "BSPLINE_3"
 START_TIME          = 0.0e0                    // initial simulation time
 LOAD_TIME           = 2.0
 END_TIME            = 5.0                      // final simulation time
