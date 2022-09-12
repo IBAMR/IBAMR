@@ -4,8 +4,8 @@ PI = 3.14159265358979
 // physical parameters
 L     = 2.46            // width  of computational domain (m)
 H     = 0.41            // height of computational domain (m)
-RHO   = 1.0e3           // fluid mass density (kg/m^3)
-NU    = 1.0e-3          // dynamic viscosity (m^2/s)
+RHO   = 1000.0          // fluid mass density (kg/m^3)
+NU    = 0.001           // dynamic viscosity (m^2/s)
 MU    = RHO*NU          // kinematic viscosity
 U_BAR = 2.0             // mean flow rate (m/s)
 U_MAX = 5.0             // (estimated) maximum velocity (m/s)
@@ -16,17 +16,43 @@ RE    = U_BAR*D*RHO/MU  // Reynolds number
 HORIZON_SIZE = 2.015
 SHEAR_MOD = 2.0e6
 POISSON_RATIO = 0.4
-BULK_MOD = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
-ETA = 1.0
+BULK_MOD = 2.0 * SHEAR_MOD * POISSON_RATIO / (1.0 - 2.0 * POISSON_RATIO)
 
 // grid spacing parameters
-MAX_LEVELS = 3                                 // maximum number of levels in locally refined grid
+MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 2                                 // refinement ratio between levels
-N = 8                                         // actual    number of grid cells on coarsest grid level
+N = 128                                        // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX0 = H/N                                      // mesh width on coarsest grid level
 DX  = H/NFINEST                                // mesh width on finest   grid level
-MFAC = 1.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+MFAC = 0.5                                     // ratio of Lagrangian mesh width to Cartesian mesh width
+
+// solver parameters
+DELTA_FUNCTION      = "BSPLINE_3"
+SOLVER_TYPE         = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
+START_TIME          = 0.0e0                    // initial simulation time
+END_TIME            = 12.0                     // final simulation time
+GROW_DT             = 0.0e0                    // growth factor for timesteps
+NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
+CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
+CONVECTIVE_OP_TYPE  = "PPM"                    // convective differencing discretization type
+CONVECTIVE_FORM     = "ADVECTIVE"              // how to compute the convective terms
+NORMALIZE_PRESSURE  = FALSE                    // whether to explicitly force the pressure to have mean zero
+CFL_MAX             = 0.2                      // maximum CFL number
+DT                  = 0.0025*CFL_MAX*DX/U_MAX  // maximum timestep size
+ERROR_ON_DT_CHANGE  = TRUE                     // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING   = TRUE                     // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm
+REGRID_CFL_INTERVAL = 1.0e15                      // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid //1.0e15
+OUTPUT_U            = TRUE
+OUTPUT_P            = TRUE
+OUTPUT_F            = TRUE
+OUTPUT_OMEGA        = TRUE
+OUTPUT_DIV_U        = TRUE
+ENABLE_LOGGING      = TRUE
+
+
+USE_VOLUMETRIC_TERM = TRUE
 
 // problem parameters
 SMOOTH_CASE = FALSE
@@ -39,35 +65,6 @@ VelocityInitialConditions {
 PressureInitialConditions {
    function = "0.0"
 }
-
-// solver parameters
-DELTA_FUNCTION      = "BSPLINE_3"
-SOLVER_TYPE         = "STAGGERED"              // the fluid solver to use (STAGGERED or COLLOCATED)
-START_TIME          = 0.0e0                    // initial simulation time
-END_TIME            = 15.0                     // final simulation time
-LOAD_TIME		     = 2.0           	        // time when load is fully applied
-GROW_DT             = 2.0e0                    // growth factor for timesteps
-NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
-CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
-CONVECTIVE_OP_TYPE  = "PPM"                    // convective differencing discretization type
-CONVECTIVE_FORM     = "ADVECTIVE"              // how to compute the convective terms
-NORMALIZE_PRESSURE  = FALSE                    // whether to explicitly force the pressure to have mean zero
-CFL_MAX             = 0.2                      // maximum CFL number
-DT                  = 5.0e-5*DX              // maximum timestep size // .025*CFL_MAX*DX    //
-ERROR_ON_DT_CHANGE  = TRUE                     // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING   = TRUE                    // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm
-// REGRID_INTERVAL     = 10000000
-REGRID_CFL_INTERVAL = 0.5                   // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U            = TRUE
-OUTPUT_P            = TRUE
-OUTPUT_F            = TRUE
-OUTPUT_OMEGA        = TRUE
-OUTPUT_DIV_U        = TRUE
-ENABLE_LOGGING      = TRUE
-
-
-USE_VOLUMETRIC_TERM = TRUE
 
 VelocityBcCoefs_0 {
    U_bar = U_BAR
@@ -112,17 +109,15 @@ IBHierarchyIntegrator {
    end_time            = END_TIME
    grow_dt             = GROW_DT
    num_cycles          = NUM_CYCLES
-//   regrid_interval     = REGRID_INTERVAL
    regrid_cfl_interval = REGRID_CFL_INTERVAL
    dt_max              = DT
    error_on_dt_change  = ERROR_ON_DT_CHANGE
-//   tag_buffer          = TAG_BUFFER
    enable_logging      = ENABLE_LOGGING
 }
 
 IBPDForceGen {
-    horizon        = HORIZON_SIZE
-    ds             = MFAC * DX
+   horizon        = HORIZON_SIZE
+   ds             = MFAC * DX
 }
 
 IBPDMethod {
@@ -170,12 +165,12 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 100
+   viz_dump_interval           = 10000
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
+   restart_dump_interval       = 20000
    restart_dump_dirname        = "restart_IB2d"
 
 // hierarchy data dump parameters
@@ -231,5 +226,7 @@ TimerManager{
    print_exclusive = FALSE
    print_total     = TRUE
    print_threshold = 0.1
+
    timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }
+

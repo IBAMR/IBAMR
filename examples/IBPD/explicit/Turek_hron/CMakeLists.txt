@@ -13,9 +13,9 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex3-2d"
+    "IBPD-Turek_hron-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex3"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/Turek_hron"
   OUTPUT_NAME
     main2d
   EXAMPLE_GROUP
@@ -30,9 +30,9 @@ IBAMR_ADD_EXAMPLE(
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBPD-ex3-generate-sheet2d"
+    "IBPD-Turek_hron-generate-sheet2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/ex3"
+    "${CMAKE_BINARY_DIR}/examples/IBPD/explicit/Turek_hron"
   OUTPUT_NAME
     sheet2d_generator
   EXAMPLE_GROUP

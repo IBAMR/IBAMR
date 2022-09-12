@@ -46,22 +46,25 @@ sort_edge(Edge& e)
 int
 main(int /*argc*/, char** /*argv*/)
 {
-    const int N = 32;
+    const int N = 128;
     const double H = 0.41;
 
     const double dx = H / (double)N;
     const double dy = dx;
-    const double MFAC = 1.0;
+    const double MFAC = 0.5;
     const double ds = MFAC * dx;
 
     const double r = 0.05;               // radius of the cylinder (m)
-    const double length = 7.0 * r;      // total length of the plate (m)
+    const double length = 7.1 * r;      // total length of the plate (m)
     const double height = 0.4 * r;      // total width of the plate (m)
     const double x_c = 0.2;
     const double y_c = 0.2;
 
     const int ndivx = ceil(length / ds)+1;
     const int ndivy = ceil(height / ds);
+    const int Mnum = 40;
+    const int ndiv = Mnum + 1;
+    const double ds1 = 2 * r / double(Mnum);
     const int totnode = ndivx * ndivy;
 
     const int M = ceil(2 * M_PI * r / ds);              // number of particles on the circumference of a circle
@@ -70,37 +73,19 @@ main(int /*argc*/, char** /*argv*/)
     const double area = ds * ds;  // cross-sectional area
     const double vol = area * ds; // volume of a material point
     const double delta = 2.015 * ds;
-    const double delta1 = 2.015 * ds;
+    const double delta1 = 1.015 * ds;
     const double scr0 = 30.0; // critical stretch.
-
-    // // Problem parameters
-    // const int ndivx = 41;          // num points in x direction.
-    // const int ndivy = 3;           // num points in x direction.
-    // const int ndiv = 10;
-    // const int totnode = ndivx * ndivy;
-
-    // const double r = 0.05;               // radius of the cylinder (cm)
-    // const double length = 8.0 * r;      // total length of the plate (cm)
-    // const double height = 0.4 * r;      // total width of the plate (cm)
-    // const double x_c = 0.2;
-    // const double y_c = 0.2;
-
-    // const double dx = length / (ndivx - 1);
-    // const double dy = height / (ndivy - 1);
-
-    // const int M = 4 * (10 + 1);              // number of particles on the circumference of a circle
-    // const double rad = 2 * M_PI / M;
 
     double x, y, theta;
     int num1 = 0;
 
-    // Full disk
+    // // Full disk
     // for (int i = 0; i <= ndiv; ++i)
     // {
     //     for (int j = 0; j <= ndiv; ++j)
     //     {
-    //         x = i * dx;
-    //         y = j * dy;
+    //         x = i * ds1;
+    //         y = j * ds1;
 
     //         const double dist1 = sqrt(pow(x-r,2.0) + pow(y-r,2.0));
     //         if (dist1 < r)
@@ -110,12 +95,6 @@ main(int /*argc*/, char** /*argv*/)
     //     }
     // }
     // std::cout << "num1 =" << num1 << "\n";
-
-    // const double area = dx * dy;  // cross-sectional area
-    // const double vol = area * dx; // volume of a material point
-    // const double delta = 2.015 * dx;
-    // const double delta1 = 1.015 * dx;
-    // const double scr0 = 3.1; // critical stretch.
     
     std::cout << "------------------------------- " << "\n";
     std::cout << "nx = " << ndivx << "\n";
@@ -150,13 +129,13 @@ main(int /*argc*/, char** /*argv*/)
             coord[nnum][1] = r * sin(theta) + y_c;
         }
 
-        // Full disk
+        // // Full disk
         // for (int i = 0; i <= ndiv; ++i)
         // {
         //     for (int j = 0; j <= ndiv; ++j)
         //     {
-        //         x = i * dx;
-        //         y = j * dy;
+        //         x = i * ds1;
+        //         y = j * ds1;
 
         //         const double dist1 = sqrt(pow(x-r,2.0) + pow(y-r,2.0));
         //         if (dist1 < r)

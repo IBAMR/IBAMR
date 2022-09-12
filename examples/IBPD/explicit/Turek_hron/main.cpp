@@ -49,8 +49,8 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
 // material parameters
 static const double H = 0.41;
-static const int N = 32;
-static const double MFAC = 1.0;
+static const int N = 128;
+static const double MFAC = 0.5;
 static const double DX = MFAC * H / (double)N;                               // material grid size (m)
 static const double horizon = 2.015 * DX;
 
@@ -58,7 +58,7 @@ static const double x_begin = 0.25;
 
 static const double P = 0.4;                                                 // Poisson's ratio 0.45 0.49
 static const double G = 2.0e6;                                               // shear modulus
-static const double K_bulk = 2.0 * G * (1.0 + P) / (3. * (1. - 2.*P) );      // bulk modulus
+static const double K_bulk = 2.0 * G * (1.0 + P) / 3.0 / (1.0 - 2.0 * P);    // bulk modulus 
 
 static const double damping = 0.0;                                           // damping parameter
 
@@ -75,18 +75,18 @@ my_inf_fcn(double R0, double /*delta*/)
 
     double W;
 
-    double r = R0 / DX;
+    double r = 2.0 *  R0 / horizon;
     if (r < 1.0)
     {
-        W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
+     	W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
     }
     else if (r <= 2.0)
     {
-        W = C * std::pow((2.0 - r), 3) / 6.0;
+     	W = C * std::pow((2.0 - r), 3) / 6.0;
     }
     else
     {
-        W = 0.0;
+     	W = 0.0;
     }
 
     return W;
@@ -133,7 +133,7 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     const double J_cbrt_inv = 1.0 / cbrt(J);
     const double Jp = J_cbrt_inv * J_cbrt_inv;
 
-    PK1 = G * Jp * (FF - tr_cc  / 3.0 * FF_inv_trans) + K_bulk * J * log(J) * FF_inv_trans;
+    PK1 = G * Jp * (FF - tr_cc  / 3.0 * FF_inv_trans) + K_bulk * log(J) * FF_inv_trans;
 
     return;
 } // my_PK1_fcn
@@ -223,7 +223,7 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
                           Eigen::Map<IBTK::Vector>& F)
 {
     //X_target is the material variable, X is the spatial variable
-    static double kappa = 1.0e6;
+    static double kappa = 1.0e8;
     
     // tether the left part of the beam
     if (X_target(0) <= x_begin)
@@ -323,7 +323,7 @@ public:
 
                 std::fstream D_stream;
                 std::ostringstream D_sstream;
-                D_sstream << "./data/D_" << step_no << "_" << new_time;
+                D_sstream << "./data/D_" << step_no;
                 D_stream.open(D_sstream.str().c_str(), std::fstream::out);
 
                 int ib_pts;
@@ -337,7 +337,7 @@ public:
                     const double X_1 = X[++counter_X];
 
                     const double dmg = D[++counter_D];
-                    D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg
+                    D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg << "\t" << new_time
                              << std::endl;
                 }
 
