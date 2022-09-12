@@ -56,7 +56,8 @@ static double P;
 static double DX;
 static double G;
 static double K_bulk;
-static double Max_force_indi;
+static double current_time;
+static double load_time;
 static double Damping;
 static int totnode;
 
@@ -67,9 +68,6 @@ static const double y_left_begin = 0.0;
 static const double y_left_end = 4.4;
 static const double y_right_begin = 4.4;
 static const double y_right_end = 6.0;
-
-// static const int nx = 13;
-// static const int ny = 12;
 
 static const double appres = 6.25;                                          // External loading
 static double indi = 1.0;
@@ -87,18 +85,18 @@ my_inf_fcn(double R0, double /*delta*/)
 
     double W;
 
-    double r = R0 / DX;
+    double r = 2.0 *  R0 / horizon;
     if (r < 1.0)
     {
-        W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
+     	W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
     }
     else if (r <= 2.0)
     {
-        W = C * std::pow((2.0 - r), 3) / 6.0;
+     	W = C * std::pow((2.0 - r), 3) / 6.0;
     }
     else
     {
-        W = 0.0;
+     	W = 0.0;
     }
 
     return W;
@@ -254,15 +252,10 @@ my_force_damage_fcn(const double /*horizon*/,
 
     // Compute damage.
     Eigen::Vector4d D;
-    // D(0) = vol_slave * vol_frac * fail;
-    // D(1) = vol_slave * vol_frac;
-    // D(2) = vol_mastr * vol_frac * fail;
-    // D(3) = vol_mastr * vol_frac;
-
-    D(0) = std::abs(FF_mastr.determinant());
-    D(1) = 1.0;
-    D(2) = std::abs(FF_mastr.determinant());
-    D(3) = 1.0;
+    D(0) = vol_slave * vol_frac * fail;
+    D(1) = vol_slave * vol_frac;
+    D(2) = vol_mastr * vol_frac * fail;
+    D(3) = vol_mastr * vol_frac;
 
     return D;
     
@@ -285,9 +278,9 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
     }
     else if (X_target(0) == x_end+2.0)
     {   
-        if (indi < Max_force_indi)
+        if (current_time < load_time)
         {
-          F(1) += appres / DX * indi / Max_force_indi;
+          F(1) += appres / DX * current_time / load_time;
         }
         else
         {
@@ -295,10 +288,6 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
         }
     }
 
-    if (lag_idx == totnode - 1)
-    {
-        indi += 1.0;
-    }
     return;
 } // my_surface_force_func
 
@@ -464,8 +453,7 @@ main(int argc, char* argv[])
         G = input_db->getDouble("SHEAR_MOD");
         K_bulk = input_db->getDouble("BULK_MOD");
         Damping = input_db->getDouble("DAMPING");
-        static const double d_dt = input_db->getDouble("DT");
-        Max_force_indi = (input_db->getDouble("LOAD_TIME")) / d_dt;
+        load_time = input_db->getDouble("LOAD_TIME");
         DX = (x_end - x_begin) / double(M_temp);
         horizon = Horizon_size_temp * DX;
         P = Poisson_ratio_temp;
@@ -633,6 +621,7 @@ main(int argc, char* argv[])
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
+            current_time = loop_time;
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";

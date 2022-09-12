@@ -56,8 +56,8 @@ int
 main(int /*argc*/, char** /*argv*/)
 {
     // // Problem parameters
-    // const int ndivx = 25; // num points in x direction.
-    // const int ndivy = 23;  // num points in y direction.
+    // const int ndivx = 25;               // M+1; num points in x direction.
+    // const int ndivy = 23;               // LH / LW * M + 1; num points in y direction.
     // const int nbnd = 0;
     // const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd);
 
@@ -66,18 +66,17 @@ main(int /*argc*/, char** /*argv*/)
     // const double LH = 4.4;              // left height of the membrane(cm)
     // const double LHL = 1.6;             // right heigh of the membrane(cm)
     // const double dx = LW / (ndivx - 1); // spacing between material points in x direction
-    // const double dy = LH / (ndivy - 1);  // spacing between material points in y direction
+    // const double dy = LH / (ndivy - 1); // spacing between material points in y direction
     // const double dyy = LHL/(ndivy - 1); //
 
-    // Problem parameters
-
+    // // Problem parameters w/ stair-step geometry
     // Cook's membrane
-    const int ndivx = 25;
-    const int ndivy = 31;
+    const int ndivx = 25;                  // M+1; num points in x direction.
+    const int ndivy = 31;                  // (LHL + LHR) / LW * M + 1; num points in y direction.
 
-    const double LW = 4.8;              // length of the membrane (cm)
-    const double LHL = 4.4;              // left height of the membrane(cm)
-    const double LHR = 1.6;             // right heigh of the membrane(cm)
+    const double LW = 4.8;                 // length of the membrane (cm)
+    const double LHL = 4.4;                // left height of the membrane(cm)
+    const double LHR = 1.6;                // right heigh of the membrane(cm)
     const double LH = LHL + LHR;
 
     const double dx = 0.2;
@@ -86,14 +85,42 @@ main(int /*argc*/, char** /*argv*/)
     const int totnode1 = ndivx * ndivy;
     
     const double horizon = 2.015;
-    const double delta = horizon * dx;      // horizon
-    const double thick = dx;         // thickness of the plate
-    const double area = dx * dx;     // cross-sectional area
-    const double vol = area * thick; // volume of a material point
+    const double delta = horizon * dx;      // horizon size
+    const double thick = dx;                // thickness of the plate
+    const double area = dx * dx;            // cross-sectional area
+    const double vol = area * thick;        // volume of a material point
 
     const double scr0 = 30.0; // critical stretch
 
-    // Initialize vertices
+    // // Initialize vertices
+    // double coord[totnode][2];
+    // // double delta_x[totnode][1];
+    // int nnum = -1;
+
+    // // Material points of the plate region
+    // for (int i = 0; i <= (ndivx - 1); ++i)
+    // {
+    //     for (int j = 0; j <= (ndivy - 1); ++j)
+    //     {
+    //             nnum += 1;
+
+    //             // 2d Cook's membrane
+    //             if (i < 0)
+    //             {
+    //                 coord[nnum][0] = i * dx + 2.0;
+    //                 coord[nnum][1] = dy * j + 1.0;
+    //             }
+    //             else
+    //             {
+    //                 coord[nnum][0] = i * dx + 2.0;
+    //                 coord[nnum][1] = (j * (dyy-dy) + LH) / (ndivx - 1) * i + dy * j + 1.0;
+    //             }
+
+    //     }
+    // }
+
+
+    // Initialize vertices for stair-step geometry
     double coord1[totnode1][2];
     double x,y;
     const double eps = 1.0e-7;
@@ -125,33 +152,6 @@ main(int /*argc*/, char** /*argv*/)
         coord[i][0] = coord1[i][0];
         coord[i][1] = coord1[i][1];
     }
-
-    // // Initialize vertices
-    // double coord[totnode][2];
-    // // double delta_x[totnode][1];
-    // int nnum = -1;
-
-    // // Material points of the plate region
-    // for (int i = 0; i <= (ndivx - 1); ++i)
-    // {
-    //     for (int j = 0; j <= (ndivy - 1); ++j)
-    //     {
-    //             nnum += 1;
-
-    //             // 2d Cook's membrane
-    //             if (i < 0)
-    //             {
-    //                 coord[nnum][0] = i * dx + 2.0;
-    //                 coord[nnum][1] = dy * j + 1.0;
-    //             }
-    //             else
-    //             {
-    //                 coord[nnum][0] = i * dx + 2.0;
-    //                 coord[nnum][1] = (j * (dyy-dy) + LH) / (ndivx - 1) * i + dy * j + 1.0;
-    //             }
-
-    //     }
-    // }
 
 
     std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~\n";

@@ -47,7 +47,7 @@ PressureInitialConditions {
 
 // solver parameters
 DELTA_FUNCTION      = "IB_4"
-// DT                  = 1.0e-4                   // maximum timestep size
+// DT                  = 1.0e-4                // maximum timestep size
 START_TIME          = 0.0e0                    // initial simulation time
 LOAD_TIME           = 0.0                      // time when the full load is applied
 END_TIME            = 50.0                     // final simulation time
@@ -60,7 +60,7 @@ NORMALIZE_PRESSURE  = TRUE                     // whether to explicitly force th
 CFL_MAX             = 0.2                      // maximum CFL number
 DT                  = .025*CFL_MAX*DX/U_MAX    // maximum timestep size
 // DT                  = 1.0e-4                   // maximum timestep size
-// END_TIME            = DT                     // final simulation time
+// END_TIME            = DT                       // final simulation time
 ERROR_ON_DT_CHANGE  = FALSE                    // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                    // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm

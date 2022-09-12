@@ -6,7 +6,7 @@ RHO   = 1.0
 MU    = 1.0e-2
 L_X = 10.0
 L_Y = 10.0
-L_lag = 4.8                                         // shortest edge of cook's membrane
+L_lag = 4.8                                         // shortest edge of cooks membrane
 U_MAX = 5.0
 
 // model parameters
