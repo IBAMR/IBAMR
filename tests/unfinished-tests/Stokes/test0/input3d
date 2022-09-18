@@ -6,7 +6,7 @@ L   = 1.0
 // grid spacing parameters
 MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
 REF_RATIO  = 4                            // refinement ratio between levels
-N = 128                                    // actual    number of grid cells on coarsest grid level
+N = 16                                    // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 
 // solver parameters
@@ -22,7 +22,7 @@ CONVECTIVE_TS_TYPE    = "ADAMS_BASHFORTH"    // convective time stepping type
 CONVECTIVE_OP_TYPE    = "PPM"                // convective differencing discretization type
 CONVECTIVE_FORM       = "ADVECTIVE"          // how to compute the convective terms
 NORMALIZE_PRESSURE    = TRUE                 // whether to explicitly force the pressure to have mean zero
-VORTICITY_TAGGING     = TRUE                 // whether to tag cells for refinement based on vorticity thresholds
+VORTICITY_TAGGING     = FALSE                 // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER            = 1                    // sized of tag buffer used by grid generation algorithm
 REGRID_INTERVAL       = 10000000             // effectively disable regridding
 OUTPUT_U              = TRUE
@@ -32,10 +32,6 @@ OUTPUT_OMEGA          = TRUE
 OUTPUT_DIV_U          = TRUE
 OUTPUT_EE             = TRUE
 ENABLE_LOGGING        = TRUE
-
-// collocated solver parameters
-PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
-SECOND_ORDER_PRESSURE_UPDATE = TRUE
 
 // exact solution function expressions
 U = "1.0 + exp(-4.0*PI*PI*nu*t)*(C*cos(2*PI*(X_1-t)) + A*sin(2*PI*(X_2-t)))"
@@ -163,54 +159,49 @@ INSStaggeredHierarchyIntegrator {
    enable_logging                = ENABLE_LOGGING
 
    stokes_solver_type = "PETSC_KRYLOV_SOLVER"
-   stokes_precond_type = "PROJECTION_PRECONDITIONER"
+   stokes_precond_type = "LEVEL_RELAXATION_FAC_PRECONDITIONER"
    stokes_solver_db {
       ksp_type = "fgmres"
+      abs_residual_tol = 1e-50
+      rel_residual_tol = 1e-8
+      max_iterations   = 10000
    }
 
-   velocity_solver_type = "PETSC_KRYLOV_SOLVER"
-   velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   velocity_solver_db {
-      ksp_type = "richardson"
-      max_iterations = 1
-   }
-   velocity_precond_db {
-      num_pre_sweeps  = 0
-      num_post_sweeps = 3
-      prolongation_method = "CONSTANT_REFINE"
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
-      coarse_solver_db {
-         solver_type          = "Split"
-         split_solver_type    = "PFMG"
-         enable_logging       = FALSE
-      }
-   }
+   stokes_precond_db
+   {
+   num_pre_sweeps  = 0
+   num_post_sweeps = 2
+   //U_prolongation_method = "LINEAR_REFINE"
+   //P_prolongation_method = "LINEAR_REFINE"
+   //U_restriction_method  = "CONSERVATIVE_COARSEN"
+   //P_restriction_method  = "CONSERVATIVE_COARSEN"
 
-   pressure_solver_type = "PETSC_KRYLOV_SOLVER"
-   pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-   pressure_solver_db {
-      ksp_type = "richardson"
-      max_iterations = 1
+   level_solver_type   = "PETSC_LEVEL_SOLVER"
+   level_solver_rel_residual_tol = 1.0e-3
+   level_solver_abs_residual_tol = 1.0e-50
+   level_solver_max_iterations = 5
+   level_solver_db
+        {
+      initial_guess_nonzero = TRUE
+      ksp_type              = "fgmres"
+      pc_type               = "asm"
+
+         subdomain_box_size        = 16, 16, 16
+               subdomain_overlap_size    = 2, 2, 2
    }
-   pressure_precond_db {
-      num_pre_sweeps  = 0
-      num_post_sweeps = 3
-      prolongation_method = "LINEAR_REFINE"
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type  = "HYPRE_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 1
-      coarse_solver_db {
-         solver_type          = "PFMG"
-         num_pre_relax_steps  = 0
-         num_post_relax_steps = 3
-         enable_logging       = FALSE
-      }
+   coarse_solver_type  = "PETSC_LEVEL_SOLVER"
+   coarse_solver_rel_residual_tol = 1.0e-12
+   coarse_solver_abs_residual_tol = 1.0e-50
+   coarse_solver_max_iterations = 8
+   coarse_solver_db
+        {
+      initial_guess_nonzero = TRUE
+      ksp_type              = "fgmres"
+            pc_type               = "asm"
+
+               subdomain_box_size        = 8, 8, 8
+               subdomain_overlap_size    = 2, 2, 2
+   }
    }
 
    regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
