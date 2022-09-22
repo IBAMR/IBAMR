@@ -65,6 +65,7 @@ static const int ny = 51;
 
 static const double dens = 1100.0;
 static const double DX = 1.0 / 100.0;
+static const double horizon = 3.015 * DX;
 static const double E = 1.0e6;
 static const double P = 0.4;
 static const double L = E * P / ((1. + P) * (1. - 2. * P));
@@ -102,7 +103,7 @@ my_inf_fcn(double R0, double /*delta*/)
 
     double W;
 
-    double r = R0 / DX;
+    double r = 2.0 * R0 / horizon;
     if (r < 1.0)
     {
         W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
@@ -123,7 +124,6 @@ my_inf_fcn(double R0, double /*delta*/)
 double
 my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
-    double horizon = 2.015 * DX;
     double delta = DX;
     double vol_frac;
     if (R0 <= (horizon - delta))
@@ -208,11 +208,15 @@ my_force_damage_fcn(const double /*horizon*/,
     const double& vol_slave = parameters[3];
     double& fail = parameters[4];
     const double& critical_stretch = parameters[5];
-
+    const double critical_stretch1 = critical_stretch * 1.01;
     // Estimate failure.
     const double R = (X_slave - X_mastr).norm();
     const double stretch = (R - R0) / R0;
-    if (!MathUtilities<double>::equalEps(fail, 0.0) && stretch > critical_stretch)
+    if (!MathUtilities<double>::equalEps(fail, 0.0) && stretch > critical_stretch && critical_stretch1 > stretch)
+    {
+        fail = (- stretch + critical_stretch1) / (critical_stretch1 - critical_stretch);
+    }
+    else if (!MathUtilities<double>::equalEps(fail, 0.0) && stretch > critical_stretch1)
     {
         fail = 0.0;
     }
@@ -221,19 +225,26 @@ my_force_damage_fcn(const double /*horizon*/,
     using vec_type = IBTK::Vector;
     using mat_type = Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>;
     mat_type PK1_mastr, PK1_slave;
-
-    // std::cout << "F_master = " << FF_mastr << "\n";
-    // std::cout << "B_master = " << B_mastr << "\n";
-    // std::cout << "X0_master = " << X0_mastr << "\n";
-    // std::cout << "X_master = " << X_mastr << "\n";
-    // std::cout << "F_slave = " << FF_slave << "\n";
-    // std::cout << "B_slave = " << B_slave << "\n";
-    // std::cout << "X0_slave = " << X0_slave << "\n";
-    // std::cout << "X_slave = " << X_slave << "\n";
-
     my_PK1_fcn(PK1_mastr, FF_mastr, X0_mastr, lag_mastr_node_idx);
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
+
     // Compute PD force.
+    // const double Cg = 0.0;
+    // const double delta_4 = pow(horizon,4.0);
+    // const double penalty_fac = Cg * 18.0 * K / (M_PI * delta_4);
+
+    // vec_type hourglass_vec_slave, hourglass_vec_mastr;
+    // static const mat_type II = mat_type::Identity();
+    // hourglass_vec_mastr = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_mastr - II)*(X0_slave - X0_mastr);
+    // hourglass_vec_slave = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_slave - II)*(X0_slave - X0_mastr);
+    // double hourglass_proj_mastr = hourglass_vec_mastr(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_mastr(1)*(X_slave(1) - X_mastr(1)); 
+    // double hourglass_proj_slave = hourglass_vec_slave(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_slave(1)*(X_slave(1) - X_mastr(1)); 
+    // vec_type pen_trac_mastr = - penalty_fac * hourglass_proj_mastr/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr; 
+    // vec_type pen_trac_slave = - penalty_fac * hourglass_proj_slave/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr; 
+    // vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr); 
+    // F_mastr += fail * vol_frac * vol_slave * (trac + pen_trac_mastr + pen_trac_slave); // add an external force 
+    // F_slave += -fail * vol_frac * vol_mastr * (trac + pen_trac_mastr + pen_trac_slave);
+
     const double penalty_fac = 0.0;
     // vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
     vec_type pen_trac = penalty_fac * (X_slave - X_mastr);
@@ -241,6 +252,7 @@ my_force_damage_fcn(const double /*horizon*/,
     // #if (NDIM == 3)
     //     trac(2) = 0.0;
     // #endif
+
     F_mastr += fail * vol_frac * vol_slave * trac + pen_trac;
     F_slave += -fail * vol_frac * vol_mastr * trac - pen_trac;
 
@@ -286,93 +298,93 @@ public:
         return;
     } // preprocessIntegrateData
 
-    void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override
-    {
-        const int struct_ln = d_hierarchy->getFinestLevelNumber();
-        const int step_no = d_ib_solver->getIntegratorStep() + 1;
+    // void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override
+    // {
+    //     const int struct_ln = d_hierarchy->getFinestLevelNumber();
+    //     const int step_no = d_ib_solver->getIntegratorStep() + 1;
 
-        if (step_no % 1000 == 0)
-        {
-            Pointer<LData> D_LData = d_l_data_manager->getLData("damage", struct_ln);
-            Vec D_petsc_vec_parallel = D_LData->getVec();
-            Vec D_lag_vec_parallel = nullptr;
-            Vec D_lag_vec_seq = nullptr;
-            VecDuplicate(D_petsc_vec_parallel, &D_lag_vec_parallel);
-            d_l_data_manager->scatterPETScToLagrangian(D_petsc_vec_parallel, D_lag_vec_parallel, struct_ln);
-            d_l_data_manager->scatterToZero(D_lag_vec_parallel, D_lag_vec_seq);
+    //     if (step_no % 1000 == 0)
+    //     {
+    //         Pointer<LData> D_LData = d_l_data_manager->getLData("damage", struct_ln);
+    //         Vec D_petsc_vec_parallel = D_LData->getVec();
+    //         Vec D_lag_vec_parallel = nullptr;
+    //         Vec D_lag_vec_seq = nullptr;
+    //         VecDuplicate(D_petsc_vec_parallel, &D_lag_vec_parallel);
+    //         d_l_data_manager->scatterPETScToLagrangian(D_petsc_vec_parallel, D_lag_vec_parallel, struct_ln);
+    //         d_l_data_manager->scatterToZero(D_lag_vec_parallel, D_lag_vec_seq);
 
-            Pointer<LData> X0_LData = d_l_data_manager->getLData("X0", struct_ln);
-            Vec X0_petsc_vec_parallel = X0_LData->getVec();
-            Vec X0_lag_vec_parallel = nullptr;
-            Vec X0_lag_vec_seq = nullptr;
-            VecDuplicate(X0_petsc_vec_parallel, &X0_lag_vec_parallel);
-            d_l_data_manager->scatterPETScToLagrangian(X0_petsc_vec_parallel, X0_lag_vec_parallel, struct_ln);
-            d_l_data_manager->scatterToZero(X0_lag_vec_parallel, X0_lag_vec_seq);
+    //         Pointer<LData> X0_LData = d_l_data_manager->getLData("X0", struct_ln);
+    //         Vec X0_petsc_vec_parallel = X0_LData->getVec();
+    //         Vec X0_lag_vec_parallel = nullptr;
+    //         Vec X0_lag_vec_seq = nullptr;
+    //         VecDuplicate(X0_petsc_vec_parallel, &X0_lag_vec_parallel);
+    //         d_l_data_manager->scatterPETScToLagrangian(X0_petsc_vec_parallel, X0_lag_vec_parallel, struct_ln);
+    //         d_l_data_manager->scatterToZero(X0_lag_vec_parallel, X0_lag_vec_seq);
 
-            Pointer<LData> X_LData = d_X_new_data[struct_ln];
-            Vec X_petsc_vec_parallel = X_LData->getVec();
-            Vec X_lag_vec_parallel = nullptr;
-            Vec X_lag_vec_seq = nullptr;
-            VecDuplicate(X_petsc_vec_parallel, &X_lag_vec_parallel);
-            d_l_data_manager->scatterPETScToLagrangian(X_petsc_vec_parallel, X_lag_vec_parallel, struct_ln);
-            d_l_data_manager->scatterToZero(X_lag_vec_parallel, X_lag_vec_seq);
+    //         Pointer<LData> X_LData = d_X_new_data[struct_ln];
+    //         Vec X_petsc_vec_parallel = X_LData->getVec();
+    //         Vec X_lag_vec_parallel = nullptr;
+    //         Vec X_lag_vec_seq = nullptr;
+    //         VecDuplicate(X_petsc_vec_parallel, &X_lag_vec_parallel);
+    //         d_l_data_manager->scatterPETScToLagrangian(X_petsc_vec_parallel, X_lag_vec_parallel, struct_ln);
+    //         d_l_data_manager->scatterToZero(X_lag_vec_parallel, X_lag_vec_seq);
 
-            if (IBTK_MPI::getRank() == 0)
-            {
-                const PetscScalar* D;
-                VecGetArrayRead(D_lag_vec_seq, &D);
-                int counter_D = -1;
+    //         if (IBTK_MPI::getRank() == 0)
+    //         {
+    //             const PetscScalar* D;
+    //             VecGetArrayRead(D_lag_vec_seq, &D);
+    //             int counter_D = -1;
 
-                const PetscScalar* X0;
-                VecGetArrayRead(X0_lag_vec_seq, &X0);
-                int counter_X0 = -1;
+    //             const PetscScalar* X0;
+    //             VecGetArrayRead(X0_lag_vec_seq, &X0);
+    //             int counter_X0 = -1;
 
-                const PetscScalar* X;
-                VecGetArrayRead(X_lag_vec_seq, &X);
-                int counter_X = -1;
+    //             const PetscScalar* X;
+    //             VecGetArrayRead(X_lag_vec_seq, &X);
+    //             int counter_X = -1;
 
-                std::fstream D_stream;
-                std::ostringstream D_sstream;
-                D_sstream << "./data/D_" << step_no << "_" << new_time;
-                D_stream.open(D_sstream.str().c_str(), std::fstream::out);
+    //             std::fstream D_stream;
+    //             std::ostringstream D_sstream;
+    //             D_sstream << "./data/D_" << step_no << "_" << new_time;
+    //             D_stream.open(D_sstream.str().c_str(), std::fstream::out);
 
-                int ib_pts;
-                VecGetSize(D_lag_vec_seq, &ib_pts);
-                for (int i = 0; i < ib_pts; ++i)
-                {
-                    const double X0_0 = X0[++counter_X0];
-                    const double X0_1 = X0[++counter_X0];
-                    #if (NDIM == 3)
-                        const double X0_2 = X0[++counter_X0];
-                        (void)X0_2;
-                    #endif
-                    const double X_0 = X[++counter_X];
-                    const double X_1 = X[++counter_X];
-                    #if (NDIM == 3)
-                    const double X_2 = X[++counter_X];
-                    (void)X_2;
-                    #endif
-                    const double dmg = D[++counter_D];
-                    D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg
-                             << std::endl;
-                }
+    //             int ib_pts;
+    //             VecGetSize(D_lag_vec_seq, &ib_pts);
+    //             for (int i = 0; i < ib_pts; ++i)
+    //             {
+    //                 const double X0_0 = X0[++counter_X0];
+    //                 const double X0_1 = X0[++counter_X0];
+    //                 #if (NDIM == 3)
+    //                     const double X0_2 = X0[++counter_X0];
+    //                     (void)X0_2;
+    //                 #endif
+    //                 const double X_0 = X[++counter_X];
+    //                 const double X_1 = X[++counter_X];
+    //                 #if (NDIM == 3)
+    //                 const double X_2 = X[++counter_X];
+    //                 (void)X_2;
+    //                 #endif
+    //                 const double dmg = D[++counter_D];
+    //                 D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg
+    //                          << std::endl;
+    //             }
 
-                VecRestoreArrayRead(D_lag_vec_seq, &D);
-                VecRestoreArrayRead(X0_lag_vec_seq, &X0);
-                VecRestoreArrayRead(X_lag_vec_seq, &X);
-            }
-            VecDestroy(&D_lag_vec_parallel);
-            VecDestroy(&D_lag_vec_seq);
-            VecDestroy(&X0_lag_vec_parallel);
-            VecDestroy(&X0_lag_vec_seq);
-            VecDestroy(&X_lag_vec_parallel);
-            VecDestroy(&X_lag_vec_seq);
-        }
+    //             VecRestoreArrayRead(D_lag_vec_seq, &D);
+    //             VecRestoreArrayRead(X0_lag_vec_seq, &X0);
+    //             VecRestoreArrayRead(X_lag_vec_seq, &X);
+    //         }
+    //         VecDestroy(&D_lag_vec_parallel);
+    //         VecDestroy(&D_lag_vec_seq);
+    //         VecDestroy(&X0_lag_vec_parallel);
+    //         VecDestroy(&X0_lag_vec_seq);
+    //         VecDestroy(&X_lag_vec_parallel);
+    //         VecDestroy(&X_lag_vec_seq);
+    //     }
 
-        IBPDMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
+    //     IBPDMethod::postprocessIntegrateData(current_time, new_time, num_cycles);
 
-        return;
-    } // postprocessIntegrateData
+    //     return;
+    // } // postprocessIntegrateData
 
     void forwardEulerStep(const double current_time, const double new_time) override
     {
@@ -469,26 +481,37 @@ public:
 
                 if (lag_idx >= left_begin && lag_idx <= left_end)
                 {
-                    // double bforce[NDIM] = { 0.0 };
-                    // bforce[0] = - appres / DX;
+                    double bforce[NDIM] = { 0.0 };
+                    if (new_time < 0.28)
+                    {
+                        bforce[0] = -appres / DX;
+                    }
                     for (int d = 0; d < NDIM; ++d)
                     {
-                    //   if (d == 2)
-                    //   {
+                      if (d == 2)
+                      {
                         U_new[d] = 0.0;
                         X_new[d] = X_current[d];
-                    //   }
-                    //   else
-                    //   {
-                    //     U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
-                    //     X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
-                    //   }
+                      }
+                      else if (d == 1)
+                      {
+                        U_new[d] = 0.0;
+                        X_new[d] = X_current[d];
+                      }
+                      else
+                      {
+                        U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
+                        X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
+                      }
                     }
                 }
                 else if (lag_idx >= right_begin && lag_idx <= right_end)
                 {
                     double bforce[NDIM] = { 0.0 };
-                    bforce[0] = appres / DX;
+                    if (new_time < 0.28)
+                    {
+                        bforce[0] = appres / DX;
+                    }
                     for (int d = 0; d < NDIM; ++d)
                     {
                       if (d == 2)
@@ -512,16 +535,16 @@ public:
                 {
                     for (int d = 0; d < NDIM; ++d)
                     {
-                      if (d == 1)
-                      {
-                        U_new[d] = 0.0;
-                        X_new[d] = X_current[d];
-                      }
-                      else
-                      {
+                    //   if (d == 1)
+                    //   {
+                    //     U_new[d] = 0.0;
+                    //     X_new[d] = X_current[d];
+                    //   }
+                    //   else
+                    //   {
                         U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * F_half[d];
                         X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
-                      }
+                    //   }
                     }
                 }
                 // #if (NDIM == 3)

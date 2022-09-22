@@ -557,9 +557,7 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
         const int local_idx = node->getLocalPETScIndex();
         double* B = &B_ghost_data_array[local_idx][0];
         Eigen::Map<Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> > eig_B(B);
-        // #if (NDIM == 3)
-        // eig_B << eig_B(0),eig_B(1),eig_B(2),eig_B(3),eig_B(4),eig_B(5),eig_B(6),eig_B(7),1.0;
-        // #endif
+
         // Scale the matrix.
         const double scale = eig_B.norm();
         if (!MathUtilities<double>::equalEps(scale, 0.0))
@@ -569,6 +567,7 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
 
         // Invert the scaled matrix.
         #if (NDIM == 3)
+        // eig_B << eig_B(0),eig_B(1),eig_B(2),eig_B(3),eig_B(4),eig_B(5),eig_B(6),eig_B(7),1.0;
         bool invertible;
         eig_B.computeInverseWithCheck(eig_B, invertible);
         if (!invertible)
@@ -583,22 +582,24 @@ IBPDForceGen::computeLagrangianForceAndDamage(Pointer<LData> F_data,
         }
         #endif
         #if (NDIM == 2)
-        bool invertible;
+        // bool invertible;
         Eigen::Matrix<double, NDIM+1, NDIM+1, Eigen::RowMajor> B0;
-        Eigen::Matrix<double, NDIM+1, NDIM+1, Eigen::RowMajor> B0_inv;
+        Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> B0_inv;
         B0 << eig_B(0),eig_B(1),0.0,eig_B(2),eig_B(3),0.0,0.0,0.0,1.0;
-        B0.computeInverseWithCheck(B0_inv, invertible);
-        eig_B << B0_inv(0), B0_inv(1), B0_inv(3), B0_inv(4);
-        if (!invertible)
-        {
-            TBOX_WARNING("IBPDForceGen::computeLagrangianForceAndDamage() : Matrix inversion failed.\n"
-                         << " Lagrangian index = " << lag_idx << "\nScaled B tensor is \n"
-                         << eig_B << "\n"
-                         << " Scaling factor  = " << scale << "\n"
-                         << "Setting inverse of B tensor to zero"
-                         << "\n");
-            eig_B.setZero();
-        }
+        // B0.computeInverseWithCheck(B0_inv, invertible);
+        B0_inv << eig_B(3), -eig_B(1), - eig_B(2), eig_B(0);
+        double det_B0 = eig_B(0)*eig_B(3) - eig_B(1)*eig_B(2);
+        eig_B << B0_inv(0)/det_B0, B0_inv(1)/det_B0, B0_inv(2)/det_B0, B0_inv(3)/det_B0;
+        // if (!invertible)
+        // {
+        //     TBOX_WARNING("IBPDForceGen::computeLagrangianForceAndDamage() : Matrix inversion failed.\n"
+        //                  << " Lagrangian index = " << lag_idx << "\nScaled B tensor is \n"
+        //                  << eig_B << "\n"
+        //                  << " Scaling factor  = " << scale << "\n"
+        //                  << "Setting inverse of B tensor to zero"
+        //                  << "\n");
+        //     eig_B.setZero();
+        // }
         #endif
 
         // Scale back the inverse-matrix.

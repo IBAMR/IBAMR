@@ -11,17 +11,17 @@ K   = L + 2.0/3.0*MU // bulk modulus
 
 // grid spacing parameters
 MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
-REF_RATIO  = 4                                 // refinement ratio between levels
-N = 4                                         // actual    number of grid cells on coarsest grid level
+REF_RATIO  = 2                                 // refinement ratio between levels
+N = 10                                         // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
 DX_FINEST = L/NFINEST
 NT        = 100000
 
 // solver parameters
 DELTA_FUNCTION      = "IB_4"
-DT                  = 1.0e-6                   // maximum timestep size
+DT                  = 1.0e-5                   // maximum timestep size 1.0e-4*DX
 START_TIME          = 0.0e0                    // initial simulation time
-END_TIME            = 1.0                   // final simulation time
+END_TIME            = 0.35                   // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
@@ -101,7 +101,7 @@ IBHierarchyIntegrator {
 }
 
 IBPDForceGen {
-    horizon        = 2.015
+    horizon        = 3.015
     ds             = 1.0/100.0
 }
 
@@ -113,10 +113,10 @@ IBPDMethod {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "failed_membrane2d"
+   structure_names = "failed_sheet2d"
    posn_shift = 0.0 , 0.0 
 
-   failed_membrane2d {
+   failed_sheet2d {
       level_number = MAX_LEVELS - 1
    }
 }
@@ -151,7 +151,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 1000
+   viz_dump_interval           = 50
    viz_dump_dirname            = "viz_IB2d"
    visit_number_procs_per_file = 1
 
