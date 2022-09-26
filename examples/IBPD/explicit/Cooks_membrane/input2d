@@ -135,10 +135,10 @@ IBPDMethod {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "sheet2d"
+   structure_names = "membrane2d"
    posn_shift = 0.0 , 0.0 
 
-   sheet2d {
+   membrane2d {
       level_number = MAX_LEVELS - 1
    }
 }

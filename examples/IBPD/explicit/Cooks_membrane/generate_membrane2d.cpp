@@ -197,7 +197,7 @@ main(int /*argc*/, char** /*argv*/)
 
     // Step 1:  Write out the vertex information
     std::fstream vertex_stream;
-    vertex_stream.open("sheet2d.vertex", std::fstream::out);
+    vertex_stream.open("membrane2d.vertex", std::fstream::out);
     vertex_stream.setf(std::ios_base::scientific);
     vertex_stream.precision(12);
 
@@ -214,7 +214,7 @@ main(int /*argc*/, char** /*argv*/)
     // Step 2: Write out the link information (including connectivity and
     // material parameters).
     std::fstream spring_stream;
-    spring_stream.open("sheet2d.spring", std::fstream::out);
+    spring_stream.open("membrane2d.spring", std::fstream::out);
     spring_stream.setf(std::ios_base::scientific);
     spring_stream.precision(12);
 
