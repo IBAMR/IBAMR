@@ -4475,7 +4475,7 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
     const Box<NDIM>& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
-    if (NDIM * dst->getDepth() != src->getDepth())
+    if (dst->getDepth() != NDIM * src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  src and dst have incompatible depths" << std::endl);
@@ -4515,10 +4515,10 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
     }
 #endif
 
-    for (int depth = 0; depth < dst->getDepth(); ++depth)
+    for (int depth = 0; depth < src->getDepth(); ++depth)
     {
         // Interpolate.
-        double* const U = dst->getPointer(NDIM * depth);
+        double* const U = dst->getPointer(depth);
         const double* const v0 = src->getPointer(0, depth);
         const double* const v1 = src->getPointer(1, depth);
 #if (NDIM == 3)
@@ -4558,7 +4558,7 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
     const Box<NDIM>& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
-    if (NDIM * dst->getDepth() != src->getDepth())
+    if (dst->getDepth() != NDIM * src->getDepth())
     {
         TBOX_ERROR("PatchMathOps::interp():\n"
                    << "  src and dst have incompatible depths" << std::endl);
@@ -4598,10 +4598,10 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
     }
 #endif
 
-    for (int depth = 0; depth < dst->getDepth(); ++depth)
+    for (int depth = 0; depth < src->getDepth(); ++depth)
     {
         // Interpolate.
-        double* const U = dst->getPointer(NDIM * depth);
+        double* const U = dst->getPointer(depth);
         const double* const v0 = src->getPointer(0, depth);
         const double* const v1 = src->getPointer(1, depth);
 #if (NDIM == 3)

@@ -600,7 +600,7 @@ c
             do i0 = ilower0,iupper0+1
                U(i0,i1,i2,0) = 0.25d0*(v0(i0,i1-1,i2-1)+
      &                                 v0(i0,i1  ,i2-1)+
-     &                                 v0(i0,i1-1,i2-1)+
+     &                                 v0(i0,i1-1,i2  )+
      &                                 v0(i0,i1  ,i2  ))
             enddo
          enddo
