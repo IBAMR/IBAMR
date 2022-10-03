@@ -318,6 +318,56 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Compute the node centered vector field U from the face centered
+c     normal vector field (v0,v1) using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ftoninterp2nd2d(
+     &     U,U_gcw,
+     &     v0,v1,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,v_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      REAL v0(FACE2d0(ilower,iupper,v_gcw))
+      REAL v1(FACE2d1(ilower,iupper,v_gcw))
+c
+c     Output.
+c
+      REAL U(NODE2d(ilower,iupper,U_gcw),0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+c
+c     Compute the node centered vector field U from the face centered
+c     vector field (v0,v1).
+c
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0+1
+            U(i0,i1,0) = 0.5d0*(v0(i0,i1-1)+v0(i0,i1))
+         enddo
+      enddo
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0+1
+            U(i0,i1,1) = 0.5d0*(v1(i1,i0-1)+v1(i1,i0))
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Compute the cell centered vector field U from the side centered
 c     normal vector field (v0,v1) using simple averaging.
 c
@@ -379,6 +429,56 @@ c
             enddo
          enddo
       endif
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the node centered vector field U from the side centered
+c     normal vector field (v0,v1) using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine stoninterp2nd2d(
+     &     U,U_gcw,
+     &     v0,v1,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,v_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+
+      REAL v0(SIDE2d0(ilower,iupper,v_gcw))
+      REAL v1(SIDE2d1(ilower,iupper,v_gcw))
+c
+c     Output.
+c
+      REAL U(NODE2d(ilower,iupper,U_gcw),0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+c
+c     Compute the node centered vector field U from the side centered
+c     vector field (v0,v1).
+c
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0+1
+            U(i0,i1,0) = 0.5d0*(v0(i0,i1-1)+v0(i0,i1))
+         enddo
+      enddo
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0+1
+            U(i0,i1,1) = 0.5d0*(v1(i0-1,i1)+v1(i0,i1))
+         enddo
+      enddo
 c
       return
       end
