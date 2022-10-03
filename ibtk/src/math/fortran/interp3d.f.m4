@@ -700,7 +700,7 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     U_ghost_interp)
-     
+
 c
       implicit none
 c
@@ -725,29 +725,28 @@ c     Local variables.
 c
       INTEGER i0,i1,i2
       INTEGER gcw_shift
-
+c
 c     Compute the edge centered interpolation of V
+c
       gcw_shift = 0
       if (U_ghost_interp .eq. 1) then
          gcw_shift = U_gcw
       endif
-      
+
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift
-               u0(i0,i1,i2) = 0.25d0*(V(i0,i1-1,i2) + V(i0,i1,i2-1)  
+               u0(i0,i1,i2) = 0.25d0*(V(i0,i1-1,i2) + V(i0,i1,i2-1)
      &                      + V(i0,i1,i2) + V(i0,i1-1,i2-1))
-     
             enddo
          enddo
-      enddo 
-  
+      enddo
+
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
-               u1(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1,i2-1)  
+               u1(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1,i2-1)
      &                      + V(i0-1,i1,i2) + V(i0-1,i1,i2-1))
-
             enddo
          enddo
       enddo
@@ -755,16 +754,15 @@ c     Compute the edge centered interpolation of V
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
-               u2(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1-1,i2)  
+               u2(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1-1,i2)
      &                      + V(i0-1,i1,i2) + V(i0-1,i1-1,i2))
-
             enddo
          enddo
       enddo
-
 c
       return
       end
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute the side centered normal vector field (u0,u1,u2) from the
@@ -847,7 +845,7 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     U_ghost_interp)
-     
+
 c
       implicit none
 c
@@ -882,17 +880,17 @@ c     Compute the edge centered interpolation of V
       if (U_ghost_interp .eq. 1) then
          gcw_shift = U_gcw
       endif
-      
+
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift
                u0(i0,i1,i2) = h_avg4(V(i0,i1-1,i2), V(i0,i1,i2-1),
      &                          V(i0,i1,i2), V(i0,i1-1,i2-1))
-     
+
             enddo
          enddo
-      enddo 
-  
+      enddo
+
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
