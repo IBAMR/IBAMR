@@ -1,6 +1,6 @@
 c ---------------------------------------------------------------------
 c
-c Copyright (c) 2011 - 2019 by the IBAMR developers
+c Copyright (c) 2011 - 2022 by the IBAMR developers
 c All rights reserved.
 c
 c This file is part of IBAMR.
@@ -338,6 +338,79 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Compute the node centered vector field U from the face centered
+c     normal vector field (v0,v1,v2) using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ftoninterp2nd3d(
+     &     U,U_gcw,
+     &     v0,v1,v2,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,v_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+
+      REAL v0(FACE3d0(ilower,iupper,v_gcw))
+      REAL v1(FACE3d1(ilower,iupper,v_gcw))
+      REAL v2(FACE3d2(ilower,iupper,v_gcw))
+c
+c     Output.
+c
+      REAL U(NODE3d(ilower,iupper,U_gcw),0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+c
+c     Compute the node centered vector field U from the face centered
+c     vector field (v0,v1,v2).
+c
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0+1
+               U(i0,i1,i2,0) = 0.25d0*(v0(i0,i1-1,i2-1)+
+     &                                 v0(i0,i1  ,i2-1)+
+     &                                 v0(i0,i1-1,i2  )+
+     &                                 v0(i0,i1  ,i2  ))
+            enddo
+         enddo
+      enddo
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0+1
+               U(i0,i1,i2,1) = 0.25d0*(v1(i1,i2-1,i0-1)+
+     &                                 v1(i1,i2-1,i0  )+
+     &                                 v1(i1,i2  ,i0-1)+
+     &                                 v1(i1,i2  ,i0  ))
+            enddo
+         enddo
+      enddo
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0+1
+               U(i0,i1,i2,2) = 0.25d0*(v2(i2,i0-1,i1-1)+
+     &                                 v2(i2,i0  ,i1-1)+
+     &                                 v2(i2,i0-1,i1  )+
+     &                                 v2(i2,i0  ,i1  ))
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Compute the cell centered vector field U from the side centered
 c     normal vector field (v0,v1,v2) using simple averaging.
 c
@@ -485,10 +558,84 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Compute the node centered vector field U from the side centered
+c     normal vector field (v0,v1,v2) using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine stoninterp2nd3d(
+     &     U,U_gcw,
+     &     v0,v1,v2,v_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,v_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+
+      REAL v0(SIDE3d0(ilower,iupper,v_gcw))
+      REAL v1(SIDE3d1(ilower,iupper,v_gcw))
+      REAL v2(SIDE3d2(ilower,iupper,v_gcw))
+c
+c     Output.
+c
+      REAL U(NODE3d(ilower,iupper,U_gcw),0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+c
+c     Compute the node centered vector field U from the side centered
+c     vector field (v0,v1,v2).
+c
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0+1
+               U(i0,i1,i2,0) = 0.25d0*(v0(i0,i1-1,i2-1)+
+     &                                 v0(i0,i1  ,i2-1)+
+     &                                 v0(i0,i1-1,i2  )+
+     &                                 v0(i0,i1  ,i2  ))
+            enddo
+         enddo
+      enddo
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0+1
+               U(i0,i1,i2,1) = 0.25d0*(v1(i0-1,i1,i2-1)+
+     &                                 v1(i0  ,i1,i2-1)+
+     &                                 v1(i0-1,i1,i2  )+
+     &                                 v1(i0  ,i1,i2  ))
+            enddo
+         enddo
+      enddo
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0+1
+               U(i0,i1,i2,2) = 0.25d0*(v2(i0-1,i1-1,i2)+
+     &                                 v2(i0  ,i1-1,i2)+
+     &                                 v2(i0-1,i1  ,i2)+
+     &                                 v2(i0  ,i1  ,i2))
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Compute the cell centered field U from the edge centered
 c     field (v0,v1,v2) using simple averaging.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
       subroutine etocinterp3d(
      &     U,U_gcw,
      &     v0,v1,v2,v_gcw,
@@ -553,7 +700,7 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     U_ghost_interp)
-     
+
 c
       implicit none
 c
@@ -578,29 +725,28 @@ c     Local variables.
 c
       INTEGER i0,i1,i2
       INTEGER gcw_shift
-
+c
 c     Compute the edge centered interpolation of V
+c
       gcw_shift = 0
       if (U_ghost_interp .eq. 1) then
          gcw_shift = U_gcw
       endif
-      
+
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift
-               u0(i0,i1,i2) = 0.25d0*(V(i0,i1-1,i2) + V(i0,i1,i2-1)  
+               u0(i0,i1,i2) = 0.25d0*(V(i0,i1-1,i2) + V(i0,i1,i2-1)
      &                      + V(i0,i1,i2) + V(i0,i1-1,i2-1))
-     
             enddo
          enddo
-      enddo 
-  
+      enddo
+
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
-               u1(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1,i2-1)  
+               u1(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1,i2-1)
      &                      + V(i0-1,i1,i2) + V(i0-1,i1,i2-1))
-
             enddo
          enddo
       enddo
@@ -608,16 +754,15 @@ c     Compute the edge centered interpolation of V
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
-               u2(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1-1,i2)  
+               u2(i0,i1,i2) = 0.25d0*(V(i0,i1,i2) + V(i0,i1-1,i2)
      &                      + V(i0-1,i1,i2) + V(i0-1,i1-1,i2))
-
             enddo
          enddo
       enddo
-
 c
       return
       end
+c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute the side centered normal vector field (u0,u1,u2) from the
@@ -700,7 +845,7 @@ c
      &     ilower1,iupper1,
      &     ilower2,iupper2,
      &     U_ghost_interp)
-     
+
 c
       implicit none
 c
@@ -735,17 +880,17 @@ c     Compute the edge centered interpolation of V
       if (U_ghost_interp .eq. 1) then
          gcw_shift = U_gcw
       endif
-      
+
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift
                u0(i0,i1,i2) = h_avg4(V(i0,i1-1,i2), V(i0,i1,i2-1),
      &                          V(i0,i1,i2), V(i0,i1-1,i2-1))
-     
+
             enddo
          enddo
-      enddo 
-  
+      enddo
+
       do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
          do i1 = ilower1-gcw_shift,iupper1+gcw_shift
             do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1

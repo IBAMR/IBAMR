@@ -104,7 +104,9 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	equal_eps$(EXEEXT) helmholtz_2d$(EXEEXT) helmholtz_3d$(EXEEXT) \
 	secondary_hierarchy_01_2d$(EXEEXT) \
 	child_integrators_2d$(EXEEXT) version_macros$(EXEEXT) \
-	snapshot_cache_01_2d$(EXEEXT) $(am__EXEEXT_1)
+	snapshot_cache_01_2d$(EXEEXT) \
+	nodal_interpolation_01_2d$(EXEEXT) \
+	nodal_interpolation_01_3d$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -407,6 +409,24 @@ multilevel_fe_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(multilevel_fe_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_nodal_interpolation_01_2d_OBJECTS =  \
+	nodal_interpolation_01_2d-nodal_interpolation_01.$(OBJEXT)
+nodal_interpolation_01_2d_OBJECTS =  \
+	$(am_nodal_interpolation_01_2d_OBJECTS)
+nodal_interpolation_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+nodal_interpolation_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(nodal_interpolation_01_2d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_nodal_interpolation_01_3d_OBJECTS =  \
+	nodal_interpolation_01_3d-nodal_interpolation_01.$(OBJEXT)
+nodal_interpolation_01_3d_OBJECTS =  \
+	$(am_nodal_interpolation_01_3d_OBJECTS)
+nodal_interpolation_01_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+nodal_interpolation_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(nodal_interpolation_01_3d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_phys_boundary_ops_2d_OBJECTS =  \
 	phys_boundary_ops_2d-phys_boundary_ops.$(OBJEXT)
 phys_boundary_ops_2d_OBJECTS = $(am_phys_boundary_ops_2d_OBJECTS)
@@ -568,6 +588,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po \
 	./$(DEPDIR)/multilevel_fe_01_2d-multilevel_fe_01.Po \
 	./$(DEPDIR)/multilevel_fe_01_3d-multilevel_fe_01.Po \
+	./$(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Po \
+	./$(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po \
 	./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po \
 	./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po \
 	./$(DEPDIR)/poisson_01_2d-poisson_01.Po \
@@ -618,7 +640,10 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
 	$(ldata_01_SOURCES) $(mapping_01_SOURCES) \
 	$(mpi_type_wrappers_SOURCES) $(multilevel_fe_01_2d_SOURCES) \
-	$(multilevel_fe_01_3d_SOURCES) $(phys_boundary_ops_2d_SOURCES) \
+	$(multilevel_fe_01_3d_SOURCES) \
+	$(nodal_interpolation_01_2d_SOURCES) \
+	$(nodal_interpolation_01_3d_SOURCES) \
+	$(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
@@ -651,6 +676,8 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(mpi_type_wrappers_SOURCES) \
 	$(am__multilevel_fe_01_2d_SOURCES_DIST) \
 	$(am__multilevel_fe_01_3d_SOURCES_DIST) \
+	$(nodal_interpolation_01_2d_SOURCES) \
+	$(nodal_interpolation_01_3d_SOURCES) \
 	$(phys_boundary_ops_2d_SOURCES) \
 	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
@@ -983,6 +1010,12 @@ laplace_03_2d_SOURCES = laplace_03.cpp
 laplace_03_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 laplace_03_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 laplace_03_3d_SOURCES = laplace_03.cpp
+nodal_interpolation_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+nodal_interpolation_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+nodal_interpolation_01_2d_SOURCES = nodal_interpolation_01.cpp
+nodal_interpolation_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+nodal_interpolation_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+nodal_interpolation_01_3d_SOURCES = nodal_interpolation_01.cpp
 poisson_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 poisson_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 poisson_01_2d_SOURCES = poisson_01.cpp
@@ -1252,6 +1285,14 @@ multilevel_fe_01_3d$(EXEEXT): $(multilevel_fe_01_3d_OBJECTS) $(multilevel_fe_01_
 	@rm -f multilevel_fe_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(multilevel_fe_01_3d_LINK) $(multilevel_fe_01_3d_OBJECTS) $(multilevel_fe_01_3d_LDADD) $(LIBS)
 
+nodal_interpolation_01_2d$(EXEEXT): $(nodal_interpolation_01_2d_OBJECTS) $(nodal_interpolation_01_2d_DEPENDENCIES) $(EXTRA_nodal_interpolation_01_2d_DEPENDENCIES) 
+	@rm -f nodal_interpolation_01_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(nodal_interpolation_01_2d_LINK) $(nodal_interpolation_01_2d_OBJECTS) $(nodal_interpolation_01_2d_LDADD) $(LIBS)
+
+nodal_interpolation_01_3d$(EXEEXT): $(nodal_interpolation_01_3d_OBJECTS) $(nodal_interpolation_01_3d_DEPENDENCIES) $(EXTRA_nodal_interpolation_01_3d_DEPENDENCIES) 
+	@rm -f nodal_interpolation_01_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(nodal_interpolation_01_3d_LINK) $(nodal_interpolation_01_3d_OBJECTS) $(nodal_interpolation_01_3d_LDADD) $(LIBS)
+
 phys_boundary_ops_2d$(EXEEXT): $(phys_boundary_ops_2d_OBJECTS) $(phys_boundary_ops_2d_DEPENDENCIES) $(EXTRA_phys_boundary_ops_2d_DEPENDENCIES) 
 	@rm -f phys_boundary_ops_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(phys_boundary_ops_2d_LINK) $(phys_boundary_ops_2d_OBJECTS) $(phys_boundary_ops_2d_LDADD) $(LIBS)
@@ -1346,6 +1387,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/multilevel_fe_01_2d-multilevel_fe_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/multilevel_fe_01_3d-multilevel_fe_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poisson_01_2d-poisson_01.Po@am__quote@ # am--include-marker
@@ -1839,6 +1882,34 @@ multilevel_fe_01_3d-multilevel_fe_01.obj: multilevel_fe_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(multilevel_fe_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o multilevel_fe_01_3d-multilevel_fe_01.obj `if test -f 'multilevel_fe_01.cpp'; then $(CYGPATH_W) 'multilevel_fe_01.cpp'; else $(CYGPATH_W) '$(srcdir)/multilevel_fe_01.cpp'; fi`
 
+nodal_interpolation_01_2d-nodal_interpolation_01.o: nodal_interpolation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nodal_interpolation_01_2d_CXXFLAGS) $(CXXFLAGS) -MT nodal_interpolation_01_2d-nodal_interpolation_01.o -MD -MP -MF $(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Tpo -c -o nodal_interpolation_01_2d-nodal_interpolation_01.o `test -f 'nodal_interpolation_01.cpp' || echo '$(srcdir)/'`nodal_interpolation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Tpo $(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nodal_interpolation_01.cpp' object='nodal_interpolation_01_2d-nodal_interpolation_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nodal_interpolation_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o nodal_interpolation_01_2d-nodal_interpolation_01.o `test -f 'nodal_interpolation_01.cpp' || echo '$(srcdir)/'`nodal_interpolation_01.cpp
+
+nodal_interpolation_01_2d-nodal_interpolation_01.obj: nodal_interpolation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nodal_interpolation_01_2d_CXXFLAGS) $(CXXFLAGS) -MT nodal_interpolation_01_2d-nodal_interpolation_01.obj -MD -MP -MF $(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Tpo -c -o nodal_interpolation_01_2d-nodal_interpolation_01.obj `if test -f 'nodal_interpolation_01.cpp'; then $(CYGPATH_W) 'nodal_interpolation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/nodal_interpolation_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Tpo $(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nodal_interpolation_01.cpp' object='nodal_interpolation_01_2d-nodal_interpolation_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nodal_interpolation_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o nodal_interpolation_01_2d-nodal_interpolation_01.obj `if test -f 'nodal_interpolation_01.cpp'; then $(CYGPATH_W) 'nodal_interpolation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/nodal_interpolation_01.cpp'; fi`
+
+nodal_interpolation_01_3d-nodal_interpolation_01.o: nodal_interpolation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nodal_interpolation_01_3d_CXXFLAGS) $(CXXFLAGS) -MT nodal_interpolation_01_3d-nodal_interpolation_01.o -MD -MP -MF $(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Tpo -c -o nodal_interpolation_01_3d-nodal_interpolation_01.o `test -f 'nodal_interpolation_01.cpp' || echo '$(srcdir)/'`nodal_interpolation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Tpo $(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nodal_interpolation_01.cpp' object='nodal_interpolation_01_3d-nodal_interpolation_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nodal_interpolation_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o nodal_interpolation_01_3d-nodal_interpolation_01.o `test -f 'nodal_interpolation_01.cpp' || echo '$(srcdir)/'`nodal_interpolation_01.cpp
+
+nodal_interpolation_01_3d-nodal_interpolation_01.obj: nodal_interpolation_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nodal_interpolation_01_3d_CXXFLAGS) $(CXXFLAGS) -MT nodal_interpolation_01_3d-nodal_interpolation_01.obj -MD -MP -MF $(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Tpo -c -o nodal_interpolation_01_3d-nodal_interpolation_01.obj `if test -f 'nodal_interpolation_01.cpp'; then $(CYGPATH_W) 'nodal_interpolation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/nodal_interpolation_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Tpo $(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='nodal_interpolation_01.cpp' object='nodal_interpolation_01_3d-nodal_interpolation_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(nodal_interpolation_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o nodal_interpolation_01_3d-nodal_interpolation_01.obj `if test -f 'nodal_interpolation_01.cpp'; then $(CYGPATH_W) 'nodal_interpolation_01.cpp'; else $(CYGPATH_W) '$(srcdir)/nodal_interpolation_01.cpp'; fi`
+
 phys_boundary_ops_2d-phys_boundary_ops.o: phys_boundary_ops.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_2d_CXXFLAGS) $(CXXFLAGS) -MT phys_boundary_ops_2d-phys_boundary_ops.o -MD -MP -MF $(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Tpo -c -o phys_boundary_ops_2d-phys_boundary_ops.o `test -f 'phys_boundary_ops.cpp' || echo '$(srcdir)/'`phys_boundary_ops.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Tpo $(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po
@@ -2198,6 +2269,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
 	-rm -f ./$(DEPDIR)/multilevel_fe_01_2d-multilevel_fe_01.Po
 	-rm -f ./$(DEPDIR)/multilevel_fe_01_3d-multilevel_fe_01.Po
+	-rm -f ./$(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Po
+	-rm -f ./$(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po
 	-rm -f ./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po
 	-rm -f ./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po
 	-rm -f ./$(DEPDIR)/poisson_01_2d-poisson_01.Po
@@ -2289,6 +2362,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
 	-rm -f ./$(DEPDIR)/multilevel_fe_01_2d-multilevel_fe_01.Po
 	-rm -f ./$(DEPDIR)/multilevel_fe_01_3d-multilevel_fe_01.Po
+	-rm -f ./$(DEPDIR)/nodal_interpolation_01_2d-nodal_interpolation_01.Po
+	-rm -f ./$(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po
 	-rm -f ./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po
 	-rm -f ./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po
 	-rm -f ./$(DEPDIR)/poisson_01_2d-poisson_01.Po
