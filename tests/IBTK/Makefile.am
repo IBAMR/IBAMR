@@ -21,7 +21,7 @@ vc_viscous_solver_2d vc_viscous_solver_3d box_utilities_01_2d box_utilities_01_3
 ghost_accumulation_01_2d ghost_accumulation_01_3d ghost_indices_01_2d \
 ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi equal_eps helmholtz_2d \
 helmholtz_3d secondary_hierarchy_01_2d child_integrators_2d version_macros \
-snapshot_cache_01_2d
+snapshot_cache_01_2d nodal_interpolation_01_2d nodal_interpolation_01_3d
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
@@ -81,6 +81,14 @@ laplace_03_2d_SOURCES = laplace_03.cpp
 laplace_03_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 laplace_03_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 laplace_03_3d_SOURCES = laplace_03.cpp
+
+nodal_interpolation_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+nodal_interpolation_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+nodal_interpolation_01_2d_SOURCES = nodal_interpolation_01.cpp
+
+nodal_interpolation_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+nodal_interpolation_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+nodal_interpolation_01_3d_SOURCES = nodal_interpolation_01.cpp
 
 poisson_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 poisson_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
