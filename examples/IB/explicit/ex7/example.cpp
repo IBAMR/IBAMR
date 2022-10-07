@@ -55,14 +55,14 @@
 
 struct Lag_Coords
 {
-    int lag_idx; //The global lag index
+    int lag_idx; // The global lag index
     double X;
     double Y;
     double Z;
-
 };
 
-bool operator<(const Lag_Coords & lhs, const Lag_Coords & rhs)
+bool
+operator<(const Lag_Coords& lhs, const Lag_Coords& rhs)
 {
     return lhs.lag_idx < rhs.lag_idx;
 }
@@ -263,7 +263,7 @@ main(int argc, char* argv[])
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
-              navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+            navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
         // Create Eulerian body force function specification objects.
@@ -344,19 +344,18 @@ main(int argc, char* argv[])
         std::ofstream fout;
 
         // Define an MPI type for the Lag_Coords struct
-        const int items = NDIM+1;
+        const int items = NDIM + 1;
 
-        int blocklength[4] = {1,1,1,1};
-        MPI_Datatype types[4] = {MPI_INT,MPI_DOUBLE,MPI_DOUBLE,MPI_DOUBLE};
+        int blocklength[4] = { 1, 1, 1, 1 };
+        MPI_Datatype types[4] = { MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE };
         MPI_Datatype mpi_lag_coords_type;
-        MPI_Aint  offsets[4];
+        MPI_Aint offsets[4];
         offsets[0] = offsetof(Lag_Coords, lag_idx);
         offsets[1] = offsetof(Lag_Coords, X);
         offsets[2] = offsetof(Lag_Coords, Y);
         offsets[3] = offsetof(Lag_Coords, Z);
 
-
-        MPI_Type_create_struct(items, blocklength,offsets,types, &mpi_lag_coords_type);
+        MPI_Type_create_struct(items, blocklength, offsets, types, &mpi_lag_coords_type);
         MPI_Type_commit(&mpi_lag_coords_type);
 
         if (rank == 0)
@@ -425,11 +424,11 @@ main(int argc, char* argv[])
             {
                 const int petsc_idx = node->getLocalPETScIndex();
                 const int lag_idx = node->getLagrangianIndex();
-                // put the lag idx as the first entry of the local_coordinates vector since the petsc indices may change throughout a computation
+                // put the lag idx as the first entry of the local_coordinates vector since the petsc indices may change
+                // throughout a computation
                 Eigen::Map<Vector3d> X(&x_vals[petsc_idx * NDIM]); // X is a vector containing the local coordinates
 
-                local_coordinates.push_back({lag_idx,X[0],X[1],X[2]});
-
+                local_coordinates.push_back({ lag_idx, X[0], X[1], X[2] });
             }
 
             IBTK_MPI::barrier();
@@ -440,7 +439,8 @@ main(int argc, char* argv[])
             if (rank == 0)
             {
                 total_nodes = std::accumulate(nodes_per_proc.begin(), nodes_per_proc.end(), 0);
-                global_coordinates.resize(total_nodes); // resize the receive buffer on the root process to receive the Lag indices and the coordinates
+                global_coordinates.resize(total_nodes); // resize the receive buffer on the root process to receive the
+                                                        // Lag indices and the coordinates
 
                 // Setup the arrays for the counts and displacements
                 std::vector<int> count(n_proc);
@@ -455,33 +455,33 @@ main(int argc, char* argv[])
                     displacements[j] = sum_elem;
                 }
 
+                // Gather the data
 
-                    // Gather the data
-
-                    MPI_Gatherv(local_coordinates.data(),
-                                local_coordinates.size(),
-                                mpi_lag_coords_type,
-                                global_coordinates.data(),
-                                count.data(),
-                                displacements.data(),
-                                mpi_lag_coords_type,
-                                0,
-                                IBTK_MPI::getCommunicator());
-                }
-                else
-                { // specify what's done on the non-root processes
-                    MPI_Gatherv(local_coordinates.data(),
-                                local_coordinates.size(),
-                                mpi_lag_coords_type,
-                                NULL,
-                                NULL,
-                                NULL,
-                                mpi_lag_coords_type,
-                                0,
-                                IBTK_MPI::getCommunicator());
-                }
+                MPI_Gatherv(local_coordinates.data(),
+                            local_coordinates.size(),
+                            mpi_lag_coords_type,
+                            global_coordinates.data(),
+                            count.data(),
+                            displacements.data(),
+                            mpi_lag_coords_type,
+                            0,
+                            IBTK_MPI::getCommunicator());
+            }
+            else
+            { // specify what's done on the non-root processes
+                MPI_Gatherv(local_coordinates.data(),
+                            local_coordinates.size(),
+                            mpi_lag_coords_type,
+                            NULL,
+                            NULL,
+                            NULL,
+                            mpi_lag_coords_type,
+                            0,
+                            IBTK_MPI::getCommunicator());
+            }
             IBTK_MPI::barrier();
-            // Now if we are on the root process, let's go ahead and sort the global_coordinates vector according to the lag index and print out the coordinates to "IBCoordinates.txt"
+            // Now if we are on the root process, let's go ahead and sort the global_coordinates vector according to the
+            // lag index and print out the coordinates to "IBCoordinates.txt"
             if (rank == 0)
             {
                 fout.unsetf(ios_base::showpos);
@@ -490,12 +490,11 @@ main(int argc, char* argv[])
 
                 std::stable_sort(global_coordinates.begin(), global_coordinates.end());
 
-
-                    for (const Lag_Coords & ldata : global_coordinates)
-                    {
-                        fout << loop_time << ", " << ldata.lag_idx << ", " << ldata.X << ", " << ldata.Y << ", " << ldata.Z << "\n";
-                    }
-
+                for (const Lag_Coords& ldata : global_coordinates)
+                {
+                    fout << loop_time << ", " << ldata.lag_idx << ", " << ldata.X << ", " << ldata.Y << ", " << ldata.Z
+                         << "\n";
+                }
             }
 
             ierr = VecRestoreArray(X_vec, &x_vals);
