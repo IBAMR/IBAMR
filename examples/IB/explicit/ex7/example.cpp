@@ -263,7 +263,7 @@ main(int argc, char* argv[])
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
-            navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+              navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
         // Create Eulerian body force function specification objects.
