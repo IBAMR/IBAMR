@@ -69,6 +69,22 @@ generate_structure(const unsigned int& struct_num,
     return;
 }
 
+void
+generate_rods_and_directors(const unsigned int& /*struct_num*/,
+                            const int& /*ln*/,
+                            std::vector<std::vector<double> >& director_spec,
+                            std::multimap<int, IBRedundantInitializer::Edge>& /*rod_edge_map*/,
+                            std::map<IBRedundantInitializer::Edge,
+                                     IBRedundantInitializer::RodSpec,
+                                     IBRedundantInitializer::EdgeComp>& /*rod_spec*/,
+                            void* /*ctx*/)
+{
+    director_spec.resize(1);
+    director_spec[0].resize(9);
+    director_spec[0][0] = director_spec[0][4] = director_spec[0][8] = 1.0;
+    return;
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -128,6 +144,7 @@ main(int argc, char* argv[])
         finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
         ib_initializer->setStructureNamesOnLevel(finest_ln, struct_list);
         ib_initializer->registerInitStructureFunction(generate_structure);
+        ib_initializer->registerInitDirectorAndRodFunction(generate_rods_and_directors);
         ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBKirchhoffRodForceGen> ib_force_fcn = new IBKirchhoffRodForceGen();
         ib_force_fcn->setUniformBodyForce({ +1.0, -0.25, 0.0 }, 0, finest_ln);
