@@ -363,7 +363,7 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        UniquePtr<ExodusII_IO> exodus_io_thin(uses_exodus ? new ExodusII_IO(cylinder_mesh_thin) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io_thin(uses_exodus ? new ExodusII_IO(cylinder_mesh_thin) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -736,8 +736,8 @@ postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<libMesh::Point>& q_point = fe->get_xyz();
@@ -815,7 +815,7 @@ postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         WSS_vec->localize(*WSS_ghost_vec);
         DofMap& WSS_dof_map = WSS_system.get_dof_map();
         std::vector<std::vector<unsigned int> > WSS_dof_indices(NDIM);
-        UniquePtr<FEBase> fe(FEBase::build(dim, WSS_dof_map.variable_type(0)));
+        std::unique_ptr<FEBase> fe(FEBase::build(dim, WSS_dof_map.variable_type(0)));
         boost::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
 
         NumericVector<double>* P_o_vec = P_o_system.solution.get();

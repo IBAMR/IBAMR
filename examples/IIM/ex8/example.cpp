@@ -811,17 +811,17 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
-        libMesh::UniquePtr<ExodusII_IO> exodus_tube_lower_io(uses_exodus ? new ExodusII_IO(tube_lower_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_tube_upper_io(uses_exodus ? new ExodusII_IO(tube_upper_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_tube_lower_io(uses_exodus ? new ExodusII_IO(tube_lower_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_tube_upper_io(uses_exodus ? new ExodusII_IO(tube_upper_mesh) : NULL);
 
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_tube_lower_io(
-            uses_exodus ? new ExodusII_IO(bndry_tube_lower_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_tube_upper_io(
-            uses_exodus ? new ExodusII_IO(bndry_tube_upper_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_line1_io(uses_exodus ? new ExodusII_IO(line1_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_line2_io(uses_exodus ? new ExodusII_IO(line2_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_line3_io(uses_exodus ? new ExodusII_IO(line3_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_line4_io(uses_exodus ? new ExodusII_IO(line4_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_tube_lower_io(uses_exodus ? new ExodusII_IO(bndry_tube_lower_mesh) :
+                                                                              NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_tube_upper_io(uses_exodus ? new ExodusII_IO(bndry_tube_upper_mesh) :
+                                                                              NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_line1_io(uses_exodus ? new ExodusII_IO(line1_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_line2_io(uses_exodus ? new ExodusII_IO(line2_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_line3_io(uses_exodus ? new ExodusII_IO(line3_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_line4_io(uses_exodus ? new ExodusII_IO(line4_mesh) : NULL);
 
         ibfe_bndry_ops->initializeFEData();
 

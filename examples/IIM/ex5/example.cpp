@@ -139,13 +139,13 @@ calculateGeomQuantitiesOfStructure(const double* params,
     const double rho_s = params[0];
     const unsigned int dim = mesh.mesh_dimension();
 
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
 
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
@@ -251,7 +251,7 @@ calculateFluidForceAndTorque(VectorValue<double>& F, // net force  acting on the
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
     std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
-    UniquePtr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
 
     NumericVector<double>* x_vec = x_system.solution.get();
     NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
@@ -259,7 +259,7 @@ calculateFluidForceAndTorque(VectorValue<double>& F, // net force  acting on the
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<vector<double> >& phi = fe->get_phi();
@@ -309,7 +309,7 @@ calculateGravitationalForce(const double* params, VectorValue<double>& F_g, Equa
     MeshBase& mesh = solid_equation_systems->get_mesh();
     const unsigned int dim = mesh.mesh_dimension();
 
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
 
     const double rho_s = params[0];
     const double rho_f = params[1];
@@ -322,7 +322,7 @@ calculateGravitationalForce(const double* params, VectorValue<double>& F_g, Equa
 
     FEType fe_type = Y_dof_map.variable_type(0);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
 
     // Extract the FE system and DOF map, and setup the FE object.
     fe->attach_quadrature_rule(qrule.get());
@@ -835,8 +835,8 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        libMesh::UniquePtr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
