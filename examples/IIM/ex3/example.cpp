@@ -94,13 +94,13 @@ calculateGeomQuantitiesOfStructure(double& vol,                             // v
 
     const unsigned int dim = mesh.mesh_dimension();
 
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
 
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
     FEType fe_type = X_dof_map.variable_type(0);
 
-    UniquePtr<FEBase> fe(FEBase::build(dim, fe_type));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
     fe->attach_quadrature_rule(qrule.get());
     const std::vector<double>& JxW = fe->get_JxW();
     const std::vector<std::vector<double> >& phi = fe->get_phi();
@@ -280,7 +280,7 @@ calculateFluidForceAndTorque(VectorValue<double>& F, // net force  acting on the
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
     std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
-    UniquePtr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
 
     NumericVector<double>* x_vec = x_system.solution.get();
     NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
@@ -288,7 +288,7 @@ calculateFluidForceAndTorque(VectorValue<double>& F, // net force  acting on the
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<vector<double> >& phi = fe->get_phi();
@@ -699,8 +699,8 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        libMesh::UniquePtr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
-        libMesh::UniquePtr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(bndry_mesh) : NULL);
 
         // Initialize FE data.
         ib_method_ops->initializeFEData();
@@ -997,7 +997,7 @@ postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
     std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
-    UniquePtr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
 
     NumericVector<double>& X0_vec = x_system.get_vector("INITIAL_COORDINATES");
 
@@ -1010,7 +1010,7 @@ postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
 
-    UniquePtr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
+    std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<vector<double> >& phi = fe->get_phi();
