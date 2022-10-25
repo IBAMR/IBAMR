@@ -330,6 +330,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     std::vector<std::set<dof_id_type> > temp_node_dof_ID_sets;
     std::vector<std::vector<libMesh::Point> > temp_nodes;
     std::vector<libMesh::Point> meter_centroids;
+    std::vector<std::map<unsigned int, std::set<unsigned int> > > map_for_node_element_sets;
     // new API in 1.4.0
 #if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
     boundary_info.build_node_list(nodes, bcs);
@@ -364,6 +365,35 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* ib_method_op
     temp_node_dof_ID_sets.resize(d_num_meters);
     temp_nodes.resize(d_num_meters);
     meter_centroids.resize(d_num_meters);
+    map_for_node_element_sets.resize(d_num_meters);
+    
+    std::vector<int> count; count.resize(d_num_meters);
+    std::vector<libMesh::Point> sum; sum.resize(d_num_meters);
+    for (unsigned int mm = 0; mm < mesh.n_nodes(); ++mm)
+    {
+        const Node* node_ptr = mesh.node_ptr(mm);
+        std::vector<short int> bdry_ids;
+        boundary_info.boundary_ids(node_ptr, bdry_ids);
+        
+        for (int jj = 0; jj < d_nodeset_IDs_for_meters.size(); ++jj)
+        {
+            if (find(bdry_ids.begin(), bdry_ids.end(), d_nodeset_IDs_for_meters[jj]) != bdry_ids.end())
+            {
+                count[jj] += 1;
+                sum[jj] += *node_ptr;
+                // store integer id corresponding to this node as keys in this map
+                map_for_node_element_sets[jj][mm] = {};
+            }
+        }
+    }
+    
+    for (int jj = 0; jj < d_nodeset_IDs_for_meters.size(); ++jj)
+    {
+        sum[jj] /= static_cast<double>(count[jj]);
+        meter_centroids[jj] = sum[jj];
+    }
+    
+    
 
     // populate temp vectors
     for (unsigned int ii = 0; ii < nodes.size(); ++ii)
