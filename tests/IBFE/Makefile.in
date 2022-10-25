@@ -88,7 +88,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = $(am__EXEEXT_1)
-@LIBMESH_ENABLED_TRUE@am__append_1 = interpolate_velocity_01_2d interpolate_velocity_01_3d \
+@LIBMESH_ENABLED_TRUE@am__append_1 = instrument_panel_01_3d interpolate_velocity_01_2d interpolate_velocity_01_3d \
 @LIBMESH_ENABLED_TRUE@interpolate_velocity_02 explicit_ex0_2d explicit_ex1_2d explicit_ex2_3d explicit_ex4_2d \
 @LIBMESH_ENABLED_TRUE@explicit_ex4_3d explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d \
 @LIBMESH_ENABLED_TRUE@ib_partitioning_01_2d ib_partitioning_01_3d ib_partitioning_02_2d \
@@ -124,7 +124,7 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 =  \
+@LIBMESH_ENABLED_TRUE@am__EXEEXT_1 = instrument_panel_01_3d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	interpolate_velocity_01_2d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	interpolate_velocity_01_3d$(EXEEXT) \
 @LIBMESH_ENABLED_TRUE@	interpolate_velocity_02$(EXEEXT) \
@@ -262,6 +262,15 @@ ib_partitioning_02_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(ib_partitioning_02_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am__instrument_panel_01_3d_SOURCES_DIST = instrument_panel_01.cpp
+@LIBMESH_ENABLED_TRUE@am_instrument_panel_01_3d_OBJECTS = instrument_panel_01_3d-instrument_panel_01.$(OBJEXT)
+instrument_panel_01_3d_OBJECTS = $(am_instrument_panel_01_3d_OBJECTS)
+@LIBMESH_ENABLED_TRUE@instrument_panel_01_3d_DEPENDENCIES =  \
+@LIBMESH_ENABLED_TRUE@	$(IBAMR3d_LIBS) $(IBAMR_LIBS)
+instrument_panel_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(instrument_panel_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am__interpolate_velocity_01_2d_SOURCES_DIST =  \
 	interpolate_velocity_01.cpp
 @LIBMESH_ENABLED_TRUE@am_interpolate_velocity_01_2d_OBJECTS = interpolate_velocity_01_2d-interpolate_velocity_01.$(OBJEXT)
@@ -342,6 +351,7 @@ am__depfiles_remade = ./$(DEPDIR)/explicit_ex0_2d-explicit_ex0.Po \
 	./$(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po \
 	./$(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po \
 	./$(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po \
+	./$(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Po \
 	./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po \
 	./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po \
 	./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po \
@@ -374,6 +384,7 @@ SOURCES = $(explicit_ex0_2d_SOURCES) $(explicit_ex1_2d_SOURCES) \
 	$(ib_partitioning_01_3d_SOURCES) \
 	$(ib_partitioning_02_2d_SOURCES) \
 	$(ib_partitioning_02_3d_SOURCES) \
+	$(instrument_panel_01_3d_SOURCES) \
 	$(interpolate_velocity_01_2d_SOURCES) \
 	$(interpolate_velocity_01_3d_SOURCES) \
 	$(interpolate_velocity_02_SOURCES) \
@@ -391,6 +402,7 @@ DIST_SOURCES = $(am__explicit_ex0_2d_SOURCES_DIST) \
 	$(am__ib_partitioning_01_3d_SOURCES_DIST) \
 	$(am__ib_partitioning_02_2d_SOURCES_DIST) \
 	$(am__ib_partitioning_02_3d_SOURCES_DIST) \
+	$(am__instrument_panel_01_3d_SOURCES_DIST) \
 	$(am__interpolate_velocity_01_2d_SOURCES_DIST) \
 	$(am__interpolate_velocity_01_3d_SOURCES_DIST) \
 	$(am__interpolate_velocity_02_SOURCES_DIST) \
@@ -681,6 +693,9 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
+@LIBMESH_ENABLED_TRUE@instrument_panel_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+@LIBMESH_ENABLED_TRUE@instrument_panel_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+@LIBMESH_ENABLED_TRUE@instrument_panel_01_3d_SOURCES = instrument_panel_01.cpp
 @LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 @LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@interpolate_velocity_01_2d_SOURCES = interpolate_velocity_01.cpp
@@ -819,6 +834,10 @@ ib_partitioning_02_3d$(EXEEXT): $(ib_partitioning_02_3d_OBJECTS) $(ib_partitioni
 	@rm -f ib_partitioning_02_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(ib_partitioning_02_3d_LINK) $(ib_partitioning_02_3d_OBJECTS) $(ib_partitioning_02_3d_LDADD) $(LIBS)
 
+instrument_panel_01_3d$(EXEEXT): $(instrument_panel_01_3d_OBJECTS) $(instrument_panel_01_3d_DEPENDENCIES) $(EXTRA_instrument_panel_01_3d_DEPENDENCIES) 
+	@rm -f instrument_panel_01_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(instrument_panel_01_3d_LINK) $(instrument_panel_01_3d_OBJECTS) $(instrument_panel_01_3d_LDADD) $(LIBS)
+
 interpolate_velocity_01_2d$(EXEEXT): $(interpolate_velocity_01_2d_OBJECTS) $(interpolate_velocity_01_2d_DEPENDENCIES) $(EXTRA_interpolate_velocity_01_2d_DEPENDENCIES) 
 	@rm -f interpolate_velocity_01_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(interpolate_velocity_01_2d_LINK) $(interpolate_velocity_01_2d_OBJECTS) $(interpolate_velocity_01_2d_LDADD) $(LIBS)
@@ -857,6 +876,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po@am__quote@ # am--include-marker
@@ -1060,6 +1080,20 @@ ib_partitioning_02_3d-ib_partitioning_02.obj: ib_partitioning_02.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ib_partitioning_02.cpp' object='ib_partitioning_02_3d-ib_partitioning_02.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ib_partitioning_02_3d_CXXFLAGS) $(CXXFLAGS) -c -o ib_partitioning_02_3d-ib_partitioning_02.obj `if test -f 'ib_partitioning_02.cpp'; then $(CYGPATH_W) 'ib_partitioning_02.cpp'; else $(CYGPATH_W) '$(srcdir)/ib_partitioning_02.cpp'; fi`
+
+instrument_panel_01_3d-instrument_panel_01.o: instrument_panel_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(instrument_panel_01_3d_CXXFLAGS) $(CXXFLAGS) -MT instrument_panel_01_3d-instrument_panel_01.o -MD -MP -MF $(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Tpo -c -o instrument_panel_01_3d-instrument_panel_01.o `test -f 'instrument_panel_01.cpp' || echo '$(srcdir)/'`instrument_panel_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Tpo $(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='instrument_panel_01.cpp' object='instrument_panel_01_3d-instrument_panel_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(instrument_panel_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o instrument_panel_01_3d-instrument_panel_01.o `test -f 'instrument_panel_01.cpp' || echo '$(srcdir)/'`instrument_panel_01.cpp
+
+instrument_panel_01_3d-instrument_panel_01.obj: instrument_panel_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(instrument_panel_01_3d_CXXFLAGS) $(CXXFLAGS) -MT instrument_panel_01_3d-instrument_panel_01.obj -MD -MP -MF $(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Tpo -c -o instrument_panel_01_3d-instrument_panel_01.obj `if test -f 'instrument_panel_01.cpp'; then $(CYGPATH_W) 'instrument_panel_01.cpp'; else $(CYGPATH_W) '$(srcdir)/instrument_panel_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Tpo $(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='instrument_panel_01.cpp' object='instrument_panel_01_3d-instrument_panel_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(instrument_panel_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o instrument_panel_01_3d-instrument_panel_01.obj `if test -f 'instrument_panel_01.cpp'; then $(CYGPATH_W) 'instrument_panel_01.cpp'; else $(CYGPATH_W) '$(srcdir)/instrument_panel_01.cpp'; fi`
 
 interpolate_velocity_01_2d-interpolate_velocity_01.o: interpolate_velocity_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolate_velocity_01_2d_CXXFLAGS) $(CXXFLAGS) -MT interpolate_velocity_01_2d-interpolate_velocity_01.o -MD -MP -MF $(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Tpo -c -o interpolate_velocity_01_2d-interpolate_velocity_01.o `test -f 'interpolate_velocity_01.cpp' || echo '$(srcdir)/'`interpolate_velocity_01.cpp
@@ -1274,6 +1308,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po
 	-rm -f ./$(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po
 	-rm -f ./$(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po
+	-rm -f ./$(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
@@ -1336,6 +1371,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/ib_partitioning_01_3d-ib_partitioning_01.Po
 	-rm -f ./$(DEPDIR)/ib_partitioning_02_2d-ib_partitioning_02.Po
 	-rm -f ./$(DEPDIR)/ib_partitioning_02_3d-ib_partitioning_02.Po
+	-rm -f ./$(DEPDIR)/instrument_panel_01_3d-instrument_panel_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_2d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_01_3d-interpolate_velocity_01.Po
 	-rm -f ./$(DEPDIR)/interpolate_velocity_02-interpolate_velocity_02.Po
