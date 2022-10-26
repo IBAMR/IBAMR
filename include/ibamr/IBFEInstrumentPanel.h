@@ -24,25 +24,10 @@
 
 #include "ibamr/IBFEMethod.h"
 
-#include "ibtk/FEDataManager.h"
-#include "ibtk/ibtk_utilities.h"
-
-#include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
-
 #include "libmesh/enum_order.h"
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/equation_systems.h"
-#include "libmesh/mesh.h"
-#include "libmesh/point.h"
 #include "libmesh/serial_mesh.h"
-
-IBTK_DISABLE_EXTRA_WARNINGS
-#include <boost/multi_array.hpp>
-IBTK_ENABLE_EXTRA_WARNINGS
-
-#include <fstream>
-#include <memory>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -61,30 +46,26 @@ public:
     IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, int part);
 
     /*!
-     * \brief Get data from input file.
+     * \brief Default destructor.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    ~IBFEInstrumentPanel() = default;
 
     /*!
-     * \brief initialize data which don't depend on the Cartesian grid hierarchy.
+     * \brief Initialize hierarchy-independent data.
      *
-     * \note this is done only once.
+     * The data initialized by this method are assumed \em not to change during
+     * the course of a simulation.
      */
     void initializeHierarchyIndependentData(IBAMR::IBFEMethod* ib_method_ops);
 
     /*!
-     * \brief initialize data which depends on the Cartesian grid hierarchy.
-     *
-     * \note this is done each time we compute things with the meter.
-     */
-    void initializeHierarchyDependentData(IBAMR::IBFEMethod* ib_method_ops,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
-    /*!
-     * \brief read instrument data.
+     * \brief Compute the flow rates and pressures in the various distributed
+     * internal flow meters and pressure gauges.
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            IBAMR::IBFEMethod* ib_method_ops,
                             double data_time);
 
     /*!
@@ -103,124 +84,161 @@ public:
     int getNumberOfMeterMeshes() const;
 
     /*!
-     * \return A reference to the jjth meter mesh
+     * \return A reference to the specified meter mesh
      */
-    libMesh::MeshBase& getMeterMesh(const unsigned int jj) const;
+    libMesh::MeshBase& getMeterMesh(unsigned int meter_idx) const;
 
     /*!
-     * \return A reference to the EquationSystems object for jjth meter mesh
+     * \return A reference to the EquationSystems object for specified meter mesh
      */
-    libMesh::EquationSystems& getMeterMeshEquationSystems(const unsigned int jj) const;
+    libMesh::EquationSystems& getMeterMeshEquationSystems(unsigned int meter_idx) const;
 
     /*!
-     * \return The name for jjth meter mesh
+     * \return The name for specified meter mesh
      */
-    const std::string& getMeterMeshName(const unsigned int jj) const;
+    const std::string& getMeterMeshName(unsigned int meter_idx) const;
 
     /*!
-     * \return An ordered vector of nodes for the jjth meter mesh
+     * \return The quadrature rule for the specified meter mesh.
      */
-    const std::vector<libMesh::Point>& getMeterMeshNodes(const unsigned int jj) const;
+    libMesh::QuadratureType getMeterMeshQuadType(unsigned int meter_idx) const;
 
     /*!
-     * \return The quadrature order for the jjth meter mesh
+     * \return The quadrature order for the specified meter mesh
      */
-    libMesh::Order getMeterMeshQuadOrder(const unsigned int jj) const;
+    libMesh::Order getMeterMeshQuadOrder(unsigned int meter_idx) const;
+
+    /*!
+     * \return The flow rates for each meter mesh.
+     */
+    const std::vector<double>& getMeterFlowRates() const;
+
+    /*!
+     * \return The mean pressures for each meter mesh.
+     */
+    const std::vector<double>& getMeterMeanPressures() const;
 
 private:
     /*!
-     * \brief initialize data which depend on the FE equation systems for
+     * \brief Default constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     */
+    IBFEInstrumentPanel() = delete;
+
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    IBFEInstrumentPanel(const IBFEInstrumentPanel& from) = delete;
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    IBFEInstrumentPanel& operator=(const IBFEInstrumentPanel& that) = delete;
+
+    /*!
+     * \brief Get data from input file.
+     */
+    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+
+    /*!
+     * \brief Initialize data that depend on the FE equation systems for
      * the meter mesh.  this includes computing the max radius of the mesh
      * in the current configuration, and updating the mesh's system data.
      */
-    void initializeSystemDependentData(IBAMR::IBFEMethod* ib_method_ops, int meter_mesh_number);
+    void resetMeterConfiguration(IBAMR::IBFEMethod* ib_method_ops, int meter_mesh_number);
 
     /*!
-     * \brief write out data to file.
+     * \brief Initialize mappings from Cartesian grid patches to meter quadrature points.
+     */
+    void computeMeterQuadratureData(std::vector<std::map<int, std::vector<int> > >& meter_idx_map,
+                                    std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_x_map,
+                                    std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_u_corr_map,
+                                    std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_normal_map,
+                                    std::vector<std::map<int, std::vector<double> > >& meter_JxW_map,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+
+    /*!
+     * \brief Write out data to file.
      */
     void outputData(double data_time);
 
     /*!
-     * \brief write out nodes.
+     * \brief Get the maximum radius of the meter in its current configuration.
      */
-    void outputNodes();
+    double getMeterRadius(int meter_idx);
 
     /*!
-     * \brief vector storing radius for each meter
-     */
-    std::vector<double> d_meter_radii;
-
-    /*!
-     * \brief get the maximum radius of the meter in its current configuration
-     */
-    double getMeterRadius(int meter_mesh_number);
-
-    /*!
-     * \brief number of mesh meters.
+     * \brief The number of meters.
      */
     unsigned int d_num_meters = 0;
 
     /*!
-     * \brief quadrature order used for the meter meshes.
+     * \brief Quadrature rule for computing surface integrals.
      */
-    std::vector<libMesh::Order> d_quad_order;
+    libMesh::QuadratureType d_quad_type = libMesh::QGRID;
 
     /*!
-     * \brief quadrature order from input file
+     * \brief Default quadrature order for computing surface integrals.
      */
-    libMesh::Order d_input_quad_order;
+    libMesh::Order d_default_quad_order = libMesh::FIFTH;
 
     /*!
-     * \brief whether we use a grid based quadrature rule.
-     * if false, then we default to using a high order Gauss
-     * quadrature.
+     * \brief Flag tracking whether to use an adaptive quadrature order rule.
+     *
+     * \note This only works with QGRID.
      */
-    bool d_use_adaptive_quadrature;
+    bool d_use_adaptive_quadrature = true;
 
     /*!
-     * \brief quadrature type used for the meter meshes.
+     * \brief Interpolation type for velocity data.
      */
-    libMesh::QuadratureType d_quad_type;
+    std::string d_u_interp_fcn = "PIECEWISE_LINEAR";
 
     /*!
-     * \brief part ID where the meter mesh lives, i.e. its parent mesh.
+     * \brief Interpolation type for pressure data.
+     */
+    std::string d_p_interp_fcn = "PIECEWISE_LINEAR";
+
+    /*!
+     * \brief part ID where the meter mesh lives, i.e., its parent mesh.
      */
     unsigned int d_part;
 
     /*!
-     * \brief true if meter meshes and other data are built and initialized.
+     * \brief Flag tracking if meter meshes and other data are built and initialized.
      */
     bool d_initialized = false;
 
     /*!
-     * \brief number of nodes in the perimeter of the meter mesh.
+     * \brief Actual quadrature order used for each meter mesh.
      */
-    std::vector<unsigned int> d_num_nodes;
+    std::vector<libMesh::Order> d_quad_order;
 
     /*!
-     * \brief vectors to store the dof indices for the velocity and displacement
-     * systems in the parent mesh.  this is used to ensure the velocity
-     * and displacement systems for the meter mesh have the same values as
-     * in the parent mesh.
-     * dimension 1 = number of meter meshes
-     * dimension 2 = number of mesh nodes
-     * dimension 3 = NDIM
+     * \brief The number of nodes in the perimeter of the meter mesh.
+     *
+     * \note Each mesh also has an extra node at the centroid of the perimeter nodes.
      */
-    std::vector<std::vector<std::vector<libMesh::dof_id_type> > > d_U_dof_idx;
-    std::vector<std::vector<std::vector<libMesh::dof_id_type> > > d_dX_dof_idx;
+    std::vector<unsigned int> d_num_perim_nodes;
 
     /*!
-     * \brief a vector containing the nodes of each meter mesh.
+     * \brief Position and velocity DOF indices that link the meter mesh to the parent mesh data structures.
      */
-    std::vector<std::vector<libMesh::Point> > d_nodes;
+    std::vector<std::vector<std::array<libMesh::dof_id_type, NDIM> > > d_x_dof_idx, d_u_dof_idx;
 
     /*!
-     * \brief a vector storing the dof indices for each meter mesh.
-     */
-    std::vector<std::vector<libMesh::dof_id_type> > d_node_dof_IDs;
-
-    /*!
-     * \brief vector of meter meshes.
+     * \brief The meter meshes.
      */
     std::vector<std::unique_ptr<libMesh::SerialMesh> > d_meter_meshes;
 
@@ -230,59 +248,37 @@ private:
     std::vector<std::unique_ptr<libMesh::EquationSystems> > d_meter_systems;
 
     /*!
-     * \brief names for each meter mesh.
+     * \brief Names for each meter mesh.
      */
     std::vector<std::string> d_meter_mesh_names;
 
     /*!
-     * \brief contains the nodeset IDs on the parent mesh, for the nodesets
-     * from which the meter meshes are built.
+     * \brief Nodeset IDs on the structure mesh that specify the mesh nodes that form the perimeter of each meter mesh.
      */
-    SAMRAI::tbox::Array<int> d_nodeset_IDs_for_meters;
+    SAMRAI::tbox::Array<int> d_perimeter_nodeset_ids;
 
     /*!
-     * \brief things for data io.
+     * \brief Meter radius data.
+     */
+    std::vector<double> d_meter_radii;
+
+    /*!
+     * \brief Flow rate data for each meter.
+     */
+    std::vector<double> d_flow_rate_values;
+
+    /*!
+     * \brief Mean pressure data for each meter.
+     */
+    std::vector<double> d_mean_pressure_values;
+
+    /*!
+     * \brief I/O settings.
      */
     int d_instrument_dump_interval;
-    std::vector<double> d_flow_values, d_mean_pressure_values;
     std::string d_plot_directory_name;
     std::ofstream d_mean_pressure_stream;
     std::ofstream d_flux_stream;
-
-    /*!
-     * \brief for ordering objects in a multimap.
-     */
-    struct IndexFortranOrder
-    {
-        inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
-        {
-            return (lhs(0) < rhs(0)
-#if (NDIM > 1)
-                    || (lhs(0) == rhs(0) && lhs(1) < rhs(1))
-#if (NDIM > 2)
-                    || (lhs(0) == rhs(0) && lhs(1) == rhs(1) && lhs(2) < rhs(2))
-#endif
-#endif
-            );
-        }
-    };
-
-    /*!
-     * \brief struct for storing information about the quadrature points.
-     */
-    struct QuadPointStruct
-    {
-        int meter_num;
-        IBTK::Vector normal;
-        IBTK::Vector qp_xyz_current;
-        double JxW;
-    };
-
-    /*!
-     * \brief a multimap which associates SAMRAI indices with quadrature point structures.
-     */
-    using QuadPointMap = std::multimap<SAMRAI::hier::Index<NDIM>, QuadPointStruct, IndexFortranOrder>;
-    std::vector<QuadPointMap> d_quad_point_map;
 };
 } // namespace IBAMR
 

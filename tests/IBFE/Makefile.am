@@ -17,11 +17,15 @@ include $(top_srcdir)/config/Make-rules
 EXTRA_PROGRAMS =
 
 if LIBMESH_ENABLED
-EXTRA_PROGRAMS += interpolate_velocity_01_2d interpolate_velocity_01_3d \
+EXTRA_PROGRAMS += instrument_panel_01_3d interpolate_velocity_01_2d interpolate_velocity_01_3d \
 interpolate_velocity_02 explicit_ex0_2d explicit_ex1_2d explicit_ex2_3d explicit_ex4_2d \
 explicit_ex4_3d explicit_ex5_2d explicit_ex5_3d explicit_ex8_2d \
 ib_partitioning_01_2d ib_partitioning_01_3d ib_partitioning_02_2d \
 ib_partitioning_02_3d zero_exterior_values_2d zero_exterior_values_3d
+
+instrument_panel_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+instrument_panel_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+instrument_panel_01_3d_SOURCES = instrument_panel_01.cpp
 
 interpolate_velocity_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 interpolate_velocity_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
