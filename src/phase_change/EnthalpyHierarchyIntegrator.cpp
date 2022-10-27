@@ -648,7 +648,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
     if (d_u_adv_var) d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_N_scratch_idx, T_rhs_scratch_idx);
 
     // Compute the source term for Div U equation.
-    ComputeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
+    computeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
 
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
@@ -748,7 +748,7 @@ EnthalpyHierarchyIntegrator::computeEnergyEquationSourceTerm(int F_scratch_idx, 
 } // computeEnergyEquationSourceTerm
 
 void
-EnthalpyHierarchyIntegrator::ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time)
+EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -821,7 +821,7 @@ EnthalpyHierarchyIntegrator::ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx
     }
 
     return;
-} // ComputeDivergenceVelocitySourceTerm
+} // computeDivergenceVelocitySourceTerm
 
 void
 EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnNonLinearTemperature(int h_idx,
