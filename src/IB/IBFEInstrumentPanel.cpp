@@ -507,6 +507,7 @@ IBFEInstrumentPanel::resetMeterConfiguration(IBFEMethod* const ib_method_ops, co
     u_meter_vec->close();
     NumericVector<double>& u_meter_serial_vec = u_meter_system.get_vector("serial solution");
     u_meter_vec->localize(u_meter_serial_vec);
+    u_meter_serial_vec.close();
 
     // Compute the meter radius.
     double max_meter_radius = 0.0;
@@ -634,11 +635,11 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
                 fe_elem->reinit(elem);
                 const auto n_qp = q_point.size();
 
-                boost::multi_array<double, 2> u_node;
                 for (int d = 0; d < NDIM; ++d)
                 {
                     u_dof_map.dof_indices(elem, u_dof_indices[d], d);
                 }
+                boost::multi_array<double, 2> u_node;
                 get_values_for_interpolation(u_node, u_meter_serial_vec, u_dof_indices);
 
                 // Keep track of how many patches each quadrature point is assigned to. (Each should be assigned to

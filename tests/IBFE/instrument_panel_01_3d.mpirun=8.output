@@ -34,3 +34,11 @@ bottom meter flux = 0.267761
 top meter flux = -0.358528
 bottom flux absolute difference = 0.00148117
 top flux absolute difference = 0.00198327
+
+test 3
+bottom analytic flux = 8.53869
+top analytic flux = 12.5195
+bottom meter flux = 8.54146
+top meter flux = 12.5164
+bottom flux absolute difference = 0.00276812
+top flux absolute difference = 0.00311712

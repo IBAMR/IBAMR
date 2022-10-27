@@ -26,6 +26,7 @@
 #include <libmesh/mesh_generation.h>
 #include <libmesh/mesh_refinement.h>
 #include <libmesh/mesh_triangle_interface.h>
+#include <libmesh/numeric_vector.h>
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
@@ -455,6 +456,13 @@ main(int argc, char** argv)
                         node(0) *= 0.5625;
                         node(2) += 2;
                     }
+                    // fourth test: translation + background velocity
+                    else if (data_time == 3)
+                    {
+                        node(0) += 3;
+                        node(1) += 3;
+                        node(2) += 3;
+                    }
                 }
             }
 
@@ -472,19 +480,28 @@ main(int argc, char** argv)
 #else
                     const double z = side_ptr->vertex_average()(2);
 #endif
+                    // include a simple correction velocity for the 4th test only (note that it needs to be a linear
+                    // field)
+                    double u_corr = (data_time == 3 ? 1.0 : 0.0);
                     if (std::abs(z - (data_time + 0.0)) < 1.0e-5)
                     {
                         fe->reinit(&elem, side_n);
                         // hard-codes in the flux as the z velocity * -1 (to match sign convention in the meter)
                         for (std::size_t qp = 0; qp < JxW.size(); ++qp)
-                            bottom_analytic_flux += -1.0 * JxW[qp] * exact_solution.value(q_points[qp], 2);
+                        {
+                            const auto x = q_points[qp];
+                            bottom_analytic_flux += -1.0 * JxW[qp] * (exact_solution.value(x, 2) - u_corr * 3 * x(2));
+                        }
                     }
                     else if (std::abs(z - (data_time + 1.0)) < 1.0e-5)
                     {
                         fe->reinit(&elem, side_n);
                         // hard-codes in the flux as the z velocity * -1 (to match sign convention in the meter)
                         for (std::size_t qp = 0; qp < JxW.size(); ++qp)
-                            top_analytic_flux += -1.0 * JxW[qp] * exact_solution.value(q_points[qp], 2);
+                        {
+                            const auto x = q_points[qp];
+                            top_analytic_flux += -1.0 * JxW[qp] * (exact_solution.value(x, 2) - u_corr * 3 * x(2));
+                        }
                     }
                 }
             }
@@ -581,6 +598,38 @@ main(int argc, char** argv)
             do_instrument_panel(2);
             X_vec -= dX_vec;
             dX_vec = 0.0;
+        }
+
+        // fourth test: translate and add a background velocity
+        {
+            plog << "\ntest 3\n";
+            FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
+            EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
+            System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
+            NumericVector<double>& dX_vec = *dX_system.solution;
+            dX_vec = 3;
+            System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+            NumericVector<double>& X_vec = *X_system.solution;
+            X_vec += dX_vec;
+            System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+            NumericVector<double>& U_vec = *U_system.solution;
+            std::vector<dof_id_type> component_dofs;
+            for (auto node_it = mesh.nodes_begin(); node_it != end_node_it; ++node_it)
+            {
+                Node& node = **node_it;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    IBTK::get_nodal_dof_indices(U_system.get_dof_map(), &node, d, component_dofs);
+                    TBOX_ASSERT(component_dofs.size() == 1);
+                    // NOTE: velocity needs to be evaluated using the shifted coordinates!
+                    U_vec.set(component_dofs[0], (d + 1) * (node(d) + 3));
+                }
+            }
+            U_vec.close();
+            do_instrument_panel(3);
+            X_vec -= dX_vec;
+            dX_vec = 0.0;
+            U_vec = 0.0;
         }
 
     } // cleanup dynamically allocated objects prior to shutdown
