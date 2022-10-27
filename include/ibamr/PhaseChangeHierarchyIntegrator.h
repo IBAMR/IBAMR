@@ -18,8 +18,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibamr/config.h>
-
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "ibamr/MassIntegrator.h"
 
@@ -75,20 +73,21 @@ namespace IBAMR
 {
 /*!
  * \brief Class PhaseChangeHierarchyIntegrator provides an abstract interface
- * for the time integration of a cell-centered energy and Allen-Cahn equations with
- * variable material properties.
+ * for the time integration of energy and phase change (melting ad solidification)
+ * equations (e.g., Allen-Cahn, enthalpy) for a phase changing material (PCM).
+ * The solid and liquid phases of the PCM are allowed to have different thermophysical properties.
  *
- * Liquid fraction $\f \varphi \f$, Temperature $\f \varphi \f$ and the density $\f \rho \f$ are
- * maintained by this integrator.
+ * Liquid fraction $\f \varphi \f$, temperature $\f T \f$, and density $\f \rho \f$ variables
+ * are maintained by this integrator.
  *
- * To have a consistency in transport of temperature (or enthalpy), conservation of mass equation is solved
- * discretly with the use of AdvDiffConservativeMassScalarTransportRKIntegrator class to get the newest
- * density \f$\rho^{n+1}\f$ and the convective flux \f$\rho u\f$. This convective flux will be used in the
- * convective operator \f$\nabla \cdot (\rho u C_p T)\f$ (or \f$\nabla \cdot (\rho u h)\f$).
- * This leads to stable solutions for high-density flows.
+ * To enable consistentcy in the mass and energy transport, an additional mass balance PDE
+ * is integrated with the help of AdvDiffConservativeMassScalarTransportRKIntegrator class that
+ * provides an approximation to the latest density \f$\rho^{n+1}\f$ and convective flux \f$\rho u\f$.
+ * The discrete convective flux is used in the convective operator \f$\nabla \cdot (\rho u C_p T)\f$ (or \f$\nabla \cdot
+ * (\rho u h)\f$). This stabilizes the numerical solution for high-density ratio flows.
  *
- * Currenlty, the implementations are provided for the phase-change of a pure material using the enthalpy approach
- * and the phase-field method.
+ * Currenlty, two concrete implementations are provided to model the phase change phenomena:
+ * (1) the enthalpy approach, and (2) the Allen-Cahn phase-field method.
  *
  * References
  * To be added.
@@ -97,7 +96,7 @@ class PhaseChangeHierarchyIntegrator : public AdvDiffSemiImplicitHierarchyIntegr
 {
 public:
     /*!
-     * The constructor for class PhaseChangeHierarchyIntegrator sets
+     * The constructor of the PhaseChangeHierarchyIntegrator class sets
      * some default values, reads in configuration information from input and
      * restart databases, and registers the integrator object with the restart
      * manager when requested.
@@ -107,9 +106,9 @@ public:
                                    bool register_for_restart = true);
 
     /*!
-     * The destructor for class PhaseChangeHierarchyIntegrator
+     * The destructor of the PhaseChangeHierarchyIntegrator class
      * unregisters the integrator object with the restart manager when the
-     * object is so registered.
+     * object is destroyed.
      */
     ~PhaseChangeHierarchyIntegrator() = default;
 
@@ -146,22 +145,22 @@ public:
                                        int num_cycles = 1) override;
 
     /*!
-     * Register the specific heat \f$ C_p \f$.
+     * Register the specific heat \f$ C_p \f$ variable.
      */
     void registerSpecificHeatVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Cp_var,
                                       const bool output_Cp = false);
 
     /*!
-     * Register the cell-centered density \f$ \rho \f$.
+     * Register the density \f$ \rho \f$ variable.
      */
     void registerDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var,
                                  const bool output_rho = false);
 
     /*!
-     * \brief Function to reset fluid density, specific heat and conductivity if they are
+     * \brief Function to reset the phase density, specific heat and conductivity if they are
      * maintained by this integrator.
      */
-    using ResetFluidPropertiesFcnPtr = void (*)(int property_idx,
+    using ResetPhasePropertiesFcnPtr = void (*)(int property_idx,
                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > property_var,
                                                 SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                 int cycle_num,
@@ -171,19 +170,19 @@ public:
                                                 void* ctx);
 
     /*!
-     * \brief Register function to reset fluid density.
+     * \brief Register function to reset phase density.
      */
-    void registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+    void registerResetDensityFcn(ResetPhasePropertiesFcnPtr callback, void* ctx);
 
     /*!
-     * \brief Register function to reset specific heat.
+     * \brief Register function to reset phase specific heat.
      */
-    void registerResetSpecificHeatFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+    void registerResetSpecificHeatFcn(ResetPhasePropertiesFcnPtr callback, void* ctx);
 
     /*!
-     * \brief Register function to reset thermal conductivity.
+     * \brief Register function to reset phase thermal conductivity.
      */
-    void registerResetDiffusionCoefficientFcn(ResetFluidPropertiesFcnPtr callback, void* ctx);
+    void registerResetDiffusionCoefficientFcn(ResetPhasePropertiesFcnPtr callback, void* ctx);
 
     /*!
      * \brief Get the liquid fraction variable that is being manintained by this integrator.
@@ -197,12 +196,12 @@ public:
                                                 const bool output_lf_var = true);
 
     /*!
-     * \brief set Heaviside variable \f$ H \f$ maintained by AdvDiffHierarchyIntegrator.
+     * \brief Register Heaviside variable \f$ H \f$ maintained by AdvDiffHierarchyIntegrator.
      */
-    void setHeavisideVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var);
+    void registerHeavisideVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var);
 
     /*!
-     * \brief Register Temperature variable \f$ T \f$.
+     * \brief Register temperature variable \f$ T \f$.
      */
     void registerTemperatureVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                      const bool output_T_var = true);
@@ -216,56 +215,52 @@ public:
                                            int finest_level) override;
 
     /*!
-     * Set a grid function to provide initial conditions for \f$ \varphi \f$ variable, that has
-     * been registered with the hierarchy integrator.
+     * Set a grid function to provide initial conditions for \f$ \varphi \f$ variable.
      */
     void setLiquidFractionInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                                            SAMRAI::tbox::Pointer<IBTK::CartGridFunction> lf_init);
     /*!
-     * Set a grid function to provide initial conditions for  \f$ T \f$ variable,
-     * that has been registered with the hierarchy integrator.
+     * Set a grid function to provide initial conditions for  \f$ T \f$ variable.
      */
     void setTemperatureInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> T_init);
 
     /*!
-     * Set a grid function to provide initial conditions for  \f$ \rho \f$ variable,
-     * that has been registered with the hierarchy integrator.
+     * Set a grid function to provide initial conditions for \f$ \rho \f$ variable.
      */
     void setDensityInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var,
                                     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_init);
 
     /*!
-     * Set an object to provide boundary conditions for \f$ T \f$ variable,
-     * that has been registered with the hierarchy integrator.
+     * Set boundary conditions for \f$ T \f$ variable.
      */
     void setTemperaturePhysicalBcCoef(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* T_bc_coef);
     /*!
-     * Return a \f$ T \f$ boundary condition object.
+     * Return \f$ T \f$ boundary condition object.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getTemperaturePhysicalBcCoef();
 
     /*!
-     *  Compute the source terms of the energy equation.
+     *  Compute source terms of energy equation.
      */
     virtual void computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt) = 0;
 
     /*!
-     * Get the solver for the energy equation.
+     * Get the solver of the energy equation.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getHelmholtzSolverForEnergyEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
 
     /*!
-     * Get the operator to use to evaluate the right-hand side of the energy equation.
+     * Get the operator that is used to evaluate the right-hand side of energy equation.
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
     getHelmholtzRHSOperatorForEnergyEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
 
     /*!
-     * Supply an IBTK::CartGridFunction object to specify the value of a
-     * source term for the energy equation.
+     * Register an IBTK::CartGridFunction object to specify the value of the
+     * source term for energy equation.
      */
     void setEnergyEquationSourceTermFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
@@ -275,34 +270,34 @@ public:
     int getUpdatedDensityIndex();
 
     /*!
-     * Get the source term patch data index for the Div U equation.
+     * Get the source term patch data index for the div U equation.
      */
     int getDivergenceVelocitySourceTermIndex();
 
     /*!
-     * Compute the source term for the Div U equation.
+     * Compute the source term for the div U equation.
      */
-    virtual void ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) = 0;
+    virtual void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) = 0;
 
     /*
-     * \brief Supply boundary conditions for the cell-centered density field.
+     * \brief Register boundary conditions for the density field.
      */
     void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& rho_bc_coefs);
 
     /*!
-     * \brief Supply a source term for the mass update equation.
+     * \brief Register the source term for the mass update equation.
      *
-     * \note Current implementation is used only to check order of accuracy via a manufactured solution.
+     * \note The current implementation is used only to check the order of accuracy via a manufactured solution.
      */
     void registerMassDensitySourceTerm(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
 
     /*
-     * \brief Supply boundary conditions for the cell-centered specific heat.
+     * \brief Register boundary conditions for the cell-centered specific heat variable.
      */
     void registerSpecificHeatBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& Cp_bc_coefs);
 
     /*
-     * \brief Supply boundary conditions for the cell-centered thermal conductivity.
+     * \brief Register boundary conditions for the cell-centered thermal conductivity variable.
      */
     void registerThermalConductivityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& k_bc_coefs);
 
@@ -378,7 +373,8 @@ protected:
     /*!
      * Boolean to output the variables in visit.
      */
-    bool d_output_lf = false, d_output_T = false, d_output_rho = false, d_output_Cp = false, d_output_Div_U_F = false;
+    bool d_output_lf = false, d_output_T = false, d_output_rho = false, d_output_Cp = false, d_output_Div_U_F = false,
+         d_output_temp_k = false;
 
     /*!
      * Data shynchronization operator.
@@ -410,9 +406,9 @@ protected:
     TimeSteppingType d_T_init_convective_time_stepping_type = d_default_convective_time_stepping_type;
 
     /*!
-     * Functions to reset the \f$ \rho \f$, \f$ C_p \f$ and \f$ k \f$.
+     * Functions to reset \f$ \rho \f$, \f$ C_p \f$ and \f$ k \f$.
      */
-    std::vector<ResetFluidPropertiesFcnPtr> d_reset_rho_fcns, d_reset_Cp_fcns, d_reset_kappa_fcns;
+    std::vector<ResetPhasePropertiesFcnPtr> d_reset_rho_fcns, d_reset_Cp_fcns, d_reset_kappa_fcns;
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_Cp_fcns_ctx, d_reset_kappa_fcns_ctx;
 
     /*!

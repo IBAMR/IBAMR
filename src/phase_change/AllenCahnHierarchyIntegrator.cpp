@@ -1117,7 +1117,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
         }
 
         // Compute the source term for a Div U equation
-        ComputeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
+        computeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
 
         // Reset the right-hand side vector.
         if (d_u_adv_var)
@@ -1380,7 +1380,7 @@ AllenCahnHierarchyIntegrator::computeEnergyEquationSourceTerm(int F_scratch_idx,
 } // computeEnergyEquationSourceTerm
 
 void
-AllenCahnHierarchyIntegrator::ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time)
+AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1464,7 +1464,7 @@ AllenCahnHierarchyIntegrator::ComputeDivergenceVelocitySourceTerm(int Div_U_F_id
     }
 
     return;
-} // ComputeDivergenceVelocitySourceTerm
+} // computeDivergenceVelocitySourceTerm
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

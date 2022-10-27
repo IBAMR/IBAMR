@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/config.h>
+
 #include "ibamr/AdvDiffConservativeCUIConvectiveOperator.h"
 #include "ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h"
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
@@ -148,7 +150,7 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 namespace
 {
-// Version of INSHierarchyIntegrator restart file data.
+// Version of PhaseChangeHierarchyIntegrator restart file data.
 static const int PC_HIERARCHY_INTEGRATOR_VERSION = 4;
 
 // Number of ghosts cells used for each variable quantity.
@@ -261,7 +263,7 @@ PhaseChangeHierarchyIntegrator::registerDensityVariable(Pointer<CellVariable<NDI
 } // registerDensityVariable
 
 void
-PhaseChangeHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+PhaseChangeHierarchyIntegrator::registerResetDensityFcn(ResetPhasePropertiesFcnPtr callback, void* ctx)
 {
     d_reset_rho_fcns.push_back(callback);
     d_reset_rho_fcns_ctx.push_back(ctx);
@@ -269,7 +271,7 @@ PhaseChangeHierarchyIntegrator::registerResetFluidDensityFcn(ResetFluidPropertie
 } // registerResetFluidDensityFcn
 
 void
-PhaseChangeHierarchyIntegrator::registerResetSpecificHeatFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+PhaseChangeHierarchyIntegrator::registerResetSpecificHeatFcn(ResetPhasePropertiesFcnPtr callback, void* ctx)
 {
     d_reset_Cp_fcns.push_back(callback);
     d_reset_Cp_fcns_ctx.push_back(ctx);
@@ -277,7 +279,7 @@ PhaseChangeHierarchyIntegrator::registerResetSpecificHeatFcn(ResetFluidPropertie
 } // registerResetSpecificHeatFcn
 
 void
-PhaseChangeHierarchyIntegrator::registerResetDiffusionCoefficientFcn(ResetFluidPropertiesFcnPtr callback, void* ctx)
+PhaseChangeHierarchyIntegrator::registerResetDiffusionCoefficientFcn(ResetPhasePropertiesFcnPtr callback, void* ctx)
 {
     d_reset_kappa_fcns.push_back(callback);
     d_reset_kappa_fcns_ctx.push_back(ctx);
@@ -341,6 +343,7 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
                      "CONSERVATIVE_LINEAR_REFINE",
                      d_T_init);
 
+    // T_F contains forcing term of the temperature equation
     int T_F_current_idx, T_F_scratch_idx, T_F_new_idx;
     registerVariable(T_F_current_idx,
                      T_F_new_idx,
@@ -350,6 +353,7 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
+    // T_diff contains the diffusion coefficient of the temperature equation
     int T_diff_coef_current_idx, T_diff_coef_new_idx, T_diff_coef_scratch_idx;
     registerVariable(T_diff_coef_current_idx,
                      T_diff_coef_new_idx,
@@ -385,6 +389,7 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     int T_rhs_scratch_idx;
     registerVariable(T_rhs_scratch_idx, d_T_rhs_var, cell_ghosts, getScratchContext());
 
+    // T_C contains the C coefficient of the temperature equation
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_T_C_var = new CellVariable<NDIM, double>(d_T_var->getName() + "::C");
     d_T_C_idx = var_db->registerVariableAndContext(d_T_C_var, getCurrentContext(), no_ghosts);
@@ -439,14 +444,14 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
-    if (d_visit_writer)
+    if (d_visit_writer && d_output_temp_k)
     {
-        d_visit_writer->registerPlotQuantity("D", "VECTOR", d_D_cc_current_idx, 0);
+        d_visit_writer->registerPlotQuantity("temp_k", "VECTOR", d_D_cc_current_idx, 0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            if (d == 0) d_visit_writer->registerPlotQuantity("D_x", "SCALAR", d_D_cc_current_idx, d);
-            if (d == 1) d_visit_writer->registerPlotQuantity("D_y", "SCALAR", d_D_cc_current_idx, d);
-            if (d == 2) d_visit_writer->registerPlotQuantity("D_z", "SCALAR", d_D_cc_current_idx, d);
+            if (d == 0) d_visit_writer->registerPlotQuantity("temp_k_x", "SCALAR", d_D_cc_current_idx, d);
+            if (d == 1) d_visit_writer->registerPlotQuantity("temp_k_y", "SCALAR", d_D_cc_current_idx, d);
+            if (d == 2) d_visit_writer->registerPlotQuantity("temp_k_z", "SCALAR", d_D_cc_current_idx, d);
         }
     }
 
@@ -470,13 +475,13 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     {
         if (d_output_lf) d_visit_writer->registerPlotQuantity("liquid_fraction", "SCALAR", d_lf_current_idx, 0);
 
-        if (d_output_T) d_visit_writer->registerPlotQuantity("Temperature", "SCALAR", d_T_current_idx, 0);
+        if (d_output_T) d_visit_writer->registerPlotQuantity("temperature", "SCALAR", d_T_current_idx, 0);
 
         if (d_output_rho) d_visit_writer->registerPlotQuantity("rho_cc", "SCALAR", d_rho_current_idx, 0);
 
-        if (d_output_Cp) d_visit_writer->registerPlotQuantity("Specific heat", "SCALAR", d_Cp_current_idx, 0);
+        if (d_output_Cp) d_visit_writer->registerPlotQuantity("specific_heat", "SCALAR", d_Cp_current_idx, 0);
 
-        if (d_output_Div_U_F) d_visit_writer->registerPlotQuantity("Div_U_F", "SCALAR", d_Div_U_F_idx, 0);
+        if (d_output_Div_U_F) d_visit_writer->registerPlotQuantity("div_U_F", "SCALAR", d_Div_U_F_idx, 0);
     }
     if (d_solve_mass_conservation)
     {
@@ -697,7 +702,7 @@ PhaseChangeHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVaria
 } // registerLiquidFractionVariable
 
 void
-PhaseChangeHierarchyIntegrator::setHeavisideVariable(Pointer<CellVariable<NDIM, double> > H_var)
+PhaseChangeHierarchyIntegrator::registerHeavisideVariable(Pointer<CellVariable<NDIM, double> > H_var)
 {
     d_H_var = H_var;
     return;
@@ -880,6 +885,7 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("d_T_melt", d_T_melt);
     db->putBool("d_solve_mass_conservation", d_solve_mass_conservation);
     db->putBool("d_output_Div_U_F", d_output_Div_U_F);
+    db->putBool("d_output_temp_k", d_output_temp_k);
 
     AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
@@ -1055,6 +1061,8 @@ PhaseChangeHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is
 
         if (input_db->keyExists("output_Div_U_F")) d_output_Div_U_F = input_db->getBool("output_Div_U_F");
 
+        if (input_db->keyExists("output_temp_k")) d_output_temp_k = input_db->getBool("output_temp_k");
+
         if (input_db->keyExists("T_diffusion_time_stepping_type"))
             d_T_diffusion_time_stepping_type =
                 string_to_enum<TimeSteppingType>(input_db->getString("T_diffusion_time_stepping_type"));
@@ -1128,6 +1136,7 @@ PhaseChangeHierarchyIntegrator::getFromRestart()
     d_T_melt = db->getDouble("d_T_melt");
     d_solve_mass_conservation = db->getBool("d_solve_mass_conservation");
     d_output_Div_U_F = db->getBool("d_output_Div_U_F");
+    d_output_temp_k = db->getBool("d_output_temp_k");
 }
 
 //////////////////////////////////////////////////////////////////////////////

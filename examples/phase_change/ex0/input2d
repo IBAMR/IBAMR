@@ -174,7 +174,7 @@ ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convect
 TEMPERATURE_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // "FORWARD_EULER" // convective time stepping type
 TEMPERATURE_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
 TEMPERATURE_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
-TEMPERATURE_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the convective terms
+TEMPERATURE_DIFFUSION_TS_TYPE  = "TRAPEZOIDAL_RULE"       // how to compute the convective terms
 K_VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 
 EnthalpyHierarchyIntegrator {
@@ -193,7 +193,7 @@ EnthalpyHierarchyIntegrator {
    dt_max                        = DT_MAX
    tag_buffer                    = TAG_BUFFER
    enable_logging                = ENABLE_LOGGING
-   max_integrator_steps       = MAX_INTEGRATOR_STEPS
+   max_integrator_steps          = MAX_INTEGRATOR_STEPS
    latent_heat                   = LATENT_HEAT
    rho_liquid                    = RHO_L
    rho_solid                     = RHO_S
@@ -203,8 +203,9 @@ EnthalpyHierarchyIntegrator {
    T_melt                        = MELT_TEMPERATURE
    solve_mass_conservation       = SOLVE_MASS_CONSERVATION
    k_vc_interpolation_type       = K_VC_INTERPOLATION_TYPE
-   liquidus_temperature           = LIQUIDUS_TEMPERATURE
-   solidus_temperature            = SOLIDUS_TEMPERATURE
+   liquidus_temperature          = LIQUIDUS_TEMPERATURE
+   solidus_temperature           = SOLIDUS_TEMPERATURE
+   output_temp_k                 = TRUE
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
       T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"

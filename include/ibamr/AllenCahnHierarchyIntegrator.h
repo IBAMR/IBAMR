@@ -158,7 +158,7 @@ public:
     /*!
      * Compute the source term for the Div U equation.
      */
-    void ComputeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) override;
+    void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) override;
 
     /*!
      * Set an object to provide boundary conditions for  \f$ \varphi \f$ variable,

@@ -25,9 +25,6 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/EnthalpyHierarchyIntegrator.h>
-#include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBMethod.h>
-#include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/PhaseChangeHierarchyIntegrator.h>
 
@@ -126,9 +123,7 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("heaviside_var");
         time_integrator->registerTransportedQuantity(H_var, true);
         time_integrator->setDiffusionCoefficient(H_var, 0.0);
-
-        // set Heaviside
-        enthalpy_hier_integrator->setHeavisideVariable(H_var);
+        enthalpy_hier_integrator->registerHeavisideVariable(H_var);
 
         // register temperature
         Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("Temperature");
@@ -222,8 +217,8 @@ main(int argc, char* argv[])
         enthalpy_hier_integrator->registerResetSpecificHeatFcn(&callSetLiquidSolidSpecificHeatCallbackFunction,
                                                                static_cast<void*>(ptr_SetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetFluidDensityFcn(&callSetLiquidSolidDensityCallbackFunction,
-                                                               static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetDensityFcn(&callSetLiquidSolidDensityCallbackFunction,
+                                                          static_cast<void*>(ptr_SetFluidProperties));
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
