@@ -688,10 +688,6 @@ HierarchyMathOps::curl(const int dst_idx,
                        const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                        const double src_ghost_fill_time)
 {
-#if (NDIM != 2)
-    TBOX_ERROR("HierarchyMathOps::curl():\n"
-               << "  not implemented for NDIM != 2" << std::endl);
-#endif
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
