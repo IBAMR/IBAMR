@@ -408,6 +408,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_old_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_Omega_nc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_Norm_var;
@@ -443,7 +444,7 @@ private:
      * Plot variables have one context: current.
      */
     int d_U_cc_idx = IBTK::invalid_index, d_F_cc_idx = IBTK::invalid_index, d_Omega_idx = IBTK::invalid_index,
-        d_Div_U_idx = IBTK::invalid_index, d_EE_idx = IBTK::invalid_index;
+        d_Omega_nc_idx = IBTK::invalid_index, d_Div_U_idx = IBTK::invalid_index, d_EE_idx = IBTK::invalid_index;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
