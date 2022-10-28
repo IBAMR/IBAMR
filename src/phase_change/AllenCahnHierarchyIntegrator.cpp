@@ -387,7 +387,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
     d_hier_cc_data_ops->copyData(H_scratch_idx, H_current_idx);
     d_H_bdry_bc_fill_op->fillData(current_time);
 
-    interpolateCCToSC(lf_diff_coef_current_idx, H_scratch_idx);
+    interpolateCCToSCSimpleAveraging(lf_diff_coef_current_idx, H_scratch_idx);
 
     // Add numerical diffusion to smoothly extend the liquid fraction.
     d_hier_sc_data_ops->addScalar(lf_diff_coef_current_idx, lf_diff_coef_current_idx, d_num_diffusion);
@@ -557,11 +557,11 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
 
         if (d_k_vc_interp_type == VC_AVERAGE_INTERP)
         {
-            interpolateCCToSC(T_diff_coef_current_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCSimpleAveraging(T_diff_coef_current_idx, T_diff_coef_cc_scratch_idx);
         }
         else if (d_k_vc_interp_type == VC_HARMONIC_INTERP)
         {
-            interpolateCCToSCHarmonic(T_diff_coef_current_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCHarmonicAveraging(T_diff_coef_current_idx, T_diff_coef_cc_scratch_idx);
         }
         else
         {
@@ -691,7 +691,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
     d_hier_cc_data_ops->copyData(H_scratch_idx, H_new_idx);
     d_H_bdry_bc_fill_op->fillData(new_time);
 
-    interpolateCCToSC(lf_diff_coef_new_idx, H_scratch_idx);
+    interpolateCCToSCSimpleAveraging(lf_diff_coef_new_idx, H_scratch_idx);
 
     // Add numerical diffusion to smoothly extend the liquid fraction.
     d_hier_sc_data_ops->addScalar(lf_diff_coef_new_idx, lf_diff_coef_new_idx, d_num_diffusion);
@@ -1028,11 +1028,11 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
 
         if (d_k_vc_interp_type == VC_AVERAGE_INTERP)
         {
-            interpolateCCToSC(T_diff_coef_new_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCSimpleAveraging(T_diff_coef_new_idx, T_diff_coef_cc_scratch_idx);
         }
         else if (d_k_vc_interp_type == VC_HARMONIC_INTERP)
         {
-            interpolateCCToSCHarmonic(T_diff_coef_new_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCHarmonicAveraging(T_diff_coef_new_idx, T_diff_coef_cc_scratch_idx);
         }
         else
         {
