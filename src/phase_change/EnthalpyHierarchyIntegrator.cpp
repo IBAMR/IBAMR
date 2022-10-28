@@ -535,7 +535,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         else
             d_hier_cc_data_ops->setToScalar(T_F_scratch_idx, 0.0);
 
-        // Compute and add source term.
+        // Compute and add temporal and linearized terms to the RHS of the energy equation.
         computeEnergyEquationSourceTerm(T_F_scratch_idx, dt);
         d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_F_scratch_idx, T_rhs_scratch_idx);
 
@@ -629,11 +629,8 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
             d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx) / (1.0 + lf_relative_iteration_error);
         inner_iterations++;
 
-        if (d_T_F_var)
-        {
-            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_F_scratch_idx, T_rhs_scratch_idx);
-            d_hier_cc_data_ops->copyData(T_F_new_idx, T_F_scratch_idx);
-        }
+        d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_F_scratch_idx, T_rhs_scratch_idx);
+        d_hier_cc_data_ops->copyData(T_F_new_idx, T_F_scratch_idx);
     }
 
     // Reset the right-hand side vector.
