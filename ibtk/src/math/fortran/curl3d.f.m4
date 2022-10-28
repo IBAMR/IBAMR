@@ -420,6 +420,93 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Computes W = curl u.
+c
+c     Uses centered differences to compute the node centered curl of a
+c     side centered vector field u=(u0,u1,u2).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine stoncurl3d(
+     &     W,W_gcw,
+     &     u0,u1,u2,u_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER W_gcw,u_gcw
+
+      REAL u0(SIDE3d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE3d1(ilower,iupper,u_gcw))
+      REAL u2(SIDE3d2(ilower,iupper,u_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL W(NODE3d(ilower,iupper,W_gcw),0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL    du0_dx1,du0_dx2,fac01,fac02
+      REAL    du1_dx0,du1_dx2,fac10,fac12
+      REAL    du2_dx0,du2_dx1,fac20,fac21
+c
+c     Compute the cell centered curl of u=(u0,u1,u2).
+c
+      fac12 = 0.5d0/dx(2)
+      fac21 = 0.5d0/dx(1)
+
+      fac02 = 0.5d0/dx(2)
+      fac20 = 0.5d0/dx(0)
+
+      fac01 = 0.5d0/dx(1)
+      fac10 = 0.5d0/dx(0)
+
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0+1
+               du1_dx2 = fac12*(
+     &              +u1(i0-1,i1  ,i2  )+u1(i0  ,i1  ,i2  )
+     &              -u1(i0-1,i1  ,i2-1)-u1(i0  ,i1  ,i2-1) )
+               du2_dx1 = fac21*(
+     &              +u2(i0-1,i1  ,i2  )+u2(i0  ,i1  ,i2  )
+     &              -u2(i0-1,i1-1,i2  )-u2(i0  ,i1-1,i2  ) )
+               W(i0,i1,i2,0) = du2_dx1-du1_dx2
+
+               du0_dx2 = fac02*(
+     &              +u0(i0  ,i1-1,i2  )+u0(i0  ,i1  ,i2  )
+     &              -u0(i0  ,i1-1,i2-1)-u0(i0  ,i1  ,i2-1) )
+               du2_dx0 = fac20*(
+     &              +u2(i0  ,i1-1,i2  )+u2(i0  ,i1  ,i2  )
+     &              -u2(i0-1,i1-1,i2  )-u2(i0-1,i1  ,i2  ) )
+               W(i0,i1,i2,1) = du0_dx2-du2_dx0
+
+               du0_dx1 = fac01*(
+     &              +u0(i0  ,i1  ,i2-1)+u0(i0  ,i1  ,i2  )
+     &              -u0(i0  ,i1-1,i2-1)-u0(i0  ,i1-1,i2  ) )
+               du1_dx0 = fac10*(
+     &              +u1(i0  ,i1  ,i2-1)+u1(i0  ,i1  ,i2  )
+     &              -u1(i0-1,i1  ,i2-1)-u1(i0-1,i1  ,i2  ) )
+               W(i0,i1,i2,2) = du1_dx0-du0_dx1
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Computes w = curl u.
 c
 c     Uses centered differences to compute the side centered curl of a
