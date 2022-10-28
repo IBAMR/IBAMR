@@ -207,7 +207,7 @@ public:
                                      const bool output_T_var = true);
 
     /*!
-     * Reset cached hierarchy dependent data.
+     * \brief Reset cached hierarchy dependent data.
      */
     void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
@@ -215,71 +215,71 @@ public:
                                            int finest_level) override;
 
     /*!
-     * Set a grid function to provide initial conditions for \f$ \varphi \f$ variable.
+     * \brief Set a grid function to provide initial conditions for \f$ \varphi \f$ variable.
      */
     void setLiquidFractionInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                                            SAMRAI::tbox::Pointer<IBTK::CartGridFunction> lf_init);
     /*!
-     * Set a grid function to provide initial conditions for  \f$ T \f$ variable.
+     * \brief Set a grid function to provide initial conditions for  \f$ T \f$ variable.
      */
     void setTemperatureInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> T_init);
 
     /*!
-     * Set a grid function to provide initial conditions for \f$ \rho \f$ variable.
+     * \brief Set a grid function to provide initial conditions for \f$ \rho \f$ variable.
      */
     void setDensityInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var,
                                     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_init);
 
     /*!
-     * Set boundary conditions for \f$ T \f$ variable.
+     * \brief Set boundary conditions for \f$ T \f$ variable.
      */
     void setTemperaturePhysicalBcCoef(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
                                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* T_bc_coef);
     /*!
-     * Return \f$ T \f$ boundary condition object.
+     * \brief Return \f$ T \f$ boundary condition object.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getTemperaturePhysicalBcCoef();
 
     /*!
-     *  Compute source terms of energy equation.
+     *  \brief Compute source terms of energy equation.
      */
     virtual void computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt) = 0;
 
     /*!
-     * Get the solver of the energy equation.
+     * \brief Get the solver of the energy equation.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
     getHelmholtzSolverForEnergyEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
 
     /*!
-     * Get the operator that is used to evaluate the right-hand side of energy equation.
+     * \brief Get the operator that is used to evaluate the right-hand side of energy equation.
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
     getHelmholtzRHSOperatorForEnergyEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
 
     /*!
-     * Register an IBTK::CartGridFunction object to specify the value of the
+     * \brief Register an IBTK::CartGridFunction object to specify the value of the
      * source term for energy equation.
      */
     void setEnergyEquationSourceTermFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
-     * Get the updated density patch data index.
+     * \brief Get the updated density patch data index.
      */
     int getUpdatedDensityIndex();
 
     /*!
-     * Get the source term patch data index for the div U equation.
+     * \brief Get the source term patch data index for the div U equation.
      */
     int getDivergenceVelocitySourceTermIndex();
 
     /*!
-     * Compute the source term for the div U equation.
+     * \brief Compute the source term for the div U equation.
      */
     virtual void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) = 0;
 
-    /*
+    /*!
      * \brief Register boundary conditions for the density field.
      */
     void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& rho_bc_coefs);
@@ -291,44 +291,44 @@ public:
      */
     void registerMassDensitySourceTerm(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
 
-    /*
+    /*!
      * \brief Register boundary conditions for the cell-centered specific heat variable.
      */
     void registerSpecificHeatBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& Cp_bc_coefs);
 
-    /*
+    /*!
      * \brief Register boundary conditions for the cell-centered thermal conductivity variable.
      */
     void registerThermalConductivityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& k_bc_coefs);
 
     /*!
-     * Set the face-centered advection velocity.
+     * \brief Set the face-centered advection velocity.
      */
     void setAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
 
     /*!
-     * Write out specialized object state to the given database.
+     * \brief Write out specialized object state to the given database.
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
-    /*
+    /*!
      * \brief Interpolate the cell-centered scalar variable to side-centered using simple averaging.
      */
-    void interpolateCCToSC(int sc_idx, const int cc_idx);
-
-    /*
-     * \brief Interpolate the cell-centered scalar variable to side-centered using harmonic averaging.
-     */
-    void interpolateCCToSCHarmonic(int sc_idx, const int cc_idx);
+    void interpolateCCToSCSimpleAveraging(int sc_idx, const int cc_idx);
 
     /*!
-     * Read input values from a given database.
+     * \brief Interpolate the cell-centered scalar variable to side-centered using harmonic averaging.
+     */
+    void interpolateCCToSCHarmonicAveraging(int sc_idx, const int cc_idx);
+
+    /*!
+     * \brief Read input values from a given database.
      */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, bool is_from_restart);
 
     /*!
-     * Read object state from the restart file and initialize class data
+     * \brief Read object state from the restart file and initialize class data
      * members.
      */
     void getFromRestart();

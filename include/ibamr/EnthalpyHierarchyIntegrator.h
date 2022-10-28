@@ -18,23 +18,11 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibamr/config.h>
-
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
 
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/LaplaceOperator.h"
-
-#include "HierarchyFaceDataOpsReal.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 
-#include <map>
-#include <set>
 #include <string>
 
 namespace IBTK
@@ -76,19 +64,13 @@ namespace IBAMR
 {
 /*!
  * \brief Class EnthalpyHierarchyIntegrator is a concrete class that manages the
- * time integration of the energy equation using the enthalpy approach.
- *
- * In this class, implementations are provided for phase change of a pure material
- * using the phase-field method.
- *
- *
- *
+ * time integration of energy and phase change equations using the enthalpy approach.
  */
 class EnthalpyHierarchyIntegrator : public PhaseChangeHierarchyIntegrator
 {
 public:
     /*!
-     * The constructor for class EnthalpyHierarchyIntegrator sets
+     * The constructor of EnthalpyHierarchyIntegrator class sets
      * some default values, reads in configuration information from input and
      * restart databases, and registers the integrator object with the restart
      * manager when requested.
@@ -98,7 +80,7 @@ public:
                                 bool register_for_restart = true);
 
     /*!
-     * The destructor for class EnthalpyHierarchyIntegrator
+     * The destructor of EnthalpyHierarchyIntegrator class
      * unregisters the integrator object with the restart manager when the
      * object is so registered.
      */
@@ -137,16 +119,7 @@ public:
                                        int num_cycles = 1) override;
 
     /*!
-     * Reset cached hierarchy dependent data. This is not required. So does the PhaseChangeHI resetHierarchy function is
-     * called?
-     */
-    // void
-    // resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-    //                                        int coarsest_level,
-    //                                        int finest_level) override;
-
-    /*!
-     * Supply an IBTK::CartGridFunction object to specify the value of a
+     * Set an IBTK::CartGridFunction object to specify the value of a
      * particular source term for energy equation.
      */
     void computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt) override;
@@ -157,8 +130,7 @@ public:
     void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) override;
 
     /*!
-     * Set an object to provide boundary conditions for \f$ h \f$ variable,
-     * that has been registered with the hierarchy integrator.
+     * Set boundary conditions for \f$ h \f$ variable.
      */
     void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* h_bc_coef);
 
@@ -201,32 +173,24 @@ private:
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, bool is_from_restart);
 
     /*!
-     * Read object state from the restart file and initialize class data
+     * \brief Read object state from the restart file and initialize class data
      * members.
      */
     void getFromRestart();
 
     /*!
-     * compute liquid fraction.
+     * \brief Compute enthalpy based on (nonlinear) h-T relation.
      */
-    void computeLiquidFractionRelativeError(const int lf_new_idx, int lf_pre_idx);
+    void
+    computeEnthalpyBasedOnTemperature(int h_idx, const int T_idx, const int rho_idx, const int lf_idx, const int H_idx);
 
     /*!
-     * compute enthalpy based on h-T relation.
+     * \brief Compute temperature based on (nonlinear) h-T relation.
      */
-    void computeEnthalpyBasedOnNonLinearTemperature(int h_idx,
-                                                    const int T_idx,
-                                                    const int rho_idx,
-                                                    const int lf_idx,
-                                                    const int H_idx);
+    void computeTemperatureBasedOnEnthalpy(int T_idx, const int h_idx, const int H_idx);
 
     /*!
-     * compute temperature based on h-T relation.
-     */
-    void computeTemperatureBasedOnNonLinearEnthalpy(int T_idx, const int h_idx, const int H_idx);
-
-    /*!
-     * Update enthalpy.
+     * \brief Update enthalpy using Taylor series \f$ h_{\rm new} = h_{\rm old} + dh/dt (\Delta T) \f$.
      */
     void updateEnthalpy(int h_idx, const int T_new_idx, const int T_pre_idx);
 
@@ -236,7 +200,7 @@ private:
     void computeEnthalpyDerivative(int dh_dT_data, const int T_idx, const int H_idx);
 
     /*!
-     * Compute liquid fraction.
+     * \brief Compute liquid fraction.
      */
     void computeLiquidFraction(int lf_idx, const int h_idx, const int H_idx);
 

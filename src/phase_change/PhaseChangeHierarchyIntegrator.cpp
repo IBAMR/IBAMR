@@ -893,7 +893,7 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
-PhaseChangeHierarchyIntegrator::interpolateCCToSC(int sc_idx, const int cc_idx)
+PhaseChangeHierarchyIntegrator::interpolateCCToSCSimpleAveraging(int sc_idx, const int cc_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -931,10 +931,10 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSC(int sc_idx, const int cc_idx)
     }
 
     return;
-} // interpolateCCTOSC
+} // interpolateCCTOSCSimpleAveraging
 
 void
-PhaseChangeHierarchyIntegrator::interpolateCCToSCHarmonic(int sc_idx, const int cc_idx)
+PhaseChangeHierarchyIntegrator::interpolateCCToSCHarmonicAveraging(int sc_idx, const int cc_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -973,7 +973,7 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSCHarmonic(int sc_idx, const int 
     }
 
     return;
-} // interpolateCCTOSCHarmonic
+} // interpolateCCTOSCHarmonicAveraging
 
 Pointer<PoissonSolver>
 PhaseChangeHierarchyIntegrator::getHelmholtzSolverForEnergyEquation(Pointer<CellVariable<NDIM, double> > T_var)
