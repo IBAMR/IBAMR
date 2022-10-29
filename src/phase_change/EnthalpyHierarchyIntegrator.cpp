@@ -143,7 +143,7 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
                      cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
-    if (d_visit_writer) d_visit_writer->registerPlotQuantity(d_h_var->getName(), "SCALAR", d_h_current_idx);
+    if (d_visit_writer) d_visit_writer->registerPlotQuantity("enthalpy", "SCALAR", d_h_current_idx);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_T_pre_var = new CellVariable<NDIM, double>(d_object_name + "::T_pre_var");
