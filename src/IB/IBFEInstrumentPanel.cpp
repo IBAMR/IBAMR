@@ -185,7 +185,11 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
                 {           
                     const libMesh::Node* a_node = structure_mesh.node_ptr(it->first);
                     double distance = (*next_node - *a_node).norm();
-                    if (distance < min_distance) temp_node_it = it; min_distance = distance;
+                    if (distance < min_distance)
+                    {
+                        temp_node_it = it;
+                        min_distance = distance;
+                    }
                 }
                 next_node_it = temp_node_it;
             }
