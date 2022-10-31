@@ -169,12 +169,14 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
                                       it->second.end(),
                                       std::inserter(intersection, intersection.begin()));
                 if (intersection.empty()) continue;
+                // there is a nonzero intersection of the element sets so an adjacent node has been found.
                 next_node_it = it;
                 found_adjacent_node = true;
                 break;
             }
             if (!found_adjacent_node)
             {
+                // no adjacent node was found so we set the next node in the mesh to be the closest one to the previous node.
                 TBOX_WARNING("IBFEInstrumentPanel::initializeHierarchyIndependentData: problem setting up meters meshes. no adjacent node found. trying to find the closest one.");
                 double min_distance = std::numeric_limits<double>::max();
                 const libMesh::Node* next_node = structure_mesh.node_ptr(next_node_it->first);
