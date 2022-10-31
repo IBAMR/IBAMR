@@ -173,7 +173,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
                 found_adjacent_node = true;
                 break;
             }
-            if (!found_adjacent_node) TBOX_ERROR("IBFEInstrumentPanel::initializeHierarchyIndependentData: problem setting up meters");
+            if (!found_adjacent_node) TBOX_ERROR("IBFEInstrumentPanel::initializeHierarchyIndependentData: problem setting up meters meshes. no adjacent node found.");
             structure_nodes[meter_idx].push_back(structure_mesh.node_ptr(next_node_it->first));
             temp_element_set = next_node_it->second;
             map_for_node_element_sets[meter_idx].erase(next_node_it);
