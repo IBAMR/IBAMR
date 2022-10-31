@@ -23,6 +23,8 @@
 #include "libmesh/boundary_info.h"
 #include "libmesh/face_tri3.h"
 
+#include <set>
+
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -172,6 +174,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
         // loop over rest of nodes until done
         while (!map_for_node_element_sets[meter_idx].empty())
         {
+            bool found_adjacent_node = false;
             for (auto it = map_for_node_element_sets[meter_idx].begin();
                  it != map_for_node_element_sets[meter_idx].end();
                  it++)
@@ -185,7 +188,34 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
                                       it->second.end(),
                                       std::inserter(intersection, intersection.begin()));
                 if (intersection.empty()) continue;
+                // there is a nonzero intersection of the element sets so an adjacent node has been found.
                 next_node_it = it;
+                found_adjacent_node = true;
+                break;
+            }
+            if (!found_adjacent_node)
+            {
+                // no adjacent node was found so we set the next node in the mesh to be the closest one to the previous
+                // node.
+                TBOX_WARNING(
+                    "IBFEInstrumentPanel::initializeHierarchyIndependentData: problem setting up meters meshes. no "
+                    "adjacent node found. trying to find the closest one.");
+                double min_distance = std::numeric_limits<double>::max();
+                const libMesh::Node* next_node = structure_mesh.node_ptr(next_node_it->first);
+                std::map<unsigned int, std::set<unsigned int> >::iterator temp_node_it;
+                for (auto it = map_for_node_element_sets[meter_idx].begin();
+                     it != map_for_node_element_sets[meter_idx].end();
+                     it++)
+                {
+                    const libMesh::Node* a_node = structure_mesh.node_ptr(it->first);
+                    double distance = (*next_node - *a_node).norm();
+                    if (distance < min_distance)
+                    {
+                        temp_node_it = it;
+                        min_distance = distance;
+                    }
+                }
+                next_node_it = temp_node_it;
             }
             structure_nodes[meter_idx].push_back(structure_mesh.node_ptr(next_node_it->first));
             temp_element_set = next_node_it->second;
