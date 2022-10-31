@@ -13,6 +13,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <set>
+
 #include "ibamr/IBFEInstrumentPanel.h"
 
 #include "ibtk/IBTK_MPI.h"
@@ -153,11 +155,12 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
         // loop over rest of nodes until done
         while (!map_for_node_element_sets[meter_idx].empty())
         {
+            std::set<unsigned int> intersection;
             for (auto it = map_for_node_element_sets[meter_idx].begin();
                  it != map_for_node_element_sets[meter_idx].end();
                  it++)
             {
-                std::set<unsigned int> intersection;
+                intersection.clear();
                 // determine whether nodes share elements. if so, they are adjacent and we use this information to
                 // orient the set.
                 std::set_intersection(temp_element_set.begin(),
@@ -168,9 +171,12 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
                 if (intersection.empty()) continue;
                 next_node_it = it;
             }
-            structure_nodes[meter_idx].push_back(structure_mesh.node_ptr(next_node_it->first));
-            temp_element_set = next_node_it->second;
-            map_for_node_element_sets[meter_idx].erase(next_node_it);
+            if (!intersection.empty())
+            {
+                structure_nodes[meter_idx].push_back(structure_mesh.node_ptr(next_node_it->first));
+                temp_element_set = next_node_it->second;
+                map_for_node_element_sets[meter_idx].erase(next_node_it);
+            }
         }
     }
 
