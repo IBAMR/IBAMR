@@ -155,12 +155,12 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
         // loop over rest of nodes until done
         while (!map_for_node_element_sets[meter_idx].empty())
         {
-            std::set<unsigned int> intersection;
+            bool found_adjacent_node = false;
             for (auto it = map_for_node_element_sets[meter_idx].begin();
                  it != map_for_node_element_sets[meter_idx].end();
                  it++)
             {
-                intersection.clear();
+                std::set<unsigned int> intersection;
                 // determine whether nodes share elements. if so, they are adjacent and we use this information to
                 // orient the set.
                 std::set_intersection(temp_element_set.begin(),
@@ -170,13 +170,13 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
                                       std::inserter(intersection, intersection.begin()));
                 if (intersection.empty()) continue;
                 next_node_it = it;
+                found_adjacent_node = true;
+                break;
             }
-            if (!intersection.empty())
-            {
-                structure_nodes[meter_idx].push_back(structure_mesh.node_ptr(next_node_it->first));
-                temp_element_set = next_node_it->second;
-                map_for_node_element_sets[meter_idx].erase(next_node_it);
-            }
+            if (!found_adjacent_node) TBOX_ERROR("IBFEInstrumentPanel::initializeHierarchyIndependentData: problem setting up meters");
+            structure_nodes[meter_idx].push_back(structure_mesh.node_ptr(next_node_it->first));
+            temp_element_set = next_node_it->second;
+            map_for_node_element_sets[meter_idx].erase(next_node_it);
         }
     }
 
