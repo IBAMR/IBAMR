@@ -118,6 +118,11 @@ public:
      */
     const std::vector<double>& getMeterMeanPressures() const;
 
+    /*!
+     * \return The centroid pressures for each meter mesh.
+     */
+    const std::vector<double>& getMeterCentroidPressures() const;
+
 private:
     /*!
      * \brief Default constructor.
@@ -273,12 +278,16 @@ private:
     std::vector<double> d_mean_pressure_values;
 
     /*!
+     * \brief Centroid pressure data for each meter.
+     */
+    std::vector<double> d_centroid_pressure_values;
+
+    /*!
      * \brief I/O settings.
      */
     int d_instrument_dump_interval;
     std::string d_plot_directory_name;
-    std::ofstream d_mean_pressure_stream;
-    std::ofstream d_flux_stream;
+    std::ofstream d_flux_stream, d_mean_pressure_stream, d_centroid_pressure_stream;
 };
 } // namespace IBAMR
 

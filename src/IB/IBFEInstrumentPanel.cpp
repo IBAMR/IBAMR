@@ -89,6 +89,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
     d_num_perim_nodes.resize(d_num_meters);
     d_flow_rate_values.resize(d_num_meters);
     d_mean_pressure_values.resize(d_num_meters);
+    d_centroid_pressure_values.resize(d_num_meters);
 
     std::vector<libMesh::Point> meter_centroids(d_num_meters);
     std::vector<std::map<unsigned int, std::set<unsigned int> > > map_for_node_element_sets(d_num_meters);
@@ -259,6 +260,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     // Compute flow rate and pressure on mesh meter faces.
     std::fill(d_flow_rate_values.begin(), d_flow_rate_values.end(), 0.0);
     std::fill(d_mean_pressure_values.begin(), d_mean_pressure_values.end(), 0.0);
+    std::fill(d_centroid_pressure_values.begin(), d_centroid_pressure_values.end(), 0.0);
     std::vector<double> A(d_num_meters, 0.0);
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -330,9 +332,93 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
         }
     }
 
+    // Interpolate the pressure at the centroid of each meter mesh.
+    //
+    // TODO: Factor out common code for finding assignments of points to patches.
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    const double* const domain_x_lower = grid_geom->getXLower();
+    const double* const domain_x_upper = grid_geom->getXUpper();
+    const double* const dx_coarsest = grid_geom->getDx();
+    TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
+    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+    int bcast_root = IBTK::invalid_index;
+    for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
+    {
+        libMesh::Point x_centroid = *d_meter_meshes[meter_idx]->node_ptr(d_num_perim_nodes[meter_idx]);
+        const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            x_centroid(d) = std::max(x_centroid(d), domain_x_lower[d] + TOL);
+            x_centroid(d) = std::min(x_centroid(d), domain_x_upper[d] - TOL);
+        }
+
+        // Find the level that contains the centroid.
+        int x_centroid_global_ln = -1, x_centroid_local_ln = -1, x_centroid_local_patch_idx = -1;
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
+            const IntVector<NDIM>& ratio = level->getRatio();
+            const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
+            const hier::Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
+            const hier::Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
+            std::array<double, NDIM> dx;
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
+            }
+            const auto i = IndexUtilities::getCellIndex(&x_centroid(0),
+                                                        domain_x_lower,
+                                                        domain_x_upper,
+                                                        dx.data(),
+                                                        domain_box_level_lower,
+                                                        domain_box_level_upper);
+            Box<NDIM> cell_box(i, i);
+            tbox::Array<int> local_patch_idxs;
+            box_tree->findLocalOverlapIndices(local_patch_idxs, cell_box);
+            if (local_patch_idxs.size() != 0)
+            {
+                TBOX_ASSERT(local_patch_idxs.size() == 1);
+                x_centroid_local_patch_idx = local_patch_idxs[0];
+                x_centroid_local_ln = ln;
+            }
+        }
+        x_centroid_global_ln = IBTK_MPI::maxReduction(x_centroid_local_ln);
+        if (x_centroid_global_ln == x_centroid_local_ln)
+        {
+            bcast_root = IBTK_MPI::getRank();
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(x_centroid_local_ln);
+            if (x_centroid_local_patch_idx != -1)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(x_centroid_local_patch_idx);
+                Pointer<CellData<NDIM, double> > p_cc_data = patch->getPatchData(P_data_idx);
+                if (p_cc_data)
+                {
+                    LEInteractor::interpolate(&d_centroid_pressure_values[meter_idx],
+                                              1,
+                                              1,
+                                              &x_centroid(0),
+                                              NDIM,
+                                              NDIM,
+                                              p_cc_data,
+                                              patch,
+                                              p_cc_data->getGhostBox(),
+                                              d_p_interp_fcn);
+                }
+                else
+                {
+                    TBOX_ERROR("no pressure data!\n");
+                }
+            }
+        }
+    }
+
     // Synchronize the values across all processes.
     IBTK_MPI::sumReduction(d_flow_rate_values.data(), d_num_meters);
     IBTK_MPI::sumReduction(d_mean_pressure_values.data(), d_num_meters);
+    int bcast_data_sz = d_num_meters;
+    IBTK_MPI::bcast(d_centroid_pressure_values.data(), bcast_data_sz, bcast_root);
+    TBOX_ASSERT(static_cast<unsigned int>(bcast_data_sz) == d_num_meters);
     IBTK_MPI::sumReduction(A.data(), d_num_meters);
 
     // Normalize the mean pressure.
@@ -404,6 +490,12 @@ const std::vector<double>&
 IBFEInstrumentPanel::getMeterMeanPressures() const
 {
     return d_mean_pressure_values;
+}
+
+const std::vector<double>&
+IBFEInstrumentPanel::getMeterCentroidPressures() const
+{
+    return d_centroid_pressure_values;
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
@@ -761,21 +853,33 @@ IBFEInstrumentPanel::outputData(const double data_time)
     static const int mpi_root = 0;
     if (IBTK_MPI::getRank() == mpi_root)
     {
-        d_mean_pressure_stream.open(d_plot_directory_name + "/mean_pressure.dat", std::ofstream::app);
         d_flux_stream.open(d_plot_directory_name + "/flux.dat", std::ofstream::app);
-        d_mean_pressure_stream.precision(15);
         d_flux_stream.precision(15);
-        d_mean_pressure_stream << data_time;
         d_flux_stream << data_time;
+
+        d_mean_pressure_stream.open(d_plot_directory_name + "/mean_pressure.dat", std::ofstream::app);
+        d_mean_pressure_stream.precision(15);
+        d_mean_pressure_stream << data_time;
+
+        d_centroid_pressure_stream.open(d_plot_directory_name + "/centroid_pressure.dat", std::ofstream::app);
+        d_centroid_pressure_stream.precision(15);
+        d_centroid_pressure_stream << data_time;
+
         for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
         {
-            d_mean_pressure_stream << " " << d_mean_pressure_values[meter_idx];
             d_flux_stream << " " << d_flow_rate_values[meter_idx];
+            d_mean_pressure_stream << " " << d_mean_pressure_values[meter_idx];
+            d_centroid_pressure_stream << " " << d_centroid_pressure_values[meter_idx];
         }
-        d_mean_pressure_stream << "\n";
+
         d_flux_stream << "\n";
-        d_mean_pressure_stream.close();
         d_flux_stream.close();
+
+        d_mean_pressure_stream << "\n";
+        d_mean_pressure_stream.close();
+
+        d_centroid_pressure_stream << "\n";
+        d_centroid_pressure_stream.close();
     }
 }
 
