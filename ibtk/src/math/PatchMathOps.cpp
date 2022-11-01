@@ -97,14 +97,13 @@
 #define S_TO_C_DIV_ADD_FC IBTK_FC_FUNC(stocdivadd2d, STOCDIVADD2D)
 #define S_TO_C_INTERP_FC IBTK_FC_FUNC(stocinterp2nd2d, STOCINTERP2ND2D)
 
+#define S_TO_N_CURL_FC IBTK_FC_FUNC(stoncurl2d, STONCURL2D)
 #define S_TO_N_INTERP_FC IBTK_FC_FUNC(stoninterp2nd2d, STONINTERP2ND2D)
 
 #define S_TO_S_VC_LAPLACE_FC IBTK_FC_FUNC(stosvclaplace2d, STOSVCLAPLACE2D)
 
 #define N_TO_S_ROT_FC IBTK_FC_FUNC(ntosrot2d, NTOSROT2D)
 #define C_TO_S_ROT_FC IBTK_FC_FUNC(ctosrot2d, CTOSROT2D)
-
-#define S_TO_N_CURL_FC IBTK_FC_FUNC(stoncurl2d, STONCURL2D)
 
 #define S_TO_C_STRAIN_FC IBTK_FC_FUNC(stocstrain2d, STOCSTRAIN2D)
 
@@ -176,6 +175,7 @@
 #define S_TO_C_DIV_ADD_FC IBTK_FC_FUNC(stocdivadd3d, STOCDIVADD3D)
 #define S_TO_C_INTERP_FC IBTK_FC_FUNC(stocinterp2nd3d, STOCINTERP2ND3D)
 
+#define S_TO_N_CURL_FC IBTK_FC_FUNC(stoncurl3d, STONCURL3D)
 #define S_TO_N_INTERP_FC IBTK_FC_FUNC(stoninterp2nd3d, STONINTERP2ND3D)
 
 #define S_TO_S_VC_LAPLACE_FC IBTK_FC_FUNC(stosvclaplace3d, STOSVCLAPLACE3D)
@@ -1220,6 +1220,24 @@ extern "C"
 #endif
     );
 
+    void S_TO_N_CURL_FC(double* W,
+                        const int& W_ghosts,
+                        const double* u0,
+                        const double* u1,
+#if (NDIM == 3)
+                        const double* u2,
+#endif
+                        const int& u_ghosts,
+                        const int& ilower0,
+                        const int& iupper0,
+                        const int& ilower1,
+                        const int& iupper1,
+#if (NDIM == 3)
+                        const int& ilower2,
+                        const int& iupper2,
+#endif
+                        const double* dx);
+
     void S_TO_N_INTERP_FC(double* U,
                           const int& U_gcw,
                           const double* v0,
@@ -1346,17 +1364,6 @@ extern "C"
                        const int& ilower1,
                        const int& iupper1,
                        const double* dx);
-
-    void S_TO_N_CURL_FC(double* w0,
-                        const int& w_ghosts,
-                        const double* u0,
-                        const double* u1,
-                        const int& u_ghosts,
-                        const int& ilower0,
-                        const int& iupper0,
-                        const int& ilower1,
-                        const int& iupper1,
-                        const double* dx);
 
     void N_TO_C_INTERP_FC(double* U,
                           const int& U_gcw,
@@ -1944,28 +1951,23 @@ PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
                    const Pointer<SideData<NDIM, double> > src,
                    const Pointer<Patch<NDIM> > patch) const
 {
-#if (NDIM != 2)
-    TBOX_ERROR("PatchMathOps::curl():\n"
-               << "  not implemented for NDIM != 2" << std::endl);
-    NULL_USE(dst);
-    NULL_USE(src);
-    NULL_USE(patch);
-#endif
-#if (NDIM == 2)
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
-    double* const w0 = dst->getPointer(0);
-    const int w_ghosts = (dst->getGhostCellWidth()).max();
+    double* const W = dst->getPointer();
+    const int W_ghosts = (dst->getGhostCellWidth()).max();
 
     const double* const u0 = src->getPointer(0);
     const double* const u1 = src->getPointer(1);
+#if (NDIM == 3)
+    const double* const u2 = src->getPointer(2);
+#endif
     const int u_ghosts = (src->getGhostCellWidth()).max();
 
     const Box<NDIM>& patch_box = patch->getBox();
 
 #if !defined(NDEBUG)
-    if (w_ghosts != (dst->getGhostCellWidth()).min())
+    if (W_ghosts != (dst->getGhostCellWidth()).min())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
                    << "  dst does not have uniform ghost cell widths" << std::endl);
@@ -1992,6 +1994,21 @@ PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
                    << "  src has insufficient ghost cell width" << std::endl);
     }
 
+    const int W_depth = dst->getDepth();
+
+    if (
+#if (NDIM == 2)
+        (W_depth != 1)
+#endif
+#if (NDIM == 3)
+            (W_depth != NDIM)
+#endif
+    )
+    {
+        TBOX_ERROR("PatchMathOps::curl():\n"
+                   << "  dst has incorrect depth" << std::endl);
+    }
+
     if (patch_box != dst->getBox())
     {
         TBOX_ERROR("PatchMathOps::curl():\n"
@@ -2005,17 +2022,23 @@ PatchMathOps::curl(Pointer<NodeData<NDIM, double> > dst,
     }
 #endif
 
-    S_TO_N_CURL_FC(w0,
-                   w_ghosts,
+    S_TO_N_CURL_FC(W,
+                   W_ghosts,
                    u0,
                    u1,
+#if (NDIM == 3)
+                   u2,
+#endif
                    u_ghosts,
                    patch_box.lower(0),
                    patch_box.upper(0),
                    patch_box.lower(1),
                    patch_box.upper(1),
-                   dx);
+#if (NDIM == 3)
+                   patch_box.lower(2),
+                   patch_box.upper(2),
 #endif
+                   dx);
     return;
 } // curl
 

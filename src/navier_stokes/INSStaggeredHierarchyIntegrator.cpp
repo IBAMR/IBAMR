@@ -587,6 +587,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     d_U_cc_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
     d_F_cc_var = new CellVariable<NDIM, double>(d_object_name + "::F_cc", NDIM);
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", (NDIM == 2) ? 1 : NDIM);
+    if (d_output_Omega)
+        d_Omega_nc_var = new NodeVariable<NDIM, double>(d_object_name + "::Omega_nc", (NDIM == 2) ? 1 : NDIM);
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
 
     d_Omega_Norm_var = (NDIM == 2) ? nullptr : new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
@@ -920,6 +922,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         d_F_cc_idx = -1;
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
+    if (d_output_Omega) registerVariable(d_Omega_nc_idx, d_Omega_nc_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
 
     // Register scratch variables that are maintained by the
@@ -1017,13 +1020,13 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         if (d_output_Omega)
         {
             d_visit_writer->registerPlotQuantity(
-                "Omega", ((NDIM == 2) ? "SCALAR" : "VECTOR"), d_Omega_idx, 0, d_Omega_scale);
+                "Omega", ((NDIM == 2) ? "SCALAR" : "VECTOR"), d_Omega_nc_idx, 0, d_Omega_scale);
             if (NDIM == 3)
             {
                 for (unsigned int i = 0; i < NDIM; ++i)
                 {
                     const std::string suffix = (i == 0 ? "x" : i == 1 ? "y" : "z");
-                    d_visit_writer->registerPlotQuantity("Omega_" + suffix, "SCALAR", d_Omega_idx, i, d_Omega_scale);
+                    d_visit_writer->registerPlotQuantity("Omega_" + suffix, "SCALAR", d_Omega_nc_idx, i, d_Omega_scale);
                 }
             }
         }
@@ -1410,12 +1413,11 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)
     {
-        IBAMR_DO_ONCE(
-            {
-                pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
-                     << "  WARNING: num_cycles = " << d_current_num_cycles
-                     << " but expected num_cycles = " << expected_num_cycles << ".\n";
-            });
+        IBAMR_DO_ONCE({
+            pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
+                 << "  WARNING: num_cycles = " << d_current_num_cycles
+                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
+        });
     }
 
     // Update the state variables of any linked advection-diffusion solver.
@@ -2354,8 +2356,22 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
             level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
         }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-        d_U_bdry_bc_fill_op->fillData(d_integrator_time);
-        d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
+
+        // Make our own boundary filling op because the standard one does not do any refining:
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
+                                                         "SPECIALIZED_LINEAR_REFINE",
+                                                         USE_CF_INTERPOLATION,
+                                                         DATA_COARSEN_TYPE,
+                                                         d_bdry_extrap_type, // TODO: update variable name
+                                                         CONSISTENT_TYPE_2_BDRY,
+                                                         d_U_bc_coefs);
+        HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
+        U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, coarsest_ln, finest_ln);
+        U_bdry_bc_fill_op.fillData(d_integrator_time);
+        d_hier_math_ops->curl(
+            d_Omega_nc_idx, d_Omega_nc_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
+
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -3005,17 +3021,16 @@ INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_n
         else if (cycle_num > 0)
         {
             convective_time_stepping_type = MIDPOINT_RULE;
-            IBAMR_DO_ONCE(
-                {
-                    pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
-                         << "  WARNING: convective_time_stepping_type = "
-                         << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                         << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
-                         << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                         << " only for the first cycle in each time step;\n"
-                         << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
-                         << " for subsequent cycles.\n";
-                });
+            IBAMR_DO_ONCE({
+                pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
+                     << "  WARNING: convective_time_stepping_type = "
+                     << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                     << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
+                     << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
+                     << " only for the first cycle in each time step;\n"
+                     << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
+                     << " for subsequent cycles.\n";
+            });
         }
     }
     return convective_time_stepping_type;
