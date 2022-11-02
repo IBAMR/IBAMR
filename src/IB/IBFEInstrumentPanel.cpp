@@ -29,7 +29,6 @@
 
 namespace IBAMR
 {
-
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 namespace
@@ -360,7 +359,6 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     const double* const dx_coarsest = grid_geom->getDx();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
     const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
-    int bcast_root = IBTK::invalid_index;
     for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
     {
         const libMesh::Point x_centroid = put_point_in_domain(
@@ -398,10 +396,12 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                 x_centroid_local_ln = ln;
             }
         }
-        x_centroid_global_ln = IBTK_MPI::maxReduction(x_centroid_local_ln);
+        int bcast_root = -1;
+        x_centroid_global_ln = IBTK_MPI::maxReduction(x_centroid_local_ln, &bcast_root);
         if (x_centroid_global_ln == x_centroid_local_ln)
         {
-            bcast_root = IBTK_MPI::getRank();
+            // The centroid should be on a patch owned by exactly one processor
+            TBOX_ASSERT(bcast_root == IBTK_MPI::getRank());
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(x_centroid_local_ln);
             if (x_centroid_local_patch_idx != IBTK::invalid_index)
             {
@@ -426,14 +426,12 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                 }
             }
         }
+        d_centroid_pressure_values[meter_idx] = IBTK_MPI::bcast(d_centroid_pressure_values[meter_idx], bcast_root);
     }
 
-    // Synchronize the values across all processes.
+    // Synchronize accumulated data.
     IBTK_MPI::sumReduction(d_flow_rate_values.data(), d_num_meters);
     IBTK_MPI::sumReduction(d_mean_pressure_values.data(), d_num_meters);
-    int bcast_data_sz = d_num_meters;
-    IBTK_MPI::bcast(d_centroid_pressure_values.data(), bcast_data_sz, bcast_root);
-    TBOX_ASSERT(static_cast<unsigned int>(bcast_data_sz) == d_num_meters);
     IBTK_MPI::sumReduction(A.data(), d_num_meters);
 
     // Normalize the mean pressure.
