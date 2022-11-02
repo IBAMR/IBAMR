@@ -10,6 +10,8 @@ IBFEInstrumentPanel {
   meters_velocity_interp_fcn       = "BSPLINE_3"
 }
 
+test_flux = TRUE
+
 // physical parameters
 MU  = 0.01
 RHO = 1.0

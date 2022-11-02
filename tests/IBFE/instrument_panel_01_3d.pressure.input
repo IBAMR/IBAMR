@@ -7,10 +7,9 @@ IBFEInstrumentPanel {
   meters_adaptive_quadrature       = TRUE
   meters_quad_type                 = "QGRID"
   meters_quad_order                = "FORTYTHIRD"
-  meters_velocity_interp_fcn       = "BSPLINE_3"
 }
 
-test_flux = TRUE
+test_centroid_pressure = TRUE
 
 // physical parameters
 MU  = 0.01
