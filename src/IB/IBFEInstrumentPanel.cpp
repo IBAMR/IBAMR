@@ -18,6 +18,7 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/LEInteractor.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/face_tri3.h"
@@ -28,6 +29,24 @@
 
 namespace IBAMR
 {
+
+/////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+inline libMesh::Point
+put_point_in_domain(const libMesh::Point& x, const double* const domain_x_lower, const double* const domain_x_upper)
+{
+    const double TOL = sqrt(std::numeric_limits<double>::epsilon());
+    libMesh::Point x_corrected = x;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        if (x(d) <= domain_x_lower[d]) x_corrected(d) = domain_x_lower[d] + TOL;
+        if (x(d) >= domain_x_upper[d]) x_corrected(d) = domain_x_upper[d] - TOL;
+    }
+    return x_corrected;
+}
+} // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -344,16 +363,12 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     int bcast_root = IBTK::invalid_index;
     for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
     {
-        libMesh::Point x_centroid = *d_meter_meshes[meter_idx]->node_ptr(d_num_perim_nodes[meter_idx]);
-        const double TOL = sqrt(std::numeric_limits<double>::epsilon());
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            x_centroid(d) = std::max(x_centroid(d), domain_x_lower[d] + TOL);
-            x_centroid(d) = std::min(x_centroid(d), domain_x_upper[d] - TOL);
-        }
+        const libMesh::Point x_centroid = put_point_in_domain(
+            *d_meter_meshes[meter_idx]->node_ptr(d_num_perim_nodes[meter_idx]), domain_x_lower, domain_x_upper);
 
         // Find the level that contains the centroid.
-        int x_centroid_global_ln = -1, x_centroid_local_ln = -1, x_centroid_local_patch_idx = -1;
+        int x_centroid_global_ln = IBTK::invalid_level_number, x_centroid_local_ln = IBTK::invalid_level_number,
+            x_centroid_local_patch_idx = IBTK::invalid_index;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -388,7 +403,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
         {
             bcast_root = IBTK_MPI::getRank();
             Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(x_centroid_local_ln);
-            if (x_centroid_local_patch_idx != -1)
+            if (x_centroid_local_patch_idx != IBTK::invalid_index)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(x_centroid_local_patch_idx);
                 Pointer<CellData<NDIM, double> > p_cc_data = patch->getPatchData(P_data_idx);
@@ -673,8 +688,9 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
         }
     }
 
-    // Loop over all levels and assign each quadrature point to a single patch in each level.
-    std::vector<std::vector<int> > meter_qp_assignment_count(d_num_meters);
+    // Loop over all levels and try to assign each quadrature point to a patch in each level.
+    std::vector<std::vector<int> > meter_qp_global_ln(d_num_meters), meter_qp_local_ln(d_num_meters),
+        meter_qp_local_patch_idx(d_num_meters);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
@@ -688,37 +704,18 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
         {
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
-
-        Pointer<PatchLevel<NDIM> > finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevel<NDIM> >(nullptr));
-        const IntVector<NDIM>& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVector<NDIM>(1));
-        const Box<NDIM> finer_domain_box_level = Box<NDIM>::refine(domain_box, finer_ratio);
-        const hier::Index<NDIM>& finer_domain_box_level_lower = finer_domain_box_level.lower();
-        const hier::Index<NDIM>& finer_domain_box_level_upper = finer_domain_box_level.upper();
-        std::array<double, NDIM> finer_dx;
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            finer_dx[d] = dx_coarsest[d] / static_cast<double>(finer_ratio(d));
-        }
-
         for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
         {
             // Setup FE objects.
-            auto& u_meter_system = d_meter_systems[meter_idx]->get_system(IBFEMethod::IBFEMethod::VELOCITY_SYSTEM_NAME);
-            NumericVector<double>& u_meter_serial_vec = u_meter_system.get_vector("serial solution");
-            const DofMap& u_dof_map = u_meter_system.get_dof_map();
+            auto& u_meter_system = d_meter_systems[meter_idx]->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
             FEType fe_type = u_meter_system.variable_type(0);
             std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
             std::unique_ptr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[meter_idx]));
             fe_elem->attach_quadrature_rule(qrule.get());
-
             const std::vector<libMesh::Point>& q_point = fe_elem->get_xyz();
-            const std::vector<std::vector<double> >& phi = fe_elem->get_phi();
-            const std::vector<Real>& JxW = fe_elem->get_JxW();
-            std::vector<std::vector<dof_id_type> > u_dof_indices(NDIM);
 
             // Loop over ALL meter mesh elements.
-            unsigned int meter_qp_index_offset = 0;
+            unsigned int meter_qp_idx = 0;
             MeshBase::const_element_iterator el = d_meter_meshes[meter_idx]->active_elements_begin();
             const MeshBase::const_element_iterator end_el = d_meter_meshes[meter_idx]->active_elements_end();
             for (; el != end_el; ++el)
@@ -727,73 +724,110 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
                 fe_elem->reinit(elem);
                 const auto n_qp = q_point.size();
 
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    u_dof_map.dof_indices(elem, u_dof_indices[d], d);
-                }
-                boost::multi_array<double, 2> u_node;
-                get_values_for_interpolation(u_node, u_meter_serial_vec, u_dof_indices);
-
-                // Keep track of how many patches each quadrature point is assigned to. (Each should be assigned to
-                // exactly one!)
-                meter_qp_assignment_count[meter_idx].resize(
-                    std::max(meter_qp_assignment_count[meter_idx].size(), meter_qp_index_offset + n_qp), 0);
-
-                // Compute the normal vector to the element. These are constant on each triangular element.
-                const libMesh::Point tau1 = *elem->node_ptr(1) - *elem->node_ptr(0);
-                const libMesh::Point tau2 = *elem->node_ptr(2) - *elem->node_ptr(1);
-                libMesh::Point normal = tau1.cross(tau2).unit();
+                meter_qp_global_ln[meter_idx].resize(
+                    std::max(meter_qp_global_ln[meter_idx].size(), meter_qp_idx + n_qp), IBTK::invalid_level_number);
+                meter_qp_local_ln[meter_idx].resize(std::max(meter_qp_local_ln[meter_idx].size(), meter_qp_idx + n_qp),
+                                                    IBTK::invalid_level_number);
+                meter_qp_local_patch_idx[meter_idx].resize(
+                    std::max(meter_qp_local_patch_idx[meter_idx].size(), meter_qp_idx + n_qp), IBTK::invalid_index);
 
                 // Loop over all quadrature points to determine if they should be "assigned" to the current level.
-                for (unsigned int qp = 0; qp < n_qp; ++qp)
+                for (unsigned int qp = 0; qp < n_qp; ++qp, ++meter_qp_idx)
                 {
-                    libMesh::Point x = q_point[qp];
-                    // Make sure the point is inside the domain.
-                    const double TOL = sqrt(std::numeric_limits<double>::epsilon());
-                    for (unsigned int d = 0; d < NDIM; ++d)
-                    {
-                        x(d) = std::max(x(d), domain_x_lower[d] + TOL);
-                        x(d) = std::min(x(d), domain_x_upper[d] - TOL);
-                    }
+                    // Check to see if the quadrature point is in a local patch.
+                    const libMesh::Point x = put_point_in_domain(q_point[qp], domain_x_lower, domain_x_upper);
                     const auto i = IndexUtilities::getCellIndex(&x(0),
                                                                 domain_x_lower,
                                                                 domain_x_upper,
                                                                 dx.data(),
                                                                 domain_box_level_lower,
                                                                 domain_box_level_upper);
-                    const auto finer_i = IndexUtilities::getCellIndex(&x(0),
-                                                                      domain_x_lower,
-                                                                      domain_x_upper,
-                                                                      finer_dx.data(),
-                                                                      finer_domain_box_level_lower,
-                                                                      finer_domain_box_level_upper);
-                    if (level->getBoxes().contains(i) &&
-                        (ln == finest_ln || !finer_level->getBoxes().contains(finer_i)))
+                    Box<NDIM> cell_box(i, i);
+                    tbox::Array<int> local_patch_idxs;
+                    box_tree->findLocalOverlapIndices(local_patch_idxs, cell_box);
+                    if (local_patch_idxs.size() != 0)
                     {
-                        // This quadrature point should be assigned to the current level; now determine if there is a
-                        // local patch it should be assigned to.
-                        Box<NDIM> cell_box(i, i);
-                        tbox::Array<int> local_patch_idxs;
-                        box_tree->findLocalOverlapIndices(local_patch_idxs, cell_box);
-                        if (local_patch_idxs.size() != 0)
-                        {
-                            TBOX_ASSERT(local_patch_idxs.size() == 1);
-                            const int patch_idx = local_patch_idxs[0];
-                            meter_idx_map[ln][patch_idx].push_back(meter_idx);
-                            meter_x_map[ln][patch_idx].push_back(Vector(&x(0)));
-                            Vector u_corr;
-                            interpolate(u_corr.data(), qp, u_node, phi);
-                            meter_u_corr_map[ln][patch_idx].push_back(u_corr);
-                            meter_normal_map[ln][patch_idx].push_back(Vector(&normal(0)));
-                            meter_JxW_map[ln][patch_idx].push_back(JxW[qp]);
-
-                            meter_qp_assignment_count[meter_idx][meter_qp_index_offset + qp] += 1;
-                        }
+                        TBOX_ASSERT(local_patch_idxs.size() == 1);
+                        meter_qp_global_ln[meter_idx][meter_qp_idx] = ln;
+                        meter_qp_local_ln[meter_idx][meter_qp_idx] = ln;
+                        meter_qp_local_patch_idx[meter_idx][meter_qp_idx] = local_patch_idxs[0];
                     }
                 }
+            }
+        }
+    }
 
-                // Keep track of how many quadrature points we have encountered so far for this meter.
-                meter_qp_index_offset += n_qp;
+    // Determine level number assignments for all meter quadrature points and store data associated with each meter
+    // quadrature point to the appropriate data structures.
+    //
+    // We want to assign each point to the finest available patch level.
+    std::vector<std::vector<int> > meter_qp_assignment_count(d_num_meters);
+    for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
+    {
+        IBTK_MPI::maxReduction(meter_qp_global_ln[meter_idx].data(), meter_qp_global_ln[meter_idx].size());
+
+        // Setup FE objects.
+        auto& u_meter_system = d_meter_systems[meter_idx]->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+        NumericVector<double>& u_meter_serial_vec = u_meter_system.get_vector("serial solution");
+        const DofMap& u_dof_map = u_meter_system.get_dof_map();
+        FEType fe_type = u_meter_system.variable_type(0);
+        std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
+        std::unique_ptr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[meter_idx]));
+        fe_elem->attach_quadrature_rule(qrule.get());
+
+        const std::vector<libMesh::Point>& q_point = fe_elem->get_xyz();
+        const std::vector<std::vector<double> >& phi = fe_elem->get_phi();
+        const std::vector<Real>& JxW = fe_elem->get_JxW();
+        std::vector<std::vector<dof_id_type> > u_dof_indices(NDIM);
+
+        // Loop over ALL meter mesh elements.
+        unsigned int meter_qp_idx = 0;
+        MeshBase::const_element_iterator el = d_meter_meshes[meter_idx]->active_elements_begin();
+        const MeshBase::const_element_iterator end_el = d_meter_meshes[meter_idx]->active_elements_end();
+        for (; el != end_el; ++el)
+        {
+            const Elem* elem = *el;
+            fe_elem->reinit(elem);
+            const auto n_qp = q_point.size();
+            for (int d = 0; d < NDIM; ++d)
+            {
+                u_dof_map.dof_indices(elem, u_dof_indices[d], d);
+            }
+            boost::multi_array<double, 2> u_node;
+            get_values_for_interpolation(u_node, u_meter_serial_vec, u_dof_indices);
+
+            // Keep track of how many patches each quadrature point is assigned to.
+            //
+            // (Each should be assigned to exactly one!)
+            meter_qp_assignment_count[meter_idx].resize(
+                std::max(meter_qp_assignment_count[meter_idx].size(), meter_qp_idx + n_qp), 0);
+
+            // Compute the normal vector to the element.
+            //
+            // Because we specialize to P1 meter meshes, these are constant on each element.
+            const libMesh::Point tau1 = *elem->node_ptr(1) - *elem->node_ptr(0);
+            const libMesh::Point tau2 = *elem->node_ptr(2) - *elem->node_ptr(1);
+            const libMesh::Point normal = tau1.cross(tau2).unit();
+
+            // Loop over all quadrature points and set up data for the points that are assigned to a local patch.
+            for (unsigned int qp = 0; qp < n_qp; ++qp, ++meter_qp_idx)
+            {
+                if ((meter_qp_local_ln[meter_idx][meter_qp_idx] == meter_qp_global_ln[meter_idx][meter_qp_idx]) &&
+                    (meter_qp_local_patch_idx[meter_idx][meter_qp_idx] != IBTK::invalid_index))
+                {
+                    const int ln = meter_qp_local_ln[meter_idx][meter_qp_idx];
+                    const int local_patch_idx = meter_qp_local_patch_idx[meter_idx][meter_qp_idx];
+
+                    meter_idx_map[ln][local_patch_idx].push_back(meter_idx);
+                    const libMesh::Point x = put_point_in_domain(q_point[qp], domain_x_lower, domain_x_upper);
+                    meter_x_map[ln][local_patch_idx].push_back(Vector(&x(0)));
+                    Vector u_corr;
+                    interpolate(u_corr.data(), qp, u_node, phi);
+                    meter_u_corr_map[ln][local_patch_idx].push_back(u_corr);
+                    meter_normal_map[ln][local_patch_idx].push_back(Vector(&normal(0)));
+                    meter_JxW_map[ln][local_patch_idx].push_back(JxW[qp]);
+                    meter_qp_assignment_count[meter_idx][meter_qp_idx] += 1;
+                }
             }
         }
     }
@@ -813,14 +847,13 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
             for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
             {
                 // Setup FE objects.
-                auto& u_meter_system =
-                    d_meter_systems[meter_idx]->get_system(IBFEMethod::IBFEMethod::VELOCITY_SYSTEM_NAME);
+                auto& u_meter_system = d_meter_systems[meter_idx]->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
                 FEType fe_type = u_meter_system.variable_type(0);
                 std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
                 std::unique_ptr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[meter_idx]));
                 fe_elem->attach_quadrature_rule(qrule.get());
                 const std::vector<libMesh::Point>& q_point = fe_elem->get_xyz();
-                unsigned int meter_qp_index_offset = 0;
+                unsigned int meter_qp_idx = 0;
                 MeshBase::const_element_iterator el = d_meter_meshes[meter_idx]->active_elements_begin();
                 const MeshBase::const_element_iterator end_el = d_meter_meshes[meter_idx]->active_elements_end();
                 for (; el != end_el; ++el)
@@ -828,16 +861,13 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
                     const Elem* elem = *el;
                     fe_elem->reinit(elem);
                     const auto n_qp = q_point.size();
-                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    for (unsigned int qp = 0; qp < n_qp; ++qp, ++meter_qp_idx)
                     {
-                        auto qp_index = meter_qp_index_offset + qp;
-                        if (meter_qp_assignment_count[meter_idx][qp_index] != 1)
+                        if (meter_qp_assignment_count[meter_idx][meter_qp_idx] != 1)
                         {
-                            pout << "misassigned meter qp with index=" << qp_index << " x=" << q_point[qp]
-                                 << " assignment count="
-                                 << meter_qp_assignment_count[meter_idx][meter_qp_index_offset + qp] << "\n";
+                            pout << "misassigned meter qp with index=" << meter_qp_idx << " x=" << q_point[qp]
+                                 << " assignment count=" << meter_qp_assignment_count[meter_idx][meter_qp_idx] << "\n";
                         }
-                        meter_qp_index_offset += n_qp;
                     }
                 }
             }
