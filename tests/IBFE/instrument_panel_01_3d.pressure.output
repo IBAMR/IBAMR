@@ -1,0 +1,60 @@
+Number of elements: 64
+
+IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 2.58993e-05
+
+
+Writing visualization files...
+
+
+test 0
+mesh 0  centroid =   Node id()=16, processor_id()=0, Point=(x,y,z)=(     0.5,      0.5,        0)
+    DoFs=(0/0/0) (0/1/1) (0/2/2) 
+
+meter 0 centroid pressure = -1.05606
+analytic centroid 0 pressure = -1.05595
+mesh 1  centroid =   Node id()=16, processor_id()=0, Point=(x,y,z)=(     0.5,      0.5,        1)
+    DoFs=(0/0/0) (0/1/1) (0/2/2) 
+
+meter 1 centroid pressure = -1.00621
+analytic centroid 1 pressure = -1.0072
+
+test 1
+mesh 0  centroid =   Node id()=16, processor_id()=0, Point=(x,y,z)=(     1.5,      1.5,        1)
+    DoFs=(0/0/0) (0/1/1) (0/2/2) 
+
+meter 0 centroid pressure = 1.29762
+analytic centroid 0 pressure = 1.29889
+mesh 1  centroid =   Node id()=16, processor_id()=0, Point=(x,y,z)=(     1.5,      1.5,        2)
+    DoFs=(0/0/0) (0/1/1) (0/2/2) 
+
+meter 1 centroid pressure = 0.00405539
+analytic centroid 1 pressure = 0.00405935
+
+test 2
+mesh 0  centroid =   Node id()=16, processor_id()=0, Point=(x,y,z)=( 0.28125,      0.5,        2)
+    DoFs=(0/0/0) (0/1/1) (0/2/2) 
+
+meter 0 centroid pressure = 0.0357134
+analytic centroid 0 pressure = 0.0357483
+mesh 1  centroid =   Node id()=16, processor_id()=0, Point=(x,y,z)=( 0.28125,      0.5,        3)
+    DoFs=(0/0/0) (0/1/1) (0/2/2) 
+
+meter 1 centroid pressure = -0.655155
+analytic centroid 1 pressure = -0.655795
+
+test 3
+mesh 0  centroid =   Node id()=16, processor_id()=0, Point=(x,y,z)=(     3.5,      3.5,        3)
+    DoFs=(0/0/0) (0/1/1) (0/2/2) 
+
+meter 0 centroid pressure = -0.459065
+analytic centroid 0 pressure = -0.459513
+mesh 1  centroid =   Node id()=16, processor_id()=0, Point=(x,y,z)=(     3.5,      3.5,        4)
+    DoFs=(0/0/0) (0/1/1) (0/2/2) 
+
+meter 1 centroid pressure = -1.3143
+analytic centroid 1 pressure = -1.31382

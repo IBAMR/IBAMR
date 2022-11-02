@@ -24,8 +24,6 @@
 #include <libmesh/exodusII_io.h>
 #include <libmesh/mesh.h>
 #include <libmesh/mesh_generation.h>
-#include <libmesh/mesh_refinement.h>
-#include <libmesh/mesh_triangle_interface.h>
 #include <libmesh/numeric_vector.h>
 
 // Headers for application-specific algorithm/data structure objects
@@ -37,15 +35,12 @@
 
 #include "ibtk/LEInteractor.h"
 #include <ibtk/AppInitializer.h>
-#include <ibtk/FEProjector.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/StableCentroidPartitioner.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
-
-#include <boost/multi_array.hpp>
 
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
@@ -59,15 +54,17 @@ class ParsedFunction
 public:
     ParsedFunction(std::vector<std::string> expressions, const unsigned int n_vars = 0)
         : string_functions(std::move(expressions)),
-          vars(n_vars == 0 ? string_functions.size() : n_vars, 0.0),
+          vars(n_vars == 0 ? NDIM : n_vars, 0.0),
           parsers(string_functions.size())
     {
-        for (unsigned int var_n = 0; var_n < vars.size(); ++var_n)
-            for (mu::Parser& parser : parsers)
+        for (mu::Parser& parser : parsers)
+        {
+            parser.DefineConst("PI", M_PI);
+            for (unsigned int var_n = 0; var_n < NDIM; ++var_n)
             {
                 parser.DefineVar("X_" + std::to_string(var_n), &vars[var_n]);
-                parser.DefineConst("PI", M_PI);
             }
+        }
 
         for (unsigned int p_n = 0; p_n < string_functions.size(); ++p_n) parsers[p_n].SetExpr(string_functions[p_n]);
     }
@@ -383,8 +380,7 @@ main(int argc, char** argv)
             visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
         }
 
-        auto do_instrument_panel = [&](const int data_time)
-        {
+        auto do_instrument_panel = [&](const int data_time) {
             // reallocate in case we regridded
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
             hier_math_ops.setPatchHierarchy(patch_hierarchy);
@@ -430,13 +426,19 @@ main(int argc, char** argv)
             double bottom_analytic_flux = 0.0;
             double top_analytic_flux = 0.0;
 
-            std::vector<std::string> fs;
+            std::vector<std::string> velocity_strings;
             {
                 Pointer<Database> v_db = input_db->getDatabase("VelocityInitialConditions");
                 for (unsigned int var_n = 0; var_n < NDIM; ++var_n)
-                    fs.push_back(v_db->getString("function_" + std::to_string(var_n)));
+                    velocity_strings.push_back(v_db->getString("function_" + std::to_string(var_n)));
             }
-            ParsedFunction exact_solution(fs);
+            std::vector<std::string> pressure_strings;
+            {
+                Pointer<Database> v_db = input_db->getDatabase("PressureInitialConditions");
+                pressure_strings.push_back(v_db->getString("function"));
+            }
+            ParsedFunction exact_velocity(velocity_strings);
+            ParsedFunction exact_pressure(pressure_strings);
 
             {
                 const auto end_node_it = mesh.nodes_end();
@@ -490,7 +492,7 @@ main(int argc, char** argv)
                         for (std::size_t qp = 0; qp < JxW.size(); ++qp)
                         {
                             const auto x = q_points[qp];
-                            bottom_analytic_flux += -1.0 * JxW[qp] * (exact_solution.value(x, 2) - u_corr * 3 * x(2));
+                            bottom_analytic_flux += -1.0 * JxW[qp] * (exact_velocity.value(x, 2) - u_corr * 3 * x(2));
                         }
                     }
                     else if (std::abs(z - (data_time + 1.0)) < 1.0e-5)
@@ -500,7 +502,7 @@ main(int argc, char** argv)
                         for (std::size_t qp = 0; qp < JxW.size(); ++qp)
                         {
                             const auto x = q_points[qp];
-                            top_analytic_flux += -1.0 * JxW[qp] * (exact_solution.value(x, 2) - u_corr * 3 * x(2));
+                            top_analytic_flux += -1.0 * JxW[qp] * (exact_velocity.value(x, 2) - u_corr * 3 * x(2));
                         }
                     }
                 }
@@ -526,21 +528,40 @@ main(int argc, char** argv)
                 }
             }
 
-            bottom_analytic_flux = IBTK_MPI::sumReduction(bottom_analytic_flux);
-            top_analytic_flux = IBTK_MPI::sumReduction(top_analytic_flux);
+            if (input_db->getBoolWithDefault("test_flux", false))
+            {
+                bottom_analytic_flux = IBTK_MPI::sumReduction(bottom_analytic_flux);
+                top_analytic_flux = IBTK_MPI::sumReduction(top_analytic_flux);
 
-            plog << "bottom analytic flux = " << bottom_analytic_flux << std::endl;
-            plog << "top analytic flux = " << top_analytic_flux << std::endl;
+                plog << "bottom analytic flux = " << bottom_analytic_flux << std::endl;
+                plog << "top analytic flux = " << top_analytic_flux << std::endl;
 
-            const double bottom_meter_flux = instrument_panel.getMeterFlowRates()[0];
-            const double top_meter_flux = instrument_panel.getMeterFlowRates()[1];
+                const double bottom_meter_flux = instrument_panel.getMeterFlowRates()[0];
+                const double top_meter_flux = instrument_panel.getMeterFlowRates()[1];
 
-            plog << "bottom meter flux = " << bottom_meter_flux << std::endl;
-            plog << "top meter flux = " << top_meter_flux << std::endl;
+                plog << "bottom meter flux = " << bottom_meter_flux << std::endl;
+                plog << "top meter flux = " << top_meter_flux << std::endl;
 
-            plog << "bottom flux absolute difference = " << std::abs(bottom_analytic_flux - bottom_meter_flux)
-                 << std::endl;
-            plog << "top flux absolute difference = " << std::abs(top_analytic_flux - top_meter_flux) << std::endl;
+                plog << "bottom flux absolute difference = " << std::abs(bottom_analytic_flux - bottom_meter_flux)
+                     << std::endl;
+                plog << "top flux absolute difference = " << std::abs(top_analytic_flux - top_meter_flux) << std::endl;
+            }
+
+            if (input_db->getBoolWithDefault("test_centroid_pressure", false))
+            {
+                for (int meter_n = 0; meter_n < instrument_panel.getNumberOfMeterMeshes(); ++meter_n)
+                {
+                    const MeshBase& mesh = instrument_panel.getMeterMesh(meter_n);
+                    // We assume that the centroid is the last node
+                    const Node& centroid = mesh.node_ref(mesh.n_nodes() - 1);
+                    plog << "mesh " << meter_n << "  centroid = " << centroid << std::endl
+                         << "meter " << meter_n
+                         << " centroid pressure = " << instrument_panel.getMeterCentroidPressures()[meter_n]
+                         << std::endl
+                         << "analytic centroid " << meter_n << " pressure = " << exact_pressure.value(centroid, 0)
+                         << std::endl;
+                }
+            }
         };
 
         // first test: print out values as-is
