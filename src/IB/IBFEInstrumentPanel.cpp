@@ -212,6 +212,9 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
             else
             {
                 // There are multiple candidate nodes; choose the next node to be the closest one.
+                //
+                // If multiple nodes have the same distance from the current one to machine precision, pick the node
+                // with the smallest ID.
                 double min_distance = std::numeric_limits<double>::max();
                 static const auto invalid_node_id = std::numeric_limits<libMesh::dof_id_type>::max();
                 auto next_node_id = invalid_node_id;
@@ -219,8 +222,9 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
                 for (const auto& candidate_node_id : candidate_node_ids)
                 {
                     const auto candidate_node_ptr = structure_mesh.node_ptr(candidate_node_id);
-                    double distance = ((*candidate_node_ptr) - (*current_node_ptr)).norm();
-                    if (distance < min_distance)
+                    const double distance = ((*candidate_node_ptr) - (*current_node_ptr)).norm();
+                    if (((distance < min_distance) && !rel_equal_eps(distance, min_distance)) ||
+                        (rel_equal_eps(distance, min_distance) && (candidate_node_id < next_node_id)))
                     {
                         next_node_id = candidate_node_id;
                         next_node_ptr = candidate_node_ptr;
