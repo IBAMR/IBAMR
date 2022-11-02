@@ -22,6 +22,10 @@
 
 #include "libmesh/boundary_info.h"
 #include "libmesh/face_tri3.h"
+#include "libmesh/id_types.h"
+
+#include <limits>
+#include <set>
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
@@ -109,88 +113,130 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
     d_mean_pressure_values.resize(d_num_meters);
     d_centroid_pressure_values.resize(d_num_meters);
 
-    std::vector<libMesh::Point> meter_centroids(d_num_meters);
-    std::vector<std::map<unsigned int, std::set<unsigned int> > > map_for_node_element_sets(d_num_meters);
-    std::vector<int> perim_node_count(d_num_meters);
-    std::vector<libMesh::Point> sum_perim_node_posn(d_num_meters);
-    std::vector<std::vector<const Node*> > structure_nodes(d_num_meters);
-
+    // Determine the number of points in each collection of perimeter nodes, keep track of the node indices for the
+    // perimeter nodes, and evaluate the position of the centroid of each meter mesh.
+    std::vector<libMesh::Point> meter_centroid(d_num_meters);
+    std::vector<std::set<libMesh::dof_id_type> > structure_perimeter_node_ids(d_num_meters);
     for (unsigned int i = 0; i < structure_mesh.n_nodes(); ++i)
     {
-        const Node* node_ptr = structure_mesh.node_ptr(i);
+        const Node* const node_ptr = structure_mesh.node_ptr(i);
         std::vector<short int> bdry_ids;
         boundary_info.boundary_ids(node_ptr, bdry_ids);
-        for (int meter_idx = 0; meter_idx < d_perimeter_nodeset_ids.size(); ++meter_idx)
+        for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
         {
-            const auto& nodeset_IDs_for_meter = d_perimeter_nodeset_ids[meter_idx];
-            if (find(bdry_ids.begin(), bdry_ids.end(), nodeset_IDs_for_meter) != bdry_ids.end())
+            const int nodeset_id = d_perimeter_nodeset_ids[meter_idx];
+            if (find(bdry_ids.begin(), bdry_ids.end(), nodeset_id) != bdry_ids.end())
             {
-                perim_node_count[meter_idx] += 1;
-                sum_perim_node_posn[meter_idx] += *node_ptr;
-                map_for_node_element_sets[meter_idx][i] = {};
+                d_num_perim_nodes[meter_idx] += 1;
+                structure_perimeter_node_ids[meter_idx].insert(node_ptr->id());
+                meter_centroid[meter_idx] += *node_ptr;
             }
         }
     }
-
-    for (int meter_idx = 0; meter_idx < d_perimeter_nodeset_ids.size(); ++meter_idx)
+    for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
     {
-        meter_centroids[meter_idx] = sum_perim_node_posn[meter_idx] / static_cast<double>(perim_node_count[meter_idx]);
+        meter_centroid[meter_idx] /= d_num_perim_nodes[meter_idx];
     }
 
-    // Orient the nodeset.
-    //
-    // First build node integer id / list of element key-value pairs
+    // Keep track of all elements associated with each perimeter node.
+    std::vector<std::map<libMesh::dof_id_type, std::set<libMesh::dof_id_type> > > structure_elem_to_node_map(
+        d_num_meters);
+    std::vector<std::map<libMesh::dof_id_type, std::set<libMesh::dof_id_type> > > structure_node_to_elem_map(
+        d_num_meters);
     for (unsigned int e = 0; e < structure_mesh.n_elem(); ++e)
     {
-        const Elem* elem_ptr = structure_mesh.elem_ptr(e);
+        const Elem* const elem_ptr = structure_mesh.elem_ptr(e);
         const unsigned int elem_id = elem_ptr->id();
         for (unsigned int i = 0; i < elem_ptr->n_nodes(); ++i)
         {
-            const Node* node_ptr = elem_ptr->node_ptr(i);
+            const Node* const node_ptr = elem_ptr->node_ptr(i);
             const unsigned int node_id = node_ptr->id();
             std::vector<short int> bdry_ids;
             boundary_info.boundary_ids(node_ptr, bdry_ids);
-            for (int meter_idx = 0; meter_idx < d_perimeter_nodeset_ids.size(); ++meter_idx)
+            for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
             {
-                const auto& nodeset_IDs_for_meter = d_perimeter_nodeset_ids[meter_idx];
-                if (find(bdry_ids.begin(), bdry_ids.end(), nodeset_IDs_for_meter) != bdry_ids.end())
+                const int nodeset_id = d_perimeter_nodeset_ids[meter_idx];
+                if (find(bdry_ids.begin(), bdry_ids.end(), nodeset_id) != bdry_ids.end())
                 {
-                    // add element with id elem_id that contains node with id node_id
-                    map_for_node_element_sets[meter_idx][node_id].insert(elem_id);
+                    structure_elem_to_node_map[meter_idx][elem_id].insert(node_id);
+                    structure_node_to_elem_map[meter_idx][node_id].insert(elem_id);
                 }
             }
         }
     }
 
-    // Now we orient the nodes using map_for_node_element_sets.
-    for (int meter_idx = 0; meter_idx < d_perimeter_nodeset_ids.size(); ++meter_idx)
+    // Create an ordered list of perimeter nodes.
+    std::vector<std::vector<const Node*> > structure_nodes(d_num_meters);
+    for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
     {
-        auto next_node_it = map_for_node_element_sets[meter_idx].begin();
-        structure_nodes[meter_idx].push_back(structure_mesh.node_ptr(next_node_it->first));
-        std::set<unsigned int> temp_element_set = next_node_it->second;
-        map_for_node_element_sets[meter_idx].erase(next_node_it);
-        // loop over rest of nodes until done
-        while (!map_for_node_element_sets[meter_idx].empty())
+        std::set<libMesh::dof_id_type> unassigned_node_ids = structure_perimeter_node_ids[meter_idx];
+        auto first_node_id = *unassigned_node_ids.begin();
+        auto first_node_ptr = structure_mesh.node_ptr(first_node_id);
+        structure_nodes[meter_idx].push_back(first_node_ptr);
+        unassigned_node_ids.erase(first_node_id);
+        while (!unassigned_node_ids.empty())
         {
-            for (auto it = map_for_node_element_sets[meter_idx].begin();
-                 it != map_for_node_element_sets[meter_idx].end();
-                 it++)
+            const auto current_node_ptr = structure_nodes[meter_idx].back();
+            const auto current_node_id = current_node_ptr->id();
+            std::set<libMesh::dof_id_type> candidate_node_ids;
+
+            // First check to see if there are unassigned nodes that share an element with the current node.
+            for (const auto& candidate_elem_id : structure_node_to_elem_map[meter_idx][current_node_id])
             {
-                std::set<unsigned int> intersection;
-                // determine whether nodes share elements. if so, they are adjacent and we use this information to
-                // orient the set.
-                std::set_intersection(temp_element_set.begin(),
-                                      temp_element_set.end(),
-                                      it->second.begin(),
-                                      it->second.end(),
-                                      std::inserter(intersection, intersection.begin()));
-                if (intersection.empty()) continue;
-                next_node_it = it;
+                for (const auto& node_id : structure_elem_to_node_map[meter_idx][candidate_elem_id])
+                {
+                    if (unassigned_node_ids.count(node_id) > 0)
+                    {
+                        candidate_node_ids.insert(node_id);
+                    }
+                }
             }
-            structure_nodes[meter_idx].push_back(structure_mesh.node_ptr(next_node_it->first));
-            temp_element_set = next_node_it->second;
-            map_for_node_element_sets[meter_idx].erase(next_node_it);
+
+            // If there are no candidate node IDs identified by the mappings between elements and nodes, then we
+            // simply search over *all* of the unassigned nodes.
+            if (candidate_node_ids.empty())
+            {
+                candidate_node_ids = unassigned_node_ids;
+            }
+            TBOX_ASSERT(!candidate_node_ids.empty());
+
+            if (candidate_node_ids.size() == 1)
+            {
+                // If we find only one node that shares an element with the current node, then that node must be the
+                // next one in the perimeter mesh.
+                auto next_node_id = *candidate_node_ids.begin();
+                auto next_node_ptr = structure_mesh.node_ptr(next_node_id);
+                structure_nodes[meter_idx].push_back(next_node_ptr);
+                unassigned_node_ids.erase(next_node_id);
+            }
+            else
+            {
+                // There are multiple candidate nodes; choose the next node to be the closest one.
+                //
+                // If multiple nodes have the same distance from the current one to machine precision, pick the node
+                // with the smallest ID.
+                double min_distance = std::numeric_limits<double>::max();
+                static const auto invalid_node_id = std::numeric_limits<libMesh::dof_id_type>::max();
+                auto next_node_id = invalid_node_id;
+                const Node* next_node_ptr = nullptr;
+                for (const auto& candidate_node_id : candidate_node_ids)
+                {
+                    const auto candidate_node_ptr = structure_mesh.node_ptr(candidate_node_id);
+                    const double distance = ((*candidate_node_ptr) - (*current_node_ptr)).norm();
+                    if (((distance < min_distance) && !rel_equal_eps(distance, min_distance)) ||
+                        (rel_equal_eps(distance, min_distance) && (candidate_node_id < next_node_id)))
+                    {
+                        next_node_id = candidate_node_id;
+                        next_node_ptr = candidate_node_ptr;
+                        min_distance = distance;
+                    }
+                }
+                TBOX_ASSERT(next_node_ptr != nullptr);
+                structure_nodes[meter_idx].push_back(next_node_ptr);
+                unassigned_node_ids.erase(next_node_id);
+            }
         }
+        TBOX_ASSERT(structure_nodes[meter_idx].size() == d_num_perim_nodes[meter_idx]);
     }
 
     // Initialize the meter meshes and number of nodes
@@ -209,7 +255,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
         {
             d_meter_meshes[meter_idx]->add_point(*structure_nodes[meter_idx][i], i);
         }
-        d_meter_meshes[meter_idx]->add_point(meter_centroids[meter_idx], d_num_perim_nodes[meter_idx]);
+        d_meter_meshes[meter_idx]->add_point(meter_centroid[meter_idx], d_num_perim_nodes[meter_idx]);
 
         // Create triangular elements.
         for (unsigned int i = 0; i < d_num_perim_nodes[meter_idx]; ++i)

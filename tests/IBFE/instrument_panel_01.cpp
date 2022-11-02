@@ -488,21 +488,21 @@ main(int argc, char** argv)
                     if (std::abs(z - (data_time + 0.0)) < 1.0e-5)
                     {
                         fe->reinit(&elem, side_n);
-                        // hard-codes in the flux as the z velocity * -1 (to match sign convention in the meter)
+                        // hard-codes in the flux as the z velocity * +1 (to match sign convention in the meter)
                         for (std::size_t qp = 0; qp < JxW.size(); ++qp)
                         {
                             const auto x = q_points[qp];
-                            bottom_analytic_flux += -1.0 * JxW[qp] * (exact_velocity.value(x, 2) - u_corr * 3 * x(2));
+                            bottom_analytic_flux += +1.0 * JxW[qp] * (exact_velocity.value(x, 2) - u_corr * 3 * x(2));
                         }
                     }
                     else if (std::abs(z - (data_time + 1.0)) < 1.0e-5)
                     {
                         fe->reinit(&elem, side_n);
-                        // hard-codes in the flux as the z velocity * -1 (to match sign convention in the meter)
+                        // hard-codes in the flux as the z velocity * +1 (to match sign convention in the meter)
                         for (std::size_t qp = 0; qp < JxW.size(); ++qp)
                         {
                             const auto x = q_points[qp];
-                            top_analytic_flux += -1.0 * JxW[qp] * (exact_velocity.value(x, 2) - u_corr * 3 * x(2));
+                            top_analytic_flux += +1.0 * JxW[qp] * (exact_velocity.value(x, 2) - u_corr * 3 * x(2));
                         }
                     }
                 }
