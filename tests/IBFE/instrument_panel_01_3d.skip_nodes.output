@@ -1,0 +1,44 @@
+Number of elements: 64
+
+IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 3
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 2.58993e-05
+
+
+Writing visualization files...
+
+
+test 0
+bottom analytic flux = 1.00608e-17
+top analytic flux = 0.357895
+bottom meter flux = -5.28415e-08
+top meter flux = 0.355689
+bottom flux absolute difference = 5.28415e-08
+top flux absolute difference = 0.00220589
+
+test 1
+bottom analytic flux = -0.03615
+top analytic flux = 0.0677059
+bottom meter flux = -0.0360267
+top meter flux = 0.0678762
+bottom flux absolute difference = 0.000123274
+top flux absolute difference = 0.000170343
+
+test 2
+bottom analytic flux = -0.269242
+top analytic flux = 0.360511
+bottom meter flux = -0.268097
+top meter flux = 0.358142
+bottom flux absolute difference = 0.00114475
+top flux absolute difference = 0.00236935
+
+test 3
+bottom analytic flux = -8.53869
+top analytic flux = -12.5195
+bottom meter flux = -8.54201
+top meter flux = -12.516
+bottom flux absolute difference = 0.00332585
+top flux absolute difference = 0.00350069

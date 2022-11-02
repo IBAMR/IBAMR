@@ -146,16 +146,52 @@ main(int argc, char** argv)
         boundary_info.clear();
 
         const auto end_node_it = mesh.nodes_end();
-        for (auto node_it = mesh.nodes_begin(); node_it != end_node_it; ++node_it)
+        const bool skip_some_nodes = input_db->getBoolWithDefault("skip_some_nodes", false);
+        if (skip_some_nodes)
         {
-            Node& node = **node_it;
-            // outline the bottom face with id 10
-            if (node(2) == 0.0 && (node(0) == 0.0 || node(0) == 1.0 || node(1) == 0.0 || node(1) == 1.0))
-                boundary_info.add_node(&node, 10);
+            for (auto node_it = mesh.nodes_begin(); node_it != end_node_it; ++node_it)
+            {
+                Node& node = **node_it;
+                // outline the bottom face with id 10: skip some nodes on the top side
+                if (node(2) == 0.0 && (node(0) == 0.0 || node(0) == 1.0 || node(1) == 0.0 || node(1) == 1.0))
+                {
+                    if (node(1) == 1.0)
+                    {
+                        if (node(0) == 0.0 || node(0) == 1.0) boundary_info.add_node(&node, 10);
+                    }
+                    else
+                    {
+                        boundary_info.add_node(&node, 10);
+                    }
+                }
 
-            // outline the top face with id 100
-            if (node(2) == 1.0 && (node(0) == 0.0 || node(0) == 1.0 || node(1) == 0.0 || node(1) == 1.0))
-                boundary_info.add_node(&node, 100);
+                // outline the top face with id 100: skip some nodes on the left side
+                if (node(2) == 1.0 && (node(0) == 0.0 || node(0) == 1.0 || node(1) == 0.0 || node(1) == 1.0))
+                {
+                    if (node(0) == 0.0)
+                    {
+                        if (node(1) == 0.0 || node(1) == 1.0) boundary_info.add_node(&node, 100);
+                    }
+                    else
+                    {
+                        boundary_info.add_node(&node, 100);
+                    }
+                }
+            }
+        }
+        else
+        {
+            for (auto node_it = mesh.nodes_begin(); node_it != end_node_it; ++node_it)
+            {
+                Node& node = **node_it;
+                // outline the bottom face with id 10
+                if (node(2) == 0.0 && (node(0) == 0.0 || node(0) == 1.0 || node(1) == 0.0 || node(1) == 1.0))
+                    boundary_info.add_node(&node, 10);
+
+                // outline the top face with id 100
+                if (node(2) == 1.0 && (node(0) == 0.0 || node(0) == 1.0 || node(1) == 0.0 || node(1) == 1.0))
+                    boundary_info.add_node(&node, 100);
+            }
         }
 
         plog << "Number of elements: " << mesh.n_active_elem() << std::endl;
