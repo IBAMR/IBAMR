@@ -9,6 +9,8 @@ IBFEInstrumentPanel {
   meters_quad_order                = "FORTYTHIRD"
 }
 
+test_flux = TRUE
+
 // physical parameters
 MU  = 0.01
 RHO = 1.0
