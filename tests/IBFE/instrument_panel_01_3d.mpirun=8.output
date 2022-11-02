@@ -12,33 +12,33 @@ Writing visualization files...
 
 
 test 0
-bottom analytic flux = -1.00608e-17
-top analytic flux = -0.357895
-bottom meter flux = 5.27867e-08
-top meter flux = -0.355747
+bottom analytic flux = 1.00608e-17
+top analytic flux = 0.357895
+bottom meter flux = -5.27867e-08
+top meter flux = 0.355747
 bottom flux absolute difference = 5.27867e-08
 top flux absolute difference = 0.00214751
 
 test 1
-bottom analytic flux = 0.03615
-top analytic flux = -0.0677059
-bottom meter flux = 0.035933
-top meter flux = -0.0672994
+bottom analytic flux = -0.03615
+top analytic flux = 0.0677059
+bottom meter flux = -0.035933
+top meter flux = 0.0672994
 bottom flux absolute difference = 0.000217001
 top flux absolute difference = 0.000406425
 
 test 2
-bottom analytic flux = 0.269242
-top analytic flux = -0.360511
-bottom meter flux = 0.267761
-top meter flux = -0.358528
+bottom analytic flux = -0.269242
+top analytic flux = 0.360511
+bottom meter flux = -0.267761
+top meter flux = 0.358528
 bottom flux absolute difference = 0.00148117
 top flux absolute difference = 0.00198327
 
 test 3
-bottom analytic flux = 8.53869
-top analytic flux = 12.5195
-bottom meter flux = 8.54146
-top meter flux = 12.5164
+bottom analytic flux = -8.53869
+top analytic flux = -12.5195
+bottom meter flux = -8.54146
+top meter flux = -12.5164
 bottom flux absolute difference = 0.00276812
 top flux absolute difference = 0.00311712
