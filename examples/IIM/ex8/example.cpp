@@ -11,6 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
+#include "ibamr/FEMechanicsBase.h"
 #include <ibamr/FEMechanicsExplicitIntegrator.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IIMethod.h>
@@ -360,6 +361,7 @@ static ofstream dx_posn_stream;
 
 void postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+                      const FEMechanicsExplicitIntegrator* fem_solver,
                       ReplicatedMesh& tube_mesh,
                       EquationSystems* tube_equation_systems,
                       const int iteration_num,
@@ -699,7 +701,7 @@ main(int argc, char* argv[])
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
         vector<SystemData> velocity_data(1);
-        velocity_data[0] = SystemData(FEMechanicsBase::VELOCITY_SYSTEM_NAME, vars);
+        velocity_data[0] = SystemData(fem_solver->getVelocitySystemName(), vars);
 
         ibfe_bndry_ops->initializeFEEquationSystems();
 
@@ -911,20 +913,20 @@ main(int argc, char* argv[])
 
             boundary_tube_lower_systems = bndry_tube_lower_equation_systems;
             System& X_tube_lower_system =
-                tube_lower_equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+                tube_lower_equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
             x_new_tube_lower_solid_system = &X_tube_lower_system;
 
             System& U_tube_lower_system =
-                tube_lower_equation_systems->get_system<System>(FEMechanicsBase::VELOCITY_SYSTEM_NAME);
+                tube_lower_equation_systems->get_system<System>(fem_solver->getVelocitySystemName());
             u_new_tube_lower_solid_system = &U_tube_lower_system;
 
             boundary_tube_upper_systems = bndry_tube_upper_equation_systems;
             System& X_tube_upper_system =
-                tube_upper_equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+                tube_upper_equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
             x_new_tube_upper_solid_system = &X_tube_upper_system;
 
             System& U_tube_upper_system =
-                tube_upper_equation_systems->get_system<System>(FEMechanicsBase::VELOCITY_SYSTEM_NAME);
+                tube_upper_equation_systems->get_system<System>(fem_solver->getVelocitySystemName());
             u_new_tube_upper_solid_system = &U_tube_upper_system;
 
             Tau_new_tube_lower_surface_system =
@@ -952,16 +954,16 @@ main(int argc, char* argv[])
             }
 
             x_new_tube_lower_solid_system =
-                &tube_lower_equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+                &tube_lower_equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
 
             u_new_tube_lower_solid_system =
-                &tube_lower_equation_systems->get_system<System>(FEMechanicsBase::VELOCITY_SYSTEM_NAME);
+                &tube_lower_equation_systems->get_system<System>(fem_solver->getVelocitySystemName());
 
             x_new_tube_upper_solid_system =
-                &tube_upper_equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+                &tube_upper_equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
 
             u_new_tube_upper_solid_system =
-                &tube_upper_equation_systems->get_system<System>(FEMechanicsBase::VELOCITY_SYSTEM_NAME);
+                &tube_upper_equation_systems->get_system<System>(fem_solver->getVelocitySystemName());
 
             time_integrator->advanceHierarchy(dt); // FSI solution (IIMethod)
 
@@ -1071,6 +1073,7 @@ main(int argc, char* argv[])
             pout << "\nWriting state data...\n\n";
             postprocess_data(patch_hierarchy,
                              navier_stokes_integrator,
+                             fem_solver,
                              tube_lower_mesh,
                              tube_lower_equation_systems,
                              iteration_num,
@@ -1097,13 +1100,14 @@ main(int argc, char* argv[])
 void
 postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  tbox::Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+                 const FEMechanicsExplicitIntegrator* const fem_solver,
                  ReplicatedMesh& /*tube_mesh*/,
                  EquationSystems* tube_equation_systems,
                  const int /*iteration_num*/,
                  const double loop_time,
                  const string& /*data_dump_dirname*/)
 {
-    System& X_system = tube_equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+    System& X_system = tube_equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
     NumericVector<double>* X_vec = X_system.solution.get();
     std::unique_ptr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);

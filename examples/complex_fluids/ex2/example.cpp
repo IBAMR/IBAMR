@@ -310,7 +310,7 @@ main(int argc, char* argv[])
         ib_method_ops->initializeFEEquationSystems();
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-        vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
+        vector<SystemData> sys_data(1, SystemData(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME, vars));
         IBFESurfaceMethod::LagSurfaceForceFcnData body_fcn_data(tether_force_function, sys_data);
         ib_method_ops->registerLagSurfaceForceFunction(body_fcn_data);
         EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
@@ -547,8 +547,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
 
-    System& x_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+    System& x_system = equation_systems->get_system(IBFESurfaceMethod::COORDS_SYSTEM_NAME);
+    System& U_system = equation_systems->get_system(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME);
 
     NumericVector<double>* x_vec = x_system.solution.get();
     NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();

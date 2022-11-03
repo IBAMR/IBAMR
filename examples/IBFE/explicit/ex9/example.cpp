@@ -276,7 +276,7 @@ main(int argc, char* argv[])
         ib_method_ops->initializeFEEquationSystems();
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-        vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
+        vector<SystemData> sys_data(1, SystemData(ib_method_ops->getVelocitySystemName(), vars));
         IBFEMethod::LagBodyForceFcnData body_fcn_data(tether_force_function, sys_data);
         ib_method_ops->registerLagBodyForceFunction(body_fcn_data);
         EquationSystems* bndry_equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();

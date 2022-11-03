@@ -159,6 +159,7 @@ using namespace ModelData;
 static ofstream drag_stream, lift_stream, A_x_posn_stream, A_y_posn_stream;
 void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+                      const IBFEMethod* ib_method_ops,
                       Mesh& beam_mesh,
                       EquationSystems* beam_equation_systems,
                       Mesh& block_mesh,
@@ -540,6 +541,7 @@ main(int argc, char* argv[])
                 pout << "\nWriting state data...\n\n";
                 postprocess_data(patch_hierarchy,
                                  navier_stokes_integrator,
+                                 ib_method_ops,
                                  beam_mesh,
                                  beam_equation_systems,
                                  block_mesh,
@@ -569,6 +571,7 @@ main(int argc, char* argv[])
 void
 postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+                 const IBFEMethod* const ib_method_ops,
                  Mesh& beam_mesh,
                  EquationSystems* beam_equation_systems,
                  Mesh& block_mesh,
@@ -583,7 +586,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     EquationSystems* equation_systems[2] = { beam_equation_systems, block_equation_systems };
     for (unsigned int k = 0; k < 2; ++k)
     {
-        System& F_system = equation_systems[k]->get_system<System>(IBFEMethod::FORCE_SYSTEM_NAME);
+        System& F_system = equation_systems[k]->get_system<System>(ib_method_ops->getForceSystemName());
         NumericVector<double>* F_vec = F_system.solution.get();
         NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
         copy_and_synch(*F_vec, *F_ghost_vec);
@@ -631,7 +634,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         lift_stream << loop_time << " " << -F_integral[1] << endl;
     }
 
-    System& X_system = beam_equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    System& X_system = beam_equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
     NumericVector<double>* X_vec = X_system.solution.get();
     std::unique_ptr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);
