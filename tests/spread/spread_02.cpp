@@ -280,8 +280,8 @@ main(int argc, char** argv)
             time_integrator->getIntegratorTime(), time_integrator->getIntegratorTime() + dt, 1 /*???*/);
         for (unsigned int part_n = 0; part_n < meshes.size(); ++part_n)
         {
-            const std::string& F_name = IBFEMethod::FORCE_SYSTEM_NAME;
-            const std::string& X_name = IBFEMethod::COORDS_SYSTEM_NAME;
+            const std::string& F_name = ib_method_ops->getForceSystemName();
+            const std::string& X_name = ib_method_ops->getCurrentCoordinatesSystemName();
             EquationSystems* equation_systems = ib_method_ops->getFEDataManager(part_n)->getEquationSystems();
             System& F_system = equation_systems->get_system(F_name);
             System& X_system = equation_systems->get_system(X_name);

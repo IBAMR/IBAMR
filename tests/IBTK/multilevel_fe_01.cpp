@@ -135,7 +135,7 @@ public:
                                                       interp_spec,
                                                       spread_spec,
                                                       workload_spec);
-        d_fe_data_manager->COORDINATES_SYSTEM_NAME = X_system.name();
+        d_fe_data_manager->setCurrentCoordinatesSystemName(X_system.name());
     }
 
     void initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,

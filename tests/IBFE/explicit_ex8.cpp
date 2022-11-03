@@ -147,9 +147,9 @@ struct node_x_comp
 
 template <class node_set>
 double
-compute_deformed_length(node_set& nodes, EquationSystems* equation_systems)
+compute_deformed_length(node_set& nodes, const IBFEMethod* const ib_method_ops, EquationSystems* const equation_systems)
 {
-    System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>* X_vec = X_system.solution.get();
     std::unique_ptr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
@@ -192,9 +192,9 @@ compute_deformed_length(node_set& nodes, EquationSystems* equation_systems)
 
 template <class node_set>
 double
-compute_displaced_area(node_set& nodes, EquationSystems* equation_systems)
+compute_displaced_area(node_set& nodes, const IBFEMethod* const ib_method_ops, EquationSystems* const equation_systems)
 {
-    System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>* X_vec = X_system.solution.get();
     std::unique_ptr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
@@ -629,8 +629,10 @@ main(int argc, char** argv)
                 navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext());
             const int wgt_sc_idx = navier_stokes_integrator->getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
             const double Q_in_current = compute_inflow_flux(patch_hierarchy, U_current_idx, wgt_sc_idx);
-            const double A_disp_current = compute_displaced_area(centerline_node_set, beam_equation_systems);
-            const double l_def_current = compute_deformed_length(centerline_node_set, beam_equation_systems);
+            const double A_disp_current =
+                compute_displaced_area(centerline_node_set, ib_method_ops, beam_equation_systems);
+            const double l_def_current =
+                compute_deformed_length(centerline_node_set, ib_method_ops, beam_equation_systems);
 
             J_dil_min = +1.0e8;
             J_dil_max = -1.0e8;
@@ -648,8 +650,8 @@ main(int argc, char** argv)
             const double Q_in_half = (Q_in_new + Q_in_current) / 2.0;
             const double A_in_new = A_in_current + dt * Q_in_half;
             const double A_in_half = (A_in_new + A_in_current) / 2.0;
-            const double A_disp_new = compute_displaced_area(centerline_node_set, beam_equation_systems);
-            const double l_def_new = compute_deformed_length(centerline_node_set, beam_equation_systems);
+            const double A_disp_new = compute_displaced_area(centerline_node_set, ib_method_ops, beam_equation_systems);
+            const double l_def_new = compute_deformed_length(centerline_node_set, ib_method_ops, beam_equation_systems);
             const double A_disp_half = (A_disp_new + A_disp_current) / 2.0;
             const double l_def_half = (l_def_new + l_def_current) / 2.0;
             const double Q_disp_half = (A_disp_new - A_disp_current) / dt;
