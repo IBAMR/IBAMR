@@ -23,15 +23,15 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing in
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
-FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB force system
-FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IB force system
+FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IBFEMethod::force system
+FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IBFEMethod::force system
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 1.7701083867133847626e-15
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.1983787036614713413e-14
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB velocity system
-FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IB velocity system
+FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IBFEMethod::velocity system
+FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IBFEMethod::velocity system
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.00072851841862414798076
@@ -1347,7 +1347,7 @@ IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 quadrature points on processor 0 = 5182
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IBFEMethod::current coordinates system
 quadrature points on processor 0 = 5182
 workload estimate on processor 0 = 1700
 local active DoFs on processor 0 = 2139
@@ -2149,7 +2149,7 @@ IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 quadrature points on processor 0 = 5182
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IBFEMethod::current coordinates system
 quadrature points on processor 0 = 5182
 workload estimate on processor 0 = 1700
 local active DoFs on processor 0 = 2139
@@ -2833,7 +2833,7 @@ IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
 quadrature points on processor 0 = 5210
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IBFEMethod::current coordinates system
 quadrature points on processor 0 = 5210
 workload estimate on processor 0 = 1700
 local active DoFs on processor 0 = 2139

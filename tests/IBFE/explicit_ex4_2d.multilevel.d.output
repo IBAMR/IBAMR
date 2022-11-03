@@ -23,15 +23,15 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing in
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
-FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB force system
-FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IB force system
+FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IBFEMethod::force system
+FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IBFEMethod::force system
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 5.129862604437355631e-15
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.4361975812529128366e-16
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB velocity system
-FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IB velocity system
+FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IBFEMethod::velocity system
+FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IBFEMethod::velocity system
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 9.7416319965783418756e-06

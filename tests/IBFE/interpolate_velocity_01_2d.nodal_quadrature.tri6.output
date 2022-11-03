@@ -7,7 +7,7 @@ INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field
 max vertex distance: 0.0854297
 max norm errors: 0.0001756364499803098056   0.00046341640425273666892
-FEProjector::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: IB velocity system
+FEProjector::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: IBFEMethod::velocity system
 Size	global =  674
 #	Value
 0	7.5060210700796616196e-05

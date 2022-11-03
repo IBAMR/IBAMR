@@ -16,14 +16,14 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing in
 IBHierarchyIntegrator::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step
 IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
-FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB force system
-FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IB force system
+FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IBFEMethod::force system
+FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IBFEMethod::force system
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.6121570277589504253e-14
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IB velocity system
-FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IB velocity system
+FEProjector::buildL2ProjectionSolver(): building L2 projection solver for system: IBFEMethod::velocity system
+FEProjector::buildLumpedL2ProjectionSolver(): building lumped L2 projection solver for system: IBFEMethod::velocity system
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.012586566903891075256
@@ -567,7 +567,7 @@ local active DoFs on processor 1 = 504
 local active DoFs on processor 2 = 504
 local active DoFs on processor 3 = 537
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IBFEMethod::current coordinates system
 quadrature points on processor 0 = 0
 quadrature points on processor 1 = 3912
 quadrature points on processor 2 = 1270
@@ -581,7 +581,7 @@ local active DoFs on processor 1 = 504
 local active DoFs on processor 2 = 504
 local active DoFs on processor 3 = 537
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IBFEMethod::current coordinates system
 quadrature points on processor 0 = 0
 quadrature points on processor 1 = 3912
 quadrature points on processor 2 = 1270
@@ -1280,7 +1280,7 @@ local active DoFs on processor 1 = 504
 local active DoFs on processor 2 = 504
 local active DoFs on processor 3 = 537
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IBFEMethod::current coordinates system
 quadrature points on processor 0 = 1070
 quadrature points on processor 1 = 1497
 quadrature points on processor 2 = 1602
@@ -1294,7 +1294,7 @@ local active DoFs on processor 1 = 504
 local active DoFs on processor 2 = 504
 local active DoFs on processor 3 = 537
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
-FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IB coordinates system
+FEDataManager::buildGhostedSolutionVector(): building ghosted solution vector for system: IBFEMethod::current coordinates system
 quadrature points on processor 0 = 531
 quadrature points on processor 1 = 2526
 quadrature points on processor 2 = 2125
