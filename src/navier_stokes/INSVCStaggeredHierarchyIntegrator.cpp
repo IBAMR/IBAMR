@@ -818,9 +818,9 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     else
     {
-        d_F_current_idx = -1;
-        d_F_new_idx = -1;
-        d_F_scratch_idx = -1;
+        d_F_current_idx = invalid_index;
+        d_F_new_idx = invalid_index;
+        d_F_scratch_idx = invalid_index;
     }
 
     if (d_Q_fcn)
@@ -836,9 +836,9 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     else
     {
-        d_Q_current_idx = -1;
-        d_Q_new_idx = -1;
-        d_Q_scratch_idx = -1;
+        d_Q_current_idx = invalid_index;
+        d_Q_new_idx = invalid_index;
+        d_Q_scratch_idx = invalid_index;
     }
 
     registerVariable(d_N_old_current_idx,
@@ -907,8 +907,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     else
     {
-        d_mu_current_idx = -1;
-        d_mu_new_idx = -1;
+        d_mu_current_idx = invalid_index;
+        d_mu_new_idx = invalid_index;
         d_mu_init_fcn = nullptr;
 
         Pointer<CellVariable<NDIM, double> > mu_cc_scratch_var =
@@ -926,7 +926,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     else
     {
-        d_F_cc_idx = -1;
+        d_F_cc_idx = invalid_index;
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
@@ -945,7 +945,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     else
     {
-        d_F_div_idx = -1;
+        d_F_div_idx = invalid_index;
     }
 
     // Register variables for plotting.

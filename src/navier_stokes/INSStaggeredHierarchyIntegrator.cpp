@@ -879,9 +879,9 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     }
     else
     {
-        d_F_current_idx = -1;
-        d_F_new_idx = -1;
-        d_F_scratch_idx = -1;
+        d_F_current_idx = invalid_index;
+        d_F_new_idx = invalid_index;
+        d_F_scratch_idx = invalid_index;
     }
 
     if (d_Q_fcn)
@@ -897,9 +897,9 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     }
     else
     {
-        d_Q_current_idx = -1;
-        d_Q_new_idx = -1;
-        d_Q_scratch_idx = -1;
+        d_Q_current_idx = invalid_index;
+        d_Q_new_idx = invalid_index;
+        d_Q_scratch_idx = invalid_index;
     }
 
     registerVariable(d_N_old_current_idx,
@@ -919,7 +919,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     }
     else
     {
-        d_F_cc_idx = -1;
+        d_F_cc_idx = invalid_index;
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     if (d_output_Omega) registerVariable(d_Omega_nc_idx, d_Omega_nc_var, no_ghosts, getCurrentContext());
@@ -940,7 +940,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     }
     else
     {
-        d_F_div_idx = -1;
+        d_F_div_idx = invalid_index;
     }
 
     // Register variables for tracking mean flow quantities and turbulent kinetic

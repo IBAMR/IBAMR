@@ -1073,9 +1073,9 @@ HierarchyIntegrator::registerVariable(int& current_idx,
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    current_idx = -1; // insure that uninitialized variable patch data
-    new_idx = -1;     // descriptor indices cause errors
-    scratch_idx = -1;
+    current_idx = invalid_index; // insure that uninitialized variable patch data
+    new_idx = invalid_index;     // descriptor indices cause errors
+    scratch_idx = invalid_index;
 
     d_state_variables.push_back(variable);
 

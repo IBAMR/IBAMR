@@ -804,7 +804,7 @@ IBInterpolantMethod::getPositionData(std::vector<Pointer<LData> >** X_data, doub
 void
 IBInterpolantMethod::copyEulerianDataFromIntegrator(const std::string& var_name, int q_data_idx, double data_time)
 {
-    int q_hier_idx = -1;
+    int q_hier_idx = invalid_index;
 
     Pointer<HierarchyIntegrator> hier_integrator = d_q_hier_integrator[var_name];
     Pointer<Variable<NDIM> > var = d_q_var[var_name];
@@ -868,7 +868,7 @@ IBInterpolantMethod::zeroOutEulerianData(const std::string& var_name, int q_data
 void
 IBInterpolantMethod::copyEulerianDataToIntegrator(const std::string& var_name, int q_data_idx, double data_time)
 {
-    int q_hier_idx = -1;
+    int q_hier_idx = invalid_index;
 
     Pointer<HierarchyIntegrator> hier_integrator = d_q_hier_integrator[var_name];
     Pointer<Variable<NDIM> > var = d_q_var[var_name];

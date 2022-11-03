@@ -2560,7 +2560,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
     if (d_enable_sources[level_number][j])
     {
         const int source_idx = getVertexSourceIndices(point_index, level_number);
-        if (source_idx != -1)
+        if (source_idx != invalid_index)
         {
             node_data.push_back(new IBSourceSpec(mastr_idx, source_idx));
         }

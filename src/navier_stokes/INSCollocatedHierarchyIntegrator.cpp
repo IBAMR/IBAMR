@@ -709,9 +709,9 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     }
     else
     {
-        d_F_current_idx = -1;
-        d_F_new_idx = -1;
-        d_F_scratch_idx = -1;
+        d_F_current_idx = invalid_index;
+        d_F_new_idx = invalid_index;
+        d_F_scratch_idx = invalid_index;
     }
 
     if (d_Q_fcn)
@@ -727,9 +727,9 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     }
     else
     {
-        d_Q_current_idx = -1;
-        d_Q_new_idx = -1;
-        d_Q_scratch_idx = -1;
+        d_Q_current_idx = invalid_index;
+        d_Q_new_idx = invalid_index;
+        d_Q_scratch_idx = invalid_index;
     }
 
     registerVariable(d_N_old_current_idx,
@@ -762,7 +762,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
     }
     else
     {
-        d_F_div_idx = -1;
+        d_F_div_idx = invalid_index;
     }
 
     // Register variables for plotting.

@@ -171,8 +171,8 @@ StaggeredStokesBlockPreconditioner::deallocateSolverState()
 {
     d_velocity_data_ops.setNull();
     d_pressure_data_ops.setNull();
-    d_velocity_wgt_idx = -1;
-    d_pressure_wgt_idx = -1;
+    d_velocity_wgt_idx = invalid_index;
+    d_pressure_wgt_idx = invalid_index;
     d_hier_math_ops.setNull();
     return;
 } // deallocateSolverState

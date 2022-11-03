@@ -51,7 +51,7 @@ StokesBcCoefStrategy::setTargetVelocityPatchDataIndex(int u_target_data_idx)
 void
 StokesBcCoefStrategy::clearTargetVelocityPatchDataIndex()
 {
-    d_u_target_data_idx = -1;
+    d_u_target_data_idx = invalid_index;
     return;
 } // clearTargetVelocityPatchDataIndex
 
@@ -65,7 +65,7 @@ StokesBcCoefStrategy::setTargetPressurePatchDataIndex(int p_target_data_idx)
 void
 StokesBcCoefStrategy::clearTargetPressurePatchDataIndex()
 {
-    d_p_target_data_idx = -1;
+    d_p_target_data_idx = invalid_index;
     return;
 } // clearPressurePatchDataIndex
 

@@ -68,7 +68,8 @@ public:
         /*!
          * \brief Default constructor.
          */
-        inline SynchronizationTransactionComponent(int data_idx = -1, const std::string& coarsen_op_name = "NONE")
+        inline SynchronizationTransactionComponent(int data_idx = invalid_index,
+                                                   const std::string& coarsen_op_name = "NONE")
             : d_data_idx(data_idx), d_coarsen_op_name(coarsen_op_name)
         {
             // intentionally blank

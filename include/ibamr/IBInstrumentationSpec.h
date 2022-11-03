@@ -88,7 +88,9 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBInstrumentationSpec(int master_idx = -1, int meter_idx = -1, int node_idx = -1);
+    IBInstrumentationSpec(int master_idx = IBTK::invalid_index,
+                          int meter_idx = IBTK::invalid_index,
+                          int node_idx = IBTK::invalid_index);
 
     /*!
      * \brief Destructor.

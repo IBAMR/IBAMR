@@ -35,7 +35,7 @@ namespace IBTK
 int
 ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
 {
-    if (mastr_idx == -1)
+    if (mastr_idx == invalid_index)
     {
         mastr_idx = std::min(link.first, link.second);
     }
@@ -49,7 +49,7 @@ ParallelEdgeMap::addEdge(const std::pair<int, int>& link, int mastr_idx)
 void
 ParallelEdgeMap::removeEdge(const std::pair<int, int>& link, int mastr_idx)
 {
-    if (mastr_idx == -1)
+    if (mastr_idx == invalid_index)
     {
         mastr_idx = std::min(link.first, link.second);
     }

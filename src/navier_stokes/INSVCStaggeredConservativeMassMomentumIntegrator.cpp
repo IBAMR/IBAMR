@@ -1532,11 +1532,11 @@ INSVCStaggeredConservativeMassMomentumIntegrator::integrate(double dt)
     }
 
     // Reset select options
-    d_N_idx = -1;
-    d_rho_sc_current_idx = -1;
-    d_V_old_idx = -1;
-    d_V_current_idx = -1;
-    d_V_new_idx = -1;
+    d_N_idx = invalid_index;
+    d_rho_sc_current_idx = invalid_index;
+    d_V_old_idx = invalid_index;
+    d_V_current_idx = invalid_index;
+    d_V_new_idx = invalid_index;
     d_cycle_num = -1;
     d_dt_prev = -1.0;
 

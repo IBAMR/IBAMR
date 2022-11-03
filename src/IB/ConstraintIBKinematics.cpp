@@ -93,7 +93,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
             break;
         }
     }
-    if (d_tagged_pt_idx == -1)
+    if (d_tagged_pt_idx == invalid_index)
     {
         TBOX_ERROR("ERROR:: StructureParameters::StructureParameters( ) "
                    << "\n"

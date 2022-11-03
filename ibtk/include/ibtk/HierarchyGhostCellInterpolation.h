@@ -96,7 +96,7 @@ public:
          * \brief Default constructor.
          */
         inline InterpolationTransactionComponent(
-            int data_idx = -1,
+            int data_idx = invalid_index,
             const std::string& refine_op_name = "NONE",
             bool use_cf_bdry_interpolation = false,
             const std::string& coarsen_op_name = "NONE",

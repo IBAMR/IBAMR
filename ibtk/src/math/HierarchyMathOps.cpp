@@ -2263,7 +2263,7 @@ HierarchyMathOps::laplace(const int dst_idx,
 #endif
     }
 
-    if ((d_coarsest_ln == d_finest_ln) && (alpha_idx == -1) && (!nonaligned_anisotropy))
+    if ((d_coarsest_ln == d_finest_ln) && (alpha_idx == invalid_index) && (!nonaligned_anisotropy))
     {
         // Compute dst = div alpha grad src1 + beta src1 + gamma src2.
         const int ln = d_finest_ln;
@@ -2293,7 +2293,7 @@ HierarchyMathOps::laplace(const int dst_idx,
 
         // Compute the side centered normal flux of src1[m(i)] and put the
         // result in sc_var.
-        if (alpha_idx == -1)
+        if (alpha_idx == invalid_index)
         {
             grad(d_sc_idx,
                  d_sc_var,
@@ -2405,7 +2405,7 @@ HierarchyMathOps::laplace(const int dst_idx,
     }
 
     // Take care of the case where beta is spatially varying.
-    if (beta_idx != -1)
+    if (beta_idx != invalid_index)
     {
         pointwiseMultiply(dst_idx,
                           dst_var,
@@ -2443,7 +2443,7 @@ HierarchyMathOps::laplace(const int dst_idx,
     const int alpha_idx = (poisson_spec.dIsConstant()) ? -1 : poisson_spec.getDPatchDataId();
     const int beta_idx = (poisson_spec.cIsConstant() || poisson_spec.cIsZero()) ? -1 : poisson_spec.getCPatchDataId();
 
-    if (alpha_idx != -1)
+    if (alpha_idx != invalid_index)
     {
         TBOX_ERROR("HierarchyMathOps::laplace():\n"
                    << "  side-centered Laplacian requires spatially constant scalar-valued "
@@ -2451,7 +2451,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                    << std::endl);
     }
 
-    if (beta_idx != -1)
+    if (beta_idx != invalid_index)
     {
         TBOX_ERROR("HierarchyMathOps::laplace():\n"
                    << "  side-centered Laplacian requires spatially constant scalar-valued "

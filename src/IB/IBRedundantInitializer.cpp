@@ -997,7 +997,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
     // initialize the local vertices.
     boost::multi_array_ref<double, 2>& X_array = *X_data->getLocalFormVecArray();
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
-    int local_idx = -1;
+    int local_idx = invalid_index;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     const IntVector<NDIM>& ratio = level->getRatio();
@@ -1128,7 +1128,7 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
     // initialize the local vertices.
     boost::multi_array_ref<double, 1>& M_array = *M_data->getLocalFormArray();
     boost::multi_array_ref<double, 1>& K_array = *K_data->getLocalFormArray();
-    int local_idx = -1;
+    int local_idx = invalid_index;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -1186,7 +1186,7 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
     // Loop over all patches in the specified level of the patch level and
     // initialize the local vertices.
     boost::multi_array_ref<double, 2>& D_array = *D_data->getLocalFormVecArray();
-    int local_idx = -1;
+    int local_idx = invalid_index;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -1691,7 +1691,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
     // vertex.
     {
         const int source_idx = getVertexSourceIndices(point_index, level_number);
-        if (source_idx != -1)
+        if (source_idx != invalid_index)
         {
             node_data.push_back(new IBSourceSpec(mastr_idx, source_idx));
         }

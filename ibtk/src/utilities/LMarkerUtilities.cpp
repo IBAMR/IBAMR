@@ -518,7 +518,7 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
         coarser_level->deallocatePatchData(mark_scratch_idx);
     }
     var_db->removePatchDataIndex(mark_scratch_idx);
-    mark_scratch_idx = -1;
+    mark_scratch_idx = invalid_index;
 
     // Ensure that the total number of markers is correct.
     const unsigned int num_marks_after_coarsening = countMarkers(mark_idx, hierarchy);
