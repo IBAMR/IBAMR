@@ -38,7 +38,7 @@ ExtendedRobinBcCoefStrategy::setTargetPatchDataIndex(int target_data_idx)
 void
 ExtendedRobinBcCoefStrategy::clearTargetPatchDataIndex()
 {
-    d_target_data_idx = -1;
+    d_target_data_idx = invalid_index;
     return;
 } // clearTargetPatchDataIndex
 

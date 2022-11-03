@@ -240,8 +240,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     }
     else
     {
-        d_rho_current_idx = -1;
-        d_rho_new_idx = -1;
+        d_rho_current_idx = invalid_index;
+        d_rho_new_idx = invalid_index;
         d_rho_init_fcn = nullptr;
 
         Pointer<CellVariable<NDIM, double> > rho_cc_scratch_var =

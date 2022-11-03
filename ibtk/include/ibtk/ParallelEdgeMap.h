@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/ibtk_utilities.h"
+
 #include "tbox/DescribedClass.h"
 
 #include <map>
@@ -60,7 +62,7 @@ public:
      * \note By default, the master index associated with each edge is the
      * vertex with minimum index in the link.
      */
-    int addEdge(const std::pair<int, int>& link, int mastr_idx = -1);
+    int addEdge(const std::pair<int, int>& link, int mastr_idx = invalid_index);
 
     /*!
      * \brief Remove an edge from the edge map.
@@ -73,7 +75,7 @@ public:
      * \note The master index argument is optional and is only used as a hint to
      * attempt to find the link in the link table.
      */
-    void removeEdge(const std::pair<int, int>& link, int mastr_idx = -1);
+    void removeEdge(const std::pair<int, int>& link, int mastr_idx = invalid_index);
 
     /*!
      * \brief Communicate data to (re-)initialize the edge map.

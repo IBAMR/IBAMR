@@ -113,7 +113,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
-        if (d_f_current_idx != -1) level->allocatePatchData(d_f_current_idx, current_time);
+        if (d_f_current_idx != invalid_index) level->allocatePatchData(d_f_current_idx, current_time);
         if (d_ib_method_ops->hasFluidSources())
         {
             level->allocatePatchData(d_p_idx, current_time);
@@ -158,7 +158,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
         d_ib_method_ops->spreadForce(
             d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), current_time);
         d_u_phys_bdry_op->setHomogeneousBc(false);
-        if (d_f_current_idx != -1) d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
+        if (d_f_current_idx != invalid_index) d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
         break;
     case MIDPOINT_RULE:
         // intentionally blank
@@ -422,7 +422,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
-        if (d_f_current_idx != -1) level->deallocatePatchData(d_f_current_idx);
+        if (d_f_current_idx != invalid_index) level->deallocatePatchData(d_f_current_idx);
         if (d_ib_method_ops->hasFluidSources())
         {
             level->deallocatePatchData(d_p_idx);

@@ -55,7 +55,7 @@ RelaxationLSBcCoefs::setLSPatchDataIndex(int phi_idx)
 void
 RelaxationLSBcCoefs::resetLSPatchDataIndex()
 {
-    d_phi_idx = -1;
+    d_phi_idx = invalid_index;
     return;
 } // resetLSPatchDataIndex
 

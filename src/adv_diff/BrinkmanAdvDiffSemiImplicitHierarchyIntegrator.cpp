@@ -464,7 +464,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double 
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
 
         // Get Brinkman penalization variables and data indices if necessary
-        int Fb_scratch_idx = -1;
+        int Fb_scratch_idx = invalid_index;
         const bool apply_brinkman =
             d_brinkman_penalization && d_brinkman_penalization->hasBrinkmanBoundaryCondition(Q_var);
         if (apply_brinkman)
@@ -480,8 +480,8 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double 
             Pointer<SideVariable<NDIM, double> > Db_var = d_Q_Db_map[Q_var];
             Pointer<SideVariable<NDIM, double> > Db_rhs_var = d_Q_Db_rhs_map[Q_var];
             Pointer<CellVariable<NDIM, double> > Fb_var = d_Q_Fb_map[Q_var];
-            int Cb_current_idx = -1, Cb_scratch_idx = -1, Cb_rhs_scratch_idx = -1;
-            int Db_current_idx = -1, Db_scratch_idx = -1, Db_rhs_scratch_idx = -1;
+            int Cb_current_idx = invalid_index, Cb_scratch_idx = -1, Cb_rhs_scratch_idx = -1;
+            int Db_current_idx = invalid_index, Db_scratch_idx = -1, Db_rhs_scratch_idx = -1;
 
             const int D_current_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
             Cb_current_idx = var_db->mapVariableAndContextToIndex(Cb_var, getCurrentContext());

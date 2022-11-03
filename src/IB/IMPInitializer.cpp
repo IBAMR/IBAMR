@@ -364,7 +364,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
     // initialize the local vertices.
     boost::multi_array_ref<double, 2>& X_array = *X_data->getLocalFormVecArray();
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
-    int local_idx = -1;
+    int local_idx = invalid_index;
     int local_node_count = 0;
     Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
     const IntVector<NDIM>& ratio = level->getRatio();

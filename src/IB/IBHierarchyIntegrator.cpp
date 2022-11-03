@@ -296,7 +296,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
         d_f_current_idx = var_db->registerClonedPatchDataIndex(d_f_var, d_f_idx);
         break;
     default:
-        d_f_current_idx = -1;
+        d_f_current_idx = invalid_index;
     }
 
     if (d_ib_method_ops->hasFluidSources())
@@ -307,7 +307,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     else
     {
         d_q_var = nullptr;
-        d_q_idx = -1;
+        d_q_idx = invalid_index;
     }
 
     if (!d_mark_file_name.empty())

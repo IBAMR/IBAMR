@@ -75,7 +75,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBSourceSpec(int master_idx = -1, int source_idx = -1);
+    IBSourceSpec(int master_idx = IBTK::invalid_index, int source_idx = IBTK::invalid_index);
 
     /*!
      * \brief Destructor.

@@ -78,7 +78,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBAnchorPointSpec(int node_idx = -1);
+    IBAnchorPointSpec(int node_idx = IBTK::invalid_index);
 
     /*!
      * \brief Destructor.
