@@ -342,11 +342,11 @@ main(int argc, char* argv[])
 
         // Configure the FEM solver.
         vector<SystemData> fem_sys_data(3);
-        std::string fem_y_system_name = "IBFE::" + IBFEMethod::COORDS_SYSTEM_NAME;
-        std::string fem_v_system_name = "IBFE::" + IBFEMethod::VELOCITY_SYSTEM_NAME;
+        std::string fem_y_system_name = "IBFE::" + ib_method_ops->getCurrentCoordinatesSystemName();
+        std::string fem_v_system_name = "IBFE::" + ib_method_ops->getVelocitySystemName();
         fem_sys_data[y_idx] = SystemData(fem_y_system_name, vars);
         fem_sys_data[v_idx] = SystemData(fem_v_system_name, vars);
-        fem_sys_data[u_idx] = SystemData(FEMechanicsExplicitIntegrator::VELOCITY_SYSTEM_NAME, vars);
+        fem_sys_data[u_idx] = SystemData(fem_solver->getVelocitySystemName(), vars);
 
         ElasticityData elasticity_data(input_db);
         void* const elasticity_data_ptr = reinterpret_cast<void*>(&elasticity_data);
@@ -358,11 +358,11 @@ main(int argc, char* argv[])
 
         // Configure the IBFE method ops.
         vector<SystemData> ibfe_sys_data(3);
-        std::string ibfe_y_system_name = "FEM::" + FEMechanicsExplicitIntegrator::COORDS_SYSTEM_NAME;
-        std::string ibfe_v_system_name = "FEM::" + FEMechanicsExplicitIntegrator::VELOCITY_SYSTEM_NAME;
+        std::string ibfe_y_system_name = "FEM::" + fem_solver->getCurrentCoordinatesSystemName();
+        std::string ibfe_v_system_name = "FEM::" + fem_solver->getVelocitySystemName();
         ibfe_sys_data[y_idx] = SystemData(ibfe_y_system_name, vars);
         ibfe_sys_data[v_idx] = SystemData(ibfe_v_system_name, vars);
-        ibfe_sys_data[u_idx] = SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars);
+        ibfe_sys_data[u_idx] = SystemData(ib_method_ops->getVelocitySystemName(), vars);
 
         IBFEMethod::LagBodyForceFcnData ibfe_block_tether_force_data(
             block_tether_force_function, std::vector<IBTK::SystemData>(), elasticity_data_ptr);
@@ -552,11 +552,12 @@ main(int argc, char* argv[])
 
             // Map IBFE data to the FEM solver and perform half a time step with the structural solver.
             {
-                System& ibfe_x_system = ibfe_beam_equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+                System& ibfe_x_system =
+                    ibfe_beam_equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                 *fem_y_system.solution = *ibfe_x_system.solution;
                 *fem_y_system.current_local_solution = *ibfe_x_system.current_local_solution;
 
-                System& ibfe_u_system = fem_equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+                System& ibfe_u_system = fem_equation_systems->get_system(fem_solver->getVelocitySystemName());
                 *fem_v_system.solution = *ibfe_u_system.solution;
                 *fem_v_system.current_local_solution = *ibfe_v_system.current_local_solution;
             }
@@ -576,13 +577,11 @@ main(int argc, char* argv[])
 
             // Map FEM solver data to the IBFE method ops and perform a full time step with the IB solver.
             {
-                System& fem_x_system =
-                    fem_equation_systems->get_system(FEMechanicsExplicitIntegrator::COORDS_SYSTEM_NAME);
+                System& fem_x_system = fem_equation_systems->get_system(fem_solver->getCurrentCoordinatesSystemName());
                 *ibfe_y_system.solution = *fem_x_system.solution;
                 *ibfe_y_system.current_local_solution = *fem_x_system.current_local_solution;
 
-                System& fem_u_system =
-                    fem_equation_systems->get_system(FEMechanicsExplicitIntegrator::VELOCITY_SYSTEM_NAME);
+                System& fem_u_system = fem_equation_systems->get_system(fem_solver->getVelocitySystemName());
                 *ibfe_v_system.solution = *fem_u_system.solution;
                 *ibfe_v_system.current_local_solution = *fem_v_system.current_local_solution;
             }
@@ -590,11 +589,12 @@ main(int argc, char* argv[])
 
             // Map IBFE data to the FEM solver and perform half a time step with the structural solver.
             {
-                System& ibfe_x_system = ibfe_beam_equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+                System& ibfe_x_system =
+                    ibfe_beam_equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                 *fem_y_system.solution = *ibfe_x_system.solution;
                 *fem_y_system.current_local_solution = *ibfe_x_system.current_local_solution;
 
-                System& ibfe_u_system = fem_equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+                System& ibfe_u_system = fem_equation_systems->get_system(ib_method_ops->getVelocitySystemName());
                 *fem_v_system.solution = *ibfe_u_system.solution;
                 *fem_v_system.current_local_solution = *ibfe_v_system.current_local_solution;
             }
@@ -691,7 +691,7 @@ main(int argc, char* argv[])
 void
 postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
-                 const IBFEMethod* const /*ib_method_ops*/,
+                 const IBFEMethod* const ib_method_ops,
                  Mesh& beam_mesh,
                  EquationSystems* beam_equation_systems,
                  Mesh& block_mesh,
@@ -705,7 +705,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     std::array<EquationSystems*, 2> equation_systems = { beam_equation_systems, block_equation_systems };
     for (unsigned int k = 0; k < 2; ++k)
     {
-        System& F_system = equation_systems[k]->get_system(IBFEMethod::FORCE_SYSTEM_NAME);
+        System& F_system = equation_systems[k]->get_system(ib_method_ops->getForceSystemName());
         NumericVector<double>* F_vec = F_system.solution.get();
         NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
         copy_and_synch(*F_vec, *F_ghost_vec);
@@ -753,7 +753,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         lift_stream << loop_time << " " << -F_integral[1] << endl;
     }
 
-    System& X_system = beam_equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    System& X_system = beam_equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
     NumericVector<double>* X_vec = X_system.solution.get();
     std::unique_ptr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);

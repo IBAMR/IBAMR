@@ -188,6 +188,8 @@ void postprocess_data(Pointer<Database> input_db,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
+                      const std::string& coords_system_name,
+                      const std::string& velocity_system_name,
                       const int iteration_num,
                       const double loop_time,
                       const string& data_dump_dirname);
@@ -389,14 +391,17 @@ main(int argc, char* argv[])
         TetherData tether_data(input_db);
         void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
         EquationSystems* equation_systems;
+        std::string coords_system_name, velocity_system_name;
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-        vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
         if (use_boundary_mesh)
         {
             Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
+            coords_system_name = IBFESurfaceMethod::COORDS_SYSTEM_NAME;
+            velocity_system_name = IBFESurfaceMethod::VELOCITY_SYSTEM_NAME;
+            vector<SystemData> sys_data(1, SystemData(velocity_system_name, vars));
             IBFESurfaceMethod::LagSurfaceForceFcnData surface_fcn_data(
                 tether_force_function, sys_data, tether_data_ptr);
             ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
@@ -406,6 +411,9 @@ main(int argc, char* argv[])
             Pointer<IBFEMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
+            coords_system_name = ibfe_ops->getCurrentCoordinatesSystemName();
+            velocity_system_name = ibfe_ops->getVelocitySystemName();
+            vector<SystemData> sys_data(1, SystemData(velocity_system_name, vars));
             IBFEMethod::PK1StressFcnData PK1_stress_data(
                 PK1_stress_function, std::vector<IBTK::SystemData>(), tether_data_ptr);
             PK1_stress_data.quad_order =
@@ -609,6 +617,8 @@ main(int argc, char* argv[])
                                  navier_stokes_integrator,
                                  mesh,
                                  equation_systems,
+                                 coords_system_name,
+                                 velocity_system_name,
                                  iteration_num,
                                  loop_time,
                                  postproc_data_dump_dirname);
@@ -638,6 +648,8 @@ postprocess_data(Pointer<Database> input_db,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
+                 const std::string& coords_system_name,
+                 const std::string& velocity_system_name,
                  const int /*iteration_num*/,
                  const double loop_time,
                  const string& /*data_dump_dirname*/)
@@ -649,8 +661,8 @@ postprocess_data(Pointer<Database> input_db,
     double F_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
 
-    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(coords_system_name);
+    System& U_system = equation_systems->get_system(velocity_system_name);
     NumericVector<double>* X_vec = X_system.solution.get();
     NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
     copy_and_synch(*X_vec, *X_ghost_vec);

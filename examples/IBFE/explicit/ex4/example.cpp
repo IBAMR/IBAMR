@@ -424,7 +424,8 @@ main(int argc, char* argv[])
             pout << "\n\nWriting visualization files...\n\n";
             if (uses_visit)
             {
-                const System& position_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+                const System& position_system =
+                    equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 if (NDIM < 3)
@@ -484,7 +485,8 @@ main(int argc, char* argv[])
                 pout << "\nWriting visualization files...\n\n";
                 if (uses_visit)
                 {
-                    const System& position_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+                    const System& position_system =
+                        equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                     time_integrator->setupPlotData();
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                     if (NDIM < 3)
@@ -526,7 +528,7 @@ main(int argc, char* argv[])
 
             // Compute the volume of the structure.
             double J_integral = 0.0;
-            System& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+            System& X_system = equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
             NumericVector<double>* X_vec = X_system.solution.get();
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
             copy_and_synch(*X_vec, *X_ghost_vec);

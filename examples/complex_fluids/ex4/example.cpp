@@ -350,7 +350,7 @@ main(int argc, char* argv[])
         ib_method_ops->initializeFEEquationSystems();
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
-        vector<SystemData> sys_data(1, SystemData(IBFEMethod::VELOCITY_SYSTEM_NAME, vars));
+        vector<SystemData> sys_data(1, SystemData(IBFESurfaceMethod::VELOCITY_SYSTEM_NAME, vars));
 
         IBFESurfaceMethod::LagSurfaceForceFcnData body_fcn_data_tl(tether_force_function, sys_data, &tl);
         IBFESurfaceMethod::LagSurfaceForceFcnData body_fcn_data_tr(tether_force_function, sys_data, &tr);

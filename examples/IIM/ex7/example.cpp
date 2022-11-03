@@ -133,6 +133,7 @@ static double bulk_mod = 0.0;
 void
 calculateGeomQuantitiesOfStructure(double& vol,                // mass of the body
                                    VectorValue<double>& x_com, // new center of the mass
+                                   const FEMechanicsExplicitIntegrator* const fem_solver,
                                    EquationSystems* equation_systems)
 {
     // Get the structure mesh for codim-0 solid.
@@ -141,7 +142,7 @@ calculateGeomQuantitiesOfStructure(double& vol,                // mass of the bo
 
     // Extract the FE system and DOF map, and setup the FE object.
 
-    System& X_system = equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
     X_system.solution->localize(*X_system.current_local_solution);
     MeshBase& mesh = equation_systems->get_mesh();
 
@@ -534,7 +535,7 @@ main(int argc, char* argv[])
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
         vector<SystemData> velocity_data(1);
-        velocity_data[0] = SystemData(FEMechanicsBase::VELOCITY_SYSTEM_NAME, vars);
+        velocity_data[0] = SystemData(fem_solver->getVelocitySystemName(), vars);
 
         ibfe_bndry_ops->initializeFEEquationSystems();
 
@@ -674,7 +675,7 @@ main(int argc, char* argv[])
             l_max_stream.precision(10);
         }
 
-        calculateGeomQuantitiesOfStructure(vol, x_com, equation_systems);
+        calculateGeomQuantitiesOfStructure(vol, x_com, fem_solver, equation_systems);
         const double n_cycles = input_db->getDouble("NCYCLE");
         // Main time step loop.
         while (!MathUtilities<double>::equalEps(loop_time, loop_time_end))
@@ -687,9 +688,9 @@ main(int argc, char* argv[])
             boundary_systems = bndry_equation_systems;
             // to compute average J for each element
 
-            System& X_system = equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+            System& X_system = equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
             x_new_solid_system = &X_system;
-            u_new_solid_system = &equation_systems->get_system<System>(FEMechanicsBase::VELOCITY_SYSTEM_NAME);
+            u_new_solid_system = &equation_systems->get_system<System>(fem_solver->getVelocitySystemName());
             Tau_new_surface_system = &bndry_equation_systems->get_system<System>(IIMethod::TAU_OUT_SYSTEM_NAME);
             x_new_surface_system = &bndry_equation_systems->get_system<System>(IIMethod::COORDS_SYSTEM_NAME);
 
@@ -707,8 +708,8 @@ main(int argc, char* argv[])
                                                      /*num_cycles*/ 1);
             }
 
-            x_new_solid_system = &equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
-            u_new_solid_system = &equation_systems->get_system<System>(FEMechanicsBase::VELOCITY_SYSTEM_NAME);
+            x_new_solid_system = &equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
+            u_new_solid_system = &equation_systems->get_system<System>(fem_solver->getVelocitySystemName());
 
             time_integrator->advanceHierarchy(dt);
             boundary_systems = bndry_equation_systems;
@@ -807,7 +808,7 @@ main(int argc, char* argv[])
             }
             J_integral = SAMRAI_MPI::sumReduction(J_integral);
 
-            calculateGeomQuantitiesOfStructure(vol, x_com, equation_systems);
+            calculateGeomQuantitiesOfStructure(vol, x_com, fem_solver, equation_systems);
 
             postprocess_Convergence(patch_hierarchy,
                                     navier_stokes_integrator,
