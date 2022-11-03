@@ -297,8 +297,8 @@ public:
      */
     void initializeOperatorState(InterpolationTransactionComponent transaction_comp,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 int coarsest_ln = -1,
-                                 int finest_ln = -1);
+                                 int coarsest_ln = invalid_level_number,
+                                 int finest_ln = invalid_level_number);
 
     /*!
      * \brief Setup the hierarchy ghost cell interpolation operator to perform
@@ -307,8 +307,8 @@ public:
      */
     void initializeOperatorState(const std::vector<InterpolationTransactionComponent>& transaction_comps,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 int coarsest_ln = -1,
-                                 int finest_ln = -1);
+                                 int coarsest_ln = invalid_level_number,
+                                 int finest_ln = invalid_level_number);
 
     /*!
      * \brief Reset transaction component with the interpolation operator.

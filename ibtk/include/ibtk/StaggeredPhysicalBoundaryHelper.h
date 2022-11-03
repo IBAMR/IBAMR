@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/ibtk_utilities.h"
+
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "tbox/DescribedClass.h"
@@ -85,8 +87,8 @@ public:
      */
     void copyDataAtDirichletBoundaries(int u_out_data_idx,
                                        int u_in_data_idx,
-                                       int coarsest_ln = -1,
-                                       int finest_ln = -1) const;
+                                       int coarsest_ln = invalid_level_number,
+                                       int finest_ln = invalid_level_number) const;
 
     /*!
      * \brief Copy data to u_data_out_idx from u_data_in_idx at Dirichlet
@@ -100,7 +102,9 @@ public:
      * \brief Setup a masking function over the specified range of levels in the
      * patch hierarchy.
      */
-    void setupMaskingFunction(int mask_data_idx, int coarsest_ln = -1, int finest_ln = -1) const;
+    void setupMaskingFunction(int mask_data_idx,
+                              int coarsest_ln = invalid_level_number,
+                              int finest_ln = invalid_level_number) const;
 
     /*!
      * \brief Setup a masking function on a single patch.

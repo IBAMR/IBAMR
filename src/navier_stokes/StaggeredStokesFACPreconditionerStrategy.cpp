@@ -272,7 +272,8 @@ void
 StaggeredStokesFACPreconditionerStrategy::setResetLevels(const int coarsest_ln, const int finest_ln)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT((coarsest_ln == -1 && finest_ln == -1) || (coarsest_ln >= 0 && finest_ln >= coarsest_ln));
+    TBOX_ASSERT((coarsest_ln == IBTK::invalid_level_number && finest_ln == IBTK::invalid_level_number) ||
+                (coarsest_ln >= 0 && finest_ln >= coarsest_ln));
 #endif
     if (d_is_initialized)
     {
@@ -646,10 +647,13 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     // NOTE: We cannot use d_coarsest_reset_ln and d_finest_reset_ln since those
     // values are reset by deallocateOperatorState().
     const int coarsest_reset_ln =
-        (d_coarsest_reset_ln != -1 && d_finest_reset_ln != -1 ? d_coarsest_reset_ln :
-                                                                solution.getCoarsestLevelNumber());
+        (d_coarsest_reset_ln != IBTK::invalid_level_number && d_finest_reset_ln != IBTK::invalid_level_number ?
+             d_coarsest_reset_ln :
+             solution.getCoarsestLevelNumber());
     const int finest_reset_ln =
-        (d_coarsest_reset_ln != -1 && d_finest_reset_ln != -1 ? d_finest_reset_ln : solution.getFinestLevelNumber());
+        (d_coarsest_reset_ln != IBTK::invalid_level_number && d_finest_reset_ln != IBTK::invalid_level_number ?
+             d_finest_reset_ln :
+             solution.getFinestLevelNumber());
 
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -854,11 +858,13 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     IBAMR_TIMER_START(t_deallocate_operator_state);
 
     const int coarsest_reset_ln =
-        (d_in_initialize_operator_state && (d_coarsest_reset_ln != -1) && (d_finest_reset_ln != -1)) ?
+        (d_in_initialize_operator_state && (d_coarsest_reset_ln != IBTK::invalid_level_number) &&
+         (d_finest_reset_ln != IBTK::invalid_level_number)) ?
             d_coarsest_reset_ln :
             d_coarsest_ln;
     const int finest_reset_ln =
-        (d_in_initialize_operator_state && (d_coarsest_reset_ln != -1) && (d_finest_reset_ln != -1)) ?
+        (d_in_initialize_operator_state && (d_coarsest_reset_ln != IBTK::invalid_level_number) &&
+         (d_finest_reset_ln != IBTK::invalid_level_number)) ?
             d_finest_reset_ln :
             d_finest_ln;
     deallocateOperatorStateSpecialized(coarsest_reset_ln, finest_reset_ln);
@@ -887,8 +893,8 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     if (!d_in_initialize_operator_state)
     {
         d_hierarchy.setNull();
-        d_coarsest_ln = -1;
-        d_finest_ln = -1;
+        d_coarsest_ln = IBTK::invalid_level_number;
+        d_finest_ln = IBTK::invalid_level_number;
 
         d_level_bdry_fill_ops.clear();
         d_level_math_ops.clear();
@@ -916,8 +922,8 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     delete d_U_P_bc_op;
 
     // Clear the "reset level" range.
-    d_coarsest_reset_ln = -1;
-    d_finest_reset_ln = -1;
+    d_coarsest_reset_ln = IBTK::invalid_level_number;
+    d_finest_reset_ln = IBTK::invalid_level_number;
 
     // Indicate that the operator is not initialized.
     d_is_initialized = false;

@@ -74,8 +74,8 @@ public:
                           double dt,
                           const std::string& weighting_fcn,
                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                          int coarsest_ln = -1,
-                          int finest_ln = -1);
+                          int coarsest_ln = invalid_level_number,
+                          int finest_ln = invalid_level_number);
 
     /*!
      * Advect all markers by the specified advection velocity using the explicit
@@ -90,8 +90,8 @@ public:
                              double dt,
                              const std::string& weighting_fcn,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                             int coarsest_ln = -1,
-                             int finest_ln = -1);
+                             int coarsest_ln = invalid_level_number,
+                             int finest_ln = invalid_level_number);
 
     /*!
      * Advect all markers by the specified advection velocity using the explicit
@@ -106,8 +106,8 @@ public:
                                 double dt,
                                 const std::string& weighting_fcn,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                int coarsest_ln = -1,
-                                int finest_ln = -1);
+                                int coarsest_ln = invalid_level_number,
+                                int finest_ln = invalid_level_number);
 
     /*!
      * Collect all marker data onto the coarsest level of the patch hierarchy
@@ -134,16 +134,16 @@ public:
      */
     static void pruneInvalidMarkers(int mark_idx,
                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                    int coarsest_ln = -1,
-                                    int finest_ln = -1);
+                                    int coarsest_ln = invalid_level_number,
+                                    int finest_ln = invalid_level_number);
 
     /*!
      * Count the markers.
      */
     static unsigned int countMarkers(int mark_idx,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                     int coarsest_ln = -1,
-                                     int finest_ln = -1);
+                                     int coarsest_ln = invalid_level_number,
+                                     int finest_ln = invalid_level_number);
 
 private:
     /*!

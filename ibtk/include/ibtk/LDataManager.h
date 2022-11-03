@@ -352,8 +352,8 @@ public:
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
                 bool ds_data_ghost_node_update = true,
-                int coarsest_ln = -1,
-                int finest_ln = -1);
+                int coarsest_ln = invalid_level_number,
+                int finest_ln = invalid_level_number);
 
     /*!
      * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
@@ -380,8 +380,8 @@ public:
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
                 bool ds_data_ghost_node_update = true,
-                int coarsest_ln = -1,
-                int finest_ln = -1);
+                int coarsest_ln = invalid_level_number,
+                int finest_ln = invalid_level_number);
 
     /*!
      * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
@@ -454,8 +454,8 @@ public:
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
-                int coarsest_ln = -1,
-                int finest_ln = -1);
+                int coarsest_ln = invalid_level_number,
+                int finest_ln = invalid_level_number);
 
     /*!
      * \brief Spread a quantity from the Lagrangian mesh to the Eulerian grid
@@ -480,8 +480,8 @@ public:
                 double fill_data_time = 0.0,
                 bool F_data_ghost_node_update = true,
                 bool X_data_ghost_node_update = true,
-                int coarsest_ln = -1,
-                int finest_ln = -1);
+                int coarsest_ln = invalid_level_number,
+                int finest_ln = invalid_level_number);
 
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
@@ -524,8 +524,8 @@ public:
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds =
                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
                 double fill_data_time = 0.0,
-                int coarsest_ln = -1,
-                int finest_ln = -1);
+                int coarsest_ln = invalid_level_number,
+                int finest_ln = invalid_level_number);
 
     /*!
      * \brief Interpolate a quantity from the Eulerian grid to the Lagrangian
@@ -540,8 +540,8 @@ public:
                 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_ghost_fill_scheds =
                     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
                 double fill_data_time = 0.0,
-                int coarsest_ln = -1,
-                int finest_ln = -1);
+                int coarsest_ln = invalid_level_number,
+                int finest_ln = invalid_level_number);
 
     /*!
      * Register a concrete strategy object with the integrator that specifies
@@ -848,7 +848,7 @@ public:
      *
      * \see endDataRedistribution
      */
-    void beginDataRedistribution(int coarsest_ln = -1, int finest_ln = -1);
+    void beginDataRedistribution(int coarsest_ln = invalid_level_number, int finest_ln = invalid_level_number);
 
     /*!
      * \brief Finish the process of redistributing the Lagrangian data.
@@ -866,7 +866,7 @@ public:
      *
      * \see beginDataRedistribution
      */
-    void endDataRedistribution(int coarsest_ln = -1, int finest_ln = -1);
+    void endDataRedistribution(int coarsest_ln = invalid_level_number, int finest_ln = invalid_level_number);
 
     /*!
      * \brief Update the workload and count of nodes per cell.
@@ -882,8 +882,8 @@ public:
      */
     void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                              const int workload_data_idx,
-                             const int coarsest_ln = -1,
-                             const int finest_ln = -1);
+                             const int coarsest_ln = invalid_level_number,
+                             const int finest_ln = invalid_level_number);
 
     /*!
      * \brief Update the count of nodes per cell.
@@ -893,7 +893,7 @@ public:
      * node count data is used to tag cells for refinement, and to specify
      * non-uniform load balancing.
      */
-    void updateNodeCountData(int coarsest_ln = -1, int finest_ln = -1);
+    void updateNodeCountData(int coarsest_ln = invalid_level_number, int finest_ln = invalid_level_number);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -1044,7 +1044,7 @@ private:
      * The operation is essentially equivalent to refilling ghost cells for
      * structured (SAMRAI native) data.
      */
-    void beginNonlocalDataFill(int coarsest_ln = -1, int finest_ln = -1);
+    void beginNonlocalDataFill(int coarsest_ln = invalid_level_number, int finest_ln = invalid_level_number);
 
     /*!
      * \brief End the process of refilling nonlocal Lagrangian quantities over
@@ -1053,7 +1053,7 @@ private:
      * The operation is essentially equivalent to refilling ghost cells for
      * structured (SAMRAI native) data.
      */
-    void endNonlocalDataFill(int coarsest_ln = -1, int finest_ln = -1);
+    void endNonlocalDataFill(int coarsest_ln = invalid_level_number, int finest_ln = invalid_level_number);
 
     /*!
      * Determines the global Lagrangian and PETSc indices of the local and

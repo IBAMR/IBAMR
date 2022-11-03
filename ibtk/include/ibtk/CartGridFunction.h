@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/ibtk_utilities.h"
+
 #include "PatchLevel.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
@@ -83,8 +85,8 @@ public:
                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                          double data_time,
                                          bool initial_time = false,
-                                         int coarsest_ln = -1,
-                                         int finest_ln = -1);
+                                         int coarsest_ln = invalid_level_number,
+                                         int finest_ln = invalid_level_number);
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified

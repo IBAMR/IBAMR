@@ -88,7 +88,7 @@ public:
     /*!
      * \brief Register a Mesh object with the IB initializer object.
      */
-    void registerMesh(libMesh::MeshBase* mesh, int level_number = -1);
+    void registerMesh(libMesh::MeshBase* mesh, int level_number = IBTK::invalid_level_number);
 
     /*!
      * \brief Register a Silo data writer with the IB initializer object.
@@ -189,7 +189,7 @@ public:
      * \param level_number Level on which the mesh resides. -1 indicates finest
      * grid level.
      */
-    void writeVertexFile(std::string filename, int mesh_no, int level_number = -1);
+    void writeVertexFile(std::string filename, int mesh_no, int level_number = IBTK::invalid_level_number);
 
 protected:
 private:

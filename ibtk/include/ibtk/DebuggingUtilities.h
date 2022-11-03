@@ -20,6 +20,8 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/ibtk_utilities.h"
+
 #include "tbox/Pointer.h"
 
 #include <string>
@@ -53,8 +55,8 @@ public:
     static bool checkCellDataForNaNs(int patch_data_idx,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                      bool interior_only = true,
-                                     int coarsest_ln = -1,
-                                     int finest_ln = -1);
+                                     int coarsest_ln = invalid_level_number,
+                                     int finest_ln = invalid_level_number);
 
     /*!
      * \brief Check a face-centered variable for NaN or unusually large values.
@@ -62,8 +64,8 @@ public:
     static bool checkFaceDataForNaNs(int patch_data_idx,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                      bool interior_only = true,
-                                     int coarsest_ln = -1,
-                                     int finest_ln = -1);
+                                     int coarsest_ln = invalid_level_number,
+                                     int finest_ln = invalid_level_number);
 
     /*!
      * \brief Check a node-centered variable for NaN or unusually large values.
@@ -71,8 +73,8 @@ public:
     static bool checkNodeDataForNaNs(int patch_data_idx,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                      bool interior_only = true,
-                                     int coarsest_ln = -1,
-                                     int finest_ln = -1);
+                                     int coarsest_ln = invalid_level_number,
+                                     int finest_ln = invalid_level_number);
 
     /*!
      * \brief Check a side-centered variable for NaN or unusually large values.
@@ -80,8 +82,8 @@ public:
     static bool checkSideDataForNaNs(int patch_data_idx,
                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                      bool interior_only = true,
-                                     int coarsest_ln = -1,
-                                     int finest_ln = -1);
+                                     int coarsest_ln = invalid_level_number,
+                                     int finest_ln = invalid_level_number);
 
     /*!
      * \brief Save the local portion of a cell-centered variable to disk.

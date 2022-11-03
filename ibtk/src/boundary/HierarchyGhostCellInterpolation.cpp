@@ -160,8 +160,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     // Cache hierarchy data.
     d_hierarchy = hierarchy;
     d_grid_geom = d_hierarchy->getGridGeometry();
-    d_coarsest_ln = coarsest_ln == -1 ? 0 : coarsest_ln;
-    d_finest_ln = finest_ln == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln;
+    d_coarsest_ln = coarsest_ln == invalid_level_number ? 0 : coarsest_ln;
+    d_finest_ln = finest_ln == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln;
 
     // Register the cubic coarsen operators with the grid geometry object.
     IBTK_DO_ONCE(d_grid_geom->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());

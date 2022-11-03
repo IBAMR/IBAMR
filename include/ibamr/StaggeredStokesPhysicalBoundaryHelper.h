@@ -82,8 +82,8 @@ public:
                                             const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                             double fill_time,
                                             bool homogeneous_bc,
-                                            int coarsest_ln = -1,
-                                            int finest_ln = -1) const;
+                                            int coarsest_ln = IBTK::invalid_level_number,
+                                            int finest_ln = IBTK::invalid_level_number) const;
 
     /*!
      * \brief Set normal velocity ghost cell values to enforce discrete
@@ -94,8 +94,8 @@ public:
      * be set where normal velocity boundary conditions, or both.
      */
     void enforceDivergenceFreeConditionAtBoundary(int u_data_idx,
-                                                  int coarsest_ln = -1,
-                                                  int finest_ln = -1,
+                                                  int coarsest_ln = IBTK::invalid_level_number,
+                                                  int finest_ln = IBTK::invalid_level_number,
                                                   short int bdry_tag = NORMAL_TRACTION_BDRY) const;
 
     /*!

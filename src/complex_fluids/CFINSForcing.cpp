@@ -298,8 +298,9 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
                                       const int finest_ln_in)
 {
     d_hierarchy = hierarchy;
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
+    const int finest_ln =
+        (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     auto var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Allocate Data to store components of the Complex stress tensor
