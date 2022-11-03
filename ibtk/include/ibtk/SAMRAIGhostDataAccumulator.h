@@ -80,12 +80,12 @@ protected:
     /*!
      * Coarsest level of the patch hierarchy on which we work.
      */
-    const int d_coarsest_ln = -1;
+    const int d_coarsest_ln = invalid_level_number;
 
     /*!
      * Finest level of the patch hierarchy on which we work.
      */
-    const int d_finest_ln = -1;
+    const int d_finest_ln = invalid_level_number;
 
     /*!
      * Boolean indicating whether or not we have cell-centered data.

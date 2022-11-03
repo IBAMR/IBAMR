@@ -95,8 +95,8 @@ public:
      */
     HierarchyMathOps(std::string name,
                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                     int coarsest_ln = -1,
-                     int finest_ln = -1,
+                     int coarsest_ln = invalid_level_number,
+                     int finest_ln = invalid_level_number,
                      std::string coarsen_op_name = "CONSERVATIVE_COARSEN");
 
     /*!

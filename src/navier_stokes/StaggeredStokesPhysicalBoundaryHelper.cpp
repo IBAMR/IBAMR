@@ -74,7 +74,9 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
         u_bc_coefs, /*p_bc_coef*/ nullptr, u_data_idx, p_data_idx, homogeneous_bc);
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
+    for (int ln = (coarsest_ln == IBTK::invalid_level_number ? 0 : coarsest_ln);
+         ln <= (finest_ln == IBTK::invalid_level_number ? finest_hier_level : finest_ln);
+         ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -139,7 +141,9 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
     TBOX_ASSERT(d_hierarchy);
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
+    for (int ln = (coarsest_ln == IBTK::invalid_level_number ? 0 : coarsest_ln);
+         ln <= (finest_ln == IBTK::invalid_level_number ? finest_hier_level : finest_ln);
+         ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)

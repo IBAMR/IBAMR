@@ -91,8 +91,8 @@ public:
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                  double data_time,
                                  bool initial_time = false,
-                                 int coarsest_ln = -1,
-                                 int finest_ln = -1) override;
+                                 int coarsest_ln = invalid_level_number,
+                                 int finest_ln = invalid_level_number) override;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified

@@ -154,8 +154,8 @@ public:
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                  double data_time,
                                  bool initial_time = false,
-                                 int coarsest_ln = -1,
-                                 int finest_ln = -1) override;
+                                 int coarsest_ln = IBTK::invalid_level_number,
+                                 int finest_ln = IBTK::invalid_level_number) override;
 
     /*!
      * Set the data on the patch interior.

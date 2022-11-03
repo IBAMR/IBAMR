@@ -183,8 +183,8 @@ public:
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
-                                 const int coarsest_ln = -1,
-                                 const int finest_ln = -1) override;
+                                 const int coarsest_ln = IBTK::invalid_level_number,
+                                 const int finest_ln = IBTK::invalid_level_number) override;
 
     /*!
      * \brief Evaluate the function on the patch interior.

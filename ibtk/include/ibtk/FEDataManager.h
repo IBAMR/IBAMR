@@ -1043,8 +1043,8 @@ public:
      */
     void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                              const int workload_data_idx,
-                             const int coarsest_ln = -1,
-                             const int finest_ln = -1);
+                             const int coarsest_ln = invalid_level_number,
+                             const int finest_ln = invalid_level_number);
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level

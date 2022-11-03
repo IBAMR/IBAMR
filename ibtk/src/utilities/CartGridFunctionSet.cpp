@@ -98,8 +98,8 @@ CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int cloned_data_idx = var_db->registerClonedPatchDataIndex(var, data_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

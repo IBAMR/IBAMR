@@ -417,8 +417,8 @@ LDataManager::spread(const int f_data_idx,
     TBOX_ASSERT(LEInteractor::isKnownKernel(spread_kernel_fcn));
 #endif
 
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
 
     // Compute F*ds.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -570,8 +570,8 @@ LDataManager::spread(const int f_data_idx,
 {
     IBTK_TIMER_START(t_spread);
 
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
 
     // Zero inactivated components.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -714,8 +714,8 @@ LDataManager::interp(const int f_data_idx,
 {
     IBTK_TIMER_START(t_interp);
 
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number ? 0 : coarsest_ln_in);
+    const int finest_ln = (finest_ln_in == invalid_level_number ? d_hierarchy->getFinestLevelNumber() : finest_ln_in);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Determine the type of data centering.
@@ -1349,8 +1349,8 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
 {
     IBTK_TIMER_START(t_begin_data_redistribution);
 
-    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
-    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
@@ -1520,8 +1520,8 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
 {
     IBTK_TIMER_START(t_end_data_redistribution);
 
-    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
-    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
@@ -1965,8 +1965,8 @@ LDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
 {
     IBTK_TIMER_START(t_update_workload_estimates);
 
-    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
-    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
@@ -1986,8 +1986,8 @@ LDataManager::updateNodeCountData(const int coarsest_ln_in, const int finest_ln_
 {
     IBTK_TIMER_START(t_update_node_count_data);
 
-    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
-    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
@@ -2806,8 +2806,8 @@ LDataManager::beginNonlocalDataFill(const int coarsest_ln_in, const int finest_l
 {
     IBTK_TIMER_START(t_begin_nonlocal_data_fill);
 
-    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
-    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);
@@ -2832,8 +2832,8 @@ LDataManager::endNonlocalDataFill(const int coarsest_ln_in, const int finest_ln_
 {
     IBTK_TIMER_START(t_end_nonlocal_data_fill);
 
-    const int coarsest_ln = (coarsest_ln_in == -1) ? d_coarsest_ln : coarsest_ln_in;
-    const int finest_ln = (finest_ln_in == -1) ? d_finest_ln : finest_ln_in;
+    const int coarsest_ln = (coarsest_ln_in == invalid_level_number) ? d_coarsest_ln : coarsest_ln_in;
+    const int finest_ln = (finest_ln_in == invalid_level_number) ? d_finest_ln : finest_ln_in;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(coarsest_ln >= d_coarsest_ln && coarsest_ln <= d_finest_ln);

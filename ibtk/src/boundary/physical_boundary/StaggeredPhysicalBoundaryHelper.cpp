@@ -58,7 +58,9 @@ StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_d
     TBOX_ASSERT(d_hierarchy);
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
+    for (int ln = (coarsest_ln == invalid_level_number ? 0 : coarsest_ln);
+         ln <= (finest_ln == invalid_level_number ? finest_hier_level : finest_ln);
+         ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
@@ -113,7 +115,9 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_idx,
     TBOX_ASSERT(d_hierarchy);
 #endif
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-    for (int ln = (coarsest_ln == -1 ? 0 : coarsest_ln); ln <= (finest_ln == -1 ? finest_hier_level : finest_ln); ++ln)
+    for (int ln = (coarsest_ln == invalid_level_number ? 0 : coarsest_ln);
+         ln <= (finest_ln == invalid_level_number ? finest_hier_level : finest_ln);
+         ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
