@@ -300,7 +300,8 @@ FEData::getFromRestart()
 {
 } // getFromRestart
 
-void FEData::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> /*db*/)
+void
+FEData::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> /*db*/)
 {
 } // putToDatabase
 
@@ -627,11 +628,11 @@ FEDataManager::reinitElementMappings()
         const int rank = IBTK_MPI::getRank();
         const int n_procs = IBTK_MPI::getNodes();
         const MeshBase& mesh = getEquationSystems()->get_mesh();
-        std::unique_ptr<PetscVector<double> > X_petsc_vec = buildIBGhostedVector(COORDINATES_SYSTEM_NAME);
+        std::unique_ptr<PetscVector<double> > X_petsc_vec = buildIBGhostedVector(getCurrentCoordinatesSystemName());
         *X_petsc_vec = *getCoordsVector();
         X_petsc_vec->close();
         const double* const X_local_soln = X_petsc_vec->get_array_read();
-        const DofMap& X_dof_map = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME).get_dof_map();
+        const DofMap& X_dof_map = d_fe_data->d_es->get_system(getCurrentCoordinatesSystemName()).get_dof_map();
 
         std::vector<int> node_ranks(mesh.parallel_n_nodes());
         std::vector<dof_id_type> X_idxs;
@@ -796,13 +797,13 @@ FEDataManager::buildIBGhostedVector(const std::string& system_name)
 NumericVector<double>*
 FEDataManager::getCoordsVector() const
 {
-    return getSolutionVector(COORDINATES_SYSTEM_NAME);
+    return getSolutionVector(getCurrentCoordinatesSystemName());
 } // getCoordsVector
 
 NumericVector<double>*
 FEDataManager::buildGhostedCoordsVector(const bool localize_data)
 {
-    return buildGhostedSolutionVector(COORDINATES_SYSTEM_NAME, localize_data);
+    return buildGhostedSolutionVector(getCurrentCoordinatesSystemName(), localize_data);
 } // buildGhostedCoordsVector
 
 std::shared_ptr<FEData>&
@@ -992,9 +993,9 @@ FEDataManager::spread(const int f_data_idx,
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
     FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
-    System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_fe_data->d_es->get_system(getCurrentCoordinatesSystemName());
     const DofMap& X_dof_map = X_system.get_dof_map();
-    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(getCurrentCoordinatesSystemName());
     FEType F_fe_type = F_dof_map.variable_type(0);
     Order F_order = F_dof_map.variable_order(0);
     for (unsigned i = 0; i < n_vars; ++i)
@@ -1374,7 +1375,7 @@ FEDataManager::prolongData(const int f_data_idx,
     FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
     System& X_system = d_fe_data->d_es->get_system(system_name);
     const DofMap& X_dof_map = X_system.get_dof_map();
-    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(getCurrentCoordinatesSystemName());
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i)
     {
@@ -1741,9 +1742,9 @@ FEDataManager::interpWeighted(const int f_data_idx,
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
     FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
-    System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_fe_data->d_es->get_system(getCurrentCoordinatesSystemName());
     const DofMap& X_dof_map = X_system.get_dof_map();
-    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(getCurrentCoordinatesSystemName());
     FEType F_fe_type = F_dof_map.variable_type(0);
     Order F_order = F_dof_map.variable_order(0);
     for (unsigned i = 0; i < n_vars; ++i)
@@ -2190,9 +2191,9 @@ FEDataManager::restrictData(const int f_data_idx,
     const unsigned int n_vars = F_system.n_vars();
     const DofMap& F_dof_map = F_system.get_dof_map();
     FEData::SystemDofMapCache& F_dof_map_cache = *getDofMapCache(system_name);
-    System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_fe_data->d_es->get_system(getCurrentCoordinatesSystemName());
     const DofMap& X_dof_map = X_system.get_dof_map();
-    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(getCurrentCoordinatesSystemName());
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned i = 0; i < n_vars; ++i)
     {
@@ -2508,7 +2509,7 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
     // Add work estimates from duplicated nodes.
     if (d_default_workload_spec.duplicated_node_weight != 0.0)
     {
-        FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+        FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(getCurrentCoordinatesSystemName());
 
         // Extract the underlying solution data.
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
@@ -2589,7 +2590,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         std::vector<unsigned int> X_ghost_dofs;
         std::vector<Elem*> active_level_elems;
         collect_unique_elems(active_level_elems, active_level_elem_map);
-        collectGhostDOFIndices(X_ghost_dofs, active_level_elems, COORDINATES_SYSTEM_NAME);
+        collectGhostDOFIndices(X_ghost_dofs, active_level_elems, getCurrentCoordinatesSystemName());
 
         // Extract the mesh.
         const MeshBase& mesh = d_fe_data->d_es->get_mesh();
@@ -2597,9 +2598,9 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         const unsigned int dim = mesh.mesh_dimension();
 
         // Extract the FE system and DOF map, and setup the FE object.
-        System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+        System& X_system = d_fe_data->d_es->get_system(getCurrentCoordinatesSystemName());
         const DofMap& X_dof_map = X_system.get_dof_map();
-        FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+        FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(getCurrentCoordinatesSystemName());
         FEType fe_type = X_dof_map.variable_type(0);
         for (unsigned d = 0; d < NDIM; ++d)
         {
@@ -2806,6 +2807,10 @@ setup_fe_projector_db(const Pointer<Database>& input_db)
 }
 } // namespace
 
+// _Pragma() (used by the enable/disable macros) cannot be used in certain
+// contexts, so to suppress warnings about COORDINATES_SYSTEM_NAME we disable
+// all warnings for the ctor
+IBTK_DISABLE_EXTRA_WARNINGS
 FEDataManager::FEDataManager(std::string object_name,
                              const Pointer<Database>& input_db,
                              const int max_levels,
@@ -2834,6 +2839,7 @@ FEDataManager::FEDataManager(std::string object_name,
       d_default_spread_spec(default_spread_spec),
       d_ghost_width(std::move(ghost_width))
 {
+IBTK_ENABLE_EXTRA_WARNINGS
     TBOX_ASSERT(!d_object_name.empty());
 
     // Validate the kernel choices.
@@ -2945,9 +2951,9 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE system and DOF map, and setup the FE object.
-    System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_fe_data->d_es->get_system(getCurrentCoordinatesSystemName());
     const DofMap& X_dof_map = X_system.get_dof_map();
-    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(COORDINATES_SYSTEM_NAME);
+    FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(getCurrentCoordinatesSystemName());
     FEType fe_type = X_dof_map.variable_type(0);
     for (unsigned d = 0; d < NDIM; ++d)
     {
@@ -3091,7 +3097,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     // correctly. Here, we don't need to change the mesh, but we use Elem *s
     // (not const Elem *s): hence we cannot use a const MeshBase& any more.
     MeshBase& mesh = d_fe_data->d_es->get_mesh();
-    System& X_system = d_fe_data->d_es->get_system(COORDINATES_SYSTEM_NAME);
+    System& X_system = d_fe_data->d_es->get_system(getCurrentCoordinatesSystemName());
 
     // Setup data structures used to assign elements to patches.
     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);

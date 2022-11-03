@@ -158,7 +158,7 @@ IBFECentroidPostProcessor::reconstructVariables(double data_time)
     fe.attachQuadratureRule(qrule.get());
     fe.evalQuadraturePoints();
 
-    auto& X_system = equation_systems->get_system<System>(IBFEMethod::COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems->get_system<System>(d_fe_data_manager->getCurrentCoordinatesSystemName());
     NumericVector<double>& X_data = *(X_system.current_local_solution);
     copy_and_synch(*X_system.solution, X_data);
     std::vector<int> vars(NDIM);

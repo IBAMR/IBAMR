@@ -59,13 +59,16 @@ namespace IBAMR
 class FEMechanicsBase : public SAMRAI::tbox::Serializable
 {
 public:
-    // TODO: Update the names of these systems:
-    // COORDS_SYSTEM_NAME --> CURRENT_COORDINATES_SYSTEM_NAME
-    // COORD_MAPPING_SYSTEM_NAME --> DISPLACEMENT_SYSTEM_NAME
+    IBTK_DEPRECATED("Use FEMechanicsBase::getCurrentCoordinatesSystemName() to access the current coordinates system name.")
     static const std::string COORDS_SYSTEM_NAME;
+    IBTK_DEPRECATED(
+        "Use FEMechanicsBase::getDisplacementSystemName() to access the current coordinate mapping system name.")
     static const std::string COORD_MAPPING_SYSTEM_NAME;
+    IBTK_DEPRECATED("Use FEMechanicsBase::getForceSystemName() to access the current force system name.")
     static const std::string FORCE_SYSTEM_NAME;
+    IBTK_DEPRECATED("Use FEMechanicsBase::getPressureSystemName() to access the current pressure system name.")
     static const std::string PRESSURE_SYSTEM_NAME;
+    IBTK_DEPRECATED("Use FEMechanicsBase::getVelocitySystemName() to access the current velocity system name.")
     static const std::string VELOCITY_SYSTEM_NAME;
 
     /*!
@@ -112,6 +115,46 @@ public:
      * Return a pointer to the equations system object for the specified part.
      */
     libMesh::EquationSystems* getEquationSystems(unsigned int part = 0) const;
+
+    /*!
+     * Return the current coordinates system name.
+     */
+    const std::string& getCurrentCoordinatesSystemName() const
+    {
+        return d_current_coordinates_system_name;
+    }
+
+    /*!
+     * Return the displacement system name.
+     */
+    const std::string& getDisplacementSystemName() const
+    {
+        return d_displacement_system_name;
+    }
+
+    /*!
+     * Return the force system name.
+     */
+    const std::string& getForceSystemName() const
+    {
+        return d_force_system_name;
+    }
+
+    /*!
+     * Return the pressure system name.
+     */
+    const std::string& getPressureSystemName() const
+    {
+        return d_pressure_system_name;
+    }
+
+    /*!
+     * Return the velocity system name.
+     */
+    const std::string& getVelocitySystemName() const
+    {
+        return d_velocity_system_name;
+    }
 
     /*!
      * Return a pointer to the FEData object for the specified part.
@@ -589,6 +632,10 @@ protected:
      * and solution vectors for each relevant libMesh system.
      */
     std::vector<std::unique_ptr<libMesh::EquationSystems> > d_equation_systems;
+
+    /// System names for key variables.
+    const std::string d_current_coordinates_system_name, d_displacement_system_name, d_force_system_name,
+        d_pressure_system_name, d_velocity_system_name;
 
     /// FEData objects provide key FE data management.
     std::vector<std::shared_ptr<IBTK::FEData> > d_fe_data;

@@ -555,7 +555,32 @@ public:
      *
      * \note The default value for this string is "coordinates system".
      */
+    IBTK_DEPRECATED(
+        "use FEDataManager::getCurrentCoordinatesSystemName() and FEDataManager::setCurrentCoordinatesSystemName() to "
+        "access the current coordinates system name.")
     std::string& COORDINATES_SYSTEM_NAME;
+
+    /*!
+     * \brief The name of the equation system which stores the spatial position
+     * data. The actual string is stored by FEData.
+     *
+     * \note The default value for this string is "coordinates system".
+     */
+    const std::string& getCurrentCoordinatesSystemName() const
+    {
+        return d_fe_data->d_coordinates_system_name;
+    }
+
+    /*!
+     * \brief Set name of the equation system which stores the spatial position
+     * data. The actual string is stored by FEData.
+     *
+     * \note The default value for this string is "coordinates system".
+     */
+    void setCurrentCoordinatesSystemName(const std::string& coordinates_system_name) const
+    {
+        d_fe_data->d_coordinates_system_name = coordinates_system_name;
+    }
 
     /*!
      * \brief The libMesh boundary IDs to use for specifying essential boundary

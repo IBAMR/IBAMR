@@ -437,10 +437,8 @@ class IBFEDirectForcingKinematics;
 class IBFEMethod : public FEMechanicsBase, public IBStrategy
 {
 public:
+    IBTK_DEPRECATED("Use IBFEMethod::getSourceSystemName() to access the source system name.")
     static const std::string SOURCE_SYSTEM_NAME;
-
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
-    int mask_current_idx, mask_new_idx, mask_scratch_idx;
 
     /*!
      * \brief Constructor for a single-part model.
@@ -483,6 +481,14 @@ public:
      * \brief Defaulted destructor.
      */
     ~IBFEMethod() override = default;
+
+    /*!
+     * Return the source system name.
+     */
+    const std::string& getSourceSystemName() const
+    {
+        return d_source_system_name;
+    }
 
     /*!
      * Return a pointer to the finite element data manager object for the
@@ -892,6 +898,9 @@ protected:
      * Cached input databases.
      */
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fe_data_manager_db;
+
+    /// System names for key variables.
+    const std::string d_source_system_name;
 
     /*!
      * Whether or not the initial (i.e., before the regrid prior to

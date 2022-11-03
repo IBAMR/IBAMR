@@ -267,7 +267,7 @@ IBFEDirectForcingKinematics::forwardEulerStep(double current_time,
     // Rotate the body with current rotational velocity about center of mass
     // and translate the body to predicted position.
     EquationSystems* equation_systems = d_ibfe_method_ops->getFEDataManager(d_part)->getEquationSystems();
-    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(d_ibfe_method_ops->getCurrentCoordinatesSystemName());
     const unsigned int X_sys_num = X_system.number();
 
     MeshBase& mesh = equation_systems->get_mesh();
@@ -351,7 +351,7 @@ IBFEDirectForcingKinematics::midpointStep(double current_time,
     // Rotate the body with current rotational velocity about center of mass
     // and translate the body to predicted position.
     EquationSystems* equation_systems = d_ibfe_method_ops->getFEDataManager(d_part)->getEquationSystems();
-    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(d_ibfe_method_ops->getCurrentCoordinatesSystemName());
     const unsigned int X_sys_num = X_system.number();
 
     MeshBase& mesh = equation_systems->get_mesh();
@@ -551,7 +551,7 @@ IBFEDirectForcingKinematics::computeCOMOfStructure(Eigen::Vector3d& X0)
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE system and DOF map, and setup the FE object.
-    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(d_ibfe_method_ops->getCurrentCoordinatesSystemName());
     copy_and_synch(*X_system.solution, *X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
@@ -619,7 +619,7 @@ IBFEDirectForcingKinematics::computeMOIOfStructure(Eigen::Matrix3d& I, const Eig
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE system and DOF map, and setup the FE object.
-    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(d_ibfe_method_ops->getCurrentCoordinatesSystemName());
     copy_and_synch(*X_system.solution, *X_system.current_local_solution);
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<std::vector<unsigned int> > X_dof_indices(NDIM);
@@ -704,8 +704,8 @@ IBFEDirectForcingKinematics::computeImposedLagrangianForceDensity(PetscVector<do
 {
     const Eigen::Vector3d& X_com = d_center_of_mass_half;
     EquationSystems* equation_systems = d_ibfe_method_ops->getFEDataManager(d_part)->getEquationSystems();
-    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(d_ibfe_method_ops->getCurrentCoordinatesSystemName());
+    System& U_system = equation_systems->get_system(d_ibfe_method_ops->getVelocitySystemName());
     const unsigned int X_sys_num = X_system.number();
     const unsigned int U_sys_num = U_system.number();
 
@@ -797,8 +797,8 @@ IBFEDirectForcingKinematics::computeMixedLagrangianForceDensity(PetscVector<doub
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE system and DOF map, and setup the FE object.
-    System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
-    System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+    System& X_system = equation_systems->get_system(d_ibfe_method_ops->getCurrentCoordinatesSystemName());
+    System& U_system = equation_systems->get_system(d_ibfe_method_ops->getVelocitySystemName());
     DofMap& X_dof_map = X_system.get_dof_map();
     DofMap& U_dof_map = U_system.get_dof_map();
     std::vector<std::vector<unsigned int> > U_dof_indices(NDIM);

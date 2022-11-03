@@ -75,9 +75,9 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
     const BoundaryInfo& boundary_info = structure_mesh.get_boundary_info();
     const libMesh::Parallel::Communicator& comm_in = structure_mesh.comm();
 
-    const auto& x_mesh_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    const auto& x_mesh_system = equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
     const unsigned int x_mesh_sys_num = x_mesh_system.number();
-    const auto& u_mesh_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+    const auto& u_mesh_system = equation_systems->get_system(ib_method_ops->getVelocitySystemName());
     const unsigned int u_mesh_sys_num = u_mesh_system.number();
 
     // Get boundary information.
@@ -272,7 +272,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
         d_meter_meshes[meter_idx]->prepare_for_use();
 
         d_meter_systems.emplace_back(new EquationSystems(*d_meter_meshes[meter_idx]));
-        auto& velocity_sys = d_meter_systems[meter_idx]->add_system<System>(IBFEMethod::VELOCITY_SYSTEM_NAME);
+        auto& velocity_sys = d_meter_systems[meter_idx]->add_system<System>(ib_method_ops->getVelocitySystemName());
         velocity_sys.add_variable("U_0", static_cast<Order>(1), LAGRANGE);
         velocity_sys.add_variable("U_1", static_cast<Order>(1), LAGRANGE);
         velocity_sys.add_variable("U_2", static_cast<Order>(1), LAGRANGE);
@@ -319,7 +319,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     std::vector<std::map<int, std::vector<Vector> > > meter_x_map, meter_u_corr_map, meter_normal_map;
     std::vector<std::map<int, std::vector<double> > > meter_JxW_map;
     computeMeterQuadratureData(
-        meter_idx_map, meter_x_map, meter_u_corr_map, meter_normal_map, meter_JxW_map, hierarchy);
+        meter_idx_map, meter_x_map, meter_u_corr_map, meter_normal_map, meter_JxW_map, hierarchy, ib_method_ops);
 
     // Compute flow rate and pressure on mesh meter faces.
     std::fill(d_flow_rate_values.begin(), d_flow_rate_values.end(), 0.0);
@@ -590,13 +590,13 @@ IBFEInstrumentPanel::resetMeterConfiguration(IBFEMethod* const ib_method_ops, co
     // Get systems that provide the current structural mesh coordinates and velocity.
     const FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager(d_part);
     const EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-    const auto& x_mesh_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+    const auto& x_mesh_system = equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
     const auto& x_mesh_vec = x_mesh_system.solution;
-    const auto& u_mesh_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+    const auto& u_mesh_system = equation_systems->get_system(ib_method_ops->getVelocitySystemName());
     const auto& u_mesh_vec = u_mesh_system.solution;
 
     // Get systems that provide the current meter mesh velocity.
-    auto& u_meter_system = d_meter_systems[meter_idx]->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+    auto& u_meter_system = d_meter_systems[meter_idx]->get_system(ib_method_ops->getVelocitySystemName());
     auto& u_meter_vec = u_meter_system.solution;
     const int u_meter_sys_num = u_meter_system.number();
 
@@ -678,7 +678,8 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
                                                 std::vector<std::map<int, std::vector<Vector> > >& meter_u_corr_map,
                                                 std::vector<std::map<int, std::vector<Vector> > >& meter_normal_map,
                                                 std::vector<std::map<int, std::vector<double> > >& meter_JxW_map,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy)
+                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                                const IBFEMethod* const ib_method_ops)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
@@ -751,7 +752,7 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
         for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
         {
             // Setup FE objects.
-            auto& u_meter_system = d_meter_systems[meter_idx]->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+            auto& u_meter_system = d_meter_systems[meter_idx]->get_system(ib_method_ops->getVelocitySystemName());
             FEType fe_type = u_meter_system.variable_type(0);
             std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
             std::unique_ptr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[meter_idx]));
@@ -811,7 +812,7 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
         IBTK_MPI::maxReduction(meter_qp_global_ln[meter_idx].data(), meter_qp_global_ln[meter_idx].size());
 
         // Setup FE objects.
-        auto& u_meter_system = d_meter_systems[meter_idx]->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+        auto& u_meter_system = d_meter_systems[meter_idx]->get_system(ib_method_ops->getVelocitySystemName());
         NumericVector<double>& u_meter_serial_vec = u_meter_system.get_vector("serial solution");
         const DofMap& u_dof_map = u_meter_system.get_dof_map();
         FEType fe_type = u_meter_system.variable_type(0);
@@ -891,7 +892,7 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
             for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
             {
                 // Setup FE objects.
-                auto& u_meter_system = d_meter_systems[meter_idx]->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+                auto& u_meter_system = d_meter_systems[meter_idx]->get_system(ib_method_ops->getVelocitySystemName());
                 FEType fe_type = u_meter_system.variable_type(0);
                 std::unique_ptr<FEBase> fe_elem(FEBase::build(NDIM - 1, fe_type));
                 std::unique_ptr<QBase> qrule(QBase::build(d_quad_type, NDIM - 1, d_quad_order[meter_idx]));

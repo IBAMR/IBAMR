@@ -13,6 +13,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+
 #include "ibamr/FEMechanicsBase.h"
 #include "ibamr/IBFEDirectForcingKinematics.h"
 #include "ibamr/IBFEMethod.h"
@@ -259,12 +260,12 @@ get_x_and_FF(libMesh::VectorValue<double>& x,
 const Real PENALTY = 1.e10;
 
 void
-assemble_poisson(EquationSystems& es, const std::string& /*system_name*/)
+assemble_poisson(EquationSystems& es, const std::string& system_name)
 {
     const MeshBase& mesh = es.get_mesh();
     const BoundaryInfo& boundary_info = mesh.get_boundary_info();
     const unsigned int dim = mesh.mesh_dimension();
-    auto& system = es.get_system<LinearImplicitSystem>(IBFEMethod::PRESSURE_SYSTEM_NAME);
+    auto& system = es.get_system<LinearImplicitSystem>(system_name);
     const DofMap& dof_map = system.get_dof_map();
     FEType fe_type = dof_map.variable_type(0);
 
@@ -353,7 +354,11 @@ build_ib_ghosted_system_data(std::vector<SystemData>& ghosted_system_data,
 }
 } // namespace
 
-const std::string IBFEMethod::SOURCE_SYSTEM_NAME = "IB source system";
+// Suppress warnings so that we can cleanly define these deprecated variables
+IBTK_DISABLE_EXTRA_WARNINGS
+#define SOURCE_SYSTEM_NAME_VAL "IB source system"
+const std::string IBFEMethod::SOURCE_SYSTEM_NAME = SOURCE_SYSTEM_NAME_VAL;
+IBTK_ENABLE_EXTRA_WARNINGS
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -364,7 +369,8 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
-    : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number)
+    : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number),
+      d_source_system_name(SOURCE_SYSTEM_NAME_VAL)
 {
     commonConstructor(input_db, max_levels);
     return;
@@ -377,7 +383,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
-    : FEMechanicsBase(object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number)
+    : FEMechanicsBase(object_name,
+                      input_db,
+                      meshes,
+                      register_for_restart,
+                      restart_read_dirname,
+                      restart_restore_number),
+      d_source_system_name(SOURCE_SYSTEM_NAME_VAL)
 {
     commonConstructor(input_db, max_levels);
     return;
@@ -414,7 +426,7 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
     if (d_stress_normalization_part[part]) return;
     d_has_stress_normalization_parts = true;
     d_stress_normalization_part[part] = true;
-    auto& Phi_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(PRESSURE_SYSTEM_NAME);
+    auto& Phi_system = d_equation_systems[part]->add_system<LinearImplicitSystem>(getPressureSystemName());
     d_equation_systems[part]->parameters.set<Real>("Phi_epsilon") = d_epsilon;
     Phi_system.attach_assemble_function(assemble_poisson);
     // This system has a single variable so we don't need to also specify diagonal coupling
@@ -430,7 +442,7 @@ IBFEMethod::registerStressNormalizationPart(unsigned int part)
         vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
     }
     IBTK::setup_system_vectors(d_equation_systems[part].get(),
-                               { PRESSURE_SYSTEM_NAME },
+                               { getPressureSystemName() },
                                vector_names,
                                RestartManager::getManager()->isFromRestart());
     return;
@@ -445,12 +457,12 @@ IBFEMethod::registerLagBodySourceFunction(const LagBodySourceFcnData& data, cons
     d_has_lag_body_source_parts = true;
     d_lag_body_source_part[part] = true;
     d_lag_body_source_fcn_data[part] = data;
-    auto& Q_system = d_equation_systems[part]->add_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
+    auto& Q_system = d_equation_systems[part]->add_system<ExplicitSystem>(getSourceSystemName());
     // This system has a single variable so we don't need to also specify diagonal coupling
     Q_system.add_variable("Q", d_fe_order_pressure[part], d_fe_family_pressure[part]);
     // Setup cached system vectors.
     IBTK::setup_system_vectors(d_equation_systems[part].get(),
-                               { SOURCE_SYSTEM_NAME },
+                               { getSourceSystemName() },
                                { "current", "half", "tmp", "RHS Vector" },
                                RestartManager::getManager()->isFromRestart());
     return;
@@ -603,8 +615,6 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     }
     if (d_Q_vecs) d_Q_vecs->copy("solution", { "current", "half" });
 
-    // Update the mask data.
-    getVelocityHierarchyDataOps()->copyData(mask_new_idx, mask_current_idx);
     IBAMR_TIMER_STOP(t_preprocess_integrate_data);
     return;
 } // preprocessIntegrateData
@@ -664,8 +674,8 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     {
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
-            d_secondary_hierarchy
-                ->transferPrimaryToSecondary(ln, u_data_idx, u_data_idx, data_time, d_ib_solver->getVelocityPhysBdryOp());
+            d_secondary_hierarchy->transferPrimaryToSecondary(
+                ln, u_data_idx, u_data_idx, data_time, d_ib_solver->getVelocityPhysBdryOp());
         }
     }
     else
@@ -695,7 +705,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             d_active_fe_data_managers[part]->interpWeighted(u_data_idx,
                                                             *U_rhs_vecs[part],
                                                             *X_IB_ghost_vecs[part],
-                                                            VELOCITY_SYSTEM_NAME,
+                                                            getVelocitySystemName(),
                                                             no_fill,
                                                             data_time,
                                                             /*close_F*/ false,
@@ -720,7 +730,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
         {
             EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
             vecs_for_second_summation.push_back(U_rhs_vecs[part]);
-            apply_transposed_constraint_matrix(equation_systems.get_system(VELOCITY_SYSTEM_NAME).get_dof_map(),
+            apply_transposed_constraint_matrix(equation_systems.get_system(getVelocitySystemName()).get_dof_map(),
                                                *U_rhs_vecs[part]);
         }
     }
@@ -737,7 +747,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
             d_U_vecs->get("solution", part) = *U_vecs[part];
             d_active_fe_data_managers[part]->computeL2Projection(d_U_vecs->get("solution", part),
                                                                  *U_rhs_vecs[part],
-                                                                 VELOCITY_SYSTEM_NAME,
+                                                                 getVelocitySystemName(),
                                                                  d_interp_spec[part].use_consistent_mass_matrix,
                                                                  /*close_U*/ false,
                                                                  /*close_F*/ false);
@@ -902,7 +912,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
     {
         d_active_fe_data_managers[part]->computeL2Projection(d_F_vecs->get("solution", part),
                                                              d_F_vecs->get("RHS Vector", part),
-                                                             FORCE_SYSTEM_NAME,
+                                                             getForceSystemName(),
                                                              d_use_consistent_mass_matrix,
                                                              /*close_U*/ false,
                                                              /*close_F*/ false);
@@ -968,7 +978,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         if (!d_part_is_active[part]) continue;
         PetscVector<double>* X_ghost_vec = X_IB_ghost_vecs[part];
         PetscVector<double>* F_ghost_vec = F_IB_ghost_vecs[part];
-        d_active_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME);
+        d_active_fe_data_managers[part]->spread(f_scratch_data_idx, *F_ghost_vec, *X_ghost_vec, getForceSystemName());
     }
 
     // Handle any transmission conditions.
@@ -1058,7 +1068,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
             f_primary_data_ops->setToScalar(f_primary_scratch_data_idx,
                                             0.0,
                                             /*interior_only*/ false);
-            d_secondary_hierarchy->transferSecondaryToPrimary(ln, f_primary_scratch_data_idx, f_scratch_data_idx, data_time);
+            d_secondary_hierarchy->transferSecondaryToPrimary(
+                ln, f_primary_scratch_data_idx, f_scratch_data_idx, data_time);
             f_primary_data_ops->add(f_data_idx, f_data_idx, f_primary_scratch_data_idx);
         }
     }
@@ -1093,12 +1104,12 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         const unsigned int dim = mesh.mesh_dimension();
 
         // Extract the FE systems and DOF maps, and setup the FE object.
-        auto& Q_system = equation_systems.get_system<ExplicitSystem>(SOURCE_SYSTEM_NAME);
+        auto& Q_system = equation_systems.get_system<ExplicitSystem>(getSourceSystemName());
         const DofMap& Q_dof_map = Q_system.get_dof_map();
         FEDataManager::SystemDofMapCache& Q_dof_map_cache =
-            *d_primary_fe_data_managers[part]->getDofMapCache(SOURCE_SYSTEM_NAME);
+            *d_primary_fe_data_managers[part]->getDofMapCache(getSourceSystemName());
         FEType Q_fe_type = Q_dof_map.variable_type(0);
-        auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+        auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
@@ -1174,7 +1185,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         // Solve for Q.
         NumericVector<double>& Q_vec = d_Q_vecs->get("half", part);
         d_primary_fe_data_managers[part]->computeL2Projection(
-            Q_vec, *Q_rhs_vec, SOURCE_SYSTEM_NAME, d_use_consistent_mass_matrix);
+            Q_vec, *Q_rhs_vec, getSourceSystemName(), d_use_consistent_mass_matrix);
     }
     IBAMR_TIMER_STOP(t_compute_lagrangian_fluid_source);
     return;
@@ -1196,8 +1207,8 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
-        d_secondary_hierarchy
-            ->transferPrimaryToSecondary(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx, data_time);
+        d_secondary_hierarchy->transferPrimaryToSecondary(
+            d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx, data_time);
     }
 
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
@@ -1207,7 +1218,7 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
         d_active_fe_data_managers[part]->spread(q_data_idx,
                                                 *Q_IB_ghost_vecs[part],
                                                 *X_IB_ghost_vecs[part],
-                                                SOURCE_SYSTEM_NAME,
+                                                getSourceSystemName(),
                                                 q_phys_bdry_op,
                                                 data_time,
                                                 /*close_Q*/ false,
@@ -1217,8 +1228,8 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     if (d_use_scratch_hierarchy)
     {
         assertStructureOnFinestLevel();
-        d_secondary_hierarchy
-            ->transferSecondaryToPrimary(d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx, data_time);
+        d_secondary_hierarchy->transferSecondaryToPrimary(
+            d_hierarchy->getFinestLevelNumber(), q_data_idx, q_data_idx, data_time);
     }
 
     IBAMR_TIMER_STOP(t_spread_fluid_source);
@@ -1271,15 +1282,6 @@ void
 IBFEMethod::registerEulerianVariables()
 {
     const IntVector<NDIM> ghosts = 1;
-    mask_var = new SideVariable<NDIM, double>(d_object_name + "::mask");
-    registerVariable(mask_current_idx,
-                     mask_new_idx,
-                     mask_scratch_idx,
-                     mask_var,
-                     ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
-
     d_lagrangian_workload_var = new CellVariable<NDIM, double>(d_object_name + "::lagrangian_workload");
     registerVariable(d_lagrangian_workload_current_idx,
                      d_lagrangian_workload_new_idx,
@@ -1437,8 +1439,9 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
     return;
 } // addWorkloadEstimate
 
-void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                         Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // clear some things that contain data specific to the current patch hierarchy
@@ -1473,9 +1476,8 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
         }
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
-            d_secondary_hierarchy
-                ->transferSecondaryToPrimary(
-                    ln, d_lagrangian_workload_current_idx, d_lagrangian_workload_current_idx, 0.0);
+            d_secondary_hierarchy->transferSecondaryToPrimary(
+                ln, d_lagrangian_workload_current_idx, d_lagrangian_workload_current_idx, 0.0);
         }
     }
 
@@ -1483,8 +1485,9 @@ void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
     return;
 } // beginDataRedistribution
 
-void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     // if we are not initialized then there is nothing to do
@@ -1511,7 +1514,8 @@ void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
             {
                 EquationSystems& equation_systems = *d_active_fe_data_managers[part]->getEquationSystems();
                 MeshBase& mesh = equation_systems.get_mesh();
-                BoxPartitioner partitioner(*d_hierarchy, equation_systems.get_system(COORDS_SYSTEM_NAME));
+                BoxPartitioner partitioner(*d_hierarchy,
+                                           equation_systems.get_system(getCurrentCoordinatesSystemName()));
                 partitioner.repartition(mesh);
             }
         }
@@ -1694,9 +1698,9 @@ IBFEMethod::doInitializeFEEquationSystems()
     {
         EquationSystems& equation_systems = *d_equation_systems[part];
         IBTK::setup_system_vectors(
-            &equation_systems, { VELOCITY_SYSTEM_NAME }, { "current", "half", "new" }, from_restart);
+            &equation_systems, { getVelocitySystemName() }, { "current", "half", "new" }, from_restart);
         IBTK::setup_system_vectors(&equation_systems,
-                                   { COORDS_SYSTEM_NAME },
+                                   { getCurrentCoordinatesSystemName() },
                                    { "last_patch_elem_assoc", "last_regrid", "current", "half", "new", "tmp" },
                                    from_restart);
         std::vector<std::string> F_vector_names;
@@ -1708,7 +1712,7 @@ IBFEMethod::doInitializeFEEquationSystems()
         default:
             F_vector_names = { "current", "half", "new", "tmp", "RHS Vector" };
         }
-        IBTK::setup_system_vectors(&equation_systems, { FORCE_SYSTEM_NAME }, F_vector_names, from_restart);
+        IBTK::setup_system_vectors(&equation_systems, { getForceSystemName() }, F_vector_names, from_restart);
     }
 
     // Create the FE data managers that manage mappings between the FE mesh
@@ -1753,7 +1757,7 @@ IBFEMethod::doInitializeFEEquationSystems()
 
         // Since the scratch and primary FEDataManagers use the same FEData
         // object we only have to do this assignment once
-        d_active_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+        d_active_fe_data_managers[part]->setCurrentCoordinatesSystemName(getCurrentCoordinatesSystemName());
     }
 
     return;
@@ -1766,28 +1770,28 @@ IBFEMethod::doInitializeFESystemVectors()
 
     // The choice of FEDataManager set is important here since it determines the
     // IB ghost regions.
-    d_X_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, COORDS_SYSTEM_NAME));
-    d_U_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, VELOCITY_SYSTEM_NAME));
-    d_F_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, FORCE_SYSTEM_NAME));
-    d_X_IB_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, COORDS_SYSTEM_NAME));
-    d_U_IB_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, VELOCITY_SYSTEM_NAME));
-    d_F_IB_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, FORCE_SYSTEM_NAME));
+    d_X_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, getCurrentCoordinatesSystemName()));
+    d_U_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, getVelocitySystemName()));
+    d_F_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, getForceSystemName()));
+    d_X_IB_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, getCurrentCoordinatesSystemName()));
+    d_U_IB_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, getVelocitySystemName()));
+    d_F_IB_vecs.reset(new LibMeshSystemIBVectors(d_active_fe_data_managers, getForceSystemName()));
     if (d_has_stress_normalization_parts)
     {
-        d_P_vecs.reset(
-            new LibMeshSystemIBVectors(d_active_fe_data_managers, d_stress_normalization_part, PRESSURE_SYSTEM_NAME));
+        d_P_vecs.reset(new LibMeshSystemIBVectors(
+            d_active_fe_data_managers, d_stress_normalization_part, getPressureSystemName()));
     }
     if (d_has_static_pressure_parts)
     {
         d_P_vecs.reset(
-            new LibMeshSystemIBVectors(d_active_fe_data_managers, d_static_pressure_part, PRESSURE_SYSTEM_NAME));
+            new LibMeshSystemIBVectors(d_active_fe_data_managers, d_static_pressure_part, getPressureSystemName()));
     }
     if (d_has_lag_body_source_parts)
     {
         d_Q_vecs.reset(
-            new LibMeshSystemIBVectors(d_active_fe_data_managers, d_lag_body_source_part, SOURCE_SYSTEM_NAME));
+            new LibMeshSystemIBVectors(d_active_fe_data_managers, d_lag_body_source_part, getSourceSystemName()));
         d_Q_IB_vecs.reset(
-            new LibMeshSystemIBVectors(d_active_fe_data_managers, d_lag_body_source_part, SOURCE_SYSTEM_NAME));
+            new LibMeshSystemIBVectors(d_active_fe_data_managers, d_lag_body_source_part, getSourceSystemName()));
     }
     return;
 } // doInitializeFESystemVectors
@@ -1803,7 +1807,7 @@ IBFEMethod::doInitializeFEData(const bool use_present_data)
         EquationSystems& equation_systems = *d_equation_systems[part];
         if (d_stress_normalization_part[part])
         {
-            auto& Phi_system = equation_systems.get_system<LinearImplicitSystem>(PRESSURE_SYSTEM_NAME);
+            auto& Phi_system = equation_systems.get_system<LinearImplicitSystem>(getPressureSystemName());
             Phi_system.assemble_before_solve = false;
             Phi_system.assemble();
         }
@@ -1830,14 +1834,14 @@ IBFEMethod::computeStressNormalization(PetscVector<double>& Phi_vec,
     // Setup extra data needed to compute stresses/forces.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    auto& Phi_system = equation_systems.get_system<LinearImplicitSystem>(PRESSURE_SYSTEM_NAME);
+    auto& Phi_system = equation_systems.get_system<LinearImplicitSystem>(getPressureSystemName());
     const DofMap& Phi_dof_map = Phi_system.get_dof_map();
     FEDataManager::SystemDofMapCache& Phi_dof_map_cache =
-        *d_primary_fe_data_managers[part]->getDofMapCache(PRESSURE_SYSTEM_NAME);
+        *d_primary_fe_data_managers[part]->getDofMapCache(getPressureSystemName());
     FEType Phi_fe_type = Phi_dof_map.variable_type(0);
     std::vector<int> Phi_vars(1, 0);
 
-    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
@@ -2059,7 +2063,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+    auto& G_system = equation_systems.get_system<ExplicitSystem>(getForceSystemName());
     const DofMap& G_dof_map = G_system.get_dof_map();
     FEType G_fe_type = G_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -2067,7 +2071,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
-    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
@@ -2348,7 +2352,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     TBOX_ASSERT(dim == NDIM);
 
     // Extract the FE systems and DOF maps, and setup the FE object.
-    auto& G_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+    auto& G_system = equation_systems.get_system<ExplicitSystem>(getForceSystemName());
     DofMap& G_dof_map = G_system.get_dof_map();
     FEType G_fe_type = G_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -2356,7 +2360,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         TBOX_ASSERT(G_dof_map.variable_type(d) == G_fe_type);
     }
     std::vector<std::vector<unsigned int> > G_dof_indices(NDIM);
-    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
     DofMap& X_dof_map = X_system.get_dof_map();
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;

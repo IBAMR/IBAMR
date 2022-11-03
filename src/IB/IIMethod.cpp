@@ -2925,7 +2925,7 @@ IIMethod::initializeFEEquationSystems()
                                                              min_ghost_width,
                                                              d_eulerian_data_cache);
         d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
-        d_fe_data_managers[part]->COORDINATES_SYSTEM_NAME = COORDS_SYSTEM_NAME;
+        d_fe_data_managers[part]->setCurrentCoordinatesSystemName(COORDS_SYSTEM_NAME);
         if (from_restart)
         {
             const std::string& file_name = libmesh_restart_file_name(
