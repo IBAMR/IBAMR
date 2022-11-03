@@ -59,36 +59,36 @@ namespace IBAMR
 class FEMechanicsBase : public SAMRAI::tbox::Serializable
 {
 private:
-    static const std::string COORDS_SYSTEM_NAME;
-    static const std::string COORD_MAPPING_SYSTEM_NAME;
-    static const std::string FORCE_SYSTEM_NAME;
-    static const std::string PRESSURE_SYSTEM_NAME;
-    static const std::string VELOCITY_SYSTEM_NAME;
+    const std::string d_current_coordinates_system_name;
+    const std::string d_displacement_system_name;
+    const std::string d_force_system_name;
+    const std::string d_pressure_system_name;
+    const std::string d_velocity_system_name;
 
 public:
     const std::string& getCurrentCoordinatesSystemName() const
     {
-        return COORDS_SYSTEM_NAME;
+        return d_current_coordinates_system_name;
     }
 
     const std::string& getDisplacementSystemName() const
     {
-        return COORD_MAPPING_SYSTEM_NAME;
+        return d_displacement_system_name;
     }
 
     const std::string& getForceSystemName() const
     {
-        return FORCE_SYSTEM_NAME;
+        return d_force_system_name;
     }
 
     const std::string& getPressureSystemName() const
     {
-        return PRESSURE_SYSTEM_NAME;
+        return d_pressure_system_name;
     }
 
     const std::string& getVelocitySystemName() const
     {
-        return VELOCITY_SYSTEM_NAME;
+        return d_velocity_system_name;
     }
 
     /*!

@@ -192,12 +192,6 @@ get_Grad_U(libMesh::TensorValue<double>& Grad_U,
 }
 } // namespace
 
-const std::string FEMechanicsBase::COORDS_SYSTEM_NAME = "IB coordinates system";
-const std::string FEMechanicsBase::COORD_MAPPING_SYSTEM_NAME = "IB coordinate mapping system";
-const std::string FEMechanicsBase::FORCE_SYSTEM_NAME = "IB force system";
-const std::string FEMechanicsBase::PRESSURE_SYSTEM_NAME = "IB pressure system";
-const std::string FEMechanicsBase::VELOCITY_SYSTEM_NAME = "IB velocity system";
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FEMechanicsBase::FEMechanicsBase(const std::string& object_name,
@@ -206,6 +200,11 @@ FEMechanicsBase::FEMechanicsBase(const std::string& object_name,
                                  bool register_for_restart,
                                  const std::string& restart_read_dirname,
                                  unsigned int restart_restore_number)
+    : d_current_coordinates_system_name(object_name + "::current coordinates system"),
+      d_displacement_system_name(object_name + "::displacement system"),
+      d_force_system_name(object_name + "::force system"),
+      d_pressure_system_name(object_name + "::pressure system"),
+      d_velocity_system_name(object_name + "::velocity system")
 {
     commonConstructor(
         object_name, input_db, { mesh }, register_for_restart, restart_read_dirname, restart_restore_number);
@@ -217,6 +216,11 @@ FEMechanicsBase::FEMechanicsBase(const std::string& object_name,
                                  bool register_for_restart,
                                  const std::string& restart_read_dirname,
                                  unsigned int restart_restore_number)
+    : d_current_coordinates_system_name(object_name + "::current coordinates system"),
+      d_displacement_system_name(object_name + "::displacement system"),
+      d_force_system_name(object_name + "::force system"),
+      d_pressure_system_name(object_name + "::pressure system"),
+      d_velocity_system_name(object_name + "::velocity system")
 {
     commonConstructor(
         object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number);

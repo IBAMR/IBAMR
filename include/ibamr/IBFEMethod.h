@@ -437,12 +437,12 @@ class IBFEDirectForcingKinematics;
 class IBFEMethod : public FEMechanicsBase, public IBStrategy
 {
 private:
-    static const std::string SOURCE_SYSTEM_NAME;
+    const std::string d_source_system_name;
 
 public:
     const std::string& getSourceSystemName() const
     {
-        return SOURCE_SYSTEM_NAME;
+        return d_source_system_name;
     }
 
     /*!

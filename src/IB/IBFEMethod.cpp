@@ -353,8 +353,6 @@ build_ib_ghosted_system_data(std::vector<SystemData>& ghosted_system_data,
 }
 } // namespace
 
-const std::string IBFEMethod::SOURCE_SYSTEM_NAME = "IB source system";
-
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
@@ -364,7 +362,8 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
-    : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number)
+    : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number),
+      d_source_system_name(object_name + "::source system")
 {
     commonConstructor(input_db, max_levels);
     return;
@@ -377,7 +376,13 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                        bool register_for_restart,
                        const std::string& restart_read_dirname,
                        unsigned int restart_restore_number)
-    : FEMechanicsBase(object_name, input_db, meshes, register_for_restart, restart_read_dirname, restart_restore_number)
+    : FEMechanicsBase(object_name,
+                      input_db,
+                      meshes,
+                      register_for_restart,
+                      restart_read_dirname,
+                      restart_restore_number),
+      d_source_system_name(object_name + "::source system")
 {
     commonConstructor(input_db, max_levels);
     return;
