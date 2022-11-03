@@ -265,8 +265,9 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
 
     // Interpolate variables.
     std::unique_ptr<libMesh::PetscVector<double> > X_ghost_vec =
-        d_fe_data_manager->buildIBGhostedVector(IBFEMethod::COORDS_SYSTEM_NAME);
-    copy_and_synch(*d_fe_data_manager->getSolutionVector(IBFEMethod::COORDS_SYSTEM_NAME), *X_ghost_vec);
+        d_fe_data_manager->buildIBGhostedVector(d_fe_data_manager->getCurrentCoordinatesSystemName());
+    copy_and_synch(*d_fe_data_manager->getSolutionVector(d_fe_data_manager->getCurrentCoordinatesSystemName()),
+                   *X_ghost_vec);
     for (unsigned int k = 0; k < num_eulerian_vars; ++k)
     {
         System* system = d_scalar_interp_var_systems[k];

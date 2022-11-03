@@ -436,11 +436,14 @@ class IBFEDirectForcingKinematics;
  */
 class IBFEMethod : public FEMechanicsBase, public IBStrategy
 {
-public:
+private:
     static const std::string SOURCE_SYSTEM_NAME;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > mask_var;
-    int mask_current_idx, mask_new_idx, mask_scratch_idx;
+public:
+    const std::string& getSourceSystemName() const
+    {
+        return SOURCE_SYSTEM_NAME;
+    }
 
     /*!
      * \brief Constructor for a single-part model.

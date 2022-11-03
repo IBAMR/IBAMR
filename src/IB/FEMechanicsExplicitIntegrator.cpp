@@ -467,7 +467,7 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(const double data_time)
     {
         d_fe_projectors[part]->computeL2Projection(d_F_vecs->get("solution", part),
                                                    d_F_vecs->get("RHS Vector", part),
-                                                   FORCE_SYSTEM_NAME,
+                                                   getForceSystemName(),
                                                    d_use_consistent_mass_matrix,
                                                    /*close_U*/ false,
                                                    /*close_F*/ false);
@@ -493,11 +493,13 @@ FEMechanicsExplicitIntegrator::doInitializeFEEquationSystems()
     {
         EquationSystems& equation_systems = *d_equation_systems[part];
         IBTK::setup_system_vectors(&equation_systems,
-                                   { COORDS_SYSTEM_NAME, VELOCITY_SYSTEM_NAME },
+                                   { getCurrentCoordinatesSystemName(), getVelocitySystemName() },
                                    { "current", "half", "new" },
                                    from_restart);
-        IBTK::setup_system_vectors(
-            &equation_systems, { FORCE_SYSTEM_NAME }, { "current", "half", "new", "tmp", "RHS Vector" }, from_restart);
+        IBTK::setup_system_vectors(&equation_systems,
+                                   { getForceSystemName() },
+                                   { "current", "half", "new", "tmp", "RHS Vector" },
+                                   from_restart);
     }
 }
 
@@ -507,16 +509,16 @@ FEMechanicsExplicitIntegrator::doInitializeFESystemVectors()
     FEMechanicsBase::doInitializeFESystemVectors();
     std::vector<EquationSystems*> equation_systems;
     for (const auto& es : d_equation_systems) equation_systems.push_back(es.get());
-    d_X_vecs.reset(new LibMeshSystemVectors(equation_systems, COORDS_SYSTEM_NAME));
-    d_U_vecs.reset(new LibMeshSystemVectors(equation_systems, VELOCITY_SYSTEM_NAME));
-    d_F_vecs.reset(new LibMeshSystemVectors(equation_systems, FORCE_SYSTEM_NAME));
+    d_X_vecs.reset(new LibMeshSystemVectors(equation_systems, getCurrentCoordinatesSystemName()));
+    d_U_vecs.reset(new LibMeshSystemVectors(equation_systems, getVelocitySystemName()));
+    d_F_vecs.reset(new LibMeshSystemVectors(equation_systems, getForceSystemName()));
     if (d_has_static_pressure_parts)
     {
-        d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_static_pressure_part, PRESSURE_SYSTEM_NAME));
+        d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_static_pressure_part, getPressureSystemName()));
     }
     if (d_has_dynamic_pressure_parts)
     {
-        d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_dynamic_pressure_part, PRESSURE_SYSTEM_NAME));
+        d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_dynamic_pressure_part, getPressureSystemName()));
     }
 }
 

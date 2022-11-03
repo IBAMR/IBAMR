@@ -350,13 +350,13 @@ FEMechanicsBase::registerStaticPressurePart(PressureProjectionType projection_ty
     if (d_static_pressure_part[part]) return;
     d_has_static_pressure_parts = true;
     d_static_pressure_part[part] = true;
-    auto& P_system = d_equation_systems[part]->add_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+    auto& P_system = d_equation_systems[part]->add_system<ExplicitSystem>(getPressureSystemName());
     // This system has a single variable so we don't need to also specify diagonal coupling
     P_system.add_variable("P", d_fe_order_pressure[part], d_fe_family_pressure[part]);
     // Setup cached system vectors at restart.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     IBTK::setup_system_vectors(d_equation_systems[part].get(),
-                               { PRESSURE_SYSTEM_NAME },
+                               { getPressureSystemName() },
                                { "current", "half", "new", "tmp", "RHS Vector" },
                                from_restart);
     // Keep track of method parameters.
@@ -375,13 +375,13 @@ FEMechanicsBase::registerDynamicPressurePart(PressureProjectionType projection_t
     if (d_dynamic_pressure_part[part]) return;
     d_has_dynamic_pressure_parts = true;
     d_dynamic_pressure_part[part] = true;
-    auto& P_system = d_equation_systems[part]->add_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+    auto& P_system = d_equation_systems[part]->add_system<ExplicitSystem>(getPressureSystemName());
     // This system has a single variable so we don't need to also specify diagonal coupling
     P_system.add_variable("P", d_fe_order_pressure[part], d_fe_family_pressure[part]);
     // Setup cached system vectors at restart.
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     IBTK::setup_system_vectors(d_equation_systems[part].get(),
-                               { PRESSURE_SYSTEM_NAME },
+                               { getPressureSystemName() },
                                { "current", "half", "new", "tmp", "RHS Vector" },
                                from_restart);
     // Keep track of method parameters.
@@ -501,14 +501,14 @@ FEMechanicsBase::doInitializeFEEquationSystems()
         }
         else
         {
-            auto& X_system = equation_systems.add_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+            auto& X_system = equation_systems.add_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 X_system.add_variable("X_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
             }
             X_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
-            auto& dX_system = equation_systems.add_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
+            auto& dX_system = equation_systems.add_system<ExplicitSystem>(getDisplacementSystemName());
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dX_system.add_variable(
@@ -516,14 +516,14 @@ FEMechanicsBase::doInitializeFEEquationSystems()
             }
             dX_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
-            auto& U_system = equation_systems.add_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+            auto& U_system = equation_systems.add_system<ExplicitSystem>(getVelocitySystemName());
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_system.add_variable("U_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
             }
             U_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
-            auto& F_system = equation_systems.add_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+            auto& F_system = equation_systems.add_system<ExplicitSystem>(getForceSystemName());
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 F_system.add_variable("F_" + std::to_string(d), d_fe_order_force[part], d_fe_family_force[part]);
@@ -561,10 +561,10 @@ FEMechanicsBase::doInitializeFEData(const bool use_present_data)
         updateCoordinateMapping(part);
 
         // Assemble systems.
-        auto& X_system = equation_systems.get_system<System>(COORDS_SYSTEM_NAME);
-        auto& dX_system = equation_systems.get_system<System>(COORD_MAPPING_SYSTEM_NAME);
-        auto& U_system = equation_systems.get_system<System>(VELOCITY_SYSTEM_NAME);
-        auto& F_system = equation_systems.get_system<System>(FORCE_SYSTEM_NAME);
+        auto& X_system = equation_systems.get_system<System>(getCurrentCoordinatesSystemName());
+        auto& dX_system = equation_systems.get_system<System>(getDisplacementSystemName());
+        auto& U_system = equation_systems.get_system<System>(getVelocitySystemName());
+        auto& F_system = equation_systems.get_system<System>(getForceSystemName());
 
         X_system.assemble_before_solve = false;
         X_system.assemble();
@@ -656,13 +656,13 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     // Setup extra data needed to compute stresses/forces.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    auto& P_system = equation_systems.get_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+    auto& P_system = equation_systems.get_system<ExplicitSystem>(getPressureSystemName());
     const DofMap& P_dof_map = P_system.get_dof_map();
-    FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data[part]->getDofMapCache(PRESSURE_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data[part]->getDofMapCache(getPressureSystemName());
     FEType P_fe_type = P_dof_map.variable_type(0);
     std::vector<int> P_vars = { 0 };
     std::vector<int> no_vars = {};
-    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
 
@@ -726,15 +726,15 @@ FEMechanicsBase::computeStaticPressure(PetscVector<double>& P_vec,
     {
     case CONSISTENT_PROJECTION:
         d_fe_projectors[part]->computeL2Projection(
-            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ true);
+            P_vec, *P_rhs_vec, getPressureSystemName(), /*use_consistent_mass_matrix*/ true);
         break;
     case LUMPED_PROJECTION:
         d_fe_projectors[part]->computeL2Projection(
-            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ false);
+            P_vec, *P_rhs_vec, getPressureSystemName(), /*use_consistent_mass_matrix*/ false);
         break;
     case STABILIZED_PROJECTION:
         d_fe_projectors[part]->computeStabilizedL2Projection(
-            P_vec, *P_rhs_vec, PRESSURE_SYSTEM_NAME, d_static_pressure_stab_param);
+            P_vec, *P_rhs_vec, getPressureSystemName(), d_static_pressure_stab_param);
         break;
     default:
         TBOX_ERROR("unsupported pressure projection type\n");
@@ -760,16 +760,16 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
     // Setup extra data needed to compute stresses/forces.
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
-    auto& P_system = equation_systems.get_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME);
+    auto& P_system = equation_systems.get_system<ExplicitSystem>(getPressureSystemName());
     const DofMap& P_dof_map = P_system.get_dof_map();
-    FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data[part]->getDofMapCache(PRESSURE_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& P_dof_map_cache = *d_fe_data[part]->getDofMapCache(getPressureSystemName());
     FEType P_fe_type = P_dof_map.variable_type(0);
     std::vector<int> P_vars = { 0 };
     std::vector<int> no_vars = {};
-    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
     std::vector<int> X_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) X_vars[d] = d;
-    auto& U_system = equation_systems.get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+    auto& U_system = equation_systems.get_system<ExplicitSystem>(getVelocitySystemName());
     std::vector<int> U_vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) U_vars[d] = d;
 
@@ -838,15 +838,15 @@ FEMechanicsBase::computeDynamicPressureRateOfChange(PetscVector<double>& dP_dt_v
     {
     case CONSISTENT_PROJECTION:
         d_fe_projectors[part]->computeL2Projection(
-            dP_dt_vec, *dP_dt_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ true);
+            dP_dt_vec, *dP_dt_rhs_vec, getPressureSystemName(), /*use_consistent_mass_matrix*/ true);
         break;
     case LUMPED_PROJECTION:
         d_fe_projectors[part]->computeL2Projection(
-            dP_dt_vec, *dP_dt_rhs_vec, PRESSURE_SYSTEM_NAME, /*use_consistent_mass_matrix*/ false);
+            dP_dt_vec, *dP_dt_rhs_vec, getPressureSystemName(), /*use_consistent_mass_matrix*/ false);
         break;
     case STABILIZED_PROJECTION:
         d_fe_projectors[part]->computeStabilizedL2Projection(
-            dP_dt_vec, *dP_dt_rhs_vec, PRESSURE_SYSTEM_NAME, d_dynamic_pressure_stab_param);
+            dP_dt_vec, *dP_dt_rhs_vec, getPressureSystemName(), d_dynamic_pressure_stab_param);
         break;
     default:
         TBOX_ERROR("unsupported pressure projection type\n");
@@ -872,7 +872,7 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     const unsigned int dim = mesh.mesh_dimension();
 
     // Setup global and elemental right-hand-side vectors.
-    auto& F_system = equation_systems.get_system<ExplicitSystem>(FORCE_SYSTEM_NAME);
+    auto& F_system = equation_systems.get_system<ExplicitSystem>(getForceSystemName());
     // During assembly we sum into ghost regions - this only makes sense if we
     // have a ghosted vector.
     int ierr;
@@ -911,13 +911,13 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
 
         // Extract the FE systems and DOF maps, and setup the FE object.
         const DofMap& F_dof_map = F_system.get_dof_map();
-        FEDataManager::SystemDofMapCache& F_dof_map_cache = *d_fe_data[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+        FEDataManager::SystemDofMapCache& F_dof_map_cache = *d_fe_data[part]->getDofMapCache(getForceSystemName());
         FEType F_fe_type = F_dof_map.variable_type(0);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             TBOX_ASSERT(F_dof_map.variable_type(d) == F_fe_type);
         }
-        auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+        auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
@@ -1087,14 +1087,14 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
 
     // Extract the FE systems and DOF maps, and setup the FE objects.
     const DofMap& F_dof_map = F_system.get_dof_map();
-    FEDataManager::SystemDofMapCache& F_dof_map_cache = *d_fe_data[part]->getDofMapCache(FORCE_SYSTEM_NAME);
+    FEDataManager::SystemDofMapCache& F_dof_map_cache = *d_fe_data[part]->getDofMapCache(getForceSystemName());
     FEType F_fe_type = F_dof_map.variable_type(0);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         TBOX_ASSERT(F_dof_map.variable_type(d) == F_fe_type);
     }
-    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
-    System* P_system = using_pressure ? &equation_systems.get_system<ExplicitSystem>(PRESSURE_SYSTEM_NAME) : nullptr;
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
+    System* P_system = using_pressure ? &equation_systems.get_system<ExplicitSystem>(getPressureSystemName()) : nullptr;
     std::vector<int> vars(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
     std::vector<int> P_vars(1, 0);
@@ -1342,7 +1342,7 @@ FEMechanicsBase::initializeCoordinates(const unsigned int part)
 {
     EquationSystems& equation_systems = *d_fe_data[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
-    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
     const bool identity_mapping = !d_coordinate_mapping_fcn_data[part].fcn;
@@ -1379,10 +1379,10 @@ FEMechanicsBase::updateCoordinateMapping(const unsigned int part)
 {
     EquationSystems& equation_systems = *d_fe_data[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
-    auto& X_system = equation_systems.get_system<ExplicitSystem>(COORDS_SYSTEM_NAME);
+    auto& X_system = equation_systems.get_system<ExplicitSystem>(getCurrentCoordinatesSystemName());
     const unsigned int X_sys_num = X_system.number();
     NumericVector<double>& X_coords = *X_system.solution;
-    auto& dX_system = equation_systems.get_system<ExplicitSystem>(COORD_MAPPING_SYSTEM_NAME);
+    auto& dX_system = equation_systems.get_system<ExplicitSystem>(getDisplacementSystemName());
     const unsigned int dX_sys_num = dX_system.number();
     NumericVector<double>& dX_coords = *dX_system.solution;
     auto it = mesh.local_nodes_begin();
@@ -1411,7 +1411,7 @@ FEMechanicsBase::initializeVelocity(const unsigned int part)
 {
     EquationSystems& equation_systems = *d_fe_data[part]->getEquationSystems();
     MeshBase& mesh = equation_systems.get_mesh();
-    auto& U_system = equation_systems.get_system<ExplicitSystem>(VELOCITY_SYSTEM_NAME);
+    auto& U_system = equation_systems.get_system<ExplicitSystem>(getVelocitySystemName());
     const unsigned int U_sys_num = U_system.number();
     NumericVector<double>& U_vec = *U_system.solution;
     VectorValue<double> U;
