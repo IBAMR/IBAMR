@@ -191,7 +191,7 @@ main(int argc, char** argv)
         time_integrator->regridHierarchy();
 
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
-        const std::string& displacement_name = IBFEMethod::COORDS_SYSTEM_NAME;
+        const std::string& displacement_name = ib_method_ops->getCurrentCoordinatesSystemName();
         std::unique_ptr<libMesh::PetscVector<double> > ib_vector =
             fe_data_manager->buildIBGhostedVector(displacement_name);
         Vec petsc_vec = ib_vector->vec();

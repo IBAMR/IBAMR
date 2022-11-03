@@ -227,19 +227,21 @@ main(int argc, char** argv)
         time_integrator->regridHierarchy();
 
         FEDataManager* fe_data_manager = nullptr;
+        std::string coords_system_name;
         if (use_boundary_mesh)
         {
             Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
             fe_data_manager = ibfe_ops->getFEDataManager();
+            coords_system_name = IBFESurfaceMethod::COORDS_SYSTEM_NAME;
         }
         else
         {
             Pointer<IBFEMethod> ibfe_ops = ib_ops;
             fe_data_manager = ibfe_ops->getFEDataManager();
+            coords_system_name = ibfe_ops->getCurrentCoordinatesSystemName();
         }
-        const std::string& displacement_name = IBFEMethod::COORDS_SYSTEM_NAME;
         std::unique_ptr<libMesh::PetscVector<double> > ib_vector =
-            fe_data_manager->buildIBGhostedVector(displacement_name);
+            fe_data_manager->buildIBGhostedVector(coords_system_name);
         Vec petsc_vec = ib_vector->vec();
 
         const int range_tag = 0;
