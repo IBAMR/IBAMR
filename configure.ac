@@ -178,6 +178,8 @@ AC_CONFIG_FILES([
   examples/ConstraintIB/moving_plate/Makefile
   examples/ConstraintIB/oscillating_rigid_cylinder/Makefile
   examples/ConstraintIB/stokes_first_problem/Makefile
+  examples/DLM/Makefile
+  examples/DLM/ex0/Makefile
   examples/IB/Makefile
   examples/IB/explicit/Makefile
   examples/IB/explicit/ex0/Makefile
