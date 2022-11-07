@@ -102,6 +102,8 @@ FEMechanicsExplicitIntegrator::postprocessIntegrateData(double current_time, dou
 void
 FEMechanicsExplicitIntegrator::forwardEulerStep(const double current_time, const double new_time)
 {
+    // U^{n+1} := U^{n} + (dt/rho) F^{n}
+    // X^{n+1} := X^{n} + dt       U^{n}
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         doForwardEulerStep(&d_X_vecs->get("new", part),
@@ -117,21 +119,21 @@ FEMechanicsExplicitIntegrator::forwardEulerStep(const double current_time, const
                            part);
     }
 
-    // We copy F^{n} into F^{n+1} to make sure that it is stored in the viz
-    // file.
+    // Copy F^{n} into F^{n+1} to make sure that it is stored in the viz file.
     d_F_vecs->copy("current", { "new" });
 }
 
 void
 FEMechanicsExplicitIntegrator::modifiedEulerStep(const double current_time, const double new_time)
 {
+    int ierr;
     const double dt = new_time - current_time;
+
+    // U^{n+1} := U^{n} + (dt/rho) F^{n}
+    // X^{n+1} := X^{n} + dt       U^{n+1}
+    computeLagrangianForce(current_time);
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        // U^{n+1} := U^{n} + (dt/rho) F^{n}
-        // X^{n+1} := X^{n} + dt       U^{n+1}
-        computeLagrangianForce(current_time);
-        int ierr;
         ierr = VecWAXPY(d_U_vecs->get("new", part).vec(),
                         dt / d_rhos[part],
                         d_F_vecs->get("current", part).vec(),
@@ -153,21 +155,22 @@ FEMechanicsExplicitIntegrator::modifiedEulerStep(const double current_time, cons
             IBTK_CHKERRQ(ierr);
         }
     }
-    // We copy F^{n} into F^{n+1} to make sure that it is stored in the viz
-    // file.
+
+    // Copy F^{n} into F^{n+1} to make sure that it is stored in the viz file.
     d_F_vecs->copy("current", { "new" });
 }
 
 void
 FEMechanicsExplicitIntegrator::backwardEulerStep(const double current_time, const double new_time)
 {
+    int ierr;
     const double dt = new_time - current_time;
+
+    // U^{n+1} := U^{n} + (dt/rho) F^{n+1}
+    // X^{n+1} := X^{n} + dt       U^{n+1}
+    computeLagrangianForce(new_time);
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        // U^{n+1} := U^{n} + (dt/rho) F^{n+1}
-        // X^{n+1} := X^{n} + dt       U^{n+1}
-        computeLagrangianForce(new_time);
-        int ierr;
         ierr = VecWAXPY(d_U_vecs->get("new", part).vec(),
                         dt / d_rhos[part],
                         d_F_vecs->get("new", part).vec(),
@@ -194,16 +197,16 @@ FEMechanicsExplicitIntegrator::backwardEulerStep(const double current_time, cons
 void
 FEMechanicsExplicitIntegrator::midpointStep(const double current_time, const double new_time)
 {
+    int ierr;
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
+
+    // Step 1:
+    //    U^{n+1/2} := U^{n} + (dt/(2 rho)) F^{n}
+    //    X^{n+1/2} := X^{n} + (dt/2)       U^{n}
+    computeLagrangianForce(current_time);
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        int ierr;
-
-        // Step 1:
-        //    U^{n+1/2} := U^{n} + (dt/(2 rho)) F^{n}
-        //    X^{n+1/2} := X^{n} + (dt/2)       U^{n}
-        computeLagrangianForce(current_time);
         ierr = VecWAXPY(d_U_vecs->get("half", part).vec(),
                         0.5 * dt / d_rhos[part],
                         d_F_vecs->get("current", part).vec(),
@@ -227,11 +230,14 @@ FEMechanicsExplicitIntegrator::midpointStep(const double current_time, const dou
                             d_P_vecs->get("current", part).vec());
             IBTK_CHKERRQ(ierr);
         }
+    }
 
-        // Step 2:
-        //    U^{n+1} := U^{n} + (dt/rho) F^{n+1/2}
-        //    X^{n+1} := X^{n} + dt       U^{n+1/2}
-        computeLagrangianForce(half_time);
+    // Step 2:
+    //    U^{n+1} := U^{n} + (dt/rho) F^{n+1/2}
+    //    X^{n+1} := X^{n} + dt       U^{n+1/2}
+    computeLagrangianForce(half_time);
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
         ierr = VecWAXPY(d_U_vecs->get("new", part).vec(),
                         dt / d_rhos[part],
                         d_F_vecs->get("half", part).vec(),
@@ -256,23 +262,23 @@ FEMechanicsExplicitIntegrator::midpointStep(const double current_time, const dou
             IBTK_CHKERRQ(ierr);
         }
     }
-    // We copy F^{n+1/2} into F^{n+1} to make sure that it is stored in the viz
-    // file.
+
+    // Copy F^{n+1/2} into F^{n+1} to make sure that it is stored in the viz file.
     d_F_vecs->copy("half", { "new" });
 }
 
 void
 FEMechanicsExplicitIntegrator::trapezoidalStep(const double current_time, const double new_time)
 {
+    int ierr;
     const double dt = new_time - current_time;
+
+    // Step 1 (forward Euler):
+    //    U^{n+1,*} := U^{n} + (dt/rho) F^{n}
+    //    X^{n+1,*} := X^{n} + dt       U^{n}
+    computeLagrangianForce(current_time);
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        int ierr;
-
-        // Step 1 (forward Euler):
-        //    U^{n+1,*} := U^{n} + (dt/rho) F^{n}
-        //    X^{n+1,*} := X^{n} + dt       U^{n}
-        computeLagrangianForce(current_time);
         ierr = VecWAXPY(d_U_vecs->get("new", part).vec(),
                         dt / d_rhos[part],
                         d_F_vecs->get("current", part).vec(),
@@ -296,11 +302,14 @@ FEMechanicsExplicitIntegrator::trapezoidalStep(const double current_time, const 
                             d_P_vecs->get("current", part).vec());
             IBTK_CHKERRQ(ierr);
         }
+    }
 
-        // Step 2 (trapezoidal rule "corrector"):
-        //    U^{n+1} := U^{n} + (dt/(2 rho)) (F^{n} + F^{n+1,*})
-        //    X^{n+1} := X^{n} + (dt/2)       (U^{n} + U^{n+1,*})
-        computeLagrangianForce(new_time);
+    // Step 2 (trapezoidal rule "corrector"):
+    //    U^{n+1} := U^{n} + (dt/(2 rho)) (F^{n} + F^{n+1,*})
+    //    X^{n+1} := X^{n} + (dt/2)       (U^{n} + U^{n+1,*})
+    computeLagrangianForce(new_time);
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
         if (d_dynamic_pressure_part[part])
         {
             computeDynamicPressureRateOfChange(
@@ -349,15 +358,14 @@ FEMechanicsExplicitIntegrator::trapezoidalStep(const double current_time, const 
 void
 FEMechanicsExplicitIntegrator::modifiedTrapezoidalStep(const double current_time, const double new_time)
 {
+    int ierr;
     const double dt = new_time - current_time;
+    // Step 1 (modified Euler):
+    //    U^{n+1,*} := U^{n} + (dt/rho) F^{n}
+    //    X^{n+1,*} := X^{n} + dt       U^{n+1,*}
+    computeLagrangianForce(current_time);
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        int ierr;
-
-        // Step 1 (modified Euler):
-        //    U^{n+1,*} := U^{n} + (dt/rho) F^{n}
-        //    X^{n+1,*} := X^{n} + dt       U^{n+1,*}
-        computeLagrangianForce(current_time);
         ierr = VecWAXPY(d_U_vecs->get("new", part).vec(),
                         dt / d_rhos[part],
                         d_F_vecs->get("current", part).vec(),
@@ -381,11 +389,14 @@ FEMechanicsExplicitIntegrator::modifiedTrapezoidalStep(const double current_time
                             d_P_vecs->get("current", part).vec());
             IBTK_CHKERRQ(ierr);
         }
+    }
 
-        // Step 2 (modified trapezoidal rule "corrector"):
-        //    U^{n+1} := U^{n} + (dt/(2 rho)) (F^{n} + F^{n+1,*})
-        //    X^{n+1} := X^{n} + (dt/2)       (U^{n} + U^{n+1})
-        computeLagrangianForce(new_time);
+    // Step 2 (modified trapezoidal rule "corrector"):
+    //    U^{n+1} := U^{n} + (dt/(2 rho)) (F^{n} + F^{n+1,*})
+    //    X^{n+1} := X^{n} + (dt/2)       (U^{n} + U^{n+1})
+    computeLagrangianForce(new_time);
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
         ierr = VecAXPBYPCZ(d_F_vecs->get("half", part).vec(),
                            0.5,
                            0.5,
@@ -432,6 +443,7 @@ FEMechanicsExplicitIntegrator::modifiedTrapezoidalStep(const double current_time
 void
 FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const double new_time, const unsigned int n_stages)
 {
+    int ierr;
     const double dt = new_time - current_time;
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
@@ -466,6 +478,7 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
                 d_dynamic_pressure_part[part] ?
                     dynamic_cast<PetscVector<double>*>(d_P_vecs->get("current", part).clone().release()) :
                     nullptr);
+
             doForwardEulerStep(X1_vec,
                                U1_vec,
                                P1_vec,
@@ -490,7 +503,6 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
                                current_time + 2.0 * dt,
                                part);
 
-            int ierr;
             ierr = VecAXPBY(U2_vec->vec(), 0.75, 0.25, U_current_vec->vec());
             IBTK_CHKERRQ(ierr);
             ierr = VecAXPBY(X2_vec->vec(), 0.75, 0.25, X_current_vec->vec());
@@ -578,7 +590,6 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
                                current_time + 1.0 * dt,
                                part);
 
-            int ierr;
             ierr = VecAXPBY(U1_vec->vec(), 0.5, 0.5, U_current_vec->vec());
             IBTK_CHKERRQ(ierr);
             ierr = VecAXPBY(X1_vec->vec(), 0.5, 0.5, X_current_vec->vec());
