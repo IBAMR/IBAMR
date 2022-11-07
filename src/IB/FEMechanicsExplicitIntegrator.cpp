@@ -111,7 +111,7 @@ FEMechanicsExplicitIntegrator::forwardEulerStep(const double current_time, const
                            d_dynamic_pressure_part[part] ? &d_P_vecs->get("new", part) : nullptr,
                            &d_X_vecs->get("current", part),
                            &d_U_vecs->get("current", part),
-                           d_dynamic_pressure_part[part] ? &d_P_vecs->get("current", part) : nullptr,
+                           partHasPressure(part) ? &d_P_vecs->get("current", part) : nullptr,
                            &d_F_vecs->get("current", part),
                            d_dynamic_pressure_part[part] ? &d_P_vecs->get("tmp", part) : nullptr,
                            current_time,
@@ -462,9 +462,8 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
             std::unique_ptr<PetscVector<double> > X2_vec(
                 dynamic_cast<PetscVector<double>*>(d_X_vecs->get("new", part).clone().release()));
 
-            PetscVector<double>* P_current_vec =
-                d_dynamic_pressure_part[part] ? &d_P_vecs->get("current", part) : nullptr;
-            PetscVector<double>* P_new_vec = d_dynamic_pressure_part[part] ? &d_P_vecs->get("new", part) : nullptr;
+            PetscVector<double>* P_current_vec = partHasPressure(part) ? &d_P_vecs->get("current", part) : nullptr;
+            PetscVector<double>* P_new_vec = partHasPressure(part) ? &d_P_vecs->get("new", part) : nullptr;
             PetscVector<double>* P1_vec = P_new_vec;
             std::unique_ptr<PetscVector<double> > P2_vec(
                 d_dynamic_pressure_part[part] ?
@@ -557,12 +556,11 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
             std::unique_ptr<PetscVector<double> > X3_vec(
                 dynamic_cast<PetscVector<double>*>(d_X_vecs->get("new", part).clone().release()));
 
-            PetscVector<double>* P_current_vec =
-                d_dynamic_pressure_part[part] ? &d_P_vecs->get("current", part) : nullptr;
-            PetscVector<double>* P_new_vec = d_dynamic_pressure_part[part] ? &d_P_vecs->get("new", part) : nullptr;
+            PetscVector<double>* P_current_vec = partHasPressure(part) ? &d_P_vecs->get("current", part) : nullptr;
+            PetscVector<double>* P_new_vec = partHasPressure(part) ? &d_P_vecs->get("new", part) : nullptr;
             PetscVector<double>* P1_vec = P_new_vec;
             std::unique_ptr<PetscVector<double> > P2_vec(
-                d_dynamic_pressure_part[part] ?
+                partHasPressure(part) ?
                     dynamic_cast<PetscVector<double>*>(d_P_vecs->get("new", part).clone().release()) :
                     nullptr);
             std::unique_ptr<PetscVector<double> > P3_vec(

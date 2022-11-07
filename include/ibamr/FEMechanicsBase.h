@@ -395,6 +395,15 @@ public:
                                              unsigned int part = 0);
 
     /*!
+     * Indicate whether there is a static or dynamic pressure associated with the specified FE mesh part.
+     */
+    bool partHasPressure(unsigned int part = 0)
+    {
+        TBOX_ASSERT(part < d_meshes.size());
+        return d_static_pressure_part[part] || d_dynamic_pressure_part[part];
+    }
+
+    /*!
      * Method to prepare to advance data from current_time to new_time.
      */
     virtual void preprocessIntegrateData(double current_time, double new_time, int num_cycles);
