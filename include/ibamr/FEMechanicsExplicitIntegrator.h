@@ -156,6 +156,7 @@ public:
      */
     void computeLagrangianForce(libMesh::PetscVector<double>& F_vec,
                                 libMesh::PetscVector<double>& X_vec,
+                                libMesh::PetscVector<double>& U_vec,
                                 libMesh::PetscVector<double>* P_vec,
                                 double data_time,
                                 unsigned int part);
@@ -202,6 +203,9 @@ protected:
 
     /// Structure mass densities.
     std::vector<double> d_rhos;
+
+    /// Structure damping coefficients.
+    std::vector<double> d_etas;
 
 private:
     /*!

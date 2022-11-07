@@ -681,6 +681,12 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(const double data_time)
                                                    d_use_consistent_mass_matrix,
                                                    /*close_U*/ false,
                                                    /*close_F*/ false);
+        const double eta = d_etas[part];
+        if (eta != 0.0)
+        {
+            int ierr = VecAXPY(d_F_vecs->get("solution", part).vec(), -eta, d_U_vecs->get(data_time_str, part).vec());
+            IBTK_CHKERRQ(ierr);
+        }
     }
     d_F_vecs->copy("solution", { data_time_str });
 }
@@ -688,6 +694,7 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(const double data_time)
 void
 FEMechanicsExplicitIntegrator::computeLagrangianForce(PetscVector<double>& F_vec,
                                                       PetscVector<double>& X_vec,
+                                                      PetscVector<double>& U_vec,
                                                       PetscVector<double>* P_vec,
                                                       const double data_time,
                                                       const unsigned int part)
@@ -710,6 +717,12 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(PetscVector<double>& F_vec
                                                d_use_consistent_mass_matrix,
                                                /*close_U*/ false,
                                                /*close_F*/ false);
+    const double eta = d_etas[part];
+    if (eta != 0.0)
+    {
+        int ierr = VecAXPY(F_vec.vec(), -eta, U_vec.vec());
+        IBTK_CHKERRQ(ierr);
+    }
 }
 
 void
@@ -784,7 +797,7 @@ FEMechanicsExplicitIntegrator::doForwardEulerStep(PetscVector<double>& X_new_vec
 
     // U^{n+1} := U^{n} + (dt/rho) F^{n}
     // X^{n+1} := X^{n} + dt       U^{n}
-    computeLagrangianForce(F_current_vec, X_current_vec, P_current_vec, start_time, part);
+    computeLagrangianForce(F_current_vec, X_current_vec, U_current_vec, P_current_vec, start_time, part);
     int ierr;
     ierr = VecWAXPY(U_new_vec.vec(), dt / d_rhos[part], F_current_vec.vec(), U_current_vec.vec());
     IBTK_CHKERRQ(ierr);
@@ -808,6 +821,7 @@ FEMechanicsExplicitIntegrator::commonConstructor(const Pointer<Database>& input_
 {
     // Set some default values.
     d_rhos.resize(d_meshes.size(), 1.0);
+    d_etas.resize(d_meshes.size(), 0.0);
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -831,6 +845,13 @@ FEMechanicsExplicitIntegrator::getFromInput(const Pointer<Database>& db, bool /*
     {
         TBOX_ASSERT(static_cast<std::size_t>(db->getArraySize("mass_density")) == d_rhos.size());
         db->getDoubleArray("mass_density", d_rhos.data(), db->getArraySize("mass_density"));
+    }
+    if (db->isDouble("damping"))
+        std::fill(d_etas.begin(), d_etas.end(), db->getDouble("damping"));
+    else if (db->keyExists("damping"))
+    {
+        TBOX_ASSERT(static_cast<std::size_t>(db->getArraySize("damping")) == d_etas.size());
+        db->getDoubleArray("damping", d_etas.data(), db->getArraySize("damping"));
     }
 }
 
