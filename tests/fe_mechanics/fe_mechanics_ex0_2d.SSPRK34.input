@@ -1,0 +1,62 @@
+// physical parameters
+L_X   = 10.0                                        // width  of computational domain
+L_Y   = 10.0                                        // height of computational domain
+L_lag = 6.5                                         // longest edge of cook's membrane
+U_MAX = 5.0
+
+// grid spacing parameters
+N_X = 16
+N_Y = ceil(N_X * (L_Y / L_X))
+DX = L_X / N_X
+
+// blocks
+ELEM_TYPE = "TRI3"                                  // type of element to use for discretization of the rectangular blocks
+PK1_DEV_QUAD_ORDER = "THIRD"
+PK1_DIL_QUAD_ORDER = "THIRD"
+
+// solver parameters
+USE_CONSISTENT_MASS_MATRIX = FALSE                  // whether to use a consistent or lumped mass matrix
+USE_STATIC_PRESSURE        = FALSE                  // whether to use a mixed formulation with a static  pressure
+USE_DYNAMIC_PRESSURE       = FALSE                  // whether to use a mixed formulation with a dynamic pressure
+LOAD_TIME                  = .05                    // time when full load is applied
+CFL_MAX                    = 0.2                    // maximum CFL number
+TIME_STEPPING_SCHEME       = "SSPRK34"
+DT                         = 0.05*CFL_MAX*DX/U_MAX  // maximum timestep size
+START_TIME                 = 0.0e0                  // initial simulation time
+END_TIME                   = 16*DT                  // final simulation time
+
+// model parameters
+STRESS_FUNCTION = "MODIFIED"
+USE_VOLUMETRIC_TERM = TRUE
+YOUNGS_MOD     = 250
+TRACTION_FORCE = 6.25
+SHEAR_MOD      = YOUNGS_MOD / 2.0 / (.5 + 1.0)
+POISSON_RATIO  = 0.4
+BULK_MOD       = 2.0*SHEAR_MOD*(1.0+POISSON_RATIO)/3.0/(1.0 - 2.0*POISSON_RATIO)
+ETA            = 0.05 * SHEAR_MOD
+SAFETY         = 0.5
+KAPPA          = SAFETY * 2.5e-1 * DX / DT^2
+
+FEMechanicsExplicitIntegrator {
+    use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
+}
+
+Main {
+// log file parameters
+    log_file_name               = "output"
+    log_all_nodes               = FALSE
+
+// visualization dump parameters
+    viz_writer                  = "ExodusII"
+    viz_dump_interval           = 16
+    viz_dump_dirname            = "."
+    visit_number_procs_per_file = 1
+}
+
+TimerManager{
+    print_exclusive = FALSE
+    print_total = TRUE
+    print_threshold = 0.1
+
+    timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
+}
