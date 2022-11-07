@@ -20,6 +20,10 @@
 
 #include "ibamr/FEMechanicsBase.h"
 
+#include "libmesh/libmesh_common.h"
+#include "libmesh/numeric_vector.h"
+#include "libmesh/petsc_vector.h"
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -133,10 +137,28 @@ public:
     void modifiedTrapezoidalStep(double current_time, double new_time);
 
     /*!
+     * Advance the structural velocities and positions using the explicit SSP RK3 scheme.
+     *
+     * The implementation supports either 3- or 4-stage variants. The default is the 4-stage
+     * version, which has a larger stability region.
+     */
+    void SSPRK3Step(double current_time, double new_time, unsigned int n_stages = 4);
+
+    /*!
      * Compute the Lagrangian force at the specified time within the current
      * time interval.
      */
     void computeLagrangianForce(double data_time);
+
+    /*!
+     * Compute the Lagrangian force at the specified time within the current
+     * time interval using the provided data vectors.
+     */
+    void computeLagrangianForce(libMesh::PetscVector<double>* F_vec,
+                                libMesh::PetscVector<double>* X_vec,
+                                libMesh::PetscVector<double>* P_vec,
+                                double data_time,
+                                unsigned int part);
 
     /*!
      * Write out object state to the given database.
@@ -162,6 +184,21 @@ protected:
      * being up to date, as is the direct forcing kinematic data.
      */
     void doInitializeFEData(bool use_present_data) override;
+
+    /*!
+     * Perform a forward Euler step.
+     */
+    void doForwardEulerStep(libMesh::PetscVector<double>* X_new_vec,
+                            libMesh::PetscVector<double>* U_new_vec,
+                            libMesh::PetscVector<double>* P_new_vec,
+                            libMesh::PetscVector<double>* X_current_vec,
+                            libMesh::PetscVector<double>* U_current_vec,
+                            libMesh::PetscVector<double>* P_current_vec,
+                            libMesh::PetscVector<double>* F_current_vec,
+                            libMesh::PetscVector<double>* dP_dt_current_vec,
+                            double current_time,
+                            double new_time,
+                            unsigned int part);
 
     /// Structure mass densities.
     std::vector<double> d_rhos;
