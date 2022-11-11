@@ -81,6 +81,11 @@ namespace IBTK
  * "composite-grid" mathematical operations on a range of levels in a
  * SAMRAI::hier::PatchHierarchy object.
  *
+ * For nodal destination data, if the provided variable has
+ * fineBoundaryRepresentsVariable() == false and synch_dst_cf_interface == true
+ * then each routine will call HierarchyMathOps::enforceHangingNodeConstraints()
+ * to achieve a conforming bi/trilinear discretization.
+ *
  * \note All specified variable descriptor indices must refer to
  * SAMRAI::hier::Variable / SAMRAI::hier::VariableContext pairs that have been
  * registered with the SAMRAI::hier::VariableDatabase.
@@ -825,6 +830,7 @@ public:
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                bool dst_cf_bdry_synch,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -845,6 +851,7 @@ public:
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                bool dst_cf_bdry_synch,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
