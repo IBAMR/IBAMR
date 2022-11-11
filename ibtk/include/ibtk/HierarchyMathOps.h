@@ -1478,27 +1478,35 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
     int d_coarsest_ln, d_finest_ln;
 
-    // Scratch Variables.
+    // Scratch Variables. Since nodal data is used for both scalar and vector
+    // quantities we create both (and corresponding outernode) sets of
+    // variables.
     SAMRAIDataCache d_cached_eulerian_data;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_fc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_s_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_v_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_s_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_v_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
-    int d_fc_idx = IBTK::invalid_index, d_nc_idx = IBTK::invalid_index, d_sc_idx = IBTK::invalid_index,
-        d_of_idx = IBTK::invalid_index, d_on_idx = IBTK::invalid_index, d_os_idx = IBTK::invalid_index;
+    int d_fc_idx = IBTK::invalid_index, d_nc_s_idx = IBTK::invalid_index, d_nc_v_idx = IBTK::invalid_index,
+        d_sc_idx = IBTK::invalid_index, d_of_idx = IBTK::invalid_index, d_on_s_idx = IBTK::invalid_index,
+        d_on_v_idx = IBTK::invalid_index, d_os_idx = IBTK::invalid_index;
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_of_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_s_coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_v_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_os_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_of_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_s_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_v_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_os_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_of_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_coarsen_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_s_coarsen_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_v_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_os_coarsen_scheds;
 
     // Hierarchy data operations.
