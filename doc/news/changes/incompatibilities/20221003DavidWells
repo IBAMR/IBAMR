@@ -1,0 +1,3 @@
+Changed: INSStaggeredHierarchyIntegrator now outputs velocity data as a nodal, not cell-centered, field.
+<br>
+(David Wells, 2022/10/03)

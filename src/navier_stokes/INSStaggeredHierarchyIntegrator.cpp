@@ -338,6 +338,9 @@ namespace IBAMR
 
 namespace
 {
+// Timers.
+static Timer* t_setup_plot_data_specialized;
+
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int SIDEG = 1;
@@ -421,6 +424,10 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
                              "CONSTANT_REFINE",
                              register_for_restart)
 {
+    auto set_timer = [&](const char* name) { return tbox::TimerManager::getManager()->getTimer(name); };
+    IBTK_DO_ONCE(t_setup_plot_data_specialized =
+                     set_timer("IBTK::INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()"););
+
     // Check to see whether the solver types have been set.
     if (input_db->keyExists("stokes_solver_type")) d_stokes_solver_type = input_db->getString("stokes_solver_type");
     if (input_db->keyExists("stokes_precond_type")) d_stokes_precond_type = input_db->getString("stokes_precond_type");
@@ -560,7 +567,10 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     d_Q_var = INSHierarchyIntegrator::d_Q_var;
     d_N_old_var = new SideVariable<NDIM, double>(d_object_name + "::N_old");
 
-    d_U_cc_var = new CellVariable<NDIM, double>(d_object_name + "::U_cc", NDIM);
+    // with our convention fine_boundary_represents_var = false means that will
+    // use a conforming discretization (the solution, with bilinear/trilinear
+    // nodal data, will be continuous)
+    d_U_nc_var = new NodeVariable<NDIM, double>(d_object_name + "::U_nc", NDIM, /*fine_boundary_represents_var*/ false);
     d_F_cc_var = new CellVariable<NDIM, double>(d_object_name + "::F_cc", NDIM);
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", (NDIM == 2) ? 1 : NDIM);
     if (d_output_Omega)
@@ -880,7 +890,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
-    registerVariable(d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
+    registerVariable(d_U_nc_idx, d_U_nc_var, no_ghosts, getCurrentContext());
     if (d_F_fcn)
     {
         registerVariable(d_F_cc_idx, d_F_cc_var, no_ghosts, getCurrentContext());
@@ -916,11 +926,11 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     {
         if (d_output_U)
         {
-            d_visit_writer->registerPlotQuantity("U", "VECTOR", d_U_cc_idx, 0, d_U_scale);
+            d_visit_writer->registerPlotQuantity("U", "VECTOR", d_U_nc_idx, 0, d_U_scale);
             for (unsigned int i = 0; i < NDIM; ++i)
             {
                 const std::string suffix = (i == 0 ? "x" : i == 1 ? "y" : "z");
-                d_visit_writer->registerPlotQuantity("U_" + suffix, "SCALAR", d_U_cc_idx, i, d_U_scale);
+                d_visit_writer->registerPlotQuantity("U_" + suffix, "SCALAR", d_U_nc_idx, i, d_U_scale);
             }
         }
 
@@ -1841,7 +1851,7 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
             // Fill ghost cells.
             HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
             Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
-                hier_ops_manager->getOperationsDouble(d_U_cc_var, d_hierarchy, true);
+                hier_ops_manager->getOperationsDouble(d_Omega_var, d_hierarchy, true);
             Pointer<HierarchySideDataOpsReal<NDIM, double> > hier_sc_data_ops =
                 hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
             hier_sc_data_ops->resetLevels(0, level_number);
@@ -2039,18 +2049,54 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<
 void
 INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 {
+    IBTK_TIMER_START(t_setup_plot_data_specialized);
     Pointer<VariableContext> ctx = getCurrentContext();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     static const bool synch_cf_interface = true;
 
+    // Most of these require scratch data
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
+    }
+
     // Interpolate u to cell centers.
     if (d_output_U)
     {
         const int U_sc_idx = var_db->mapVariableAndContextToIndex(d_U_var, ctx);
-        const int U_cc_idx = var_db->mapVariableAndContextToIndex(d_U_cc_var, ctx);
-        d_hier_math_ops->interp(
-            U_cc_idx, d_U_cc_var, U_sc_idx, d_U_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
+        const int U_nc_idx = var_db->mapVariableAndContextToIndex(d_U_nc_var, ctx);
+
+        // We need updated ghost values to interpolate from side data:
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        {
+            InterpolationTransactionComponent comp(d_U_scratch_idx,
+                                                   U_sc_idx,
+                                                   "CONSERVATIVE_LINEAR_REFINE",
+                                                   true,
+                                                   "CONSERVATIVE_COARSEN",
+                                                   "LINEAR",
+                                                   false,
+                                                   getVelocityBoundaryConditions());
+            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+            hier_bdry_fill->initializeOperatorState(comp, d_hierarchy);
+            hier_bdry_fill->fillData(0.0);
+        }
+
+        // synch both the src and dst data:
+        d_hier_math_ops->interp(U_nc_idx,
+                                d_U_nc_var,
+                                synch_cf_interface,
+                                d_U_scratch_idx,
+                                d_U_var,
+                                d_no_fill_op,
+                                d_integrator_time,
+                                synch_cf_interface);
+        // For visualization purposes we want a conforming field:
+        d_hier_math_ops->enforceHangingNodeConstraints(U_nc_idx, d_U_nc_var);
     }
 
     // Interpolate f to cell centers.
@@ -2067,11 +2113,6 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     {
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
-        }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
 
         // Make our own boundary filling op because the standard one does not do any refining:
@@ -2088,12 +2129,6 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         U_bdry_bc_fill_op.fillData(d_integrator_time);
         d_hier_math_ops->curl(
             d_Omega_nc_idx, d_Omega_nc_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->deallocatePatchData(d_U_scratch_idx);
-        }
     }
 
     // Compute Div U.
@@ -2107,22 +2142,16 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     if (d_output_EE)
     {
         const int EE_idx = var_db->mapVariableAndContextToIndex(d_EE_var, ctx);
-        const int coarsest_ln = 0;
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
-        }
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
         d_U_bdry_bc_fill_op->fillData(d_integrator_time);
         d_hier_math_ops->strain_rate(EE_idx, d_EE_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->deallocatePatchData(d_U_scratch_idx);
-        }
     }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_U_scratch_idx);
+    }
+    IBTK_TIMER_STOP(t_setup_plot_data_specialized);
     return;
 } // setupPlotDataSpecialized
 
