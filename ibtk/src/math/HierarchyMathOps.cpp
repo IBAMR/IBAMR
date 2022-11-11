@@ -3497,6 +3497,156 @@ HierarchyMathOps::strain_rate(const int dst_idx,
     return;
 } // strain
 
+void
+HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, Pointer<NodeVariable<NDIM, double> > dst_var)
+{
+    TBOX_ASSERT(dst_idx != IBTK::invalid_index);
+    TBOX_ASSERT(dst_var);
+
+    // hanging nodes don't exist in 1D
+    if (NDIM == 1) return;
+
+    // Convert a BoundaryBox (which is implicitly cell-centered) into a nodal box.
+    auto boundary_to_nodal = [](const BoundaryBox<NDIM>& bbox) {
+        // lower faces are even, upper faces are odd
+        const int location = bbox.getLocationIndex();
+        const bool is_lower_face = location % 2 == 0;
+        const int face_axis = location / 2;
+
+        Box<NDIM> node_box = NodeGeometry<NDIM>::toNodeBox(bbox.getBox());
+
+        // make it a boundary box in the nodal sense: something of codim 1
+        if (is_lower_face)
+            node_box.lower(face_axis) += 1;
+        else
+            node_box.upper(face_axis) -= 1;
+
+        return node_box;
+    };
+
+    for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
+    {
+        CoarseFineBoundary<NDIM> cf_boundary(*d_hierarchy, ln, 0);
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM> ratio = level->getRatioToCoarserLevel();
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const Pointer<Patch<NDIM> >& patch = level->getPatch(p());
+            TBOX_ASSERT(patch->getPatchData(dst_idx));
+            Pointer<NodeData<NDIM, double> > dst_data_ptr = patch->getPatchData(dst_idx);
+            NodeData<NDIM, double>& dst_data = *dst_data_ptr;
+            const tbox::Array<BoundaryBox<NDIM> >& bboxes = cf_boundary.getBoundaries(p(), 1);
+
+            for (int k = 0; k < bboxes.size(); ++k)
+            {
+                // 0. Do not do anything when we have a box on a physical boundary:
+                const int location = bboxes[k].getLocationIndex();
+                if (patch->getPatchGeometry()->getTouchesRegularBoundary(location / 2, location % 2))
+                {
+                    continue;
+                }
+                // 1. Get the nodal box:
+                auto node_box = boundary_to_nodal(bboxes[k]);
+                // 2. use it to fill values:
+                for (int d = 0; d < dst_data.getDepth(); ++d)
+                {
+                    const auto lower = node_box.lower();
+                    const auto upper = node_box.upper();
+#if NDIM == 2
+                    const int constant = lower(0) == upper(0) ? 0 : 1;
+                    const int coordinate = constant == 0 ? 1 : 0;
+                    TBOX_ASSERT(lower(constant) == upper(constant));
+                    for (int i = lower(coordinate); i < upper(coordinate); i += ratio(coordinate))
+                    {
+                        // convert from implicitly node-centered to actual node indices
+                        NodeIndex<NDIM> n_left;
+                        n_left(constant) = lower(constant);
+                        n_left(coordinate) = i;
+                        NodeIndex<NDIM> n_right = n_left;
+                        n_right(coordinate) += ratio(coordinate);
+
+                        // Actually enforce hanging node constraints
+                        const double c0 = dst_data(n_left, d);
+                        const double c1 = dst_data(n_right, d);
+                        for (int j = 0; j <= ratio(coordinate); ++j)
+                        {
+                            NodeIndex<NDIM> n_current = n_left;
+                            n_current(coordinate) += j;
+                            TBOX_ASSERT(node_box.contains(n_current));
+                            // linear interpolation:
+                            dst_data(n_current, d) = double(ratio(coordinate) - j) / ratio(coordinate) * c0 +
+                                                     double(j) / ratio(coordinate) * c1;
+                        }
+                    }
+#else
+                    // somewhat more difficult: we have to do bilinear interpolation
+                    int coordinate0 = -1, coordinate1 = -1, constant = -1;
+                    if (lower(0) == upper(0))
+                    {
+                        constant = 0;
+                        coordinate0 = 1;
+                        coordinate1 = 2;
+                    }
+                    else if (lower(1) == upper(1))
+                    {
+                        coordinate0 = 0;
+                        constant = 1;
+                        coordinate1 = 2;
+                    }
+                    else
+                    {
+                        TBOX_ASSERT(lower(2) == upper(2));
+                        coordinate0 = 0;
+                        coordinate1 = 1;
+                        constant = 2;
+                    }
+                    IntVector<NDIM> inc0(0);
+                    inc0(coordinate0) = ratio(coordinate0);
+                    IntVector<NDIM> inc1(0);
+                    inc1(coordinate1) = ratio(coordinate1);
+                    for (int i = lower(coordinate0); i < upper(coordinate0); i += ratio(coordinate0))
+                    {
+                        for (int j = lower(coordinate1); j < upper(coordinate1); j += ratio(coordinate1))
+                        {
+                            NodeIndex<NDIM> n_lower;
+                            n_lower(coordinate0) = i;
+                            n_lower(coordinate1) = j;
+                            n_lower(constant) = lower(constant);
+                            TBOX_ASSERT(node_box.contains(n_lower));
+
+                            const double c00 = dst_data(n_lower, d);
+                            const double c01 = dst_data(n_lower + inc0, d);
+                            const double c10 = dst_data(n_lower + inc1, d);
+                            const double c11 = dst_data(n_lower + inc0 + inc1, d);
+                            // this could be made more efficient by only
+                            // computing edges once but this way is much
+                            // simpler - since its a codim 1 problem
+                            // performance isn't that important.
+                            for (int ii = 0; ii <= ratio(coordinate0); ++ii)
+                            {
+                                for (int jj = 0; jj <= ratio(coordinate1); ++jj)
+                                {
+                                    NodeIndex<NDIM> n_current = n_lower;
+                                    n_current(coordinate0) += ii;
+                                    n_current(coordinate1) += jj;
+                                    TBOX_ASSERT(node_box.contains(n_current));
+                                    // bilinear interpolation:
+                                    const double l0 = double(ii) / ratio(coordinate0);
+                                    const double l1 = double(jj) / ratio(coordinate1);
+
+                                    dst_data(n_current, d) = (1.0 - l0) * (1.0 - l1) * c00 + l0 * (1.0 - l1) * c01 +
+                                                             (1.0 - l0) * l1 * c10 + l0 * l1 * c11;
+                                }
+                            }
+                        }
+                    }
+#endif
+                }
+            }
+        }
+    }
+}
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void

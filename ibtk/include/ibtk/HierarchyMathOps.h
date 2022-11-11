@@ -1406,6 +1406,16 @@ public:
                      SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                      double src_ghost_fill_time);
 
+    /*!
+     * \brief Enforce hanging node constraints in the sense of making the
+     * resulting bilinear or trilinear interpolation of nodal data continuous
+     * across the coarse-fine interface.
+     *
+     * @warning
+     */
+    void enforceHangingNodeConstraints(int dst_idx,
+                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var);
+
 private:
     /*!
      * \brief Default constructor.

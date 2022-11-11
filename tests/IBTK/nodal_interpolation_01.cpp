@@ -96,8 +96,11 @@ main(int argc, char* argv[])
 
         const int u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVector<NDIM>(1));
 
-        Pointer<NodeVariable<NDIM, double> > u_nc_var = new NodeVariable<NDIM, double>("u_nc", NDIM);
-        Pointer<NodeVariable<NDIM, double> > e_nc_var = new NodeVariable<NDIM, double>("e_nc", NDIM);
+        const bool fine_boundary_represents_var = input_db->getBoolWithDefault("fine_boundary_represents_var", false);
+        Pointer<NodeVariable<NDIM, double> > u_nc_var =
+            new NodeVariable<NDIM, double>("u_nc", NDIM, fine_boundary_represents_var);
+        Pointer<NodeVariable<NDIM, double> > e_nc_var =
+            new NodeVariable<NDIM, double>("e_nc", NDIM, fine_boundary_represents_var);
 
         const int u_nc_idx = var_db->registerVariableAndContext(u_nc_var, ctx, IntVector<NDIM>(0));
         const int e_nc_idx = var_db->registerVariableAndContext(e_nc_var, ctx, IntVector<NDIM>(0));
