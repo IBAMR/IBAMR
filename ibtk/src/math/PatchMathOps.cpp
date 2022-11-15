@@ -191,6 +191,7 @@
 #define E_TO_C_INTERP_FC IBTK_FC_FUNC(etocinterp3d, ETOCINTERP3D)
 #define C_TO_E_INTERP_FC IBTK_FC_FUNC(ctoeinterp3d, CTOEINTERP3D)
 #define C_TO_E_HARMONIC_INTERP_FC IBTK_FC_FUNC(ctoeharmonicinterp3d, CTOEHARMONICINTERP3D)
+#define C_TO_N_INTERP_FC IBTK_FC_FUNC(ctoninterp3d, CTONINTERP3D)
 #endif // if (NDIM == 3)
 
 extern "C"
@@ -1470,6 +1471,17 @@ extern "C"
                                    const int& iupper2,
                                    const int& U_ghost_interp);
 
+    void C_TO_N_INTERP_FC(double* U,
+                          const int& U_gcw,
+                          const double* V,
+                          const int& V_gcw,
+                          const int& ilower0,
+                          const int& iupper0,
+                          const int& ilower1,
+                          const int& iupper1,
+                          const int& ilower2,
+                          const int& iupper2,
+                          const int& U_ghost_interp);
 #endif
 }
 
@@ -4399,18 +4411,10 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
                      const Pointer<Patch<NDIM> > patch,
                      const bool dst_ghost_interp) const
 {
-#if (NDIM == 3)
-    TBOX_ERROR("Cell to node PatchMathOps::interp():\n"
-               << "  not implemented for NDIM = 3." << std::endl);
-    NULL_USE(dst);
-    NULL_USE(src);
-    NULL_USE(patch);
-    NULL_USE(dst_ghost_interp);
-#endif
-
-#if (NDIM == 2)
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
+    // We need at least one layer of ghost points to interpolate nodal data
+    TBOX_ASSERT(V_ghosts >= 1);
 
     const Box<NDIM>& patch_box = patch->getBox();
 
@@ -4480,9 +4484,12 @@ PatchMathOps::interp(Pointer<NodeData<NDIM, double> > dst,
                          patch_box.upper(0),
                          patch_box.lower(1),
                          patch_box.upper(1),
+#if NDIM == 3
+                         patch_box.lower(2),
+                         patch_box.upper(2),
+#endif
                          U_ghost_interp);
     }
-#endif
 
     return;
 } // interp

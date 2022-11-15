@@ -806,9 +806,7 @@ public:
      * cell-centered vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, the ghost cells
-     * of the node centered variable are computed as averages of the cell centered
-     * variable
+     * using (second-order accurate) averaging.
      *
      * \see setPatchHierarchy
      * \see resetLevels

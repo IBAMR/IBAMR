@@ -2120,12 +2120,18 @@ HierarchyMathOps::interp(const int dst_idx,
         }
 
         // Synchronize the coarse-fine interface and deallocate temporary data.
-        if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
+        if (ln + 1 <= d_finest_ln && dst_cf_bdry_synch)
         {
-            xeqScheduleOuternodeRestriction(dst_idx, on_idx, ln - 1);
-            level->deallocatePatchData(on_idx);
+            xeqScheduleOuternodeRestriction(dst_idx, on_idx, ln);
+            d_hierarchy->getPatchLevel(ln + 1)->deallocatePatchData(on_idx);
         }
     }
+
+    if (dst_cf_bdry_synch && dst_var->fineBoundaryRepresentsVariable() == false)
+    {
+        enforceHangingNodeConstraints(dst_idx, dst_var);
+    }
+
     return;
 } // interp
 

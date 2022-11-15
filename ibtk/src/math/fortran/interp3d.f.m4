@@ -631,6 +631,65 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Compute the node centered field U from the cell centered
+c     field V using simple averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctoninterp3d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     U_ghost_interp)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER U_gcw,V_gcw
+      INTEGER U_ghost_interp
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+
+c
+c     Output.
+c
+      REAL U(NODE3d(ilower,iupper,U_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      INTEGER gcw_shift
+c
+c     Compute the node centered scalar field U from the cell centered
+c     scalar field V.
+c
+      gcw_shift = 0
+      if (U_ghost_interp .eq. 1) then
+         gcw_shift = U_gcw
+      endif
+
+      do i2 = ilower2-gcw_shift,iupper2+gcw_shift+1
+         do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
+            do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
+               U(i0,i1,i2) = 0.125d0*(V(i0,i1,i2)+V(i0-1,i1,i2)
+     &              +V(i0,i1-1,i2)+V(i0-1,i1-1,i2)+V(i0,i1,i2-1)
+     &              +V(i0-1,i1,i2-1)+V(i0,i1-1,i2-1)+V(i0-1,i1-1,i2-1))
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Compute the cell centered field U from the edge centered
 c     field (v0,v1,v2) using simple averaging.
 c
