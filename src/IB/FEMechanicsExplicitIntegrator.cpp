@@ -106,14 +106,14 @@ FEMechanicsExplicitIntegrator::forwardEulerStep(const double current_time, const
     // X^{n+1} := X^{n} + dt       U^{n}
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        doForwardEulerStep(&d_X_vecs->get("new", part),
-                           &d_U_vecs->get("new", part),
+        doForwardEulerStep(d_X_vecs->get("new", part),
+                           d_U_vecs->get("new", part),
                            d_dynamic_pressure_part[part] ? &d_P_vecs->get("new", part) : nullptr,
-                           &d_X_vecs->get("current", part),
-                           &d_U_vecs->get("current", part),
+                           d_X_vecs->get("current", part),
+                           d_U_vecs->get("current", part),
                            partHasPressure(part) ? &d_P_vecs->get("current", part) : nullptr,
-                           &d_F_vecs->get("current", part),
-                           d_dynamic_pressure_part[part] ? &d_P_vecs->get("tmp", part) : nullptr,
+                           d_F_vecs->get("current", part),
+                           d_dynamic_pressure_part[part] ? &d_P_vecs->get("dP_dt", part) : nullptr,
                            current_time,
                            new_time,
                            part);
@@ -451,32 +451,24 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
         {
             // We can avoid allocating vectors for X1, U1, and P1 because these vectors are never used with X_new,
             // U_new, or P_new.
-            PetscVector<double>* U_current_vec = &d_U_vecs->get("current", part);
-            PetscVector<double>* U_new_vec = &d_U_vecs->get("new", part);
-            PetscVector<double>* U1_vec = U_new_vec;
-            std::unique_ptr<PetscVector<double> > U2_vec(
-                dynamic_cast<PetscVector<double>*>(d_U_vecs->get("new", part).clone().release()));
-            PetscVector<double>* X_current_vec = &d_X_vecs->get("current", part);
-            PetscVector<double>* X_new_vec = &d_X_vecs->get("new", part);
-            PetscVector<double>* X1_vec = X_new_vec;
-            std::unique_ptr<PetscVector<double> > X2_vec(
-                dynamic_cast<PetscVector<double>*>(d_X_vecs->get("new", part).clone().release()));
+            PetscVector<double>& U_current_vec = d_U_vecs->get("current", part);
+            PetscVector<double>& U_new_vec = d_U_vecs->get("new", part);
+            PetscVector<double>& U1_vec = U_new_vec;
+            PetscVector<double>& U2_vec = d_U_vecs->get("U2", part);
+
+            PetscVector<double>& X_current_vec = d_X_vecs->get("current", part);
+            PetscVector<double>& X_new_vec = d_X_vecs->get("new", part);
+            PetscVector<double>& X1_vec = X_new_vec;
+            PetscVector<double>& X2_vec = d_X_vecs->get("X2", part);
 
             PetscVector<double>* P_current_vec = partHasPressure(part) ? &d_P_vecs->get("current", part) : nullptr;
             PetscVector<double>* P_new_vec = partHasPressure(part) ? &d_P_vecs->get("new", part) : nullptr;
             PetscVector<double>* P1_vec = P_new_vec;
-            std::unique_ptr<PetscVector<double> > P2_vec(
-                d_dynamic_pressure_part[part] ?
-                    dynamic_cast<PetscVector<double>*>(d_P_vecs->get("new", part).clone().release()) :
-                    nullptr);
+            PetscVector<double>* P2_vec = d_dynamic_pressure_part[part] ? &d_P_vecs->get("P2", part) : nullptr;
 
-            std::unique_ptr<PetscVector<double> > F_vec(
-                dynamic_cast<PetscVector<double>*>(d_F_vecs->get("current", part).clone().release()));
+            PetscVector<double>& F_vec = d_F_vecs->get("current", part);
 
-            std::unique_ptr<PetscVector<double> > dP_dt_vec(
-                d_dynamic_pressure_part[part] ?
-                    dynamic_cast<PetscVector<double>*>(d_P_vecs->get("current", part).clone().release()) :
-                    nullptr);
+            PetscVector<double>* dP_dt_vec = d_dynamic_pressure_part[part] ? &d_P_vecs->get("dP_dt", part) : nullptr;
 
             doForwardEulerStep(X1_vec,
                                U1_vec,
@@ -484,27 +476,27 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
                                X_current_vec,
                                U_current_vec,
                                P_current_vec,
-                               F_vec.get(),
-                               dP_dt_vec.get(),
+                               F_vec,
+                               dP_dt_vec,
                                current_time,
                                current_time + 1.0 * dt,
                                part);
 
-            doForwardEulerStep(X2_vec.get(),
-                               U2_vec.get(),
-                               P2_vec.get(),
+            doForwardEulerStep(X2_vec,
+                               U2_vec,
+                               P2_vec,
                                X1_vec,
                                U1_vec,
                                P1_vec,
-                               F_vec.get(),
-                               dP_dt_vec.get(),
+                               F_vec,
+                               dP_dt_vec,
                                current_time + 1.0 * dt,
                                current_time + 2.0 * dt,
                                part);
 
-            ierr = VecAXPBY(U2_vec->vec(), 0.75, 0.25, U_current_vec->vec());
+            ierr = VecAXPBY(U2_vec.vec(), 0.75, 0.25, U_current_vec.vec());
             IBTK_CHKERRQ(ierr);
-            ierr = VecAXPBY(X2_vec->vec(), 0.75, 0.25, X_current_vec->vec());
+            ierr = VecAXPBY(X2_vec.vec(), 0.75, 0.25, X_current_vec.vec());
             IBTK_CHKERRQ(ierr);
             if (d_dynamic_pressure_part[part])
             {
@@ -515,18 +507,18 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
             doForwardEulerStep(X_new_vec,
                                U_new_vec,
                                P_new_vec,
-                               X2_vec.get(),
-                               U2_vec.get(),
-                               P2_vec.get(),
-                               F_vec.get(),
-                               dP_dt_vec.get(),
+                               X2_vec,
+                               U2_vec,
+                               P2_vec,
+                               F_vec,
+                               dP_dt_vec,
                                current_time + 0.5 * dt,
                                current_time + 1.5 * dt,
                                part);
 
-            ierr = VecAXPBY(U_new_vec->vec(), 1.0 / 3.0, 2.0 / 3.0, U_current_vec->vec());
+            ierr = VecAXPBY(U_new_vec.vec(), 1.0 / 3.0, 2.0 / 3.0, U_current_vec.vec());
             IBTK_CHKERRQ(ierr);
-            ierr = VecAXPBY(X_new_vec->vec(), 1.0 / 3.0, 2.0 / 3.0, X_current_vec->vec());
+            ierr = VecAXPBY(X_new_vec.vec(), 1.0 / 3.0, 2.0 / 3.0, X_current_vec.vec());
             IBTK_CHKERRQ(ierr);
             if (d_dynamic_pressure_part[part])
             {
@@ -534,47 +526,33 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
                 IBTK_CHKERRQ(ierr);
             }
 
-            d_F_vecs->get("new", part) = *F_vec;
+            d_F_vecs->get("new", part) = F_vec;
         }
         else if (n_stages == 4)
         {
             // We can avoid allocating vectors for X1, U1, and P1 because these vectors are never used with X_new,
             // U_new, or P_new.
-            PetscVector<double>* U_current_vec = &d_U_vecs->get("current", part);
-            PetscVector<double>* U_new_vec = &d_U_vecs->get("new", part);
-            PetscVector<double>* U1_vec = U_new_vec;
-            std::unique_ptr<PetscVector<double> > U2_vec(
-                dynamic_cast<PetscVector<double>*>(d_U_vecs->get("new", part).clone().release()));
-            std::unique_ptr<PetscVector<double> > U3_vec(
-                dynamic_cast<PetscVector<double>*>(d_U_vecs->get("new", part).clone().release()));
+            PetscVector<double>& U_current_vec = d_U_vecs->get("current", part);
+            PetscVector<double>& U_new_vec = d_U_vecs->get("new", part);
+            PetscVector<double>& U1_vec = U_new_vec;
+            PetscVector<double>& U2_vec = d_U_vecs->get("U2", part);
+            PetscVector<double>& U3_vec = d_U_vecs->get("U3", part);
 
-            PetscVector<double>* X_current_vec = &d_X_vecs->get("current", part);
-            PetscVector<double>* X_new_vec = &d_X_vecs->get("new", part);
-            PetscVector<double>* X1_vec = X_new_vec;
-            std::unique_ptr<PetscVector<double> > X2_vec(
-                dynamic_cast<PetscVector<double>*>(d_X_vecs->get("new", part).clone().release()));
-            std::unique_ptr<PetscVector<double> > X3_vec(
-                dynamic_cast<PetscVector<double>*>(d_X_vecs->get("new", part).clone().release()));
+            PetscVector<double>& X_current_vec = d_X_vecs->get("current", part);
+            PetscVector<double>& X_new_vec = d_X_vecs->get("new", part);
+            PetscVector<double>& X1_vec = X_new_vec;
+            PetscVector<double>& X2_vec = d_X_vecs->get("X2", part);
+            PetscVector<double>& X3_vec = d_X_vecs->get("X3", part);
 
             PetscVector<double>* P_current_vec = partHasPressure(part) ? &d_P_vecs->get("current", part) : nullptr;
             PetscVector<double>* P_new_vec = partHasPressure(part) ? &d_P_vecs->get("new", part) : nullptr;
             PetscVector<double>* P1_vec = P_new_vec;
-            std::unique_ptr<PetscVector<double> > P2_vec(
-                partHasPressure(part) ?
-                    dynamic_cast<PetscVector<double>*>(d_P_vecs->get("new", part).clone().release()) :
-                    nullptr);
-            std::unique_ptr<PetscVector<double> > P3_vec(
-                d_dynamic_pressure_part[part] ?
-                    dynamic_cast<PetscVector<double>*>(d_P_vecs->get("new", part).clone().release()) :
-                    nullptr);
+            PetscVector<double>* P2_vec = partHasPressure(part) ? &d_P_vecs->get("P2", part) : nullptr;
+            PetscVector<double>* P3_vec = partHasPressure(part) ? &d_P_vecs->get("P3", part) : nullptr;
 
-            std::unique_ptr<PetscVector<double> > F_vec(
-                dynamic_cast<PetscVector<double>*>(d_F_vecs->get("current", part).clone().release()));
+            PetscVector<double>& F_vec = d_F_vecs->get("current", part);
 
-            std::unique_ptr<PetscVector<double> > dP_dt_vec(
-                d_dynamic_pressure_part[part] ?
-                    dynamic_cast<PetscVector<double>*>(d_P_vecs->get("current", part).clone().release()) :
-                    nullptr);
+            PetscVector<double>* dP_dt_vec = d_dynamic_pressure_part[part] ? &d_P_vecs->get("dP_dt", part) : nullptr;
 
             doForwardEulerStep(X1_vec,
                                U1_vec,
@@ -582,15 +560,15 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
                                X_current_vec,
                                U_current_vec,
                                P_current_vec,
-                               F_vec.get(),
-                               dP_dt_vec.get(),
+                               F_vec,
+                               dP_dt_vec,
                                current_time,
                                current_time + 1.0 * dt,
                                part);
 
-            ierr = VecAXPBY(U1_vec->vec(), 0.5, 0.5, U_current_vec->vec());
+            ierr = VecAXPBY(U1_vec.vec(), 0.5, 0.5, U_current_vec.vec());
             IBTK_CHKERRQ(ierr);
-            ierr = VecAXPBY(X1_vec->vec(), 0.5, 0.5, X_current_vec->vec());
+            ierr = VecAXPBY(X1_vec.vec(), 0.5, 0.5, X_current_vec.vec());
             IBTK_CHKERRQ(ierr);
             if (d_dynamic_pressure_part[part])
             {
@@ -598,21 +576,21 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
                 IBTK_CHKERRQ(ierr);
             }
 
-            doForwardEulerStep(X2_vec.get(),
-                               U2_vec.get(),
-                               P2_vec.get(),
+            doForwardEulerStep(X2_vec,
+                               U2_vec,
+                               P2_vec,
                                X1_vec,
                                U1_vec,
                                P1_vec,
-                               F_vec.get(),
-                               dP_dt_vec.get(),
+                               F_vec,
+                               dP_dt_vec,
                                current_time + 0.5 * dt,
                                current_time + 1.5 * dt,
                                part);
 
-            ierr = VecAXPBY(U2_vec->vec(), 0.5, 0.5, U1_vec->vec());
+            ierr = VecAXPBY(U2_vec.vec(), 0.5, 0.5, U1_vec.vec());
             IBTK_CHKERRQ(ierr);
-            ierr = VecAXPBY(X2_vec->vec(), 0.5, 0.5, X1_vec->vec());
+            ierr = VecAXPBY(X2_vec.vec(), 0.5, 0.5, X1_vec.vec());
             IBTK_CHKERRQ(ierr);
             if (d_dynamic_pressure_part[part])
             {
@@ -620,21 +598,21 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
                 IBTK_CHKERRQ(ierr);
             }
 
-            doForwardEulerStep(X3_vec.get(),
-                               U3_vec.get(),
-                               P3_vec.get(),
-                               X2_vec.get(),
-                               U2_vec.get(),
-                               P2_vec.get(),
-                               F_vec.get(),
-                               dP_dt_vec.get(),
+            doForwardEulerStep(X3_vec,
+                               U3_vec,
+                               P3_vec,
+                               X2_vec,
+                               U2_vec,
+                               P2_vec,
+                               F_vec,
+                               dP_dt_vec,
                                current_time + 1.0 * dt,
                                current_time + 2.0 * dt,
                                part);
 
-            ierr = VecAXPBYPCZ(U3_vec->vec(), 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0, U_current_vec->vec(), U2_vec->vec());
+            ierr = VecAXPBYPCZ(U3_vec.vec(), 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0, U_current_vec.vec(), U2_vec.vec());
             IBTK_CHKERRQ(ierr);
-            ierr = VecAXPBYPCZ(X3_vec->vec(), 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0, X_current_vec->vec(), X2_vec->vec());
+            ierr = VecAXPBYPCZ(X3_vec.vec(), 2.0 / 3.0, 1.0 / 6.0, 1.0 / 6.0, X_current_vec.vec(), X2_vec.vec());
             IBTK_CHKERRQ(ierr);
             if (d_dynamic_pressure_part[part])
             {
@@ -645,18 +623,18 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
             doForwardEulerStep(X_new_vec,
                                U_new_vec,
                                P_new_vec,
-                               X3_vec.get(),
-                               U3_vec.get(),
-                               P3_vec.get(),
-                               F_vec.get(),
-                               dP_dt_vec.get(),
+                               X3_vec,
+                               U3_vec,
+                               P3_vec,
+                               F_vec,
+                               dP_dt_vec,
                                current_time + 0.5 * dt,
                                current_time + 1.5 * dt,
                                part);
 
-            ierr = VecAXPBY(U_new_vec->vec(), 0.5, 0.5, U3_vec->vec());
+            ierr = VecAXPBY(U_new_vec.vec(), 0.5, 0.5, U3_vec.vec());
             IBTK_CHKERRQ(ierr);
-            ierr = VecAXPBY(X_new_vec->vec(), 0.5, 0.5, X3_vec->vec());
+            ierr = VecAXPBY(X_new_vec.vec(), 0.5, 0.5, X3_vec.vec());
             IBTK_CHKERRQ(ierr);
             if (d_dynamic_pressure_part[part])
             {
@@ -664,7 +642,7 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
                 IBTK_CHKERRQ(ierr);
             }
 
-            d_F_vecs->get("new", part) = *F_vec;
+            d_F_vecs->get("new", part) = F_vec;
         }
         else
         {
@@ -708,13 +686,13 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(const double data_time)
 }
 
 void
-FEMechanicsExplicitIntegrator::computeLagrangianForce(PetscVector<double>* F_vec,
-                                                      PetscVector<double>* X_vec,
+FEMechanicsExplicitIntegrator::computeLagrangianForce(PetscVector<double>& F_vec,
+                                                      PetscVector<double>& X_vec,
                                                       PetscVector<double>* P_vec,
                                                       const double data_time,
                                                       const unsigned int part)
 {
-    batch_vec_ghost_update({ X_vec }, INSERT_VALUES, SCATTER_FORWARD);
+    batch_vec_ghost_update({ &X_vec }, INSERT_VALUES, SCATTER_FORWARD);
     auto& F_tmp_vec = d_F_vecs->get("RHS Vector", part);
     auto& F_rhs_vec = d_F_vecs->get("tmp", part);
     F_tmp_vec.zero();
@@ -722,11 +700,11 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(PetscVector<double>* F_vec
     if (d_static_pressure_part[part])
     {
         TBOX_ASSERT(P_vec);
-        computeStaticPressure(*P_vec, *X_vec, data_time, part);
+        computeStaticPressure(*P_vec, X_vec, data_time, part);
     }
-    assembleInteriorForceDensityRHS(F_rhs_vec, *X_vec, P_vec, data_time, part);
+    assembleInteriorForceDensityRHS(F_rhs_vec, X_vec, P_vec, data_time, part);
     batch_vec_ghost_update({ &F_rhs_vec }, ADD_VALUES, SCATTER_REVERSE);
-    d_fe_projectors[part]->computeL2Projection(*F_vec,
+    d_fe_projectors[part]->computeL2Projection(F_vec,
                                                F_rhs_vec,
                                                FORCE_SYSTEM_NAME,
                                                d_use_consistent_mass_matrix,
@@ -786,20 +764,20 @@ FEMechanicsExplicitIntegrator::doInitializeFEData(const bool use_present_data)
 }
 
 void
-FEMechanicsExplicitIntegrator::doForwardEulerStep(PetscVector<double>* X_new_vec,
-                                                  PetscVector<double>* U_new_vec,
+FEMechanicsExplicitIntegrator::doForwardEulerStep(PetscVector<double>& X_new_vec,
+                                                  PetscVector<double>& U_new_vec,
                                                   PetscVector<double>* P_new_vec,
-                                                  PetscVector<double>* X_current_vec,
-                                                  PetscVector<double>* U_current_vec,
+                                                  PetscVector<double>& X_current_vec,
+                                                  PetscVector<double>& U_current_vec,
                                                   PetscVector<double>* P_current_vec,
-                                                  PetscVector<double>* F_current_vec,
+                                                  PetscVector<double>& F_current_vec,
                                                   PetscVector<double>* dP_dt_current_vec,
                                                   const double start_time,
                                                   const double end_time,
                                                   const unsigned int part)
 {
-    TBOX_ASSERT(X_new_vec != X_current_vec);
-    TBOX_ASSERT(U_new_vec != U_current_vec);
+    TBOX_ASSERT(&X_new_vec != &X_current_vec);
+    TBOX_ASSERT(&U_new_vec != &U_current_vec);
     TBOX_ASSERT((P_new_vec == nullptr && P_current_vec == nullptr) || P_new_vec != P_current_vec);
 
     const double dt = end_time - start_time;
@@ -808,16 +786,16 @@ FEMechanicsExplicitIntegrator::doForwardEulerStep(PetscVector<double>* X_new_vec
     // X^{n+1} := X^{n} + dt       U^{n}
     computeLagrangianForce(F_current_vec, X_current_vec, P_current_vec, start_time, part);
     int ierr;
-    ierr = VecWAXPY(U_new_vec->vec(), dt / d_rhos[part], F_current_vec->vec(), U_current_vec->vec());
+    ierr = VecWAXPY(U_new_vec.vec(), dt / d_rhos[part], F_current_vec.vec(), U_current_vec.vec());
     IBTK_CHKERRQ(ierr);
-    ierr = VecWAXPY(X_new_vec->vec(), dt, U_current_vec->vec(), X_current_vec->vec());
+    ierr = VecWAXPY(X_new_vec.vec(), dt, U_current_vec.vec(), X_current_vec.vec());
     IBTK_CHKERRQ(ierr);
     if (d_dynamic_pressure_part[part])
     {
         TBOX_ASSERT(P_new_vec);
         TBOX_ASSERT(P_current_vec);
         TBOX_ASSERT(dP_dt_current_vec);
-        computeDynamicPressureRateOfChange(*dP_dt_current_vec, *X_current_vec, *U_current_vec, start_time, part);
+        computeDynamicPressureRateOfChange(*dP_dt_current_vec, X_current_vec, U_current_vec, start_time, part);
         ierr = VecWAXPY(P_new_vec->vec(), dt, dP_dt_current_vec->vec(), P_current_vec->vec());
         IBTK_CHKERRQ(ierr);
     }

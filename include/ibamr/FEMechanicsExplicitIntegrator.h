@@ -154,8 +154,8 @@ public:
      * Compute the Lagrangian force at the specified time within the current
      * time interval using the provided data vectors.
      */
-    void computeLagrangianForce(libMesh::PetscVector<double>* F_vec,
-                                libMesh::PetscVector<double>* X_vec,
+    void computeLagrangianForce(libMesh::PetscVector<double>& F_vec,
+                                libMesh::PetscVector<double>& X_vec,
                                 libMesh::PetscVector<double>* P_vec,
                                 double data_time,
                                 unsigned int part);
@@ -188,13 +188,13 @@ protected:
     /*!
      * Perform a forward Euler step.
      */
-    void doForwardEulerStep(libMesh::PetscVector<double>* X_new_vec,
-                            libMesh::PetscVector<double>* U_new_vec,
+    void doForwardEulerStep(libMesh::PetscVector<double>& X_new_vec,
+                            libMesh::PetscVector<double>& U_new_vec,
                             libMesh::PetscVector<double>* P_new_vec,
-                            libMesh::PetscVector<double>* X_current_vec,
-                            libMesh::PetscVector<double>* U_current_vec,
+                            libMesh::PetscVector<double>& X_current_vec,
+                            libMesh::PetscVector<double>& U_current_vec,
                             libMesh::PetscVector<double>* P_current_vec,
-                            libMesh::PetscVector<double>* F_current_vec,
+                            libMesh::PetscVector<double>& F_current_vec,
                             libMesh::PetscVector<double>* dP_dt_current_vec,
                             double current_time,
                             double new_time,
