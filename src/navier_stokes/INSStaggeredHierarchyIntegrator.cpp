@@ -574,7 +574,8 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     d_F_cc_var = new CellVariable<NDIM, double>(d_object_name + "::F_cc", NDIM);
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", (NDIM == 2) ? 1 : NDIM);
     if (d_output_Omega)
-        d_Omega_nc_var = new NodeVariable<NDIM, double>(d_object_name + "::Omega_nc", (NDIM == 2) ? 1 : NDIM);
+        d_Omega_nc_var = new NodeVariable<NDIM, double>(
+            d_object_name + "::Omega_nc", (NDIM == 2) ? 1 : NDIM, /*fine_boundary_represents_var*/ false);
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
 
     d_Omega_Norm_var = (NDIM == 2) ? nullptr : new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
@@ -888,9 +889,9 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                      d_N_coarsen_type,
                      d_N_refine_type);
 
+    registerVariable(d_U_nc_idx, d_U_nc_var, no_ghosts, getCurrentContext());
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
-    registerVariable(d_U_nc_idx, d_U_nc_var, no_ghosts, getCurrentContext());
     if (d_F_fcn)
     {
         registerVariable(d_F_cc_idx, d_F_cc_var, no_ghosts, getCurrentContext());
@@ -2064,7 +2065,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
     }
 
-    // Interpolate u to cell centers.
+    // Interpolate u to nodal data.
     if (d_output_U)
     {
         const int U_sc_idx = var_db->mapVariableAndContextToIndex(d_U_var, ctx);
@@ -2095,8 +2096,6 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                 d_no_fill_op,
                                 d_integrator_time,
                                 synch_cf_interface);
-        // For visualization purposes we want a conforming field:
-        d_hier_math_ops->enforceHangingNodeConstraints(U_nc_idx, d_U_nc_var);
     }
 
     // Interpolate f to cell centers.
@@ -2127,8 +2126,14 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
         U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, coarsest_ln, finest_ln);
         U_bdry_bc_fill_op.fillData(d_integrator_time);
-        d_hier_math_ops->curl(
-            d_Omega_nc_idx, d_Omega_nc_var, d_U_scratch_idx, d_U_var, d_no_fill_op, d_integrator_time);
+        d_hier_math_ops->curl(d_Omega_nc_idx,
+                              d_Omega_nc_var,
+                              synch_cf_interface,
+                              d_U_scratch_idx,
+                              d_U_var,
+                              d_no_fill_op,
+                              d_integrator_time,
+                              synch_cf_interface);
     }
 
     // Compute Div U.

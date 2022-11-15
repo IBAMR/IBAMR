@@ -1,0 +1,4 @@
+Changed: The function signature of HierarchyMathOps::curl() for side-valued input and nodal output
+has been incompatibly changed to allow for setting source and destination data synchronization.
+<br>
+(David Wells, 2022/11/15)

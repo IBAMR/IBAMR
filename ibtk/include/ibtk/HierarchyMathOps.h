@@ -314,10 +314,12 @@ public:
      */
     void curl(int dst_idx,
               SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+              bool dst_cf_bdry_synch,
               int src_idx,
               SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
               SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-              double src_ghost_fill_time);
+              double src_ghost_fill_time,
+              bool src_cf_bdry_synch);
 
     /*!
      * \brief Compute the edge-centered curl of a side-centered vector field

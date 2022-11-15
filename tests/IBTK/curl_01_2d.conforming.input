@@ -1,6 +1,6 @@
-// basic test for curl - does not set up a conforming discretization
+// basic test for curl - does set up a conforming discretization
 synch_dst_cf_interface = TRUE
-fine_boundary_represents_var = TRUE
+fine_boundary_represents_var = FALSE
 
 u {
    function_0 = "1 - 2*cos(2*PI*X_0)*sin(2*PI*X_1)"

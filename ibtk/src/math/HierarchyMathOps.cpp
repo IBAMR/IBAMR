@@ -734,11 +734,13 @@ HierarchyMathOps::curl(const int dst_idx,
 
 void
 HierarchyMathOps::curl(const int dst_idx,
-                       const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
+                       const Pointer<NodeVariable<NDIM, double> > dst_var,
+                       const bool dst_cf_bdry_synch,
                        const int src_idx,
                        const Pointer<SideVariable<NDIM, double> > /*src_var*/,
                        const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                       const double src_ghost_fill_time)
+                       const double src_ghost_fill_time,
+                       const bool src_cf_bdry_synch)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
@@ -754,7 +756,14 @@ HierarchyMathOps::curl(const int dst_idx,
         // NOTE: These data will be deallocated when processing the next coarser level.
         if (ln > d_coarsest_ln)
         {
-            level->allocatePatchData(on_idx);
+            if (src_cf_bdry_synch)
+            {
+                level->allocatePatchData(d_os_idx);
+            }
+            if (dst_cf_bdry_synch)
+            {
+                level->allocatePatchData(on_idx);
+            }
         }
 
         // Compute the discrete curl.
@@ -769,19 +778,37 @@ HierarchyMathOps::curl(const int dst_idx,
 
             if (ln > d_coarsest_ln)
             {
-                Pointer<OuternodeData<NDIM, double> > on_data = patch->getPatchData(on_idx);
-                on_data->copy(*dst_data);
+                if (src_cf_bdry_synch)
+                {
+                    Pointer<OutersideData<NDIM, double> > os_data = patch->getPatchData(d_os_idx);
+                    os_data->copy(*src_data);
+                }
+                if (dst_cf_bdry_synch)
+                {
+                    Pointer<OuternodeData<NDIM, double> > on_data = patch->getPatchData(on_idx);
+                    on_data->copy(*dst_data);
+                }
             }
         }
 
-        // Synchronize the coarse-fine interface of dst and deallocate
-        // temporary data.
-        if (ln + 1 <= d_finest_ln)
+        // Synchronize the coarse-fine interface of dst and deallocate temporary data.
+        if (ln > d_coarsest_ln && src_cf_bdry_synch)
+        {
+            xeqScheduleOutersideRestriction(src_idx, d_os_idx, ln - 1);
+            level->deallocatePatchData(d_os_idx);
+        }
+        if (ln + 1 <= d_finest_ln && dst_cf_bdry_synch)
         {
             xeqScheduleOuternodeRestriction(dst_idx, on_idx, ln);
             d_hierarchy->getPatchLevel(ln + 1)->deallocatePatchData(on_idx);
         }
     }
+
+    if (dst_cf_bdry_synch && dst_var->fineBoundaryRepresentsVariable() == false)
+    {
+        enforceHangingNodeConstraints(dst_idx, dst_var);
+    }
+
     return;
 } // curl
 

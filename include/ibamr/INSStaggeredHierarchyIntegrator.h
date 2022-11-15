@@ -427,6 +427,7 @@ private:
      * Variables for graphical output.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_U_nc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_P_nc_var;
 
     /*
      * Patch data descriptor indices for all "state" variables managed by the
@@ -447,7 +448,7 @@ private:
      *
      * Plot variables have one context: current.
      */
-    int d_U_nc_idx = IBTK::invalid_index, d_F_cc_idx = IBTK::invalid_index, d_Omega_idx = IBTK::invalid_index,
+    int d_U_nc_idx = IBTK::invalid_index, d_P_nc_idx = IBTK::invalid_index, d_F_cc_idx = IBTK::invalid_index, d_Omega_idx = IBTK::invalid_index,
         d_Omega_nc_idx = IBTK::invalid_index, d_Div_U_idx = IBTK::invalid_index, d_EE_idx = IBTK::invalid_index;
 
     /*

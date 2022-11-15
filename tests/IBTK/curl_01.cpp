@@ -87,10 +87,13 @@ main(int argc, char* argv[])
             TBOX_ERROR("not implemented");
         }
 
+        const bool fine_boundary_represents_var = input_db->getBoolWithDefault("fine_boundary_represents_var", false);
         const unsigned int curl_dim = (NDIM == 2 ? 1 : NDIM);
         Pointer<Variable<NDIM> > curl_u_var, e_var;
-        Pointer<NodeVariable<NDIM, double> > curl_u_nc_var = new NodeVariable<NDIM, double>("curl_u_nc", curl_dim);
-        Pointer<NodeVariable<NDIM, double> > e_nc_var = new NodeVariable<NDIM, double>("e_nc", curl_dim);
+        Pointer<NodeVariable<NDIM, double> > curl_u_nc_var =
+            new NodeVariable<NDIM, double>("curl_u_nc", curl_dim, fine_boundary_represents_var);
+        Pointer<NodeVariable<NDIM, double> > e_nc_var =
+            new NodeVariable<NDIM, double>("e_nc", curl_dim, fine_boundary_represents_var);
 
         if (dst_var_type == "NODE")
         {
@@ -179,9 +182,12 @@ main(int argc, char* argv[])
         hier_bdry_fill->fillData(0.0);
 
         // evaluate the curl:
+        const bool synch_src_cf_interface = true;
+        const bool synch_dst_cf_interface = input_db->getBoolWithDefault("synch_dst_cf_interface", false);
         if (dst_var_type == "NODE" && src_var_type == "SIDE")
         {
-            hier_math_ops.curl(curl_u_idx, curl_u_nc_var, u_idx, u_sc_var, NULL, 0.0);
+            hier_math_ops.curl(
+                curl_u_idx, curl_u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, NULL, synch_src_cf_interface, 0.0);
         }
         else
         {
