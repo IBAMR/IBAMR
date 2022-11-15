@@ -81,6 +81,11 @@ namespace IBTK
  * "composite-grid" mathematical operations on a range of levels in a
  * SAMRAI::hier::PatchHierarchy object.
  *
+ * For nodal destination data, if the provided variable has
+ * fineBoundaryRepresentsVariable() == false and synch_dst_cf_interface == true
+ * then each routine will call HierarchyMathOps::enforceHangingNodeConstraints()
+ * to achieve a conforming bi/trilinear discretization.
+ *
  * \note All specified variable descriptor indices must refer to
  * SAMRAI::hier::Variable / SAMRAI::hier::VariableContext pairs that have been
  * registered with the SAMRAI::hier::VariableDatabase.
@@ -825,6 +830,7 @@ public:
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                bool dst_cf_bdry_synch,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -845,6 +851,7 @@ public:
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                bool dst_cf_bdry_synch,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -1399,6 +1406,16 @@ public:
                      SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                      double src_ghost_fill_time);
 
+    /*!
+     * \brief Enforce hanging node constraints in the sense of making the
+     * resulting bilinear or trilinear interpolation of nodal data continuous
+     * across the coarse-fine interface.
+     *
+     * @warning
+     */
+    void enforceHangingNodeConstraints(int dst_idx,
+                                       SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var);
+
 private:
     /*!
      * \brief Default constructor.
@@ -1478,27 +1495,35 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
     int d_coarsest_ln, d_finest_ln;
 
-    // Scratch Variables.
+    // Scratch Variables. Since nodal data is used for both scalar and vector
+    // quantities we create both (and corresponding outernode) sets of
+    // variables.
     SAMRAIDataCache d_cached_eulerian_data;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_fc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_s_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_v_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_s_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_v_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
-    int d_fc_idx = IBTK::invalid_index, d_nc_idx = IBTK::invalid_index, d_sc_idx = IBTK::invalid_index,
-        d_of_idx = IBTK::invalid_index, d_on_idx = IBTK::invalid_index, d_os_idx = IBTK::invalid_index;
+    int d_fc_idx = IBTK::invalid_index, d_nc_s_idx = IBTK::invalid_index, d_nc_v_idx = IBTK::invalid_index,
+        d_sc_idx = IBTK::invalid_index, d_of_idx = IBTK::invalid_index, d_on_s_idx = IBTK::invalid_index,
+        d_on_v_idx = IBTK::invalid_index, d_os_idx = IBTK::invalid_index;
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_of_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_s_coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_v_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_os_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_of_coarsen_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_s_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_v_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_os_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_of_coarsen_scheds;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_coarsen_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_s_coarsen_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_v_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_os_coarsen_scheds;
 
     // Hierarchy data operations.

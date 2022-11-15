@@ -32,6 +32,8 @@
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
+#include "../tests.h"
+
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
  * cases, the command line is:                                                 *
@@ -52,6 +54,7 @@ main(int argc, char* argv[])
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "nodalinterp.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
         const std::string var_type = input_db->getStringWithDefault("var_type", "SIDE");
+        const auto N = input_db->getInteger("N");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
@@ -74,7 +77,7 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<Variable<NDIM> > u_var;
+        Pointer<hier::Variable<NDIM> > u_var;
         Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
         Pointer<FaceVariable<NDIM, double> > u_fc_var = new FaceVariable<NDIM, double>("u_fc");
 
@@ -93,8 +96,11 @@ main(int argc, char* argv[])
 
         const int u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVector<NDIM>(1));
 
-        Pointer<NodeVariable<NDIM, double> > u_nc_var = new NodeVariable<NDIM, double>("u_nc", NDIM);
-        Pointer<NodeVariable<NDIM, double> > e_nc_var = new NodeVariable<NDIM, double>("e_nc", NDIM);
+        const bool fine_boundary_represents_var = input_db->getBoolWithDefault("fine_boundary_represents_var", false);
+        Pointer<NodeVariable<NDIM, double> > u_nc_var =
+            new NodeVariable<NDIM, double>("u_nc", NDIM, fine_boundary_represents_var);
+        Pointer<NodeVariable<NDIM, double> > e_nc_var =
+            new NodeVariable<NDIM, double>("e_nc", NDIM, fine_boundary_represents_var);
 
         const int u_nc_idx = var_db->registerVariableAndContext(u_nc_var, ctx, IntVector<NDIM>(0));
         const int e_nc_idx = var_db->registerVariableAndContext(e_nc_var, ctx, IntVector<NDIM>(0));
@@ -163,14 +169,17 @@ main(int argc, char* argv[])
         hier_bdry_fill->fillData(0.0);
 
         // interpolate from side/face-centered to nodal:
-        static const bool synch_cf_interface = true;
+        const bool synch_dst_cf_interface = input_db->getBoolWithDefault("synch_dst_cf_interface", false);
+        const bool synch_src_cf_interface = true;
         if (var_type == "SIDE")
         {
-            hier_math_ops.interp(u_nc_idx, u_nc_var, u_idx, u_sc_var, NULL, 0.0, synch_cf_interface);
+            hier_math_ops.interp(
+                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, NULL, 0.0, synch_src_cf_interface);
         }
         else if (var_type == "FACE")
         {
-            hier_math_ops.interp(u_nc_idx, u_nc_var, u_idx, u_fc_var, NULL, 0.0, synch_cf_interface);
+            hier_math_ops.interp(
+                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_fc_var, NULL, 0.0, synch_src_cf_interface);
         }
 
         // Compute error and print error norms.
@@ -178,9 +187,10 @@ main(int argc, char* argv[])
                        Pointer<SAMRAIVectorReal<NDIM, double> >(&u_vec, false));
         const double max_norm = e_vec.maxNorm();
 
+        std::ostringstream out;
+        out << std::setprecision(16);
         if (IBTK_MPI::getRank() == 0)
         {
-            std::ofstream out("output");
             out << "|e|_oo = " << max_norm << "\n";
         }
 
@@ -209,6 +219,50 @@ main(int argc, char* argv[])
                 }
             }
         }
+
+        if (input_db->getBoolWithDefault("print_cf_plane", false))
+        {
+            const int d = input_db->getIntegerWithDefault("cf_plane_axis", 1);
+            TBOX_ASSERT(0 <= d && d <= NDIM);
+            const int depth = input_db->getIntegerWithDefault("component_to_print", 0);
+            for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                out << "level = " << ln << '\n';
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<NodeData<NDIM, double> > u_data = patch->getPatchData(u_nc_idx);
+                    Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+
+                    for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
+                    {
+                        const NodeIndex<NDIM>& idx = ni();
+                        IBTK::VectorNd point;
+                        point[0] = double(idx[0]) / (N * pgeom->getRatio()[0]);
+                        point[1] = double(idx[1]) / (N * pgeom->getRatio()[1]);
+#if NDIM == 3
+                        point[2] = double(idx[2]) / (N * pgeom->getRatio()[2]);
+#endif
+                        const double value = (*u_data)(idx, depth);
+
+#if NDIM == 2
+                        if (std::abs(point[d] - 0.5) < 1e-6)
+                        {
+                            out << point[0] << ", " << point[1] << ": " << value << '\n';
+                        }
+#else
+                        if (std::abs(point[d] - 0.5) < 1e-6)
+                        {
+                            out << point[0] << ", " << point[1] << ", " << point[2] << ": " << value << '\n';
+                        }
+#endif
+                    }
+                }
+            }
+        }
+
+        print_strings_on_plog_0(out.str());
 
         // Output data for plotting.
         visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);

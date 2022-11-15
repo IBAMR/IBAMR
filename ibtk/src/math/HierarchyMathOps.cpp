@@ -135,10 +135,12 @@ HierarchyMathOps::HierarchyMathOps(std::string name,
       d_coarsest_ln(coarsest_ln),
       d_finest_ln(finest_ln),
       d_fc_var(new FaceVariable<NDIM, double>(d_object_name + "::scratch_fc")),
-      d_nc_var(new NodeVariable<NDIM, double>(d_object_name + "::scratch_nc", NDIM)),
+      d_nc_s_var(new NodeVariable<NDIM, double>(d_object_name + "::scratch_nc_s", 1)),
+      d_nc_v_var(new NodeVariable<NDIM, double>(d_object_name + "::scratch_nc_v", NDIM)),
       d_sc_var(new SideVariable<NDIM, double>(d_object_name + "::scratch_sc")),
       d_of_var(new OuterfaceVariable<NDIM, double>(d_object_name + "::scratch_of")),
-      d_on_var(new OuternodeVariable<NDIM, double>(d_object_name + "::scratch_on", NDIM == 2 ? 1 : NDIM)),
+      d_on_s_var(new OuternodeVariable<NDIM, double>(d_object_name + "::scratch_on_s", 1)),
+      d_on_v_var(new OuternodeVariable<NDIM, double>(d_object_name + "::scratch_on_v", NDIM)),
       d_os_var(new OutersideVariable<NDIM, double>(d_object_name + "::scratch_os")),
       d_coarsen_op_name(std::move(coarsen_op_name)),
       d_wgt_cc_var(new CellVariable<NDIM, double>(d_object_name + "::wgt_cc", 1)),
@@ -152,11 +154,13 @@ HierarchyMathOps::HierarchyMathOps(std::string name,
     static const bool fine_boundary_represents_var = true;
     static const IntVector<NDIM> no_ghosts = 0;
     d_fc_var->setPatchDataFactory(new FaceDataFactory<NDIM, double>(1, no_ghosts, fine_boundary_represents_var));
-    d_nc_var->setPatchDataFactory(new NodeDataFactory<NDIM, double>(NDIM, no_ghosts, fine_boundary_represents_var));
+    d_nc_s_var->setPatchDataFactory(new NodeDataFactory<NDIM, double>(1, no_ghosts, fine_boundary_represents_var));
+    d_nc_v_var->setPatchDataFactory(new NodeDataFactory<NDIM, double>(NDIM, no_ghosts, fine_boundary_represents_var));
     d_sc_var->setPatchDataFactory(new SideDataFactory<NDIM, double>(1, no_ghosts, fine_boundary_represents_var));
 
     d_of_var->setPatchDataFactory(new OuterfaceDataFactory<NDIM, double>(1));
-    d_on_var->setPatchDataFactory(new OuternodeDataFactory<NDIM, double>(NDIM == 2 ? 1 : NDIM));
+    d_on_s_var->setPatchDataFactory(new OuternodeDataFactory<NDIM, double>(1));
+    d_on_v_var->setPatchDataFactory(new OuternodeDataFactory<NDIM, double>(NDIM));
     d_os_var->setPatchDataFactory(new OutersideDataFactory<NDIM, double>(1));
 
     static const IntVector<NDIM> ghosts = 1;
@@ -171,14 +175,24 @@ HierarchyMathOps::HierarchyMathOps(std::string name,
         d_fc_idx = var_db->registerVariableAndContext(d_fc_var, d_context, ghosts);
     }
 
-    if (var_db->checkVariableExists(d_nc_var->getName()))
+    if (var_db->checkVariableExists(d_nc_s_var->getName()))
     {
-        d_nc_var = var_db->getVariable(d_nc_var->getName());
-        d_nc_idx = var_db->mapVariableAndContextToIndex(d_nc_var, d_context);
+        d_nc_s_var = var_db->getVariable(d_nc_s_var->getName());
+        d_nc_s_idx = var_db->mapVariableAndContextToIndex(d_nc_s_var, d_context);
     }
     else
     {
-        d_nc_idx = var_db->registerVariableAndContext(d_nc_var, d_context, ghosts);
+        d_nc_s_idx = var_db->registerVariableAndContext(d_nc_s_var, d_context, ghosts);
+    }
+
+    if (var_db->checkVariableExists(d_nc_v_var->getName()))
+    {
+        d_nc_v_var = var_db->getVariable(d_nc_v_var->getName());
+        d_nc_v_idx = var_db->mapVariableAndContextToIndex(d_nc_v_var, d_context);
+    }
+    else
+    {
+        d_nc_v_idx = var_db->registerVariableAndContext(d_nc_v_var, d_context, ghosts);
     }
 
     if (var_db->checkVariableExists(d_sc_var->getName()))
@@ -201,14 +215,24 @@ HierarchyMathOps::HierarchyMathOps(std::string name,
         d_of_idx = var_db->registerVariableAndContext(d_of_var, d_context);
     }
 
-    if (var_db->checkVariableExists(d_on_var->getName()))
+    if (var_db->checkVariableExists(d_on_s_var->getName()))
     {
-        d_on_var = var_db->getVariable(d_on_var->getName());
-        d_on_idx = var_db->mapVariableAndContextToIndex(d_on_var, d_context);
+        d_on_s_var = var_db->getVariable(d_on_s_var->getName());
+        d_on_s_idx = var_db->mapVariableAndContextToIndex(d_on_s_var, d_context);
     }
     else
     {
-        d_on_idx = var_db->registerVariableAndContext(d_on_var, d_context);
+        d_on_s_idx = var_db->registerVariableAndContext(d_on_s_var, d_context);
+    }
+
+    if (var_db->checkVariableExists(d_on_v_var->getName()))
+    {
+        d_on_v_var = var_db->getVariable(d_on_v_var->getName());
+        d_on_v_idx = var_db->mapVariableAndContextToIndex(d_on_v_var, d_context);
+    }
+    else
+    {
+        d_on_v_idx = var_db->registerVariableAndContext(d_on_v_var, d_context);
     }
 
     if (var_db->checkVariableExists(d_os_var->getName()))
@@ -318,14 +342,16 @@ HierarchyMathOps::resetLevels(const int coarsest_ln, const int finest_ln)
 
     // Reset the CoarsenSchedule vectors.
     d_of_coarsen_scheds.resize(d_finest_ln);
-    d_on_coarsen_scheds.resize(d_finest_ln);
+    d_on_s_coarsen_scheds.resize(d_finest_ln);
+    d_on_v_coarsen_scheds.resize(d_finest_ln);
     d_os_coarsen_scheds.resize(d_finest_ln);
     for (int dst_ln = d_coarsest_ln; dst_ln < d_finest_ln; ++dst_ln)
     {
         Pointer<PatchLevel<NDIM> > src_level = d_hierarchy->getPatchLevel(dst_ln + 1);
         Pointer<PatchLevel<NDIM> > dst_level = d_hierarchy->getPatchLevel(dst_ln);
         d_of_coarsen_scheds[dst_ln] = d_of_coarsen_alg->createSchedule(dst_level, src_level);
-        d_on_coarsen_scheds[dst_ln] = d_on_coarsen_alg->createSchedule(dst_level, src_level);
+        d_on_s_coarsen_scheds[dst_ln] = d_on_s_coarsen_alg->createSchedule(dst_level, src_level);
+        d_on_v_coarsen_scheds[dst_ln] = d_on_v_coarsen_alg->createSchedule(dst_level, src_level);
         d_os_coarsen_scheds[dst_ln] = d_os_coarsen_alg->createSchedule(dst_level, src_level);
     }
 
@@ -716,6 +742,9 @@ HierarchyMathOps::curl(const int dst_idx,
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
+    // 2D curl is a scalar
+    const int on_idx = NDIM == 2 ? d_on_s_idx : d_on_v_idx;
+
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -725,7 +754,7 @@ HierarchyMathOps::curl(const int dst_idx,
         // NOTE: These data will be deallocated when processing the next coarser level.
         if (ln > d_coarsest_ln)
         {
-            level->allocatePatchData(d_on_idx);
+            level->allocatePatchData(on_idx);
         }
 
         // Compute the discrete curl.
@@ -740,7 +769,7 @@ HierarchyMathOps::curl(const int dst_idx,
 
             if (ln > d_coarsest_ln)
             {
-                Pointer<OuternodeData<NDIM, double> > on_data = patch->getPatchData(d_on_idx);
+                Pointer<OuternodeData<NDIM, double> > on_data = patch->getPatchData(on_idx);
                 on_data->copy(*dst_data);
             }
         }
@@ -749,8 +778,8 @@ HierarchyMathOps::curl(const int dst_idx,
         // temporary data.
         if (ln + 1 <= d_finest_ln)
         {
-            xeqScheduleOuternodeRestriction(dst_idx, d_on_idx, ln);
-            d_hierarchy->getPatchLevel(ln + 1)->deallocatePatchData(d_on_idx);
+            xeqScheduleOuternodeRestriction(dst_idx, on_idx, ln);
+            d_hierarchy->getPatchLevel(ln + 1)->deallocatePatchData(on_idx);
         }
     }
     return;
@@ -1977,6 +2006,7 @@ HierarchyMathOps::interp(const int dst_idx,
 void
 HierarchyMathOps::interp(const int dst_idx,
                          const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
+                         const bool /*dst_cf_bdry_synch*/,
                          const int src_idx,
                          const Pointer<FaceVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2024,7 +2054,8 @@ HierarchyMathOps::interp(const int dst_idx,
 
 void
 HierarchyMathOps::interp(const int dst_idx,
-                         const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
+                         const Pointer<NodeVariable<NDIM, double> > dst_var,
+                         const bool dst_cf_bdry_synch,
                          const int src_idx,
                          const Pointer<SideVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2033,14 +2064,26 @@ HierarchyMathOps::interp(const int dst_idx,
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
 
+    Pointer<NodeDataFactory<NDIM, double> > data_factory = dst_var->getPatchDataFactory();
+    const int depth = data_factory->getDefaultDepth();
+    TBOX_ASSERT(depth == 1 || depth == NDIM);
+    const int on_idx = depth == 1 ? d_on_s_idx : d_on_v_idx;
+
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
 
         // Allocate temporary data to synchronize the coarse-fine interface.
-        if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
+        if (ln > d_coarsest_ln)
         {
-            level->allocatePatchData(d_os_idx);
+            if (src_cf_bdry_synch)
+            {
+                level->allocatePatchData(d_os_idx);
+            }
+            if (dst_cf_bdry_synch)
+            {
+                level->allocatePatchData(on_idx);
+            }
         }
 
         // Interpolate and extract data on the coarse-fine interface.
@@ -2053,20 +2096,39 @@ HierarchyMathOps::interp(const int dst_idx,
 
             d_patch_math_ops.interp(dst_data, src_data, patch);
 
-            if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
+            if (ln > d_coarsest_ln)
             {
-                Pointer<OutersideData<NDIM, double> > os_data = patch->getPatchData(d_os_idx);
-                os_data->copy(*src_data);
+                if (src_cf_bdry_synch)
+                {
+                    Pointer<OutersideData<NDIM, double> > os_data = patch->getPatchData(d_os_idx);
+                    os_data->copy(*src_data);
+                }
+                if (dst_cf_bdry_synch)
+                {
+                    Pointer<OuternodeData<NDIM, double> > on_data = patch->getPatchData(on_idx);
+                    on_data->copy(*dst_data);
+                }
             }
         }
 
         // Synchronize the coarse-fine interface and deallocate temporary data.
-        if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
+        if (ln > d_coarsest_ln && src_cf_bdry_synch)
         {
             xeqScheduleOutersideRestriction(src_idx, d_os_idx, ln - 1);
             level->deallocatePatchData(d_os_idx);
         }
+        if (ln + 1 <= d_finest_ln && dst_cf_bdry_synch)
+        {
+            xeqScheduleOuternodeRestriction(dst_idx, on_idx, ln);
+            d_hierarchy->getPatchLevel(ln + 1)->deallocatePatchData(on_idx);
+        }
     }
+
+    if (dst_cf_bdry_synch && dst_var->fineBoundaryRepresentsVariable() == false)
+    {
+        enforceHangingNodeConstraints(dst_idx, dst_var);
+    }
+
     return;
 } // interp
 
@@ -3435,6 +3497,156 @@ HierarchyMathOps::strain_rate(const int dst_idx,
     return;
 } // strain
 
+void
+HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, Pointer<NodeVariable<NDIM, double> > dst_var)
+{
+    TBOX_ASSERT(dst_idx != IBTK::invalid_index);
+    TBOX_ASSERT(dst_var);
+
+    // hanging nodes don't exist in 1D
+    if (NDIM == 1) return;
+
+    // Convert a BoundaryBox (which is implicitly cell-centered) into a nodal box.
+    auto boundary_to_nodal = [](const BoundaryBox<NDIM>& bbox) {
+        // lower faces are even, upper faces are odd
+        const int location = bbox.getLocationIndex();
+        const bool is_lower_face = location % 2 == 0;
+        const int face_axis = location / 2;
+
+        Box<NDIM> node_box = NodeGeometry<NDIM>::toNodeBox(bbox.getBox());
+
+        // make it a boundary box in the nodal sense: something of codim 1
+        if (is_lower_face)
+            node_box.lower(face_axis) += 1;
+        else
+            node_box.upper(face_axis) -= 1;
+
+        return node_box;
+    };
+
+    for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
+    {
+        CoarseFineBoundary<NDIM> cf_boundary(*d_hierarchy, ln, 0);
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        const IntVector<NDIM> ratio = level->getRatioToCoarserLevel();
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            const Pointer<Patch<NDIM> >& patch = level->getPatch(p());
+            TBOX_ASSERT(patch->getPatchData(dst_idx));
+            Pointer<NodeData<NDIM, double> > dst_data_ptr = patch->getPatchData(dst_idx);
+            NodeData<NDIM, double>& dst_data = *dst_data_ptr;
+            const tbox::Array<BoundaryBox<NDIM> >& bboxes = cf_boundary.getBoundaries(p(), 1);
+
+            for (int k = 0; k < bboxes.size(); ++k)
+            {
+                // 0. Do not do anything when we have a box on a physical boundary:
+                const int location = bboxes[k].getLocationIndex();
+                if (patch->getPatchGeometry()->getTouchesRegularBoundary(location / 2, location % 2))
+                {
+                    continue;
+                }
+                // 1. Get the nodal box:
+                auto node_box = boundary_to_nodal(bboxes[k]);
+                // 2. use it to fill values:
+                for (int d = 0; d < dst_data.getDepth(); ++d)
+                {
+                    const auto lower = node_box.lower();
+                    const auto upper = node_box.upper();
+#if NDIM == 2
+                    const int constant = lower(0) == upper(0) ? 0 : 1;
+                    const int coordinate = constant == 0 ? 1 : 0;
+                    TBOX_ASSERT(lower(constant) == upper(constant));
+                    for (int i = lower(coordinate); i < upper(coordinate); i += ratio(coordinate))
+                    {
+                        // convert from implicitly node-centered to actual node indices
+                        NodeIndex<NDIM> n_left;
+                        n_left(constant) = lower(constant);
+                        n_left(coordinate) = i;
+                        NodeIndex<NDIM> n_right = n_left;
+                        n_right(coordinate) += ratio(coordinate);
+
+                        // Actually enforce hanging node constraints
+                        const double c0 = dst_data(n_left, d);
+                        const double c1 = dst_data(n_right, d);
+                        for (int j = 0; j <= ratio(coordinate); ++j)
+                        {
+                            NodeIndex<NDIM> n_current = n_left;
+                            n_current(coordinate) += j;
+                            TBOX_ASSERT(node_box.contains(n_current));
+                            // linear interpolation:
+                            dst_data(n_current, d) = double(ratio(coordinate) - j) / ratio(coordinate) * c0 +
+                                                     double(j) / ratio(coordinate) * c1;
+                        }
+                    }
+#else
+                    // somewhat more difficult: we have to do bilinear interpolation
+                    int coordinate0 = -1, coordinate1 = -1, constant = -1;
+                    if (lower(0) == upper(0))
+                    {
+                        constant = 0;
+                        coordinate0 = 1;
+                        coordinate1 = 2;
+                    }
+                    else if (lower(1) == upper(1))
+                    {
+                        coordinate0 = 0;
+                        constant = 1;
+                        coordinate1 = 2;
+                    }
+                    else
+                    {
+                        TBOX_ASSERT(lower(2) == upper(2));
+                        coordinate0 = 0;
+                        coordinate1 = 1;
+                        constant = 2;
+                    }
+                    IntVector<NDIM> inc0(0);
+                    inc0(coordinate0) = ratio(coordinate0);
+                    IntVector<NDIM> inc1(0);
+                    inc1(coordinate1) = ratio(coordinate1);
+                    for (int i = lower(coordinate0); i < upper(coordinate0); i += ratio(coordinate0))
+                    {
+                        for (int j = lower(coordinate1); j < upper(coordinate1); j += ratio(coordinate1))
+                        {
+                            NodeIndex<NDIM> n_lower;
+                            n_lower(coordinate0) = i;
+                            n_lower(coordinate1) = j;
+                            n_lower(constant) = lower(constant);
+                            TBOX_ASSERT(node_box.contains(n_lower));
+
+                            const double c00 = dst_data(n_lower, d);
+                            const double c01 = dst_data(n_lower + inc0, d);
+                            const double c10 = dst_data(n_lower + inc1, d);
+                            const double c11 = dst_data(n_lower + inc0 + inc1, d);
+                            // this could be made more efficient by only
+                            // computing edges once but this way is much
+                            // simpler - since its a codim 1 problem
+                            // performance isn't that important.
+                            for (int ii = 0; ii <= ratio(coordinate0); ++ii)
+                            {
+                                for (int jj = 0; jj <= ratio(coordinate1); ++jj)
+                                {
+                                    NodeIndex<NDIM> n_current = n_lower;
+                                    n_current(coordinate0) += ii;
+                                    n_current(coordinate1) += jj;
+                                    TBOX_ASSERT(node_box.contains(n_current));
+                                    // bilinear interpolation:
+                                    const double l0 = double(ii) / ratio(coordinate0);
+                                    const double l1 = double(jj) / ratio(coordinate1);
+
+                                    dst_data(n_current, d) = (1.0 - l0) * (1.0 - l1) * c00 + l0 * (1.0 - l1) * c01 +
+                                                             (1.0 - l0) * l1 * c10 + l0 * l1 * c11;
+                                }
+                            }
+                        }
+                    }
+#endif
+                }
+            }
+        }
+    }
+}
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
@@ -3444,7 +3656,8 @@ HierarchyMathOps::resetCoarsenOperators()
     TBOX_ASSERT(d_grid_geom);
 #endif
     d_of_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_of_var, d_coarsen_op_name);
-    d_on_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_on_var, "CONSTANT_COARSEN");
+    d_on_s_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_on_s_var, "CONSTANT_COARSEN");
+    d_on_v_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_on_v_var, "CONSTANT_COARSEN");
     d_os_coarsen_op = d_grid_geom->lookupCoarsenOperator(d_os_var, d_coarsen_op_name);
 
     d_of_coarsen_alg = new CoarsenAlgorithm<NDIM>();
@@ -3452,10 +3665,14 @@ HierarchyMathOps::resetCoarsenOperators()
                                       d_of_idx, // source
                                       d_of_coarsen_op);
 
-    d_on_coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    d_on_coarsen_alg->registerCoarsen(d_nc_idx, // destination
-                                      d_on_idx, // source
-                                      d_on_coarsen_op);
+    d_on_s_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_on_v_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_on_s_coarsen_alg->registerCoarsen(d_nc_s_idx, // destination
+                                        d_on_s_idx, // source
+                                        d_on_s_coarsen_op);
+    d_on_v_coarsen_alg->registerCoarsen(d_nc_v_idx, // destination
+                                        d_on_v_idx, // source
+                                        d_on_v_coarsen_op);
 
     d_os_coarsen_alg = new CoarsenAlgorithm<NDIM>();
     d_os_coarsen_alg->registerCoarsen(d_sc_idx, // destination
@@ -3502,16 +3719,22 @@ void
 HierarchyMathOps::xeqScheduleOuternodeRestriction(const int dst_idx, const int src_idx, const int dst_ln)
 {
 #if !defined(NDEBUG)
+    TBOX_ASSERT(src_idx == d_on_s_idx || src_idx == d_on_v_idx);
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
 #endif
+    const bool is_scalar = src_idx == d_on_s_idx;
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-    coarsen_alg->registerCoarsen(dst_idx, src_idx, d_on_coarsen_op);
-    if (coarsen_alg->checkConsistency(d_on_coarsen_scheds[dst_ln]))
+    coarsen_alg->registerCoarsen(dst_idx, src_idx, is_scalar ? d_on_s_coarsen_op : d_on_v_coarsen_op);
+    auto sched = is_scalar ? d_on_s_coarsen_scheds[dst_ln] : d_on_v_coarsen_scheds[dst_ln];
+    if (coarsen_alg->checkConsistency(sched))
     {
-        coarsen_alg->resetSchedule(d_on_coarsen_scheds[dst_ln]);
-        d_on_coarsen_scheds[dst_ln]->coarsenData();
-        d_on_coarsen_alg->resetSchedule(d_on_coarsen_scheds[dst_ln]);
+        coarsen_alg->resetSchedule(sched);
+        sched->coarsenData();
+        if (is_scalar)
+            d_on_s_coarsen_alg->resetSchedule(sched);
+        else
+            d_on_v_coarsen_alg->resetSchedule(sched);
     }
     else
     {

@@ -1,7 +1,16 @@
-var_type = "FACE"
+// Also nodal interpolation, but explicitly synch the nodal coarse-fine
+// interface. Since a face is shared between two patches on level 1 not
+// everything printed on the y = 0.5 line is on the coarse-fine interface.
+//
+// Unlike the other tests, the fine boundary represents the variable, so the
+// hanging nodes fixup routine should not be applied.
+
+synch_dst_cf_interface = TRUE
+fine_boundary_represents_var = TRUE
+print_cf_plane = TRUE
 
 u {
-   function = "sin(2*PI*(X_0))*sin(2*PI*(X_1))"
+   function = "sin(9*X_0 + 1.0)*sin(7*X_1 + 10.0)"
 }
 
 Main {
@@ -18,7 +27,7 @@ Main {
    timer_enabled = TRUE
 }
 
-N = 256
+N = 4
 
 CartesianGeometry {
    domain_boxes       = [(0,0), (N - 1,N - 1)]
@@ -31,7 +40,7 @@ GriddingAlgorithm {
    max_levels = 2                 // Maximum number of levels in hierarchy.
 
    ratio_to_coarser {
-      level_1 = 4, 4              // vector ratio to next coarser level
+      level_1 = 2, 2              // vector ratio to next coarser level
    }
 
    largest_patch_size {
