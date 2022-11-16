@@ -539,15 +539,13 @@ c
      &     U,U_gcw,
      &     V,V_gcw,
      &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     U_ghost_interp)
+     &     ilower1,iupper1)
 c
       implicit none
 c
 c     Input.
 c
       INTEGER U_gcw,V_gcw
-      INTEGER U_ghost_interp
 
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
@@ -562,18 +560,12 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
-      INTEGER gcw_shift
 c
 c     Compute the node centered scalar field U from the cell centered
 c     scalar field V.
 c
-      gcw_shift = 0
-      if (U_ghost_interp .eq. 1) then
-         gcw_shift = U_gcw
-      endif
-
-      do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
-         do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0+1
             U(i0,i1) = 0.25d0*(V(i0,i1)+V(i0-1,i1)
      &            +V(i0,i1-1)+V(i0-1,i1-1))
          enddo
@@ -646,8 +638,7 @@ c
      &     U,U_gcw,
      &     V,V_gcw,
      &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     U_ghost_interp)
+     &     ilower1,iupper1)
 c
       implicit none
 c
@@ -658,7 +649,6 @@ c
 c     Input.
 c
       INTEGER U_gcw,V_gcw
-      INTEGER U_ghost_interp
 
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
@@ -673,18 +663,12 @@ c
 c     Local variables.
 c
       INTEGER i0,i1
-      INTEGER gcw_shift
 c
 c     Compute the node centered scalar field U from the cell centered
 c     scalar field V.
 c
-      gcw_shift = 0
-      if (U_ghost_interp .eq. 1) then
-         gcw_shift = U_gcw
-      endif
-
-      do i1 = ilower1-gcw_shift,iupper1+gcw_shift+1
-         do i0 = ilower0-gcw_shift,iupper0+gcw_shift+1
+      do i1 = ilower1,iupper1+1
+         do i0 = ilower0,iupper0+1
             U(i0,i1) = h_avg4(V(i0,i1),V(i0-1,i1),V(i0,i1-1),
      &                  V(i0-1,i1-1))
          enddo

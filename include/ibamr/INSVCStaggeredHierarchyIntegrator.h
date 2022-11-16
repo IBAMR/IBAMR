@@ -722,6 +722,11 @@ protected:
      */
     unsigned int d_mu_adv_diff_idx = 0;
 
+    /*
+     * Hierarchy math ops object that is configured to evaluate operators in an expanded fill box.
+     */
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_extended_hier_math_ops;
+
 private:
     /*!
      * \brief Default constructor.

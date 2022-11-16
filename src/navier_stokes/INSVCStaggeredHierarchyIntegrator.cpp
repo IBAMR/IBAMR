@@ -1781,6 +1781,21 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_hier_ec_data_ops->setPatchHierarchy(hierarchy);
     d_hier_ec_data_ops->resetLevels(0, finest_hier_level);
 
+    if (!d_extended_hier_math_ops)
+    {
+        d_extended_hier_math_ops = new HierarchyMathOps(d_object_name + "::HierarchyMathOps_extended_fill_box",
+                                                        hierarchy,
+                                                        0,
+                                                        finest_hier_level,
+                                                        "CONSERVATIVE_COARSEN",
+                                                        /*dst_fill_box_gcw*/ 1);
+    }
+    else
+    {
+        d_extended_hier_math_ops->setPatchHierarchy(hierarchy);
+        d_extended_hier_math_ops->resetLevels(0, finest_hier_level);
+    }
+
     // Setup the patch boundary filling objects.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,

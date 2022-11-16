@@ -23,6 +23,8 @@
 #include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
+#include "ibtk/HierarchyMathOps.h"
+
 #include <string>
 #include <vector>
 

@@ -65,7 +65,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    PatchMathOps() = default;
+    PatchMathOps(const int dst_fill_box_gcw = 0) : d_dst_fill_box_gcw(dst_fill_box_gcw){};
 
     /*!
      * \brief Destructor.
@@ -345,8 +345,7 @@ public:
      */
     void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                bool dst_ghost_interp) const;
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * \brief Computes the node-centered vector field dst from the face-centered
@@ -370,8 +369,7 @@ public:
      */
     void interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > dst,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                bool dst_ghost_interp) const;
+                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * \brief Computes the side-centered vector field dst from the cell-centered
@@ -387,8 +385,7 @@ public:
      */
     void harmonic_interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeData<NDIM, double> > dst,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                         bool dst_ghost_interp) const;
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * \brief Computes the edge-centered vector field dst from the cell-centered
@@ -396,8 +393,7 @@ public:
      */
     void harmonic_interp(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeData<NDIM, double> > dst,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > src,
-                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                         bool dst_ghost_interp) const;
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * \brief Computes dst_l = alpha L src1_m + beta src1_m + gamma src2_n.
@@ -764,6 +760,9 @@ private:
      * \return A reference to this object.
      */
     PatchMathOps& operator=(const PatchMathOps& that) = delete;
+
+    /// Ghost cell width to extend the fill box.
+    const int d_dst_fill_box_gcw = 0;
 };
 } // namespace IBTK
 
