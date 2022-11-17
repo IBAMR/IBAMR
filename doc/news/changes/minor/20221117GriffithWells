@@ -1,0 +1,3 @@
+New: IBAMR provides an example of how to implement a DLM FSI scheme for elastic structures (in examples/DLM/ex0).
+<br>
+(Boyce Griffith, David Wells, 2022/11/17)
