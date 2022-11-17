@@ -1,0 +1,266 @@
+
+FEMechanicsExplicitIntegrator: mesh part 0 is using FIRST order LAGRANGE finite elements.
+
+
+
+Writing visualization files...
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 0
+Simulation time is 0
+
+The L_1 error of J = 3.71801e-14
+
+The L_2 error of J = 1.57994e-14
+
+The L_oo error of J = 2.13163e-14
+
+
+At end       of timestep # 0
+Simulation time is 0.00125
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 1
+Simulation time is 0.00125
+
+The L_1 error of J = 3.5511e-09
+
+The L_2 error of J = 2.17679e-08
+
+The L_oo error of J = 1.60601e-07
+
+
+At end       of timestep # 1
+Simulation time is 0.0025
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 2
+Simulation time is 0.0025
+
+The L_1 error of J = 2.52572e-08
+
+The L_2 error of J = 1.45191e-07
+
+The L_oo error of J = 1.04062e-06
+
+
+At end       of timestep # 2
+Simulation time is 0.00375
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 3
+Simulation time is 0.00375
+
+The L_1 error of J = 9.26357e-08
+
+The L_2 error of J = 5.002e-07
+
+The L_oo error of J = 3.44853e-06
+
+
+At end       of timestep # 3
+Simulation time is 0.005
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 4
+Simulation time is 0.005
+
+The L_1 error of J = 2.39803e-07
+
+The L_2 error of J = 1.21655e-06
+
+The L_oo error of J = 7.97221e-06
+
+
+At end       of timestep # 4
+Simulation time is 0.00625
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 5
+Simulation time is 0.00625
+
+The L_1 error of J = 5.0068e-07
+
+The L_2 error of J = 2.38225e-06
+
+The L_oo error of J = 1.46165e-05
+
+
+At end       of timestep # 5
+Simulation time is 0.0075
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 6
+Simulation time is 0.0075
+
+The L_1 error of J = 9.02793e-07
+
+The L_2 error of J = 4.03121e-06
+
+The L_oo error of J = 2.27236e-05
+
+
+At end       of timestep # 6
+Simulation time is 0.00875
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 7
+Simulation time is 0.00875
+
+The L_1 error of J = 1.47702e-06
+
+The L_2 error of J = 6.15533e-06
+
+The L_oo error of J = 3.67106e-05
+
+
+At end       of timestep # 7
+Simulation time is 0.01
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 8
+Simulation time is 0.01
+
+The L_1 error of J = 2.2552e-06
+
+The L_2 error of J = 8.72528e-06
+
+The L_oo error of J = 5.46807e-05
+
+
+At end       of timestep # 8
+Simulation time is 0.01125
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 9
+Simulation time is 0.01125
+
+The L_1 error of J = 3.26663e-06
+
+The L_2 error of J = 1.17061e-05
+
+The L_oo error of J = 7.58627e-05
+
+
+At end       of timestep # 9
+Simulation time is 0.0125
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 10
+Simulation time is 0.0125
+
+The L_1 error of J = 4.5403e-06
+
+The L_2 error of J = 1.50653e-05
+
+The L_oo error of J = 9.93102e-05
+
+
+At end       of timestep # 10
+Simulation time is 0.01375
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 11
+Simulation time is 0.01375
+
+The L_1 error of J = 6.09512e-06
+
+The L_2 error of J = 1.87785e-05
+
+The L_oo error of J = 0.000123873
+
+
+At end       of timestep # 11
+Simulation time is 0.015
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 12
+Simulation time is 0.015
+
+The L_1 error of J = 8.01991e-06
+
+The L_2 error of J = 2.28419e-05
+
+The L_oo error of J = 0.000148354
+
+
+At end       of timestep # 12
+Simulation time is 0.01625
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 13
+Simulation time is 0.01625
+
+The L_1 error of J = 1.03198e-05
+
+The L_2 error of J = 2.72913e-05
+
+The L_oo error of J = 0.000171646
+
+
+At end       of timestep # 13
+Simulation time is 0.0175
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 14
+Simulation time is 0.0175
+
+The L_1 error of J = 1.3042e-05
+
+The L_2 error of J = 3.22259e-05
+
+The L_oo error of J = 0.000192807
+
+
+At end       of timestep # 14
+Simulation time is 0.01875
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++
+At beginning of timestep # 15
+Simulation time is 0.01875
+
+The L_1 error of J = 1.65725e-05
+
+The L_2 error of J = 3.7829e-05
+
+The L_oo error of J = 0.000211087
+
+
+At end       of timestep # 15
+Simulation time is 0.02
++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+Writing visualization files...
+
