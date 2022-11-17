@@ -508,6 +508,14 @@ main(int argc, char* argv[])
             {
                 fem_solver->modifiedTrapezoidalStep(loop_time, loop_time + dt);
             }
+            else if (time_stepping_scheme == "SSPRK33")
+            {
+                fem_solver->SSPRK3Step(loop_time, loop_time + dt, /*n_stages*/ 3);
+            }
+            else if (time_stepping_scheme == "SSPRK34")
+            {
+                fem_solver->SSPRK3Step(loop_time, loop_time + dt, /*n_stages*/ 4);
+            }
             else
             {
                 TBOX_ERROR("unknown time stepping scheme: " << time_stepping_scheme << "\n");
