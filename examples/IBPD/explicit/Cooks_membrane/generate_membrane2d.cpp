@@ -55,76 +55,45 @@ std::string to_string_with_precision(const double a_value, const int n = 3)
 int
 main(int /*argc*/, char** /*argv*/)
 {
-    // // Problem parameters
-    // const int ndivx = 25;               // M+1; num points in x direction.
-    // const int ndivy = 23;               // LH / LW * M + 1; num points in y direction.
-    // const int nbnd = 0;
-    // const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd);
+    // Problem parameters
+    const int ndivx = 49;               // M+1; num points in x direction.
+    const int ndivy = 45;               // LH / LW * M + 1; num points in y direction.
+    const int nbnd = 0;
+    const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd);
 
-    // // Cook's membrane
-    // const double LW = 4.8;              // length of the membrane (cm)
-    // const double LH = 4.4;              // left height of the membrane(cm)
-    // const double LHL = 1.6;             // right heigh of the membrane(cm)
-    // const double dx = LW / (ndivx - 1); // spacing between material points in x direction
-    // const double dy = LH / (ndivy - 1); // spacing between material points in y direction
-    // const double dyy = LHL/(ndivy - 1); //
-
-    // // Problem parameters w/ stair-step geometry
     // Cook's membrane
-    const int ndivx = 25;                  // M+1; num points in x direction.
-    const int ndivy = 31;                  // (LHL + LHR) / LW * M + 1; num points in y direction.
+    const double LW = 4.8;              // length of the membrane (cm)
+    const double LH = 4.4;              // left height of the membrane(cm)
+    const double LHL = 1.6;             // right heigh of the membrane(cm)
+    const double dx = LW / (ndivx - 1); // spacing between material points in x direction
+    const double dy = LH / (ndivy - 1); // spacing between material points in y direction
+    const double dyy = LHL/(ndivy - 1); //
 
-    const double LW = 4.8;                 // length of the membrane (cm)
-    const double LHL = 4.4;                // left height of the membrane(cm)
-    const double LHR = 1.6;                // right heigh of the membrane(cm)
-    const double LH = LHL + LHR;
+    // // // Problem parameters w/ stair-step geometry
+    // // Cook's membrane
+    // const int ndivx = 25;                  // M+1; num points in x direction.
+    // const int ndivy = 31;                  // (LHL + LHR) / LW * M + 1; num points in y direction.
 
-    const double dx = 0.2;
-    const double dy = dx;
+    // const double LW = 4.8;                 // length of the membrane (cm)
+    // const double LHL = 4.4;                // left height of the membrane(cm)
+    // const double LHR = 1.6;                // right heigh of the membrane(cm)
+    // const double LH = LHL + LHR;
 
-    const int totnode1 = ndivx * ndivy;
+    // const double dx = 0.2;
+    // const double dy = dx;
+
+    // const int totnode1 = ndivx * ndivy;
     
     const double horizon = 2.015;
     const double delta = horizon * dx;      // horizon size
     const double thick = dx;                // thickness of the plate
-    const double area = dx * dx;            // cross-sectional area
-    const double vol = area * thick;        // volume of a material point
+    const double c_area = dx * dx;            // cross-sectional area
+    const double vol = c_area * thick;        // volume of a material point
 
     const double scr0 = 30.0; // critical stretch
 
-    // // Initialize vertices
-    // double coord[totnode][2];
-    // // double delta_x[totnode][1];
-    // int nnum = -1;
-
-    // // Material points of the plate region
-    // for (int i = 0; i <= (ndivx - 1); ++i)
-    // {
-    //     for (int j = 0; j <= (ndivy - 1); ++j)
-    //     {
-    //             nnum += 1;
-
-    //             // 2d Cook's membrane
-    //             if (i < 0)
-    //             {
-    //                 coord[nnum][0] = i * dx + 2.0;
-    //                 coord[nnum][1] = dy * j + 1.0;
-    //             }
-    //             else
-    //             {
-    //                 coord[nnum][0] = i * dx + 2.0;
-    //                 coord[nnum][1] = (j * (dyy-dy) + LH) / (ndivx - 1) * i + dy * j + 1.0;
-    //             }
-
-    //     }
-    // }
-
-
-    // Initialize vertices for stair-step geometry
-    double coord1[totnode1][2];
-    double x,y;
-    const double eps = 1.0e-7;
-
+    // Initialize vertices
+    double coord[totnode][2];
     // double delta_x[totnode][1];
     int nnum = -1;
 
@@ -133,26 +102,216 @@ main(int /*argc*/, char** /*argv*/)
     {
         for (int j = 0; j <= (ndivy - 1); ++j)
         {
-            x = i * dx;
-            y = j * dy;
-
-            if ( (4.4 / 4.8 * x - eps <= y) && (y <= 1.6 / 4.8 * x + 4.4 + eps))
-            {
                 nnum += 1;
-                coord1[nnum][0] = x + 2.0;
-                coord1[nnum][1] = y + 1.0;
-            }
+
+                // 2d Cook's membrane
+                coord[nnum][0] = i * dx + 2.0;
+                coord[nnum][1] = (j * (dyy-dy) + LH) / (ndivx - 1) * i + dy * j + 1.0;
+
         }
     }
-    const int totnode = nnum + 1;
 
-    double coord[totnode][2];
-    for (int i = 0; i < totnode; ++i)
+    // // Initialize vertices for stair-step geometry
+    // double coord1[totnode1][2];
+    // double x,y;
+    // const double eps = 1.0e-7;
+
+    // // double delta_x[totnode][1];
+    // int nnum = -1;
+
+    // // Material points of the plate region
+    // for (int i = 0; i <= (ndivx - 1); ++i)
+    // {
+    //     for (int j = 0; j <= (ndivy - 1); ++j)
+    //     {
+    //         x = i * dx;
+    //         y = j * dy;
+
+    //         if ( (4.4 / 4.8 * x - eps <= y) && (y <= 1.6 / 4.8 * x + 4.4 + eps))
+    //         {
+    //             nnum += 1;
+    //             coord1[nnum][0] = x + 2.0;
+    //             coord1[nnum][1] = y + 1.0;
+    //         }
+    //     }
+    // }
+    // const int totnode = nnum + 1;
+
+    // double coord[totnode][2];
+    // for (int i = 0; i < totnode; ++i)
+    // {
+    //     coord[i][0] = coord1[i][0];
+    //     coord[i][1] = coord1[i][1];
+    // }
+
+    // const double dx1 = dx * 1.6 / 4.4;
+
+    double volume[totnode];
+    double p0[2], p1[2], p2[2], p3[2];
+    double area, vol_p;
+    nnum = -1;
+    for (int i = 0; i <= (ndivx - 1); ++i)
     {
-        coord[i][0] = coord1[i][0];
-        coord[i][1] = coord1[i][1];
-    }
+        for (int j = 0; j <= (ndivy - 1); ++j)
+        {
+            nnum += 1;
 
+            if (i == 0)
+            {
+                if (j == 0)
+                {
+                    p0[0] = coord[nnum][0];
+                    p0[1] = coord[nnum][1];
+                    p1[0] = (coord[nnum][0] + coord[nnum+1][0])/2.0;
+                    p1[1] = (coord[nnum][1] + coord[nnum+1][1])/2.0;
+                    p2[0] = (coord[nnum+1][0] + coord[nnum+ndivy][0])/2.0;
+                    p2[1] = (coord[nnum+1][1] + coord[nnum+ndivy][1])/2.0;
+                    p3[0] = (coord[nnum][0] + coord[nnum+ndivy][0])/2.0;
+                    p3[1] = (coord[nnum][1] + coord[nnum+ndivy][1])/2.0;
+
+                    // ds = (sqrt(pow(p1[0]-p0[0],2.0) + pow(p1[1] - p0[1],2.0)) + sqrt(pow(p3[0]-p0[0],2.0) + pow(p3[1] - p0[1],2.0)));
+
+                    area = abs((p0[0]*p1[1] + p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p0[1]) - (p1[0]*p0[1] + p2[0]*p1[1] + p3[0]*p2[1] + p0[0] * p3[1]))/2.0;
+                    vol_p = area * dx * 4.0;
+                }
+                else if (j == ndivy - 1)
+                {
+                    p0[0] = coord[nnum][0];
+                    p0[1] = coord[nnum][1];
+                    p1[0] = (coord[nnum][0] + coord[nnum-1][0])/2.0;
+                    p1[1] = (coord[nnum][1] + coord[nnum-1][1])/2.0;
+                    p2[0] = (coord[nnum-1][0] + coord[nnum+ndivy][0])/2.0;
+                    p2[1] = (coord[nnum-1][1] + coord[nnum+ndivy][1])/2.0;
+                    p3[0] = (coord[nnum][0] + coord[nnum+ndivy][0])/2.0;
+                    p3[1] = (coord[nnum][1] + coord[nnum+ndivy][1])/2.0;
+                    
+                    // ds = (sqrt(pow(p1[0]-p0[0],2.0) + pow(p1[1] - p0[1],2.0)) + sqrt(pow(p3[0]-p0[0],2.0) + pow(p3[1] - p0[1],2.0)));
+
+                    area = abs((p0[0]*p1[1] + p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p0[1]) - (p1[0]*p0[1] + p2[0]*p1[1] + p3[0]*p2[1] + p0[0] * p3[1]))/2.0;
+                    vol_p = area * dx * 4.0;
+                }
+                else
+                {
+                    p0[0] = (coord[nnum][0] + coord[nnum-1][0])/2.0;
+                    p0[1] = (coord[nnum][1] + coord[nnum-1][1])/2.0;
+                    p1[0] = (coord[nnum][0] + coord[nnum+1][0])/2.0;
+                    p1[1] = (coord[nnum][1] + coord[nnum+1][1])/2.0;
+                    p2[0] = (coord[nnum+1][0] + coord[nnum+ndivy][0])/2.0;
+                    p2[1] = (coord[nnum+1][1] + coord[nnum+ndivy][1])/2.0;
+                    p3[0] = (coord[nnum-1][0] + coord[nnum+ndivy][0])/2.0;
+                    p3[1] = (coord[nnum-1][1] + coord[nnum+ndivy][1])/2.0;
+
+                    // ds = (sqrt(pow(p1[0]-p0[0],2.0) + pow(p1[1] - p0[1],2.0)) + sqrt(pow(p3[0]-p0[0],2.0) + pow(p3[1] - p0[1],2.0)));
+
+                    area = abs((p0[0]*p1[1] + p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p0[1]) - (p1[0]*p0[1] + p2[0]*p1[1] + p3[0]*p2[1] + p0[0] * p3[1]))/2.0;
+                    vol_p = area * dx * 2.0;
+                }
+            }
+            else if (i == ndivx - 1)
+            {
+                if (j == 0)
+                {
+                    p0[0] = coord[nnum][0];
+                    p0[1] = coord[nnum][1];
+                    p1[0] = (coord[nnum][0] + coord[nnum+1][0])/2.0;
+                    p1[1] = (coord[nnum][1] + coord[nnum+1][1])/2.0;
+                    p2[0] = (coord[nnum+1][0] + coord[nnum-ndivy][0])/2.0;
+                    p2[1] = (coord[nnum+1][1] + coord[nnum-ndivy][1])/2.0;
+                    p3[0] = (coord[nnum][0] + coord[nnum-ndivy][0])/2.0;
+                    p3[1] = (coord[nnum][1] + coord[nnum-ndivy][1])/2.0;
+
+                    // ds = (sqrt(pow(p1[0]-p0[0],2.0) + pow(p1[1] - p0[1],2.0)) + sqrt(pow(p3[0]-p0[0],2.0) + pow(p3[1] - p0[1],2.0)));
+
+                    area = abs((p0[0]*p1[1] + p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p0[1]) - (p1[0]*p0[1] + p2[0]*p1[1] + p3[0]*p2[1] + p0[0] * p3[1]))/2.0;
+                    vol_p = area * dx * 4.0;
+                }
+                else if (j == ndivy - 1)
+                {
+                    p0[0] = coord[nnum][0];
+                    p0[1] = coord[nnum][1];
+                    p1[0] = (coord[nnum][0] + coord[nnum-1][0])/2.0;
+                    p1[1] = (coord[nnum][1] + coord[nnum-1][1])/2.0;
+                    p2[0] = (coord[nnum-1][0] + coord[nnum-ndivy][0])/2.0;
+                    p2[1] = (coord[nnum-1][1] + coord[nnum-ndivy][1])/2.0;
+                    p3[0] = (coord[nnum][0] + coord[nnum-ndivy][0])/2.0;
+                    p3[1] = (coord[nnum][1] + coord[nnum-ndivy][1])/2.0;
+
+                    // ds = (sqrt(pow(p1[0]-p0[0],2.0) + pow(p1[1] - p0[1],2.0)) + sqrt(pow(p3[0]-p0[0],2.0) + pow(p3[1] - p0[1],2.0)));
+
+                    area = abs((p0[0]*p1[1] + p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p0[1]) - (p1[0]*p0[1] + p2[0]*p1[1] + p3[0]*p2[1] + p0[0] * p3[1]))/2.0;
+                    vol_p = area * dx * 4.0;
+                }
+                else
+                {
+                    p0[0] = (coord[nnum][0] + coord[nnum-1][0])/2.0;
+                    p0[1] = (coord[nnum][1] + coord[nnum-1][1])/2.0;
+                    p1[0] = (coord[nnum][0] + coord[nnum+1][0])/2.0;
+                    p1[1] = (coord[nnum][1] + coord[nnum+1][1])/2.0;
+                    p2[0] = (coord[nnum+1][0] + coord[nnum-ndivy][0])/2.0;
+                    p2[1] = (coord[nnum+1][1] + coord[nnum-ndivy][1])/2.0;
+                    p3[0] = (coord[nnum-1][0] + coord[nnum-ndivy][0])/2.0;
+                    p3[1] = (coord[nnum-1][1] + coord[nnum-ndivy][1])/2.0;
+
+                    // ds = (sqrt(pow(p1[0]-p0[0],2.0) + pow(p1[1] - p0[1],2.0)) + sqrt(pow(p3[0]-p0[0],2.0) + pow(p3[1] - p0[1],2.0)));
+
+                    area = abs((p0[0]*p1[1] + p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p0[1]) - (p1[0]*p0[1] + p2[0]*p1[1] + p3[0]*p2[1] + p0[0] * p3[1]))/2.0;
+                    vol_p = area * dx * 2.0;
+                }
+            }
+            else
+            {
+                if (j == 0)
+                {
+                    p0[0] = (coord[nnum][0] + coord[nnum-ndivy][0])/2.0;
+                    p0[1] = (coord[nnum][1] + coord[nnum-ndivy][1])/2.0;
+                    p1[0] = (coord[nnum][0] + coord[nnum+ndivy][0])/2.0;
+                    p1[1] = (coord[nnum][1] + coord[nnum+ndivy][1])/2.0;
+                    p2[0] = (coord[nnum+1][0] + coord[nnum+ndivy][0])/2.0;
+                    p2[1] = (coord[nnum+1][1] + coord[nnum+ndivy][1])/2.0;
+                    p3[0] = (coord[nnum+1][0] + coord[nnum-ndivy][0])/2.0;
+                    p3[1] = (coord[nnum+1][1] + coord[nnum-ndivy][1])/2.0;
+
+                    // ds = (sqrt(pow(p1[0]-p0[0],2.0) + pow(p1[1] - p0[1],2.0)) + sqrt(pow(p3[0]-p0[0],2.0) + pow(p3[1] - p0[1],2.0)));
+
+                    area = abs((p0[0]*p1[1] + p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p0[1]) - (p1[0]*p0[1] + p2[0]*p1[1] + p3[0]*p2[1] + p0[0] * p3[1]))/2.0;
+                    vol_p = area * dx * 2.0;
+                }
+                else if (j == ndivy - 1)
+                {
+                    p0[0] = (coord[nnum][0] + coord[nnum-ndivy][0])/2.0;
+                    p0[1] = (coord[nnum][1] + coord[nnum-ndivy][1])/2.0;
+                    p1[0] = (coord[nnum][0] + coord[nnum+ndivy][0])/2.0;
+                    p1[1] = (coord[nnum][1] + coord[nnum+ndivy][1])/2.0;
+                    p2[0] = (coord[nnum-1][0] + coord[nnum+ndivy][0])/2.0;
+                    p2[1] = (coord[nnum-1][1] + coord[nnum+ndivy][1])/2.0;
+                    p3[0] = (coord[nnum-1][0] + coord[nnum-ndivy][0])/2.0;
+                    p3[1] = (coord[nnum-1][1] + coord[nnum-ndivy][1])/2.0;
+
+                    // ds = (sqrt(pow(p1[0]-p0[0],2.0) + pow(p1[1] - p0[1],2.0)) + sqrt(pow(p3[0]-p0[0],2.0) + pow(p3[1] - p0[1],2.0)));
+
+                    area = abs((p0[0]*p1[1] + p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p0[1]) - (p1[0]*p0[1] + p2[0]*p1[1] + p3[0]*p2[1] + p0[0] * p3[1]))/2.0;
+                    vol_p = area * dx * 2.0;
+                }
+                else
+                {
+                    p0[0] = (coord[nnum+1][0] + coord[nnum-ndivy][0])/2.0;
+                    p0[1] = (coord[nnum+1][1] + coord[nnum-ndivy][1])/2.0;
+                    p1[0] = (coord[nnum+1][0] + coord[nnum+ndivy][0])/2.0;
+                    p1[1] = (coord[nnum+1][1] + coord[nnum+ndivy][1])/2.0;
+                    p2[0] = (coord[nnum-1][0] + coord[nnum+ndivy][0])/2.0;
+                    p2[1] = (coord[nnum-1][1] + coord[nnum+ndivy][1])/2.0;
+                    p3[0] = (coord[nnum-1][0] + coord[nnum-ndivy][0])/2.0;
+                    p3[1] = (coord[nnum-1][1] + coord[nnum-ndivy][1])/2.0;
+
+                    // ds = (sqrt(pow(p1[0]-p0[0],2.0) + pow(p1[1] - p0[1],2.0)) + sqrt(pow(p3[0]-p0[0],2.0) + pow(p3[1] - p0[1],2.0)));
+
+                    area = abs((p0[0]*p1[1] + p1[0]*p2[1] + p2[0]*p3[1] + p3[0]*p0[1]) - (p1[0]*p0[1] + p2[0]*p1[1] + p3[0]*p2[1] + p0[0] * p3[1]))/2.0;
+                    vol_p = area * dx;
+                }
+            }
+            volume[nnum] = vol_p;
+        }
+    }
 
     std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~\n";
     // std::cout << "static const int left_begin = " << 0 << ";" << std::endl;
@@ -179,14 +338,14 @@ main(int /*argc*/, char** /*argv*/)
 
                     // Determine initial failure of the bond.
                     double fail = 1.0;
-                    if ((coord[i][1] == 5.4 && coord[i][0] < 2.0) && (coord[j][1] > 5.4))
-                    {
-                        fail = 0.0;
-                    }
-                    if ((coord[j][1] == 5.4 && coord[j][0] < 2.0) && (coord[i][1] > 5.4))
-                    {
-                        fail = 0.0;
-                    }
+                    // if ((coord[i][1] == 5.4 && coord[i][0] < 2.0) && (coord[j][1] > 5.4))
+                    // {
+                    //     fail = 0.0;
+                    // }
+                    // if ((coord[j][1] == 5.4 && coord[j][0] < 2.0) && (coord[i][1] > 5.4))
+                    // {
+                    //     fail = 0.0;
+                    // }
                     EdgeProp prop = std::make_pair(idist, fail);
                     mesh[e] = prop;
                 }
@@ -234,8 +393,8 @@ main(int /*argc*/, char** /*argv*/)
         const int& idx_slave = e.second;
         const double& rest_length = prop.first;
         const double& fail = prop.second;
-        const double vol_master = vol;
-        const double vol_slave = vol;
+        const double vol_master = volume[idx_master];
+        const double vol_slave = volume[idx_slave];
         spring_stream << idx_master << " " << idx_slave << " " << K << " " << rest_length << " " << force_fcn_idx << " "
                       << vol_master << " " << vol_slave << " " << fail << " " << scr0 << "\n";
     }
