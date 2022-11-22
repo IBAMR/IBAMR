@@ -3,6 +3,8 @@ L   = 1.0
 MU  = 1.0e-2
 RHO = 1.0
 
+USE_REDUNDANT = FALSE
+
 // grid spacing parameters
 MAX_LEVELS = 1                                 // maximum number of levels in locally refined grid
 REF_RATIO  = 4                                 // refinement ratio between levels
@@ -45,9 +47,9 @@ GeneralizedIBMethod {
    enable_logging = TRUE
 }
 
-IBRedundantInitializer {
+IBStandardInitializer {
    max_levels       = MAX_LEVELS
-   base_filenames_0 = "x1", "x2"
+   base_filenames_0 = "structure_0", "structure_1"
 }
 
 INSStaggeredHierarchyIntegrator {

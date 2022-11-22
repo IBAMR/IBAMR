@@ -1,0 +1,56 @@
+IBStandardInitializer:  Reading from input files.
+  base filename: structure_0
+  assigned to level 0 of the Cartesian grid patch hierarchy
+
+  base filename: structure_1
+  assigned to level 0 of the Cartesian grid patch hierarchy
+
+IBStandardInitializer:  processing vertex data from ASCII input file named structure_0.vertex
+  on MPI process 0
+IBStandardInitializer:  read 1 vertices from ASCII input file named structure_0.vertex
+  on MPI process 0
+IBStandardInitializer:  processing vertex data from ASCII input file named structure_1.vertex
+  on MPI process 0
+IBStandardInitializer:  read 1 vertices from ASCII input file named structure_1.vertex
+  on MPI process 0
+IBStandardInitializer:   file structure_0.spring on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_1.spring on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_0.xspring on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_1.xspring on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_0.beam on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_1.beam on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_0.rod on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_1.rod on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_0.target on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_1.target on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_0.anchor on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_1.anchor on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_0.mass on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:   file structure_1.mass on MPI process 0 does not exist: skipping read.
+IBStandardInitializer:  processing director data from ASCII input file named structure_0.director
+  on MPI process 0
+IBStandardInitializer:  read 1 director triads from ASCII input file named structure_0.director
+  on MPI process 0
+IBStandardInitializer:  processing director data from ASCII input file named structure_1.director
+  on MPI process 0
+IBStandardInitializer:  read 1 director triads from ASCII input file named structure_1.director
+  on MPI process 0
+IBStandardInitializer:   Either file structure_0.inst on MPI process 0 does not exist or instrumentation is disabled : skipping read.
+IBStandardInitializer:   Either file structure_1.inst on MPI process 0 does not exist or instrumentation is disabled : skipping read.
+IBStandardInitializer:   Either file structure_0.source on MPI process 0 does not exist or sources are disabled : skipping read.
+IBStandardInitializer:   Either file structure_1.source on MPI process 0 does not exist or sources are disabled : skipping read.
+IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
+INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
+  projecting the interpolated velocity field
+INSStaggeredHierarchyIntegrator::regridProjection(): regrid projection solve residual norm        = 0
+At beginning of timestep # 0
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
+INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.68471e-06
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 9.62874e-06
+1 -0.25 0
+-1 0 0.25
+IBStandardInitializer:  Deallocating initialization data.
+IBStandardInitializer:  Deallocating initialization data.
