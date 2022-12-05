@@ -26,7 +26,6 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/EnthalpyHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/PhaseChangeHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>

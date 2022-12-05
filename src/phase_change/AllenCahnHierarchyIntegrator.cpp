@@ -181,8 +181,8 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
         d_lf_precond_db->putInteger("max_iterations", 1);
     }
 
-    d_lf_solver = getHelmholtzSolverForAllenCahnEquation(d_lf_var);
-    d_lf_rhs_op = getHelmholtzRHSOperatorForAllenCahnEquation(d_lf_var);
+    d_lf_solver = getAllenCahnEquationHelmholtzSolver(d_lf_var);
+    d_lf_rhs_op = getAllenCahnEquationHelmholtzRHSOperator(d_lf_var);
 
     // Register additional variables required for present time stepping algorithm.
     const IntVector<NDIM> cell_ghosts = CELLG;
@@ -274,7 +274,7 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
 
     // Setup the convective operator. We use AdvDiffConservativeCUIOperator class and this class is not registered
     // with ConvectiveOperatorManager
-    d_lf_convective_op = getConvectiveOperatorForAllenCahnEquation(d_lf_var, d_H_var);
+    d_lf_convective_op = getAllenCahnEquationConvectiveOperator(d_lf_var, d_H_var);
 
     if (d_solve_mass_conservation)
     {
@@ -1096,7 +1096,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
             d_hier_cc_data_ops->setToScalar(T_F_scratch_idx, 0.0);
 
         // Add Allen-Cahn temporal term.
-        computeEnergyEquationSourceTerm(T_F_scratch_idx, dt);
+        addTemporalAndLinearTermstoRHSOfEnergyEquation(T_F_scratch_idx, dt);
         d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_F_scratch_idx, T_rhs_scratch_idx);
 
         // Solve for T(n+1).
@@ -1237,7 +1237,7 @@ AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariabl
 } // registerLiquidFractionVariable
 
 Pointer<PoissonSolver>
-AllenCahnHierarchyIntegrator::getHelmholtzSolverForAllenCahnEquation(Pointer<CellVariable<NDIM, double> > lf_var)
+AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(Pointer<CellVariable<NDIM, double> > lf_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_lf_var);
@@ -1257,10 +1257,10 @@ AllenCahnHierarchyIntegrator::getHelmholtzSolverForAllenCahnEquation(Pointer<Cel
         d_lf_solver_needs_init = true;
     }
     return d_lf_solver;
-} // getHelmholtzSolverForAllenCahnEquation
+} // getAllenCahnEquationHelmholtzSolver
 
 Pointer<LaplaceOperator>
-AllenCahnHierarchyIntegrator::getHelmholtzRHSOperatorForAllenCahnEquation(Pointer<CellVariable<NDIM, double> > lf_var)
+AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(Pointer<CellVariable<NDIM, double> > lf_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_lf_var);
@@ -1272,7 +1272,7 @@ AllenCahnHierarchyIntegrator::getHelmholtzRHSOperatorForAllenCahnEquation(Pointe
         d_lf_rhs_op_needs_init = true;
     }
     return d_lf_rhs_op;
-} // getHelmholtzRHSOperatorForAllenCahnEquation
+} // getAllenCahnEquationHelmholtzRHSOperator
 
 void
 AllenCahnHierarchyIntegrator::setLiquidFractionPhysicalBcCoef(Pointer<CellVariable<NDIM, double> > lf_var,
@@ -1292,8 +1292,8 @@ AllenCahnHierarchyIntegrator::getLiquidFractionPhysicalBcCoef()
 } // getLiquidFractionPhysicalBcCoef
 
 Pointer<ConvectiveOperator>
-AllenCahnHierarchyIntegrator::getConvectiveOperatorForAllenCahnEquation(Pointer<CellVariable<NDIM, double> > lf_var,
-                                                                        Pointer<CellVariable<NDIM, double> > H_var)
+AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<CellVariable<NDIM, double> > lf_var,
+                                                                     Pointer<CellVariable<NDIM, double> > H_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_lf_var);
@@ -1316,7 +1316,7 @@ AllenCahnHierarchyIntegrator::getConvectiveOperatorForAllenCahnEquation(Pointer<
         d_lf_convective_op_needs_init = true;
     }
     return d_lf_convective_op;
-} // getConvectiveOperatorForAllenCahnEquation
+} // getAllenCahnEquationConvectiveOperator
 
 void
 AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
@@ -1345,7 +1345,7 @@ AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 } // putToDatabaseSpecialized
 
 void
-AllenCahnHierarchyIntegrator::computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt)
+AllenCahnHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1377,7 +1377,7 @@ AllenCahnHierarchyIntegrator::computeEnergyEquationSourceTerm(int F_scratch_idx,
         }
     }
     return;
-} // computeEnergyEquationSourceTerm
+} // addTemporalAndLinearTermstoRHSOfEnergyEquation
 
 void
 AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time)

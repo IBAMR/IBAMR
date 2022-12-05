@@ -12,12 +12,7 @@
 // ---------------------------------------------------------------------
 
 // APPLICATION INCLUDES
-#include <ibtk/HierarchyMathOps.h>
-#include <ibtk/IndexUtilities.h>
-
 #include "SetFluidProperties.h"
-
-#include <CartesianGridGeometry.h>
 
 #include <ibamr/app_namespaces.h>
 

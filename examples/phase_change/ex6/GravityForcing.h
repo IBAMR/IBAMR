@@ -15,8 +15,6 @@
 #define included_GravityForcing
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-// IBAMR INCLUDES
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 
 #include <ibamr/app_namespaces.h>

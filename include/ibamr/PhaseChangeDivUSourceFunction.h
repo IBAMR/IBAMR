@@ -19,7 +19,6 @@
 // IBAMR INCLUDES
 #include <ibamr/PhaseChangeHierarchyIntegrator.h>
 
-#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/muParserCartGridFunction.h>
 
 #include <ibamr/app_namespaces.h>

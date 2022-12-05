@@ -10,16 +10,11 @@
 // COPYRIGHT at the top level directory of IBAMR.
 //
 // ---------------------------------------------------------------------
-
+//
+/////////////////////////////// INCLUDES /////////////////////////////////////
 #include "LiquidFractionInitialCondition.h"
 
-/////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include <IBAMR_config.h>
 #include <SAMRAI_config.h>
-
-// SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

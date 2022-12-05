@@ -25,11 +25,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/AllenCahnHierarchyIntegrator.h>
-#include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBMethod.h>
-#include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
-#include <ibamr/PhaseChangeHierarchyIntegrator.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -130,7 +126,7 @@ main(int argc, char* argv[])
         time_integrator->setDiffusionCoefficient(H_var, 0.0);
 
         // set Heaviside
-        ac_hier_integrator->setHeavisideVariable(H_var);
+        ac_hier_integrator->registerHeavisideVariable(H_var);
 
         // register temperature
         Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("Temperature");
@@ -221,8 +217,8 @@ main(int argc, char* argv[])
         ac_hier_integrator->registerResetSpecificHeatFcn(&callSetLiquidSolidSpecificHeatCallbackFunction,
                                                          static_cast<void*>(ptr_SetFluidProperties));
 
-        ac_hier_integrator->registerResetFluidDensityFcn(&callSetLiquidSolidDensityCallbackFunction,
-                                                         static_cast<void*>(ptr_SetFluidProperties));
+        ac_hier_integrator->registerResetDensityFcn(&callSetLiquidSolidDensityCallbackFunction,
+                                                    static_cast<void*>(ptr_SetFluidProperties));
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();

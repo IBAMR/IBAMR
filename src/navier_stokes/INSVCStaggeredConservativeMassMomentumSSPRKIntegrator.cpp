@@ -12,10 +12,7 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
 #include "ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h"
-#include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
-#include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
 #include "ibtk/CartGridFunction.h"

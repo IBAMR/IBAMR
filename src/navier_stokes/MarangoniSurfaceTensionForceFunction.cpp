@@ -15,35 +15,45 @@
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/MarangoniSurfaceTensionForceFunction.h"
-#include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 
-#include "BasePatchLevel.h"
+#include "BasePatchHierarchy.h"
+#include "BoundaryBox.h"
 #include "Box.h"
 #include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
-#include "HierarchyCellDataOpsReal.h"
+#include "CoarseFineBoundary.h"
+#include "FaceData.h"
+#include "HierarchyDataOpsManager.h"
+#include "HierarchySideDataOpsReal.h"
+#include "Index.h"
 #include "IntVector.h"
+#include "MultiblockDataTranslator.h"
 #include "Patch.h"
-#include "PatchData.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
 #include "SideData.h"
+#include "SideGeometry.h"
+#include "SideIndex.h"
+#include "SideVariable.h"
 #include "Variable.h"
 #include "VariableContext.h"
 #include "VariableDatabase.h"
+#include "tbox/Array.h"
 #include "tbox/Database.h"
+#include "tbox/PIO.h"
 #include "tbox/Pointer.h"
+#include "tbox/Timer.h"
+#include "tbox/TimerManager.h"
 #include "tbox/Utilities.h"
 
-#include <algorithm>
-#include <cmath>
+#include <array>
+#include <limits>
+#include <memory>
 #include <ostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
