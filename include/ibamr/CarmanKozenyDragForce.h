@@ -17,20 +17,7 @@
 #define included_CarmanKozenyDragForce
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include <ibamr/config.h>
-
 #include "ibamr/BrinkmanPenalizationStrategy.h"
-#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
-
-#include "ibtk/ibtk_utilities.h"
-
-#include "tbox/Pointer.h"
-
-IBTK_DISABLE_EXTRA_WARNINGS
-#include "Eigen/Core"
-#include "Eigen/Geometry"
-IBTK_ENABLE_EXTRA_WARNINGS
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -54,8 +41,7 @@ namespace IBAMR
 {
 /*!
  * \brief CarmanKozenyDragForce provides an implementation of Carman-Kozeny drag force
- * to impose no-slip boundary conditions on the liquid-solid and gas-solid interfaces
- * by enforing \f$ \bm{u}=\bm{u}_b\f$.
+ * to impose zero velocity inside the solid \f$ \bm{u}=\bm{u}_b = 0\f$.
  *
  * The penalization force is taken to be \f$ A_d(\bm{u}_b - \bm{u}^{n+1}) \f$. The class
  * computes the coefficient \f$A_d \f$ of the fluid velocity \f$ \bm{u}^{n+1} \f$ for the
@@ -63,21 +49,13 @@ namespace IBAMR
  * the CarmanKozenyDragForce::demarcateBrinkmanZone method. Here \f$ A_d =
  * C_d\frac{\alpha_S}{(1-alpha_S)^3+e_d}\f$, \f$ \alpha_S \f$ is the volume fraction of
  * the solid, \f$ C_d\f$ and  \f$ e_d\f$ are the model parameters. The rigid body velocity
- * \f$\bm{u}_b\f$ is taken to be zero. We aim to compute \f$\bm{u}_b\f$ from Newton's second
- * law of motion as in BrinkmanPenalizationRigidBodyDynamics class in the future. The penalty
- * parameter C_d is taken to be \f$C_d \sim (\Delta t/ \rho + h^2/\mu) \ll 1 \f$.
- *
+ * \f$\bm{u}_b\f$ is taken to be zero. The penalty
+ * parameter C_d is taken to be \f$C_d = ( \rho / \Delta t + \mu / h^2)\f$. The user can choose
+ * the density or the inertia scale or both for \f$C_d\f$ through input.
  */
 class CarmanKozenyDragForce : public BrinkmanPenalizationStrategy
 {
 public:
-    /*!
-     * Since this class has Eigen object members, which have special alignment
-     * requirements, we must explicitly override operator new to get the
-     * correct aligment for the object as a whole.
-     */
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
     /*
      * \brief Constructor of the class.
      */
@@ -95,18 +73,19 @@ public:
     ~CarmanKozenyDragForce() = default;
 
     /*!
-     * \brief Preprocess routine before computing Brinkman penalization terms.
+     * \brief Preprocess routine before computing Carman-Kozeny term.
      *
      */
     void preprocessComputeBrinkmanPenalization(double current_time, double new_time, int num_cycles) override;
 
     /*!
-     * \brief Compute the desired rigid body velocity in the Brinkman penalized zone.
+     * \brief Compute the desired rigid body velocity in the Brinkman penalized (solid) zone. The present
++    * implementation sets rigid body velocity to be zero.
      */
     void computeBrinkmanVelocity(int u_idx, double time, int cycle_num) override;
 
     /*!
-     * \brief Demarcate the Brinkman zone with Brinkman penalty term.
+     * \brief Demarcate the Brinkman zone (solid) with Carman-Kozeny term term.
      */
     void demarcateBrinkmanZone(int u_idx, double time, int cycle_num) override;
 
@@ -121,32 +100,26 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
-    // Mass and inertial of the body.
-    double d_mass = 0.0;
-    Eigen::Matrix3d d_inertia_tensor_initial = Eigen::Matrix3d::Zero();
-
-    // Pointers to solvers.
+    /*!
+     * \brief Pointers to solvers.
+     */
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
     SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_fluid_solver;
 
-    // Level set variable defining the solid.
+    /*!
+     * \brief Heaviside variable defining the gas-pcm interface.
+     */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var;
 
-    // Liquid fraction variable.
+    /*!
+     * \brief Liquid fraction variable.
+     */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
 
-    // Hydrodynamic force evaluator.
-    SAMRAI::tbox::Pointer<IBAMR::IBHydrodynamicSurfaceForceEvaluator> d_hydro_force_eval;
-
-    // Contour level
-    double d_contour_level = 0.0;
-
-    // Number of interface cells to compute the Heaviside function
+    /*!
+     * \brief Number of interface cells to compute the Heaviside function.
+     */
     double d_num_interface_cells = 2.0;
-
-    // Forces and torques on the body.
-    Eigen::Vector3d d_hydro_force_pressure, d_hydro_force_viscous, d_hydro_torque_pressure, d_hydro_torque_viscous,
-        d_ext_force, d_ext_torque;
 
 private:
     /*!

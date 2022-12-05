@@ -17,25 +17,7 @@
 #define included_IBAMR_AllenCahnHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include <ibamr/config.h>
-
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
-
-#include "ibtk/CCPoissonSolverManager.h"
-#include "ibtk/LaplaceOperator.h"
-
-#include "HierarchyFaceDataOpsReal.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-
-#include <map>
-#include <set>
-#include <string>
 
 namespace IBTK
 {
@@ -151,9 +133,9 @@ public:
                                            int finest_level) override;
 
     /*!
-     *  Compute the source terms of the energy equation.
+     *  Add the temporal terms to the RHS of the energy equation.
      */
-    void computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt) override;
+    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt) override;
 
     /*!
      * Compute the source term for the Div U equation.
@@ -179,8 +161,8 @@ public:
      * function will initialize a default convective operator.
      */
     SAMRAI::tbox::Pointer<ConvectiveOperator>
-    getConvectiveOperatorForAllenCahnEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
-                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var);
+    getAllenCahnEquationConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+                                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var);
 
     /*!
      * Write out specialized object state to the given database.
@@ -247,13 +229,13 @@ private:
      * Get the solver for the Allen-Cahn equation.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
-    getHelmholtzSolverForAllenCahnEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
+    getAllenCahnEquationHelmholtzSolver(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
 
     /*!
      * Get the operator to use to evaluate the right-hand side of the Allen-Cahn equation.
      */
-    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> getHelmholtzRHSOperatorForAllenCahnEquation(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
+    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
+    getAllenCahnEquationHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
 
     /*!
      * Solver variables.

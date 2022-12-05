@@ -16,7 +16,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-// IBAMR INCLUDES
+// INCLUDES
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 
 #include <ibamr/app_namespaces.h>

@@ -11,16 +11,11 @@
 //
 // ---------------------------------------------------------------------
 
+/////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/PhaseChangeDivUSourceFunction.h"
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
-/////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include <IBAMR_config.h>
 #include <SAMRAI_config.h>
-
-// SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -73,8 +68,6 @@ PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
 
     // set -Div U = -S where source term S is computed from PhaseChangeHierarchyIntegrator.
     const int S_idx = d_pc_hier_integrator->getDivergenceVelocitySourceTermIndex();
-
-    // Set Div_U_F_idx = - S_idx.
     d_hier_cc_data_ops->scale(data_idx, -1.0, S_idx);
 
     return;

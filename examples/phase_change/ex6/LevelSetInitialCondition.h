@@ -15,8 +15,6 @@
 #define included_LevelSetInitialCondition
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-// IBAMR INCLUDES
 #include <ibtk/muParserCartGridFunction.h>
 
 #include <ibamr/app_namespaces.h>

@@ -27,14 +27,9 @@
 #include <ibamr/CarmanKozenyDragForce.h>
 #include <ibamr/EnthalpyHierarchyIntegrator.h>
 #include <ibamr/HeavisideForcingFunction.h>
-#include <ibamr/IBExplicitHierarchyIntegrator.h>
-#include <ibamr/IBMethod.h>
-#include <ibamr/IBRedundantInitializer.h>
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
-#include <ibamr/PhaseChangeHierarchyIntegrator.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 
@@ -296,7 +291,7 @@ main(int argc, char* argv[])
         adv_diff_integrator->setDiffusionCoefficient(H_var, 0.0);
 
         // set Heaviside
-        enthalpy_hier_integrator->setHeavisideVariable(H_var);
+        enthalpy_hier_integrator->registerHeavisideVariable(H_var);
 
         // register temperature
         Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("Temperature");
@@ -509,8 +504,8 @@ main(int argc, char* argv[])
         enthalpy_hier_integrator->registerResetSpecificHeatFcn(&callSetLiquidSolidGasSpecificHeatCallbackFunction,
                                                                static_cast<void*>(ptr_SetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetFluidDensityFcn(&callSetLiquidSolidGasDensityCallbackFunction,
-                                                               static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetDensityFcn(&callSetLiquidSolidGasDensityCallbackFunction,
+                                                          static_cast<void*>(ptr_SetFluidProperties));
 
         // Register H Div U term in the Heaviside equation.
         Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>(H_var->getName() + "_F");

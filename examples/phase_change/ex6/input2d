@@ -2,22 +2,22 @@
 PI = 3.1415926535897932
 
 // solid parameters
-RHO_S = 2.7e3
+RHO_S   = 2.7e3
 KAPPA_S = 211.0
-CP_S  = 0.91e3
-MU_S = 1.4e-3
+CP_S    = 0.91e3
+MU_S    = 1.4e-3
 
 // liquid parameters
-RHO_L = 2.475e3
+RHO_L   = 2.475e3
 KAPPA_L = 91.0
-CP_L  = 1.0424e3
-MU_L = 1.4e-3
+CP_L    = 1.0424e3
+MU_L    = 1.4e-3
 
 // gas parameters
-RHO_G = 0.4
+RHO_G   = 0.4
 KAPPA_G = 61e-3
-CP_G  = 1.1e3
-MU_G = 4.0e-5
+CP_G    = 1.1e3
+MU_G    = 4.0e-5
 
 LATENT_HEAT = 3.8384e5
 
@@ -403,40 +403,40 @@ LAMBDA_LF                     = 3.0*sqrt(2.0)*RHO_L*LATENT_HEAT*EPS_LF*GAMMA_LF/
 M_LF                          = MU_LF*GAMMA_LF/LAMBDA_LF
 SOLVE_ENERGY                  = TRUE
 AllenCahnHierarchyIntegrator {
-   start_time                    = START_TIME
-   end_time                      = END_TIME
-   grow_dt                       = GROW_DT
-   num_cycles                    = ADV_DIFF_NUM_CYCLES
-   convective_time_stepping_type = ADV_DIFF_CONVECTIVE_TS_TYPE
-   convective_op_type            = ADV_DIFF_CONVECTIVE_OP_TYPE
-   convective_difference_form    = ADV_DIFF_CONVECTIVE_FORM
-   T_diffusion_time_stepping_type = TEMPERATURE_DIFFUSION_TS_TYPE
-   T_convective_time_stepping_type = TEMPERATURE_CONVECTIVE_TS_TYPE
-   T_convective_op_type            = TEMPERATURE_CONVECTIVE_OP_TYPE
-   T_convective_difference_form    = TEMPERATURE_CONVECTIVE_FORM
-   lf_diffusion_time_stepping_type = LIQUID_FRACTION_DIFFUSION_TS_TYPE
+   start_time                       = START_TIME
+   end_time                         = END_TIME
+   grow_dt                          = GROW_DT
+   num_cycles                       = ADV_DIFF_NUM_CYCLES
+   convective_time_stepping_type    = ADV_DIFF_CONVECTIVE_TS_TYPE
+   convective_op_type               = ADV_DIFF_CONVECTIVE_OP_TYPE
+   convective_difference_form       = ADV_DIFF_CONVECTIVE_FORM
+   T_diffusion_time_stepping_type   = TEMPERATURE_DIFFUSION_TS_TYPE
+   T_convective_time_stepping_type  = TEMPERATURE_CONVECTIVE_TS_TYPE
+   T_convective_op_type             = TEMPERATURE_CONVECTIVE_OP_TYPE
+   T_convective_difference_form     = TEMPERATURE_CONVECTIVE_FORM
+   lf_diffusion_time_stepping_type  = LIQUID_FRACTION_DIFFUSION_TS_TYPE
    lf_convective_time_stepping_type = LIQUID_FRACTION_CONVECTIVE_TS_TYPE
    lf_convective_op_type            = LIQUID_FRACTION_CONVECTIVE_OP_TYPE
    lf_convective_difference_form    = LIQUID_FRACTION_CONVECTIVE_FORM
-   cfl                           = CFL_MAX
-   dt_max                        = DT_MAX
-   tag_buffer                    = TAG_BUFFER
-   enable_logging                = ENABLE_LOGGING
-   max_integrator_steps          = MAX_INTEGRATOR_STEPS
-   latent_heat                   = LATENT_HEAT
-   rho_liquid                    = RHO_L
-   rho_solid                     = RHO_S
-   Cp_liquid                     = CP_L
-   Cp_solid                      = CP_S
-   Cp_gas                        = CP_G
-   T_melt                        = MELT_TEMPERATURE
-   M_lf                          = M_LF
-   lambda_lf                     = LAMBDA_LF
-   eps_lf                        = EPS_LF
-   solve_mass_conservation       = SOLVE_MASS_CONSERVATION
-   solve_energy                  = SOLVE_ENERGY
-   k_vc_interpolation_type       = K_VC_INTERPOLATION_TYPE
-   output_Div_U_F                 = OUTPUT_DIV_U_F
+   cfl                              = CFL_MAX
+   dt_max                           = DT_MAX
+   tag_buffer                       = TAG_BUFFER
+   enable_logging                   = ENABLE_LOGGING
+   max_integrator_steps             = MAX_INTEGRATOR_STEPS
+   latent_heat                      = LATENT_HEAT
+   rho_liquid                       = RHO_L
+   rho_solid                        = RHO_S
+   Cp_liquid                        = CP_L
+   Cp_solid                         = CP_S
+   Cp_gas                           = CP_G
+   T_melt                           = MELT_TEMPERATURE
+   M_lf                             = M_LF
+   lambda_lf                        = LAMBDA_LF
+   eps_lf                           = EPS_LF
+   solve_mass_conservation          = SOLVE_MASS_CONSERVATION
+   solve_energy                     = SOLVE_ENERGY
+   k_vc_interpolation_type          = K_VC_INTERPOLATION_TYPE
+   output_Div_U_F                   = OUTPUT_DIV_U_F
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
       T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"

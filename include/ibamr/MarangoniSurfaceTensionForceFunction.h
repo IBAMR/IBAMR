@@ -17,19 +17,7 @@
 #define included_IBAMR_MarangoniSurfaceTensionForceFunction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include <ibamr/config.h>
-
 #include "ibamr/SurfaceTensionForceFunction.h"
-
-#include "CartesianGridGeometry.h"
-#include "HierarchySideDataOpsReal.h"
-#include "IntVector.h"
-#include "PatchLevel.h"
-#include "tbox/Array.h"
-#include "tbox/Pointer.h"
-
-#include <string>
 
 namespace IBAMR
 {
@@ -198,10 +186,25 @@ private:
                             const bool initial_time,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level);
 
+    /*!
+     * Temperature variable and its patch data index.
+     */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
     int d_T_idx = IBTK::invalid_index, d_F_cloned_idx = IBTK::invalid_index;
+
+    /*!
+     * Marangoni coefficient.
+     */
     double d_marangoni_coefficient = std::numeric_limits<double>::signaling_NaN();
+
+    /*!
+     * Boundary condition object for temperature.
+     */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_T_bc_coef = nullptr;
+
+    /*!
+     * Call back function and the context to find marangoni coefficient as a function of temperature.
+     */
     ComputeMarangoniCoefPtr d_compute_marangoni_coef = nullptr;
     void* d_compute_marangoni_coef_ctx = nullptr;
 };

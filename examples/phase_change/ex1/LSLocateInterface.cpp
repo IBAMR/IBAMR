@@ -15,8 +15,6 @@
 
 #include "LSLocateInterface.h"
 
-#include <CartesianGridGeometry.h>
-
 #include <ibamr/app_namespaces.h>
 
 /////////////////////////////// STATIC ///////////////////////////////////////

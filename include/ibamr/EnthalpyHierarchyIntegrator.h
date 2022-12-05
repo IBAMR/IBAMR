@@ -17,13 +17,7 @@
 #define included_IBAMR_EnthalpyHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
-
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-
-#include <string>
 
 namespace IBTK
 {
@@ -119,10 +113,9 @@ public:
                                        int num_cycles = 1) override;
 
     /*!
-     * Set an IBTK::CartGridFunction object to specify the value of a
-     * particular source term for energy equation.
+     * Add the temporal and linear terms to the RHS of the energy equation.
      */
-    void computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt) override;
+    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt) override;
 
     /*!
      * Compute the source term for the Div U equation.

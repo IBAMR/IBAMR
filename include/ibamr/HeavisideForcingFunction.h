@@ -15,8 +15,6 @@
 #define included_HeavisideForcingFunction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-// IBAMR INCLUDES
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 #include <ibtk/HierarchyMathOps.h>

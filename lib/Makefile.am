@@ -151,7 +151,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSStaggeredUpwindConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
-../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
@@ -303,7 +302,6 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSStaggeredStochasticForcing.h \
 ../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 ../include/ibamr/INSStaggeredVelocityBcCoef.h \
-../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
 ../include/ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h \
 ../include/ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h \
 ../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \

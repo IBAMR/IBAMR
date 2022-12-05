@@ -16,8 +16,6 @@
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/CarmanKozenyDragForce.h"
-#include "ibamr/IBHydrodynamicSurfaceForceEvaluator.h"
-#include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 
 #include "ibtk/IndexUtilities.h"
@@ -46,9 +44,6 @@
 #include "tbox/Pointer.h"
 #include "tbox/RestartManager.h"
 #include "tbox/Utilities.h"
-
-#include "Eigen/src/Geometry/Quaternion.h"
-#include "Eigen/src/LU/FullPivLU.h"
 
 #include <cmath>
 #include <string>

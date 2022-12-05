@@ -211,7 +211,6 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     const int lf_current_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getCurrentContext());
 
     const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
-    d_hier_cc_data_ops->copyData(d_H_pre_idx, H_current_idx);
 
     // Initialize enthalpy h only at the start of the simulation.
     if (initial_time)
@@ -498,9 +497,6 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
         T_solver_spec.setDPatchDataId(T_diff_coef_scratch_idx);
 
-        // To use same H used in advection of H in the convective term.
-        d_hier_cc_data_ops->copyData(d_H_pre_idx, H_new_idx);
-
         computeEnthalpyDerivative(d_dh_dT_scratch_idx, T_new_idx, H_new_idx);
 
         // Set rho*Cp/dt.
@@ -523,7 +519,6 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
                  << "Initializing the solvers for" << d_T_var->getName() << "\n";
         }
         T_solver->initializeSolverState(*d_T_sol, *d_T_rhs);
-        d_T_solver_needs_init = true;
 
         // Account for forcing terms.
         const int T_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_F_var, getScratchContext());
@@ -536,7 +531,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
             d_hier_cc_data_ops->setToScalar(T_F_scratch_idx, 0.0);
 
         // Compute and add temporal and linearized terms to the RHS of the energy equation.
-        computeEnergyEquationSourceTerm(T_F_scratch_idx, dt);
+        addTemporalAndLinearTermstoRHSOfEnergyEquation(T_F_scratch_idx, dt);
         d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_F_scratch_idx, T_rhs_scratch_idx);
 
         // Storing T^n+1,m.
@@ -697,7 +692,7 @@ EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-EnthalpyHierarchyIntegrator::computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt)
+EnthalpyHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -734,7 +729,7 @@ EnthalpyHierarchyIntegrator::computeEnergyEquationSourceTerm(int F_scratch_idx, 
         }
     }
     return;
-} // computeEnergyEquationSourceTerm
+} // addTemporalAndLinearTermstoRHSOfEnergyEquation
 
 void
 EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time)

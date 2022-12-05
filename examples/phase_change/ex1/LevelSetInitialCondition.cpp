@@ -13,13 +13,7 @@
 
 #include "LevelSetInitialCondition.h"
 
-/////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include <IBAMR_config.h>
 #include <SAMRAI_config.h>
-
-// SAMRAI INCLUDES
-#include <HierarchyDataOpsManager.h>
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 

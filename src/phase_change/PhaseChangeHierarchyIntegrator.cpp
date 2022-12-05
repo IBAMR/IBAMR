@@ -316,8 +316,8 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
         d_T_precond_db->putInteger("max_iterations", 1);
     }
 
-    d_T_solver = getHelmholtzSolverForEnergyEquation(d_T_var);
-    d_T_rhs_op = getHelmholtzRHSOperatorForEnergyEquation(d_T_var);
+    d_T_solver = getEnergyEquationHelmholtzSolver(d_T_var);
+    d_T_rhs_op = getEnergyEquationHelmholtzRHSOperator(d_T_var);
 
     // Register additional variables required for present time stepping algorithm.
     const IntVector<NDIM> cell_ghosts = CELLG;
@@ -976,7 +976,7 @@ PhaseChangeHierarchyIntegrator::interpolateCCToSCHarmonicAveraging(int sc_idx, c
 } // interpolateCCTOSCHarmonicAveraging
 
 Pointer<PoissonSolver>
-PhaseChangeHierarchyIntegrator::getHelmholtzSolverForEnergyEquation(Pointer<CellVariable<NDIM, double> > T_var)
+PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzSolver(Pointer<CellVariable<NDIM, double> > T_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(T_var);
@@ -996,10 +996,10 @@ PhaseChangeHierarchyIntegrator::getHelmholtzSolverForEnergyEquation(Pointer<Cell
         d_T_solver_needs_init = true;
     }
     return d_T_solver;
-} // getHelmholtzSolverForEnergyEquation
+} // getEnergyEquationHelmholtzSolver
 
 Pointer<LaplaceOperator>
-PhaseChangeHierarchyIntegrator::getHelmholtzRHSOperatorForEnergyEquation(Pointer<CellVariable<NDIM, double> > T_var)
+PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzRHSOperator(Pointer<CellVariable<NDIM, double> > T_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(T_var);
@@ -1011,7 +1011,7 @@ PhaseChangeHierarchyIntegrator::getHelmholtzRHSOperatorForEnergyEquation(Pointer
         d_T_rhs_op_needs_init = true;
     }
     return d_T_rhs_op;
-} // getHelmholtzRHSOperatorForEnergyEquation
+} // getEnergyEquationHelmholtzRHSOperator
 
 void
 PhaseChangeHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)

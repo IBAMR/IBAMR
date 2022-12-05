@@ -17,22 +17,11 @@
 #define included_IBAMR_PhaseChangeHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "ibamr/MassIntegrator.h"
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/LaplaceOperator.h"
-
-#include "HierarchyFaceDataOpsReal.h"
-#include "IntVector.h"
-#include "MultiblockDataTranslator.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-
-#include <map>
-#include <set>
-#include <string>
 
 namespace IBTK
 {
@@ -242,21 +231,21 @@ public:
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getTemperaturePhysicalBcCoef();
 
     /*!
-     *  \brief Compute source terms of energy equation.
+     *  \brief Add the temporal and linear terms to the RHS of the energy equation.
      */
-    virtual void computeEnergyEquationSourceTerm(int F_scratch_idx, const double dt) = 0;
+    virtual void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt) = 0;
 
     /*!
      * \brief Get the solver of the energy equation.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
-    getHelmholtzSolverForEnergyEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
+    getEnergyEquationHelmholtzSolver(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
 
     /*!
      * \brief Get the operator that is used to evaluate the right-hand side of energy equation.
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
-    getHelmholtzRHSOperatorForEnergyEquation(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
+    getEnergyEquationHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var);
 
     /*!
      * \brief Register an IBTK::CartGridFunction object to specify the value of the
