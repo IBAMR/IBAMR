@@ -24,6 +24,7 @@
 #include "ArrayData.h"
 #include "BoundaryBox.h"
 #include "Box.h"
+#include "Index.h"
 #include "IntVector.h"
 #include "RobinBcCoefStrategy.h"
 #include "tbox/MathUtilities.h"
@@ -53,8 +54,6 @@ namespace hier
 {
 template <int DIM>
 class Variable;
-template <int DIM>
-class Index;
 } // namespace hier
 } // namespace SAMRAI
 

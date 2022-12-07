@@ -26,6 +26,7 @@
 #include "Box.h"
 #include "CellIndex.h"
 #include "CellIterator.h"
+#include "Index.h"
 #include "Patch.h"
 #include "PatchHierarchy.h"
 #include "PatchLevel.h"
@@ -40,15 +41,6 @@
 #include <string>
 
 #include "ibamr/app_namespaces.h" // IWYU pragma: keep
-
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class Index;
-} // namespace hier
-} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

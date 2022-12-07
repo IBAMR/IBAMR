@@ -58,6 +58,7 @@
 #include "HierarchyCellDataOpsReal.h"
 #include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
+#include "Index.h"
 #include "IntVector.h"
 #include "LoadBalancer.h"
 #include "MultiblockDataTranslator.h"
@@ -114,15 +115,6 @@ IBTK_ENABLE_EXTRA_WARNINGS
 #include <string>
 #include <utility>
 #include <vector>
-
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class Index;
-} // namespace hier
-} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
