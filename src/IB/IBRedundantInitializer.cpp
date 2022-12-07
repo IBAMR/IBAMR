@@ -1496,11 +1496,9 @@ IBRedundantInitializer::getVertexBdryMassSpec(const std::pair<int, int>& point_i
 const std::vector<double>&
 IBRedundantInitializer::getVertexDirectors(const std::pair<int, int>& point_index, const int level_number) const
 {
-    if (!d_init_director_and_rod_on_level_fcn)
-    {
-        static std::vector<double> II = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
-        return II;
-    }
+    if (static_cast<size_t>(point_index.second) >= d_directors[level_number][point_index.first].size())
+        TBOX_ERROR("Could not find enough director vectors on level " << level_number << " for structure "
+                                                                      << point_index.first << "\n");
     return d_directors[level_number][point_index.first][point_index.second];
 } // getVertexDirectors
 

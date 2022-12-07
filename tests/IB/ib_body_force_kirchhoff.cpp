@@ -69,6 +69,46 @@ generate_structure(const unsigned int& struct_num,
     return;
 }
 
+void
+generate_rods_and_directors(const unsigned int& /*struct_num*/,
+                            const int& /*ln*/,
+                            std::vector<std::vector<double> >& director_spec,
+                            std::multimap<int, IBRedundantInitializer::Edge>& /*rod_edge_map*/,
+                            std::map<IBRedundantInitializer::Edge,
+                                     IBRedundantInitializer::RodSpec,
+                                     IBRedundantInitializer::EdgeComp>& /*rod_spec*/,
+                            void* /*ctx*/)
+{
+    director_spec.resize(1);
+    director_spec[0].resize(9);
+    director_spec[0][0] = director_spec[0][4] = director_spec[0][8] = 1.0;
+    return;
+}
+
+void
+generate_structure_file(const std::string& base_name, int struct_num)
+{
+    double shift = struct_num == 0 ? -0.25 : 0.25;
+    ofstream file;
+    file.open(base_name + ".vertex");
+    file << "1\n";
+    file << 0.5 + shift << " " << 0.5 + shift << " " << 0.5 + shift << "\n";
+    file.close();
+
+    file.open(base_name + ".director");
+    file << "1\n";
+    std::vector<std::vector<double> > director_spec(1);
+    director_spec[0].resize(9);
+    director_spec[0][0] = director_spec[0][4] = director_spec[0][8] = 1.0;
+    for (const auto& directors : director_spec)
+    {
+        for (int i = 0; i < NDIM; ++i)
+            file << directors[3 * i + 0] << " " << directors[3 * i + 1] << " " << directors[3 * i + 2] << "\n";
+    }
+    file.close();
+    return;
+}
+
 int
 main(int argc, char* argv[])
 {
@@ -121,13 +161,27 @@ main(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
+        const bool use_redundant = input_db->getBool("USE_REDUNDANT");
         // Configure the IB solver.
-        Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
-            "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
-        std::vector<std::string> struct_list = { "structure 0", "structure 1" };
-        finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
-        ib_initializer->setStructureNamesOnLevel(finest_ln, struct_list);
-        ib_initializer->registerInitStructureFunction(generate_structure);
+        Pointer<LInitStrategy> ib_initializer;
+        if (use_redundant)
+        {
+            Pointer<IBRedundantInitializer> initializer = new IBRedundantInitializer(
+                "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
+            std::vector<std::string> struct_list = { "structure 0", "structure 1" };
+            finest_ln = input_db->getInteger("MAX_LEVELS") - 1;
+            initializer->setStructureNamesOnLevel(finest_ln, struct_list);
+            initializer->registerInitStructureFunction(generate_structure);
+            initializer->registerInitDirectorAndRodFunction(generate_rods_and_directors);
+            ib_initializer = initializer;
+        }
+        else
+        {
+            generate_structure_file("structure_0", 0);
+            generate_structure_file("structure_1", 1);
+            ib_initializer = new IBStandardInitializer("IBStandardInitializer",
+                                                       app_initializer->getComponentDatabase("IBStandardInitializer"));
+        }
         ib_method_ops->registerLInitStrategy(ib_initializer);
         Pointer<IBKirchhoffRodForceGen> ib_force_fcn = new IBKirchhoffRodForceGen();
         ib_force_fcn->setUniformBodyForce({ +1.0, -0.25, 0.0 }, 0, finest_ln);
