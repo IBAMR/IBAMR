@@ -54,6 +54,7 @@ SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # determine some details about the current Fortran compiler:
 INCLUDE(FortranCInterface)
+FortranCInterface_VERIFY(CXX QUIET)
 IF("${FortranCInterface_GLOBAL_CASE}" STREQUAL "LOWER")
   SET(_name "name")
 ELSE()
@@ -186,7 +187,7 @@ IF(NOT "${CMAKE_CXX_COMPILER}" STREQUAL "")
     SET(MPI_ROOT "${_compiler_directory}/../")
     MESSAGE(STATUS "Using MPI compiler wrapper to set MPI_ROOT=${MPI_ROOT}")
   ELSE()
-    MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is not an MPI compiler wrapper")
+    MESSAGE(STATUS "CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} is not an MPI compiler wrapper - CMake will use the normal MPI detection sequence")
   ENDIF()
 ELSEIF((NOT $ENV{MPI_HOME} STREQUAL "") AND ("${MPI_ROOT}" STREQUAL ""))
   # if MPI_HOME is set then we should use that instead (environment modules
