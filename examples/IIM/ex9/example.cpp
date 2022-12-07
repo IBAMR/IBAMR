@@ -211,11 +211,11 @@ tether_force_function_beam(VectorValue<double>& F,
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        const MeshBase::const_element_iterator el_begin = mesh_bndry.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh_bndry.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        const auto el_begin = mesh_bndry.active_local_elements_begin();
+        const auto el_end = mesh_bndry.active_local_elements_end();
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem_bndry = *el_it;
+            const Elem* elem_bndry = *el_it;
 
             if ((elem_bndry->contains_point(X)) && !((vol_beam_bndry_info->has_boundary_id(elem, side, 0))))
             {
@@ -416,19 +416,19 @@ main(int argc, char* argv[])
                                           length + offset,
                                           Utility::string_to_enum<ElemType>(beam_elem_type));
 
-        const MeshBase::const_element_iterator end_el = beam_mesh.elements_end();
-        for (MeshBase::const_element_iterator el = beam_mesh.elements_begin(); el != end_el; ++el)
+        const auto end_el = beam_mesh.elements_end();
+        for (auto el = beam_mesh.elements_begin(); el != end_el; ++el)
         {
-            Elem* const elem = *el;
+            const Elem* elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (at_mesh_bdry)
                 {
-                    BoundaryInfo* boundary_info = beam_mesh.boundary_info.get();
-                    if (boundary_info->has_boundary_id(elem, side, 0))
+                    BoundaryInfo& boundary_info = beam_mesh.get_boundary_info();
+                    if (boundary_info.has_boundary_id(elem, side, 0))
                     {
-                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
+                        boundary_info.add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
                     }
                 }
             }
@@ -447,7 +447,7 @@ main(int argc, char* argv[])
 
         BoundaryMesh beam_bndry_mesh(beam_mesh.comm(), beam_mesh.mesh_dimension() - 1);
 
-        beam_mesh.boundary_info->sync(beam_bndry_mesh);
+        beam_mesh.get_boundary_info().sync(beam_bndry_mesh);
         beam_bndry_mesh.prepare_for_use();
         // to scale mesh from units in mm to cm
 

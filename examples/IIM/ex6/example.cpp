@@ -200,11 +200,11 @@ solid_surface_force_function(VectorValue<double>& F,
     {
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            const MeshBase::const_element_iterator el_begin = mesh_bndry.active_local_elements_begin();
-            const MeshBase::const_element_iterator el_end = mesh_bndry.active_local_elements_end();
-            for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+            const auto el_begin = mesh_bndry.active_local_elements_begin();
+            const auto el_end = mesh_bndry.active_local_elements_end();
+            for (auto el_it = el_begin; el_it != el_end; ++el_it)
             {
-                Elem* const elem_bndry = *el_it;
+                const Elem* elem_bndry = *el_it;
                 if (elem_bndry->contains_point(X))
                     F(d) = Tau_new_surface_system->point_value(d, X, elem_bndry); //&side_elem);
             }
@@ -418,7 +418,7 @@ main(int argc, char* argv[])
         beam_boundary_info = &beam_mesh.get_boundary_info();
         beam_mesh.prepare_for_use();
         BoundaryMesh boundary_mesh(beam_mesh.comm(), beam_mesh.mesh_dimension() - 1);
-        beam_mesh.boundary_info->sync(boundary_mesh);
+        beam_mesh.get_boundary_info().sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
 
         mu_s = input_db->getDouble("MU_S");
@@ -808,11 +808,11 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     const std::vector<std::vector<double> >& phi = fe->get_phi();
     const std::vector<double>& JxW = fe->get_JxW();
     boost::multi_array<double, 2> F_node;
-    const MeshBase::const_element_iterator el_begin = mesh_solid->active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh_solid->active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    const auto el_begin = mesh_solid->active_local_elements_begin();
+    const auto el_end = mesh_solid->active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
-        Elem* const elem = *el_it;
+        const Elem* elem = *el_it;
         fe->reinit(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
