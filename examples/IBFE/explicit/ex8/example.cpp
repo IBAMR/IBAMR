@@ -405,7 +405,8 @@ main(int argc, char* argv[])
         if (beam_use_mapped_grid)
         {
             set<double> x;
-            for (MeshBase::node_iterator it = beam_mesh.nodes_begin(); it != beam_mesh.nodes_end(); ++it)
+            const auto node_end = beam_mesh.nodes_end();
+            for (MeshBase::node_iterator it = beam_mesh.nodes_begin(); it != node_end; ++it)
             {
                 Node& n = **it;
                 n(0) = cheby((n(0) - beam_x_lower) / (beam_x_upper - beam_x_lower), beam_x_lower, beam_x_upper);
@@ -437,7 +438,8 @@ main(int argc, char* argv[])
         // Make an ordered list of the nodes along the bottom edge of the beam.
         typedef std::set<libMesh::Node*, node_x_comp> node_set;
         node_set centerline_node_set;
-        for (MeshBase::node_iterator n_it = beam_mesh.nodes_begin(); n_it != beam_mesh.nodes_end(); ++n_it)
+        const auto node_end = beam_mesh.nodes_end();
+        for (MeshBase::node_iterator n_it = beam_mesh.nodes_begin(); n_it != node_end; ++n_it)
         {
             const libMesh::Node& n = **n_it;
             if (abs(n(1) - 0.5) < 1.0e-8)

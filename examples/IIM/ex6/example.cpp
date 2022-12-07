@@ -404,7 +404,8 @@ main(int argc, char* argv[])
         string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
         beam_mesh.read(input_db->getString("BEAM_MESH_FILENAME"), NULL);
 
-        for (MeshBase::node_iterator n_it = beam_mesh.nodes_begin(); n_it != beam_mesh.nodes_end(); ++n_it)
+        const auto node_end = beam_mesh.nodes_end();
+        for (MeshBase::node_iterator n_it = beam_mesh.nodes_begin(); n_it != node_end; ++n_it)
         {
             Node& n = **n_it;
 

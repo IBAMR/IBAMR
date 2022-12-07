@@ -431,7 +431,8 @@ main(int argc, char* argv[])
                 }
             }
         }
-        for (MeshBase::node_iterator it = mesh.nodes_begin(); it != mesh.nodes_end(); ++it)
+        const auto node_end = mesh.nodes_end();
+        for (MeshBase::node_iterator it = mesh.nodes_begin(); it != node_end; ++it)
         {
             Node* n = *it;
             libMesh::Point& X = *n;

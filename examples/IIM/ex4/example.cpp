@@ -314,7 +314,8 @@ update_solid_vel_pos(const double* params,
 
     pout << " Number of time integration iterations = " << iter << "\n\n";
 
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    const auto node_end = mesh.local_nodes_end();
+    for (auto it = mesh.local_nodes_begin(); it != node_end; ++it)
     {
         Node* n = *it;
         if (n->n_vars(dY_sys_num))
@@ -642,7 +643,8 @@ main(int argc, char* argv[])
         System& Y_init_solid_system = solid_equation_systems->get_system("RIGID_BODY_COORDS_SYSTEM");
         const unsigned int Y_init_solid_sys_num = Y_init_solid_system.number();
         NumericVector<double>& Y_init_solid_coords = *Y_init_solid_system.solution;
-        for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+        const auto node_end = mesh.local_nodes_end();
+        for (auto it = mesh.local_nodes_begin(); it != node_end; ++it)
         {
             Node* n = *it;
             if (n->n_vars(Y_init_solid_sys_num))
@@ -664,7 +666,7 @@ main(int argc, char* argv[])
         System& dY_init_solid_system = solid_equation_systems->get_system("RIGID_BODY_COORDS_MAPPING_SYSTEM");
         const unsigned int dY_init_solid_sys_num = dY_init_solid_system.number();
         NumericVector<double>& dY_init_solid_coords = *dY_init_solid_system.solution;
-        for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+        for (auto it = mesh.local_nodes_begin(); it != node_end; ++it)
         {
             Node* n = *it;
             if (n->n_vars(dY_init_solid_sys_num))
