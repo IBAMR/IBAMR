@@ -250,11 +250,11 @@ solid_surface_force_tube_upper_function(VectorValue<double>& F,
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        const MeshBase::const_element_iterator el_begin = mesh_bndry.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh_bndry.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        const auto el_begin = mesh_bndry.active_local_elements_begin();
+        const auto el_end = mesh_bndry.active_local_elements_end();
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem_bndry = *el_it;
+            const Elem* elem_bndry = *el_it;
 
             if ((elem_bndry->contains_point(X)) && (tube_upper_copy_info->has_boundary_id(elem, side, 6)))
             {
@@ -285,11 +285,11 @@ solid_surface_force_tube_lower_function(VectorValue<double>& F,
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        const MeshBase::const_element_iterator el_begin = mesh_bndry.active_local_elements_begin();
-        const MeshBase::const_element_iterator el_end = mesh_bndry.active_local_elements_end();
-        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        const auto el_begin = mesh_bndry.active_local_elements_begin();
+        const auto el_end = mesh_bndry.active_local_elements_end();
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem_bndry = *el_it;
+            const Elem* elem_bndry = *el_it;
 
             if ((elem_bndry->contains_point(X)) && (tube_lower_copy_info->has_boundary_id(elem, side, 5)))
             {
@@ -443,20 +443,20 @@ main(int argc, char* argv[])
         translate(tube_lower_mesh, 0, H0 - 1, 0);
 
         // Imposing Dirichlet BC at the two ends
-        const MeshBase::const_element_iterator end_lower_el = tube_lower_mesh.elements_end();
-        for (MeshBase::const_element_iterator el = tube_lower_mesh.elements_begin(); el != end_lower_el; ++el)
+        const auto end_lower_el = tube_lower_mesh.elements_end();
+        for (auto el = tube_lower_mesh.elements_begin(); el != end_lower_el; ++el)
         {
-            Elem* const elem = *el;
+            const Elem* elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (at_mesh_bdry)
                 {
-                    BoundaryInfo* boundary_info = tube_lower_mesh.boundary_info.get();
-                    if ((boundary_info->has_boundary_id(elem, side, 3)) ||
-                        (boundary_info->has_boundary_id(elem, side, 4)))
+                    BoundaryInfo& boundary_info = tube_lower_mesh.get_boundary_info();
+                    if ((boundary_info.has_boundary_id(elem, side, 3)) ||
+                        (boundary_info.has_boundary_id(elem, side, 4)))
                     {
-                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
+                        boundary_info.add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
                 }
             }
@@ -469,7 +469,7 @@ main(int argc, char* argv[])
         // Side 4 appears to be the outlet!
         tube_lower_copy_info = &tube_lower_mesh.get_boundary_info();
         BoundaryMesh bndry_tube_lower_mesh(init.comm(), NDIM - 1);
-        tube_lower_mesh.boundary_info->sync({ 5 }, bndry_tube_lower_mesh);
+        tube_lower_mesh.get_boundary_info().sync({ 5 }, bndry_tube_lower_mesh);
         bndry_tube_lower_mesh.prepare_for_use();
 
         // ************************************************************************//
@@ -480,20 +480,20 @@ main(int argc, char* argv[])
         translate(tube_upper_mesh, 0, H0 - 1, 0);
 
         // Imposing Dirichlet BC at the two ends
-        const MeshBase::const_element_iterator end_upper_el = tube_upper_mesh.elements_end();
-        for (MeshBase::const_element_iterator el = tube_upper_mesh.elements_begin(); el != end_upper_el; ++el)
+        const auto end_upper_el = tube_upper_mesh.elements_end();
+        for (auto el = tube_upper_mesh.elements_begin(); el != end_upper_el; ++el)
         {
-            Elem* const elem = *el;
+            const Elem* elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (at_mesh_bdry)
                 {
-                    BoundaryInfo* boundary_info = tube_upper_mesh.boundary_info.get();
-                    if ((boundary_info->has_boundary_id(elem, side, 1)) ||
-                        (boundary_info->has_boundary_id(elem, side, 2)))
+                    BoundaryInfo& boundary_info = tube_upper_mesh.get_boundary_info();
+                    if ((boundary_info.has_boundary_id(elem, side, 1)) ||
+                        (boundary_info.has_boundary_id(elem, side, 2)))
                     {
-                        boundary_info->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
+                        boundary_info.add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XY_BDRY_ID);
                     }
                 }
             }
@@ -502,7 +502,7 @@ main(int argc, char* argv[])
 
         tube_upper_copy_info = &tube_upper_mesh.get_boundary_info();
         BoundaryMesh bndry_tube_upper_mesh(init.comm(), NDIM - 1);
-        tube_upper_mesh.boundary_info->sync({ 6 }, bndry_tube_upper_mesh);
+        tube_upper_mesh.get_boundary_info().sync({ 6 }, bndry_tube_upper_mesh);
         bndry_tube_upper_mesh.prepare_for_use();
 
         // ************************************************************************//

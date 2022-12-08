@@ -205,7 +205,7 @@ main(int argc, char* argv[])
 
         Mesh cylinder_mesh_thin(init.comm(), NDIM - 1);
 
-        cylinder_mesh_thin.boundary_info->clear_boundary_node_ids();
+        cylinder_mesh_thin.get_boundary_info().clear_boundary_node_ids();
         const unsigned int NXi_elem = ceil(L / ds);
         const unsigned int NRi_elem = ceil(M_PI * D / ds);
         int node_id = 0;
@@ -248,14 +248,14 @@ main(int argc, char* argv[])
         MeshBase::const_element_iterator el_end = cylinder_mesh_thin.elements_end();
         for (MeshBase::const_element_iterator el = cylinder_mesh_thin.elements_begin(); el != el_end; ++el)
         {
-            Elem* const elem = *el;
+            const Elem* elem = *el;
             for (unsigned int side = 0; side < elem->n_sides(); ++side)
             {
                 const bool at_mesh_bdry = !elem->neighbor_ptr(side);
                 if (at_mesh_bdry)
                 {
-                    BoundaryInfo* boundary_info_cylinder = cylinder_mesh_thin.boundary_info.get();
-                    boundary_info_cylinder->add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
+                    BoundaryInfo& boundary_info_cylinder = cylinder_mesh_thin.get_boundary_info();
+                    boundary_info_cylinder.add_side(elem, side, FEDataManager::ZERO_DISPLACEMENT_XYZ_BDRY_ID);
                 }
             }
         }
@@ -757,9 +757,9 @@ postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     boost::multi_array<double, 2> x_node, X_node, U_node;
     VectorValue<double> F_qp, U_qp, x_qp, X_qp, N, n;
 
-    const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
-    const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
-    for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+    const auto el_begin = mesh.active_local_elements_begin();
+    const auto el_end = mesh.active_local_elements_end();
+    for (auto el_it = el_begin; el_it != el_end; ++el_it)
     {
         Elem* const elem = *el_it;
         fe->reinit(elem);
@@ -838,7 +838,7 @@ postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
         for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
         {
-            Elem* const elem = *el_it;
+            const Elem* elem = *el_it;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 dof_map.dof_indices(elem, dof_indices[d], d);
