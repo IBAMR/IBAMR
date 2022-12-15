@@ -306,7 +306,7 @@ K_VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 OUTPUT_DIV_U_F                 = TRUE
 
 LIQUID_FRACTION_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // convective time stepping type
-LIQUID_FRACTION_CONVECTIVE_OP_TYPE = "CONSERVATIVE_CUI"             // convective differencing discretization type
+LIQUID_FRACTION_CONVECTIVE_OP_TYPE = "CUI_CONSERVATIVE"             // convective differencing discretization type
 LIQUID_FRACTION_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 LIQUID_FRACTION_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the convective terms
 INTERPOLATION_FUNCTION_PROFILE = "QUARTIC" // Options: QUARTIC, QUADRATIC, LINEAR_4, LINEAR_3, LINEAR_2, LINEAR_1, LINEAR_0.5

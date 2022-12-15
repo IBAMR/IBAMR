@@ -133,7 +133,7 @@ TEMPERATURE_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute th
 K_VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 
 LIQUID_FRACTION_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // "FORWARD_EULER" // convective time stepping type
-LIQUID_FRACTION_CONVECTIVE_OP_TYPE = "CONSERVATIVE_CUI"             // convective differencing discretization type
+LIQUID_FRACTION_CONVECTIVE_OP_TYPE = "CUI_CONSERVATIVE"             // convective differencing discretization type
 LIQUID_FRACTION_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 LIQUID_FRACTION_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the diffusion terms
 INTERPOLATION_FUNCTION_PROFILE       = "QUARTIC"
