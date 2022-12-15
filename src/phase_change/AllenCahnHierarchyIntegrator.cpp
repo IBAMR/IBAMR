@@ -12,8 +12,7 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include "ibamr/AdvDiffConservativeCUIConvectiveOperator.h"
+#include "ibamr/AdvDiffCUIConservativeConvectiveOperator.h"
 #include "ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h"
 #include "ibamr/AllenCahnHierarchyIntegrator.h"
 #include "ibamr/ConvectiveOperator.h"
@@ -127,11 +126,11 @@ AllenCahnHierarchyIntegrator::AllenCahnHierarchyIntegrator(const std::string& ob
                                  << " requires CONSERVATIVE convective difference form\n");
     }
 
-    if (!(d_lf_convective_op_type == "CONSERVATIVE_CUI"))
+    if (!(d_lf_convective_op_type == "CUI_CONSERVATIVE"))
     {
         TBOX_ERROR(d_object_name << "::AllenCahnHierarchyIntegrator():\n"
                                  << " current implementation supports only\n"
-                                 << " CONSERVATIVE CUI limiter for Allen-Cahn equation\n");
+                                 << " CUI CONSERVATIVE limiter for Allen-Cahn equation\n");
     }
 
     if (input_db->keyExists("lf_solver_type"))
@@ -441,8 +440,8 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         d_lf_convective_op->setSolutionTime(current_time);
         d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_current_idx);
         d_hier_cc_data_ops->copyData(H_scratch_idx, H_current_idx);
-        Pointer<AdvDiffConservativeCUIConvectiveOperator> lf_conservative_cui_convective_op = d_lf_convective_op;
-        lf_conservative_cui_convective_op->applyConvectiveOperator(lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
+        Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op = d_lf_convective_op;
+        lf_cui_conservative_convective_op->applyConvectiveOperator(lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
 
         const int lf_N_old_new_idx = var_db->mapVariableAndContextToIndex(d_lf_N_old_var, getNewContext());
         d_hier_cc_data_ops->copyData(lf_N_old_new_idx, lf_N_scratch_idx);
@@ -777,9 +776,9 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
                 // H_pre_idx is used to use the same flux used in the advection of H.
                 d_hier_cc_data_ops->linearSum(H_scratch_idx, 0.5, H_current_idx, 0.5, d_H_pre_idx);
                 d_lf_convective_op->setSolutionTime(half_time);
-                Pointer<AdvDiffConservativeCUIConvectiveOperator> lf_conservative_cui_convective_op =
+                Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op =
                     d_lf_convective_op;
-                lf_conservative_cui_convective_op->applyConvectiveOperator(
+                lf_cui_conservative_convective_op->applyConvectiveOperator(
                     lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
@@ -790,9 +789,9 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
                 // H_pre_idx is used to use the same flux used in the advection of H.
                 d_hier_cc_data_ops->copyData(H_scratch_idx, d_H_pre_idx);
                 d_lf_convective_op->setSolutionTime(new_time);
-                Pointer<AdvDiffConservativeCUIConvectiveOperator> lf_conservative_cui_convective_op =
+                Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op =
                     d_lf_convective_op;
-                lf_conservative_cui_convective_op->applyConvectiveOperator(
+                lf_cui_conservative_convective_op->applyConvectiveOperator(
                     lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
             }
         }
@@ -1304,8 +1303,8 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<Cel
         std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
 
         // Since the Allen-Cahn equation requires the convective derivative div(lf*H*u),
-        // we use AdvDiffConservativeCUIConvectiveOperator class.
-        d_lf_convective_op = new AdvDiffConservativeCUIConvectiveOperator(d_object_name + "::lfConvectiveOperator",
+        // we use AdvDiffCUIConservativeConvectiveOperator class.
+        d_lf_convective_op = new AdvDiffCUIConservativeConvectiveOperator(d_object_name + "::lfConvectiveOperator",
                                                                           d_lf_var,
                                                                           d_H_var,
                                                                           d_lf_convective_op_input_db,

@@ -57,9 +57,9 @@ SET(CXX_SRC
   # adv diff
   adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp
   adv_diff/AdvDiffConvectiveOperatorManager.cpp
+  adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
   adv_diff/AdvDiffCUIConvectiveOperator.cpp
   adv_diff/AdvDiffCenteredConvectiveOperator.cpp
-  adv_diff/AdvDiffConservativeCUIConvectiveOperator.cpp
   adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
   adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp
   adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp

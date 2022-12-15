@@ -12,15 +12,9 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-
-#include <ibamr/config.h>
-
-#include "ibamr/AdvDiffConservativeCUIConvectiveOperator.h"
 #include "ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h"
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/ConvectiveOperator.h"
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
