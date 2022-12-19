@@ -468,7 +468,8 @@ updateVelocityAndPositionOfSolidPoints(const double* params,
     System& X_half_system = solid_equation_systems.get_system("position_half");
     NumericVector<double>& X_half_coords = *X_half_system.solution;
 
-    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+    const auto node_end = mesh.local_nodes_end();
+    for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != node_end; ++it)
     {
         Node* n = *it;
         if (n->n_vars(X_sys_num))
@@ -611,7 +612,8 @@ main(int argc, char* argv[])
             }
         }
 
-        for (MeshBase::node_iterator it = solid_mesh.nodes_begin(); it != solid_mesh.nodes_end(); ++it)
+        const auto node_end = solid_mesh.nodes_end();
+        for (auto it = solid_mesh.nodes_begin(); it != node_end; ++it)
         {
             Node* n = *it;
             libMesh::Point& X = *n;
@@ -731,7 +733,8 @@ main(int argc, char* argv[])
             System& X_new_system = solid_equation_systems->get_system("position_new");
             const unsigned int X_new_sys_num = X_new_system.number();
             NumericVector<double>& X_new_coords = *X_new_system.solution;
-            for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+            const auto node_end = mesh.local_nodes_end();
+            for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != node_end; ++it)
             {
                 Node* n = *it;
                 if (n->n_vars(X_new_sys_num))
@@ -754,7 +757,7 @@ main(int argc, char* argv[])
             const unsigned int X_half_sys_num = X_half_system.number();
             NumericVector<double>& X_half_coords = *X_half_system.solution;
 
-            for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != mesh.local_nodes_end(); ++it)
+            for (MeshBase::node_iterator it = mesh.local_nodes_begin(); it != node_end; ++it)
             {
                 Node* n = *it;
                 if (n->n_vars(X_half_sys_num))

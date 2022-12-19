@@ -169,7 +169,8 @@ main(int argc, char* argv[])
         }
 
         // Shift the initial position of the structure.
-        for (MeshBase::node_iterator it = mesh.nodes_begin(); it != mesh.nodes_end(); ++it)
+        const auto node_end = mesh.nodes_end();
+        for (MeshBase::node_iterator it = mesh.nodes_begin(); it != node_end; ++it)
         {
             Node& n = **it;
             n(0) += 0.6;
