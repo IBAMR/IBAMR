@@ -1084,22 +1084,22 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 for (unsigned int k = 0; k < n_qpoints_patch; ++k)
                 {
                     const double* const x = &x_qp[NDIM * k];
-                    const Index<NDIM> i = IndexUtilities::getCellIndex(x, patch_geom, patch_box);
+                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(x, patch_geom, patch_box);
                     if (interp_box.contains(i)) local_indices.push_back(k);
 
                     const double* const x_in = &x_in_qp[NDIM * k];
-                    const Index<NDIM> in = IndexUtilities::getCellIndex(
+                    const hier::Index<NDIM> in = IndexUtilities::getCellIndex(
                         x_in, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
 
                     const double* const x_out = &x_out_qp[NDIM * k];
-                    const Index<NDIM> out = IndexUtilities::getCellIndex(
+                    const hier::Index<NDIM> out = IndexUtilities::getCellIndex(
                         x_out, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
 
                     // Some kind of assertation can be applied here using the indices of the cells away from the
                     // interfce
                 }
                 if (local_indices.empty()) continue;
-                Index<NDIM> ic_lower, ic_upper, ic_center;
+                hier::Index<NDIM> ic_lower, ic_upper, ic_center;
                 std::array<std::array<double, 2>, NDIM> w, wr;
                 std::vector<double> U_axis(n_qpoints_patch, 0.0);
                 std::vector<double> U_axis_o(n_qpoints_patch, 0.0);
@@ -1121,8 +1121,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     x_lower_axis[axis] -= 0.5 * patch_dx[axis];
                     x_upper_axis[axis] += 0.5 * patch_dx[axis];
 
-                    const Index<NDIM>& ilower = side_boxes[axis].lower();
-                    const Index<NDIM>& iupper = side_boxes[axis].upper();
+                    const hier::Index<NDIM>& ilower = side_boxes[axis].lower();
+                    const hier::Index<NDIM>& iupper = side_boxes[axis].upper();
 
                     typedef boost::multi_array_types::extent_range range;
                     boost::const_multi_array_ref<double, NDIM> u_sc_data_array(
@@ -1194,7 +1194,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                         {
                             for (BoxIterator<NDIM> b(stencil_box); b; b++)
                             {
-                                const Index<NDIM>& ic = b();
+                                const hier::Index<NDIM>& ic = b();
                                 for (int j = 0; j < NDIM; ++j) wrc(j) = wr[j][ic_upper[j] - ic[j]];
 #if (NDIM == 2)
                                 interpCoeff[ic[0]][ic[1]][d] = (norm_vec * wrc) * norm_vec(d);
@@ -1209,7 +1209,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                         {
                             for (BoxIterator<NDIM> b(stencil_box); b; b++)
                             {
-                                const Index<NDIM>& ic = b();
+                                const hier::Index<NDIM>& ic = b();
                                 for (int j = 0; j < NDIM; ++j) du_jump(j) = DU_jump_qp[d][s * NDIM + j];
 #if (NDIM == 2)
                                 coeff_vec =
@@ -1233,7 +1233,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 
                         for (BoxIterator<NDIM> b(stencil_box); b; b++)
                         {
-                            const Index<NDIM>& ic = b();
+                            const hier::Index<NDIM>& ic = b();
 #if (NDIM == 2)
 
                             U_axis[s] +=
@@ -1759,7 +1759,7 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
         for (unsigned int k = 0; k < n_qp_patch; ++k)
         {
             const double* const XX = &x_qp[NDIM * k];
-            const Index<NDIM> i = IndexUtilities::getCellIndex(XX, patch_geom, interp_box);
+            const hier::Index<NDIM> i = IndexUtilities::getCellIndex(XX, patch_geom, interp_box);
             if (interp_box.contains(i)) local_indices.push_back(k);
         }
 
@@ -2153,18 +2153,18 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         for (unsigned int k = 0; k < n_qp_patch; ++k)
         {
             const double* const xx = &x_qp[NDIM * k];
-            const Index<NDIM> i = IndexUtilities::getCellIndex(xx, patch_geom, interp_box);
+            const hier::Index<NDIM> i = IndexUtilities::getCellIndex(xx, patch_geom, interp_box);
             if (interp_box.contains(i)) local_indices.push_back(k);
 
             const double* const x_i = &x_in_qp[NDIM * k];
-            const Index<NDIM> ip = IndexUtilities::getCellIndex(
+            const hier::Index<NDIM> ip = IndexUtilities::getCellIndex(
                 x_i, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
             if (!ghost_box.contains(ip) && interp_box.contains(i))
                 TBOX_ERROR(d_object_name << "::IIMethod():\n"
                                          << " the pressure interpolation ghost width hasn't beeen properly set"
                                          << std::endl);
             const double* const x_o = &x_out_qp[NDIM * k];
-            const Index<NDIM> op = IndexUtilities::getCellIndex(
+            const hier::Index<NDIM> op = IndexUtilities::getCellIndex(
                 x_o, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
             if (!ghost_box.contains(op) && interp_box.contains(i))
                 TBOX_ERROR(d_object_name << "::IIMethod():\n"
@@ -3629,7 +3629,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                             libMesh::Point xu = r + intersections[k].first * q;
                             const libMesh::Point& xui = intersections[k].second;
                             SideIndex<NDIM> i_s_um(i_c, axis, 0);
-                            Index<NDIM> i_c_neighbor = i_c;
+                            hier::Index<NDIM> i_c_neighbor = i_c;
                             i_c_neighbor(axis) += 1;
 
                             SideIndex<NDIM> i_s_up(i_c_neighbor, axis, 0);
@@ -3737,7 +3737,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     if (fmod(xu(axis) - x_lower[axis], dx[axis]) >= 0.5 * dx[axis])
                                     {
                                         SideIndex<NDIM> i_side_um(i_c, SideDim[axis][j], 0);
-                                        Index<NDIM> i_c_neighbor = i_c;
+                                        hier::Index<NDIM> i_c_neighbor = i_c;
                                         i_c_neighbor(axis) += 1;
 
                                         SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[axis][j], 0);
@@ -3753,7 +3753,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     else if (fmod((xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis])
                                     {
                                         SideIndex<NDIM> i_side_up(i_c, SideDim[axis][j], 0);
-                                        Index<NDIM> i_c_neighbor = i_c;
+                                        hier::Index<NDIM> i_c_neighbor = i_c;
                                         i_c_neighbor(axis) -= 1;
                                         SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[axis][j], 0);
                                         i_side_up(axis) =
@@ -3775,7 +3775,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis])
                                     {
                                         SideIndex<NDIM> i_side_um(i_c, SideDim[axis][j], 0);
-                                        Index<NDIM> i_c_neighbor = i_c;
+                                        hier::Index<NDIM> i_c_neighbor = i_c;
                                         i_c_neighbor(axis) += 1;
 
                                         SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[axis][j], 0);
@@ -3791,7 +3791,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     else
                                     {
                                         SideIndex<NDIM> i_side_up(i_c, SideDim[axis][j], 0);
-                                        Index<NDIM> i_c_neighbor = i_c;
+                                        hier::Index<NDIM> i_c_neighbor = i_c;
                                         i_c_neighbor(axis) -= 1;
                                         SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[axis][j], 0);
                                         i_side_up(axis) =
