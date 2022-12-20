@@ -219,14 +219,14 @@ static Timer* t_deallocate_operator_state;
 AdvDiffCUIConservativeConvectiveOperator::AdvDiffCUIConservativeConvectiveOperator(
     std::string object_name,
     Pointer<CellVariable<NDIM, double> > Q_var,
-    Pointer<CellVariable<NDIM, double> > Q1_var,
+    Pointer<CellVariable<NDIM, double> > P_var,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coefs,
-    std::vector<RobinBcCoefStrategy<NDIM>*> Q1_bc_coefs)
+    std::vector<RobinBcCoefStrategy<NDIM>*> P_bc_coefs)
     : AdvDiffCUIConvectiveOperator(std::move(object_name), Q_var, input_db, difference_form, Q_bc_coefs),
-      d_Q1_var(Q1_var),
-      d_Q1_bc_coefs(std::move(Q1_bc_coefs))
+      d_P_var(P_var),
+      d_P_bc_coefs(std::move(P_bc_coefs))
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -250,28 +250,28 @@ AdvDiffCUIConservativeConvectiveOperator::AdvDiffCUIConservativeConvectiveOperat
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_Q1_scratch_idx = var_db->registerVariableAndContext(d_Q1_var, context, GADVECTG);
+    d_P_scratch_idx = var_db->registerVariableAndContext(d_P_var, context, GADVECTG);
 
-    Pointer<CellDataFactory<NDIM, double> > Q1_pdat_fac = d_Q1_var->getPatchDataFactory();
-    d_Q1_data_depth = Q1_pdat_fac->getDefaultDepth();
+    Pointer<CellDataFactory<NDIM, double> > P_pdat_fac = d_P_var->getPatchDataFactory();
+    d_P_data_depth = P_pdat_fac->getDefaultDepth();
 
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_Q1_data_depth == d_Q_data_depth);
+    TBOX_ASSERT(d_P_data_depth == d_Q_data_depth);
 #endif
 
-    const std::string q1_extrap_var_name = d_object_name + "::q1_extrap";
-    d_q1_extrap_var = var_db->getVariable(q1_extrap_var_name);
-    if (d_q1_extrap_var)
+    const std::string p_extrap_var_name = d_object_name + "::p_extrap";
+    d_p_extrap_var = var_db->getVariable(p_extrap_var_name);
+    if (d_p_extrap_var)
     {
-        d_q1_extrap_idx = var_db->mapVariableAndContextToIndex(d_q1_extrap_var, context);
+        d_p_extrap_idx = var_db->mapVariableAndContextToIndex(d_p_extrap_var, context);
     }
     else
     {
-        d_q1_extrap_var = new FaceVariable<NDIM, double>(q1_extrap_var_name, d_Q1_data_depth);
-        d_q1_extrap_idx = var_db->registerVariableAndContext(d_q1_extrap_var, context, IntVector<NDIM>(0));
+        d_p_extrap_var = new FaceVariable<NDIM, double>(p_extrap_var_name, d_P_data_depth);
+        d_p_extrap_idx = var_db->registerVariableAndContext(d_p_extrap_var, context, IntVector<NDIM>(0));
     }
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_q1_extrap_idx >= 0);
+    TBOX_ASSERT(d_p_extrap_idx >= 0);
 #endif
 
     // Setup Timers.
@@ -293,7 +293,7 @@ AdvDiffCUIConservativeConvectiveOperator::~AdvDiffCUIConservativeConvectiveOpera
 } // ~AdvDiffCUIConservativeConvectiveOperator
 
 void
-AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_idx, const int N_idx)
+AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int /*Q_idx*/, const int /*N_idx*/)
 {
     TBOX_ERROR(
         "AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator can handle only conservative form of "
@@ -302,7 +302,7 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
 }
 
 void
-AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_idx, const int Q1_idx, const int N_idx)
+AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_idx, const int P_idx, const int N_idx)
 {
     IBAMR_TIMER_START(t_apply_convective_operator);
 #if !defined(NDEBUG)
@@ -321,8 +321,8 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
         level->allocatePatchData(d_Q_scratch_idx);
         level->allocatePatchData(d_q_extrap_idx);
         level->allocatePatchData(d_q_flux_idx);
-        level->allocatePatchData(d_Q1_scratch_idx);
-        level->allocatePatchData(d_q1_extrap_idx);
+        level->allocatePatchData(d_P_scratch_idx);
+        level->allocatePatchData(d_p_extrap_idx);
     }
 
     // Setup communications algorithm.
@@ -332,8 +332,8 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
     refine_alg->registerRefine(d_Q_scratch_idx, Q_idx, d_Q_scratch_idx, refine_op);
 
     Pointer<RefineAlgorithm<NDIM> > refine_alg1 = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op1 = grid_geom->lookupRefineOperator(d_Q1_var, "CONSERVATIVE_LINEAR_REFINE");
-    refine_alg1->registerRefine(d_Q1_scratch_idx, Q1_idx, d_Q1_scratch_idx, refine_op1);
+    Pointer<RefineOperator<NDIM> > refine_op1 = grid_geom->lookupRefineOperator(d_P_var, "CONSERVATIVE_LINEAR_REFINE");
+    refine_alg1->registerRefine(d_P_scratch_idx, P_idx, d_P_scratch_idx, refine_op1);
 
     // Extrapolate from cell centers to cell faces.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -361,10 +361,10 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
             TBOX_ASSERT(Q_data_gcw.min() == Q_data_gcw.max());
 #endif
 
-            Pointer<CellData<NDIM, double> > Q1_data = patch->getPatchData(d_Q1_scratch_idx);
-            const IntVector<NDIM>& Q1_data_gcw = Q1_data->getGhostCellWidth();
+            Pointer<CellData<NDIM, double> > P_data = patch->getPatchData(d_P_scratch_idx);
+            const IntVector<NDIM>& P_data_gcw = P_data->getGhostCellWidth();
 #if !defined(NDEBUG)
-            TBOX_ASSERT(Q1_data_gcw.min() == Q1_data_gcw.max());
+            TBOX_ASSERT(P_data_gcw.min() == P_data_gcw.max());
 #endif
 
             Pointer<FaceData<NDIM, double> > u_ADV_data = patch->getPatchData(d_u_idx);
@@ -379,10 +379,10 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
             TBOX_ASSERT(q_extrap_data_gcw.min() == q_extrap_data_gcw.max());
 #endif
 
-            Pointer<FaceData<NDIM, double> > q1_extrap_data = patch->getPatchData(d_q1_extrap_idx);
-            const IntVector<NDIM>& q1_extrap_data_gcw = q1_extrap_data->getGhostCellWidth();
+            Pointer<FaceData<NDIM, double> > p_extrap_data = patch->getPatchData(d_p_extrap_idx);
+            const IntVector<NDIM>& p_extrap_data_gcw = p_extrap_data->getGhostCellWidth();
 #if !defined(NDEBUG)
-            TBOX_ASSERT(q1_extrap_data_gcw.min() == q1_extrap_data_gcw.max());
+            TBOX_ASSERT(p_extrap_data_gcw.min() == p_extrap_data_gcw.max());
 #endif
 
             CellData<NDIM, double>& Q00_data = *Q_data;
@@ -391,13 +391,13 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
             CellData<NDIM, double> Q02_data(patch_box, 1, Q_data_gcw);
 #endif
 
-            CellData<NDIM, double>& Q10_data = *Q1_data;
-            CellData<NDIM, double> Q11_data(patch_box, 1, Q1_data_gcw);
+            CellData<NDIM, double>& P10_data = *P_data;
+            CellData<NDIM, double> P11_data(patch_box, 1, P_data_gcw);
 #if (NDIM == 3)
-            CellData<NDIM, double> Q12_data(patch_box, 1, Q1_data_gcw);
+            CellData<NDIM, double> P12_data(patch_box, 1, P_data_gcw);
 #endif
 
-            // Enforce physical boundary conditions at inflow boundaries for Q1 variable.
+            // Enforce physical boundary conditions at inflow boundaries for P variable.
             AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
                 Q_data,
                 u_ADV_data,
@@ -409,10 +409,10 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
 
             // Enforce physical boundary conditions at inflow boundaries for Q2 variable.
             AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(
-                Q1_data,
+                P_data,
                 u_ADV_data,
                 patch,
-                d_Q1_bc_coefs,
+                d_P_bc_coefs,
                 d_solution_time,
                 /*inflow_boundary_only*/ d_outflow_bdry_extrap_type != "NONE",
                 d_homogeneous_bc);
@@ -468,7 +468,7 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
                 );
             }
 
-            for (unsigned int d = 0; d < d_Q1_data_depth; ++d)
+            for (unsigned int d = 0; d < d_P_data_depth; ++d)
             {
                 CUI_EXTRAPOLATE_FC(
 #if (NDIM == 2)
@@ -476,18 +476,18 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
                     patch_upper(0),
                     patch_lower(1),
                     patch_upper(1),
-                    Q1_data_gcw(0),
-                    Q1_data_gcw(1),
-                    Q10_data.getPointer(d),
-                    Q11_data.getPointer(),
+                    P_data_gcw(0),
+                    P_data_gcw(1),
+                    P10_data.getPointer(d),
+                    P11_data.getPointer(),
                     u_ADV_data_gcw(0),
                     u_ADV_data_gcw(1),
-                    q1_extrap_data_gcw(0),
-                    q1_extrap_data_gcw(1),
+                    p_extrap_data_gcw(0),
+                    p_extrap_data_gcw(1),
                     u_ADV_data->getPointer(0),
                     u_ADV_data->getPointer(1),
-                    q1_extrap_data->getPointer(0, d),
-                    q1_extrap_data->getPointer(1, d)
+                    p_extrap_data->getPointer(0, d),
+                    p_extrap_data->getPointer(1, d)
 #endif
 #if (NDIM == 3)
                         patch_lower(0),
@@ -496,24 +496,24 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
                     patch_upper(1),
                     patch_lower(2),
                     patch_upper(2),
-                    Q1_data_gcw(0),
-                    Q1_data_gcw(1),
-                    Q1_data_gcw(2),
-                    Q10_data.getPointer(d),
-                    Q11_data.getPointer(),
-                    Q12_data.getPointer(),
+                    P_data_gcw(0),
+                    P_data_gcw(1),
+                    P_data_gcw(2),
+                    P10_data.getPointer(d),
+                    P11_data.getPointer(),
+                    P12_data.getPointer(),
                     u_ADV_data_gcw(0),
                     u_ADV_data_gcw(1),
                     u_ADV_data_gcw(2),
-                    q1_extrap_data_gcw(0),
-                    q1_extrap_data_gcw(1),
-                    q1_extrap_data_gcw(2),
+                    p_extrap_data_gcw(0),
+                    p_extrap_data_gcw(1),
+                    p_extrap_data_gcw(2),
                     u_ADV_data->getPointer(0),
                     u_ADV_data->getPointer(1),
                     u_ADV_data->getPointer(2),
-                    q1_extrap_data->getPointer(0, d),
-                    q1_extrap_data->getPointer(1, d),
-                    q1_extrap_data->getPointer(2, d)
+                    p_extrap_data->getPointer(0, d),
+                    p_extrap_data->getPointer(1, d),
+                    p_extrap_data->getPointer(2, d)
 #endif
                 );
             }
@@ -521,8 +521,8 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
     }
 
     HierarchyFaceDataOpsReal<NDIM, double> hier_fc_data_ops(d_hierarchy, d_coarsest_ln, d_finest_ln);
-    // q_extrap_idx = q_extrap_idx*q1_extrap_idx
-    hier_fc_data_ops.multiply(d_q_extrap_idx, d_q1_extrap_idx, d_q_extrap_idx);
+    // q_extrap_idx = q_extrap_idx * p_extrap_idx
+    hier_fc_data_ops.multiply(d_q_extrap_idx, d_p_extrap_idx, d_q_extrap_idx);
 
     // Extrapolate from cell centers to cell faces.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
@@ -549,7 +549,7 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
             const IntVector<NDIM>& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
             Pointer<FaceData<NDIM, double> > q_flux_data = patch->getPatchData(d_q_flux_idx);
             const IntVector<NDIM>& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
-            for (unsigned int d = 0; d < d_Q1_data_depth; ++d)
+            for (unsigned int d = 0; d < d_P_data_depth; ++d)
             {
                 static const double dt = 1.0;
                 ADVECT_FLUX_FC(dt,
@@ -628,7 +628,7 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
 
             Pointer<FaceData<NDIM, double> > q_flux_data = patch->getPatchData(d_q_flux_idx);
             const IntVector<NDIM>& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
-            for (unsigned int d = 0; d < d_Q1_data_depth; ++d)
+            for (unsigned int d = 0; d < d_P_data_depth; ++d)
             {
                 static const double alpha = 1.0;
                 F_TO_C_DIV_FC(N_data->getPointer(d),
@@ -667,8 +667,8 @@ AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int Q_id
         level->deallocatePatchData(d_Q_scratch_idx);
         level->deallocatePatchData(d_q_extrap_idx);
         level->deallocatePatchData(d_q_flux_idx);
-        level->deallocatePatchData(d_Q1_scratch_idx);
-        level->deallocatePatchData(d_q1_extrap_idx);
+        level->deallocatePatchData(d_P_scratch_idx);
+        level->deallocatePatchData(d_p_extrap_idx);
     }
 
     IBAMR_TIMER_STOP(t_apply_convective_operator);
@@ -691,10 +691,10 @@ AdvDiffCUIConservativeConvectiveOperator::initializeOperatorState(const SAMRAIVe
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
     d_ghostfill_alg1 = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op1 = grid_geom->lookupRefineOperator(d_Q1_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_ghostfill_alg1->registerRefine(d_Q1_scratch_idx, in.getComponentDescriptorIndex(0), d_Q1_scratch_idx, refine_op1);
+    Pointer<RefineOperator<NDIM> > refine_op1 = grid_geom->lookupRefineOperator(d_P_var, "CONSERVATIVE_LINEAR_REFINE");
+    d_ghostfill_alg1->registerRefine(d_P_scratch_idx, in.getComponentDescriptorIndex(0), d_P_scratch_idx, refine_op1);
     if (d_outflow_bdry_extrap_type != "NONE")
-        d_ghostfill_strategy1 = new CartExtrapPhysBdryOp(d_Q1_scratch_idx, d_outflow_bdry_extrap_type);
+        d_ghostfill_strategy1 = new CartExtrapPhysBdryOp(d_P_scratch_idx, d_outflow_bdry_extrap_type);
 
     d_ghostfill_scheds1.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
