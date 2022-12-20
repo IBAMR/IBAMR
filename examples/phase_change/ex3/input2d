@@ -2,34 +2,34 @@
 PI = 3.1415926535897932
 
 // solid parameters
-RHO_S   = 0.9e3
-KAPPA_S = 2.2
-CP_S    = 2.1e3
-MU_S    = 1.0e-3
+RHO_S = 2.475e3
+KAPPA_S = 211.0
+CP_S  = 0.91e3
+MU_S = 1.4e-3
 
 // liquid parameters
-RHO_L   = 1.0e3
-KAPPA_L = 0.5
-CP_L    = 4.2e3
-MU_L    = 1.0e-3
+RHO_L = 2.7e3
+KAPPA_L = 91.0
+CP_L  = 1.0424e3
+MU_L = 1.4e-3
 
 // gas parameters
-RHO_G   = 1.0
-KAPPA_G = 0.02
-CP_G    = 1.1e3
-MU_G    = 2.0e-5
+RHO_G = 0.4
+KAPPA_G = 61.0e-3
+CP_G  = 1.1e3
+MU_G = 4.0e-5
 
-LATENT_HEAT = 334.0e3
+LATENT_HEAT = 3.8384e5
 
-MELT_TEMPERATURE = 0.0
-INITIAL_GAS_PCM_INTERFACE_POSITION = 0.6
+MELT_TEMPERATURE = 933.6
+INITIAL_GAS_PCM_INTERFACE_POSITION = 0.45
 INITIAL_LIQUID_SOLID_INTERFACE_POSITION = 0.3
-INITIAL_LIQUID_TEMPERATURE = 3.0*MELT_TEMPERATURE
-INITIAL_SOLID_TEMPERATURE = MELT_TEMPERATURE
+INITIAL_LIQUID_TEMPERATURE = 5.0*MELT_TEMPERATURE
+INITIAL_SOLID_TEMPERATURE = 0.9*MELT_TEMPERATURE
 NUMBER_OF_INTERFACE_CELLS  = 2
 
-LIQUIDUS_TEMPERATURE = 1.025
-SOLIDUS_TEMPERATURE = 0.975
+LIQUIDUS_TEMPERATURE = 938.6
+SOLIDUS_TEMPERATURE = 928.6
 MASS_CONSERVATION_FILE_NAME = "pcm_mass"
 
 G          =  9.81
@@ -43,8 +43,8 @@ MAX_LEVELS = 1        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-Nx = 128
-Ny = 128                                // coarsest grid spacing
+Nx = 256
+Ny = 256                                // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
 
@@ -100,7 +100,7 @@ TemperatureBcCoefs {
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
-   gcoef_function_2 = "5.0"
+   gcoef_function_2 = "6.0*933.6"
    gcoef_function_3 = "0.0"
 }
 
@@ -206,28 +206,11 @@ ViscosityBcCoefs {
    gcoef_function_3 = "0.0"
 }
 
-ThermalConductivityBcCoefs {
-  acoef_function_0 = "0.0"
-  acoef_function_1 = "0.0"
-  acoef_function_2 = "0.0"
-  acoef_function_3 = "0.0"
-
-  bcoef_function_0 = "1.0"
-  bcoef_function_1 = "1.0"
-  bcoef_function_2 = "1.0"
-  bcoef_function_3 = "1.0"
-
-  gcoef_function_0 = "0.0"
-  gcoef_function_1 = "0.0"
-  gcoef_function_2 = "0.0"
-  gcoef_function_3 = "0.0"
-}
-
 // Simulation Parameters
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   30.0e0   // final simulation time
+END_TIME             =   250.0e0   // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   50000000
@@ -380,34 +363,34 @@ INSVCStaggeredConservativeHierarchyIntegrator {
 }
 
 EnthalpyHierarchyIntegrator {
-   start_time                      = START_TIME
-   end_time                        = END_TIME
-   grow_dt                         = GROW_DT
-   num_cycles                      = ADV_DIFF_NUM_CYCLES
-   convective_time_stepping_type   = ADV_DIFF_CONVECTIVE_TS_TYPE
-   convective_op_type              = ADV_DIFF_CONVECTIVE_OP_TYPE
-   convective_difference_form      = ADV_DIFF_CONVECTIVE_FORM
-   T_diffusion_time_stepping_type  = TEMPERATURE_DIFFUSION_TS_TYPE
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = ADV_DIFF_NUM_CYCLES
+   convective_time_stepping_type = ADV_DIFF_CONVECTIVE_TS_TYPE
+   convective_op_type            = ADV_DIFF_CONVECTIVE_OP_TYPE
+   convective_difference_form    = ADV_DIFF_CONVECTIVE_FORM
+   T_diffusion_time_stepping_type = TEMPERATURE_DIFFUSION_TS_TYPE
    T_convective_time_stepping_type = TEMPERATURE_CONVECTIVE_TS_TYPE
    T_convective_op_type            = TEMPERATURE_CONVECTIVE_OP_TYPE
    T_convective_difference_form    = TEMPERATURE_CONVECTIVE_FORM
-   cfl                             = CFL_MAX
-   dt_max                          = DT_MAX
-   tag_buffer                      = TAG_BUFFER
-   enable_logging                  = ENABLE_LOGGING
-   max_integrator_steps            = MAX_INTEGRATOR_STEPS
-   latent_heat                     = LATENT_HEAT
-   rho_liquid                      = RHO_L
-   rho_solid                       = RHO_S
-   Cp_liquid                       = CP_L
-   Cp_solid                        = CP_S
-   Cp_gas                          = CP_G
-   T_melt                          = MELT_TEMPERATURE
-   solve_mass_conservation         = SOLVE_MASS_CONSERVATION
-   k_vc_interpolation_type         = K_VC_INTERPOLATION_TYPE
-   liquidus_temperature            = LIQUIDUS_TEMPERATURE
-   solidus_temperature             = SOLIDUS_TEMPERATURE
-   output_Div_U_F                  = OUTPUT_DIV_U_F
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   tag_buffer                    = TAG_BUFFER
+   enable_logging                = ENABLE_LOGGING
+   max_integrator_steps          = MAX_INTEGRATOR_STEPS
+   latent_heat                   = LATENT_HEAT
+   rho_liquid                    = RHO_L
+   rho_solid                     = RHO_S
+   Cp_liquid                     = CP_L
+   Cp_solid                      = CP_S
+   Cp_gas                        = CP_G
+   T_melt                        = MELT_TEMPERATURE
+   solve_mass_conservation       = SOLVE_MASS_CONSERVATION
+   k_vc_interpolation_type       = K_VC_INTERPOLATION_TYPE
+   liquidus_temperature           = LIQUIDUS_TEMPERATURE
+   solidus_temperature            = SOLIDUS_TEMPERATURE
+   output_Div_U_F                 = OUTPUT_DIV_U_F
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
       T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
@@ -470,7 +453,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 100
+   viz_dump_interval           = 1000
    viz_dump_dirname            = "viz_mass_conservation_2d"
    visit_number_procs_per_file = 1
 

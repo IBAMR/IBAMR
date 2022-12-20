@@ -48,7 +48,7 @@ namespace IBAMR
  * cubic upwind interpolation (CUI).
  *
  * Class AdvDiffCUIConservativeConvectiveOperator computes the convective derivative which is in
- * the form of div(Q*Q1*u) using the CUI method described by Waterson and Deconinck,
+ * the form of div(Q*P*u) using the CUI method described by Waterson and Deconinck,
  * and Patel and Natarajan.
  *
  *
@@ -69,11 +69,11 @@ public:
      */
     AdvDiffCUIConservativeConvectiveOperator(std::string object_name,
                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q1_var,
+                                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > P_var,
                                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                              ConvectiveDifferencingType difference_form,
                                              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs,
-                                             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q1_bc_coefs);
+                                             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> P_bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -88,7 +88,7 @@ public:
     /*!
      * \brief Compute the action of the convective operator.
      */
-    void applyConvectiveOperator(int Q_idx, int Q1_idx, int N_idx) override;
+    void applyConvectiveOperator(int Q_idx, int P_idx, int N_idx) override;
 
     /*!
      * \name General operator functionality.
@@ -173,14 +173,14 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg1;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy1;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds1;
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_Q1_bc_coefs;
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_P_bc_coefs;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q1_var;
-    unsigned int d_Q1_data_depth = 0;
-    int d_Q1_scratch_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_q1_extrap_var;
-    int d_q1_extrap_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
+    unsigned int d_P_data_depth = 0;
+    int d_P_scratch_idx = IBTK::invalid_index;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_p_extrap_var;
+    int d_p_extrap_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 
