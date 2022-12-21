@@ -447,7 +447,7 @@ SetFluidProperties::setSpecificHeatPatchData(int Cp_idx,
 
 void
 SetFluidProperties::setViscosityPatchData(int mu_idx,
-                                          Pointer<Variable<NDIM> > Cp_var,
+                                          Pointer<Variable<NDIM> > /*mu_var*/,
                                           SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
                                           const int /*cycle_num*/,
                                           const double time,

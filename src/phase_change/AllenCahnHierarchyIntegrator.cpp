@@ -821,7 +821,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
     const int lf_F_new_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getNewContext());
 
     computeInterpolationFunction(d_q_firstder_idx, lf_new_idx, d_T_new_idx);
-    computeLiquidFractionSourceTerm(lf_F_scratch_idx, dt, new_time);
+    computeLiquidFractionSourceTerm(lf_F_scratch_idx);
 
     if (d_u_adv_var)
     {
@@ -1278,7 +1278,7 @@ AllenCahnHierarchyIntegrator::setLiquidFractionPhysicalBcCoef(Pointer<CellVariab
                                                               RobinBcCoefStrategy<NDIM>* lf_bc_coef)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_lf_var);
+    TBOX_ASSERT(lf_var);
 #endif
     d_lf_bc_coef = lf_bc_coef;
     return;
@@ -1295,18 +1295,18 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<Cel
                                                                      Pointer<CellVariable<NDIM, double> > H_var)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_lf_var);
+    TBOX_ASSERT(lf_var);
 #endif
     if (!d_lf_convective_op)
     {
         std::vector<RobinBcCoefStrategy<NDIM>*> lf_bc_coef(1, d_lf_bc_coef);
-        std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
+        std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(H_var);
 
         // Since the Allen-Cahn equation requires the convective derivative div(lf*H*u),
         // we use AdvDiffCUIConservativeConvectiveOperator class.
         d_lf_convective_op = new AdvDiffCUIConservativeConvectiveOperator(d_object_name + "::lfConvectiveOperator",
-                                                                          d_lf_var,
-                                                                          d_H_var,
+                                                                          lf_var,
+                                                                          H_var,
                                                                           d_lf_convective_op_input_db,
                                                                           d_lf_convective_difference_form,
                                                                           lf_bc_coef,
@@ -1620,7 +1620,7 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
 } // computeInterpolationFunction
 
 void
-AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt, const double new_time)
+AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

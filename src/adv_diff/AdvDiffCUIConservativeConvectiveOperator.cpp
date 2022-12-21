@@ -225,8 +225,8 @@ AdvDiffCUIConservativeConvectiveOperator::AdvDiffCUIConservativeConvectiveOperat
     std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coefs,
     std::vector<RobinBcCoefStrategy<NDIM>*> P_bc_coefs)
     : AdvDiffCUIConvectiveOperator(std::move(object_name), Q_var, input_db, difference_form, Q_bc_coefs),
-      d_P_var(P_var),
-      d_P_bc_coefs(std::move(P_bc_coefs))
+      d_P_bc_coefs(std::move(P_bc_coefs)),
+      d_P_var(P_var)
 {
     if (d_difference_form != CONSERVATIVE)
     {
@@ -296,8 +296,8 @@ void
 AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator(const int /*Q_idx*/, const int /*N_idx*/)
 {
     TBOX_ERROR(
-        "AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator can handle only conservative form of "
-        "convective operator with three arguments.\n");
+        "AdvDiffCUIConservativeConvectiveOperator::applyConvectiveOperator can handle only the convective operator of "
+        "the form div(Q P u).\n");
     return;
 }
 

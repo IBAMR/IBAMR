@@ -63,10 +63,10 @@ struct SynchronizeLevelSetCtx
 void
 synchronize_levelset_with_heaviside_fcn(int H_current_idx,
                                         Pointer<HierarchyMathOps> hier_math_ops,
-                                        int integrator_step,
-                                        double time,
-                                        bool initial_time,
-                                        bool regrid_time,
+                                        int /*integrator_step*/,
+                                        double /*time*/,
+                                        bool /*initial_time*/,
+                                        bool /*regrid_time*/,
                                         void* ctx)
 {
     SynchronizeLevelSetCtx* sync_ls_ctx = static_cast<SynchronizeLevelSetCtx*>(ctx);
@@ -119,10 +119,10 @@ struct MaskSurfaceTensionForceCtx
 void
 mask_surface_tension_force(int F_idx,
                            Pointer<HierarchyMathOps> hier_math_ops,
-                           int integrator_step,
+                           int /*integrator_step*/,
                            double time,
-                           double current_time,
-                           double new_time,
+                           double /*current_time*/,
+                           double /*new_time*/,
                            void* ctx)
 {
     MaskSurfaceTensionForceCtx* mask_surface_tension_force_ctx = static_cast<MaskSurfaceTensionForceCtx*>(ctx);

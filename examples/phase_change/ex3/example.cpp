@@ -61,10 +61,10 @@ struct SynchronizeLevelSetCtx
 void
 synchronize_levelset_with_heaviside_fcn(int H_current_idx,
                                         Pointer<HierarchyMathOps> hier_math_ops,
-                                        int integrator_step,
-                                        double time,
-                                        bool initial_time,
-                                        bool regrid_time,
+                                        int /*integrator_step*/,
+                                        double /*time*/,
+                                        bool /*initial_time*/,
+                                        bool /*regrid_time*/,
                                         void* ctx)
 {
     SynchronizeLevelSetCtx* sync_ls_ctx = static_cast<SynchronizeLevelSetCtx*>(ctx);

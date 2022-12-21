@@ -212,7 +212,7 @@ private:
     /*
      * \brief Compute the source term of liquid fraction equation.
      */
-    void computeLiquidFractionSourceTerm(int F_scratch_idx, const double dt, const double new_time);
+    void computeLiquidFractionSourceTerm(int F_scratch_idx);
 
     /*!
      * Read input values from a given database.

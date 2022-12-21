@@ -736,7 +736,7 @@ PhaseChangeHierarchyIntegrator::setLiquidFractionInitialCondition(Pointer<CellVa
                                                                   Pointer<IBTK::CartGridFunction> lf_init)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_lf_var);
+    TBOX_ASSERT(lf_var);
 #endif
     d_lf_init = lf_init;
     return;
@@ -747,7 +747,7 @@ PhaseChangeHierarchyIntegrator::setTemperatureInitialCondition(Pointer<CellVaria
                                                                Pointer<IBTK::CartGridFunction> T_init)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_T_var);
+    TBOX_ASSERT(T_var);
 #endif
     d_T_init = T_init;
     return;
@@ -758,7 +758,7 @@ PhaseChangeHierarchyIntegrator::setDensityInitialCondition(Pointer<CellVariable<
                                                            Pointer<IBTK::CartGridFunction> rho_init)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_rho_var);
+    TBOX_ASSERT(rho_var);
 #endif
     d_rho_init = rho_init;
     return;
@@ -769,7 +769,7 @@ PhaseChangeHierarchyIntegrator::setTemperaturePhysicalBcCoef(Pointer<CellVariabl
                                                              RobinBcCoefStrategy<NDIM>* T_bc_coef)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(d_T_var);
+    TBOX_ASSERT(T_var);
 #endif
     d_T_bc_coef = T_bc_coef;
     return;

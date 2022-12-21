@@ -58,9 +58,9 @@ PhaseChangeDivUSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > var,
-                                              Pointer<Patch<NDIM> > patch,
-                                              const double data_time,
+                                              Pointer<Variable<NDIM> > /*var*/,
+                                              Pointer<Patch<NDIM> > /*patch*/,
+                                              const double /*data_time*/,
                                               const bool initial_time,
                                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {

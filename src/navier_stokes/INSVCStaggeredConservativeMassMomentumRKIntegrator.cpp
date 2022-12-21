@@ -2216,7 +2216,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::computeConvectiveDerivative(
     const std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data,
     const std::array<Box<NDIM>, NDIM>& side_boxes,
     const double* const dx,
-    const Pointer<Patch<NDIM> >& patch)
+    const Pointer<Patch<NDIM> >& /*patch*/)
 {
 // Compute the upwinded momentum P_half = R_half * U_half
 #if (NDIM == 2)
