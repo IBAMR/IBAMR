@@ -293,8 +293,6 @@ private:
      * Conservative density and momentum integrator.
      */
     SAMRAI::tbox::Pointer<IBAMR::MassIntegrator> d_rho_p_integrator;
-
-    std::ofstream d_stokes_iteration_timestep;
 };
 } // namespace IBAMR
 
