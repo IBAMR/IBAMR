@@ -219,8 +219,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     d_rho_p_integrator->setDensityBoundaryConditions(d_rho_sc_bc_coefs);
     if (d_S_fcn) rho_p_rk_integrator->setMassDensitySourceTerm(d_S_fcn);
 
-    d_stokes_iteration_timestep.open("stokes_iterations_timestep.txt");
-
     return;
 } // initializeHierarchyIntegrator
 
