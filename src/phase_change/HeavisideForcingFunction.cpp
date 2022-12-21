@@ -81,8 +81,8 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 HeavisideForcingFunction::setDataOnPatch(const int data_idx,
-                                         Pointer<Variable<NDIM> > var,
-                                         Pointer<Patch<NDIM> > patch,
+                                         Pointer<Variable<NDIM> > /*var*/,
+                                         Pointer<Patch<NDIM> > /*patch*/,
                                          const double data_time,
                                          const bool initial_time,
                                          Pointer<PatchLevel<NDIM> > /*patch_level*/)

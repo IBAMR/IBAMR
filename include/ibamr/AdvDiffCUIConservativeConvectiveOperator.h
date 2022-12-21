@@ -48,7 +48,7 @@ namespace IBAMR
  * cubic upwind interpolation (CUI).
  *
  * Class AdvDiffCUIConservativeConvectiveOperator computes the convective derivative which is in
- * the form of div(Q*P*u) using the CUI method described by Waterson and Deconinck,
+ * the form of div(Q P u) using the CUI method described by Waterson and Deconinck,
  * and Patel and Natarajan.
  *
  *

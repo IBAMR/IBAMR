@@ -63,10 +63,10 @@ struct SynchronizeLevelSetCtx
 void
 synchronize_levelset_with_heaviside_fcn(int H_current_idx,
                                         Pointer<HierarchyMathOps> hier_math_ops,
-                                        int integrator_step,
-                                        double time,
-                                        bool initial_time,
-                                        bool regrid_time,
+                                        int /*integrator_step*/,
+                                        double /*time*/,
+                                        bool /*initial_time*/,
+                                        bool /*regrid_time*/,
                                         void* ctx)
 {
     SynchronizeLevelSetCtx* sync_ls_ctx = static_cast<SynchronizeLevelSetCtx*>(ctx);
@@ -115,76 +115,76 @@ struct MaskSurfaceTensionForceCtx {
   double rho_gas;
 };
 
-void mask_surface_tension_force(int F_idx,
-                                Pointer<HierarchyMathOps> hier_math_ops,
-                                int integrator_step, double time,
-                                double current_time, double new_time,
-                                void *ctx) {
-  MaskSurfaceTensionForceCtx *mask_surface_tension_force_ctx =
-      static_cast<MaskSurfaceTensionForceCtx *>(ctx);
-  Pointer<PatchHierarchy<NDIM>> patch_hierarchy =
-      hier_math_ops->getPatchHierarchy();
-  const int coarsest_ln = 0;
-  const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+void
+mask_surface_tension_force(int F_idx,
+                           Pointer<HierarchyMathOps> hier_math_ops,
+                           int /*integrator_step*/,
+                           double time,
+                           double /*current_time*/,
+                           double /*new_time*/,
+                           void* ctx)
+{
+    MaskSurfaceTensionForceCtx* mask_surface_tension_force_ctx = static_cast<MaskSurfaceTensionForceCtx*>(ctx);
+    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-  VariableDatabase<NDIM> *var_db = VariableDatabase<NDIM>::getDatabase();
-  const int lf_new_idx = var_db->mapVariableAndContextToIndex(
-      mask_surface_tension_force_ctx->lf_var,
-      mask_surface_tension_force_ctx->adv_diff_hier_integrator->getNewContext());
-  const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(
-      mask_surface_tension_force_ctx->lf_var,
-      mask_surface_tension_force_ctx->adv_diff_hier_integrator->getScratchContext());
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int lf_new_idx =
+        var_db->mapVariableAndContextToIndex(mask_surface_tension_force_ctx->lf_var,
+                                             mask_surface_tension_force_ctx->adv_diff_hier_integrator->getNewContext());
+    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(
+        mask_surface_tension_force_ctx->lf_var,
+        mask_surface_tension_force_ctx->adv_diff_hier_integrator->getScratchContext());
 
-  // ghost cell filling for liquid fraction variable.
-  using InterpolationTransactionComponent =
-      HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-  std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
-  lf_transaction_comps[0] = InterpolationTransactionComponent(
-      lf_scratch_idx, lf_new_idx, "CONSERVATIVE_LINEAR_REFINE", false,
-      "CONSERVATIVE_COARSEN", "LINEAR", false,
-      mask_surface_tension_force_ctx->lf_bc_coef);
+    // ghost cell filling for liquid fraction variable.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
+    lf_transaction_comps[0] = InterpolationTransactionComponent(lf_scratch_idx,
+                                                                lf_new_idx,
+                                                                "CONSERVATIVE_LINEAR_REFINE",
+                                                                false,
+                                                                "CONSERVATIVE_COARSEN",
+                                                                "LINEAR",
+                                                                false,
+                                                                mask_surface_tension_force_ctx->lf_bc_coef);
 
-  Pointer<HierarchyGhostCellInterpolation> lf_hier_bdry_fill =
-      new HierarchyGhostCellInterpolation();
-  lf_hier_bdry_fill->initializeOperatorState(lf_transaction_comps,
-                                             patch_hierarchy);
-  lf_hier_bdry_fill->fillData(time);
+    Pointer<HierarchyGhostCellInterpolation> lf_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    lf_hier_bdry_fill->initializeOperatorState(lf_transaction_comps, patch_hierarchy);
+    lf_hier_bdry_fill->fillData(time);
 
-  int rho_idx = mask_surface_tension_force_ctx->ins_hier_integrator
-                    ->getLinearOperatorRhoPatchDataIndex();
+    int rho_idx = mask_surface_tension_force_ctx->ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
 
-  for (int ln = coarsest_ln; ln <= finest_ln; ++ln) {
-    Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++) {
-      Pointer<Patch<NDIM>> patch = level->getPatch(p());
-      const Box<NDIM> &patch_box = patch->getBox();
-      const Pointer<CartesianPatchGeometry<NDIM>> patch_geom =
-          patch->getPatchGeometry();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
 
-      Pointer<CellData<NDIM, double>> lf_data =
-          patch->getPatchData(lf_scratch_idx);
-      Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
-      Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
+            Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
+            Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
+            Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
 
-      for (unsigned int axis = 0; axis < NDIM; axis++) {
-        for (Box<NDIM>::Iterator it(
-                 SideGeometry<NDIM>::toSideBox(patch_box, axis));
-             it; it++) {
-          SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+            for (unsigned int axis = 0; axis < NDIM; axis++)
+            {
+                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                {
+                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
-          const double lf_sc_value =
-              0.5 * ((*lf_data)(si.toCell(0)) + (*lf_data)(si.toCell(1)));
+                    const double lf_sc_value = 0.5 * ((*lf_data)(si.toCell(0)) + (*lf_data)(si.toCell(1)));
 
-          const double multiplier_term =
-              2.0 * (*rho_data)(si) /
-	      (mask_surface_tension_force_ctx->rho_liquid +
-               mask_surface_tension_force_ctx->rho_gas) *
-              lf_sc_value;
-          (*F_data)(si) *= multiplier_term;
+                    const double multiplier_term =
+                        2.0 * (*rho_data)(si) /
+                        (mask_surface_tension_force_ctx->rho_liquid + mask_surface_tension_force_ctx->rho_gas) *
+                        lf_sc_value;
+                    (*F_data)(si) *= multiplier_term;
+                }
+            }
         }
-      }
     }
-  }
 }
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *

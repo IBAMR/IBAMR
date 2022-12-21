@@ -85,7 +85,7 @@ CarmanKozenyDragForce::preprocessComputeBrinkmanPenalization(double current_time
 } // preprocessComputeBrinkmanPenalization
 
 void
-CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int cycle_num)
+CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cycle_num*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(MathUtilities<double>::equalEps(time, d_new_time));

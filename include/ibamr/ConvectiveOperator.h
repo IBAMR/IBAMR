@@ -87,7 +87,7 @@ public:
     /*!
      * \brief Compute N = div(Q1 Q2 u).
      */
-    virtual void applyConvectiveOperator(int Q1_idx, int Q2_idx, int N_idx);
+    virtual void applyConvectiveOperator(int Q_idx, int P_idx, int N_idx);
 
     /*!
      * \name General operator functionality.

@@ -81,11 +81,11 @@ ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<ND
 } // apply
 
 void
-ConvectiveOperator::applyConvectiveOperator(int Q1_idx, int Q2_idx, int N_idx)
+ConvectiveOperator::applyConvectiveOperator(int /*Q_idx*/, int /*P_idx*/, int /*N_idx*/)
 {
     TBOX_ERROR(
         "ConvectiveOperator::applyConvectiveOperator is a base class and the implementation is provided in "
-        "AdvDiffConservativeCUIConvectiveOperator class.\n");
+        "AdvDiffCUIConservativeConvectiveOperator class.\n");
     return;
 } // applyConvectiveOperator
 
