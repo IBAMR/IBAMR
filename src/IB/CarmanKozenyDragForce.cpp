@@ -171,11 +171,11 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
                     penalty_rho_scale = (*rho_data)(s_i) / dt;
                 }
 
-                const double mu_lower = (*mu_data)(s_i.toCell(0));
-                const double mu_upper = (*mu_data)(s_i.toCell(1));
-                const double mu = 0.5 * (mu_lower + mu_upper);
                 if (d_use_mu_scale)
                 {
+                    const double mu_lower = (*mu_data)(s_i.toCell(0));
+                    const double mu_upper = (*mu_data)(s_i.toCell(1));
+                    const double mu = 0.5 * (mu_lower + mu_upper);
                     penalty_mu_scale = mu / std::pow(patch_dx[0], 2.0);
                 }
                 const double penalty = d_penalty_factor * (penalty_rho_scale + penalty_mu_scale);
@@ -278,11 +278,11 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
                     penalty_rho_scale = (*rho_data)(s_i) / dt;
                 }
 
-                const double mu_lower = (*mu_data)(s_i.toCell(0));
-                const double mu_upper = (*mu_data)(s_i.toCell(1));
-                const double mu = 0.5 * (mu_lower + mu_upper);
                 if (d_use_mu_scale)
                 {
+                    const double mu_lower = (*mu_data)(s_i.toCell(0));
+                    const double mu_upper = (*mu_data)(s_i.toCell(1));
+                    const double mu = 0.5 * (mu_lower + mu_upper);
                     penalty_mu_scale = mu / std::pow(patch_dx[0], 2.0);
                 }
                 const double penalty = d_penalty_factor * (penalty_rho_scale + penalty_mu_scale);
@@ -309,6 +309,7 @@ CarmanKozenyDragForce::putToDatabase(Pointer<Database> db)
     db->putDouble("d_penalty_factor", d_penalty_factor);
     db->putBool("d_use_rho_scale", d_use_rho_scale);
     db->putBool("d_use_mu_scale", d_use_mu_scale);
+    db->putDouble("d_ed", d_ed);
     return;
 } // postprocessComputeBrinkmanVelocity
 
@@ -338,6 +339,11 @@ CarmanKozenyDragForce::getFromInput(Pointer<Database> input_db, bool is_from_res
         {
             d_use_mu_scale = input_db->getBool("use_mu_scale");
         }
+
+        if (input_db->keyExists("division_by_zero_factor"))
+        {
+            d_ed = input_db->getDouble("division_by_zero_factor");
+        }
     }
     return;
 } // getFromInput
@@ -360,6 +366,7 @@ CarmanKozenyDragForce::getFromRestart()
     d_penalty_factor = db->getDouble("d_penalty_factor");
     d_use_rho_scale = db->getBool("d_use_rho_scale");
     d_use_mu_scale = db->getBool("d_use_mu_scale");
+    d_ed = db->getDouble("d_ed");
     return;
 } // getFromRestart
 
