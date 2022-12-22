@@ -1308,7 +1308,6 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<Cel
                                                                           lf_var,
                                                                           H_var,
                                                                           d_lf_convective_op_input_db,
-                                                                          d_lf_convective_difference_form,
                                                                           lf_bc_coef,
                                                                           H_bc_coef);
 

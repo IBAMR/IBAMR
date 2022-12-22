@@ -71,7 +71,6 @@ public:
                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > P_var,
                                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                             ConvectiveDifferencingType difference_form,
                                              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> Q_bc_coefs,
                                              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> P_bc_coefs);
 

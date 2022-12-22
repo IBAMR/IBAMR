@@ -221,21 +221,12 @@ AdvDiffCUIConservativeConvectiveOperator::AdvDiffCUIConservativeConvectiveOperat
     Pointer<CellVariable<NDIM, double> > Q_var,
     Pointer<CellVariable<NDIM, double> > P_var,
     Pointer<Database> input_db,
-    const ConvectiveDifferencingType difference_form,
     std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coefs,
     std::vector<RobinBcCoefStrategy<NDIM>*> P_bc_coefs)
-    : AdvDiffCUIConvectiveOperator(std::move(object_name), Q_var, input_db, difference_form, Q_bc_coefs),
+    : AdvDiffCUIConvectiveOperator(std::move(object_name), Q_var, input_db, CONSERVATIVE, Q_bc_coefs),
       d_P_bc_coefs(std::move(P_bc_coefs)),
       d_P_var(P_var)
 {
-    if (d_difference_form != CONSERVATIVE)
-    {
-        TBOX_ERROR("AdvDiffCUIConservativeConvectiveOperator::AdvDiffCUIConservativeConvectiveOperator():\n"
-                   << "  unsupported differencing form: "
-                   << enum_to_string<ConvectiveDifferencingType>(d_difference_form) << " \n"
-                   << "  valid choice is: CONSERVATIVE\n");
-    }
-
     if (input_db)
     {
         if (input_db->keyExists("outflow_bdry_extrap_type"))
