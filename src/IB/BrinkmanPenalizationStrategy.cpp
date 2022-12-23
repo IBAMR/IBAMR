@@ -77,6 +77,13 @@ void BrinkmanPenalizationStrategy::putToDatabase(Pointer<Database> /*db*/)
     return;
 } // putToDatabase
 
+void
+BrinkmanPenalizationStrategy::setBrinkmanPenaltyFactor(double penalty_factor)
+{
+    d_penalty_factor = penalty_factor;
+    return;
+} // setBrinkmanPenaltyFactor
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 } // namespace IBAMR

@@ -79,6 +79,11 @@ public:
     virtual void postprocessComputeBrinkmanPenalization(double current_time, double new_time, int num_cycles);
 
     /*!
+     * \brief Set Brinkman penalization penalty factor.
+     */
+    virtual void setBrinkmanPenaltyFactor(double penalty_factor);
+
+    /*!
      * \brief Write out object state to the given database.
      *
      * \note An empty default implementation is provided.
@@ -92,6 +97,14 @@ public:
     {
         return d_object_name;
     } // getName
+
+    /*
+     * \brief Get the Brinkman coefficient.
+     */
+    double getBrinkmanPenaltyFactor() const
+    {
+        return d_penalty_factor;
+    } // getBrinkmanPenaltyFactor
 
     /*
      * \brief Get the current time interval \f$ [t^{n+1}, t^n] \f$ in which Brinkman
