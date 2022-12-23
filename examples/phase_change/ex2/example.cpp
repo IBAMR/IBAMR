@@ -418,10 +418,6 @@ main(int argc, char* argv[])
                                                           static_cast<void*>(ptr_SetFluidProperties));
 
         // Register H Div U term in the Heaviside equation.
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        Pointer<HierarchyMathOps> hier_math_ops =
-            new HierarchyMathOps("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
         Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F");
         adv_diff_integrator->registerSourceTerm(F_var, true);
         Pointer<CartGridFunction> H_forcing_fcn = new HeavisideForcingFunction(
