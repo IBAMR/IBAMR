@@ -14,11 +14,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/app_namespaces.h"
-#include "ibtk/namespaces.h"
 
 #include "CellVariable.h"
 #include "TotalAmountRefineAndCoarsen.h"
+
+#include "ibtk/app_namespaces.h"
+
+#include "ibtk/namespaces.h"
 
 namespace IBTK
 {

@@ -169,8 +169,7 @@ main(int argc, char* argv[])
 #ifdef OUTPUT_VIZ_FILES
         int step = 0;
 #endif
-        auto do_test = [&](Pointer<ConvectiveOperator> convec_oper)
-        {
+        auto do_test = [&](Pointer<ConvectiveOperator> convec_oper) {
             convec_oper->initializeOperatorState(q_vec, q_vec);
             convec_oper->setAdvectionVelocity(u_idx);
             convec_oper->applyConvectiveOperator(q_idx, convec_idx);
