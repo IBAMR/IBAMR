@@ -339,6 +339,7 @@ using namespace ModelData;
 static ofstream drag_stream, lift_stream, A_x_posn_stream, A_y_posn_stream;
 void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+                      const FEMechanicsExplicitIntegrator* fem_solver,
                       ReplicatedMesh& beam_mesh,
                       EquationSystems* beam_equation_systems,
                       const int iteration_num,
@@ -509,7 +510,7 @@ main(int argc, char* argv[])
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
         vector<SystemData> velocity_data(1);
-        velocity_data[0] = SystemData(FEMechanicsBase::VELOCITY_SYSTEM_NAME, vars);
+        velocity_data[0] = SystemData(fem_solver->getVelocitySystemName(), vars);
 
         const bool USE_DISCON_ELEMS = input_db->getBool("USE_DISCON_ELEMS");
         const bool USE_NORMALIZED_PRESSURE_JUMP = input_db->getBool("USE_NORMALIZED_PRESSURE_JUMP");
@@ -659,10 +660,10 @@ main(int argc, char* argv[])
 
             boundary_systems = bndry_equation_systems;
             // to compute average J for each element
-            System& X_system = equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+            System& X_system = equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
             x_new_solid_system = &X_system;
 
-            System& U_system = equation_systems->get_system<System>(FEMechanicsBase::VELOCITY_SYSTEM_NAME);
+            System& U_system = equation_systems->get_system<System>(fem_solver->getVelocitySystemName());
             u_new_solid_system = &U_system;
 
             Tau_new_surface_system = &bndry_equation_systems->get_system<System>(IIMethod::TAU_OUT_SYSTEM_NAME);
@@ -682,9 +683,9 @@ main(int argc, char* argv[])
                                                      loop_time + 0.5 * static_cast<double>(ii + 1) * dt / n_cycles,
                                                      /*num_cycles*/ 1);
             }
-            x_new_solid_system = &equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+            x_new_solid_system = &equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
 
-            u_new_solid_system = &equation_systems->get_system<System>(FEMechanicsBase::VELOCITY_SYSTEM_NAME);
+            u_new_solid_system = &equation_systems->get_system<System>(fem_solver->getVelocitySystemName());
 
             time_integrator->advanceHierarchy(dt);
 
@@ -756,6 +757,7 @@ main(int argc, char* argv[])
                 pout << "\nWriting state data...\n\n";
                 postprocess_data(patch_hierarchy,
                                  navier_stokes_integrator,
+                                 fem_solver,
                                  beam_mesh,
                                  equation_systems,
                                  iteration_num,
@@ -786,6 +788,7 @@ main(int argc, char* argv[])
 void
 postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+                 const FEMechanicsExplicitIntegrator* const fem_solver,
                  ReplicatedMesh& beam_mesh,
                  EquationSystems* beam_equation_systems,
                  const int /*iteration_num*/,
@@ -797,7 +800,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     ReplicatedMesh* mesh_solid = &beam_mesh;
     EquationSystems* equation_systems = beam_equation_systems;
 
-    System& F_system = equation_systems->get_system<System>(FEMechanicsBase::FORCE_SYSTEM_NAME);
+    System& F_system = equation_systems->get_system<System>(fem_solver->getForceSystemName());
     NumericVector<double>* F_vec = F_system.solution.get();
     NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
     copy_and_synch(*F_vec, *F_ghost_vec);
@@ -845,7 +848,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
         lift_stream << loop_time << " " << -F_integral[1] << endl;
     }
 
-    System& X_system = beam_equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+    System& X_system = beam_equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
     NumericVector<double>* X_vec = X_system.solution.get();
     std::unique_ptr<NumericVector<Number> > X_serial_vec = NumericVector<Number>::build(X_vec->comm());
     X_serial_vec->init(X_vec->size(), true, SERIAL);

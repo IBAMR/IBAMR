@@ -317,7 +317,7 @@ main(int argc, char* argv[])
         std::vector<int> vars(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
         vector<SystemData> velocity_data(1);
-        velocity_data[0] = SystemData(FEMechanicsBase::VELOCITY_SYSTEM_NAME, vars);
+        velocity_data[0] = SystemData(fem_solver->getVelocitySystemName(), vars);
 
         // Configure the FE solver.
         FEMechanicsBase::LagSurfaceForceFcnData solid_surface_force_data(solid_surface_force_function);
@@ -424,7 +424,7 @@ main(int argc, char* argv[])
             double L_oo_temp = 0.0;
             double L_oo_error_J = 0.0;
             double elem_area = 0.0;
-            System& X_system = equation_systems->get_system<System>(FEMechanicsBase::COORDS_SYSTEM_NAME);
+            System& X_system = equation_systems->get_system<System>(fem_solver->getCurrentCoordinatesSystemName());
             NumericVector<double>* X_vec = X_system.solution.get();
             NumericVector<double>* X_ghost_vec = X_system.current_local_solution.get();
             X_vec->localize(*X_ghost_vec);

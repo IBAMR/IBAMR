@@ -104,6 +104,7 @@ static ofstream drag_stream, lift_stream;
 static double R;
 void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+                      const IBFEMethod* ib_method_ops,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
                       const int iteration_num,
@@ -443,6 +444,7 @@ main(int argc, char* argv[])
             {
                 postprocess_data(patch_hierarchy,
                                  navier_stokes_integrator,
+                                 ib_method_ops,
                                  mesh,
                                  equation_systems,
                                  iteration_num,
@@ -468,6 +470,7 @@ main(int argc, char* argv[])
 void
 postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+                 const IBFEMethod* const ib_method_ops,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
                  const int /*iteration_num*/,
@@ -478,7 +481,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     double F_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
 
-    System& F_system = equation_systems->get_system(IBFEMethod::FORCE_SYSTEM_NAME);
+    System& F_system = equation_systems->get_system(ib_method_ops->getForceSystemName());
     NumericVector<double>* F_vec = F_system.solution.get();
     NumericVector<double>* F_ghost_vec = F_system.current_local_solution.get();
     copy_and_synch(*F_vec, *F_ghost_vec);

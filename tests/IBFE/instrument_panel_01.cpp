@@ -611,10 +611,10 @@ main(int argc, char** argv)
             plog << "\ntest 1\n";
             FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
             EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-            System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
+            System& dX_system = equation_systems->get_system(ib_method_ops->getDisplacementSystemName());
             NumericVector<double>& dX_vec = *dX_system.solution;
             dX_vec.add(1.0);
-            System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+            System& X_system = equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
             NumericVector<double>& X_vec = *X_system.solution;
             X_vec += dX_vec;
             do_instrument_panel(1);
@@ -627,7 +627,7 @@ main(int argc, char** argv)
             plog << "\ntest 2\n";
             FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
             EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-            System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
+            System& dX_system = equation_systems->get_system(ib_method_ops->getDisplacementSystemName());
             NumericVector<double>& dX_vec = *dX_system.solution;
 
             std::vector<dof_id_type> component_dofs;
@@ -649,7 +649,7 @@ main(int argc, char** argv)
             }
             dX_vec.close();
 
-            System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+            System& X_system = equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
             NumericVector<double>& X_vec = *X_system.solution;
             X_vec += dX_vec;
             do_instrument_panel(2);
@@ -662,13 +662,13 @@ main(int argc, char** argv)
             plog << "\ntest 3\n";
             FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
             EquationSystems* equation_systems = fe_data_manager->getEquationSystems();
-            System& dX_system = equation_systems->get_system(IBFEMethod::COORD_MAPPING_SYSTEM_NAME);
+            System& dX_system = equation_systems->get_system(ib_method_ops->getDisplacementSystemName());
             NumericVector<double>& dX_vec = *dX_system.solution;
             dX_vec = 3;
-            System& X_system = equation_systems->get_system(IBFEMethod::COORDS_SYSTEM_NAME);
+            System& X_system = equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
             NumericVector<double>& X_vec = *X_system.solution;
             X_vec += dX_vec;
-            System& U_system = equation_systems->get_system(IBFEMethod::VELOCITY_SYSTEM_NAME);
+            System& U_system = equation_systems->get_system(ib_method_ops->getVelocitySystemName());
             NumericVector<double>& U_vec = *U_system.solution;
             std::vector<dof_id_type> component_dofs;
             for (auto node_it = mesh.nodes_begin(); node_it != end_node_it; ++node_it)

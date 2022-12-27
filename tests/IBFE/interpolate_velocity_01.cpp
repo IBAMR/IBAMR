@@ -333,8 +333,8 @@ main(int argc, char** argv)
         ib_method_ops->interpolateVelocity(u_ghost_idx, {}, {}, 0.0);
 
         {
-            const std::string& velocity_name = IBFEMethod::VELOCITY_SYSTEM_NAME;
-            const std::string& displacement_name = IBFEMethod::COORDS_SYSTEM_NAME;
+            const std::string& velocity_name = ib_method_ops->getVelocitySystemName();
+            const std::string& displacement_name = ib_method_ops->getCurrentCoordinatesSystemName();
             EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
             System& velocity_system = equation_systems->get_system(velocity_name);
             System& displacement_system = equation_systems->get_system(displacement_name);
