@@ -1,3 +1,0 @@
-Improved: Node-centered curl operator is now provided in 3D and used for vorticity output for INSStaggeredHierarchyIntegrator.
-<br>
-(Boyce Griffith, 2022/10/30)

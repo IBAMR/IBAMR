@@ -1,0 +1,75 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: INSStaggeredHierarchyIntegrator now outputs pressure, velocity, and vorticity data as a nodal, not cell-centered, fields.
+<br>
+(David Wells, 2022/10/03)
+</li>
+<li>
+Changed: The function signature of HierarchyMathOps::curl() for side-valued input and nodal output
+has been incompatibly changed to allow for setting source and destination data synchronization.
+<br>
+(David Wells, 2022/11/15)
+</li>
+<li>
+Changed API: Global static system names for IBFEMethod and related classes are deprecated.
+Methods are now provided by classes FEMechanicsBase, IBFEMethod, and FEDataManager to access
+system names for key libMesh systems maintained by those classes.
+<br>
+(Boyce Griffith, 2022/11/16)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+New: Implementations of analytically divergence-free interpolation and spreading kernels.
+<br>
+(Boyce Griffith, 2022/10/27)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+New: Added new functions for interpolating from side- or face-centered data to
+nodal data.
+<br>
+(David Wells, 2022/10/03)
+</li>
+<li>
+Fixed: Several bugs in IBFEInstrumentPanel have been fixed; the class now works correctly.
+<br>
+(Boyce Griffith, Charles Puelz, David Wells, 2022/10/26)
+</li>
+<li>
+Improved: A node-centered curl operator is now provided in 3D and used for vorticity output for INSStaggeredHierarchyIntegrator.
+<br>
+(Boyce Griffith, 2022/10/30)
+</li>
+<li>
+Fixed: IBFEInstrumentPanel generates perimeter curves in a more robust and consistent way.
+<br>
+(Boyce Griffith, Charles Puelz, 2022/11/02)
+</li>
+<li>
+Improved: IBFEInstrumentPanel now reports pressures at the centroids of the meter meshes.
+<br>
+(Boyce Griffith, David Wells, 2022/11/02)
+</li>
+<li>
+Improved: Add SPP-RK3 implementations to the explict FE mechanics solver.
+<br>
+(Boyce Griffith, 2022/11/15)
+</li>
+<li>
+Improved: Improved support for damping in the explicit FE mechanics solver.
+<br>
+(Boyce Griffith, 2022/11/17)
+</li>
+<li>
+New: IBAMR provides an example of how to implement a DLM FSI scheme for elastic structures (in examples/DLM/ex0).
+<br>
+(Boyce Griffith, David Wells, 2022/11/17)
+</li>
+</ol>
