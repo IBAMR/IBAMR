@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -122,8 +122,7 @@ main(int argc, char* argv[])
         Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
 
         // The rest is just book-keeping, this is the actual test:
-        auto do_test = [&](const std::string& db_u_fcn_name, const int coarse_level_n)
-        {
+        auto do_test = [&](const std::string& db_u_fcn_name, const int coarse_level_n) {
             muParserCartGridFunction u_fcn(
                 db_u_fcn_name, app_initializer->getComponentDatabase(db_u_fcn_name), grid_geometry);
             u_fcn.setDataOnPatchHierarchy(u_sc_idx, u_sc_var, patch_hierarchy, 0.0);

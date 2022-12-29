@@ -49,7 +49,7 @@ IBAMR_ADD_EXAMPLE(
   TARGET_NAME
     "navier_stokes-convergence-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/navier_stokes/ex"
+    "${CMAKE_BINARY_DIR}/examples/navier_stokes/ex1"
   OUTPUT_NAME
     convergence_tester2d
   EXAMPLE_GROUP

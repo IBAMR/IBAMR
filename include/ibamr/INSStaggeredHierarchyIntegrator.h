@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2008 - 2020 by the IBAMR developers
+// Copyright (c) 2008 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -448,8 +448,9 @@ private:
      *
      * Plot variables have one context: current.
      */
-    int d_U_nc_idx = IBTK::invalid_index, d_P_nc_idx = IBTK::invalid_index, d_F_cc_idx = IBTK::invalid_index, d_Omega_idx = IBTK::invalid_index,
-        d_Omega_nc_idx = IBTK::invalid_index, d_Div_U_idx = IBTK::invalid_index, d_EE_idx = IBTK::invalid_index;
+    int d_U_nc_idx = IBTK::invalid_index, d_P_nc_idx = IBTK::invalid_index, d_F_cc_idx = IBTK::invalid_index,
+        d_Omega_idx = IBTK::invalid_index, d_Omega_nc_idx = IBTK::invalid_index, d_Div_U_idx = IBTK::invalid_index,
+        d_EE_idx = IBTK::invalid_index;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the

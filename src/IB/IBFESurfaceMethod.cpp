@@ -1584,7 +1584,8 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                         const libMesh::Point x = r + intersection.first * q;
                         const libMesh::Point& xi = intersection.second;
                         SideIndex<NDIM> i_s(i_c, axis, 0);
-                        i_s(axis) = static_cast<int>(std::round((x(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
+                        i_s(axis) =
+                            static_cast<int>(std::round((x(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
                         if (extended_box.contains(i_s))
                         {
                             std::vector<libMesh::Point> ref_coords(1, xi);

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2020 by the IBAMR developers
+// Copyright (c) 2020 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -14,11 +14,13 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibtk/IndexUtilities.h"
-#include "ibtk/app_namespaces.h"
-#include "ibtk/namespaces.h"
 
 #include "CellVariable.h"
 #include "TotalAmountRefineAndCoarsen.h"
+
+#include "ibtk/app_namespaces.h"
+
+#include "ibtk/namespaces.h"
 
 namespace IBTK
 {

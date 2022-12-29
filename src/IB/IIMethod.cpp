@@ -2938,16 +2938,17 @@ IIMethod::initializeFEEquationSystems()
         else
         {
             // vector FE systems:
-            std::vector<std::string> vector_system_names
-                {COORDS_SYSTEM_NAME, COORD_MAPPING_SYSTEM_NAME,
-                 VELOCITY_SYSTEM_NAME, NORMAL_VELOCITY_SYSTEM_NAME,
-                 TANGENTIAL_VELOCITY_SYSTEM_NAME, FORCE_SYSTEM_NAME};
-            std::vector<std::string> vector_variable_prefixes {"X", "dX", "U", "U_n", "U_t", "F"};
+            std::vector<std::string> vector_system_names{
+                COORDS_SYSTEM_NAME,          COORD_MAPPING_SYSTEM_NAME,       VELOCITY_SYSTEM_NAME,
+                NORMAL_VELOCITY_SYSTEM_NAME, TANGENTIAL_VELOCITY_SYSTEM_NAME, FORCE_SYSTEM_NAME
+            };
+            std::vector<std::string> vector_variable_prefixes{ "X", "dX", "U", "U_n", "U_t", "F" };
             std::vector<libMesh::FEFamily> vector_fe_family(vector_system_names.size(), d_fe_family[part]);
 
             if (d_use_velocity_jump_conditions)
             {
-                const auto jump_family = d_use_discon_elem_for_jumps[part] ? d_velocity_jump_fe_family : d_fe_family[part];
+                const auto jump_family =
+                    d_use_discon_elem_for_jumps[part] ? d_velocity_jump_fe_family : d_fe_family[part];
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     vector_system_names.push_back(VELOCITY_JUMP_SYSTEM_NAME[d]);
@@ -2977,14 +2978,16 @@ IIMethod::initializeFEEquationSystems()
 
             for (std::size_t i = 0; i < vector_system_names.size(); ++i)
             {
-                auto &system = equation_systems->add_system<System>(vector_system_names[i]);
+                auto& system = equation_systems->add_system<System>(vector_system_names[i]);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    system.add_variable(vector_variable_prefixes[i] + "_" + std::to_string(d), d_fe_order[part], vector_fe_family[i]);
+                    system.add_variable(
+                        vector_variable_prefixes[i] + "_" + std::to_string(d), d_fe_order[part], vector_fe_family[i]);
                 }
             }
 
-            equation_systems->get_system(COORDS_SYSTEM_NAME).add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
+            equation_systems->get_system(COORDS_SYSTEM_NAME)
+                .add_vector("INITIAL_COORDINATES", /*projections*/ true, GHOSTED);
 
             // scalar FE systems:
             if (d_use_pressure_jump_conditions)

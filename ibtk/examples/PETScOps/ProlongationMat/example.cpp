@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2020 by the IBAMR developers
+// Copyright (c) 2017 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -13,7 +13,6 @@
 
 // Config files
 #include <IBTK_config.h>
-
 #include <SAMRAI_config.h>
 
 // C++ includes

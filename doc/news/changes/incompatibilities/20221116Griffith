@@ -1,5 +1,0 @@
-Changed API: Global static system names for IBFEMethod and related classes are deprecated.
-Methods are now provided by classes FEMechanicsBase, IBFEMethod, and FEDataManager to access
-system names for key libMesh systems maintained by those classes.
-<br>
-(Boyce Griffith, 2022/11/16)

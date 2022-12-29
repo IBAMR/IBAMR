@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2020 by the IBAMR developers
+// Copyright (c) 2020 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -16,9 +16,8 @@
 #ifndef included_TotalAmountRefineAndCoarsen
 #define included_TotalAmountRefineAndCoarsen
 
-#include "IBTK_config.h"
-
 #include "CoarsenOperator.h"
+#include "IBTK_config.h"
 #include "RefineOperator.h"
 
 #include <string>

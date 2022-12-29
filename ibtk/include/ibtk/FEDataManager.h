@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2011 - 2021 by the IBAMR developers
+// Copyright (c) 2011 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -313,10 +313,10 @@ public:
         }
         else
         {
-            return std::find_if(d_map.begin(),
-                                d_map.end(),
-                                [&](const std::pair<libMesh::subdomain_id_type, int>& pair)
-                                { return pair.second == level_number; }) != d_map.end();
+            return std::find_if(
+                       d_map.begin(), d_map.end(), [&](const std::pair<libMesh::subdomain_id_type, int>& pair) {
+                           return pair.second == level_number;
+                       }) != d_map.end();
         }
     }
 

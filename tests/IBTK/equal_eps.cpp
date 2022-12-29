@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2021 by the IBAMR developers
+// Copyright (c) 2020 - 2022 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -38,8 +38,7 @@ main(int argc, char* argv[])
 
     std::ofstream out("output");
 
-    auto test = [&out](const double a, const double b, std::function<bool(double, double)> compare, std::string type)
-    {
+    auto test = [&out](const double a, const double b, std::function<bool(double, double)> compare, std::string type) {
         out.precision(std::numeric_limits<double>::max_digits10);
         out << type << " test:\n";
         out << "Testing a = " << a << " and b = " << b << "\n";
@@ -60,8 +59,7 @@ main(int argc, char* argv[])
     fcns.push_back(MathUtilities<double>::equalEps);
     std::vector<std::string> strs = { "Relative", "Absolute", "SAMRAI" };
 
-    auto loop_test = [&](const double a, const double b)
-    {
+    auto loop_test = [&](const double a, const double b) {
         for (unsigned int i = 0; i < fcns.size(); ++i)
         {
             test(a, b, fcns[i], strs[i]);

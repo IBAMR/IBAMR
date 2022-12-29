@@ -734,7 +734,7 @@ main(int argc, char* argv[])
         System& dY_init_solid_system = solid_equation_systems->get_system("RIGID_BODY_COORDS_MAPPING_SYSTEM");
         const unsigned int dY_init_solid_sys_num = dY_init_solid_system.number();
         NumericVector<double>& dY_init_solid_coords = *dY_init_solid_system.solution;
-        for (auto it = mesh.local_nodes_begin(); it != node_end; ++it)
+        for (auto it = mesh.local_nodes_begin(); it != local_node_end; ++it)
         {
             Node* n = *it;
             if (n->n_vars(dY_init_solid_sys_num))

@@ -1573,8 +1573,7 @@ string_to_kernel(const std::string& kernel_fcn)
 double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
 int LEInteractor::s_kernel_fcn_stencil_size = 4;
 
-void
-LEInteractor::setFromDatabase(Pointer<Database> /*db*/)
+void LEInteractor::setFromDatabase(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;
