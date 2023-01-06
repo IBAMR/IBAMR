@@ -36,6 +36,7 @@
 #include <CartesianGridGeometry.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
+#include <mpi.h>
 
 #include <fstream>
 
@@ -59,13 +60,21 @@ struct Lag_Coords
     double X;
     double Y;
     double Z;
+
+    // Default constructor
+    Lag_Coords(){};
+
+    Lag_Coords(int idx, double x1, double x2, double x3)
+    {
+        lag_idx = idx;
+        X = x1;
+        Y = x2;
+        Z = x3;
+        
+    }
+
 };
 
-bool
-operator<(const Lag_Coords& lhs, const Lag_Coords& rhs)
-{
-    return lhs.lag_idx < rhs.lag_idx;
-}
 
 // NOTE: These values are read in below from the input file. The values listed here are the default values.
 static int post_struct_id = 0; // post structure ID number [NOTE: This assumes that the post structures are the first to
@@ -360,7 +369,7 @@ main(int argc, char* argv[])
 
         if (rank == 0)
         {
-            fout.open("IBCoordinates.txt", std::ios::out);
+            fout.open("IBCoordinates.txt");
         }
 
         // Vector to store the number of nodes on each processor
@@ -427,8 +436,8 @@ main(int argc, char* argv[])
                 // put the lag idx as the first entry of the local_coordinates vector since the petsc indices may change
                 // throughout a computation
                 Eigen::Map<Vector3d> X(&x_vals[petsc_idx * NDIM]); // X is a vector containing the local coordinates
-
-                local_coordinates.push_back({ lag_idx, X[0], X[1], X[2] });
+                Lag_Coords loc(lag_idx,X[0],X[1],X[2]); //define a temporary Lag_Coords struct 
+                local_coordinates.push_back(loc); //add the temporary Lag_Coords struct into local_coordinates
             }
 
             IBTK_MPI::barrier();
@@ -488,7 +497,8 @@ main(int argc, char* argv[])
                 fout.setf(ios_base::scientific);
                 fout.precision(5);
 
-                std::stable_sort(global_coordinates.begin(), global_coordinates.end());
+                 std::sort(global_coordinates.begin(), global_coordinates.end(),
+                [](const Lag_Coords &a, const Lag_Coords &b) {return a.lag_idx < b.lag_idx;});
 
                 for (const Lag_Coords& ldata : global_coordinates)
                 {
@@ -524,6 +534,8 @@ main(int argc, char* argv[])
             }
         }
 
+        MPI_Type_free(&mpi_lag_coords_type);
+        
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
