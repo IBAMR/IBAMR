@@ -656,6 +656,7 @@ protected:
     double d_exterior_calc_coef = 1.0;
     double d_wss_calc_width = 1.05;
     double d_p_calc_width = 1.3;
+    double d_smoothing_eps = 0.0;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
