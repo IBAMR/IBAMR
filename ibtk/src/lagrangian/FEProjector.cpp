@@ -39,9 +39,11 @@ namespace
 static Timer* t_build_L2_projection_solver;
 static Timer* t_build_lumped_L2_projection_solver;
 static Timer* t_build_stab_L2_projection_solver;
+static Timer* t_build_smoothed_L2_projection_solver;
 static Timer* t_build_diag_L2_mass_matrix;
 static Timer* t_compute_L2_projection;
 static Timer* t_compute_stab_L2_projection;
+static Timer* t_compute_smoothed_L2_projection;
 
 // Remove entries that are due to roundoff in an element mass matrix.
 inline void
@@ -154,12 +156,16 @@ FEProjector::FEProjector(EquationSystems* equation_systems, const Pointer<Databa
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildLumpedL2ProjectionSolver()");
                  t_build_stab_L2_projection_solver =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildStabilizedL2ProjectionSolver()");
+                 t_build_smoothed_L2_projection_solver =
+                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildSmoothedL2ProjectionSolver()");
                  t_build_diag_L2_mass_matrix =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildDiagonalL2MassMatrix()");
                  t_compute_L2_projection =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()");
                  t_compute_stab_L2_projection =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");)
+                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");
+                 t_compute_smoothed_L2_projection =
+                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeSmoothedL2Projection()");)
 }
 
 FEProjector::FEProjector(std::shared_ptr<FEData> fe_data, const Pointer<Database>& input_db)
@@ -174,12 +180,16 @@ FEProjector::FEProjector(std::shared_ptr<FEData> fe_data, const Pointer<Database
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildLumpedL2ProjectionSolver()");
                  t_build_stab_L2_projection_solver =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildStabilizedL2ProjectionSolver()");
+                 t_build_smoothed_L2_projection_solver =
+                     TimerManager::getManager()->getTimer("IBTK::FEProjector::buildSmoothedL2ProjectionSolver()");
                  t_build_diag_L2_mass_matrix =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::buildDiagonalL2MassMatrix()");
                  t_compute_L2_projection =
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::computeL2Projection()");
                  t_compute_stab_L2_projection =
-                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");)
+                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");
+                 t_compute_smoothed_L2_projection =
+                     TimerManager::getManager()->getTimer("IBTK::FEProjector::computeSmoothedL2Projection()");)
 }
 
 std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*>
@@ -583,6 +593,166 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
                           d_stab_L2_proj_matrix[system_name][epsilon].get());
 }
 
+std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*>
+FEProjector::buildSmoothedL2ProjectionSolver(const std::string& system_name, const double epsilon)
+{
+    IBTK_TIMER_START(t_build_smoothed_L2_projection_solver);
+
+    if ((!d_smoothed_L2_proj_solver.count(system_name) || !d_smoothed_L2_proj_matrix.count(system_name)) ||
+        (!d_smoothed_L2_proj_solver[system_name].count(epsilon) ||
+         !d_smoothed_L2_proj_matrix[system_name].count(epsilon)))
+    {
+        if (d_enable_logging)
+        {
+            plog << "FEProjector::buildSmoothedL2ProjectionSolver(): building smoothed L2 projection solver for "
+                    "system: "
+                 << system_name << " with epsilon: " << epsilon << "\n";
+        }
+
+        // Extract the mesh.
+        const MeshBase& mesh = d_fe_data->getEquationSystems()->get_mesh();
+        const Parallel::Communicator& comm = mesh.comm();
+        const unsigned int dim = mesh.mesh_dimension();
+
+        // Extract the FE system and DOF map, and setup the FE object.
+        System& system = d_fe_data->getEquationSystems()->get_system(system_name);
+        const auto sys_num = system.number();
+        DofMap& dof_map = system.get_dof_map();
+        FEData::SystemDofMapCache& dof_map_cache = *d_fe_data->getDofMapCache(system_name);
+        dof_map.compute_sparsity(mesh);
+        FEType fe_type = dof_map.variable_type(0);
+        std::unique_ptr<QBase> qrule = fe_type.default_quadrature_rule(dim);
+        std::unique_ptr<FEBase> fe(FEBase::build(dim, fe_type));
+        fe->attach_quadrature_rule(qrule.get());
+        const std::vector<double>& JxW = fe->get_JxW();
+        const std::vector<std::vector<double> >& phi = fe->get_phi();
+        const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
+
+        // Build solver components.
+        std::unique_ptr<PetscLinearSolver<double> > solver(new PetscLinearSolver<double>(comm));
+
+        std::unique_ptr<PetscMatrix<double> > M_mat(new PetscMatrix<double>(comm));
+        M_mat->attach_dof_map(dof_map);
+        M_mat->init();
+
+        // Loop over the mesh to construct the system matrix.
+        DenseMatrix<double> M_e;
+        DenseVector<double> Pi_phi_e;
+        std::vector<libMesh::dof_id_type> dof_id_scratch;
+        const MeshBase::const_element_iterator el_begin = mesh.active_local_elements_begin();
+        const MeshBase::const_element_iterator el_end = mesh.active_local_elements_end();
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            const Elem* const elem = *el_it;
+            fe->reinit(elem);
+            const auto& dof_indices = dof_map_cache.dof_indices(elem);
+            for (unsigned int var_n = 0; var_n < dof_map.n_variables(); ++var_n)
+            {
+                const auto& dof_indices_var = dof_indices[var_n];
+                const auto n_basis = static_cast<unsigned int>(dof_indices_var.size());
+                M_e.resize(n_basis, n_basis);
+                Pi_phi_e.resize(n_basis);
+                const unsigned int n_qp = qrule->n_points();
+
+                const double vol_e = elem->volume();
+                for (unsigned int i = 0; i < n_basis; ++i)
+                {
+                    for (unsigned int qp = 0; qp < n_qp; ++qp)
+                    {
+                        Pi_phi_e(i) += phi[i][qp] * JxW[qp] / vol_e;
+                    }
+                }
+
+                for (unsigned int i = 0; i < n_basis; ++i)
+                {
+                    for (unsigned int j = 0; j < n_basis; ++j)
+                    {
+                        for (unsigned int qp = 0; qp < n_qp; ++qp)
+                        {
+                            M_e(i, j) += (phi[i][qp] * phi[j][qp] + epsilon * dphi[i][qp] * dphi[j][qp]) * JxW[qp];
+                        }
+                    }
+                }
+
+                copy_dof_ids_to_vector(var_n, dof_indices, dof_id_scratch);
+                dof_map.constrain_element_matrix(M_e,
+                                                 dof_id_scratch,
+                                                 /*assymetric_constraint_rows*/ false);
+                prune_roundoff_entries(M_e);
+                M_mat->add_matrix(M_e, dof_id_scratch);
+            }
+        }
+
+        // Flush assemble the matrix.
+        M_mat->close();
+
+        // Reset values at Dirichlet boundaries.
+        for (MeshBase::const_element_iterator el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            const auto elem = *el_it;
+            for (unsigned int side = 0; side < elem->n_sides(); ++side)
+            {
+                if (elem->neighbor_ptr(side)) continue;
+                static const std::array<boundary_id_type, 3> dirichlet_bdry_id_set = {
+                    FEDataManager::ZERO_DISPLACEMENT_X_BDRY_ID,
+                    FEDataManager::ZERO_DISPLACEMENT_Y_BDRY_ID,
+                    FEDataManager::ZERO_DISPLACEMENT_Z_BDRY_ID
+                };
+                std::vector<boundary_id_type> bdry_ids;
+                mesh.get_boundary_info().boundary_ids(elem, side, bdry_ids);
+                const boundary_id_type dirichlet_bdry_ids = get_dirichlet_bdry_ids(bdry_ids);
+                if (!dirichlet_bdry_ids) continue;
+                fe->reinit(elem);
+                for (unsigned int n = 0; n < elem->n_nodes(); ++n)
+                {
+                    if (elem->is_node_on_side(n, side))
+                    {
+                        const Node* const node = elem->node_ptr(n);
+                        const auto& dof_indices = dof_map_cache.dof_indices(elem);
+                        for (unsigned int var_num = 0; var_num < dof_map.n_variables(); ++var_num)
+                        {
+                            const unsigned int n_comp = node->n_comp(sys_num, var_num);
+                            for (unsigned int comp = 0; comp < n_comp; ++comp)
+                            {
+                                if (!(dirichlet_bdry_ids & dirichlet_bdry_id_set[comp])) continue;
+                                const unsigned int node_dof_index = node->dof_number(sys_num, var_num, comp);
+                                if (!dof_map.is_constrained_dof(node_dof_index)) continue;
+                                for (const auto& idx : dof_indices[var_num])
+                                {
+                                    M_mat->set(node_dof_index, idx, (node_dof_index == idx ? 1.0 : 0.0));
+                                    M_mat->set(idx, node_dof_index, (node_dof_index == idx ? 1.0 : 0.0));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Assemble the matrix. These options need to be set here (rather than
+        // at the top of the function) since we modify entries with MatSet to
+        // enforce constraints that aren't stored by an SPD matrix.
+        MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SPD, PETSC_TRUE);
+        MatSetOption(M_mat->mat(), MAT_SYMMETRY_ETERNAL, PETSC_TRUE);
+        M_mat->close();
+
+        // Setup the solver.
+        solver->reuse_preconditioner(true);
+        solver->set_preconditioner_type(JACOBI_PRECOND);
+        solver->set_solver_type(CG);
+        solver->init();
+
+        // Store the solver, mass matrix, and configuration options.
+        d_smoothed_L2_proj_solver[system_name][epsilon] = std::move(solver);
+        d_smoothed_L2_proj_matrix[system_name][epsilon] = std::move(M_mat);
+    }
+
+    IBTK_TIMER_STOP(t_build_smoothed_L2_projection_solver);
+    return std::make_pair(d_smoothed_L2_proj_solver[system_name][epsilon].get(),
+                          d_smoothed_L2_proj_matrix[system_name][epsilon].get());
+}
+
 PetscVector<double>*
 FEProjector::buildDiagonalL2MassMatrix(const std::string& system_name)
 {
@@ -811,6 +981,51 @@ FEProjector::computeStabilizedL2Projection(PetscVector<double>& U_vec,
     system.get_dof_map().enforce_constraints_exactly(system, &U_vec);
 
     IBTK_TIMER_STOP(t_compute_stab_L2_projection);
+    return converged;
+}
+
+bool
+FEProjector::computeSmoothedL2Projection(PetscVector<double>& U_vec,
+                                         PetscVector<double>& F_vec,
+                                         const std::string& system_name,
+                                         const double epsilon,
+                                         const bool close_U,
+                                         const bool close_F,
+                                         const double tol,
+                                         const unsigned int max_its)
+{
+    IBTK_TIMER_START(t_compute_smoothed_L2_projection);
+
+    int ierr;
+    bool converged = false;
+
+    if (close_F) F_vec.close();
+    const System& system = d_fe_data->getEquationSystems()->get_system(system_name);
+
+    std::pair<PetscLinearSolver<double>*, PetscMatrix<double>*> proj_solver_components =
+        buildSmoothedL2ProjectionSolver(system_name, epsilon);
+    PetscLinearSolver<double>* solver = proj_solver_components.first;
+    PetscMatrix<double>* M_mat = proj_solver_components.second;
+    PetscBool rtol_set;
+    double runtime_rtol;
+    ierr = PetscOptionsGetReal(nullptr, "", "-ksp_rtol", &runtime_rtol, &rtol_set);
+    IBTK_CHKERRQ(ierr);
+    PetscBool max_it_set;
+    int runtime_max_it;
+    ierr = PetscOptionsGetInt(nullptr, "", "-ksp_max_it", &runtime_max_it, &max_it_set);
+    IBTK_CHKERRQ(ierr);
+    ierr = KSPSetFromOptions(solver->ksp());
+    IBTK_CHKERRQ(ierr);
+    solver->solve(*M_mat, *M_mat, U_vec, F_vec, rtol_set ? runtime_rtol : tol, max_it_set ? runtime_max_it : max_its);
+    KSPConvergedReason reason;
+    ierr = KSPGetConvergedReason(solver->ksp(), &reason);
+    IBTK_CHKERRQ(ierr);
+    converged = reason > 0;
+
+    if (close_U) U_vec.close();
+    system.get_dof_map().enforce_constraints_exactly(system, &U_vec);
+
+    IBTK_TIMER_STOP(t_compute_smoothed_L2_projection);
     return converged;
 }
 
