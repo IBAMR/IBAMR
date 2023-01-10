@@ -525,7 +525,6 @@ FEMechanicsBase::doInitializeFEEquationSystems()
             {
                 X_system.add_variable("X_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
             }
-            X_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
             auto& dX_system = equation_systems.add_system<ExplicitSystem>(getDisplacementSystemName());
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -533,21 +532,18 @@ FEMechanicsBase::doInitializeFEEquationSystems()
                 dX_system.add_variable(
                     "dX_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
             }
-            dX_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
             auto& U_system = equation_systems.add_system<ExplicitSystem>(getVelocitySystemName());
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_system.add_variable("U_" + std::to_string(d), d_fe_order_position[part], d_fe_family_position[part]);
             }
-            U_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
             auto& F_system = equation_systems.add_system<ExplicitSystem>(getForceSystemName());
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 F_system.add_variable("F_" + std::to_string(d), d_fe_order_force[part], d_fe_family_force[part]);
             }
-            F_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
         }
     }
 }
@@ -584,6 +580,12 @@ FEMechanicsBase::doInitializeFEData(const bool use_present_data)
         auto& dX_system = equation_systems.get_system<System>(getDisplacementSystemName());
         auto& U_system = equation_systems.get_system<System>(getVelocitySystemName());
         auto& F_system = equation_systems.get_system<System>(getForceSystemName());
+
+        // We don't do off-diagonal coupling
+        X_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
+        dX_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
+        U_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
+        F_system.get_dof_map()._dof_coupling = &d_diagonal_system_coupling;
 
         X_system.assemble_before_solve = false;
         X_system.assemble();
