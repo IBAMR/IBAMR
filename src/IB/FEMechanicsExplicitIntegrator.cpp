@@ -43,7 +43,7 @@ namespace IBAMR
 namespace
 {
 // Version of FEMechanicsExplicitIntegrator restart file data.
-const int EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION = 0;
+const int EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION = 1;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -812,6 +812,18 @@ FEMechanicsExplicitIntegrator::doForwardEulerStep(PetscVector<double>& X_new_vec
         ierr = VecWAXPY(P_new_vec->vec(), dt, dP_dt_current_vec->vec(), P_current_vec->vec());
         IBTK_CHKERRQ(ierr);
     }
+}
+
+std::string
+FEMechanicsExplicitIntegrator::libmesh_restart_file_name(const std::string& restart_dump_dirname,
+                                                         unsigned int time_step_number,
+                                                         unsigned int part,
+                                                         const std::string& extension)
+{
+    std::ostringstream file_name_prefix;
+    file_name_prefix << restart_dump_dirname << "/libmesh_data_femechanicsexplicitintegrator_part_" << part << "."
+                     << std::setw(6) << std::setfill('0') << std::right << time_step_number << "." << extension;
+    return file_name_prefix.str();
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////

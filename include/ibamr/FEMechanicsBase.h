@@ -543,10 +543,10 @@ protected:
     /*!
      * Get the libMesh restart file name.
      */
-    static std::string libmesh_restart_file_name(const std::string& restart_dump_dirname,
-                                                 unsigned int time_step_number,
-                                                 unsigned int part,
-                                                 const std::string& extension);
+    virtual std::string libmesh_restart_file_name(const std::string& restart_dump_dirname,
+                                                  unsigned int time_step_number,
+                                                  unsigned int part,
+                                                  const std::string& extension);
 
     /*!
      * Cached input databases.
