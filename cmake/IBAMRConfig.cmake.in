@@ -16,10 +16,38 @@
 # targets.
 @PACKAGE_INIT@
 
-# Don't set compiler flags, but save them
-SET(IBAMR_C_FLAGS "@CMAKE_C_FLAGS@")
-SET(IBAMR_CXX_FLAGS "@CMAKE_CXX_FLAGS@")
-SET(IBAMR_Fortran_FLAGS "@CMAKE_Fortran_FLAGS@")
+# Don't set compiler flags, but save them. If we are using default flags (i.e.,
+# CMAKE_BUILD_TYPE was set but CMAKE_CXX_FLAGS was not) then save those flags
+# instead
+IF("@CMAKE_C_FLAGS@" STREQUAL "")
+  IF("@CMAKE_BUILD_TYPE@" STREQUAL "Release")
+    SET(IBAMR_C_FLAGS "@CMAKE_C_FLAGS_RELEASE@")
+  ELSEIF("@CMAKE_BUILD_TYPE@" STREQUAL "Debug")
+    SET(IBAMR_C_FLAGS "@CMAKE_C_FLAGS_DEBUG@")
+  ENDIF()
+ELSE()
+  SET(IBAMR_C_FLAGS "@CMAKE_C_FLAGS@")
+ENDIF()
+
+IF("@CMAKE_CXX_FLAGS@" STREQUAL "")
+  IF("@CMAKE_BUILD_TYPE@" STREQUAL "Release")
+    SET(IBAMR_CXX_FLAGS "@CMAKE_CXX_FLAGS_RELEASE@")
+  ELSEIF("@CMAKE_BUILD_TYPE@" STREQUAL "Debug")
+    SET(IBAMR_CXX_FLAGS "@CMAKE_CXX_FLAGS_DEBUG@")
+  ENDIF()
+ELSE()
+  SET(IBAMR_CXX_FLAGS "@CMAKE_CXX_FLAGS@")
+ENDIF()
+
+IF("@CMAKE_Fortran_FLAGS@" STREQUAL "")
+  IF("@CMAKE_BUILD_TYPE@" STREQUAL "Release")
+    SET(IBAMR_Fortran_FLAGS "@CMAKE_Fortran_FLAGS_RELEASE@")
+  ELSEIF("@CMAKE_BUILD_TYPE@" STREQUAL "Debug")
+    SET(IBAMR_Fortran_FLAGS "@CMAKE_Fortran_FLAGS_DEBUG@")
+  ENDIF()
+ELSE()
+  SET(IBAMR_Fortran_FLAGS "@CMAKE_Fortran_FLAGS@")
+ENDIF()
 
 IF(NOT "@MPI_ROOT@" STREQUAL "")
   # CMake wants to detect MPI with MPI_HOME, not MPI_ROOT (which we set up)
