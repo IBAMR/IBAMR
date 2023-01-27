@@ -62,7 +62,12 @@ struct Lag_Coords
     double Z;
 
     // Default constructor
-    Lag_Coords(){};
+    Lag_Coords()
+    : lag_idx(std::numeric_limits<int>::max())
+    , X(std::numeric_limits<double>::quiet_NaN())
+    , Y(std::numeric_limits<double>::quiet_NaN())
+    , Z(std::numeric_limits<double>::quiet_NaN())
+    {}
 
     Lag_Coords(int idx, double x1, double x2, double x3)
     {
@@ -72,7 +77,6 @@ struct Lag_Coords
         Z = x3;
         
     }
-
 };
 
 
