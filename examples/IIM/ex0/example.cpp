@@ -113,7 +113,7 @@ tether_force_function(VectorValue<double>& F,
 void
 tether_force_function(VectorValue<double>& F,
                       const VectorValue<double>& n,
-                      const VectorValue<double>& /*N*/,
+                      const VectorValue<double>& N,
                       const TensorValue<double>& /*FF*/,
                       const libMesh::Point& x,
                       const libMesh::Point& X,
@@ -127,19 +127,20 @@ tether_force_function(VectorValue<double>& F,
     const TetherData* const tether_data = reinterpret_cast<TetherData*>(ctx);
 
     const std::vector<double>& U = *var_data[0];
-    double u_bndry_n = 0.0;
-    for (unsigned int d = 0; d < NDIM; ++d) u_bndry_n += n(d) * U[d];
+    //~ double u_bndry_n = 0.0;
+    //~ double Fn_n = 0.0;
+    //~ for (unsigned int d = 0; d < NDIM; ++d) u_bndry_n += n(d) * U[d];
+    //~ for (unsigned int d = 0; d < NDIM; ++d) Fn_n += tether_data->kappa_s_surface * (X(d) - x(d)) * n (d);
 
     for (unsigned int d = 0; d < NDIM; ++d)
-        F(d) = tether_data->kappa_s_surface * (X(d) - x(d)) - tether_data->eta_s_surface * u_bndry_n * n(d);
+        F(d) = tether_data->kappa_s_surface * (X(d) - x(d)) - tether_data->eta_s_surface * U[d];
     return;
 } // tether_force_function
 } // namespace ModelData
 using namespace ModelData;
 
 // Function prototypes
-static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream, U_L1_norm_stream, U_L2_norm_stream,
-    U_max_norm_stream;
+static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream;
 
 void postprocess_data(Pointer<Database> input_db,
                       Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -216,7 +217,10 @@ main(int argc, char* argv[])
         // Create a simple FE mesh.
         Mesh solid_mesh(init.comm(), NDIM);
         const double dx = input_db->getDouble("DX");
-        const double ds = input_db->getDouble("MFAC") * dx;
+        const double mfac = input_db->getDouble("MFAC");
+        const double d_eps = input_db->getDouble("EPS_SMOOTHING");
+        const double d_stab = input_db->getDouble("MFAC_STAB_SMOOTHING");
+        const double ds = mfac * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = input_db->getDouble("R");
         if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
@@ -333,6 +337,10 @@ main(int argc, char* argv[])
 
         vector<SystemData> sys_data(1, SystemData(IIMethod::VELOCITY_SYSTEM_NAME, vars));
         Pointer<IIMethod> ibfe_ops = ib_ops;
+        
+        const bool USE_DISCON_ELEMS = input_db->getBool("USE_DISCON_ELEMS");
+        if (USE_DISCON_ELEMS) ibfe_ops->registerDisconElemFamilyForJumps();
+        
         ibfe_ops->initializeFEEquationSystems();
         equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
         IIMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data, tether_data_ptr);
@@ -426,21 +434,15 @@ main(int argc, char* argv[])
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_F_stream.open("C_F_D.curve", ios_base::out | ios_base::trunc);
-            lift_F_stream.open("C_F_L.curve", ios_base::out | ios_base::trunc);
-            drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
-            lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
-            U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
-            U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
-            U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
+            drag_F_stream.open("C_F_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_L2_P.curve", ios_base::out | ios_base::trunc);
+            lift_F_stream.open("C_F_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_L2_P.curve", ios_base::out | ios_base::trunc);
+            drag_TAU_stream.open("C_T_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_L2_P.curve", ios_base::out | ios_base::trunc);
+            lift_TAU_stream.open("C_T_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_L2_P.curve", ios_base::out | ios_base::trunc);
 
             drag_F_stream.precision(10);
             lift_F_stream.precision(10);
             drag_TAU_stream.precision(10);
             lift_TAU_stream.precision(10);
-            U_L1_norm_stream.precision(10);
-            U_L2_norm_stream.precision(10);
-            U_max_norm_stream.precision(10);
         }
 
         // Main time step loop.
@@ -515,9 +517,6 @@ main(int argc, char* argv[])
             lift_F_stream.close();
             drag_TAU_stream.close();
             lift_TAU_stream.close();
-            U_L1_norm_stream.close();
-            U_L2_norm_stream.close();
-            U_max_norm_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
