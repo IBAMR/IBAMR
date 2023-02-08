@@ -627,7 +627,6 @@ FEProjector::buildSmoothedL2ProjectionSolver(const std::string& system_name, con
         const std::vector<double>& JxW = fe->get_JxW();
         const std::vector<std::vector<double> >& phi = fe->get_phi();
         const std::vector<std::vector<VectorValue<double> > >& dphi = fe->get_dphi();
-        const std::vector<std::vector<RealTensor>> & d2phi = fe->get_d2phi();
 
         // Build solver components.
         std::unique_ptr<PetscLinearSolver<double> > solver(new PetscLinearSolver<double>(comm));
@@ -670,14 +669,7 @@ FEProjector::buildSmoothedL2ProjectionSolver(const std::string& system_name, con
                     {
                         for (unsigned int qp = 0; qp < n_qp; ++qp)
                         {
-							double d2phi1 = d2phi[i][qp](0, 0) + d2phi[i][qp](1, 1); 
-							double d2phi2 = d2phi[j][qp](0, 0) + d2phi[j][qp](1, 1); 
-							if (NDIM>2)
-							{
-							    d2phi1 += d2phi[i][qp](2, 2);
-							    d2phi2 += d2phi[j][qp](2, 2);
-							}
-                            M_e(i, j) += (phi[i][qp] * phi[j][qp] + epsilon * dphi[i][qp] * dphi[j][qp]) * JxW[qp];  //d2phi1 * d2phi2) * JxW[qp];   // dphi[i][qp] * dphi[j][qp]) * JxW[qp];
+                            M_e(i, j) += (phi[i][qp] * phi[j][qp] + epsilon * dphi[i][qp] * dphi[j][qp]) * JxW[qp];
                         }
                     }
                 }
