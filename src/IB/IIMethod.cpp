@@ -2752,8 +2752,12 @@ IIMethod::computeLagrangianForce(const double data_time)
         if (d_use_pressure_jump_conditions)
         {
             P_jump_rhs_vec->close();
-            d_fe_data_managers[part]->computeSmoothedL2Projection(
-                *P_jump_vec, *P_jump_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_smoothing_eps);
+            d_fe_data_managers[part]->computeStabilizedL2Projection(
+				*P_jump_vec, *P_jump_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_mfac_stab_param);
+			/*
+             d_fe_data_managers[part]->computeSmoothedL2Projection(
+                 *P_jump_vec, *P_jump_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_smoothing_eps);
+            */
             P_jump_rhs_integral = SAMRAI_MPI::sumReduction(P_jump_rhs_integral);
             surface_area = SAMRAI_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump[part]) P_jump_vec->add(-P_jump_rhs_integral / surface_area);
@@ -2764,8 +2768,12 @@ IIMethod::computeLagrangianForce(const double data_time)
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 DU_jump_rhs_vec[d]->close();
+                d_fe_data_managers[part]->computeStabilizedL2Projection(
+                    *DU_jump_vec[d], *DU_jump_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_mfac_stab_param);
+                /*
                 d_fe_data_managers[part]->computeSmoothedL2Projection(
                     *DU_jump_vec[d], *DU_jump_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_smoothing_eps);
+                */
                 DU_jump_vec[d]->close();
             }
         }
@@ -4311,6 +4319,9 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (db->isBool("use_direct_forcing")) d_use_direct_forcing = db->getBool("use_direct_forcing");
 
     if (db->isDouble("smoothing_eps")) d_smoothing_eps = db->getDouble("smoothing_eps");
+    
+    if (db->isDouble("mfac_stab_param"))
+        d_mfac_stab_param = db->getDouble("mfac_stab_param");
 
     // Restart settings.
     if (db->isString("libmesh_restart_file_extension"))
