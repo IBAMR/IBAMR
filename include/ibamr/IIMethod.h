@@ -646,6 +646,10 @@ protected:
     bool d_compute_fluid_traction = false;
     libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
     libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
+    libMesh::Order d_tau_fe_order = libMesh::FIRST;
+    libMesh::Order d_wss_fe_order = libMesh::FIRST;
+    libMesh::Order d_pressure_jump_fe_order = libMesh::FIRST;
+    libMesh::Order d_velocity_jump_fe_order = libMesh::FIRST;
     bool d_perturb_fe_mesh_nodes = true;
     std::vector<libMesh::FEFamily> d_fe_family;
     std::vector<libMesh::Order> d_fe_order;

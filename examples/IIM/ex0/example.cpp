@@ -219,7 +219,7 @@ main(int argc, char* argv[])
         const double dx = input_db->getDouble("DX");
         const double mfac = input_db->getDouble("MFAC");
         const double d_eps = input_db->getDouble("EPS_SMOOTHING");
-        const double d_stab = input_db->getDouble("MFAC_STAB_SMOOTHING");
+        const double d_stab = input_db->getDouble("MFAC_STAB_PARAM");
         const double ds = mfac * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = input_db->getDouble("R");
@@ -434,10 +434,10 @@ main(int argc, char* argv[])
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_F_stream.open("C_F_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_L2_P.curve", ios_base::out | ios_base::trunc);
-            lift_F_stream.open("C_F_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_L2_P.curve", ios_base::out | ios_base::trunc);
-            drag_TAU_stream.open("C_T_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_L2_P.curve", ios_base::out | ios_base::trunc);
-            lift_TAU_stream.open("C_T_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_L2_P.curve", ios_base::out | ios_base::trunc);
+            drag_F_stream.open("C_F_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_MONOMIAL_FIRST.curve", ios_base::out | ios_base::trunc);
+            lift_F_stream.open("C_F_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_MONOMIAL_FIRST.curve", ios_base::out | ios_base::trunc);
+            drag_TAU_stream.open("C_T_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_MONOMIAL_FIRST.curve", ios_base::out | ios_base::trunc);
+            lift_TAU_stream.open("C_T_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_MONOMIAL_FIRST.curve", ios_base::out | ios_base::trunc);
 
             drag_F_stream.precision(10);
             lift_F_stream.precision(10);
