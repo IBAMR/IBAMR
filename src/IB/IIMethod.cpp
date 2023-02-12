@@ -1416,14 +1416,14 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         }
 
         // Solve for the nodal values.
-        d_fe_data_managers[part]->computeL2Projection(
-            *U_vec, *U_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+        d_fe_data_managers[part]->computeSmoothedL2Projection(
+            *U_vec, *U_rhs_vec, VELOCITY_SYSTEM_NAME, d_velocity_stabilization_eps);
         U_vec->close();
-        d_fe_data_managers[part]->computeL2Projection(
-            *U_n_vec, *U_n_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+        d_fe_data_managers[part]->computeSmoothedL2Projection(
+            *U_n_vec, *U_n_rhs_vec, VELOCITY_SYSTEM_NAME, d_velocity_stabilization_eps);
         U_n_vec->close();
-        d_fe_data_managers[part]->computeL2Projection(
-            *U_t_vec, *U_t_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
+        d_fe_data_managers[part]->computeSmoothedL2Projection(
+            *U_t_vec, *U_t_rhs_vec, VELOCITY_SYSTEM_NAME, d_velocity_stabilization_eps);
         U_t_vec->close();
         if (d_use_velocity_jump_conditions)
         {
@@ -2753,7 +2753,7 @@ IIMethod::computeLagrangianForce(const double data_time)
         {
             P_jump_rhs_vec->close();
             d_fe_data_managers[part]->computeSmoothedL2Projection(
-                *P_jump_vec, *P_jump_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_smoothing_eps);
+                *P_jump_vec, *P_jump_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_force_stabilization_eps);
             P_jump_rhs_integral = SAMRAI_MPI::sumReduction(P_jump_rhs_integral);
             surface_area = SAMRAI_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump[part]) P_jump_vec->add(-P_jump_rhs_integral / surface_area);
@@ -2765,7 +2765,7 @@ IIMethod::computeLagrangianForce(const double data_time)
             {
                 DU_jump_rhs_vec[d]->close();
                 d_fe_data_managers[part]->computeSmoothedL2Projection(
-                    *DU_jump_vec[d], *DU_jump_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_smoothing_eps);
+                    *DU_jump_vec[d], *DU_jump_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_force_stabilization_eps);
                 DU_jump_vec[d]->close();
             }
         }
@@ -3168,8 +3168,9 @@ IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const in
     return;
 } // addWorkloadEstimate
 
-void IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // intentionally blank
@@ -3177,8 +3178,9 @@ void IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarch
     return;
 } // beginDataRedistribution
 
-void IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     if (d_is_initialized)
@@ -4310,7 +4312,9 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
     if (db->isBool("use_direct_forcing")) d_use_direct_forcing = db->getBool("use_direct_forcing");
 
-    if (db->isDouble("smoothing_eps")) d_smoothing_eps = db->getDouble("smoothing_eps");
+    if (db->isDouble("force_stabilization_eps")) d_force_stabilization_eps = db->getDouble("force_stabilization_eps");
+    if (db->isDouble("velocity_stabilization_eps"))
+        d_velocity_stabilization_eps = db->getDouble("velocity_stabilization_eps");
 
     // Restart settings.
     if (db->isString("libmesh_restart_file_extension"))
