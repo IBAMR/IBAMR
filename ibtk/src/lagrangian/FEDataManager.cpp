@@ -2419,6 +2419,26 @@ FEDataManager::computeL2Projection(NumericVector<double>& U_vec,
 } // computeL2Projection
 
 bool
+FEDataManager::computeStabilizedL2Projection(NumericVector<double>& U_vec,
+                                             NumericVector<double>& F_vec,
+                                             const std::string& system_name,
+                                             const double epsilon,
+                                             const bool close_U,
+                                             const bool close_F,
+                                             const double tol,
+                                             const unsigned int max_its)
+{
+    return d_fe_projector->computeStabilizedL2Projection(*static_cast<PetscVector<double>*>(&U_vec),
+                                                         *static_cast<PetscVector<double>*>(&F_vec),
+                                                         system_name,
+                                                         epsilon,
+                                                         close_U,
+                                                         close_F,
+                                                         tol,
+                                                         max_its);
+} // computeStabilizedL2Projection
+
+bool
 FEDataManager::computeSmoothedL2Projection(NumericVector<double>& U_vec,
                                            NumericVector<double>& F_vec,
                                            const std::string& system_name,
@@ -2436,7 +2456,7 @@ FEDataManager::computeSmoothedL2Projection(NumericVector<double>& U_vec,
                                                        close_F,
                                                        tol,
                                                        max_its);
-} // computeL2Projection
+} // computeSmoothedL2Projection
 
 bool
 FEDataManager::updateQuadratureRule(std::unique_ptr<QBase>& qrule,

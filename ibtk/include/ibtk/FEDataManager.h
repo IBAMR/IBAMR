@@ -313,10 +313,10 @@ public:
         }
         else
         {
-            return std::find_if(
-                       d_map.begin(), d_map.end(), [&](const std::pair<libMesh::subdomain_id_type, int>& pair) {
-                           return pair.second == level_number;
-                       }) != d_map.end();
+            return std::find_if(d_map.begin(),
+                                d_map.end(),
+                                [&](const std::pair<libMesh::subdomain_id_type, int>& pair)
+                                { return pair.second == level_number; }) != d_map.end();
         }
     }
 
@@ -1014,7 +1014,19 @@ public:
                              unsigned int max_its = 100);
 
     /*!
-     * \brief Set U to be the L2 projection of F.
+     * \brief Set U to be the stabilized L2 projection of F.
+     */
+    bool computeStabilizedL2Projection(libMesh::NumericVector<double>& U,
+                                       libMesh::NumericVector<double>& F,
+                                       const std::string& system_name,
+                                       double epsilon,
+                                       bool close_U = true,
+                                       bool close_F = true,
+                                       double tol = 1.0e-6,
+                                       unsigned int max_its = 100);
+
+    /*!
+     * \brief Set U to be the smoothed L2 projection of F.
      */
     bool computeSmoothedL2Projection(libMesh::NumericVector<double>& U,
                                      libMesh::NumericVector<double>& F,
@@ -1392,5 +1404,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifdef IBTK_HAVE_LIBMESH
-#endif //#ifndef included_IBTK_FEDataManager
+#endif // #ifdef IBTK_HAVE_LIBMESH
+#endif // #ifndef included_IBTK_FEDataManager
