@@ -16,7 +16,7 @@ DX  = L/NFINEST                                  // mesh width on finest   grid 
 MFAC = 0.25                                       // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "QUAD4"                               // type of element to use for structure discretization
 EPS_SMOOTHING = 0.0
-MFAC_STAB_PARAM = 0.0
+MFAC_STAB_PARAM = 0.5
 
 // solver parameters
 IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
@@ -32,7 +32,7 @@ SOLVER_TYPE                  = "STAGGERED"       // the fluid solver to use (STA
 CFL_MAX                      = 0.4               // maximum CFL number
 DT                           = 0.25*CFL_MAX*DX   // maximum timestep size
 START_TIME                   = 0.0e0             // initial simulation time
-END_TIME                     = 40               // final simulation time
+END_TIME                     = 100               // final simulation time
 GROW_DT                      = 2.0e0             // growth factor for timesteps
 CONVECTIVE_TS_TYPE           = "ADAMS_BASHFORTH" // convective time stepping type
 CONVECTIVE_OP_TYPE           = "STABILIZED_PPM"  // convective differencing discretization type
@@ -50,6 +50,7 @@ OUTPUT_DIV_U                 = TRUE
 ENABLE_LOGGING               = TRUE
 
 USE_DIRECT_FORCING	 = FALSE
+USE_DISCON_ELEMS = FALSE
 
 // model parameters
 KAPPA_S_SURFACE = 0.002/DT^2
@@ -59,7 +60,7 @@ ETA_S_BODY = 0.0
 C1_S = 0.0
 
 
-USE_DISCON_ELEMS = TRUE
+
 
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
@@ -128,15 +129,15 @@ IIMethod {
    smoothing_eps				= EPS_SMOOTHING
    mfac_stab_param 				= MFAC_STAB_PARAM
    use_direct_forcing			= USE_DIRECT_FORCING
-   pressure_jump_fe_family = "L2_LAGRANGE"
-   velocity_jump_fe_family = "L2_LAGRANGE"
-   wss_fe_family = "L2_LAGRANGE"
-   tau_fe_family = "L2_LAGRANGE"
+ //  pressure_jump_fe_family = "L2_LAGRANGE"  //"MONOMIAL" 
+ //  velocity_jump_fe_family = "L2_LAGRANGE"   //"MONOMIAL"
+ //  wss_fe_family = "L2_LAGRANGE"     //"MONOMIAL"
+ //  tau_fe_family = "L2_LAGRANGE"     //"MONOMIAL"
    
-	pressure_jump_fe_order 		= "FIRST" //"CONSTANT" 
-	velocity_jump_fe_order 		= "FIRST" //"CONSTANT" 
-	wss_fe_order 				= "FIRST" //"CONSTANT" 
-	tau_fe_order 				= "FIRST" // 
+//	pressure_jump_fe_order 		= "FIRST" //"CONSTANT" 
+//	velocity_jump_fe_order 		= "FIRST" //"CONSTANT" 
+//	wss_fe_order 				= "FIRST" //"CONSTANT" 
+//	tau_fe_order 				= "FIRST" //"CONSTANT" 
 }
 
 INSCollocatedHierarchyIntegrator {
@@ -191,13 +192,13 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "IIM_2d_L2_P.log"
+   log_file_name               = "IIM_2d_LAGRANGE_mfac025_stab05.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
    viz_dump_interval           = int(1/DT)
-   viz_dump_dirname            = "viz_IIM_2d_L2_P"
+   viz_dump_dirname            = "viz_IIM_2d_LAGRANGE_mfac025_stab05"
    visit_number_procs_per_file = 1
 
 // restart dump parameters

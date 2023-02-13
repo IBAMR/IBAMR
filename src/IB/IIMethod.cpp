@@ -2766,10 +2766,10 @@ IIMethod::computeLagrangianForce(const double data_time)
             P_jump_rhs_vec->close();
             d_fe_data_managers[part]->computeStabilizedL2Projection(
 				*P_jump_vec, *P_jump_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_mfac_stab_param);
-			/*
-             d_fe_data_managers[part]->computeSmoothedL2Projection(
-                 *P_jump_vec, *P_jump_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_smoothing_eps);
-            */
+		
+             //~ d_fe_data_managers[part]->computeSmoothedL2Projection(
+                 //~ *P_jump_vec, *P_jump_rhs_vec, PRESSURE_JUMP_SYSTEM_NAME, d_smoothing_eps);
+                 
             P_jump_rhs_integral = SAMRAI_MPI::sumReduction(P_jump_rhs_integral);
             surface_area = SAMRAI_MPI::sumReduction(surface_area);
             if (d_normalize_pressure_jump[part]) P_jump_vec->add(-P_jump_rhs_integral / surface_area);
@@ -2782,10 +2782,10 @@ IIMethod::computeLagrangianForce(const double data_time)
                 DU_jump_rhs_vec[d]->close();
                 d_fe_data_managers[part]->computeStabilizedL2Projection(
                     *DU_jump_vec[d], *DU_jump_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_mfac_stab_param);
-                /*
-                d_fe_data_managers[part]->computeSmoothedL2Projection(
-                    *DU_jump_vec[d], *DU_jump_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_smoothing_eps);
-                */
+                
+                //~ d_fe_data_managers[part]->computeSmoothedL2Projection(
+                    //~ *DU_jump_vec[d], *DU_jump_rhs_vec[d], VELOCITY_JUMP_SYSTEM_NAME[d], d_smoothing_eps);
+                
                 DU_jump_vec[d]->close();
             }
         }

@@ -69,6 +69,7 @@ struct TetherData
 };
 
 bool compute_fluid_traction = false;
+static double dx = 0.0;
 
 // Tether (penalty) stress function.
 void
@@ -128,9 +129,13 @@ tether_force_function(VectorValue<double>& F,
 
     const std::vector<double>& U = *var_data[0];
     //~ double u_bndry_n = 0.0;
-    //~ double Fn_n = 0.0;
-    //~ for (unsigned int d = 0; d < NDIM; ++d) u_bndry_n += n(d) * U[d];
-    //~ for (unsigned int d = 0; d < NDIM; ++d) Fn_n += tether_data->kappa_s_surface * (X(d) - x(d)) * n (d);
+    double disp = 0.0;
+	for (unsigned int d = 0; d < NDIM; ++d)
+	{
+		disp += (X(d) - x(d)) * (X(d) - x(d));
+	}
+	disp = sqrt(disp);
+	TBOX_ASSERT(disp <= 0.5*dx);
 
     for (unsigned int d = 0; d < NDIM; ++d)
         F(d) = tether_data->kappa_s_surface * (X(d) - x(d)) - tether_data->eta_s_surface * U[d];
@@ -216,41 +221,19 @@ main(int argc, char* argv[])
 
         // Create a simple FE mesh.
         Mesh solid_mesh(init.comm(), NDIM);
-        const double dx = input_db->getDouble("DX");
+        dx = input_db->getDouble("DX");
         const double mfac = input_db->getDouble("MFAC");
         const double d_eps = input_db->getDouble("EPS_SMOOTHING");
         const double d_stab = input_db->getDouble("MFAC_STAB_PARAM");
         const double ds = mfac * dx;
         string elem_type = input_db->getString("ELEM_TYPE");
         const double R = input_db->getDouble("R");
-        if (NDIM == 2 && (elem_type == "TRI3" || elem_type == "TRI6"))
-        {
-#ifdef LIBMESH_HAVE_TRIANGLE
-            const int num_circum_nodes = ceil(2.0 * M_PI * R / ds);
-            for (int k = 0; k < num_circum_nodes; ++k)
-            {
-                const double theta = 2.0 * M_PI * static_cast<double>(k) / static_cast<double>(num_circum_nodes);
-                solid_mesh.add_point(libMesh::Point(R * cos(theta), R * sin(theta)));
-            }
-            TriangleInterface triangle(solid_mesh);
-            triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
-            triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
-            triangle.insert_extra_points() = true;
-            triangle.smooth_after_generating() = true;
-            triangle.triangulate();
-#else
-            TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
-                       << "       but Triangle is required for TRI3 or TRI6 elements.\n");
-#endif
-        }
-        else
-        {
-            // NOTE: number of segments along boundary is 4*2^r.
-            const double num_circum_segments = 2.0 * M_PI * R / ds;
-            const int r = log2(0.25 * num_circum_segments);
-            MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
-        }
+
+		// NOTE: number of segments along boundary is 4*2^r.
+		const double num_circum_segments = 2.0 * M_PI * R / ds;
+		const int r = log2(0.25 * num_circum_segments);
+		MeshTools::Generation::build_sphere(solid_mesh, R, r, Utility::string_to_enum<ElemType>(elem_type));
+
 
         // Ensure nodes on the surface are on the analytic boundary.
         MeshBase::element_iterator el_end = solid_mesh.elements_end();
@@ -434,15 +417,15 @@ main(int argc, char* argv[])
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_F_stream.open("C_F_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_MONOMIAL_FIRST.curve", ios_base::out | ios_base::trunc);
-            lift_F_stream.open("C_F_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_MONOMIAL_FIRST.curve", ios_base::out | ios_base::trunc);
-            drag_TAU_stream.open("C_T_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_MONOMIAL_FIRST.curve", ios_base::out | ios_base::trunc);
-            lift_TAU_stream.open("C_T_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_eps_" + std::to_string(double(d_stab)) + "_MONOMIAL_FIRST.curve", ios_base::out | ios_base::trunc);
+            drag_F_stream.open("C_F_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_d_stab_" + std::to_string(double(d_stab)) + "_TRI3.curve", ios_base::out | ios_base::trunc);
+            lift_F_stream.open("C_F_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_d_stab_" + std::to_string(double(d_stab)) + "_TRI3.curve", ios_base::out | ios_base::trunc);
+           // drag_TAU_stream.open("C_T_D_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_d_stab_" + std::to_string(double(d_stab)) + "_TRI3.curve", ios_base::out | ios_base::trunc);
+            //lift_TAU_stream.open("C_T_L_mfac_" + std::to_string(double(mfac)) + "_eps_" + std::to_string(double(d_eps)) + "_d_stab_" + std::to_string(double(d_stab)) + "_TRI3.curve", ios_base::out | ios_base::trunc);
 
             drag_F_stream.precision(10);
             lift_F_stream.precision(10);
-            drag_TAU_stream.precision(10);
-            lift_TAU_stream.precision(10);
+           // drag_TAU_stream.precision(10);
+          //  lift_TAU_stream.precision(10);
         }
 
         // Main time step loop.
