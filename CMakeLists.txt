@@ -245,8 +245,6 @@ ADD_LIBRARY(BOOST_INTERFACE INTERFACE)
 IF(${IBAMR_FORCE_BUNDLED_BOOST})
   SET(IBAMR_USE_BUNDLED_BOOST TRUE)
 ELSE()
-  # set up the root with the proper package name too
-  SET(Boost_ROOT ${BOOST_ROOT})
   # Disable default search paths if we have an explicitly provided path
   IF("${BOOST_ROOT}" STREQUAL "")
     SET(USER_PROVIDED_BOOST_ROOT OFF)
