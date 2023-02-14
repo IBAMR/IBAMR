@@ -30,8 +30,8 @@ Kernel configured for up to 6 processors.
 Processor type: x86_64h (Intel x86-64h Haswell)
 Processors active: 0 1 2 3 4 5
 Primary memory available: 32.00 gigabytes
-Default processor set: 437 tasks, 2322 threads, 6 processors
-Load average: 0.60, Mach factor: 5.39
+Default processor set: 495 tasks, 3048 threads, 6 processors
+Load average: 1.54, Mach factor: 4.45
 /bin/machine           = unknown
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
@@ -432,7 +432,7 @@ Target: x86_64-apple-darwin19
 Thread model: posix
 Supported LTO compression algorithms: zlib
 gcc version 10.2.0 (Homebrew GCC 10.2.0_2) 
- /usr/local/Cellar/gcc/10.2.0_2/libexec/gcc/x86_64-apple-darwin19/10.2.0/f951 conftest.f -ffixed-form -fPIC -feliminate-unused-debug-symbols -quiet -dumpbase conftest.f -mmacosx-version-min=10.15.0 -mtune=core2 -auxbase conftest -g -O2 -version -fintrinsic-modules-path /usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/finclude -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccivEiO9.s
+ /usr/local/Cellar/gcc/10.2.0_2/libexec/gcc/x86_64-apple-darwin19/10.2.0/f951 conftest.f -ffixed-form -fPIC -feliminate-unused-debug-symbols -quiet -dumpbase conftest.f -mmacosx-version-min=10.15.0 -mtune=core2 -auxbase conftest -g -O2 -version -fintrinsic-modules-path /usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/finclude -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccU3Xx14.s
 GNU Fortran (Homebrew GCC 10.2.0_2) version 10.2.0 (x86_64-apple-darwin19)
 	compiled by GNU C version 10.2.0, GMP version 6.2.1, MPFR version 4.1.0, MPC version 1.2.1, isl version isl-0.23-GMP
 
@@ -441,17 +441,17 @@ GNU Fortran2008 (Homebrew GCC 10.2.0_2) version 10.2.0 (x86_64-apple-darwin19)
 	compiled by GNU C version 10.2.0, GMP version 6.2.1, MPFR version 4.1.0, MPC version 1.2.1, isl version isl-0.23-GMP
 
 GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
- as -arch x86_64 -v -force_cpusubtype_ALL -mmacosx-version-min=10.15 -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccgvEMRe.o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccivEiO9.s
+ as -arch x86_64 -v -force_cpusubtype_ALL -mmacosx-version-min=10.15 -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccvcQS31.o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccU3Xx14.s
 Apple clang version 11.0.3 (clang-1103.0.32.59)
 Target: x86_64-apple-darwin19.6.0
 Thread model: posix
 InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1as -triple x86_64-apple-macosx10.15.0 -filetype obj -main-file-name ccivEiO9.s -target-cpu penryn -fdebug-compilation-dir /Users/keonkim/sfw/ibamr/IBAMR-amneetb-immersed-peridynamics-new -dwarf-debug-producer "Apple clang version 11.0.3 (clang-1103.0.32.59)" -dwarf-version=4 -mrelocation-model pic -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccgvEMRe.o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccivEiO9.s
+ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1as -triple x86_64-apple-macosx10.15.0 -filetype obj -main-file-name ccU3Xx14.s -target-cpu penryn -fdebug-compilation-dir /Users/keonkim/sfw/ibamr/IBAMR -dwarf-debug-producer "Apple clang version 11.0.3 (clang-1103.0.32.59)" -dwarf-version=4 -mrelocation-model pic -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccvcQS31.o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccU3Xx14.s
 Reading specs from /usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../../libgfortran.spec
 rename spec lib to liborig
- /usr/local/Cellar/gcc/10.2.0_2/libexec/gcc/x86_64-apple-darwin19/10.2.0/collect2 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/ -dynamic -arch x86_64 -macosx_version_min 10.15.0 -weak_reference_mismatches non-weak -o conftest -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0 -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../.. /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccgvEMRe.o -lgfortran -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -no_compact_unwind -v -idsym -dsym
+ /usr/local/Cellar/gcc/10.2.0_2/libexec/gcc/x86_64-apple-darwin19/10.2.0/collect2 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/ -dynamic -arch x86_64 -macosx_version_min 10.15.0 -weak_reference_mismatches non-weak -o conftest -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0 -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../.. /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccvcQS31.o -lgfortran -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -no_compact_unwind -v -idsym -dsym
 collect2 version 10.2.0
-/usr/bin/ld -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/ -dynamic -arch x86_64 -macosx_version_min 10.15.0 -weak_reference_mismatches non-weak -o conftest -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0 -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../.. /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccgvEMRe.o -lgfortran -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -no_compact_unwind -v
+/usr/bin/ld -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/ -dynamic -arch x86_64 -macosx_version_min 10.15.0 -weak_reference_mismatches non-weak -o conftest -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0 -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../.. /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//ccvcQS31.o -lgfortran -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -no_compact_unwind -v
 @(#)PROGRAM:ld  PROJECT:ld64-556.6
 BUILD 13:10:29 Apr  7 2020
 configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
@@ -470,7 +470,7 @@ Target: x86_64-apple-darwin19
 Thread model: posix
 Supported LTO compression algorithms: zlib
 gcc version 10.2.0 (Homebrew GCC 10.2.0_2) 
- /usr/local/Cellar/gcc/10.2.0_2/libexec/gcc/x86_64-apple-darwin19/10.2.0/f951 conftest.f -ffixed-form -fPIC -feliminate-unused-debug-symbols -quiet -dumpbase conftest.f -mmacosx-version-min=10.15.0 -mtune=core2 -auxbase conftest -g -O2 -version -fintrinsic-modules-path /usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/finclude -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc5iQhe1.s
+ /usr/local/Cellar/gcc/10.2.0_2/libexec/gcc/x86_64-apple-darwin19/10.2.0/f951 conftest.f -ffixed-form -fPIC -feliminate-unused-debug-symbols -quiet -dumpbase conftest.f -mmacosx-version-min=10.15.0 -mtune=core2 -auxbase conftest -g -O2 -version -fintrinsic-modules-path /usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/finclude -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc0jGnTT.s
 GNU Fortran (Homebrew GCC 10.2.0_2) version 10.2.0 (x86_64-apple-darwin19)
 	compiled by GNU C version 10.2.0, GMP version 6.2.1, MPFR version 4.1.0, MPC version 1.2.1, isl version isl-0.23-GMP
 
@@ -479,17 +479,17 @@ GNU Fortran2008 (Homebrew GCC 10.2.0_2) version 10.2.0 (x86_64-apple-darwin19)
 	compiled by GNU C version 10.2.0, GMP version 6.2.1, MPFR version 4.1.0, MPC version 1.2.1, isl version isl-0.23-GMP
 
 GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
- as -arch x86_64 -v -force_cpusubtype_ALL -mmacosx-version-min=10.15 -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cckIdY9e.o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc5iQhe1.s
+ as -arch x86_64 -v -force_cpusubtype_ALL -mmacosx-version-min=10.15 -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc5n8Dic.o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc0jGnTT.s
 Apple clang version 11.0.3 (clang-1103.0.32.59)
 Target: x86_64-apple-darwin19.6.0
 Thread model: posix
 InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1as -triple x86_64-apple-macosx10.15.0 -filetype obj -main-file-name cc5iQhe1.s -target-cpu penryn -fdebug-compilation-dir /Users/keonkim/sfw/ibamr/IBAMR-amneetb-immersed-peridynamics-new -dwarf-debug-producer "Apple clang version 11.0.3 (clang-1103.0.32.59)" -dwarf-version=4 -mrelocation-model pic -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cckIdY9e.o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc5iQhe1.s
+ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1as -triple x86_64-apple-macosx10.15.0 -filetype obj -main-file-name cc0jGnTT.s -target-cpu penryn -fdebug-compilation-dir /Users/keonkim/sfw/ibamr/IBAMR -dwarf-debug-producer "Apple clang version 11.0.3 (clang-1103.0.32.59)" -dwarf-version=4 -mrelocation-model pic -o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc5n8Dic.o /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc0jGnTT.s
 Reading specs from /usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../../libgfortran.spec
 rename spec lib to liborig
- /usr/local/Cellar/gcc/10.2.0_2/libexec/gcc/x86_64-apple-darwin19/10.2.0/collect2 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/ -dynamic -arch x86_64 -macosx_version_min 10.15.0 -weak_reference_mismatches non-weak -o conftest -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0 -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../.. /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cckIdY9e.o -lgfortran -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -no_compact_unwind -v -idsym -dsym
+ /usr/local/Cellar/gcc/10.2.0_2/libexec/gcc/x86_64-apple-darwin19/10.2.0/collect2 -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/ -dynamic -arch x86_64 -macosx_version_min 10.15.0 -weak_reference_mismatches non-weak -o conftest -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0 -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../.. /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc5n8Dic.o -lgfortran -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -no_compact_unwind -v -idsym -dsym
 collect2 version 10.2.0
-/usr/bin/ld -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/ -dynamic -arch x86_64 -macosx_version_min 10.15.0 -weak_reference_mismatches non-weak -o conftest -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0 -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../.. /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cckIdY9e.o -lgfortran -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -no_compact_unwind -v
+/usr/bin/ld -syslibroot /Library/Developer/CommandLineTools/SDKs/MacOSX10.15.sdk/ -dynamic -arch x86_64 -macosx_version_min 10.15.0 -weak_reference_mismatches non-weak -o conftest -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0 -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../.. /var/folders/6n/p7ywyjz1049_p3hmdyx8j0jr0000gn/T//cc5n8Dic.o -lgfortran -lSystem -lgcc_ext.10.5 -lgcc -lquadmath -lm -lgcc_ext.10.5 -lgcc -lSystem -no_compact_unwind -v
 @(#)PROGRAM:ld  PROJECT:ld64-556.6
 BUILD 13:10:29 Apr  7 2020
 configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
@@ -511,7 +511,7 @@ configure:6477: $? = 0
 configure:6518: gcc -o conftest -g -O2   conftest.c cfortran_test.o   -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0 -L/usr/local/Cellar/gcc/10.2.0_2/lib/gcc/10/gcc/x86_64-apple-darwin19/10.2.0/../../.. -lgfortran -lquadmath -lm >&5
 Undefined symbols for architecture x86_64:
   "_foobar", referenced from:
-      _main in conftest-0ab985.o
+      _main in conftest-8d2eef.o
      (maybe you meant: _foobar_)
 ld: symbol(s) not found for architecture x86_64
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
@@ -599,7 +599,7 @@ configure:7654: checking for function MPI_Init
 configure:7687: gcc -o conftest -g -O2   conftest.c  >&5
 Undefined symbols for architecture x86_64:
   "_MPI_Init", referenced from:
-      _main in conftest-28b223.o
+      _main in conftest-516516.o
 ld: symbol(s) not found for architecture x86_64
 clang: error: linker command failed with exit code 1 (use -v to see invocation)
 configure:7687: $? = 1
@@ -756,7 +756,7 @@ configure:9425: checking the name lister (/usr/bin/nm -B) interface
 configure:9432: g++ -c -g -O2 -std=gnu++11  conftest.cpp >&5
 configure:9435: /usr/bin/nm -B "conftest.o"
 configure:9438: output
-00000000000001f4 S _some_variable
+00000000000001d4 S _some_variable
 configure:9445: result: BSD nm
 configure:9448: checking whether ln -s works
 configure:9452: result: yes
@@ -1300,7 +1300,7 @@ lt_cv_truncate_bin='/bin/dd bs=4096 count=1'
 ## Output variables. ##
 ## ----------------- ##
 
-ACLOCAL='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR-amneetb-immersed-peridynamics-new/config/missing aclocal-1.16'
+ACLOCAL='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR/config/missing aclocal-1.16'
 AMDEPBACKSLASH='\'
 AMDEP_FALSE='#'
 AMDEP_TRUE=''
@@ -1310,9 +1310,9 @@ AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
 AM_DEFAULT_VERBOSITY='0'
 AM_V='$(V)'
 AR='ar'
-AUTOCONF='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR-amneetb-immersed-peridynamics-new/config/missing autoconf'
-AUTOHEADER='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR-amneetb-immersed-peridynamics-new/config/missing autoheader'
-AUTOMAKE='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR-amneetb-immersed-peridynamics-new/config/missing automake-1.16'
+AUTOCONF='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR/config/missing autoconf'
+AUTOHEADER='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR/config/missing autoheader'
+AUTOMAKE='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR/config/missing automake-1.16'
 AWK='gawk'
 BOOST_CPPFLAGS=''
 BOOST_ROOT=''
@@ -1477,7 +1477,7 @@ M4='gm4'
 MAINT='#'
 MAINTAINER_MODE_FALSE=''
 MAINTAINER_MODE_TRUE='#'
-MAKEINFO='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR-amneetb-immersed-peridynamics-new/config/missing makeinfo'
+MAKEINFO='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR/config/missing makeinfo'
 MANIFEST_TOOL=':'
 MKDIR_P='config/install-sh -c -d'
 MPICC=''
@@ -1559,7 +1559,7 @@ host_vendor='apple'
 htmldir='${docdir}'
 includedir='${prefix}/include'
 infodir='${datarootdir}/info'
-install_sh='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR-amneetb-immersed-peridynamics-new/config/install-sh'
+install_sh='${SHELL} /Users/keonkim/sfw/ibamr/IBAMR/config/install-sh'
 libdir='${exec_prefix}/lib'
 libexecdir='${exec_prefix}/libexec'
 localedir='${datarootdir}/locale'

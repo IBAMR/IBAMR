@@ -70,7 +70,6 @@ static const double y_right_begin = 4.4;
 static const double y_right_end = 6.0;
 
 static const double appres = 6.25;                                          // External loading
-static double indi = 1.0;
 
 double
 my_inf_fcn(double R0, double /*delta*/)
@@ -136,15 +135,14 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
 
     #if (NDIM == 3)
     Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
-    F0 << FF(0), FF(1), 0.0, FF(3), FF(4), 0.0, 0.0, 0.0, 1.0;
-    // F0 << FF(0), FF(1), FF(2), FF(3), FF(4), FF(5), FF(6), FF(7), FF(8);
-    // mat_type e = 0.5 * (F0.transpose() + F0) - II;
+    F0 << FF(0), FF(1), FF(2), FF(3), FF(4), FF(5), FF(6), FF(7), FF(8);
     #endif
     #if (NDIM == 2)
     Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
     F0 << FF(0), FF(1), FF(2), FF(3);
     // mat_type e = 0.5 * (FF.transpose() + FF) - II;
     #endif
+    
 
     // // St. Venant model
     // const double tr_e = e.trace();
@@ -162,12 +160,13 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
     mat_type FF_inv_trans = FF_trans.inverse();
     const double tr_cc = CC.trace();
     const double J = std::abs(F0.determinant());
-    // const double Jsquare = pow(J,2.0);
-    const double Jp = pow(J,-2.0/3.0);
-    // PK1 = G * (F0 - tr_cc*FF_inv_trans/2.)/J + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
-    // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
-    // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_n * J * log(J) * FF_inv_trans;
-    PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_bulk * log(J) * FF_inv_trans;
+
+    // 2d mechanics - plane strain
+    PK1 = G * (F0 - tr_cc*FF_inv_trans/2.)/J + K_bulk * log(J) * FF_inv_trans;
+
+    // // 3d mechanics
+    // const double Jp = pow(J,-2.0/3.0);
+    // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_bulk * log(J) * FF_inv_trans;
 
     return;
 } // my_PK1_fcn
@@ -216,9 +215,6 @@ my_force_damage_fcn(const double /*horizon*/,
 
     // Compute PD force
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    #if (NDIM == 3)
-        trac(2) = 0.0;
-    #endif
 
     // static const double dy = (y_left_end - y_left_begin) / double(ny-1);
     // static const double dyy = (y_right_end - y_right_begin) / double(ny-1);
@@ -270,13 +266,14 @@ my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
 {
     //X_target is the material variable, X is the spatial variable
     static double kappa = 4.0e5;
-    // static double ddx = 1.6 / 4.4 * DX;
+    static double eps = 1.0e-5;
+    
     // cook's membrane
-    if (X_target(0) <= x_begin+2.0)
+    if (abs(X_target(0) - (x_begin+2.0)) < eps)
     {
         F += kappa * (X_target - X);
     }
-    else if (X_target(0) == x_end+2.0)
+    else if (abs(X_target(0) - (x_end+2.0)) < eps)
     {   
         if (current_time < load_time)
         {
@@ -457,22 +454,6 @@ main(int argc, char* argv[])
         DX = (x_end - x_begin) / double(M_temp);
         horizon = Horizon_size_temp * DX;
         P = Poisson_ratio_temp;
-        // if (M_temp == 12)
-        // {
-        //     totnode = 100;
-        // }
-        // else if (M_temp == 24)
-        // {
-        //     totnode = 380;
-        // }
-        // else if (M_temp == 48)
-        // {
-        //     totnode = 1480;
-        // }
-        // else if (M_temp == 96)
-        // {
-        //     totnode = 5840;
-        // }
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();

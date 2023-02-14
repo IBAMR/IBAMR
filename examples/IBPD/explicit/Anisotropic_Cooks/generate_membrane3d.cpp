@@ -20,6 +20,7 @@
 #include <set>
 #include <utility>
 #include <vector>
+#include <sstream>
 
 using Edge = std::pair<int, int>;
 using EdgeProp = std::pair<double, double>;
@@ -43,75 +44,100 @@ sort_edge(Edge& e)
     return;
 }
 
+std::string to_string_with_precision(const double a_value, const int n = 3)
+{
+    std::ostringstream out;
+    out.precision(n);
+    out << std::fixed << a_value;
+    return out.str();
+}
+
 int
 main(int /*argc*/, char** /*argv*/)
 {
-    // Problem parameters
+    // // Problem parameters w/ stair-step geometry
+    // Cook's membrane
+    const int M = 24;
 
-    const int ndivx = 49; // num points in x direction.
-    const int ndivy = 45;  // num points in y direction.
-    const int nbnd = 0;
-    const int ndivz = 3; // num layers in z direction.
-    const int totnode = (ndivx + 2 * nbnd) * (ndivy + 2 * nbnd) * ndivz;
+    const double LW = 4.8;                          // length of the membrane (cm)
+    const double LHL = 4.4;                         // left height of the membrane(cm)
+    const double LHR = 1.6;                         // right heigh of the membrane(cm)
+    const double LD = 1.0;                          // depth of the membrane(cm)
+    const double LH = LHL + LHR;
 
-    const double length = 0.48;              // total length of the plate (m)
-    const double width = 0.44;               // total width of the plate (m)
-    const double width1 = 0.16;
-    const double width2 = 0.16;
-
-    const double dx = length / (ndivx - 1); // spacing between material points in x direction
-    const double dy = width / (ndivy - 1);  // spacing between material points in y direction
-    const double dyy = width1 / (ndivy - 1);
+    const double dx = LW / (double)M;
+    const double dy = dx;
     const double dz = dx;
-    const double delta = 2.015 * dx; // 3.015 * dx;      // horizon
-    const double thick = dx;         // thickness of the plate
-    const double area = dx * dx;     // cross-sectional area
-    const double vol = area * thick; // volume of a material point
 
-    const double scr0 = 0.5; // critical stretch
+    const int ndivx = M+1;                          // M+1; num points in x direction.
+    const int ndivy = (LHL + LHR) / LW * M + 1;     // (LHL + LHR) / LW * M + 1; num points in y direction.
+    const int ndivz = (int)LD / dz + 1;
 
-    // Initialize vertices
+    const int totnode1 = ndivx * ndivy * ndivz;
+    
+    const double horizon = 2.015;
+    const double delta = horizon * dx;      // horizon size
+    const double thick = dx;                // thickness of the plate
+    const double area = dx * dx;            // cross-sectional area
+    const double vol = area * thick;        // volume of a material point
 
-    double coord[totnode][3];
+    const double scr0 = 30.0; // critical stretch
+
+    // Initialize vertices for stair-step geometry
+    double coord1[totnode1][3];
+    double x,y,z;
+    const double eps = 1.0e-7;
+
+    // double delta_x[totnode][1];
     int nnum = -1;
 
     // Material points of the plate region
     for (int i = 0; i <= (ndivx - 1); ++i)
     {
-        for (int k = 0; k <= (ndivz - 1); ++k)
+        for (int j = 0; j <= (ndivy - 1); ++j)
         {
-            for (int j = 0; j <= (ndivy - 1); ++j)
+            for (int k = 0; k <= (ndivz - 1); ++k)
             {
-                nnum += 1;
-                // 3d plane sheet
-                // coord[nnum][0] = i * dx;
-                // coord[nnum][1] = j * dy;
-                // coord[nnum][2] = k * dz;
+                x = i * dx;
+                y = j * dy;
+                z = k * dz;
 
-                //3d Cook's membreane
-                coord[nnum][0] = i * dx;
-                coord[nnum][1] = (j * (dyy-dy) +width + width2 - width1 )/(ndivx - 1)*i + dy*j;
-                coord[nnum][2] = k * dz;
+                if ( (4.4 / 4.8 * x - eps <= y) && (y <= 1.6 / 4.8 * x + 4.4 + eps))
+                {
+                    nnum += 1;
+                    coord1[nnum][0] = x + 2.0;
+                    coord1[nnum][1] = y + 1.0;
+                    coord1[nnum][2] = z + 2.0;
+                }
             }
         }
     }
+    const int totnode = nnum + 1;
+
+    double coord[totnode][3];
+    for (int i = 0; i < totnode; ++i)
+    {
+        coord[i][0] = coord1[i][0];
+        coord[i][1] = coord1[i][1];
+        coord[i][2] = coord1[i][2];
+    }
+
 
     std::cout << "\n~~~~~~~~~~~~~~~~~~~~~~~~~\n";
-    std::cout << "static const int left_begin = " << 0 << ";" << std::endl;
-    std::cout << "static const int left_end = " << ndivy * ndivz - 1 << ";" << std::endl;
-    std::cout << "static const int right_begin = " << totnode - ndivy * ndivz << ";" << std::endl;
-    std::cout << "static const int right_end = " << totnode - 1 << ";" << std::endl;
+    // std::cout << "static const int left_begin = " << 0 << ";" << std::endl;
+    // std::cout << "static const int left_end = " << ndivy - 1 << ";" << std::endl;
+    // std::cout << "static const int right_begin = " << totnode - ndivy << ";" << std::endl;
+    std::cout << "static const int total nodes = " << totnode - 1 << ";" << std::endl;
 
     // Initialize springs
     // Determination of material points inside the horizon of each material point
-    int numfam[totnode] = { 0 };
+    int numfam[totnode];
     std::map<Edge, EdgeProp, EdgeComp> mesh;
     for (int i = 0; i < totnode; ++i)
-    {
+    {   numfam[i] = 0;
         for (int j = 0; j < totnode; ++j)
         {
-            const double idist = sqrt(pow((coord[j][0] - coord[i][0]), 2) + pow((coord[j][1] - coord[i][1]), 2) +
-                                      pow((coord[j][2] - coord[i][2]), 2));
+            const double idist = sqrt(pow((coord[j][0] - coord[i][0]), 2) + pow((coord[j][1] - coord[i][1]), 2) + pow((coord[j][2] - coord[i][2]), 2));
             if (i != j)
             {
                 if (idist <= delta)
@@ -122,6 +148,14 @@ main(int /*argc*/, char** /*argv*/)
 
                     // Determine initial failure of the bond.
                     double fail = 1.0;
+                    // if ((coord[i][1] == 5.4 && coord[i][0] < 2.0) && (coord[j][1] > 5.4))
+                    // {
+                    //     fail = 0.0;
+                    // }
+                    // if ((coord[j][1] == 5.4 && coord[j][0] < 2.0) && (coord[i][1] > 5.4))
+                    // {
+                    //     fail = 0.0;
+                    // }
                     EdgeProp prop = std::make_pair(idist, fail);
                     mesh[e] = prop;
                 }

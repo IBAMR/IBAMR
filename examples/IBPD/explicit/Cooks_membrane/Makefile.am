@@ -15,28 +15,27 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-SOURCES = main.cpp generate_sheet2d.cpp
-EXTRA_DIST  = input2d input2d_tune read_file_ibamr2d.m automate.sh run_IPD_comparisons.sh
-EXTRA_DIST += generate_sheet2d.cpp
+SOURCES = main.cpp generate_membrane2d.cpp
+EXTRA_DIST  = input2d input2d_tune automate.sh run_IPD_comparisons.sh
+EXTRA_DIST += read_file_ibamr2d.m
 
 EXTRA_PROGRAMS =
 if SAMRAI2D_ENABLED
-EXTRA_PROGRAMS += main2d sheet2d_generator
+EXTRA_PROGRAMS += main2d membrane2d_generator
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = main.cpp
 
-sheet2d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-sheet2d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-sheet2d_generator_SOURCES = generate_sheet2d.cpp
+membrane2d_generator_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+membrane2d_generator_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+membrane2d_generator_SOURCES = generate_membrane2d.cpp
 
 examples: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input2d $(PWD) ; \
-	  cp -f $(srcdir)/input2d_tune $(PWD) ; \
-	  cp -f $(srcdir)/generate_sheet2d.cpp $(PWD) ; \
+	  cp -f $(srcdir)/generate_membrane2d.cpp $(PWD) ; \
 	  cp -f $(srcdir)/read_file_ibamr2d.m $(PWD) ; \
 	  cp -f $(srcdir)/automate.sh $(PWD) ; \
 	  cp -f $(srcdir)/run_IPD_comparisons.sh $(PWD) ; \
@@ -46,8 +45,7 @@ clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  rm -f $(builddir)/input2d ; \
-	  rm -f $(builddir)/input2d_tune ; \
-	  rm -f $(builddir)/generate_sheet2d.cpp ; \
+	  rm -f $(builddir)/generate_membrane2d.cpp ; \
 	  rm -f $(builddir)/read_file_ibamr2d.m ; \
 	  rm -f $(builddir)/automate.sh ; \
 	  rm -f $(builddir)/run_IPD_comparisons.sh ; \

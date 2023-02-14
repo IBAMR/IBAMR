@@ -2,46 +2,44 @@
 PI = 3.14159265358979
 
 // physical parameters
-L_X   = 40.0                                        // width  of computational domain
-L_Y   = 40.0                                        // height of computational domain
-L_LAG = 20.0                                        // longest edge of block
-MU  = 1.0e-2
-RHO = 1.0
-K   = 1.0
+// MU  = 1.6e-1
+// RHO = 1.0
+RHO   = 1.0
+MU    = 1.0e-2
+L_X = 10.0 // 40.0
+L_Y = 10.0 // 40.0
+L_Z = 10.0
+L_lag = 4.8                                         // shortest edge of cooks membrane
 U_MAX = 5.0
 
+// model parameters
+HORIZON_SIZE    = 2.015
+POISSON_RATIO   = 0.4
+APPRES          = 6.25
+YOUNGS_MOD      = 250
+SHEAR_MOD       = YOUNGS_MOD / 2.0 / (.5 + 1.0)
+BULK_MOD        = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / 3.0 / (1.0 - 2.0 * POISSON_RATIO)
+DAMPING         = 0.0
 
 // grid spacing parameters
 MAX_LEVELS = 1                                     // maximum number of levels in locally refined grid
-REF_RATIO  = 4                                     // refinement ratio between levels
-M = 128						                           // number of nodes per edge of Lagrangian mesh
-MFAC = 1	                                          // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular
-REF_FACTOR = (REF_RATIO^(MAX_LEVELS - 1))
-N = ceil(M * MFAC * L_X / L_LAG /REF_FACTOR)       // actual    number of grid cells on coarsest grid level
-NFINEST = REF_FACTOR*N      		                  // effective number of grid cells on finest   grid level
+REF_RATIO  = 2                                     // refinement ratio between levels
+M = 24					                              // number of nodes per edge of Lagrangian mesh
+MFAC = 0.5                                         // ratio of Lagrangian mesh width to Cartesian mesh width of the rectangular
+N = ceil(M * MFAC * L_X / L_lag)                   // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N           // effective number of grid cells on finest   grid level
 DX0 = L_X/N                                        // mesh width on coarsest grid level
 DX  = L_X/NFINEST                                  // mesh width on finest   grid level
 N_X = N
-N_Y = N_X * (L_Y / L_X)
-
-// problem parameters
-SMOOTH_CASE = FALSE
-
-VelocityInitialConditions {
-   function_0 = "0.0"
-   function_1 = "0.0"
-}
-
-PressureInitialConditions {
-   function = "0.0"
-}
-
+N_Y = N_X
+N_Z = N_X
 
 // solver parameters
 DELTA_FUNCTION      = "IB_4"
-// DT                  = 1.0e-4                   // maximum timestep size
+// DT                  = 1.0e-4                // maximum timestep size
 START_TIME          = 0.0e0                    // initial simulation time
-END_TIME            = 500.0                     // final simulation time
+LOAD_TIME           = 14.0                      // time when the full load is applied
+END_TIME            = 35.0                     // final simulation time
 GROW_DT             = 2.0e0                    // growth factor for timesteps
 NUM_CYCLES          = 1                        // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE  = "ADAMS_BASHFORTH"        // convective time stepping type
@@ -50,6 +48,8 @@ CONVECTIVE_FORM     = "ADVECTIVE"              // how to compute the convective 
 NORMALIZE_PRESSURE  = TRUE                     // whether to explicitly force the pressure to have mean zero
 CFL_MAX             = 0.2                      // maximum CFL number
 DT                  = .025*CFL_MAX*DX/U_MAX    // maximum timestep size
+// DT                  = 1.0e-4                   // maximum timestep size
+// END_TIME            = DT                       // final simulation time
 ERROR_ON_DT_CHANGE  = FALSE                    // whether to emit an error message if the time step size changes
 VORTICITY_TAGGING   = FALSE                    // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER          = 1                        // size of tag buffer used by grid generation algorithm
@@ -62,22 +62,36 @@ OUTPUT_OMEGA        = TRUE
 OUTPUT_DIV_U        = TRUE
 ENABLE_LOGGING      = TRUE
 
+// problem parameters
+SMOOTH_CASE = FALSE
+
+VelocityInitialConditions {
+   function_0 = "0.0"
+   function_1 = "0.0"
+   function_2 = "0.0"
+}
 
 VelocityBcCoefs_0 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 VelocityBcCoefs_1 {
@@ -85,18 +99,50 @@ VelocityBcCoefs_1 {
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
+VelocityBcCoefs_2 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "1.0"
+   acoef_function_5 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "0.0"
+   bcoef_function_5 = "0.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+PressureInitialConditions {
+   function = "0.0"
+}
 
 IBHierarchyIntegrator {
    start_time          = START_TIME
@@ -112,8 +158,8 @@ IBHierarchyIntegrator {
 }
 
 IBPDForceGen {
-    horizon        = 2.015
-    ds             = 1.0/3.2
+   ds             = MFAC * DX
+   horizon        = HORIZON_SIZE
 }
 
 IBPDMethod {
@@ -124,10 +170,10 @@ IBPDMethod {
 
 IBStandardInitializer {
    max_levels      = MAX_LEVELS
-   structure_names = "sheet2d"
-   posn_shift = 0.0 , 0.0 
+   structure_names = "membrane3d"
+   posn_shift = 0.0 , 0.0, 0.0
 
-   sheet2d {
+   membrane3d {
       level_number = MAX_LEVELS - 1
    }
 }
@@ -157,32 +203,32 @@ INSStaggeredHierarchyIntegrator {
 
 Main {
 // log file parameters
-   log_file_name               = "IB2d.log"
+   log_file_name               = "IB3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
-   viz_dump_interval           = 100
-   viz_dump_dirname            = "viz_IB2d"
+   viz_dump_interval           = 400
+   viz_dump_dirname            = "viz_IB3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
-   restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_IB2d"
+   restart_dump_interval       = 10000
+   restart_dump_dirname        = "restart_IB3d"
 
 // hierarchy data dump parameters
    data_dump_interval          = 0
-   data_dump_dirname           = "hier_data_IB2d"
+   data_dump_dirname           = "hier_data_IB3d"
 
 // timer dump parameters
    timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0),(N_X - 1,N_Y - 1) ]
-   x_lo = 0,0
-   x_up =  L_X, L_Y
-   periodic_dimension = 0, 0
+   domain_boxes = [ (0,0,0),(N_X - 1,N_Y - 1, N_Z - 1) ]
+   x_lo = 0, 0, 0
+   x_up = L_X, L_Y, L_Z
+   periodic_dimension = 0, 0, 0
 }
 
 GriddingAlgorithm {
@@ -195,10 +241,10 @@ GriddingAlgorithm {
       level_5 = REF_RATIO,REF_RATIO, REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512,512  // all finer levels will use same values as level_0
+      level_0 = 512, 512, 512  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
-      level_0 =   8,  8  // all finer levels will use same values as level_0
+      level_0 =   8, 8, 8  // all finer levels will use same values as level_0
    }
    efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
    combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box

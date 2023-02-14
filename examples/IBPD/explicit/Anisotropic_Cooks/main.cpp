@@ -47,44 +47,61 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const double loop_time,
                  const string& data_dump_dirname);
 
+// material parameters
+static int M_temp;
+static double Horizon_size_temp;
+static double Poisson_ratio_temp;
+static double horizon;
+static double P;
+static double DX;
+static double G;
+static double K_bulk;
+static double current_time;
+static double load_time;
+static double Damping;
+static int totnode;
 
-static const int nx = 11; 
-static const int ny = 6;
-static const int left_begin = 0;
-static const int left_end = ny - 1;
-static const int right_begin = nx*ny - ny;
-static const int right_end = nx*ny - 1;
+// cook's membrane
+static const double x_begin = 0.0;
+static const double x_end = 4.8;
+static const double y_left_begin = 0.0;
+static const double y_left_end = 4.4;
+static const double y_right_begin = 4.4;
+static const double y_right_end = 6.0;
 
-static const double dens = 1100.0;
-static const double DX = 1.0 / 10.0;
-static const double E = 1.0e6;
-static const double P = 0.4;
-static const double L = E * P / ((1. + P) * (1. - 2. * P));
-static const double M = E / (2. * (1. + P));
-static const double K = L + 2.*M/3.;
-static const double appres = 1.0e3;
+static const double appres = 6.25;                                          // External loading
+
+#if (NDIM == 3)
+static const double GT = 8.0;
+static const double GL = 160.0;
+static const double EL = 1200.0;
+#endif
 
 double
 my_inf_fcn(double R0, double /*delta*/)
 {
     static const double A = 2.0;
-    // static const double C = 24.0 / (2.0 * M_PI * A * A * A);
+    #if (NDIM == 3)
+    static const double C = 24.0 / (2.0 * M_PI * A * A * A);
+    #endif
+    #if (NDIM == 2)
     static const double C = 60.0 / (7.0 * M_PI * A * A);
+    #endif
 
     double W;
 
-    double r = R0 / DX;
+    double r = 2.0 *  R0 / horizon;
     if (r < 1.0)
     {
-        W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
+     	W = C * (2.0 / 3.0 - r * r + 0.5 * r * r * r);
     }
     else if (r <= 2.0)
     {
-        W = C * std::pow((2.0 - r), 3) / 6.0;
+     	W = C * std::pow((2.0 - r), 3) / 6.0;
     }
     else
     {
-        W = 0.0;
+     	W = 0.0;
     }
 
     return W;
@@ -94,7 +111,6 @@ my_inf_fcn(double R0, double /*delta*/)
 double
 my_vol_frac_fcn(double R0, double /*horizon*/, double /*delta*/)
 {
-    double horizon = 2.015 * DX;
     double delta = DX;
     double vol_frac;
     if (R0 <= (horizon - delta))
@@ -122,21 +138,59 @@ my_PK1_fcn(Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>& PK1,
 {
     using mat_type = Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor>;
     static const mat_type II = mat_type::Identity();
-    mat_type e = 0.5 * (FF.transpose() + FF) - II;
-    const double tr_e = e.trace();
-    PK1 = L * tr_e * II + 2.0 * M * e;
 
-    // mat_type CC = FF.transpose()*FF;
+    #if (NDIM == 3)
+    Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
+    F0 << FF(0), FF(1), FF(2), FF(3), FF(4), FF(5), FF(6), FF(7), FF(8);
+
+    mat_type FF_trans = F0.transpose();
+    mat_type FF_inv_trans = FF_trans.inverse();
+    mat_type CC = F0.transpose()*F0;
+    const double tr_cc = CC.trace();
+    const double J = std::abs(F0.determinant());
+    const double Jp = pow(J,-2.0/3.0);
+
+    using vec_type = IBTK::Vector;
+    vec_type A0;
+    A0 << 1.0, 1.0 , 1.0;
+    Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> M0;
+    M0 << 1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0, 1.0/3.0;
+    static const double I4 = (CC(0) + CC(1) + CC(2) + CC(3) + CC(4) + CC(5) + CC(6) + CC(7) + CC(8)) / 3.0;
+
+    PK1 = GT * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + (GT - GL) * (2.0 * F0 * M0 - F0 * M0 * CC - F0 * CC * M0) + (EL + GT - 4.0 * GL) / 2.0 * (I4 - 1.0) * F0 * M0 +  K_bulk * log(J) * FF_inv_trans;
+    #endif
+    
+    #if (NDIM == 2)
+    Eigen::Matrix<double, NDIM, NDIM, Eigen::RowMajor> F0;
+    F0 << FF(0), FF(1), FF(2), FF(3);
+    // mat_type e = 0.5 * (FF.transpose() + FF) - II;
+    
+
+    // // St. Venant model
+    // const double tr_e = e.trace();
+    // PK1 = L * tr_e * II + 2.0 * M * e;
+
+    // // Neo-hookean model
+    // const double J = std::abs(FF.determinant());
     // mat_type FF_trans = FF.transpose();
     // mat_type FF_inv_trans = FF_trans.inverse();
-    // // tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-    // const double tr_cc = CC.trace();
-    // const double J = std::abs(FF.determinant());
+    // PK1 = G * FF + K * log(J)*FF_inv_trans;
+
+    // stabilized neo-hookean model
+    mat_type CC = F0.transpose()*F0;
+    mat_type FF_trans = F0.transpose();
+    mat_type FF_inv_trans = FF_trans.inverse();
+    const double tr_cc = CC.trace();
+    const double J = std::abs(F0.determinant());
     // const double Jsquare = pow(J,2.0);
-    // PK1 = M*(FF - tr_cc*FF_inv_trans/2.)/J + K*(Jsquare - 1./Jsquare)*FF_inv_trans/4.;
+    const double Jp = pow(J,-2.0/3.0);
+    // PK1 = G * (F0 - tr_cc*FF_inv_trans/2.)/J + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
+    // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K * (Jsquare - 1./Jsquare)*FF_inv_trans/4.;
+    // PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_n * J * log(J) * FF_inv_trans;
+    PK1 = G * Jp * (F0 - tr_cc * FF_inv_trans / 3.0) + K_bulk * log(J) * FF_inv_trans;
+    #endif
 
     return;
-
 } // my_PK1_fcn
 
 Eigen::Vector4d
@@ -160,9 +214,19 @@ my_force_damage_fcn(const double /*horizon*/,
 {
     // Bond parameters
     // 0 --> Kappa, 1 --> R0, 2--> user defined
+    const double& R0 = parameters[1];
     const double& vol_mastr = parameters[2];
     const double& vol_slave = parameters[3];
     double& fail = parameters[4];
+    const double& critical_stretch = parameters[5];
+
+    // // Estimate failure.
+    const double R = (X_slave - X_mastr).norm();
+    // const double stretch = (R - R0) / R0;
+    // if (!MathUtilities<double>::equalEps(fail, 0.0) && stretch > critical_stretch)
+    // {
+    //     fail = 0.0;
+    // }
 
     // PK1 stress tensor
     using vec_type = IBTK::Vector;
@@ -171,14 +235,38 @@ my_force_damage_fcn(const double /*horizon*/,
     my_PK1_fcn(PK1_mastr, FF_mastr, X0_mastr, lag_mastr_node_idx);
     my_PK1_fcn(PK1_slave, FF_slave, X0_slave, lag_slave_node_idx);
 
-    // Compute PD force.
-    const double penalty_fac = 0.0;
-    // vec_type pen_trac = penalty_fac * ((X_slave - X0_slave) - (X_mastr - X0_mastr));
-    vec_type pen_trac = penalty_fac * (X_slave - X_mastr);
+    // Compute PD force
     vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
-    F_mastr += vol_frac * vol_slave * trac + pen_trac;
-    F_slave += -vol_frac * vol_mastr * trac - pen_trac;
-    // std::cout<<"F_mastr =" <<F_mastr << "F_slave =" << F_slave << "\n";
+
+    // static const double dy = (y_left_end - y_left_begin) / double(ny-1);
+    // static const double dyy = (y_right_end - y_right_begin) / double(ny-1);
+
+    // double vol_mastr_indi = (X0_mastr(0) - 2.0) / DX;
+    // double vol_slave_indi = (X0_slave(0) - 2.0) / DX;
+    // double length_mastr = double(ny-1) * (dyy - dy) * vol_mastr_indi / double(nx-1) + dy * double(ny-1);
+    // double length_slave = double(ny-1) * (dyy - dy) * vol_slave_indi / double(nx-1) + dy * double(ny-1);
+
+    // const double modi_vol_mastr = vol_mastr / DX * (length_mastr / double(ny -1));
+    // const double modi_vol_slave = vol_slave / DX * (length_slave / double(ny -1));
+
+    F_mastr += fail * vol_frac * vol_slave * trac;
+    F_slave += -fail * vol_frac * vol_mastr * trac;
+
+    // // zero energy mode
+    // const double C_hg = 0.0;
+    // const double penalty_fac = C_hg*18.0*K_bulk/(M_PI * pow(horizon,4.0));
+
+    // vec_type hourglass_vec_slave, hourglass_vec_mastr;
+    // static const mat_type II = mat_type::Identity();
+    // hourglass_vec_mastr = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_mastr - II)*(X0_slave - X0_mastr);
+    // hourglass_vec_slave = -((X_slave - X_mastr) - (X0_slave - X0_mastr)) + (FF_slave - II)*(X0_slave - X0_mastr);
+    // double hourglass_proj_mastr = hourglass_vec_mastr(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_mastr(1)*(X_slave(1) - X_mastr(1));
+    // double hourglass_proj_slave = hourglass_vec_slave(0)*(X_slave(0) - X_mastr(0)) + hourglass_vec_slave(1)*(X_slave(1) - X_mastr(1));
+    // vec_type pen_trac_mastr = - penalty_fac * hourglass_proj_mastr/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr;
+    // vec_type pen_trac_slave = - penalty_fac * hourglass_proj_slave/R * (X_slave - X_mastr)/R * vol_slave * vol_mastr;
+    // vec_type trac = W * (PK1_mastr * B_mastr + PK1_slave * B_slave) * (X0_slave - X0_mastr);
+    // F_mastr += fail * vol_frac * vol_slave * (trac  + pen_trac_mastr + pen_trac_slave); // add an external force
+    // F_slave += -fail * vol_frac * vol_mastr * (trac + pen_trac_mastr + pen_trac_slave);
 
     // Compute damage.
     Eigen::Vector4d D;
@@ -188,8 +276,54 @@ my_force_damage_fcn(const double /*horizon*/,
     D(3) = vol_mastr * vol_frac;
 
     return D;
-
+    
 } // my_force_damage_fcn
+
+void
+my_surface_force_func(const Eigen::Map<const IBTK::Vector>& X,
+                          const Eigen::Map<const IBTK::Vector>& X_target,
+                          const Eigen::Map<const IBTK::Vector>& U,
+                          int lag_idx,
+                          Eigen::Map<IBTK::Vector>& F)
+{
+    //X_target is the material variable, X is the spatial variable
+    static double kappa = 4.0e5;
+    // static double ddx = 1.6 / 4.4 * DX;
+    // cook's membrane
+    if (X_target(0) <= x_begin+2.0)
+    {
+        F += kappa * (X_target - X);
+    }
+    else if (X_target(0) == x_end+2.0)
+    {   
+        if (current_time < load_time)
+        {
+          F(1) += appres / DX * current_time / load_time;
+        }
+        else
+        {
+          F(1) += appres / DX;
+        }
+    }
+
+    return;
+} // my_surface_force_func
+
+void
+my_target_point_force_fcn(const Eigen::Map<const IBTK::Vector>& X,
+                          const Eigen::Map<const IBTK::Vector>& X_target,
+                          const Eigen::Map<const IBTK::Vector>& U,
+                          double K,
+                          double ETA,
+                          int lag_idx,
+                          Eigen::Map<IBTK::Vector>& F)
+{
+    F += - Damping * U;
+
+    my_surface_force_func(X, X_target, U, lag_idx, F);
+
+    return;
+} // my_target_point_force_fcn
 
 class MyIBPDMethod : public IBPDMethod
 {
@@ -215,12 +349,6 @@ public:
     } // MyIBPDMethod
 
     ~MyIBPDMethod() = default;
-
-    void preprocessIntegrateData(double current_time, double new_time, int num_cycles) override
-    {
-        IBPDMethod::preprocessIntegrateData(current_time, new_time, num_cycles);
-        return;
-    } // preprocessIntegrateData
 
     void postprocessIntegrateData(double current_time, double new_time, int num_cycles) override
     {
@@ -278,8 +406,16 @@ public:
                 {
                     const double X0_0 = X0[++counter_X0];
                     const double X0_1 = X0[++counter_X0];
+                    #if (NDIM == 3)
+                        const double X0_2 = X0[++counter_X0];
+                        (void)X0_2;
+                    #endif
                     const double X_0 = X[++counter_X];
                     const double X_1 = X[++counter_X];
+                    #if (NDIM == 3)
+                    const double X_2 = X[++counter_X];
+                    (void)X_2;
+                    #endif
                     const double dmg = D[++counter_D];
                     D_stream << X0_0 << "\t" << X0_1 << "\t" << X_0 - X0_0 << "\t" << X_1 - X0_1 << "\t" << dmg
                              << std::endl;
@@ -301,152 +437,6 @@ public:
 
         return;
     } // postprocessIntegrateData
-
-    void forwardEulerStep(const double current_time, const double new_time) override
-    {
-        const double dt = new_time - current_time;
-        const int coarsest_ln = 0;
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
-            Pointer<LData> X_0_data = d_l_data_manager->getLData("X0", ln);
-            Pointer<LData> X_current_data = d_X_current_data[ln];
-            Pointer<LData> X_half_data = d_X_half_data[ln];
-            Pointer<LData> U_current_data = d_U_current_data[ln];
-
-            boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& X_current_data_array = *X_current_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& X_half_data_array = *X_half_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
-
-            const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (const auto& node : local_nodes)
-            {
-                const int local_idx = node->getLocalPETScIndex();
-
-                const double* U_current = &U_current_data_array[local_idx][0];
-                const double* X_current = &X_current_data_array[local_idx][0];
-                const double* X_0 = &X_0_data_array[local_idx][0];
-                double* X_half = &X_half_data_array[local_idx][0];
-
-                  for (int d = 0; d < NDIM; ++d)
-                    {
-                        X_half[d] = X_current[d] + 0.5 * dt * (U_current[d]);
-                    }
-
-            }
-
-            X_current_data->restoreArrays();
-            X_half_data->restoreArrays();
-            U_current_data->restoreArrays();
-        }
-        return;
-    } // forwardEulerStep
-
-    void midpointStep(const double current_time, const double new_time) override
-    {
-        static const double cn = 1e6;
-
-        const double dt = new_time - current_time;
-        const int coarsest_ln = 0;
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-
-            Pointer<LData> X_0_data = d_l_data_manager->getLData("X0", ln);
-            Pointer<LData> X_current_data = d_X_current_data[ln];
-            Pointer<LData> X_new_data = d_X_new_data[ln];
-            Pointer<LData> U_current_data = d_U_current_data[ln];
-            Pointer<LData> U_new_data = d_U_new_data[ln];
-            Pointer<LData> F_half_data = d_F_half_data[ln];
-
-            boost::multi_array_ref<double, 2>& X_0_data_array = *X_0_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& X_current_data_array = *X_current_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& X_new_data_array = *X_new_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& U_current_data_array = *U_current_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& U_new_data_array = *U_new_data->getLocalFormVecArray();
-            boost::multi_array_ref<double, 2>& F_half_data_array = *F_half_data->getLocalFormVecArray();
-
-            const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
-            const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
-            for (const auto& node : local_nodes)
-            {
-                const int lag_idx = node->getLagrangianIndex();
-                const int local_idx = node->getLocalPETScIndex();
-
-                const double* U_current = &U_current_data_array[local_idx][0];
-                double* U_new = &U_new_data_array[local_idx][0];
-
-                const double* X_0 = &X_0_data_array[local_idx][0];
-                const double* X_current = &X_current_data_array[local_idx][0];
-                double* X_new = &X_new_data_array[local_idx][0];
-                double* F_half = &F_half_data_array[local_idx][0];
-
-                if (lag_idx >= left_begin && lag_idx <= left_end)
-                {
-                    double bforce[NDIM] = { 0.0 };
-                    bforce[0] = - appres / DX;
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                      U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
-                      X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
-                    }
-                }
-                else if (lag_idx >= right_begin && lag_idx <= right_end)
-                {
-                    double bforce[NDIM] = { 0.0 };
-                    bforce[0] = appres / DX;
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                      U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * (F_half[d] + bforce[d]);
-                      X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
-                    }
-                }
-                else
-                {
-                    for (int d = 0; d < NDIM; ++d)
-                    {
-                      U_new[d] = (1.0 - cn * dt / dens) * U_current[d] + (dt / dens) * F_half[d];
-                      X_new[d] = X_current[d] + 0.5 * dt * (U_new[d] + U_current[d]);
-                    }
-                }
-
-                std::cout <<"F_half =" << F_half[0] << "," << F_half[1] << "\n";
-            }
-
-            X_0_data->restoreArrays();
-            X_current_data->restoreArrays();
-            X_new_data->restoreArrays();
-            F_half_data->restoreArrays();
-            U_current_data->restoreArrays();
-            U_new_data->restoreArrays();
-        }
-
-        return;
-
-    } // midpointStep
-
-    void spreadForce(const int /*f_data_idx*/,
-                     RobinPhysBdryPatchStrategy* /*f_phys_bdry_op*/,
-                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
-                     const double /*data_time*/) override
-    {
-        return;
-    } // spreadForce
-
-    void interpolateVelocity(const int /*u_data_idx*/,
-                             const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                             const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-                             const double /*data_time*/) override
-    {
-        return;
-    } // interpolateVelocity
 };
 
 /*******************************************************************************
@@ -473,6 +463,18 @@ main(int argc, char* argv[])
         // and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+
+        M_temp = input_db->getInteger("M");
+        totnode = (M_temp + 1) * (M_temp / 2 + 1);
+        Horizon_size_temp = input_db->getDouble("HORIZON_SIZE");
+        Poisson_ratio_temp = input_db->getDouble("POISSON_RATIO");
+        G = input_db->getDouble("SHEAR_MOD");
+        K_bulk = input_db->getDouble("BULK_MOD");
+        Damping = input_db->getDouble("DAMPING");
+        load_time = input_db->getDouble("LOAD_TIME");
+        DX = (x_end - x_begin) / double(M_temp);
+        horizon = Horizon_size_temp * DX;
+        P = Poisson_ratio_temp;
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -531,6 +533,7 @@ main(int argc, char* argv[])
         Pointer<IBPDForceGen> ib_force_fcn = new IBPDForceGen(app_initializer->getComponentDatabase("IBPDForceGen"));
         ib_force_fcn->registerBondForceSpecificationFunction(
             0, &my_PK1_fcn, &my_force_damage_fcn, &my_inf_fcn, &my_vol_frac_fcn);
+        ib_force_fcn->registerTargetPointForceFunction(&my_target_point_force_fcn);
         ib_method_ops->registerIBPDForceGen(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.  These
@@ -620,6 +623,7 @@ main(int argc, char* argv[])
         {
             iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
+            current_time = loop_time;
 
             pout << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
