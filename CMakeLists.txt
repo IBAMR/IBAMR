@@ -856,6 +856,47 @@ IF(NOT "${SILO_ROOT}" STREQUAL "")
       NOT "${SILO_INCLUDE_DIRS}" STREQUAL "SILO_INCLUDE_DIRS-NOTFOUND")
     MESSAGE(STATUS "SILO_INCLUDE_DIRS: ${SILO_INCLUDE_DIRS}")
     MESSAGE(STATUS "SILO_LIBRARIES: ${SILO_LIBRARIES}")
+
+    # silo version info (use the symbol):
+    FILE(STRINGS "${SILO_ROOT}/include/silo.h" SILO_VERSION_LINE
+      REGEX "#define.*SILO_VERS_TAG.*Silo_version_")
+    STRING(REGEX REPLACE ".*Silo_version_([0-9]+)_.*" "\\1"
+      SILO_VERSION_MAJOR "${SILO_VERSION_LINE}")
+    STRING(REGEX REPLACE ".*Silo_version_[0-9]+_([0-9]+).*" "\\1"
+      SILO_VERSION_MINOR "${SILO_VERSION_LINE}")
+    SET(SILO_VERSION_STRING "${SILO_VERSION_MAJOR}.${SILO_VERSION_MINOR}")
+
+    # that didn't work - try the configuration file:
+    IF ("${SILO_VERSION_STRING}" STREQUAL ".")
+      SET(_silo_settings_file "")
+      IF(EXISTS "${SILO_ROOT}/lib/libsilo.settings")
+        SET(_silo_settings_file "${SILO_ROOT}/lib/libsilo.settings")
+      ELSEIF(EXISTS "${SILO_ROOT}/lib/libsiloh5.settings")
+        SET(_silo_settings_file "${SILO_ROOT}/lib/libsiloh5.settings")
+      ELSE()
+        MESSAGE(FATAL_ERROR "Unable to determine the SILO version from either \
+silo.h, libsilo.settings, or libsiloh5.settings.")
+      ENDIF()
+
+      MESSAGE(STATUS "Unable to parse SILO version string from silo.h - using \
+fallback check")
+      FILE(STRINGS "${_silo_settings_file}" SILO_VERSION_LINE
+        REGEX "Silo Version")
+      STRING(REGEX REPLACE ".*: *([0-9]+.[0-9]+)" "\\1" SILO_VERSION_STRING
+        "${SILO_VERSION_LINE}")
+    ENDIF()
+
+    IF("${SILO_VERSION_STRING}" STREQUAL ".")
+      MESSAGE(FATAL_ERROR "Unable to parse the SILO version string.")
+    ENDIF()
+
+    MESSAGE(STATUS "Found SILO ${SILO_VERSION_STRING} at ${SILO_ROOT}")
+
+    IF(${SILO_VERSION_STRING} VERSION_LESS "4.11")
+      MESSAGE(FATAL_ERROR "IBAMR is incompatible with Silo versions prior to
+4.11. Either disable Silo or use a newer version.")
+    ENDIF()
+
     SET(IBAMR_HAVE_SILO TRUE)
 
     ADD_LIBRARY(SILO INTERFACE)
