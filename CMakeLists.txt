@@ -1155,8 +1155,16 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   ENDIF()
 
   # To manage staticly-linked dependencies, we put these in order so that if X
-  # depends on Y we link against Y first.
+  # depends on Y we link against X first.
 
+  # libMesh:
+  IF(${IBAMR_HAVE_LIBMESH})
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${LIBMESH_LIBRARIES}")
+    TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${LIBMESH_INCLUDE_DIRS}")
+  ENDIF()
+  # PETSc:
+  TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${PETSC_LIBRARIES}")
+  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${PETSC_INCLUDE_DIRS}")
   # we and our users will use these MPI functions so make the interface public:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_C)
   # If openMPI is built with the old C++ bindings enabled then we need to link
@@ -1165,12 +1173,6 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   IF(${MPI_MPICXX_FOUND})
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_CXX)
   ENDIF()
-  # HDF5:
-  TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HDF5_LIBRARIES}")
-  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HDF5_INCLUDE_DIRS}")
-  # PETSc:
-  TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${PETSC_LIBRARIES}")
-  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${PETSC_INCLUDE_DIRS}")
   # Silo is underlinked and depends on HDF5, so do it first:
   IF(${IBAMR_HAVE_SILO})
     TARGET_LINK_LIBRARIES(${target_library} PRIVATE SILO)
@@ -1180,6 +1182,13 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   FOREACH(_lib ${SAMRAI${_d}d_LIBRARIES})
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC ${_lib})
   ENDFOREACH()
+  # HDF5:
+  TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HDF5_LIBRARIES}")
+  TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HDF5_INCLUDE_DIRS}")
+
+  # Boost, Eigen3, and muParser have no dependencies nor are dependencies of any
+  # other package
+
   # Boost (we only need headers):
   IF(${IBAMR_USE_BUNDLED_BOOST})
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_BOOST)
@@ -1192,11 +1201,6 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   ELSE()
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC Eigen3::Eigen)
   ENDIF()
-  # libMesh:
-  IF(${IBAMR_HAVE_LIBMESH})
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${LIBMESH_LIBRARIES}")
-    TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${LIBMESH_INCLUDE_DIRS}")
-  ENDIF()
   # muParser:
   IF(${IBAMR_USE_BUNDLED_MUPARSER})
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC BUNDLED_MUPARSER)
@@ -1204,6 +1208,7 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
     TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${MUPARSER_LIBRARIES}")
     TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${MUPARSER_INCLUDE_DIRS}")
   ENDIF()
+
   # Hypre:
   # See the note under PETSc for why we do this
   #
