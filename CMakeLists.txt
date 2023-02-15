@@ -628,7 +628,7 @@ ${LIBMESH_ROOT} is version ${LIBMESH_VERSION}")
     STRING(REGEX REPLACE "\n$" "" LIBMESH_LIBRARIES ${LIBMESH_LIBRARIES})
     SEPARATE_ARGUMENTS(LIBMESH_LIBRARIES)
     FIND_LIBRARY(LIBMESH_LIBRARY REQUIRED NAMES "mesh_${_lower_method}" HINTS ${LIBMESH_ROOT}/lib)
-    IF("${LIBMESH_LIBRARY}" STREQUAL "${LIBMESH_LIBRARY}-NOTFOUND")
+    IF("${LIBMESH_LIBRARY}" STREQUAL "LIBMESH_LIBRARY-NOTFOUND")
       MESSAGE(FATAL_ERROR "
 Unable to find the libMesh library itself. This usually happens when either \
 libMesh is installed incorrectly or the wrong LIBMESH_METHOD was given to \
