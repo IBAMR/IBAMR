@@ -103,8 +103,8 @@ build_nodal_qrule(const Order order, const unsigned int dim)
         // tensor-product trapezoid or vertex-based quadrature on simplices
         return QBase::build(QTRAP, dim, FIRST);
     case SECOND:
-        // tensor-product trapezoid or vertex-based quadrature on simplices
-        return QBase::build(QSIMPSON, dim, SECOND);
+        // In this case we can actually use QNODAL
+        return QBase::build(QNODAL, dim, SECOND);
     default:
         TBOX_ERROR(
             "FEProjector::build_nodal_qrule(): unsupported combination "
@@ -127,7 +127,7 @@ qrule_is_nodal(const FEType& fe_type, const QBase* const qrule)
         if (fe_type.family == MONOMIAL && fe_order != CONSTANT) return false;
         if (fe_order == CONSTANT && qrule->type() != QGAUSS) return false;
         if (fe_order == FIRST && qrule->type() != QTRAP) return false;
-        if (fe_order == SECOND && qrule->type() != QSIMPSON) return false;
+        if (fe_order == SECOND && !(qrule->type() == QNODAL || qrule->type() == QSIMPSON)) return false;
         if (fe_order == SECOND && !((elem_type == EDGE3) || (elem_type == TRI6 || elem_type == QUAD9) ||
                                     (elem_type == TET10 || elem_type == HEX27)))
             return false;
