@@ -61,7 +61,7 @@ jobs:
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate sccache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: sccache
         id: cache
@@ -168,7 +168,7 @@ jobs:
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate sccache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: sccache
         id: cache
@@ -238,7 +238,7 @@ jobs:
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate sccache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: sccache
         id: cache
@@ -315,7 +315,7 @@ jobs:
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate ccache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: ccache
         id: cache
@@ -384,7 +384,7 @@ jobs:
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate ccache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: ccache
         id: cache
