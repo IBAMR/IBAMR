@@ -1526,7 +1526,7 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
             // have a sign check)
             //
             // We cannot use the provide Elem::volume() functions since some
-            // (tri3) are unsigned while others (tet4) are unsigned
+            // (tri3) are unsigned while others (tet4) are signed
             FEMappingCache<NDIM, NDIM> mapping_cache(FEUpdateFlags::update_contravariants);
 
             MeshBase::const_element_iterator el_it = mesh->active_local_elements_begin();
