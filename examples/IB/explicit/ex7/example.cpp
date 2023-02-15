@@ -54,6 +54,32 @@
  *                                                                             *
  *******************************************************************************/
 
+struct Lag_Coords
+{
+    int lag_idx; // The global lag index
+    double X;
+    double Y;
+    double Z;
+
+    // Default constructor
+    Lag_Coords()
+    : lag_idx(std::numeric_limits<int>::max())
+    , X(std::numeric_limits<double>::quiet_NaN())
+    , Y(std::numeric_limits<double>::quiet_NaN())
+    , Z(std::numeric_limits<double>::quiet_NaN())
+    {}
+
+    Lag_Coords(int idx, double x1, double x2, double x3)
+    {
+        lag_idx = idx;
+        X = x1;
+        Y = x2;
+        Z = x3;
+        
+    }
+};
+
+
 // NOTE: These values are read in below from the input file. The values listed here are the default values.
 static int post_struct_id = 0; // post structure ID number [NOTE: This assumes that the post structures are the first to
                                // be listed in the input file]
@@ -330,9 +356,24 @@ main(int argc, char* argv[])
         // Create Text File which Stores the locations of each IB point.
         std::ofstream fout;
 
+        // Define an MPI type for the Lag_Coords struct
+        const int items = NDIM + 1;
+
+        int blocklength[4] = { 1, 1, 1, 1 };
+        MPI_Datatype types[4] = { MPI_INT, MPI_DOUBLE, MPI_DOUBLE, MPI_DOUBLE };
+        MPI_Datatype mpi_lag_coords_type;
+        MPI_Aint offsets[4];
+        offsets[0] = offsetof(Lag_Coords, lag_idx);
+        offsets[1] = offsetof(Lag_Coords, X);
+        offsets[2] = offsetof(Lag_Coords, Y);
+        offsets[3] = offsetof(Lag_Coords, Z);
+
+        MPI_Type_create_struct(items, blocklength, offsets, types, &mpi_lag_coords_type);
+        MPI_Type_commit(&mpi_lag_coords_type);
+
         if (rank == 0)
         {
-            fout.open("Coordinates.txt", std::ios::out);
+            fout.open("IBCoordinates.txt");
         }
 
         // Vector to store the number of nodes on each processor
@@ -391,43 +432,39 @@ main(int argc, char* argv[])
 
             IBTK_MPI::barrier();
             // initialize vector to store the nodal coordinates on each processor
-            std::vector<double> local_coordinates(num_nodes * NDIM);
-            int k = 0;
-
+            std::vector<Lag_Coords> local_coordinates;
             for (const auto& node : local_nodes)
             {
                 const int petsc_idx = node->getLocalPETScIndex();
+                const int lag_idx = node->getLagrangianIndex();
+                // put the lag idx as the first entry of the local_coordinates vector since the petsc indices may change
+                // throughout a computation
                 Eigen::Map<Vector3d> X(&x_vals[petsc_idx * NDIM]); // X is a vector containing the local coordinates
-                for (int m = 0; m < NDIM; m++)
-                {
-                    local_coordinates[NDIM * k + m] = X[m];
-                }
-
-                k = k + 1;
+                Lag_Coords loc(lag_idx,X[0],X[1],X[2]); //define a temporary Lag_Coords struct 
+                local_coordinates.push_back(loc); //add the temporary Lag_Coords struct into local_coordinates
             }
-            // Compute a vector containing the local node coordinates on each processor to be sent via MPI_Gatherv
 
             IBTK_MPI::barrier();
             // Initialize a vector to recieve the coordinates to print to
-            std::vector<double> global_coordinates;
+            std::vector<Lag_Coords> global_coordinates;
             // Specify what's done on the root process
             int total_nodes = 0;
             if (rank == 0)
             {
                 total_nodes = std::accumulate(nodes_per_proc.begin(), nodes_per_proc.end(), 0);
-                global_coordinates.resize(total_nodes * NDIM); // resize the receive buffer on the root process to
-                                                               // total_nodes*NDIM
+                global_coordinates.resize(total_nodes); // resize the receive buffer on the root process to receive the
+                                                        // Lag indices and the coordinates
 
                 // Setup the arrays for the counts and displacements
                 std::vector<int> count(n_proc);
                 std::vector<int> displacements(n_proc);
                 displacements[0] = 0;
-                count[0] = NDIM * num_nodes;
+                count[0] = num_nodes;
                 int sum_elem = 0;
                 for (int j = 1; j < n_proc; j++)
                 {
-                    sum_elem = sum_elem + NDIM * nodes_per_proc[j - 1];
-                    count[j] = NDIM * nodes_per_proc[j];
+                    sum_elem = sum_elem + nodes_per_proc[j - 1];
+                    count[j] = nodes_per_proc[j];
                     displacements[j] = sum_elem;
                 }
 
@@ -435,11 +472,11 @@ main(int argc, char* argv[])
 
                 MPI_Gatherv(local_coordinates.data(),
                             local_coordinates.size(),
-                            MPI_DOUBLE,
+                            mpi_lag_coords_type,
                             global_coordinates.data(),
                             count.data(),
                             displacements.data(),
-                            MPI_DOUBLE,
+                            mpi_lag_coords_type,
                             0,
                             IBTK_MPI::getCommunicator());
             }
@@ -447,39 +484,30 @@ main(int argc, char* argv[])
             { // specify what's done on the non-root processes
                 MPI_Gatherv(local_coordinates.data(),
                             local_coordinates.size(),
-                            MPI_DOUBLE,
+                            mpi_lag_coords_type,
                             NULL,
                             NULL,
                             NULL,
-                            MPI_DOUBLE,
+                            mpi_lag_coords_type,
                             0,
                             IBTK_MPI::getCommunicator());
             }
             IBTK_MPI::barrier();
-            // Now if we are on the root process, let's go ahead and print out the coordinates to "Coordinates.txt"
+            // Now if we are on the root process, let's go ahead and sort the global_coordinates vector according to the
+            // lag index and print out the coordinates to "IBCoordinates.txt"
             if (rank == 0)
             {
                 fout.unsetf(ios_base::showpos);
                 fout.setf(ios_base::scientific);
                 fout.precision(5);
 
-                for (int l = 0; l < total_nodes; l++)
-                {
-                    fout << loop_time << ",";
+                 std::sort(global_coordinates.begin(), global_coordinates.end(),
+                [](const Lag_Coords &a, const Lag_Coords &b) {return a.lag_idx < b.lag_idx;});
 
-                    for (int d = 0; d < NDIM; d++)
-                    {
-                        // Adding in an if statement here to avoid an extra comma ...
-                        if (d != NDIM - 1)
-                        {
-                            fout << global_coordinates[NDIM * l + d] << ",";
-                        }
-                        else
-                        {
-                            fout << global_coordinates[NDIM * l + d];
-                        }
-                    }
-                    fout << "\n";
+                for (const Lag_Coords& ldata : global_coordinates)
+                {
+                    fout << loop_time << ", " << ldata.lag_idx << ", " << ldata.X << ", " << ldata.Y << ", " << ldata.Z
+                         << "\n";
                 }
             }
 
@@ -510,6 +538,8 @@ main(int argc, char* argv[])
             }
         }
 
+        MPI_Type_free(&mpi_lag_coords_type);
+        
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
