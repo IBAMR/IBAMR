@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build IBAMR and run tests
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.10.1-bundled-deps'
+      image: 'docker://wellsd2/ibamr:ibamr-0.13.0-bundled-deps'
     env:
       # For now, hardwire the configuration since we have only one.
       # This is used by ctest_configure.cmake to initialize the
@@ -37,7 +37,7 @@ jobs:
       # so it is possible to run the same container with different
       # values to build different configurations (e.g., release vs
       # debug, with/without in situ processing, static analysis).
-      CMAKE_CONFIGURATION: fedora33
+      CMAKE_CONFIGURATION: fedora_bundled
 
       # If this variable is set, cause any build warnings to
       # be treated as an error (causing the build to fail before
@@ -46,7 +46,7 @@ jobs:
 
       # Delete old files in the cache (10G, the default limit, is GitHub's limit
       # for all cached artifacts)
-      SCCACHE_CACHE_SIZE: 500M
+      CCACHE_MAXSIZE: 500M
       CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
@@ -60,17 +60,17 @@ jobs:
           echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate sccache
+      - name: Populate ccache
         uses: actions/cache@v3
         env:
-          cache-name: sccache
+          cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/sccache
+          path: ~/.cache/ccache
           # A fundamental problem with the cache is that it is identified by a
           # single key and, should a cache with that key already exist, the
           # cache will not be updated. This makes sense for things like NPM but
-          # not so much for sccache, since we get a new and unique cache each
+          # not so much for ccache, since we get a new and unique cache each
           # time we rebuild the library with a new branch.
           #
           # To get around this, always make the key unique and rely on
@@ -85,15 +85,12 @@ jobs:
             ${{ runner.os }}-build-cmake-libmesh-${{ env.key5 }}
             ${{ runner.os }}-build-cmake-libmesh-
             ${{ runner.os }}-build-cmake
-      - name: Start sccache server
-        id: cache-server
-        run: sccache --start-server
       - name: Configure IBAMR
         id: configure
         run: |
           # HDF5 is installed in a weird way on Fedora - since we aren't using
           # modules we have to intervene manually
-          pushd ../
+          pushd /
           mkdir -p hdf5-shim
           ln -s /usr/include/mpich-x86_64 hdf5-shim/include
           ln -s /usr/lib64/mpich/lib hdf5-shim/lib
@@ -109,41 +106,41 @@ jobs:
           # Archive doesn't like absolute paths to files so dump everything in ~/
           find /build -name CMakeError.log -exec cp {} ./ \;
           find /build -name CMakeOutput.log -exec cp {} ./ \;
-          sccache --show-stats
+          ccache --show-stats
           exit $configure_status
       - name: Archive CMakeError.log
         if: always()
         uses: actions/upload-artifact@v1
         with:
-          name: fedora33-CMakeError.log
+          name: fedora_bundled-CMakeError.log
           path: CMakeError.log
       - name: Archive CMakeOutput.log
         if: always()
         uses: actions/upload-artifact@v1
         with:
-          name: fedora33-CMakeOutput.log
+          name: fedora_bundled-CMakeOutput.log
           path: CMakeOutput.log
       - name: Compile IBAMR
         id: build
         run: |
           cd /build/ibamr
           make -j2 tests examples
-          sccache --show-stats
+          ccache --show-stats
       - name: Test IBAMR
         id: test
         # run: ${{ LAUNCHER }} ctest --output-on-failure -V -S .github/cmake/ctest_test.cmake
         run: |
           bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
-          sccache --show-stats
+          ccache --show-stats
 
   # build IBAMR with CMake, no libMesh, and run tests
   build_ibamr_no_libmesh:
     runs-on: ubuntu-latest
     name: Build IBAMR and run tests (no libMesh)
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.10.1-bundled-deps'
+      image: 'docker://wellsd2/ibamr:ibamr-0.13.0-bundled-deps'
     env:
-      CMAKE_CONFIGURATION: fedora33_no_libmesh
+      CMAKE_CONFIGURATION: fedora_no_libmesh
 
       # If this variable is set, cause any build warnings to
       # be treated as an error (causing the build to fail before
@@ -152,7 +149,7 @@ jobs:
 
       # Delete old files in the cache (10G, the default limit, is GitHub's limit
       # for all cached artifacts)
-      SCCACHE_CACHE_SIZE: 500M
+      CCACHE_MAXSIZE: 500M
 
       CMAKE_GENERATOR: Unix Makefiles
     steps:
@@ -167,13 +164,13 @@ jobs:
           echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate sccache
+      - name: Populate ccache
         uses: actions/cache@v3
         env:
-          cache-name: sccache
+          cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/sccache
+          path: ~/.cache/ccache
           key: ${{ runner.os }}-build-cmake-no-libmesh-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key1 }}
@@ -182,28 +179,25 @@ jobs:
             ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key4 }}
             ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key5 }}
             ${{ runner.os }}-build-cmake-no-libmesh-
-      - name: Start sccache server
-        id: cache-server
-        run: sccache --start-server
       - name: Configure IBAMR
         id: configure
         run: |
           # HDF5 is installed in a weird way on Fedora - since we aren't using
           # modules we have to intervene manually
-          pushd ../
+          pushd /
           mkdir -p hdf5-shim
           ln -s /usr/include/mpich-x86_64 hdf5-shim/include
           ln -s /usr/lib64/mpich/lib hdf5-shim/lib
           export HDF5_ROOT=$(pwd)/hdf5-shim
           popd
           bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
-          sccache --show-stats
+          ccache --show-stats
       - name: Compile IBAMR
         id: build
         run: |
           cd /build/ibamr
           make -j2 tests
-          sccache --show-stats
+          ccache --show-stats
       - name: Test IBAMR
         id: test
         run: |
@@ -213,18 +207,18 @@ jobs:
         run: |
           cd /build/ibamr
           make -j2 examples
-          sccache --show-stats
+          ccache --show-stats
 
   # build IBAMR with autotools
   build_ibamr_autotools:
     runs-on: ubuntu-latest
     name: Build IBAMR (autotools)
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.10.1-bundled-deps'
+      image: 'docker://wellsd2/ibamr:ibamr-0.13.0-bundled-deps'
     env:
       # Delete old files in the cache (10G, the default limit, is GitHub's limit
       # for all cached artifacts)
-      SCCACHE_CACHE_SIZE: 500M
+      CCACHE_MAXSIZE: 500M
     steps:
       - name: Checkout Source
         uses: actions/checkout@v2
@@ -237,13 +231,13 @@ jobs:
           echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate sccache
+      - name: Populate ccache
         uses: actions/cache@v3
         env:
-          cache-name: sccache
+          cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/sccache
+          path: ~/.cache/ccache
           # The same note on picking keys above applies here.
           key: ${{ runner.os }}-build-autotools-${{ github.run_number }}
           restore-keys: |
@@ -253,25 +247,22 @@ jobs:
             ${{ runner.os }}-build-autotools-${{ env.key4 }}
             ${{ runner.os }}-build-autotools-${{ env.key5 }}
             ${{ runner.os }}-build-autotools-
-      - name: Start sccache server
-        id: cache-server
-        run: sccache --start-server
       - name: Configure IBAMR (autotools)
         id: configure
         run: |
           source /etc/profile.d/modules.sh
           module load mpi
-          export CC="sccache $(which mpicc)"
-          export CXX="sccache $(which mpic++)"
+          export CC="ccache $(which mpicc)"
+          export CXX="ccache $(which mpic++)"
           # we are just compiling things so go for speed
           export CFLAGS="-O0"
           export CXXFLAGS="-O0"
           export FFLAGS="-O0"
           mkdir build
           cd build
-          ../configure PETSC_DIR=/petsc/ --with-samrai=/samrai \
+          ../configure PETSC_DIR=/petsc/ --with-samrai=/usr \
           --enable-libmesh --with-libmesh=/libmesh --with-libmesh-method=opt
-          sccache --show-stats
+          ccache --show-stats
       - name: archive
         if: always()
         uses: actions/upload-artifact@v1
@@ -283,13 +274,13 @@ jobs:
         run: |
           source /etc/profile.d/modules.sh
           module load mpi
-          export CC="sccache $(which mpicc)"
-          export CXX="sccache $(which mpic++)"
+          export CC="ccache $(which mpicc)"
+          export CXX="ccache $(which mpic++)"
           echo "CC=${CC}"
           echo "CXX=${CXX}"
           cd build
           make -j2 tests examples
-          sccache --show-stats
+          ccache --show-stats
 
   # build IBAMR with CMake and run tests with our oldest dependencies on CENTOS 7
   build_ibamr_centos:
