@@ -1,0 +1,29 @@
+<h2>Incompatibilities</h2>
+<ol>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+Fixed: The bundled SAMRAI patch now works with Intel's mpifort compiler wrapper.
+<br>
+(David Wells, 2023/02/21)
+</li>
+<li>
+Fixed: The exported link order (when using CMake) of IBAMR now works correctly
+with external applications which also depend on HDF5.
+<br>
+(David Wells, 2023/01/27)
+</li>
+<li>
+Fixed: The saved flags IBAMR_CXX_FLAGS et al are now correct for the default
+case (i.e., when CMAKE_BUILD_TYPE is specified and flags are not explicitly
+set).
+<br>
+(David Wells, 2023/01/13)
+</li>
+</ol>
