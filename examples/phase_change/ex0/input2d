@@ -17,6 +17,7 @@ INITIAL_INTERFACE_POSITION = 0.0
 
 LIQUIDUS_TEMPERATURE = 938.6
 SOLIDUS_TEMPERATURE = 928.6
+REFERENCE_TEMPERATURE = 933.6
 
 // grid spacing parameters
 L          = 1.0
@@ -205,6 +206,7 @@ EnthalpyHierarchyIntegrator {
    k_vc_interpolation_type         = K_VC_INTERPOLATION_TYPE
    liquidus_temperature            = LIQUIDUS_TEMPERATURE
    solidus_temperature             = SOLIDUS_TEMPERATURE
+   reference_temperature           = REFERENCE_TEMPERATURE
    output_temp_k                   = TRUE
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"

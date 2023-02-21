@@ -30,6 +30,7 @@ NUMBER_OF_INTERFACE_CELLS  = 2
 
 LIQUIDUS_TEMPERATURE = 938.6
 SOLIDUS_TEMPERATURE = 928.6
+REFERENCE_TEMPERATURE = 933.6
 MASS_CONSERVATION_FILE_NAME = "pcm_mass"
 
 G          =  9.81
@@ -407,6 +408,7 @@ EnthalpyHierarchyIntegrator {
    k_vc_interpolation_type         = K_VC_INTERPOLATION_TYPE
    liquidus_temperature            = LIQUIDUS_TEMPERATURE
    solidus_temperature             = SOLIDUS_TEMPERATURE
+   reference_temperature           = REFERENCE_TEMPERATURE
    output_Div_U_F                  = OUTPUT_DIV_U_F
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
