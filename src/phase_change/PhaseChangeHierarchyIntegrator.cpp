@@ -700,7 +700,7 @@ PhaseChangeHierarchyIntegrator::registerHeavisideVariable(Pointer<CellVariable<N
 {
     d_H_var = H_var;
     return;
-} // setHeavisideVariable
+} // registerHeavisideVariable
 
 void
 PhaseChangeHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVariable<NDIM, double> > T_var,
@@ -787,12 +787,6 @@ PhaseChangeHierarchyIntegrator::setEnergyEquationSourceTermFunction(Pointer<IBTK
     d_T_F_fcn = T_F_fcn;
     return;
 } // setTemperatureSourceTermFunction
-
-int
-PhaseChangeHierarchyIntegrator::getUpdatedDensityIndex()
-{
-    return d_updated_rho_idx;
-} // getUpdatedDensityIndex
 
 int
 PhaseChangeHierarchyIntegrator::getDivergenceVelocitySourceTermIndex()

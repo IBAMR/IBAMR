@@ -256,7 +256,18 @@ public:
     /*!
      * \brief Get the updated density patch data index.
      */
-    int getUpdatedDensityIndex();
+    inline int getUpdatedDensityIndex() const
+    {
+        return d_rho_new_idx;
+    }
+
+    /*!
+     * \brief Get the updated specific heat patch data index.
+     */
+    inline int getUpdatedSpecificHeatIndex() const
+    {
+        return d_Cp_new_idx;
+    }
 
     /*!
      * \brief Get the source term patch data index for the div U equation.

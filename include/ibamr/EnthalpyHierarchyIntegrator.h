@@ -228,7 +228,13 @@ private:
     /*!
      * Energy equation parameters.
      */
-    double d_liquidus_temperature, d_solidus_temperature, d_Cp_liquid, d_Cp_solid, d_Cp_gas;
+    double d_liquidus_temperature, d_solidus_temperature, d_reference_temperature, d_Cp_liquid, d_Cp_solid, d_Cp_gas,
+        d_Cp_mushy;
+
+    /*!
+     * Liquid fraction value in the gas. Default is set to be zero.
+     */
+    double d_gas_liquid_fraction = 0.0;
 
     /*!
      * Inner iteration parameters.
