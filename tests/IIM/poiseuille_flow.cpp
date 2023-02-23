@@ -66,7 +66,6 @@ static double X1_lower = 0.0;
 static double X1_upper = 0.0;
 static double eta_s_thin = 0.0;
 static double theta = 0.0;
-static double FFAC = 0.0;
 static double fac = 0.0;
 static double y_position_low = 0.0;
 static double y_position_up = 0.0;
@@ -205,7 +204,6 @@ main(int argc, char* argv[])
         L = input_db->getDouble("L");              // channel length (cm)
         p_e = input_db->getDouble("P_E");          // channel length (cm)
         const double H = input_db->getDouble("H"); // Height (cm)
-        FFAC = input_db->getDouble("FFAC");        // Height (cm)
         theta = input_db->getDouble("THETA");
         // Thin structure part of the mesh.
         string elem_type = input_db->getString("ELEM_TYPE");
@@ -714,12 +712,11 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     SAMRAI_MPI::sumReduction(&N_max, 1);
     SAMRAI_MPI::sumReduction(&u_Eulerian_L2_norm, 1);
     SAMRAI_MPI::maxReduction(&u_Eulerian_max_norm, 1);
+    
+    u_Eulerian_L2_norm = sqrt(u_Eulerian_L2_norm);
 
-    u_Eulerian_L2_norm = sqrt(u_Eulerian_L2_norm / static_cast<Real>(N_max));
-    // u_Eulerian_L2_norm = sqrt(u_Eulerian_L2_norm);
-
-    pout << " u_Eulerian_L2_norm = " << u_Eulerian_L2_norm << "\n\n";
-    pout << " u_Eulerian_max_norm = " << u_Eulerian_max_norm << "\n\n";
+    pout << " u_Eulerian_L2_norm (cropped region) = " << u_Eulerian_L2_norm << "\n\n";
+    pout << " u_Eulerian_max_norm (cropped region) = " << u_Eulerian_max_norm << "\n\n";
 
     return;
 } // compute_velocity_profile
@@ -831,12 +828,11 @@ compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     SAMRAI_MPI::sumReduction(&N_max, 1);
     SAMRAI_MPI::sumReduction(&p_Eulerian_L2_norm, 1);
     SAMRAI_MPI::maxReduction(&p_Eulerian_max_norm, 1);
+    
+    p_Eulerian_L2_norm = sqrt(p_Eulerian_L2_norm);
 
-    p_Eulerian_L2_norm = sqrt(p_Eulerian_L2_norm / static_cast<Real>(N_max));
-    // p_Eulerian_L2_norm = sqrt(p_Eulerian_L2_norm);
-
-    pout << " p_Eulerian_L2_norm = " << p_Eulerian_L2_norm << "\n\n";
-    pout << " p_Eulerian_max_norm = " << p_Eulerian_max_norm << "\n\n";
+    pout << " p_Eulerian_L2_norm (cropped region) = " << p_Eulerian_L2_norm << "\n\n";
+    pout << " p_Eulerian_max_norm (cropped region) = " << p_Eulerian_max_norm << "\n\n";
 
     return;
 } // compute_pressure_profile
@@ -1018,8 +1014,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
                 double ex_U[NDIM];
                 ex_U[1] = 0.0;
                 ex_U[0] = 0.0;
-                ex_wss[0] = -p_e * D * cos(theta) / ((L / cos(theta) + D * tan(theta)));
-                ex_wss[1] = -p_e * D * sin(theta) / (L / cos(theta) + D * tan(theta));
+                ex_wss[0] = p_e * D * cos(theta) / ((L / cos(theta) + D * tan(theta)));
+                ex_wss[1] = p_e * D * sin(theta) / (L / cos(theta) + D * tan(theta));
 
                 if (x_qp(0) > 0.2 * L && x_qp(0) < 0.8 * L)
                 {
@@ -1052,11 +1048,6 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
 
         SAMRAI_MPI::sumReduction(&disp_L2_norm, 1);
         SAMRAI_MPI::maxReduction(&disp_max_norm, 1);
-
-        // U_L2_norm = sqrt(U_L2_norm/static_cast<Real>(qp_tot));
-        // WSS_L2_norm = sqrt(WSS_L2_norm/static_cast<Real>(qp_tot));
-        // P_L2_norm = sqrt(P_L2_norm/static_cast<Real>(qp_tot));
-        // disp_L2_norm = sqrt(disp_L2_norm/static_cast<Real>(qp_tot));
 
         U_L2_norm = sqrt(U_L2_norm);
         WSS_L2_norm = sqrt(WSS_L2_norm);
