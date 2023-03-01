@@ -297,6 +297,11 @@ public:
 
 protected:
     /*!
+     * Reset cached hierarchy dependent data for solvers and operators.
+     */
+    virtual void regridHierarchyBeginSpecialized() override;
+
+    /*!
      * Reset cached hierarchy dependent data.
      */
     void

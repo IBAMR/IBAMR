@@ -908,6 +908,21 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
+AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyBeginSpecialized()
+{
+    for (int l = 0; l < d_helmholtz_rhs_ops.size(); ++l)
+    {
+        if (d_helmholtz_rhs_ops[l]) d_helmholtz_rhs_ops[l]->deallocateOperatorState();
+    }
+    for (int l = 0; l < d_helmholtz_solvers.size(); ++l)
+    {
+        if (d_helmholtz_solvers[l]) d_helmholtz_solvers[l]->deallocateSolverState();
+    }
+    std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
+    std::fill(d_helmholtz_rhs_ops_need_init.begin(), d_helmholtz_rhs_ops_need_init.end(), true);
+} // regridHierarchyBeginSpecialized
+
+void
 AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,

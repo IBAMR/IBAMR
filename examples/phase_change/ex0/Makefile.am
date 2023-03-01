@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp SetFluidProperties.h
+EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp SetFluidProperties.h TagInterfaceRefinementCells.cpp TagInterfaceRefinementCells.h 
 
 EXTRA_DIST = input2d
 #EXTRA_DIST += input3d

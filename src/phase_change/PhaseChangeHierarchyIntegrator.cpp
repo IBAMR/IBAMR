@@ -622,6 +622,21 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
 } // postprocessIntegrateHierarchy
 
 void
+PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized()
+{
+    AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyBeginSpecialized();
+
+    d_T_rhs_op->deallocateOperatorState();
+    d_T_solver->deallocateSolverState();
+
+    d_T_rhs_op_needs_init = true;
+    d_T_solver_needs_init = true;
+
+    return;
+
+} // regridHierarchyBeginSpecialized
+
+void
 PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
@@ -672,9 +687,10 @@ PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         d_object_name + "::rhs_vec::" + d_T_var->getName(), d_hierarchy, 0, finest_hier_level);
     d_T_rhs->addComponent(d_T_rhs_var, T_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
 
-    d_T_solver_needs_init = true;
-
+    // Since hierarchy has changed, all operators and solvers
+    // need to be re-initialized.
     d_T_convective_op_needs_init = true;
+
     if (d_solve_mass_conservation)
     {
         d_rho_p_integrator->setHierarchyMathOps(d_hier_math_ops);

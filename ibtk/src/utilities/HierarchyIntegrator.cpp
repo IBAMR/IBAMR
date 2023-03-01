@@ -423,6 +423,7 @@ HierarchyIntegrator::regridHierarchy()
     }
 
     // Regrid the hierarchy.
+    const int n_finest_ln_before_regid = d_hierarchy->getFinestLevelNumber();
     switch (d_regrid_mode)
     {
     case STANDARD:
@@ -438,6 +439,11 @@ HierarchyIntegrator::regridHierarchy()
         TBOX_ERROR(d_object_name << "::regridHierarchy():\n"
                                  << "  unrecognized regrid mode: " << enum_to_string<RegridMode>(d_regrid_mode) << "."
                                  << std::endl);
+    }
+    const int n_finest_ln_after_regid = d_hierarchy->getFinestLevelNumber();
+    if (n_finest_ln_before_regid > n_finest_ln_after_regid)
+    {
+        resetHierarchyConfiguration(d_hierarchy, 0, n_finest_ln_after_regid);
     }
 
     const double new_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;

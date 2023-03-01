@@ -335,6 +335,11 @@ protected:
 
 protected:
     /*!
+     * Reset cached hierarchy dependent data for solvers and operators.
+     */
+    virtual void regridHierarchyBeginSpecialized() override;
+
+    /*!
      * Bound the liquid fraction, if necessary.
      */
     void boundLiquidFraction(int lf_new_idx);
