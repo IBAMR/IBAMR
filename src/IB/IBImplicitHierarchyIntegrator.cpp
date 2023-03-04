@@ -24,7 +24,6 @@
 #include "ibamr/StaggeredStokesPETScVecUtilities.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/ibamr_enums.h"
-#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
@@ -62,6 +61,8 @@
 #include <algorithm>
 #include <ostream>
 #include <string>
+
+#include "ibamr/namespaces.h" // IWYU pragma: keep
 
 namespace IBAMR
 {
@@ -112,7 +113,6 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
             d_use_structure_predictor = input_db->getBool("use_structure_predictor");
         if (input_db->keyExists("use_fixed_LE_operators"))
             d_use_fixed_LE_operators = input_db->getBool("use_fixed_LE_operators");
-        if (input_db->keyExists("implicit_algorithm")) d_implicit_algorithm = input_db->getString("implicit_algorithm");
     }
     d_ib_implicit_ops->setUseFixedLEOperators(d_use_fixed_LE_operators);
 
@@ -223,219 +223,41 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
 
     if (d_use_fixed_LE_operators) d_ib_implicit_ops->updateFixedLEOperators();
 
-    if (d_implicit_algorithm == "AITKEN" || d_implicit_algorithm == "ANDERSON" || d_implicit_algorithm == "IRONS-TUCK")
-    {
-        // Use the crossed secant method (Aitken extrapolation) or the alternate secant method (Anderson extrapolation
-        // with M = 1).
-        //
-        // Ref: Isabelle Ramière, Thomas Helfer. Iterative residual-based vector methods to accelerate fixed point
-        // iterations. Computers and Mathematics with Applications, Elsevier, 2015, 70, pp. 2210 - 2226.
-        //
-        // See Pg. 21 of https://hal-cea.archives-ouvertes.fr/cea-01403292/document.
-        PetscErrorCode ierr;
-        Vec X_nm1, X_n, X_np1, GX_nm1, GX_n, DX_nm1, DX_n, DDX_n, DGX_n;
-        d_ib_implicit_ops->createSolutionVec(&X_nm1);
-        d_ib_implicit_ops->createSolutionVec(&X_n);
-        d_ib_implicit_ops->createSolutionVec(&X_np1);
-        d_ib_implicit_ops->createSolutionVec(&GX_nm1);
-        d_ib_implicit_ops->createSolutionVec(&GX_n);
-        d_ib_implicit_ops->createSolutionVec(&DX_nm1);
-        d_ib_implicit_ops->createSolutionVec(&DX_n);
-        d_ib_implicit_ops->createSolutionVec(&DDX_n);
-        d_ib_implicit_ops->createSolutionVec(&DGX_n);
+    // Setup Lagrangian vectors used in solving the implicit IB equations.
+    PetscErrorCode ierr;
+    Vec X, R, R_work;
+    d_ib_implicit_ops->createSolverVecs(&X, &R);
+    d_ib_implicit_ops->setupSolverVecs(X, R);
+    ierr = VecDuplicate(R, &R_work);
+    IBTK_CHKERRQ(ierr);
 
-        // Initialize X_{n-1}:
-        d_ib_implicit_ops->getUpdatedPosition(X_nm1);
+    // Solve the implicit IB equations.
+    d_ins_cycle_num = 0;
 
-        double D0;
-        ierr = VecNorm(X_nm1, NORM_2, &D0);
-        IBTK_CHKERRQ(ierr);
+    SNES snes;
+    ierr = SNESCreate(PETSC_COMM_WORLD, &snes);
+    IBTK_CHKERRQ(ierr);
+    ierr = SNESSetFunction(snes, R_work, IBFunction_SAMRAI, this);
+    IBTK_CHKERRQ(ierr);
+    ierr = SNESSetOptionsPrefix(snes, "ib_");
+    IBTK_CHKERRQ(ierr);
+    ierr = SNESSetFromOptions(snes);
+    IBTK_CHKERRQ(ierr);
+    ierr = SNESSolve(snes, R, X);
+    IBTK_CHKERRQ(ierr);
+    ierr = SNESDestroy(&snes);
+    IBTK_CHKERRQ(ierr);
 
-        int k = 0, n_solves = 0;
-        double tol = 1.0e-5;
-        int max_its = 100;
-        bool converged = false;
+    // Ensure that the INS variables are consistent with the final structure configuration.
+    iterateSolution(X);
 
-        // Initialize X_{n} = G(X_{n-1}):
-        iterateSolution(X_nm1);
-        d_ib_implicit_ops->getUpdatedPosition(GX_nm1);
-        ++n_solves;
-        ierr = VecCopy(GX_nm1, X_n);
-        IBTK_CHKERRQ(ierr);
-
-        // Initialize DX_{n-1} := G(X_{n-1}) - X_{n-1}:
-        ierr = VecWAXPY(DX_nm1, -1.0, X_nm1, GX_nm1);
-        IBTK_CHKERRQ(ierr);
-
-        // Initialize omega_{n-1}:
-        double omega_nm1 = std::min(d_omega_n, d_omega_max);
-
-        for (k = 0; k < max_its && !converged; ++k)
-        {
-            // G(X_{n}):
-            iterateSolution(X_n);
-            d_ib_implicit_ops->getUpdatedPosition(GX_n);
-            ++n_solves;
-
-            // DX_{n} := G(X_{n}) - X_{n}:
-            ierr = VecWAXPY(DX_n, -1.0, X_n, GX_n);
-            IBTK_CHKERRQ(ierr);
-
-            // DGX_{n} := G(X_{n}) - G(X_{n-1}):
-            ierr = VecWAXPY(DGX_n, -1.0, GX_nm1, GX_n);
-            IBTK_CHKERRQ(ierr);
-
-            // DDX_{n} := DX_{n} - DX_{n-1}:
-            ierr = VecWAXPY(DDX_n, -1.0, DX_nm1, DX_n);
-            IBTK_CHKERRQ(ierr);
-
-            if (d_implicit_algorithm == "AITKEN")
-            {
-                // X_{n+1} := G(X_{n}) - Q DX_{n}
-                //
-                // with Q = dot(DX_{n-1}, DX_{n} - DX_{n-1})/||DX_{n} - DX_{n-1}||^2
-                //        = dot(DX_{n}, DDX_{n})/||DDX_{n}||^2
-                double Q1;
-                ierr = VecDot(DX_n, DDX_n, &Q1);
-                IBTK_CHKERRQ(ierr);
-                double Q2;
-                ierr = VecDot(DDX_n, DDX_n, &Q2);
-                IBTK_CHKERRQ(ierr);
-
-                const double Q = Q1 / Q2;
-                ierr = VecWAXPY(X_np1, -Q, DX_n, GX_n);
-                IBTK_CHKERRQ(ierr);
-            }
-            else if (d_implicit_algorithm == "ANDERSON")
-            {
-                // X_{n+1} := G(X_{n}) - Q (G(X_{n}) - G(X_{n-1}))
-                //          = G(X_{n}) - Q DGX_{n}
-                //
-                // with Q = dot(DX_{n} - DX_{n-1}, DX_{n})/||DX_{n} - DX_{n-1}||^2
-                //        = dot(DDX_{n}, DX_{n})/||DDX_{n}||^2
-                double Q1;
-                ierr = VecDot(DDX_n, DX_n, &Q1);
-                IBTK_CHKERRQ(ierr);
-                double Q2;
-                ierr = VecDot(DDX_n, DDX_n, &Q2);
-                IBTK_CHKERRQ(ierr);
-
-                const double Q = Q1 / Q2;
-                ierr = VecWAXPY(X_np1, -Q, DGX_n, GX_n);
-                IBTK_CHKERRQ(ierr);
-            }
-            else if (d_implicit_algorithm == "IRONS-TUCK")
-            {
-                // X_{n+1} := omega_{n} G(X_n) + (1.0-omega_{n}) X_n
-                //
-                // with omega_{n} = -omega_{n-1} dot(DX_{n-1}, DX_{n} - DX_{n-1})/||DX_{n} - DX_{n-1}||^2
-                //                = -omega_{n-1} dot(DX_{n-1}, DDX_{n})/||DDX_{n}||^2
-                double Q1;
-                ierr = VecDot(DX_nm1, DDX_n, &Q1);
-                IBTK_CHKERRQ(ierr);
-                double Q2;
-                ierr = VecDot(DDX_n, DDX_n, &Q2);
-                IBTK_CHKERRQ(ierr);
-
-                d_omega_n = -omega_nm1 * Q1 / Q2;
-                ierr = VecAXPBYPCZ(X_np1, d_omega_n, 1.0 - d_omega_n, 0.0, GX_n, X_n);
-                IBTK_CHKERRQ(ierr);
-                omega_nm1 = d_omega_n;
-            }
-
-            // Check to see if ||G(X_{n}) - X_{n}||_2 is sufficiently small to declare convergence.
-            double D;
-            ierr = VecNorm(DX_n, NORM_2, &D);
-            IBTK_CHKERRQ(ierr);
-            if (D < tol * D0)
-            {
-                converged = true;
-            }
-            else
-            {
-                // If we haven't converged, get an updated solution, reset values and repeat.
-                ierr = VecCopy(X_n, X_nm1);
-                IBTK_CHKERRQ(ierr);
-                ierr = VecCopy(X_np1, X_n);
-                IBTK_CHKERRQ(ierr);
-                ierr = VecCopy(GX_n, GX_nm1);
-                IBTK_CHKERRQ(ierr);
-                ierr = VecCopy(DX_n, DX_nm1);
-                IBTK_CHKERRQ(ierr);
-            }
-        }
-
-        if (!converged)
-        {
-            pout << "WARNING: " << d_implicit_algorithm << " extrapolation DIVERGED\n";
-        }
-        plog << d_object_name << "::integrateHierarchy():\n"
-             << "  " << d_implicit_algorithm << " extrapolation " << (converged ? "CONVERGED" : "DIVERGED") << "\n"
-             << "  requiring in " << k << " iterations and " << n_solves << " total Navier-Stokes solves\n";
-
-        ierr = VecDestroy(&X_nm1);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&X_n);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&X_np1);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&GX_nm1);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&GX_n);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DX_nm1);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DX_n);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DDX_n);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&DGX_n);
-        IBTK_CHKERRQ(ierr);
-    }
-    else if (d_implicit_algorithm == "SNES")
-    {
-        // Setup Lagrangian vectors used in solving the implicit IB equations.
-        PetscErrorCode ierr;
-        Vec X, R, R_work;
-        d_ib_implicit_ops->createSolverVecs(&X, &R);
-        d_ib_implicit_ops->setupSolverVecs(X, R);
-        ierr = VecDuplicate(R, &R_work);
-        IBTK_CHKERRQ(ierr);
-
-        // Solve the implicit IB equations.
-        d_ins_cycle_num = 0;
-
-        SNES snes;
-        ierr = SNESCreate(PETSC_COMM_WORLD, &snes);
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESSetFunction(snes, R_work, IBFunction_SAMRAI, this);
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESSetOptionsPrefix(snes, "ib_");
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESSetFromOptions(snes);
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESSolve(snes, R, X);
-        IBTK_CHKERRQ(ierr);
-        ierr = SNESDestroy(&snes);
-        IBTK_CHKERRQ(ierr);
-
-        // Ensure that the INS variables are consistent with the final structure configuration.
-        iterateSolution(X);
-
-        // Deallocate temporary data.
-        ierr = VecDestroy(&X);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&R);
-        IBTK_CHKERRQ(ierr);
-        ierr = VecDestroy(&R_work);
-        IBTK_CHKERRQ(ierr);
-    }
-    else
-    {
-        TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                                 << "  unsupported solver algorithm: " << d_implicit_algorithm << "\n"
-                                 << "  supported time stepping types are: AITKEN, ANDERSON, IRONS-TUCK, SNES\n");
-    }
+    // Deallocate temporary data.
+    ierr = VecDestroy(&X);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&R);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecDestroy(&R_work);
+    IBTK_CHKERRQ(ierr);
 
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
@@ -501,14 +323,14 @@ IBImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
         }
     }
     cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
-    d_regrid_cfl_estimate += cfl_max;
+    d_regrid_fluid_cfl_estimate += cfl_max;
     if (d_enable_logging)
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
     if (d_enable_logging)
         plog << d_object_name
              << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
                 "point displacement since last regrid = "
-             << d_regrid_cfl_estimate << "\n";
+             << d_regrid_fluid_cfl_estimate << "\n";
 
     // Deallocate the fluid solver.
     const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();

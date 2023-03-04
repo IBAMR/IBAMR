@@ -639,12 +639,6 @@ public:
 
     /*!
      * Advance the positions of the Lagrangian structure using the (explicit)
-     * backward Euler method.
-     */
-    void backwardEulerStep(double current_time, double new_time) override;
-
-    /*!
-     * Advance the positions of the Lagrangian structure using the (explicit)
      * midpoint rule.
      */
     void midpointStep(double current_time, double new_time) override;
