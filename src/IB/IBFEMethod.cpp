@@ -1241,14 +1241,14 @@ IBFEMethod::createSolutionVec(Vec* X_vec)
     // TODO: Don't rebuild these vectors each time.
     d_implicit_X_vecs.clear();
     std::vector<Vec> X_vecs;
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         d_implicit_X_vecs.push_back(std::unique_ptr<PetscVector<double> >(
-            dynamic_cast<PetscVector<double>*>(d_X_new_vecs[part]->clone().release())));
+            dynamic_cast<PetscVector<double>*>(d_X_vecs->get("new", part).clone().release())));
         X_vecs.push_back(d_implicit_X_vecs[part]->vec());
     }
     PetscErrorCode ierr;
-    ierr = VecCreateNest(PETSC_COMM_WORLD, d_num_parts, nullptr, X_vecs.data(), X_vec);
+    ierr = VecCreateNest(PETSC_COMM_WORLD, d_meshes.size(), nullptr, X_vecs.data(), X_vec);
     IBTK_CHKERRQ(ierr);
 }
 
@@ -1259,20 +1259,20 @@ IBFEMethod::createSolverVecs(Vec* X_vec, Vec* R_vec)
     d_implicit_X_vecs.clear();
     d_implicit_R_vecs.clear();
     std::vector<Vec> X_vecs, R_vecs;
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         d_implicit_X_vecs.push_back(std::unique_ptr<PetscVector<double> >(
-            dynamic_cast<PetscVector<double>*>(d_X_new_vecs[part]->clone().release())));
+            dynamic_cast<PetscVector<double>*>(d_X_vecs->get("new", part).clone().release())));
         X_vecs.push_back(d_implicit_X_vecs[part]->vec());
 
         d_implicit_R_vecs.push_back(std::unique_ptr<PetscVector<double> >(
-            dynamic_cast<PetscVector<double>*>(d_X_rhs_vecs[part]->zero_clone().release())));
+            dynamic_cast<PetscVector<double>*>(d_X_vecs->get("RHS Vector", part).clone().release())));
         R_vecs.push_back(d_implicit_R_vecs[part]->vec());
     }
     PetscErrorCode ierr;
-    ierr = VecCreateNest(PETSC_COMM_WORLD, d_num_parts, nullptr, X_vecs.data(), X_vec);
+    ierr = VecCreateNest(PETSC_COMM_WORLD, d_meshes.size(), nullptr, X_vecs.data(), X_vec);
     IBTK_CHKERRQ(ierr);
-    ierr = VecCreateNest(PETSC_COMM_WORLD, d_num_parts, nullptr, R_vecs.data(), R_vec);
+    ierr = VecCreateNest(PETSC_COMM_WORLD, d_meshes.size(), nullptr, R_vecs.data(), R_vec);
     IBTK_CHKERRQ(ierr);
 }
 
@@ -1284,14 +1284,14 @@ IBFEMethod::setupSolverVecs(Vec& X_vec, Vec& R_vec)
     Vec *X_sub_vecs, *R_sub_vecs;
     ierr = VecNestGetSubVecs(X_vec, &N, &X_sub_vecs);
     IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(static_cast<unsigned int>(N) == d_num_parts);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
     ierr = VecNestGetSubVecs(R_vec, &N, &R_sub_vecs);
     IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(static_cast<unsigned int>(N) == d_num_parts);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        auto X_new_petsc_vec = d_X_new_vecs[part];
-        ierr = VecCopy(X_new_petsc_vec->vec(), X_sub_vecs[part]);
+        auto& X_new_petsc_vec = d_X_vecs->get("new", part);
+        ierr = VecCopy(X_new_petsc_vec.vec(), X_sub_vecs[part]);
         IBTK_CHKERRQ(ierr);
         ierr = VecZeroEntries(R_sub_vecs[part]);
         IBTK_CHKERRQ(ierr);
@@ -1306,13 +1306,17 @@ IBFEMethod::setUpdatedPosition(Vec& X_new_vec)
     Vec* X_new_sub_vecs;
     ierr = VecNestGetSubVecs(X_new_vec, &N, &X_new_sub_vecs);
     IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(static_cast<unsigned int>(N) == d_num_parts);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        ierr = VecCopy(X_new_sub_vecs[part], d_X_new_vecs[part]->vec());
+        ierr = VecCopy(X_new_sub_vecs[part], d_X_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPBYPCZ(
-            d_X_half_vecs[part]->vec(), 0.5, 0.5, 0.0, d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
+                           0.5,
+                           0.5,
+                           0.0,
+                           d_X_vecs->get("current", part).vec(),
+                           d_X_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
     }
     return;
@@ -1326,10 +1330,10 @@ IBFEMethod::getUpdatedPosition(Vec& X_new_vec)
     Vec* X_new_sub_vecs;
     ierr = VecNestGetSubVecs(X_new_vec, &N, &X_new_sub_vecs);
     IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(static_cast<unsigned int>(N) == d_num_parts);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        ierr = VecCopy(d_X_new_vecs[part]->vec(), X_new_sub_vecs[part]);
+        ierr = VecCopy(d_X_vecs->get("new", part).vec(), X_new_sub_vecs[part]);
         IBTK_CHKERRQ(ierr);
     }
     return;
@@ -1343,13 +1347,13 @@ IBFEMethod::computeResidualBackwardEuler(Vec& R_vec)
     Vec* R_sub_vecs;
     ierr = VecNestGetSubVecs(R_vec, &N, &R_sub_vecs);
     IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(static_cast<unsigned int>(N) == d_num_parts);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         const double dt = d_new_time - d_current_time;
-        ierr = VecWAXPY(R_sub_vecs[part], -dt, d_U_new_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr = VecWAXPY(R_sub_vecs[part], -dt, d_U_vecs->get("new", part).vec(), d_X_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(R_sub_vecs[part], -1.0, d_X_current_vecs[part]->vec());
+        ierr = VecAXPY(R_sub_vecs[part], -1.0, d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
     }
     return;
@@ -1363,13 +1367,13 @@ IBFEMethod::computeResidualMidpointRule(Vec& R_vec)
     Vec* R_sub_vecs;
     ierr = VecNestGetSubVecs(R_vec, &N, &R_sub_vecs);
     IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(static_cast<unsigned int>(N) == d_num_parts);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         const double dt = d_new_time - d_current_time;
-        ierr = VecWAXPY(R_sub_vecs[part], -dt, d_U_half_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr = VecWAXPY(R_sub_vecs[part], -dt, d_U_vecs->get("half", part).vec(), d_X_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(R_sub_vecs[part], -1.0, d_X_current_vecs[part]->vec());
+        ierr = VecAXPY(R_sub_vecs[part], -1.0, d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
     }
     return;
@@ -1383,15 +1387,16 @@ IBFEMethod::computeResidualTrapezoidalRule(Vec& R_vec)
     Vec* R_sub_vecs;
     ierr = VecNestGetSubVecs(R_vec, &N, &R_sub_vecs);
     IBTK_CHKERRQ(ierr);
-    TBOX_ASSERT(static_cast<unsigned int>(N) == d_num_parts);
-    for (unsigned int part = 0; part < d_num_parts; ++part)
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         const double dt = d_new_time - d_current_time;
-        ierr = VecWAXPY(R_sub_vecs[part], -0.5 * dt, d_U_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
+        ierr = VecWAXPY(
+            R_sub_vecs[part], -0.5 * dt, d_U_vecs->get("current", part).vec(), d_X_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(R_sub_vecs[part], -0.5 * dt, d_U_new_vecs[part]->vec());
+        ierr = VecAXPY(R_sub_vecs[part], -0.5 * dt, d_U_vecs->get("new", part).vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(R_sub_vecs[part], -1.0, d_X_current_vecs[part]->vec());
+        ierr = VecAXPY(R_sub_vecs[part], -1.0, d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
     }
     return;
