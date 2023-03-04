@@ -430,9 +430,6 @@ IBImplicitHierarchyIntegrator::iterateSolution(Vec X_new)
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     switch (d_time_stepping_type)
     {
-    case FORWARD_EULER:
-        // intentionally blank
-        break;
     case BACKWARD_EULER:
         if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
         d_ib_method_ops->computeLagrangianForce(d_new_time);
@@ -585,9 +582,6 @@ IBImplicitHierarchyIntegrator::IBFunction(SNES /*snes*/, Vec X, Vec R)
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     switch (d_time_stepping_type)
     {
-    case FORWARD_EULER:
-        // intentionally blank
-        break;
     case BACKWARD_EULER:
         if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
         d_ib_method_ops->computeLagrangianForce(d_new_time);
