@@ -502,12 +502,22 @@ protected:
     void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time) override;
 
     /*!
+     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     */
+    virtual void regridHierarchyBeginSpecialized() override;
+
+    /*!
      * Reset cached hierarchy dependent data.
      */
     void
     resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            int coarsest_level,
                                            int finest_level) override;
+
+    /*!
+     * Reset cached hierarchy dependent data for solvers and operators after the regridding operation.
+     */
+    virtual void regridHierarchyEndSpecialized() override;
 
     /*!
      * Write out specialized object state to the given database.

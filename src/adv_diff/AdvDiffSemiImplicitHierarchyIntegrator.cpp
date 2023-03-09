@@ -908,22 +908,36 @@ AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
+AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyBeginSpecialized()
+{
+    for (const auto& Q_var : d_Q_var)
+    {
+        d_Q_convective_op_needs_init[Q_var] = true;
+    }
+    AdvDiffHierarchyIntegrator::regridHierarchyBeginSpecialized();
+    return;
+} // regridHierarchyBeginSpecialized
+
+void
 AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
-    d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_fc_data_ops->resetLevels(0, finest_hier_level);
-    for (const auto& Q_var : d_Q_var)
-    {
-        d_Q_convective_op_needs_init[Q_var] = true;
-    }
     AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
     return;
 } // resetHierarchyConfigurationSpecialized
+
+void
+AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+    const int coarsest_hier_level = 0;
+    d_hier_fc_data_ops->setPatchHierarchy(d_hierarchy);
+    d_hier_fc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+    AdvDiffHierarchyIntegrator::regridHierarchyEndSpecialized();
+    return;
+} // regridHierarchyEndSpecialized
 
 void
 AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
