@@ -50,7 +50,7 @@ ENABLE_LOGGING             = TRUE
 
 
 
-// option to use discontinuous L2_Lagrange family for geometries with sharp features
+// option to use either discontinuous 1st order L2_Lagrange or constant order monomial for jumps and tractoin representations
 
 USE_DISCON_ELEMS = TRUE
 
@@ -121,15 +121,15 @@ IIMethod {
    p_calc_width				   = P_CALC_WIDTH
    wss_calc_width			  = WSS_CALC_WIDTH
    min_ghost_cell_width = 6
-  velocity_jump_fe_family = "MONOMIAL" 
-    pressure_jump_fe_family = "MONOMIAL" 
-	  wss_fe_family = "MONOMIAL"
-	tau_fe_family = "MONOMIAL"
+  velocity_jump_fe_family = "L2_LAGRANGE" //"MONOMIAL" 
+    pressure_jump_fe_family = "L2_LAGRANGE" //"MONOMIAL" 
+	  wss_fe_family = "L2_LAGRANGE" //"MONOMIAL"
+	tau_fe_family = "L2_LAGRANGE" //"MONOMIAL"
    
-   	pressure_jump_fe_order 		= "CONSTANT" 
-	velocity_jump_fe_order 		= "CONSTANT" 
-	wss_fe_order 				= "CONSTANT" 
-	tau_fe_order 				= "CONSTANT" 
+   	pressure_jump_fe_order 		= "FIRST" //"CONSTANT" 
+	velocity_jump_fe_order 		= "FIRST" //"CONSTANT" 
+	wss_fe_order 				= "FIRST" //"CONSTANT" 
+	tau_fe_order 				= "FIRST" //"CONSTANT" 
 }
 
 INSStaggeredHierarchyIntegrator {

@@ -1792,7 +1792,7 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
 					for (unsigned int k = 0; k < n_node_tau; ++k)
                     {
                         const double& p_P = phi_P[k][qp];
-                        WSS_in_qp[NDIM * (qp_offset + qp) + i] += 0.0; //da / dA) * WSS_in_node[k][i] * p_P;
+                        WSS_in_qp[NDIM * (qp_offset + qp) + i] += (da / dA) * WSS_in_node[k][i] * p_P;
                         WSS_out_qp[NDIM * (qp_offset + qp) + i] += (da / dA) * WSS_out_node[k][i] * p_P;
                     }
                     Normal_qp[NDIM * (qp_offset + qp) + i] = n(i);
