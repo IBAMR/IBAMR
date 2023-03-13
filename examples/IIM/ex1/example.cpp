@@ -514,14 +514,13 @@ postprocess_data(tbox::Pointer<tbox::Database> input_db,
     NumericVector<double>& X_vec = x_system->get_vector("INITIAL_COORDINATES");
 
     std::vector<std::vector<unsigned int> > WSS_o_dof_indices(NDIM);
-    System* TAU_system;
-    NumericVector<double>* TAU_ghost_vec = NULL;
-    if (compute_fluid_traction)
-    {
-        TAU_system = &equation_systems->get_system(IIMethod::TAU_OUT_SYSTEM_NAME);
+    System& TAU_system = equation_systems->get_system<System>(IIMethod::TAU_OUT_SYSTEM_NAME);
 
-        TAU_ghost_vec = TAU_system->current_local_solution.get();
-    }
+    NumericVector<double>* TAU_vec = TAU_system.solution.get();
+    NumericVector<double>* TAU_ghost_vec = TAU_system.current_local_solution.get();
+    TAU_vec->localize(*TAU_ghost_vec);
+    DofMap& TAU_dof_map = TAU_system.get_dof_map();
+    std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
 
     std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
@@ -529,10 +528,9 @@ postprocess_data(tbox::Pointer<tbox::Database> input_db,
     const vector<double>& JxW = fe->get_JxW();
     const vector<vector<double> >& phi = fe->get_phi();
     const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
-
-    std::unique_ptr<FEBase> fe_face(FEBase::build(dim, dof_map.variable_type(0)));
-    std::unique_ptr<QBase> qrule_face = QBase::build(QGAUSS, dim - 1, SEVENTH);
-    fe_face->attach_quadrature_rule(qrule_face.get());
+    std::unique_ptr<FEBase> fe_TAU(FEBase::build(dim, TAU_dof_map.variable_type(0)));
+    fe_TAU->attach_quadrature_rule(qrule.get());
+    const vector<vector<double> >& phi_TAU = fe_TAU->get_phi();
 
     std::vector<double> U_qp_vec(NDIM);
     std::vector<const std::vector<double>*> var_data(1);
@@ -550,15 +548,17 @@ postprocess_data(tbox::Pointer<tbox::Database> input_db,
     {
         const auto elem = *el_it;
         fe->reinit(elem);
+        fe_TAU->reinit(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dof_map.dof_indices(elem, dof_indices[d], d);
+            TAU_dof_map.dof_indices(elem, TAU_dof_indices[d], d);
         }
         get_values_for_interpolation(x_node, *x_ghost_vec, dof_indices);
         get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
         get_values_for_interpolation(X_node, X_vec, dof_indices);
 
-        if (compute_fluid_traction) get_values_for_interpolation(TAU_node, *TAU_ghost_vec, dof_indices);
+        get_values_for_interpolation(TAU_node, *TAU_ghost_vec, TAU_dof_indices);
 
         const unsigned int n_qp = qrule->n_points();
         for (unsigned int qp = 0; qp < n_qp; ++qp)
@@ -567,7 +567,7 @@ postprocess_data(tbox::Pointer<tbox::Database> input_db,
             interpolate(x, qp, x_node, phi);
             jacobian(FF, qp, x_node, dphi);
             interpolate(U, qp, U_node, phi);
-            if (compute_fluid_traction) interpolate(TAU, qp, TAU_node, phi);
+            interpolate(TAU, qp, TAU_node, phi_TAU);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_qp_vec[d] = U(d);
@@ -577,7 +577,7 @@ postprocess_data(tbox::Pointer<tbox::Database> input_db,
             for (int d = 0; d < NDIM; ++d)
             {
                 F_integral[d] += F(d) * JxW[qp];
-                if (compute_fluid_traction) T_integral[d] += TAU(d) * JxW[qp];
+                T_integral[d] += TAU(d) * JxW[qp];
             }
         }
     }
@@ -590,11 +590,9 @@ postprocess_data(tbox::Pointer<tbox::Database> input_db,
     {
         drag_F_stream << loop_time << " " << -F_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
         lift_F_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
-        if (compute_fluid_traction)
-        {
-            drag_TAU_stream << loop_time << " " << T_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
-            lift_TAU_stream << loop_time << " " << T_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
-        }
+        drag_TAU_stream << loop_time << " " << T_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
+        lift_TAU_stream << loop_time << " " << T_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
+
     }
     return;
 } // postprocess_data
