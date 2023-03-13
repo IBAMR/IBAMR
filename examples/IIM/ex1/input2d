@@ -121,10 +121,15 @@ IIMethod {
    p_calc_width				   = P_CALC_WIDTH
    wss_calc_width			  = WSS_CALC_WIDTH
    min_ghost_cell_width = 6
-   pressure_jump_fe_family = "L2_LAGRANGE"
-   velocity_jump_fe_family = "L2_LAGRANGE"
-   wss_fe_family = "L2_LAGRANGE"
-   tau_fe_family = "L2_LAGRANGE"
+   velocity_jump_fe_family = "MONOMIAL" 
+    pressure_jump_fe_family = "MONOMIAL" 
+	wss_fe_family = "MONOMIAL"
+	tau_fe_family = "MONOMIAL"
+   
+	pressure_jump_fe_order 		= "CONSTANT" 
+	velocity_jump_fe_order 		= "CONSTANT" 
+	wss_fe_order 				= "CONSTANT" 
+	tau_fe_order 				= "CONSTANT" 
 }
 
 INSStaggeredHierarchyIntegrator {

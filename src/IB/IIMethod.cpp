@@ -239,6 +239,16 @@ IIMethod::registerDisconElemFamilyForJumps(const unsigned int part)
 {
     TBOX_ASSERT(!d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_num_parts);
+    if (d_velocity_jump_fe_family == LAGRANGE || d_pressure_jump_fe_family == LAGRANGE 
+		|| d_wss_fe_family == LAGRANGE || d_tau_fe_family == LAGRANGE)
+	 {
+        	TBOX_ERROR(d_object_name << "::IIMethod():\n"
+                                          << " The fe family for the viscous jump, pressure jump, :\n"
+					    << "wall shear stress, and traction need to be explicitly :\n" 
+					    <<  "set to discontinuous L2_LAGRANGE or MONOMIAL via the input file! :\n"
+                                           << std::endl);
+    }
+    
     d_use_discon_elem_for_jumps[part] = true;
     return;
 } // registerDisconElemFamilyForJumps
@@ -726,6 +736,44 @@ IIMethod::interpolateVelocity(const int u_data_idx,
     {
         if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(data_time);
     }
+    
+	std::vector<std::vector<libMesh::PetscVector<double>*> > vec_collection_update = {d_X_IB_ghost_vecs};
+	
+	
+	if (MathUtilities<double>::equalEps(data_time, d_current_time))
+	{
+		vec_collection_update.push_back(d_X_current_vecs);
+		vec_collection_update.push_back(d_U_current_vecs); 
+		vec_collection_update.push_back(d_U_n_current_vecs);
+		vec_collection_update.push_back(d_U_t_current_vecs);
+	}
+	else if (MathUtilities<double>::equalEps(data_time, d_half_time))
+	{
+		vec_collection_update.push_back(d_X_half_vecs);
+		vec_collection_update.push_back(d_U_half_vecs); 
+		vec_collection_update.push_back(d_U_n_half_vecs);
+		vec_collection_update.push_back(d_U_t_half_vecs);
+	}
+	else if (MathUtilities<double>::equalEps(data_time, d_new_time))
+	{
+		vec_collection_update.push_back(d_X_new_vecs);
+		vec_collection_update.push_back(d_U_new_vecs);
+		vec_collection_update.push_back(d_U_n_new_vecs);
+		vec_collection_update.push_back(d_U_t_new_vecs);
+	}
+
+	if (d_use_velocity_jump_conditions)
+	{
+		for (unsigned part = 0; part < d_num_parts; ++part)
+		{
+			for (unsigned int d = 0; d < NDIM; ++d)
+			{
+				vec_collection_update.push_back({ d_DU_jump_half_vecs[part][d], d_DU_jump_IB_ghost_vecs[part][d] });
+			}
+		}
+	}
+	batch_vec_ghost_update(vec_collection_update, INSERT_VALUES, SCATTER_FORWARD);
+        
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -762,6 +810,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             U_t_vec = d_U_t_new_vecs[part];
             X_vec = d_X_new_vecs[part];
         }
+        
         copy_and_synch(*X_vec, *X_ghost_vec);
 
         NumericVector<double>* WSS_in_vec = d_use_velocity_jump_conditions ? d_WSS_in_half_vecs[part] : nullptr;
@@ -980,6 +1029,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     fe_DU_jump->reinit(elem);
                 }
                 const unsigned int n_nodes = elem->n_nodes();
+                const unsigned int n_nodes_jump = DU_jump_dof_indices[0][0].size();
                 const unsigned int n_qpoints = qrule->n_points();
 
                 // Zero out the values prior to accumulation.
@@ -1003,27 +1053,31 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 // Interpolate x, du, and dv at the quadrature points via
                 // accumulation, e.g., x(qp) = sum_k x_k * phi_k(qp) for each
                 // qp.
-                for (unsigned int k = 0; k < n_nodes; ++k)
+
+                for (unsigned int qp = 0; qp < n_qpoints; ++qp)
                 {
-                    for (unsigned int qp = 0; qp < n_qpoints; ++qp)
-                    {
-                        const double& p = phi_X[k][qp];
-                        for (unsigned int d = 0; d < NDIM; ++d)
-                        {
-                            x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
-                        }
-                        if (d_use_velocity_jump_conditions)
-                        {
-                            const double& p2 = phi_DU_jump[k][qp];
-                            for (unsigned int axis = 0; axis < NDIM; ++axis)
-                            {
-                                for (unsigned int d = 0; d < NDIM; ++d)
-                                {
-                                    DU_jump_qp[axis][NDIM * (qp_offset + qp) + d] += DU_jump_node[axis][k][d] * p2;
-                                }
-                            }
-                        }
-                    }
+					for (unsigned int d = 0; d < NDIM; ++d)
+					{
+						for (unsigned int k = 0; k < n_nodes; ++k)
+						{
+							const double& p = phi_X[k][qp];
+							x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
+						}
+					}
+					if (d_use_velocity_jump_conditions)
+					{
+						for (unsigned int axis = 0; axis < NDIM; ++axis)
+						{
+							for (unsigned int d = 0; d < NDIM; ++d)
+							{
+								for (unsigned int k = 0; k < n_nodes_jump; ++k)
+								{
+									const double& p2 = phi_DU_jump[k][qp];
+									DU_jump_qp[axis][NDIM * (qp_offset + qp) + d] += DU_jump_node[axis][k][d] * p2;
+								}
+							}
+						}
+					} 
                 }
                 for (unsigned int qp = 0; qp < n_qpoints; ++qp)
                 {
@@ -1647,7 +1701,8 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
         // Loop over the elements and compute the positions of the quadrature points.
         qrule.reset();
         unsigned int qp_offset = 0;
-        std::vector<libMesh::dof_id_type> dof_id_scratch;
+        std::vector<libMesh::dof_id_type> dof_id_scratch_P_in;
+        std::vector<libMesh::dof_id_type> dof_id_scratch_P_out;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
         {
             Elem* const elem = patch_elems[e_idx];
@@ -1659,10 +1714,10 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
             get_values_for_interpolation(x_node, *X_petsc_vec, X_local_soln, X_dof_indices);
             get_values_for_interpolation(WSS_in_node, *WSS_in_ghost_vec, WSS_in_dof_indices);
             get_values_for_interpolation(WSS_out_node, *WSS_out_ghost_vec, WSS_out_dof_indices);
-            copy_dof_ids_to_vector(0, P_in_dof_indices, dof_id_scratch);
-            get_values_for_interpolation(P_in_node, *P_in_ghost_vec, dof_id_scratch);
-            copy_dof_ids_to_vector(0, P_out_dof_indices, dof_id_scratch);
-            get_values_for_interpolation(P_out_node, *P_out_ghost_vec, dof_id_scratch);
+            copy_dof_ids_to_vector(0, P_in_dof_indices, dof_id_scratch_P_in);
+            get_values_for_interpolation(P_in_node, *P_in_ghost_vec, dof_id_scratch_P_in);
+            copy_dof_ids_to_vector(0, P_out_dof_indices, dof_id_scratch_P_out);
+            get_values_for_interpolation(P_out_node, *P_out_ghost_vec, dof_id_scratch_P_out);
             get_values_for_interpolation(X_node, *X0_vec, X_dof_indices);
 
             const bool qrule_changed =
@@ -1676,6 +1731,7 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
             fe_P->reinit(elem);
 
             const unsigned int n_node = elem->n_nodes();
+            const unsigned int n_node_tau = WSS_out_dof_indices[0].size();
             const unsigned int n_qp = qrule->n_points();
 
             // Zero out the values of X, du, and dv prior to accumulation.
@@ -1732,14 +1788,17 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
                     {
                         const double& p_X = phi_X[k][qp];
                         x_qp[NDIM * (qp_offset + qp) + i] += x_node[k][i] * p_X;
+					}
+					for (unsigned int k = 0; k < n_node_tau; ++k)
+                    {
                         const double& p_P = phi_P[k][qp];
-                        WSS_in_qp[NDIM * (qp_offset + qp) + i] += (da / dA) * WSS_in_node[k][i] * p_P;
+                        WSS_in_qp[NDIM * (qp_offset + qp) + i] += 0.0; //da / dA) * WSS_in_node[k][i] * p_P;
                         WSS_out_qp[NDIM * (qp_offset + qp) + i] += (da / dA) * WSS_out_node[k][i] * p_P;
                     }
                     Normal_qp[NDIM * (qp_offset + qp) + i] = n(i);
                 }
 
-                for (unsigned int k = 0; k < n_node; ++k)
+                for (unsigned int k = 0; k < n_node_tau; ++k)
                 {
                     const double& p_P = phi_P[k][qp];
                     P_in_qp[qp_offset + qp] += (da / dA) * P_in_node[k] * p_P;
@@ -2075,6 +2134,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
             fe_P->reinit(elem);
 
             const unsigned int n_node = elem->n_nodes();
+            const unsigned int n_node_jump = P_jump_dof_indices.size();
             const unsigned int n_qp = qrule->n_points();
 
             // Zero out the values of X, du, and dv prior to accumulation.
@@ -2119,7 +2179,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
                     x_in_qp[NDIM * (qp_offset + qp) + i] = x_qp[NDIM * (qp_offset + qp) + i] - n(i) * dh;
                     x_out_qp[NDIM * (qp_offset + qp) + i] = x_qp[NDIM * (qp_offset + qp) + i] + n(i) * dh;
                 }
-                for (unsigned int k = 0; k < n_node; ++k)
+                for (unsigned int k = 0; k < n_node_jump; ++k)
                 {
                     const double& p_P = phi_P[k][qp];
 
@@ -2456,7 +2516,7 @@ IIMethod::computeLagrangianForce(const double data_time)
         System* P_jump_system;
         const DofMap* P_jump_dof_map = NULL;
         FEDataManager::SystemDofMapCache* P_jump_dof_map_cache = NULL;
-        FEType P_jump_fe_type = INVALID_FE;
+        FEType P_jump_fe_type;
         if (d_use_pressure_jump_conditions)
         {
             P_jump_system = &equation_systems->get_system(PRESSURE_JUMP_SYSTEM_NAME);
@@ -2468,7 +2528,7 @@ IIMethod::computeLagrangianForce(const double data_time)
         std::array<System*, NDIM> DU_jump_system;
         std::array<DofMap*, NDIM> DU_jump_dof_map;
         std::array<FEDataManager::SystemDofMapCache*, NDIM> DU_jump_dof_map_cache;
-        FEType DU_jump_fe_type = INVALID_FE;
+        FEType DU_jump_fe_type;
         if (d_use_velocity_jump_conditions)
         {
             for (unsigned int i = 0; i < NDIM; ++i)
@@ -2485,13 +2545,6 @@ IIMethod::computeLagrangianForce(const double data_time)
                     TBOX_ASSERT(DU_jump_dof_map[i]->variable_type(j) == DU_jump_fe_type);
                 }
             }
-        }
-
-        // The P_jump_fe_type and DU_jump_fe_type are equal only if we are applying both jumps
-        // or none of the jumps.
-        if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
-        {
-            TBOX_ASSERT(P_jump_fe_type == DU_jump_fe_type);
         }
 
         std::unique_ptr<QBase> qrule = QBase::build(d_default_quad_type[part], dim, d_default_quad_order[part]);
@@ -2944,35 +2997,52 @@ IIMethod::initializeFEEquationSystems()
             };
             std::vector<std::string> vector_variable_prefixes{ "X", "dX", "U", "U_n", "U_t", "F" };
             std::vector<libMesh::FEFamily> vector_fe_family(vector_system_names.size(), d_fe_family[part]);
+            std::vector<libMesh::Order> vector_fe_order(vector_system_names.size(), d_fe_order[part]);
 
             if (d_use_velocity_jump_conditions)
             {
-                const auto jump_family =
+                const auto du_jump_family =
                     d_use_discon_elem_for_jumps[part] ? d_velocity_jump_fe_family : d_fe_family[part];
+                const auto du_jump_order =
+                    d_use_discon_elem_for_jumps[part] ? d_velocity_jump_fe_order : d_fe_order[part];
+                    
+                const auto wss_family =
+                    d_use_discon_elem_for_jumps[part] ? d_wss_fe_family : d_fe_family[part];
+                const auto wss_order =
+                    d_use_discon_elem_for_jumps[part] ? d_wss_fe_order : d_fe_order[part];
+                const auto tau_family =
+                    d_use_discon_elem_for_jumps[part] ? d_tau_fe_family : d_fe_family[part];
+                const auto tau_order =
+                    d_use_discon_elem_for_jumps[part] ? d_tau_fe_order : d_fe_order[part];
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     vector_system_names.push_back(VELOCITY_JUMP_SYSTEM_NAME[d]);
                     vector_variable_prefixes.push_back("DU_jump_" + std::to_string(d));
-                    vector_fe_family.push_back(jump_family);
+                    vector_fe_family.push_back(du_jump_family);
+                    vector_fe_order.push_back(du_jump_order);
                 }
 
                 vector_system_names.push_back(WSS_IN_SYSTEM_NAME);
                 vector_variable_prefixes.push_back("WSS_in");
-                vector_fe_family.push_back(jump_family);
+                vector_fe_family.push_back(wss_family);
+                vector_fe_order.push_back(wss_order);
 
                 vector_system_names.push_back(WSS_OUT_SYSTEM_NAME);
                 vector_variable_prefixes.push_back("WSS_out");
-                vector_fe_family.push_back(jump_family);
+                vector_fe_family.push_back(wss_family);
+                vector_fe_order.push_back(wss_order);
 
                 if (d_use_pressure_jump_conditions)
                 {
                     vector_system_names.push_back(TAU_IN_SYSTEM_NAME);
                     vector_variable_prefixes.push_back("TAU_IN");
-                    vector_fe_family.push_back(jump_family);
+                    vector_fe_family.push_back(tau_family);
+                    vector_fe_order.push_back(tau_order);
 
                     vector_system_names.push_back(TAU_OUT_SYSTEM_NAME);
                     vector_variable_prefixes.push_back("TAU_OUT");
-                    vector_fe_family.push_back(jump_family);
+                    vector_fe_family.push_back(tau_family);
+                    vector_fe_order.push_back(tau_order);
                 }
             }
 
@@ -2982,7 +3052,7 @@ IIMethod::initializeFEEquationSystems()
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     system.add_variable(
-                        vector_variable_prefixes[i] + "_" + std::to_string(d), d_fe_order[part], vector_fe_family[i]);
+                        vector_variable_prefixes[i] + "_" + std::to_string(d), vector_fe_order[i], vector_fe_family[i]);
                 }
             }
 
@@ -2997,9 +3067,9 @@ IIMethod::initializeFEEquationSystems()
                 System& P_out_system = equation_systems->add_system<System>(PRESSURE_OUT_SYSTEM_NAME);
                 if (d_use_discon_elem_for_jumps[part])
                 {
-                    P_jump_system.add_variable("P_jump_", d_fe_order[part], d_pressure_jump_fe_family);
-                    P_in_system.add_variable("P_in_", d_fe_order[part], d_pressure_jump_fe_family);
-                    P_out_system.add_variable("P_out_", d_fe_order[part], d_pressure_jump_fe_family);
+                    P_jump_system.add_variable("P_jump_", d_pressure_jump_fe_order, d_pressure_jump_fe_family);
+                    P_in_system.add_variable("P_in_", d_pressure_jump_fe_order, d_pressure_jump_fe_family);
+                    P_out_system.add_variable("P_out_", d_pressure_jump_fe_order, d_pressure_jump_fe_family);
                 }
                 else
                 {
@@ -3347,6 +3417,10 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
     std::unique_ptr<FEBase> fe_P_jump = FEBase::build(dim, P_jump_fe_type);
     const std::vector<std::vector<double> >& phi_P_jump = fe_P_jump->get_phi();
+    
+    FEType fe_DU_jump_type = DU_jump_fe_type;
+    std::unique_ptr<FEBase> fe_DU_jump = FEBase::build(dim, fe_DU_jump_type);
+    const std::vector<std::vector<double> >& phi_DU_jump = fe_DU_jump->get_phi();
 
     // Loop over the patches to impose jump conditions on the Eulerian grid.
     const std::vector<std::vector<Elem*> >& active_patch_element_map =
@@ -3645,7 +3719,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                             {
                                 std::vector<libMesh::Point> ref_coords(1, xui);
                                 fe_X->reinit(elem, &ref_coords);
-                                fe_P_jump->reinit(elem, &ref_coords);
+                                fe_DU_jump->reinit(elem, &ref_coords);
                                 for (unsigned int l = 0; l < NDIM - 1; ++l)
                                 {
                                     interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
@@ -3707,7 +3781,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                         double C_u_um = 0;
                                         double C_u_up = 0;
 
-                                        interpolate(&jn(0), 0, DU_jump_node[axis], phi_P_jump);
+                                        interpolate(&jn(0), 0, DU_jump_node[axis], phi_DU_jump);
                                         C_u_up = sdh_up * jn(axis);
                                         C_u_um = sdh_um * jn(axis);
 
@@ -3818,7 +3892,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     TBOX_ASSERT(i_s_up(axis) - i_s_um(axis) == 1);
                                     std::vector<libMesh::Point> ref_coords(1, xui);
                                     fe_X->reinit(elem, &ref_coords);
-                                    fe_P_jump->reinit(elem, &ref_coords);
+                                    fe_DU_jump->reinit(elem, &ref_coords);
                                     for (unsigned int l = 0; l < NDIM - 1; ++l)
                                     {
                                         interpolate(dx_dxi[l], 0, x_node, *dphi_dxi[l]);
@@ -3880,7 +3954,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                             double C_u_um = 0;
                                             double C_u_up = 0;
 
-                                            interpolate(&jn(0), 0, DU_jump_node[SideDim[axis][j]], phi_P_jump);
+                                            interpolate(&jn(0), 0, DU_jump_node[SideDim[axis][j]], phi_DU_jump);
                                             C_u_um = sdh_um * jn(axis);
                                             C_u_up = sdh_up * jn(axis);
 
@@ -4281,7 +4355,13 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (d_use_pressure_jump_conditions)
     {
         if (db->isString("pressure_jump_fe_family"))
+        {
             d_pressure_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("pressure_jump_fe_family"));
+		}
+		if (db->isString("pressure_jump_fe_order"))
+        {
+		            d_pressure_jump_fe_order  = Utility::string_to_enum<Order>(db->getString("pressure_jump_fe_order"));
+		}
     }
 
     if (db->isBool("use_velocity_jump_conditions"))
@@ -4291,14 +4371,20 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
         if (db->isString("velocity_jump_fe_family"))
             d_velocity_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("velocity_jump_fe_family"));
+        if (db->isString("velocity_jump_fe_order"))  
+            d_velocity_jump_fe_order  = Utility::string_to_enum<Order>(db->getString("velocity_jump_fe_order"));
         if (db->isString("wss_fe_family"))
             d_wss_fe_family = Utility::string_to_enum<FEFamily>(db->getString("wss_fe_family"));
+        if (db->isString("wss_fe_order"))  
+            d_wss_fe_order  = Utility::string_to_enum<Order>(db->getString("wss_fe_order"));
     }
     if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
     {
         if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
         if (db->isString("tau_fe_family"))
             d_tau_fe_family = Utility::string_to_enum<FEFamily>(db->getString("tau_fe_family"));
+        if (db->isString("tau_fe_order"))
+            d_tau_fe_order = Utility::string_to_enum<Order>(db->getString("tau_fe_order"));
     }
     if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
     {

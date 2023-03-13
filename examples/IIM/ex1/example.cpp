@@ -196,10 +196,10 @@ main(int argc, char* argv[])
                                               static_cast<int>(ceil(R_D / ds)),
                                               static_cast<int>(ceil(R_D / ds)),
                                               static_cast<int>(ceil(R_D / ds)),
-                                              R_D / 2.0,
                                               -R_D / 2.0,
+                                               R_D / 2.0,
                                               -R_D / 2.0,
-                                              R_D / 2.0,
+                                               R_D / 2.0,
                                               -R_D / 2.0,
                                               R_D / 2.0,
                                               Utility::string_to_enum<ElemType>(elem_type));
