@@ -27,6 +27,7 @@
 
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/KrylovLinearSolver.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
@@ -269,9 +270,6 @@ IBImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
                                                              const bool skip_synchronize_new_state_data,
                                                              const int num_cycles)
 {
-    IBHierarchyIntegrator::postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
@@ -300,6 +298,17 @@ IBImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
         synchronizeHierarchyData(NEW_DATA);
     }
 
+    // postprocess the objects this class manages...
+    d_ib_implicit_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
+
+    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
+    d_ins_hier_integrator->postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
+
+    // ... and postprocess ourself.
+    HierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
     // Determine the CFL number.
     double cfl_max = 0.0;
     PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
@@ -322,23 +331,31 @@ IBImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
             cfl_max = std::max(cfl_max, u_max * dt / dx_min);
         }
     }
-    cfl_max = SAMRAI_MPI::maxReduction(cfl_max);
+
+    cfl_max = IBTK_MPI::maxReduction(cfl_max);
     d_regrid_fluid_cfl_estimate += cfl_max;
+
+    // Not all IBStrategy objects implement this so make it optional (-1.0 is
+    // the default value)
+    if (d_regrid_structure_cfl_interval != -1.0)
+        d_regrid_structure_cfl_estimate = d_ib_method_ops->getMaxPointDisplacement();
+
     if (d_enable_logging)
+    {
         plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
-    if (d_enable_logging)
         plog << d_object_name
-             << "::postprocessIntegrateHierarchy(): estimated upper bound on IB "
-                "point displacement since last regrid = "
+             << "::postprocessIntegrateHierarchy(): Eulerian estimate of "
+                "upper bound on IB point displacement since last regrid = "
              << d_regrid_fluid_cfl_estimate << "\n";
 
-    // Deallocate the fluid solver.
-    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
-
-    // Deallocate IB data.
-    d_ib_implicit_ops->postprocessIntegrateData(current_time, new_time, num_cycles);
+        if (d_regrid_structure_cfl_interval != -1.0)
+        {
+            plog << d_object_name
+                 << "::postprocessIntegrateHierarchy(): Lagrangian estimate of "
+                    "upper bound on IB point displacement since last regrid = "
+                 << d_regrid_structure_cfl_estimate << "\n";
+        }
+    }
 
     // Deallocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

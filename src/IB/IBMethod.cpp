@@ -1533,6 +1533,10 @@ IBMethod::getLECouplingPositionData(std::vector<Pointer<LData> >** X_LE_data,
         *X_LE_data = &d_X_LE_new_data;
         *X_LE_needs_ghost_fill = &d_X_LE_new_needs_ghost_fill;
     }
+    else
+    {
+        *X_LE_data = nullptr;
+    }
     return;
 } // getLECouplingPositionData
 
@@ -1550,6 +1554,10 @@ IBMethod::getVelocityData(std::vector<Pointer<LData> >** U_data, double data_tim
     else if (IBTK::rel_equal_eps(data_time, d_new_time))
     {
         *U_data = &d_U_new_data;
+    }
+    else
+    {
+        *U_data = nullptr;
     }
     return;
 } // getVelocityData
@@ -1578,6 +1586,10 @@ IBMethod::getForceData(std::vector<Pointer<LData> >** F_data, bool** F_needs_gho
         }
         *F_data = &d_F_new_data;
         *F_needs_ghost_fill = &d_F_new_needs_ghost_fill;
+    }
+    else
+    {
+        *F_data = nullptr;
     }
     return;
 } // getForceData
