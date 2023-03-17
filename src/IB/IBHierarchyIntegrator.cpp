@@ -168,7 +168,45 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
                                                     const double new_time,
                                                     const int num_cycles)
 {
+    // preprocess our dependencies...
     HierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
+
+    // ... and preprocess objects owned by this class.
+    d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
+
+    if (d_ins_hier_integrator)
+    {
+        const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
+        if (ins_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
+        {
+            TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                                     << "  attempting to perform " << d_current_num_cycles
+                                     << " cycles of fixed point iteration.\n"
+                                     << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles << ".\n"
+                                     << "  current implementation requires either that both solvers "
+                                        "use the same number of cycles,\n"
+                                     << "  or that the IB solver use only a single cycle.\n");
+        }
+        d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, ins_num_cycles);
+    }
+
+    // Allocate Eulerian scratch and new data.
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_u_idx, current_time);
+        level->allocatePatchData(d_f_idx, current_time);
+        if (d_f_current_idx != invalid_index) level->allocatePatchData(d_f_current_idx, current_time);
+        if (d_ib_method_ops->hasFluidSources())
+        {
+            level->allocatePatchData(d_p_idx, current_time);
+            level->allocatePatchData(d_q_idx, current_time);
+        }
+        level->allocatePatchData(d_scratch_data, current_time);
+        level->allocatePatchData(d_new_data, new_time);
+    }
 
     // Determine whether there has been a time step size change.
     const double dt = new_time - current_time;
@@ -205,18 +243,26 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
     d_ins_hier_integrator->postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, d_ins_hier_integrator->getNumberOfCycles());
 
-    // ... and postprocess ourself.
-    HierarchyIntegrator::postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time - current_time;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_u_idx);
+        level->deallocatePatchData(d_f_idx);
+        if (d_f_current_idx != invalid_index) level->deallocatePatchData(d_f_current_idx);
+        if (d_ib_method_ops->hasFluidSources())
+        {
+            level->deallocatePatchData(d_p_idx);
+            level->deallocatePatchData(d_q_idx);
+        }
+    }
+
+    // Determine the CFL number.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
-
-    // Determine the CFL number.
+    const double dt = new_time - current_time;
     double cfl_max = 0.0;
     PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
     PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
@@ -263,6 +309,10 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                  << d_regrid_structure_cfl_estimate << "\n";
         }
     }
+
+    // ... and postprocess our dependencies.
+    HierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 }
 
 void

@@ -102,43 +102,10 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
                                                             const double new_time,
                                                             const int num_cycles)
 {
+    // preprocess our dependencies...
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    // Allocate Eulerian scratch and new data.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_u_idx, current_time);
-        level->allocatePatchData(d_f_idx, current_time);
-        if (d_f_current_idx != invalid_index) level->allocatePatchData(d_f_current_idx, current_time);
-        if (d_ib_method_ops->hasFluidSources())
-        {
-            level->allocatePatchData(d_p_idx, current_time);
-            level->allocatePatchData(d_q_idx, current_time);
-        }
-        level->allocatePatchData(d_scratch_data, current_time);
-        level->allocatePatchData(d_new_data, new_time);
-    }
-
-    // Initialize IB data.
-    d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
-
-    // Initialize the fluid solver.
-    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    if (ins_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
-    {
-        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << "  attempting to perform " << d_current_num_cycles
-                                 << " cycles of fixed point iteration.\n"
-                                 << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles << ".\n"
-                                 << "  current implementation requires either that both solvers "
-                                    "use the same number of cycles,\n"
-                                 << "  or that the IB solver use only a single cycle.\n");
-    }
-    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, ins_num_cycles);
+    // this object doesn't need any preprocessing of its own.
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     switch (d_time_stepping_type)
@@ -414,23 +381,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
                                          getGhostfillRefineSchedules(d_object_name + "::u"),
                                          new_time);
 
-    // postprocess the objects this class manages...
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_u_idx);
-        level->deallocatePatchData(d_f_idx);
-        if (d_f_current_idx != invalid_index) level->deallocatePatchData(d_f_current_idx);
-        if (d_ib_method_ops->hasFluidSources())
-        {
-            level->deallocatePatchData(d_p_idx);
-            level->deallocatePatchData(d_q_idx);
-        }
-    }
-
-    // and postprocess ourself.
+    // This class is not responsible for postprocessing any other objects so proceed to the base class:
     IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
