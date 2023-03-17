@@ -55,7 +55,7 @@ namespace IBAMR
  * \brief Class IBInterpolantHierarchyIntegrator is an implementation of Brinkman
  * penalization immersed boundary method.
  */
-class IBInterpolantHierarchyIntegrator : public IBAMR::IBHierarchyIntegrator
+class IBInterpolantHierarchyIntegrator : public IBHierarchyIntegrator
 {
 public:
     /*!
