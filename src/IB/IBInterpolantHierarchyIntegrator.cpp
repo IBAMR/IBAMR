@@ -103,26 +103,10 @@ IBInterpolantHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
                                                                const double new_time,
                                                                const int num_cycles)
 {
+    // preprocess our dependencies...
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
-    const int coarsest_level_num = 0;
-    const int finest_level_num = d_hierarchy->getFinestLevelNumber();
-
-    // Allocate Eulerian scratch and new data.
-    for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-        level->allocatePatchData(d_scratch_data, current_time);
-        level->allocatePatchData(d_new_data, new_time);
-    }
-
-    // Initialize IB data.
-    d_ib_method_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
-
-    // Initialize the fluid solver.
-    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
-
-    // At initial time interpolate Q.
+    // ... and preprocess objects owned by this class.
     bool initial_time = IBTK::abs_equal_eps(current_time, 0.0);
     if (initial_time) d_ib_interpolant_method_ops->interpolateQ();
 
