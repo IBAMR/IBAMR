@@ -18,7 +18,7 @@ MAX_TAG_VAL = 0.4
 
 // solver parameters
 START_TIME         = 0.0e0                // initial simulation time
-END_TIME           = 5                // final simulation time
+END_TIME           = 2.3                // final simulation time
 GROW_DT            = 2.0e0                // growth factor for timesteps
 NUM_CYCLES         = 1                    // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"    // convective time stepping type
@@ -110,7 +110,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 1
+   viz_dump_interval           = 0
    viz_dump_dirname            = "viz_adv_diff2d"
    visit_number_procs_per_file = 1
 
@@ -137,7 +137,7 @@ GriddingAlgorithm {
       level_3 = REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-      level_0 = 512,512  // all finer levels will use same values as level_0
+      level_0 = 16,16  // all finer levels will use same values as level_0
    }
    smallest_patch_size {
       level_0 =   4,  4  // all finer levels will use same values as level_0

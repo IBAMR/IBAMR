@@ -1037,8 +1037,8 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
+    const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));

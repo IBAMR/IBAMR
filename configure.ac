@@ -234,7 +234,6 @@ AC_CONFIG_FILES([
   examples/adv_diff/ex5/Makefile
   examples/adv_diff/ex6/Makefile
   examples/adv_diff/ex7/Makefile
-  examples/adv_diff/ex8/Makefile
   examples/advect/Makefile
   examples/complex_fluids/Makefile
   examples/complex_fluids/ex0/Makefile

@@ -28,6 +28,7 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
@@ -247,10 +248,17 @@ main(int argc, char* argv[])
 
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(Q_cloned_idx, Q_idx, Q_cloned_idx);
-        pout << "Error in U at time " << loop_time << ":\n"
-             << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(Q_cloned_idx, wgt_cc_idx) << "\n"
-             << "  L2-norm:  " << hier_cc_data_ops.L2Norm(Q_cloned_idx, wgt_cc_idx) << "\n"
-             << "  max-norm: " << hier_cc_data_ops.maxNorm(Q_cloned_idx, wgt_cc_idx) << "\n";
+        const double L1_norm = hier_cc_data_ops.L1Norm(Q_cloned_idx, wgt_cc_idx);
+        const double L2_norm = hier_cc_data_ops.L2Norm(Q_cloned_idx, wgt_cc_idx);
+        const double max_norm = hier_cc_data_ops.maxNorm(Q_cloned_idx, wgt_cc_idx);
+        if (IBTK_MPI::getRank() == 0)
+        {
+            std::ofstream out("output");
+            out << "Error in U at time " << loop_time << ":\n"
+                << "  L1-norm:  " << std::setprecision(10) << L1_norm << "\n"
+                << "  L2-norm:  " << L2_norm << "\n"
+                << "  max-norm: " << max_norm << "\n";
+        }
 
         if (dump_viz_data && uses_visit)
         {

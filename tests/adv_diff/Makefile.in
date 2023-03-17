@@ -90,7 +90,8 @@ host_triplet = @host@
 EXTRA_PROGRAMS = adv_diff_01_3d$(EXEEXT) adv_diff_02_2d$(EXEEXT) \
 	adv_diff_02_3d$(EXEEXT) adv_diff_03_2d$(EXEEXT) \
 	adv_diff_convec_opers_2d$(EXEEXT) \
-	adv_diff_convec_opers_3d$(EXEEXT) bp_adv_diff_01_2d$(EXEEXT) \
+	adv_diff_convec_opers_3d$(EXEEXT) \
+	adv_diff_regridding_2d$(EXEEXT) bp_adv_diff_01_2d$(EXEEXT) \
 	bp_adv_diff_02_2d$(EXEEXT)
 subdir = tests/adv_diff
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -172,6 +173,15 @@ adv_diff_convec_opers_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(adv_diff_convec_opers_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_adv_diff_regridding_2d_OBJECTS =  \
+	adv_diff_regridding_2d-adv_diff_regridding.$(OBJEXT) \
+	adv_diff_regridding_2d-TagInterfaceRefinementCells.$(OBJEXT)
+adv_diff_regridding_2d_OBJECTS = $(am_adv_diff_regridding_2d_OBJECTS)
+adv_diff_regridding_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+adv_diff_regridding_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(adv_diff_regridding_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_bp_adv_diff_01_2d_OBJECTS =  \
 	bp_adv_diff_01_2d-bp_adv_diff_01.$(OBJEXT)
 bp_adv_diff_01_2d_OBJECTS = $(am_bp_adv_diff_01_2d_OBJECTS)
@@ -209,6 +219,8 @@ am__depfiles_remade = ./$(DEPDIR)/adv_diff_01_3d-adv_diff_01.Po \
 	./$(DEPDIR)/adv_diff_03_2d-adv_diff_03.Po \
 	./$(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po \
 	./$(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po \
+	./$(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Po \
+	./$(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Po \
 	./$(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po \
 	./$(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po
 am__mv = mv -f
@@ -230,16 +242,36 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
+COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
+	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(AM_CFLAGS) $(CFLAGS)
+AM_V_CC = $(am__v_CC_@AM_V@)
+am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
+am__v_CC_0 = @echo "  CC      " $@;
+am__v_CC_1 = 
+CCLD = $(CC)
+LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+AM_V_CCLD = $(am__v_CCLD_@AM_V@)
+am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
+am__v_CCLD_0 = @echo "  CCLD    " $@;
+am__v_CCLD_1 = 
 SOURCES = $(adv_diff_01_3d_SOURCES) $(adv_diff_02_2d_SOURCES) \
 	$(adv_diff_02_3d_SOURCES) $(adv_diff_03_2d_SOURCES) \
 	$(adv_diff_convec_opers_2d_SOURCES) \
 	$(adv_diff_convec_opers_3d_SOURCES) \
-	$(bp_adv_diff_01_2d_SOURCES) $(bp_adv_diff_02_2d_SOURCES)
+	$(adv_diff_regridding_2d_SOURCES) $(bp_adv_diff_01_2d_SOURCES) \
+	$(bp_adv_diff_02_2d_SOURCES)
 DIST_SOURCES = $(adv_diff_01_3d_SOURCES) $(adv_diff_02_2d_SOURCES) \
 	$(adv_diff_02_3d_SOURCES) $(adv_diff_03_2d_SOURCES) \
 	$(adv_diff_convec_opers_2d_SOURCES) \
 	$(adv_diff_convec_opers_3d_SOURCES) \
-	$(bp_adv_diff_01_2d_SOURCES) $(bp_adv_diff_02_2d_SOURCES)
+	$(adv_diff_regridding_2d_SOURCES) $(bp_adv_diff_01_2d_SOURCES) \
+	$(bp_adv_diff_02_2d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -543,6 +575,9 @@ adv_diff_convec_opers_2d_SOURCES = adv_diff_convec_opers.cpp
 adv_diff_convec_opers_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 adv_diff_convec_opers_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 adv_diff_convec_opers_3d_SOURCES = adv_diff_convec_opers.cpp
+adv_diff_regridding_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+adv_diff_regridding_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+adv_diff_regridding_2d_SOURCES = adv_diff_regridding.cpp TagInterfaceRefinementCells.cpp TagInterfaceRefinementCells.h
 bp_adv_diff_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 bp_adv_diff_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 bp_adv_diff_01_2d_SOURCES = bp_adv_diff_01.cpp
@@ -608,6 +643,10 @@ adv_diff_convec_opers_3d$(EXEEXT): $(adv_diff_convec_opers_3d_OBJECTS) $(adv_dif
 	@rm -f adv_diff_convec_opers_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(adv_diff_convec_opers_3d_LINK) $(adv_diff_convec_opers_3d_OBJECTS) $(adv_diff_convec_opers_3d_LDADD) $(LIBS)
 
+adv_diff_regridding_2d$(EXEEXT): $(adv_diff_regridding_2d_OBJECTS) $(adv_diff_regridding_2d_DEPENDENCIES) $(EXTRA_adv_diff_regridding_2d_DEPENDENCIES) 
+	@rm -f adv_diff_regridding_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(adv_diff_regridding_2d_LINK) $(adv_diff_regridding_2d_OBJECTS) $(adv_diff_regridding_2d_LDADD) $(LIBS)
+
 bp_adv_diff_01_2d$(EXEEXT): $(bp_adv_diff_01_2d_OBJECTS) $(bp_adv_diff_01_2d_DEPENDENCIES) $(EXTRA_bp_adv_diff_01_2d_DEPENDENCIES) 
 	@rm -f bp_adv_diff_01_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(bp_adv_diff_01_2d_LINK) $(bp_adv_diff_01_2d_OBJECTS) $(bp_adv_diff_01_2d_LDADD) $(LIBS)
@@ -628,6 +667,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_03_2d-adv_diff_03.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po@am__quote@ # am--include-marker
 
@@ -744,6 +785,34 @@ adv_diff_convec_opers_3d-adv_diff_convec_opers.obj: adv_diff_convec_opers.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_convec_opers.cpp' object='adv_diff_convec_opers_3d-adv_diff_convec_opers.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_convec_opers_3d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_convec_opers_3d-adv_diff_convec_opers.obj `if test -f 'adv_diff_convec_opers.cpp'; then $(CYGPATH_W) 'adv_diff_convec_opers.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_convec_opers.cpp'; fi`
+
+adv_diff_regridding_2d-adv_diff_regridding.o: adv_diff_regridding.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_regridding_2d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_regridding_2d-adv_diff_regridding.o -MD -MP -MF $(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Tpo -c -o adv_diff_regridding_2d-adv_diff_regridding.o `test -f 'adv_diff_regridding.cpp' || echo '$(srcdir)/'`adv_diff_regridding.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Tpo $(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_regridding.cpp' object='adv_diff_regridding_2d-adv_diff_regridding.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_regridding_2d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_regridding_2d-adv_diff_regridding.o `test -f 'adv_diff_regridding.cpp' || echo '$(srcdir)/'`adv_diff_regridding.cpp
+
+adv_diff_regridding_2d-adv_diff_regridding.obj: adv_diff_regridding.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_regridding_2d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_regridding_2d-adv_diff_regridding.obj -MD -MP -MF $(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Tpo -c -o adv_diff_regridding_2d-adv_diff_regridding.obj `if test -f 'adv_diff_regridding.cpp'; then $(CYGPATH_W) 'adv_diff_regridding.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_regridding.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Tpo $(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='adv_diff_regridding.cpp' object='adv_diff_regridding_2d-adv_diff_regridding.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_regridding_2d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_regridding_2d-adv_diff_regridding.obj `if test -f 'adv_diff_regridding.cpp'; then $(CYGPATH_W) 'adv_diff_regridding.cpp'; else $(CYGPATH_W) '$(srcdir)/adv_diff_regridding.cpp'; fi`
+
+adv_diff_regridding_2d-TagInterfaceRefinementCells.o: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_regridding_2d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_regridding_2d-TagInterfaceRefinementCells.o -MD -MP -MF $(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Tpo -c -o adv_diff_regridding_2d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='adv_diff_regridding_2d-TagInterfaceRefinementCells.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_regridding_2d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_regridding_2d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+
+adv_diff_regridding_2d-TagInterfaceRefinementCells.obj: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_regridding_2d_CXXFLAGS) $(CXXFLAGS) -MT adv_diff_regridding_2d-TagInterfaceRefinementCells.obj -MD -MP -MF $(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Tpo -c -o adv_diff_regridding_2d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='adv_diff_regridding_2d-TagInterfaceRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(adv_diff_regridding_2d_CXXFLAGS) $(CXXFLAGS) -c -o adv_diff_regridding_2d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
 
 bp_adv_diff_01_2d-bp_adv_diff_01.o: bp_adv_diff_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(bp_adv_diff_01_2d_CXXFLAGS) $(CXXFLAGS) -MT bp_adv_diff_01_2d-bp_adv_diff_01.o -MD -MP -MF $(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Tpo -c -o bp_adv_diff_01_2d-bp_adv_diff_01.o `test -f 'bp_adv_diff_01.cpp' || echo '$(srcdir)/'`bp_adv_diff_01.cpp
@@ -910,6 +979,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/adv_diff_03_2d-adv_diff_03.Po
 	-rm -f ./$(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po
 	-rm -f ./$(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po
+	-rm -f ./$(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Po
+	-rm -f ./$(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Po
 	-rm -f ./$(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po
 	-rm -f ./$(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po
 	-rm -f Makefile
@@ -963,6 +1034,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/adv_diff_03_2d-adv_diff_03.Po
 	-rm -f ./$(DEPDIR)/adv_diff_convec_opers_2d-adv_diff_convec_opers.Po
 	-rm -f ./$(DEPDIR)/adv_diff_convec_opers_3d-adv_diff_convec_opers.Po
+	-rm -f ./$(DEPDIR)/adv_diff_regridding_2d-TagInterfaceRefinementCells.Po
+	-rm -f ./$(DEPDIR)/adv_diff_regridding_2d-adv_diff_regridding.Po
 	-rm -f ./$(DEPDIR)/bp_adv_diff_01_2d-bp_adv_diff_01.Po
 	-rm -f ./$(DEPDIR)/bp_adv_diff_02_2d-bp_adv_diff_02.Po
 	-rm -f Makefile
