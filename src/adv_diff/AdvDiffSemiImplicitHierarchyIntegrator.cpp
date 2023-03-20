@@ -919,16 +919,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyBeginSpecialized()
 } // regridHierarchyBeginSpecialized
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int coarsest_level,
-    const int finest_level)
-{
-    AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
-    return;
-} // resetHierarchyConfigurationSpecialized
-
-void
 AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyEndSpecialized()
 {
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
