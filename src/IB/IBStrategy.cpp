@@ -144,7 +144,10 @@ IBStrategy::getLagrangianStructureIsActivated(int /*structure_number*/, int /*le
 double
 IBStrategy::getMaxPointDisplacement() const
 {
-    TBOX_ERROR("IBStrategy::getMaxPointDisplacement(): unimplemented\n");
+    TBOX_ERROR("IBStrategy::getMaxPointDisplacement(): This method, which permits regridding based on the maximum "
+               "displacement of the structure, is not yet implemented by the inheriting class. You must use regridding "
+               "based on the fluid CFL estimate instead. this is typically done by setting regrid_fluid_cfl_interval "
+               "and *not* setting regrid_structure_cfl_interval in the input database for IBHierarchyIntegrator.\n");
     return std::numeric_limits<double>::max();
 } // getMaxPointDisplacement
 
