@@ -37,6 +37,7 @@
 
 #include <ibamr/app_namespaces.h>
 
+#include "TagInterfaceRefinementCells.cpp"
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *

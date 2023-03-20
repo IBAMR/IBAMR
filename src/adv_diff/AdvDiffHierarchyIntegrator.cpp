@@ -1019,11 +1019,11 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
 void
 AdvDiffHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
-    for (int l = 0; l < d_helmholtz_rhs_ops.size(); ++l)
+    for (long unsigned int l = 0; l < d_helmholtz_rhs_ops.size(); ++l)
     {
         if (d_helmholtz_rhs_ops[l]) d_helmholtz_rhs_ops[l]->deallocateOperatorState();
     }
-    for (int l = 0; l < d_helmholtz_solvers.size(); ++l)
+    for (long unsigned int l = 0; l < d_helmholtz_solvers.size(); ++l)
     {
         if (d_helmholtz_solvers[l]) d_helmholtz_solvers[l]->deallocateSolverState();
     }
