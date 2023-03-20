@@ -42,7 +42,7 @@ adv_diff_convec_opers_3d_SOURCES = adv_diff_convec_opers.cpp
 
 adv_diff_regridding_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 adv_diff_regridding_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-adv_diff_regridding_2d_SOURCES = adv_diff_regridding.cpp TagInterfaceRefinementCells.cpp TagInterfaceRefinementCells.h
+adv_diff_regridding_2d_SOURCES = adv_diff_regridding.cpp
 
 bp_adv_diff_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 bp_adv_diff_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
