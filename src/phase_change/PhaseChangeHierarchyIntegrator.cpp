@@ -622,68 +622,6 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
 } // postprocessIntegrateHierarchy
 
 void
-PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int coarsest_level,
-    const int finest_level)
-{
-    AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-        base_hierarchy, coarsest_level, finest_level);
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, getScratchContext());
-    std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
-
-    // Setup the patch boundary filling objects.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent H_bc_component(H_scratch_idx,
-                                                     DATA_REFINE_TYPE,
-                                                     USE_CF_INTERPOLATION,
-                                                     DATA_COARSEN_TYPE,
-                                                     BDRY_EXTRAP_TYPE,
-                                                     CONSISTENT_TYPE_2_BDRY,
-                                                     H_bc_coef);
-    d_H_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_H_bdry_bc_fill_op->initializeOperatorState(H_bc_component, d_hierarchy);
-
-    int T_diff_coef_cc_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getScratchContext());
-    InterpolationTransactionComponent k_bc_component(T_diff_coef_cc_scratch_idx,
-                                                     DATA_REFINE_TYPE,
-                                                     USE_CF_INTERPOLATION,
-                                                     DATA_COARSEN_TYPE,
-                                                     BDRY_EXTRAP_TYPE,
-                                                     CONSISTENT_TYPE_2_BDRY,
-                                                     d_k_bc_coef);
-    d_k_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_k_bdry_bc_fill_op->initializeOperatorState(k_bc_component, d_hierarchy);
-
-    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-
-    // Reset the solution and rhs vectors.
-    const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
-    d_T_sol = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::sol_vec::" + d_T_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_T_sol->addComponent(d_T_var, T_scratch_idx, wgt_idx, d_hier_cc_data_ops);
-
-    const int T_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_rhs_var, getScratchContext());
-    d_T_rhs = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::rhs_vec::" + d_T_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_T_rhs->addComponent(d_T_rhs_var, T_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
-
-    d_T_solver_needs_init = true;
-
-    d_T_convective_op_needs_init = true;
-    if (d_solve_mass_conservation)
-    {
-        d_rho_p_integrator->setHierarchyMathOps(d_hier_math_ops);
-        d_rho_p_integrator->initializeTimeIntegrator(base_hierarchy);
-    }
-    return;
-}
-
-void
 PhaseChangeHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariable<NDIM, double> > lf_var,
                                                                const bool output_lf_var)
 {
@@ -878,6 +816,85 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
 } // putToDatabaseSpecialized
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized()
+{
+    AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyBeginSpecialized();
+
+    d_T_rhs_op->deallocateOperatorState();
+    d_T_solver->deallocateSolverState();
+
+    d_T_solver_needs_init = true;
+    d_T_rhs_op_needs_init = true;
+    d_T_convective_op_needs_init = true;
+
+    return;
+} // regridHierarchyBeginSpecialized
+
+void
+PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
+    AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyEndSpecialized();
+
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+    const int coarsest_hier_level = 0;
+    d_hier_math_ops->setPatchHierarchy(d_hierarchy);
+    d_hier_math_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, getScratchContext());
+    std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
+
+    // Setup the patch boundary filling objects.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    InterpolationTransactionComponent H_bc_component(H_scratch_idx,
+                                                     DATA_REFINE_TYPE,
+                                                     USE_CF_INTERPOLATION,
+                                                     DATA_COARSEN_TYPE,
+                                                     BDRY_EXTRAP_TYPE,
+                                                     CONSISTENT_TYPE_2_BDRY,
+                                                     H_bc_coef);
+    d_H_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_H_bdry_bc_fill_op->initializeOperatorState(H_bc_component, d_hierarchy);
+
+    int T_diff_coef_cc_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getScratchContext());
+    InterpolationTransactionComponent k_bc_component(T_diff_coef_cc_scratch_idx,
+                                                     DATA_REFINE_TYPE,
+                                                     USE_CF_INTERPOLATION,
+                                                     DATA_COARSEN_TYPE,
+                                                     BDRY_EXTRAP_TYPE,
+                                                     CONSISTENT_TYPE_2_BDRY,
+                                                     d_k_bc_coef);
+    d_k_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_k_bdry_bc_fill_op->initializeOperatorState(k_bc_component, d_hierarchy);
+
+    // Reset the solution and rhs vectors.
+    const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
+    d_T_sol = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::sol_vec::" + d_T_var->getName(), d_hierarchy, 0, finest_hier_level);
+    d_T_sol->addComponent(d_T_var, T_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+
+    const int T_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_rhs_var, getScratchContext());
+    d_T_rhs = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::rhs_vec::" + d_T_var->getName(), d_hierarchy, 0, finest_hier_level);
+    d_T_rhs->addComponent(d_T_rhs_var, T_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+
+    d_T_solver_needs_init = true;
+    d_T_rhs_op_needs_init = true;
+    d_T_convective_op_needs_init = true;
+
+    if (d_solve_mass_conservation)
+    {
+        d_rho_p_integrator->setHierarchyMathOps(d_hier_math_ops);
+        d_rho_p_integrator->initializeTimeIntegrator(d_hierarchy);
+    }
+    return;
+} // regridHierarchyEndSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void

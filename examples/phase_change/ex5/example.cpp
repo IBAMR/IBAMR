@@ -38,6 +38,7 @@
 // Application
 #include "LiquidFractionInitialCondition.h"
 #include "SetFluidProperties.h"
+#include "TagInterfaceRefinementCells.h"
 #include "TemperatureInitialCondition.h"
 
 /*******************************************************************************
@@ -219,6 +220,13 @@ main(int argc, char* argv[])
 
         ac_hier_integrator->registerResetDensityFcn(&callSetLiquidSolidDensityCallbackFunction,
                                                     static_cast<void*>(ptr_SetFluidProperties));
+
+        // Tag cells for refinement
+        const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
+        const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
+        TagInterfaceRefinementCells tagger(ac_hier_integrator, lf_var, min_tag_val, max_tag_val);
+        ac_hier_integrator->registerApplyGradientDetectorCallback(&callTagInterfaceRefinementCellsCallbackFunction,
+                                                                  static_cast<void*>(&tagger));
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();

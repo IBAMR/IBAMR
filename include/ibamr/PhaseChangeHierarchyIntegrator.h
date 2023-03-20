@@ -196,14 +196,6 @@ public:
                                      const bool output_T_var = true);
 
     /*!
-     * \brief Reset cached hierarchy dependent data.
-     */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
-
-    /*!
      * \brief Set a grid function to provide initial conditions for \f$ \varphi \f$ variable.
      */
     void setLiquidFractionInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
@@ -333,7 +325,16 @@ protected:
      */
     void getFromRestart();
 
-protected:
+    /*!
+     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     */
+    virtual void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     */
+    virtual void regridHierarchyEndSpecialized() override;
+
     /*!
      * Bound the liquid fraction, if necessary.
      */

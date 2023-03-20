@@ -126,7 +126,8 @@ am__EXEEXT_2 = $(am__EXEEXT_1)
 am__objects_1 = main2d-example.$(OBJEXT) \
 	main2d-LiquidFractionInitialCondition.$(OBJEXT) \
 	main2d-SetFluidProperties.$(OBJEXT) \
-	main2d-TemperatureInitialCondition.$(OBJEXT)
+	main2d-TemperatureInitialCondition.$(OBJEXT) \
+	main2d-TagInterfaceRefinementCells.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -155,6 +156,7 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
 	./$(DEPDIR)/main2d-LiquidFractionInitialCondition.Po \
 	./$(DEPDIR)/main2d-SetFluidProperties.Po \
+	./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po \
 	./$(DEPDIR)/main2d-TemperatureInitialCondition.Po \
 	./$(DEPDIR)/main2d-example.Po
 am__mv = mv -f
@@ -482,7 +484,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp LiquidFractionInitialCondition.cpp LiquidFractionInitialCondition.h SetFluidProperties.cpp SetFluidProperties.h TemperatureInitialCondition.cpp TemperatureInitialCondition.h
+EXAMPLE_DRIVER = example.cpp LiquidFractionInitialCondition.cpp LiquidFractionInitialCondition.h SetFluidProperties.cpp SetFluidProperties.h TemperatureInitialCondition.cpp TemperatureInitialCondition.h TagInterfaceRefinementCells.cpp TagInterfaceRefinementCells.h
 EXTRA_DIST = input2d
 #EXTRA_DIST += input3d
 EXAMPLES = $(am__append_1)
@@ -540,6 +542,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LiquidFractionInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidProperties.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TemperatureInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 
@@ -628,6 +631,20 @@ main2d-TemperatureInitialCondition.obj: TemperatureInitialCondition.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TemperatureInitialCondition.cpp' object='main2d-TemperatureInitialCondition.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TemperatureInitialCondition.obj `if test -f 'TemperatureInitialCondition.cpp'; then $(CYGPATH_W) 'TemperatureInitialCondition.cpp'; else $(CYGPATH_W) '$(srcdir)/TemperatureInitialCondition.cpp'; fi`
+
+main2d-TagInterfaceRefinementCells.o: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagInterfaceRefinementCells.o -MD -MP -MF $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo -c -o main2d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='main2d-TagInterfaceRefinementCells.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+
+main2d-TagInterfaceRefinementCells.obj: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagInterfaceRefinementCells.obj -MD -MP -MF $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo -c -o main2d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='main2d-TagInterfaceRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -762,6 +779,7 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-LiquidFractionInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
+	-rm -f ./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-TemperatureInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
@@ -811,6 +829,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-LiquidFractionInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
+	-rm -f ./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-TemperatureInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile

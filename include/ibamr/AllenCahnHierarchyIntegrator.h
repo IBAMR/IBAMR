@@ -125,14 +125,6 @@ public:
                                         const bool output_lf_var = true) override;
 
     /*!
-     * Reset cached hierarchy dependent data.
-     */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
-
-    /*!
      *  Add the temporal terms to the RHS of the energy equation.
      */
     void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt) override;
@@ -168,6 +160,17 @@ public:
      * Write out specialized object state to the given database.
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+protected:
+    /*!
+     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     */
+    virtual void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     */
+    virtual void regridHierarchyEndSpecialized() override;
 
 private:
     /*!

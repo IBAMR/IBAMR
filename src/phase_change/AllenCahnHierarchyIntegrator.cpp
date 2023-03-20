@@ -1177,39 +1177,6 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
 } // postprocessIntegrateHierarchy
 
 void
-AllenCahnHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int coarsest_level,
-    const int finest_level)
-{
-    PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-        base_hierarchy, coarsest_level, finest_level);
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
-
-    // Setup the patch boundary filling objects.
-    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
-
-    // Reset the solution and rhs vectors.
-    const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-
-    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
-    d_lf_sol = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::sol_vec::" + d_lf_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_lf_sol->addComponent(d_lf_var, lf_scratch_idx, wgt_idx, d_hier_cc_data_ops);
-
-    const int lf_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_rhs_var, getScratchContext());
-    d_lf_rhs = new SAMRAIVectorReal<NDIM, double>(
-        d_object_name + "::rhs_vec::" + d_lf_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_lf_rhs->addComponent(d_lf_rhs_var, lf_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
-
-    d_lf_solver_needs_init = true;
-    d_lf_convective_op_needs_init = true;
-    return;
-}
-
-void
 AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariable<NDIM, double> > lf_var,
                                                              const bool output_lf_var)
 {
@@ -1463,6 +1430,53 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
 
     return;
 } // computeDivergenceVelocitySourceTerm
+
+/////////////////////////////// PROTECTED ////////////////////////////////////
+
+void
+AllenCahnHierarchyIntegrator::regridHierarchyBeginSpecialized()
+{
+    PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized();
+
+    d_lf_rhs_op->deallocateOperatorState();
+    d_lf_solver->deallocateSolverState();
+
+    d_lf_solver_needs_init = true;
+    d_lf_rhs_op_needs_init = true;
+    d_lf_convective_op_needs_init = true;
+
+    return;
+} // regridHierarchyBeginSpecialized
+
+void
+AllenCahnHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
+    PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized();
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
+
+    // Setup the patch boundary filling objects.
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+
+    // Reset the solution and rhs vectors.
+    const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+
+    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
+    d_lf_sol = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::sol_vec::" + d_lf_var->getName(), d_hierarchy, 0, finest_hier_level);
+    d_lf_sol->addComponent(d_lf_var, lf_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+
+    const int lf_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_rhs_var, getScratchContext());
+    d_lf_rhs = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::rhs_vec::" + d_lf_var->getName(), d_hierarchy, 0, finest_hier_level);
+    d_lf_rhs->addComponent(d_lf_rhs_var, lf_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+
+    d_lf_solver_needs_init = true;
+    d_lf_rhs_op_needs_init = true;
+    d_lf_convective_op_needs_init = true;
+    return;
+} // regridHierarchyEndSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
