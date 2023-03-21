@@ -28,11 +28,11 @@ MAX_TAG_VAL = 0.8
 // grid spacing parameters
 L          = 1.0
 H          = 0.05
-MAX_LEVELS = 1        // maximum number of levels in locally refined grid
+MAX_LEVELS = 2        // maximum number of levels in locally refined grid
 REF_RATIO  = 4        // refinement ratio between levels
 
-Nx = 1280 
-Ny = 64                                // coarsest grid spacing
+Nx = 640
+Ny = 32                                // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
 
@@ -157,7 +157,7 @@ START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   10.0e0   // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
-REGRID_INTERVAL      =   50000000
+REGRID_INTERVAL      =   5
 CFL_MAX              =   0.5
 NUM_INS_CYCLES       =   1
 CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
@@ -252,7 +252,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 10
+   viz_dump_interval           = 5
    viz_dump_dirname            = "viz_stefan_problem_2d"
    visit_number_procs_per_file = 1
 

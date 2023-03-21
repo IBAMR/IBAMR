@@ -480,7 +480,7 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp SetFluidProperties.h TagInterfaceRefinementCells.cpp TagInterfaceRefinementCells.h
-EXTRA_DIST = input2d
+EXTRA_DIST = input2d input2d.amr
 #EXTRA_DIST += input3d
 EXAMPLES = $(am__append_1)
 #if SAMRAI3D_ENABLED
@@ -839,7 +839,7 @@ uninstall-am:
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d $(PWD) ; \
+	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
 	fi ;
 
 clean-local:

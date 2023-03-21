@@ -21,9 +21,9 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-phase_change
   SOURCES
-    example.cpp SetFluidProperties.cpp
+    example.cpp SetFluidProperties.cpp TagInterfaceRefinementCells.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
-    input2d
+    input2d input2d.amr
   )
