@@ -1,0 +1,3 @@
+Fixed: Regridding issues with AdvDiffHierarchyIntegrator when total number of levels in the hiearchy increase or decrease.
+<br>
+(Amneet Bhalla, 2023/03/17)

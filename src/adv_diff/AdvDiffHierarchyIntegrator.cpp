@@ -1017,13 +1017,28 @@ AdvDiffHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double i
 } // initializeCompositeHierarchyDataSpecialized
 
 void
+AdvDiffHierarchyIntegrator::regridHierarchyBeginSpecialized()
+{
+    for (long unsigned int l = 0; l < d_helmholtz_rhs_ops.size(); ++l)
+    {
+        if (d_helmholtz_rhs_ops[l]) d_helmholtz_rhs_ops[l]->deallocateOperatorState();
+    }
+    for (long unsigned int l = 0; l < d_helmholtz_solvers.size(); ++l)
+    {
+        if (d_helmholtz_solvers[l]) d_helmholtz_solvers[l]->deallocateSolverState();
+    }
+    std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
+    std::fill(d_helmholtz_rhs_ops_need_init.begin(), d_helmholtz_rhs_ops_need_init.end(), true);
+} // regridHierarchyBeginSpecialized
+
+void
 AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
+    const Pointer<BasePatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -1032,13 +1047,22 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
 #endif
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
 
+    d_coarsest_reset_ln = coarsest_level;
+    d_finest_reset_ln = finest_level;
+    return;
+} // resetHierarchyConfigurationSpecialized
+
+void
+AdvDiffHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
     // Reset the Hierarchy data operations for the new hierarchy configuration.
-    d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
-    d_hier_sc_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_sc_data_ops->resetLevels(0, finest_hier_level);
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+    const int coarsest_hier_level = 0;
+    d_hier_cc_data_ops->setPatchHierarchy(d_hierarchy);
+    d_hier_cc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+    d_hier_sc_data_ops->setPatchHierarchy(d_hierarchy);
+    d_hier_sc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
 
     // Reset the interpolation operators.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1089,10 +1113,9 @@ AdvDiffHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     // Indicate that all linear solvers must be re-initialized.
     std::fill(d_helmholtz_solvers_need_init.begin(), d_helmholtz_solvers_need_init.end(), true);
     std::fill(d_helmholtz_rhs_ops_need_init.begin(), d_helmholtz_rhs_ops_need_init.end(), true);
-    d_coarsest_reset_ln = coarsest_level;
-    d_finest_reset_ln = finest_level;
+
     return;
-} // resetHierarchyConfigurationSpecialized
+} // regridHierarchyEndSpecialized
 
 void
 AdvDiffHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
