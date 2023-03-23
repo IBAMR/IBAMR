@@ -219,20 +219,6 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     // Initialize IB data.
     d_ib_implicit_ops->preprocessIntegrateData(current_time, new_time, num_cycles);
 
-    // Initialize the fluid solver.
-    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    if (ins_num_cycles != d_current_num_cycles && d_current_num_cycles != 1)
-    {
-        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
-                                 << "  attempting to perform " << d_current_num_cycles
-                                 << " cycles of fixed point iteration.\n"
-                                 << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles << ".\n"
-                                 << "  current implementation requires either that both solvers "
-                                    "use the same number of cycles,\n"
-                                 << "  or that the IB solver use only a single cycle.\n");
-    }
-    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, ins_num_cycles);
-
     // Compute an initial prediction of the updated positions of the Lagrangian
     // structure.
     //
