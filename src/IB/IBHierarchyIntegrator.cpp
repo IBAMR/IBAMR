@@ -604,21 +604,6 @@ IBHierarchyIntegrator::atRegridPointSpecialized() const
 } // atRegridPointSpecialized
 
 void
-IBHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double /*init_data_time*/, bool initial_time)
-{
-    if (initial_time)
-    {
-        // Begin Lagrangian data movement.
-        d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
-
-        // Finish Lagrangian data movement.
-        d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
-    }
-
-    return;
-} // initializeCompositeHierarchyDataSpecialized
-
-void
 IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
                                                       const int level_number,
                                                       const double init_data_time,
