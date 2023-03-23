@@ -1,0 +1,3 @@
+Removed: IBHierarchyIntegrator no longer does an additional data redistribution prior to the first timestep.
+<br>
+(David Wells, 2023/03/23)
