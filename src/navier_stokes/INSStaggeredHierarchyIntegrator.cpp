@@ -1730,9 +1730,9 @@ INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
     d_vectors_need_init = true;
 
     // Deallocate linear solvers.
-    d_velocity_solver->deallocateSolverState();
-    d_pressure_solver->deallocateSolverState();
-    d_stokes_solver->deallocateSolverState();
+    if (d_velocity_solver) d_velocity_solver->deallocateSolverState();
+    if (d_pressure_solver) d_pressure_solver->deallocateSolverState();
+    if (d_stokes_solver) d_stokes_solver->deallocateSolverState();
 
     d_velocity_solver_needs_init = true;
     d_pressure_solver_needs_init = true;

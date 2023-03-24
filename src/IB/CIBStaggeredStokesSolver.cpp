@@ -378,6 +378,8 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIV
 void
 CIBStaggeredStokesSolver::deallocateSolverState()
 {
+    if (!d_is_initialized) return;
+
     // Deallocate the saddle-point solver if not re-initializing
     if (!d_reinitializing_solver)
     {
@@ -398,6 +400,8 @@ CIBStaggeredStokesSolver::deallocateSolverState()
     // Free the vectors.
     d_x_wide.setNull();
     d_b_wide.setNull();
+
+    d_is_initialized = false;
 
     return;
 } // deallocateSolverState
