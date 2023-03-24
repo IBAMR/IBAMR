@@ -217,6 +217,18 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
         synchronizeHierarchyData(CURRENT_DATA);
     }
 
+    // Reset hierarchy dependent data for all integrators.
+    hier_integrators.push_back(this);
+    while (!hier_integrators.empty())
+    {
+        HierarchyIntegrator* integrator = hier_integrators.front();
+        integrator->regridHierarchyEndSpecialized();
+        // Add child integrators to the end of the list
+        hier_integrators.pop_front();
+        hier_integrators.insert(
+            hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
+    }
+
     // Indicate that the hierarchy is initialized.
     hier_integrators.push_back(this);
     while (!hier_integrators.empty())

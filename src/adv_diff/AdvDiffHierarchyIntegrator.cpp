@@ -1063,6 +1063,11 @@ AdvDiffHierarchyIntegrator::regridHierarchyEndSpecialized()
     d_hier_cc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
     d_hier_sc_data_ops->setPatchHierarchy(d_hierarchy);
     d_hier_sc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+    if (d_manage_hier_math_ops)
+    {
+        d_hier_math_ops->setPatchHierarchy(d_hierarchy);
+        d_hier_math_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+    }
 
     // Reset the interpolation operators.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -1099,14 +1104,14 @@ AdvDiffHierarchyIntegrator::regridHierarchyEndSpecialized()
         const std::string& name = Q_var->getName();
 
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
-        d_sol_vecs[l] =
-            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::sol_vec::" + name, d_hierarchy, 0, finest_hier_level);
+        d_sol_vecs[l] = new SAMRAIVectorReal<NDIM, double>(
+            d_object_name + "::sol_vec::" + name, d_hierarchy, coarsest_hier_level, finest_hier_level);
         d_sol_vecs[l]->addComponent(Q_var, Q_scratch_idx, wgt_idx, d_hier_cc_data_ops);
 
         Pointer<CellVariable<NDIM, double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
-        d_rhs_vecs[l] =
-            new SAMRAIVectorReal<NDIM, double>(d_object_name + "::rhs_vec::" + name, d_hierarchy, 0, finest_hier_level);
+        d_rhs_vecs[l] = new SAMRAIVectorReal<NDIM, double>(
+            d_object_name + "::rhs_vec::" + name, d_hierarchy, coarsest_hier_level, finest_hier_level);
         d_rhs_vecs[l]->addComponent(Q_rhs_var, Q_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
     }
 
