@@ -195,6 +195,18 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
         d_gridding_alg->getTagAndInitializeStrategy()->resetHierarchyConfiguration(d_hierarchy, coarsest_ln, finest_ln);
+
+        // Reset hierarchy dependent data for all integrators.
+        hier_integrators.push_back(this);
+        while (!hier_integrators.empty())
+        {
+            HierarchyIntegrator* integrator = hier_integrators.front();
+            integrator->regridHierarchyEndSpecialized();
+            // Add child integrators to the end of the list
+            hier_integrators.pop_front();
+            hier_integrators.insert(
+                hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
+        }
     }
     else
     {
@@ -209,24 +221,24 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
             ++level_number;
         }
 
+        // Reset hierarchy dependent data for all integrators.
+        hier_integrators.push_back(this);
+        while (!hier_integrators.empty())
+        {
+            HierarchyIntegrator* integrator = hier_integrators.front();
+            integrator->regridHierarchyEndSpecialized();
+            // Add child integrators to the end of the list
+            hier_integrators.pop_front();
+            hier_integrators.insert(
+                hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
+        }
+
         // Initialize composite hierarchy data that was not initailized by
         // gridding algorithm's call to initializeLevelData().
         initializeCompositeHierarchyData(d_integrator_time, initial_time);
 
         // Synchronize the state data on the patch hierarchy.
         synchronizeHierarchyData(CURRENT_DATA);
-    }
-
-    // Reset hierarchy dependent data for all integrators.
-    hier_integrators.push_back(this);
-    while (!hier_integrators.empty())
-    {
-        HierarchyIntegrator* integrator = hier_integrators.front();
-        integrator->regridHierarchyEndSpecialized();
-        // Add child integrators to the end of the list
-        hier_integrators.pop_front();
-        hier_integrators.insert(
-            hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
     }
 
     // Indicate that the hierarchy is initialized.
