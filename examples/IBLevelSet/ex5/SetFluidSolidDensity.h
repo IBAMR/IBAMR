@@ -101,6 +101,6 @@ private:
      */
     double d_rho_fluid;
 
-};     // SetFluidSolidDensity
+}; // SetFluidSolidDensity
 
 #endif // #ifndef included_SetFluidSolidDensity

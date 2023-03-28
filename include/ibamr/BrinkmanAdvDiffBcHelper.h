@@ -307,4 +307,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_BrinkmanAdvDiffBcHelper
+#endif //#ifndef included_BrinkmanAdvDiffBcHelper

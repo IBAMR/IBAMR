@@ -205,4 +205,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_AdvDiffCenteredConvectiveOperator
+#endif //#ifndef included_IBAMR_AdvDiffCenteredConvectiveOperator

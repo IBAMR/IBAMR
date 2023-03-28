@@ -136,4 +136,4 @@ IBInstrumentationSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBInstrumentationSpec_inl
+#endif //#ifndef included_IBAMR_IBInstrumentationSpec_inl

@@ -244,4 +244,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_AdvDiffPredictorCorrectorHierarchyIntegrator
+#endif //#ifndef included_IBAMR_AdvDiffPredictorCorrectorHierarchyIntegrator

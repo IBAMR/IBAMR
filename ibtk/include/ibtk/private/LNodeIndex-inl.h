@@ -225,4 +225,4 @@ LNodeIndex::assignThatToThis(const LNodeIndex& that)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_LNodeIndex_inl_h
+#endif //#ifndef included_IBTK_LNodeIndex_inl_h

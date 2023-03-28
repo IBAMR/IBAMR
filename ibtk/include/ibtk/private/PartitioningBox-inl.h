@@ -64,16 +64,13 @@ inline PartitioningBoxes::PartitioningBoxes(const ForwardIterator begin, const F
         IBTK::Point top;
         for (unsigned int dim_n = 0; dim_n < NDIM; ++dim_n)
         {
-            bottom[dim_n] = std::min_element(begin,
-                                             end,
-                                             [=](const PartitioningBox& a, const PartitioningBox& b) -> bool
-                                             { return a.bottom()[dim_n] < b.bottom()[dim_n]; })
-                                ->bottom()[dim_n];
-            top[dim_n] = std::max_element(begin,
-                                          end,
-                                          [=](const PartitioningBox& a, const PartitioningBox& b) -> bool
-                                          { return a.top()[dim_n] < b.top()[dim_n]; })
-                             ->top()[dim_n];
+            bottom[dim_n] =
+                std::min_element(begin, end, [=](const PartitioningBox& a, const PartitioningBox& b) -> bool {
+                    return a.bottom()[dim_n] < b.bottom()[dim_n];
+                })->bottom()[dim_n];
+            top[dim_n] = std::max_element(begin, end, [=](const PartitioningBox& a, const PartitioningBox& b) -> bool {
+                             return a.top()[dim_n] < b.top()[dim_n];
+                         })->top()[dim_n];
         }
         d_bounding_partitioning_box = PartitioningBox(bottom, top);
     }
@@ -128,4 +125,4 @@ PartitioningBoxes::contains(const Point& point) const
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_PartitioningBox_inl_h
+#endif //#ifndef included_IBTK_PartitioningBox_inl_h

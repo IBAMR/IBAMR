@@ -248,4 +248,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CartCellDoubleLinearCFInterpolation
+#endif //#ifndef included_IBTK_CartCellDoubleLinearCFInterpolation

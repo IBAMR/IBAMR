@@ -118,4 +118,4 @@ LIndexSetData<T>::getGhostPeriodicShifts() const
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_LIndexSetData_inl_h
+#endif //#ifndef included_IBTK_LIndexSetData_inl_h

@@ -111,8 +111,8 @@ private:
 
 /////////////////////////////// INLINE ///////////////////////////////////////
 
-// #include <ibamr/IBSimpleHierarchyIntegrator.I>
+//#include <ibamr/IBSimpleHierarchyIntegrator.I>
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBSimpleHierarchyIntegrator
+#endif //#ifndef included_IBSimpleHierarchyIntegrator

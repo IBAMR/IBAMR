@@ -132,6 +132,6 @@ private:
      */
     bool d_set_rho_solid;
 
-};     // SetFluidGasSolidDensity
+}; // SetFluidGasSolidDensity
 
 #endif // #ifndef included_SetFluidGasSolidDensity

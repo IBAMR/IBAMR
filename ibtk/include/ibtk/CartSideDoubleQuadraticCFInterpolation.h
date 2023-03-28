@@ -250,4 +250,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CartSideDoubleQuadraticCFInterpolation
+#endif //#ifndef included_IBTK_CartSideDoubleQuadraticCFInterpolation

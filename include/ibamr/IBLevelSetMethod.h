@@ -376,4 +376,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBLevelSetMethod
+#endif //#ifndef included_IBAMR_IBLevelSetMethod

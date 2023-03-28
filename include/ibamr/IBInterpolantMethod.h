@@ -516,4 +516,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBInterpolantMethod
+#endif //#ifndef included_IBAMR_IBInterpolantMethod

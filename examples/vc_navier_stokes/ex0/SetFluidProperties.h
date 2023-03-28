@@ -129,6 +129,6 @@ private:
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_fcn, d_mu_fcn;
 
-};     // SetFluidProperties
+}; // SetFluidProperties
 
 #endif // #ifndef included_SetFluidProperties

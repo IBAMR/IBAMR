@@ -477,7 +477,7 @@ IBEELKinematics3d::setShape(const double time, const std::vector<double>& increm
                         const double z = k * d_mesh_width[2];
                         if ((std::pow(y / width, 2) + std::pow(z / depth, 2)) <= 1) // use elliptical cross sections
                         {
-                            d_shape[0][++lag_idx] = xbase;                          // right side.
+                            d_shape[0][++lag_idx] = xbase; // right side.
                             d_shape[1][lag_idx] = ybase + y;
                             d_shape[2][lag_idx] = z;
 

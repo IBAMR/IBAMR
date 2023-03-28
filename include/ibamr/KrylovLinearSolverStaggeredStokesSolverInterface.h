@@ -131,4 +131,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_KrylovLinearSolverStaggeredStokesSolverInterface
+#endif //#ifndef included_IBAMR_KrylovLinearSolverStaggeredStokesSolverInterface

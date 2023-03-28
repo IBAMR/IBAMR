@@ -209,4 +209,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_FaceDataSynchronization
+#endif //#ifndef included_IBTK_FaceDataSynchronization

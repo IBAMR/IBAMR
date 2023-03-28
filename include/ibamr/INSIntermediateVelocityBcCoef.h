@@ -244,4 +244,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_INSIntermediateVelocityBcCoef
+#endif //#ifndef included_IBAMR_INSIntermediateVelocityBcCoef

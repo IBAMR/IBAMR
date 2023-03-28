@@ -246,4 +246,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBTargetPointForceSpec
+#endif //#ifndef included_IBAMR_IBTargetPointForceSpec

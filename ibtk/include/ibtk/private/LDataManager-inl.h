@@ -241,4 +241,4 @@ LDataManager::getLagrangianStructureIsActivated(const int structure_id, const in
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_LDataManager_inl_h
+#endif //#ifndef included_IBTK_LDataManager_inl_h

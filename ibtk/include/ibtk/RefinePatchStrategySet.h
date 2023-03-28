@@ -220,4 +220,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_RefinePatchStrategySet
+#endif //#ifndef included_IBTK_RefinePatchStrategySet

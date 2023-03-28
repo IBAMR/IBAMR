@@ -171,4 +171,4 @@ IBRodForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBRodForceSpec_inl
+#endif //#ifndef included_IBAMR_IBRodForceSpec_inl

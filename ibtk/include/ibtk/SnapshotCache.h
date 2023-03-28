@@ -205,4 +205,4 @@ private:
 } // namespace IBTK
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_SnapshotCache
+#endif //#ifndef included_IBTK_SnapshotCache

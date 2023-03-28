@@ -680,7 +680,7 @@ MobilityFunctions::constructRPYMobilityMatrix(const char* IBKernelName,
                         }
                     } // jdir
             }
-        }             // column loop
+        } // column loop
     return;
 } // constructRPYMobilityMatrix
 

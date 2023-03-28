@@ -168,4 +168,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBImplicitStrategy
+#endif //#ifndef included_IBAMR_IBImplicitStrategy

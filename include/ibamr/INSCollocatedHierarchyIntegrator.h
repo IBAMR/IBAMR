@@ -354,4 +354,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_INSCollocatedHierarchyIntegrator
+#endif //#ifndef included_IBAMR_INSCollocatedHierarchyIntegrator

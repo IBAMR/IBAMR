@@ -199,4 +199,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_INSCollocatedWavePropConvectiveOperator
+#endif //#ifndef included_IBAMR_INSCollocatedWavePropConvectiveOperator

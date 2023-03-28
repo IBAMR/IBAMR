@@ -184,4 +184,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_StaggeredStokesPETScLevelSolver
+#endif //#ifndef included_IBAMR_StaggeredStokesPETScLevelSolver

@@ -116,7 +116,7 @@ LevelSetInitialCondition::setDataOnPatch(const int data_idx,
             distance1[1] =
                 std::max({ distance2[0], distance2[1], distance2[2] }); // intersection of three traingle surfaces
 
-            (*D_data)(ci) = std::min({ distance1[0], distance1[1] });   // union of circle and triangle
+            (*D_data)(ci) = std::min({ distance1[0], distance1[1] }); // union of circle and triangle
         }
     }
     return;

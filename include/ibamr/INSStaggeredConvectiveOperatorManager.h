@@ -153,4 +153,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_INSStaggeredConvectiveOperatorManager
+#endif //#ifndef included_IBAMR_INSStaggeredConvectiveOperatorManager

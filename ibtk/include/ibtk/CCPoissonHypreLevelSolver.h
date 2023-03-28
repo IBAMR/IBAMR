@@ -326,4 +326,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CCPoissonHypreLevelSolver
+#endif //#ifndef included_IBTK_CCPoissonHypreLevelSolver

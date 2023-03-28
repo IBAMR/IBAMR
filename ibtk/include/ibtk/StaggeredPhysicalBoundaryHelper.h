@@ -180,4 +180,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_StaggeredPhysicalBoundaryHelper
+#endif //#ifndef included_IBTK_StaggeredPhysicalBoundaryHelper

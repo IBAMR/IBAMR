@@ -556,7 +556,7 @@ main(int argc, char* argv[])
 
         } // end of time loop
 
-    }     // cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
     SAMRAIManager::shutdown();
     return 0;

@@ -269,4 +269,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CartCellDoubleQuadraticCFInterpolation
+#endif //#ifndef included_IBTK_CartCellDoubleQuadraticCFInterpolation

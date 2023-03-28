@@ -313,10 +313,10 @@ public:
         }
         else
         {
-            return std::find_if(d_map.begin(),
-                                d_map.end(),
-                                [&](const std::pair<libMesh::subdomain_id_type, int>& pair)
-                                { return pair.second == level_number; }) != d_map.end();
+            return std::find_if(
+                       d_map.begin(), d_map.end(), [&](const std::pair<libMesh::subdomain_id_type, int>& pair) {
+                           return pair.second == level_number;
+                       }) != d_map.end();
         }
     }
 
@@ -1380,5 +1380,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifdef IBTK_HAVE_LIBMESH
-#endif // #ifndef included_IBTK_FEDataManager
+#endif //#ifdef IBTK_HAVE_LIBMESH
+#endif //#ifndef included_IBTK_FEDataManager

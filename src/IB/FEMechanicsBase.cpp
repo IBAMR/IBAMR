@@ -13,9 +13,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/FEMechanicsBase.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
+#include "ibamr/FEMechanicsBase.h"
 
 #include "ibtk/FEDataInterpolation.h"
 #include "ibtk/FEDataManager.h"
@@ -911,22 +911,18 @@ FEMechanicsBase::assembleInteriorForceDensityRHS(PetscVector<double>& F_rhs_vec,
     // same quadrature rules and systems.
     const std::vector<PK1StressFcnData> all_pk1 = getPK1StressFunction(part);
     std::vector<PK1StressFcnData> remaining_pk1;
-    std::copy_if(all_pk1.begin(),
-                 all_pk1.end(),
-                 std::back_inserter(remaining_pk1),
-                 [](const PK1StressFcnData& data) { return data.fcn != nullptr; });
+    std::copy_if(all_pk1.begin(), all_pk1.end(), std::back_inserter(remaining_pk1), [](const PK1StressFcnData& data) {
+        return data.fcn != nullptr;
+    });
     while (remaining_pk1.size() > 0)
     {
         const PK1StressFcnData exemplar_pk1 = remaining_pk1.front();
         // Collect all PK1 functions that are sufficiently similar:
-        const auto next_group_start = std::partition(remaining_pk1.begin(),
-                                                     remaining_pk1.end(),
-                                                     [&](const PK1StressFcnData& pk1)
-                                                     {
-                                                         return pk1.system_data == exemplar_pk1.system_data &&
-                                                                pk1.quad_type == exemplar_pk1.quad_type &&
-                                                                pk1.quad_order == exemplar_pk1.quad_order;
-                                                     });
+        const auto next_group_start =
+            std::partition(remaining_pk1.begin(), remaining_pk1.end(), [&](const PK1StressFcnData& pk1) {
+                return pk1.system_data == exemplar_pk1.system_data && pk1.quad_type == exemplar_pk1.quad_type &&
+                       pk1.quad_order == exemplar_pk1.quad_order;
+            });
         std::vector<PK1StressFcnData> current_pk1(remaining_pk1.begin(), next_group_start);
         remaining_pk1.erase(remaining_pk1.begin(), next_group_start);
 

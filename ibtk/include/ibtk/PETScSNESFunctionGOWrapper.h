@@ -198,4 +198,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_PETScSNESFunctionGOWrapper
+#endif //#ifndef included_IBTK_PETScSNESFunctionGOWrapper

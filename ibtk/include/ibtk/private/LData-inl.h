@@ -277,4 +277,4 @@ LData::getGhostedLocalFormArrayCommon()
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_LData_inl_h
+#endif //#ifndef included_IBTK_LData_inl_h

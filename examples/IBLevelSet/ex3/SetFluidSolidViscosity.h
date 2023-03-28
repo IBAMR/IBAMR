@@ -102,6 +102,6 @@ private:
      */
     double d_mu_fluid;
 
-};     // SetFluidSolidViscosity
+}; // SetFluidSolidViscosity
 
 #endif // #ifndef included_SetFluidSolidViscosity

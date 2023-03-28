@@ -212,4 +212,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_PETScMFFDJacobianOperator
+#endif //#ifndef included_IBTK_PETScMFFDJacobianOperator

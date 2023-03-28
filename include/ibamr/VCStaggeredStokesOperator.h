@@ -152,4 +152,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_VCStaggeredStokesOperator
+#endif //#ifndef included_IBAMR_VCStaggeredStokesOperator

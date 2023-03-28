@@ -289,5 +289,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifdef IBAMR_HAVE_LIBMESH
-#endif // #ifndef included_IBAMR_IMPInitializer
+#endif //#ifdef IBAMR_HAVE_LIBMESH
+#endif //#ifndef included_IBAMR_IMPInitializer

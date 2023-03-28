@@ -97,4 +97,4 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_app_namespaces
+#endif //#ifndef included_IBAMR_app_namespaces

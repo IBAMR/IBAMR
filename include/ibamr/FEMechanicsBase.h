@@ -59,8 +59,7 @@ namespace IBAMR
 class FEMechanicsBase : public SAMRAI::tbox::Serializable
 {
 public:
-    IBTK_DEPRECATED(
-        "Use FEMechanicsBase::getCurrentCoordinatesSystemName() to access the current coordinates system name.")
+    IBTK_DEPRECATED("Use FEMechanicsBase::getCurrentCoordinatesSystemName() to access the current coordinates system name.")
     static const std::string COORDS_SYSTEM_NAME;
     IBTK_DEPRECATED(
         "Use FEMechanicsBase::getDisplacementSystemName() to access the current coordinate mapping system name.")
@@ -797,5 +796,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifdef IBAMR_HAVE_LIBMESH
-#endif // #ifndef included_IBAMR_FEMechanicsBase
+#endif //#ifdef IBAMR_HAVE_LIBMESH
+#endif //#ifndef included_IBAMR_FEMechanicsBase

@@ -1249,4 +1249,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_HierarchyIntegrator
+#endif //#ifndef included_IBTK_HierarchyIntegrator

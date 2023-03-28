@@ -260,4 +260,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_StokesFifthOrderWaveBcCoef
+#endif //#ifndef included_IBAMR_StokesFifthOrderWaveBcCoef

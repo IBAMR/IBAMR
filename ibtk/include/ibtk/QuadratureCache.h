@@ -131,5 +131,5 @@ QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifdef IBTK_HAVE_LIBMESH
-#endif // #ifndef included_IBTK_QuadratureCache
+#endif //#ifdef IBTK_HAVE_LIBMESH
+#endif //#ifndef included_IBTK_QuadratureCache

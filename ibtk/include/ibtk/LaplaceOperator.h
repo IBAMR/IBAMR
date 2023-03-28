@@ -131,4 +131,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_LaplaceOperator
+#endif //#ifndef included_IBTK_LaplaceOperator

@@ -391,4 +391,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_AdvDiffSemiImplicitHierarchyIntegrator
+#endif //#ifndef included_IBAMR_AdvDiffSemiImplicitHierarchyIntegrator

@@ -313,4 +313,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_BGaussSeidelPreconditioner
+#endif //#ifndef included_IBTK_BGaussSeidelPreconditioner

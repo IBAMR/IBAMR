@@ -792,4 +792,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBRedundantInitializer
+#endif //#ifndef included_IBAMR_IBRedundantInitializer

@@ -334,4 +334,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_AllenCahnHierarchyIntegrator
+#endif //#ifndef included_IBAMR_AllenCahnHierarchyIntegrator

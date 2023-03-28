@@ -101,4 +101,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_VelocityInitialCondition
+#endif //#ifndef included_VelocityInitialCondition

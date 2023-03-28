@@ -175,4 +175,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CCPoissonSolverManager
+#endif //#ifndef included_IBTK_CCPoissonSolverManager

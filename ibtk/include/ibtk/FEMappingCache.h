@@ -138,5 +138,5 @@ FEMappingCache<dim, spacedim>::operator[](const FEMappingCache<dim, spacedim>::k
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifdef IBTK_HAVE_LIBMESH
-#endif // #ifndef included_IBTK_FEMappingCache
+#endif //#ifdef IBTK_HAVE_LIBMESH
+#endif //#ifndef included_IBTK_FEMappingCache

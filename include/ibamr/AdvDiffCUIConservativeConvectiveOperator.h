@@ -185,4 +185,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_AdvDiffCUIConservativeConvectiveOperator
+#endif //#ifndef included_IBAMR_AdvDiffCUIConservativeConvectiveOperator

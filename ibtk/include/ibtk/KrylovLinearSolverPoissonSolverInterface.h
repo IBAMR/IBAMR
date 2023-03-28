@@ -118,4 +118,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_KrylovLinearSolverPoissonSolverInterface
+#endif //#ifndef included_IBTK_KrylovLinearSolverPoissonSolverInterface

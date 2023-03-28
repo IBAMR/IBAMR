@@ -126,6 +126,6 @@ private:
      */
     double d_num_solid_interface_cells, d_num_gas_interface_cells;
 
-};     // SetFluidGasSolidDensity
+}; // SetFluidGasSolidDensity
 
 #endif // #ifndef included_SetFluidGasSolidDensity

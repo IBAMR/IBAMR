@@ -218,4 +218,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CoarseFineBoundaryRefinePatchStrategy
+#endif //#ifndef included_IBTK_CoarseFineBoundaryRefinePatchStrategy

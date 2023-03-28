@@ -229,4 +229,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_StokesSecondOrderWaveBcCoef
+#endif //#ifndef included_IBAMR_StokesSecondOrderWaveBcCoef

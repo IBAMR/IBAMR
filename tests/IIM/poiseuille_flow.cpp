@@ -712,7 +712,7 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     SAMRAI_MPI::sumReduction(&N_max, 1);
     SAMRAI_MPI::sumReduction(&u_Eulerian_L2_norm, 1);
     SAMRAI_MPI::maxReduction(&u_Eulerian_max_norm, 1);
-
+    
     u_Eulerian_L2_norm = sqrt(u_Eulerian_L2_norm);
 
     pout << " u_Eulerian_L2_norm (cropped region) = " << u_Eulerian_L2_norm << "\n\n";
@@ -828,7 +828,7 @@ compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     SAMRAI_MPI::sumReduction(&N_max, 1);
     SAMRAI_MPI::sumReduction(&p_Eulerian_L2_norm, 1);
     SAMRAI_MPI::maxReduction(&p_Eulerian_max_norm, 1);
-
+    
     p_Eulerian_L2_norm = sqrt(p_Eulerian_L2_norm);
 
     pout << " p_Eulerian_L2_norm (cropped region) = " << p_Eulerian_L2_norm << "\n\n";

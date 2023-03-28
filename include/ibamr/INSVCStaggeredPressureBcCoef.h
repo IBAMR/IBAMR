@@ -286,4 +286,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_INSVCStaggeredPressureBcCoef
+#endif //#ifndef included_IBAMR_INSVCStaggeredPressureBcCoef

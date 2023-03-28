@@ -101,4 +101,4 @@ IBAnchorPointSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBAnchorPointSpec_inl
+#endif //#ifndef included_IBAMR_IBAnchorPointSpec_inl

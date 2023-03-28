@@ -333,8 +333,8 @@ external_force_torque_2DOF(double /*data_time*/, int /*cycle_num*/, Eigen::Vecto
     T.setZero();
 
     // Mooring spring force calculation.
-    const double Xm = XCOM_new[0] - circle.X0[0];                     // X-coordinate of mooring connection
-    const double Ym0 = (circle.X0[1] - circle.R);                     // Initial mooring length
+    const double Xm = XCOM_new[0] - circle.X0[0]; // X-coordinate of mooring connection
+    const double Ym0 = (circle.X0[1] - circle.R); // Initial mooring length
     const double Ym =
         Ym0 + XCOM_new[1] - circle.X0[1] + circle.delta0_rest_length; // Y coordinate of mooring cennection
 
@@ -390,7 +390,7 @@ external_force_torque_3DOF(double /*data_time*/, int /*cycle_num*/, Eigen::Vecto
     const double Xm = XCOM_new[0] - circle.X0[0] + sin_theta * circle.R; // X-coordinate of mooring connection
     const double Ym0 = (circle.X0[1] - circle.R);                        // Initial mooring length
     const double Ym = Ym0 + XCOM_new[1] - circle.X0[1] + (1 - cos_theta) * circle.R +
-                      circle.delta0_rest_length;                         // Y coordinate of mooring cennection
+                      circle.delta0_rest_length; // Y coordinate of mooring cennection
 
     const double actual_length = sqrt(Xm * Xm + Ym * Ym);
     const double elongation = actual_length - Ym0;

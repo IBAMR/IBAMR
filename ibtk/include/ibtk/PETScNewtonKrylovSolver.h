@@ -375,4 +375,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_PETScNewtonKrylovSolver
+#endif //#ifndef included_IBTK_PETScNewtonKrylovSolver

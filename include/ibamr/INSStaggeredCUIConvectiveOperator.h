@@ -203,4 +203,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_INSStaggeredCUIConvectiveOperator
+#endif //#ifndef included_IBAMR_INSStaggeredCUIConvectiveOperator

@@ -125,4 +125,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumSSPRKIntegrator
+#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumSSPRKIntegrator

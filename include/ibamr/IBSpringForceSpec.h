@@ -282,4 +282,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBSpringForceSpec
+#endif //#ifndef included_IBAMR_IBSpringForceSpec

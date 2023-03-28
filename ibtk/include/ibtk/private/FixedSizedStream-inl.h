@@ -365,4 +365,4 @@ FixedSizedStream::__unpack(T* const m_data, unsigned int m_bytes)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_FixedSizedStream_inl_h
+#endif //#ifndef included_IBTK_FixedSizedStream_inl_h

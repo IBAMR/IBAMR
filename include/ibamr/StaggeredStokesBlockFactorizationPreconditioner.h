@@ -217,4 +217,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_StaggeredStokesBlockFactorizationPreconditioner
+#endif //#ifndef included_IBAMR_StaggeredStokesBlockFactorizationPreconditioner

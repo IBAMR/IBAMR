@@ -571,4 +571,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_StaggeredStokesFACPreconditionerStrategy
+#endif //#ifndef included_IBAMR_StaggeredStokesFACPreconditionerStrategy

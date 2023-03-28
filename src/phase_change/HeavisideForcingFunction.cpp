@@ -22,7 +22,10 @@ HeavisideForcingFunction::HeavisideForcingFunction(const std::string& object_nam
                                                    const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                                    const Pointer<CellVariable<NDIM, double> > H_var,
                                                    const Pointer<FaceVariable<NDIM, double> > U_adv_var)
-    : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_H_var(H_var), d_U_adv_var(U_adv_var)
+    : d_object_name(object_name),
+      d_adv_diff_solver(adv_diff_solver),
+      d_H_var(H_var),
+      d_U_adv_var(U_adv_var)
 {
     // intentionally blank
     return;

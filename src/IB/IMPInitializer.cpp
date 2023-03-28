@@ -616,8 +616,7 @@ IMPInitializer::getVertexPosn(const std::pair<int, int>& point_index, const int 
     return d_vertex_posn[level_number][point_index.first][point_index.second];
 } // getVertexPosn
 
-void
-IMPInitializer::getFromInput(Pointer<Database> /*db*/)
+void IMPInitializer::getFromInput(Pointer<Database> /*db*/)
 {
     return;
 } // getFromInput

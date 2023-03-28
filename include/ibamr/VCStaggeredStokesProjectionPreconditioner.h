@@ -194,4 +194,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_VCStaggeredStokesProjectionPreconditioner
+#endif //#ifndef included_IBAMR_VCStaggeredStokesProjectionPreconditioner

@@ -164,5 +164,5 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifdef IBTK_HAVE_LIBMESH
-#endif // #ifndef included_IBTK_AppInitializer
+#endif //#ifdef IBTK_HAVE_LIBMESH
+#endif //#ifndef included_IBTK_AppInitializer

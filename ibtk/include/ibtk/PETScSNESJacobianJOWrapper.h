@@ -246,4 +246,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_PETScSNESJacobianJOWrapper
+#endif //#ifndef included_IBTK_PETScSNESJacobianJOWrapper

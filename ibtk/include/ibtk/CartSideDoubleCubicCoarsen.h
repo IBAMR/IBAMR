@@ -154,4 +154,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CartSideDoubleCubicCoarsen
+#endif //#ifndef included_IBTK_CartSideDoubleCubicCoarsen

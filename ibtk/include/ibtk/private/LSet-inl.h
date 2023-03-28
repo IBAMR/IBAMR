@@ -274,4 +274,4 @@ LSet<T>::getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_LSet_inl_h
+#endif //#ifndef included_IBTK_LSet_inl_h

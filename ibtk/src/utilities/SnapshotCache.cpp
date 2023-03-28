@@ -90,10 +90,9 @@ SnapshotCache::clearSnapshots()
 SnapshotCache::value_type
 SnapshotCache::getSnapshot(double time, double tol)
 {
-    auto it =
-        std::find_if(d_snapshots.begin(),
-                     d_snapshots.end(),
-                     [time, tol](const value_type& t) -> bool { return IBTK::abs_equal_eps(t.first, time, tol); });
+    auto it = std::find_if(d_snapshots.begin(), d_snapshots.end(), [time, tol](const value_type& t) -> bool {
+        return IBTK::abs_equal_eps(t.first, time, tol);
+    });
     if (it == d_snapshots.end())
         return std::make_pair(std::numeric_limits<double>::quiet_NaN(), nullptr);
     else
@@ -130,9 +129,9 @@ SnapshotCache::storeSnapshot(const int u_idx, const double time, Pointer<PatchHi
 
     // Store the index, time, hierarchy, and variable.
     // First determine where to store this index
-    auto it = std::find_if(d_snapshots.begin(),
-                           d_snapshots.end(),
-                           [time](const value_type& snapshot) -> bool { return time < snapshot.first; });
+    auto it = std::find_if(d_snapshots.begin(), d_snapshots.end(), [time](const value_type& snapshot) -> bool {
+        return time < snapshot.first;
+    });
     d_snapshots.insert(it, std::make_pair(time, snapshot_hierarchy));
 }
 

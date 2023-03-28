@@ -112,4 +112,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_LevelSetInitialConditionTorus
+#endif //#ifndef included_LevelSetInitialConditionTorus

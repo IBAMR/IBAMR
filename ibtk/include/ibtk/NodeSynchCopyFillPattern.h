@@ -141,4 +141,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_NodeSynchCopyFillPattern
+#endif //#ifndef included_IBTK_NodeSynchCopyFillPattern

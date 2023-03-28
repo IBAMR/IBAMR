@@ -277,4 +277,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_StaggeredStokesOperator
+#endif //#ifndef included_IBAMR_StaggeredStokesOperator

@@ -109,4 +109,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBMethodPostProcessStrategy
+#endif //#ifndef included_IBAMR_IBMethodPostProcessStrategy

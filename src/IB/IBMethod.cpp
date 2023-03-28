@@ -1487,9 +1487,8 @@ IBMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const in
     return;
 } // addWorkloadEstimate
 
-void
-IBMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;

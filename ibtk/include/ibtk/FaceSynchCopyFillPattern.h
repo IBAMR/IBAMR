@@ -127,4 +127,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_FaceSynchCopyFillPattern
+#endif //#ifndef included_IBTK_FaceSynchCopyFillPattern

@@ -102,4 +102,4 @@ using namespace libMesh;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_namespaces
+#endif //#ifndef included_IBAMR_namespaces

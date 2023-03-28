@@ -115,4 +115,4 @@ IBSourceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBSourceSpec_inl
+#endif //#ifndef included_IBAMR_IBSourceSpec_inl

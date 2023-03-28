@@ -191,4 +191,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_CIBStaggeredStokesSolver
+#endif //#ifndef included_IBAMR_CIBStaggeredStokesSolver

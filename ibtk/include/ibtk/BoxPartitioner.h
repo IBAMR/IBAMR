@@ -114,5 +114,5 @@ protected:
 };
 } // namespace IBTK
 //////////////////////////////////////////////////////////////////////////////
-#endif // #ifdef IBTK_HAVE_LIBMESH
-#endif // #ifndef included_IBTK_boxpartitioner
+#endif //#ifdef IBTK_HAVE_LIBMESH
+#endif //#ifndef included_IBTK_boxpartitioner

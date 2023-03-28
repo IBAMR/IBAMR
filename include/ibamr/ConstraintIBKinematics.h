@@ -261,4 +261,4 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_ConstraintIBKinematics
+#endif //#ifndef included_IBAMR_ConstraintIBKinematics

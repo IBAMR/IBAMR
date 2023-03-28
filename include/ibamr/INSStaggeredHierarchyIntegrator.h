@@ -465,4 +465,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_INSStaggeredHierarchyIntegrator
+#endif //#ifndef included_IBAMR_INSStaggeredHierarchyIntegrator

@@ -188,4 +188,4 @@ IBSpringForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_IBSpringForceSpec_inl
+#endif //#ifndef included_IBAMR_IBSpringForceSpec_inl

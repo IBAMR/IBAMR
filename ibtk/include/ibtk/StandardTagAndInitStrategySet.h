@@ -339,4 +339,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_StandardTagAndInitStrategySet
+#endif //#ifndef included_IBTK_StandardTagAndInitStrategySet

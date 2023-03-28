@@ -69,5 +69,5 @@ protected:
 };
 } // namespace IBTK
 //////////////////////////////////////////////////////////////////////////////
-#endif // #ifdef IBTK_HAVE_LIBMESH
-#endif // #ifndef included_IBTK_ibtk_stablecentroidpartitioner
+#endif //#ifdef IBTK_HAVE_LIBMESH
+#endif //#ifndef included_IBTK_ibtk_stablecentroidpartitioner

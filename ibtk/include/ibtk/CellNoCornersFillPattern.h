@@ -187,4 +187,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CellNoCornersFillPattern
+#endif //#ifndef included_IBTK_CellNoCornersFillPattern

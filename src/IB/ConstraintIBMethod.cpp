@@ -1476,7 +1476,7 @@ ConstraintIBMethod::calculateVolumeElement()
             } // all patches
         }     // all structs
         d_l_data_manager->getLData("X", ln)->restoreArrays();
-    }         // all levels
+    } // all levels
     IBTK_MPI::sumReduction(&d_structure_vol[0], d_no_structures);
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1580,7 +1580,7 @@ ConstraintIBMethod::calculateRigidTranslationalMomentum()
             for (int d = 0; d < NDIM; ++d) d_rigid_trans_vel_new[location_struct_handle][d] += U_rigid[d];
         } // all structs
         d_l_data_U_interp[ln]->restoreArrays();
-    }     // all levels
+    } // all levels
 
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
     {
@@ -1957,8 +1957,8 @@ ConstraintIBMethod::applyProjection()
     // Compute div U before applying the projection operator.
     const bool U_current_cf_bdry_synch = true;
     getHierarchyMathOps()->div(d_Div_u_scratch_idx,
-                               d_Div_u_var,                                              // dst
-                               +1.0,                                                     // alpha
+                               d_Div_u_var, // dst
+                               +1.0,        // alpha
                                d_u_fluidSolve_idx,
                                Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
                                d_no_fill_op,                                             // src_bdry_fill
@@ -2091,8 +2091,8 @@ ConstraintIBMethod::applyProjection()
         // Compute div U before applying the projection operator.
         const bool U_current_cf_bdry_synch = true;
         getHierarchyMathOps()->div(d_Div_u_scratch_idx,
-                                   d_Div_u_var,                                              // dst
-                                   +1.0,                                                     // alpha
+                                   d_Div_u_var, // dst
+                                   +1.0,        // alpha
                                    d_u_fluidSolve_idx,
                                    Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
                                    d_no_fill_op,                                             // src_bdry_fill

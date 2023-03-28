@@ -307,4 +307,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CCPoissonBoxRelaxationFACOperator
+#endif //#ifndef included_IBTK_CCPoissonBoxRelaxationFACOperator

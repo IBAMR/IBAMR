@@ -184,4 +184,4 @@ LMarker::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_LMarker_inl_h
+#endif //#ifndef included_IBTK_LMarker_inl_h

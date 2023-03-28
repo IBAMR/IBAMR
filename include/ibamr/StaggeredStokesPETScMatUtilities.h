@@ -156,4 +156,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_StaggeredStokesPETScMatUtilities
+#endif //#ifndef included_IBAMR_StaggeredStokesPETScMatUtilities

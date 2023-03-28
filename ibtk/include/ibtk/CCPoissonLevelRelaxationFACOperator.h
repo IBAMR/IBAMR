@@ -268,4 +268,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_CCPoissonLevelRelaxationFACOperator
+#endif //#ifndef included_IBTK_CCPoissonLevelRelaxationFACOperator

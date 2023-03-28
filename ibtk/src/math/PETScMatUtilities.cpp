@@ -643,33 +643,34 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         Y = 1,
         Z = 2
     };
-    IBTK_DO_ONCE(for (int axis = 0; axis < NDIM; ++axis) {
-        static StencilMapType sm;
-        // Common to all axes
-        sm[ORIGIN] = CENTER;
-        sm[get_shift(X, 1)] = EAST;
-        sm[get_shift(X, -1)] = WEST;
-        sm[get_shift(Y, 1)] = NORTH;
-        sm[get_shift(Y, -1)] = SOUTH;
-        sm[get_shift(Z, 1)] = TOP;
-        sm[get_shift(Z, -1)] = BOTTOM;
+    IBTK_DO_ONCE(for (int axis = 0; axis < NDIM; ++axis)
+                 {
+                     static StencilMapType sm;
+                     // Common to all axes
+                     sm[ORIGIN] = CENTER;
+                     sm[get_shift(X, 1)] = EAST;
+                     sm[get_shift(X, -1)] = WEST;
+                     sm[get_shift(Y, 1)] = NORTH;
+                     sm[get_shift(Y, -1)] = SOUTH;
+                     sm[get_shift(Z, 1)] = TOP;
+                     sm[get_shift(Z, -1)] = BOTTOM;
 
-        // Specific to certain axes
-        int idx = BOTTOM;
-        for (int d = 0; d < NDIM; ++d)
-        {
-            if (d == axis) continue;
-            idx += 1;
-            sm[get_shift(axis, 1) + get_shift(d, 1)] = idx;
-            idx += 1;
-            sm[get_shift(axis, -1) + get_shift(d, 1)] = idx;
-            idx += 1;
-            sm[get_shift(axis, 1) + get_shift(d, -1)] = idx;
-            idx += 1;
-            sm[get_shift(axis, -1) + get_shift(d, -1)] = idx;
-        }
-        stencil_map_vec.push_back(sm);
-    });
+                     // Specific to certain axes
+                     int idx = BOTTOM;
+                     for (int d = 0; d < NDIM; ++d)
+                     {
+                         if (d == axis) continue;
+                         idx += 1;
+                         sm[get_shift(axis, 1) + get_shift(d, 1)] = idx;
+                         idx += 1;
+                         sm[get_shift(axis, -1) + get_shift(d, 1)] = idx;
+                         idx += 1;
+                         sm[get_shift(axis, 1) + get_shift(d, -1)] = idx;
+                         idx += 1;
+                         sm[get_shift(axis, -1) + get_shift(d, -1)] = idx;
+                     }
+                     stencil_map_vec.push_back(sm);
+                 });
 #endif
 
     // Set the matrix coefficients to correspond to the standard finite
