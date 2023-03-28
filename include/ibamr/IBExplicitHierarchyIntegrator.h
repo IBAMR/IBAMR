@@ -155,4 +155,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBExplicitHierarchyIntegrator
+#endif // #ifndef included_IBAMR_IBExplicitHierarchyIntegrator

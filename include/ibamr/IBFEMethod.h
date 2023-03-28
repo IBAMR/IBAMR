@@ -1118,5 +1118,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifdef IBAMR_HAVE_LIBMESH
-#endif //#ifndef included_IBAMR_IBFEMethod
+#endif // #ifdef IBAMR_HAVE_LIBMESH
+#endif // #ifndef included_IBAMR_IBFEMethod

@@ -343,4 +343,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_FixedSizedStream
+#endif // #ifndef included_IBTK_FixedSizedStream

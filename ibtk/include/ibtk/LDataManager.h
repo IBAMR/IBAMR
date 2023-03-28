@@ -1329,4 +1329,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LDataManager
+#endif // #ifndef included_IBTK_LDataManager

@@ -1262,7 +1262,7 @@ HierarchyMathOps::grad(const int dst_idx,
                    d_sc_var,
                    Pointer<HierarchyGhostCellInterpolation>(nullptr),
                    0.0,
-                   false); // don't re-synch cf boundary
+                   false);                           // don't re-synch cf boundary
 
             d_hier_cc_data_ops->linearSum(dst_idx,   // dst
                                           1.0,       // alpha
@@ -1454,7 +1454,7 @@ HierarchyMathOps::grad(const int dst_idx,
                d_fc_var,
                Pointer<HierarchyGhostCellInterpolation>(nullptr),
                0.0,
-               false); // don't re-synch cf boundary
+               false);                           // don't re-synch cf boundary
 
         d_hier_cc_data_ops->linearSum(dst_idx,   // dst
                                       1.0,       // alpha
@@ -1527,7 +1527,7 @@ HierarchyMathOps::grad(const int dst_idx,
                d_sc_var,
                Pointer<HierarchyGhostCellInterpolation>(nullptr),
                0.0,
-               false); // don't re-synch cf boundary
+               false);                           // don't re-synch cf boundary
 
         d_hier_cc_data_ops->linearSum(dst_idx,   // dst
                                       1.0,       // alpha
@@ -3534,7 +3534,8 @@ HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, Pointer<NodeV
     if (NDIM == 1) return;
 
     // Convert a BoundaryBox (which is implicitly cell-centered) into a nodal box.
-    auto boundary_to_nodal = [](const BoundaryBox<NDIM>& bbox) {
+    auto boundary_to_nodal = [](const BoundaryBox<NDIM>& bbox)
+    {
         // lower faces are even, upper faces are odd
         const int location = bbox.getLocationIndex();
         const bool is_lower_face = location % 2 == 0;

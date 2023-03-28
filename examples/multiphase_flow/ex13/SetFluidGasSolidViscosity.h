@@ -136,6 +136,6 @@ private:
      */
     bool d_set_mu_solid;
 
-}; // SetFluidGasSolidViscosity
+};     // SetFluidGasSolidViscosity
 
 #endif // #ifndef included_SetFluidGasSolidViscosity

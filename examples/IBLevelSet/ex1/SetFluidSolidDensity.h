@@ -122,6 +122,6 @@ private:
      */
     double d_num_solid_interface_cells;
 
-}; // SetFluidSolidDensity
+};     // SetFluidSolidDensity
 
 #endif // #ifndef included_SetFluidSolidDensity

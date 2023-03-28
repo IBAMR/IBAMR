@@ -300,13 +300,12 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)
     {
-        IBAMR_DO_ONCE(
-            {
-                pout << "AdvDiffPredictorCorrectorHierarchyIntegrator::"
-                        "integrateHierarchy():\n"
-                     << "  WARNING: num_cycles = " << d_current_num_cycles
-                     << " but expected num_cycles = " << expected_num_cycles << ".\n";
-            });
+        IBAMR_DO_ONCE({
+            pout << "AdvDiffPredictorCorrectorHierarchyIntegrator::"
+                    "integrateHierarchy():\n"
+                 << "  WARNING: num_cycles = " << d_current_num_cycles
+                 << " but expected num_cycles = " << expected_num_cycles << ".\n";
+        });
     }
 
     // Reset time-dependent data when necessary.
@@ -387,15 +386,15 @@ AdvDiffPredictorCorrectorHierarchyIntegrator::integrateHierarchy(const double cu
         for (int depth = 0; depth < Q_depth; ++depth)
         {
             d_hier_math_ops->laplace(Q_rhs_current_idx,
-                                     Q_rhs_var,  // Q_rhs(n)
-                                     kappa_spec, // Poisson spec
+                                     Q_rhs_var,    // Q_rhs(n)
+                                     kappa_spec,   // Poisson spec
                                      Q_scratch_idx,
                                      Q_var,        // Q(n)
                                      d_no_fill_op, // don't need to re-fill Q(n) data
                                      current_time, // Q(n) bdry fill time
                                      1.0,          // gamma
                                      F_current_idx,
-                                     F_var, // F(n)
+                                     F_var,        // F(n)
                                      depth,
                                      depth,
                                      depth); // dst_depth, src1_depth, src2_depth

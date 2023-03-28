@@ -313,4 +313,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_AdvDiffConservativeMassScalarTransportRKIntegrator
+#endif // #ifndef included_IBAMR_AdvDiffConservativeMassScalarTransportRKIntegrator

@@ -309,4 +309,4 @@ IndexUtilities::partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_IndexUtilities_inl_h
+#endif // #ifndef included_IBTK_IndexUtilities_inl_h

@@ -159,4 +159,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_SpongeLayerForceFunction
+#endif // #ifndef included_IBAMR_SpongeLayerForceFunction

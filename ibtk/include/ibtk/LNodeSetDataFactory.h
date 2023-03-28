@@ -32,4 +32,4 @@ using LNodeSetDataFactory = LIndexSetDataFactory<LNode>;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LNodeSetDataFactory
+#endif // #ifndef included_IBTK_LNodeSetDataFactory

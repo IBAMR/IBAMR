@@ -284,5 +284,5 @@ FECache::operator()(const FECache::key_type& quad_key, const libMesh::Elem* elem
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifdef IBTK_HAVE_LIBMESH
-#endif //#ifndef included_IBTK_FECache
+#endif // #ifdef IBTK_HAVE_LIBMESH
+#endif // #ifndef included_IBTK_FECache

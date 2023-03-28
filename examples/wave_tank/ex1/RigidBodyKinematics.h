@@ -142,6 +142,6 @@ private:
      */
     std::vector<double> d_center_of_mass, d_incremented_angle_from_reference_axis, d_tagged_pt_position;
 
-}; // RigidBodyKinematics
+};     // RigidBodyKinematics
 
 #endif // included_RgidBodyKinematics

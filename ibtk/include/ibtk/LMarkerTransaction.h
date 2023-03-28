@@ -32,4 +32,4 @@ using LMarkerTransaction = LTransaction<LMarker>;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LMarkerTransaction
+#endif // #ifndef included_IBTK_LMarkerTransaction

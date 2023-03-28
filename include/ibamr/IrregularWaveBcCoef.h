@@ -224,4 +224,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IrregularWaveBcCoef
+#endif // #ifndef included_IBAMR_IrregularWaveBcCoef

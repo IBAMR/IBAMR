@@ -1376,7 +1376,8 @@ HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHie
     return;
 } // applyGradientDetectorSpecialized
 
-void HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
+void
+HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;

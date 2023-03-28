@@ -198,8 +198,8 @@ main(int argc, char* argv[])
         OMEGA1 = input_db->getDouble("OMEGA1"); // radius of the inner circle
         OMEGA2 = input_db->getDouble("OMEGA2"); // radius of the outer circle
 
-        AA = input_db->getDouble("AA"); // radius of the inner circle
-        BB = input_db->getDouble("BB"); // radius of the outer circle
+        AA = input_db->getDouble("AA");         // radius of the inner circle
+        BB = input_db->getDouble("BB");         // radius of the outer circle
 
 #ifdef LIBMESH_HAVE_TRIANGLE
         const int num_circum_nodes1 = ceil(2.0 * M_PI * R1 / ds);

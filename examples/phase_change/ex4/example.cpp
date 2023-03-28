@@ -106,13 +106,14 @@ synchronize_levelset_with_heaviside_fcn(int H_current_idx,
     }
 }
 
-struct MaskSurfaceTensionForceCtx {
-  Pointer<CellVariable<NDIM, double>> lf_var;
-  RobinBcCoefStrategy<NDIM> *lf_bc_coef;
-  Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
-  Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator;
-  double rho_liquid;
-  double rho_gas;
+struct MaskSurfaceTensionForceCtx
+{
+    Pointer<CellVariable<NDIM, double> > lf_var;
+    RobinBcCoefStrategy<NDIM>* lf_bc_coef;
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
+    Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator;
+    double rho_liquid;
+    double rho_gas;
 };
 
 void
@@ -520,14 +521,14 @@ main(int argc, char* argv[])
             new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator);
         time_integrator->registerDivergenceVelocitySourceFunction(Div_U_forcing_fcn);
 
-	// Register surface tension force.
-	Pointer<SurfaceTensionForceFunction> surface_tension_force =
-        new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
-                                        app_initializer->getComponentDatabase(
-                                            "SurfaceTensionForceFunction"),
-                                        adv_diff_integrator, ls_var);
+        // Register surface tension force.
+        Pointer<SurfaceTensionForceFunction> surface_tension_force =
+            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
+                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+                                            adv_diff_integrator,
+                                            ls_var);
 
-	// Register callback function to multiply the surface tension term with the coefficient.
+        // Register callback function to multiply the surface tension term with the coefficient.
         MaskSurfaceTensionForceCtx mask_surface_tension_force_ctx;
         mask_surface_tension_force_ctx.ins_hier_integrator = time_integrator;
         mask_surface_tension_force_ctx.rho_liquid = rho_liquid;
@@ -536,9 +537,8 @@ main(int argc, char* argv[])
         mask_surface_tension_force_ctx.lf_var = lf_var;
         mask_surface_tension_force_ctx.lf_bc_coef = lf_bc_coef;
 
-        surface_tension_force->registerSurfaceTensionForceMasking(
-        &mask_surface_tension_force,
-        static_cast<void *>(&mask_surface_tension_force_ctx));
+        surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
+                                                                  static_cast<void*>(&mask_surface_tension_force_ctx));
 
         // Register gravity force.
         std::vector<double> grav_const(NDIM);
@@ -549,9 +549,8 @@ main(int argc, char* argv[])
         {
             grav_force = new GravityForcing("GravityForcing", time_integrator, grav_const);
         }
- 	
-	Pointer<CartGridFunctionSet> eul_forces =
-        new CartGridFunctionSet("eulerian_forces");
+
+        Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(grav_force);
         eul_forces->addFunction(surface_tension_force);
         time_integrator->registerBodyForceFunction(eul_forces);

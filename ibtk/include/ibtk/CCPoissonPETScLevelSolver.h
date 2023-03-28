@@ -204,4 +204,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CCPoissonPETScLevelSolver
+#endif // #ifndef included_IBTK_CCPoissonPETScLevelSolver

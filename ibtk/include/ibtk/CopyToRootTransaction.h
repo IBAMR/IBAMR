@@ -155,4 +155,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CopyToRootTransaction
+#endif // #ifndef included_IBTK_CopyToRootTransaction

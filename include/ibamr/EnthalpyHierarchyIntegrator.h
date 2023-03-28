@@ -246,4 +246,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_EnthalpyHierarchyIntegrator
+#endif // #ifndef included_IBAMR_EnthalpyHierarchyIntegrator

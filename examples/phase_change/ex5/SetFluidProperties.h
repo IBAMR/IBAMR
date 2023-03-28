@@ -191,6 +191,6 @@ private:
      * Number of interface cells over which to smooth the material properties
      */
     double d_num_interface_cells;
-}; // SetFluidProperties
+};     // SetFluidProperties
 
 #endif // #ifndef included_SetFluidProperties

@@ -257,4 +257,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_BJacobiPreconditioner
+#endif // #ifndef included_IBTK_BJacobiPreconditioner

@@ -32,4 +32,4 @@ using LNodeSet = LSet<LNode>;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LNodeSet
+#endif // #ifndef included_IBTK_LNodeSet

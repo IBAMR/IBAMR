@@ -153,5 +153,5 @@ protected:
 };
 } // namespace IBTK
 
-#endif //#ifdef IBTK_HAVE_LIBMESH
-#endif //#ifndef included_IBTK_FEValues
+#endif // #ifdef IBTK_HAVE_LIBMESH
+#endif // #ifndef included_IBTK_FEValues

@@ -392,4 +392,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_HierarchyGhostCellInterpolation
+#endif // #ifndef included_IBTK_HierarchyGhostCellInterpolation

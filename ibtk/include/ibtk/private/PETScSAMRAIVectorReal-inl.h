@@ -158,4 +158,4 @@ PETScSAMRAIVectorReal::replaceSAMRAIVector(
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_PETScSAMRAIVectorReal_inl_h
+#endif // #ifndef included_IBTK_PETScSAMRAIVectorReal_inl_h

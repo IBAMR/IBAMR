@@ -103,7 +103,7 @@ main(int argc, char* argv[])
         const int convec_idx = var_db->registerVariableAndContext(convec_var, var_ctx);
         const int exact_idx = var_db->registerVariableAndContext(exact_var, var_ctx);
         const int u_idx = var_db->registerVariableAndContext(u_var, var_ctx);
-//#define OUTPUT_VIZ_FILES // Comment out if you want to draw things
+// #define OUTPUT_VIZ_FILES // Comment out if you want to draw things
 #ifdef OUTPUT_VIZ_FILES
         visit_writer->registerPlotQuantity("Q", "SCALAR", q_idx);
         visit_writer->registerPlotQuantity("Convec", "SCALAR", convec_idx);
@@ -169,7 +169,8 @@ main(int argc, char* argv[])
 #ifdef OUTPUT_VIZ_FILES
         int step = 0;
 #endif
-        auto do_test = [&](Pointer<ConvectiveOperator> convec_oper) {
+        auto do_test = [&](Pointer<ConvectiveOperator> convec_oper)
+        {
             convec_oper->initializeOperatorState(q_vec, q_vec);
             convec_oper->setAdvectionVelocity(u_idx);
             convec_oper->applyConvectiveOperator(q_idx, convec_idx);

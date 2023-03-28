@@ -140,4 +140,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LMarkerCoarsen
+#endif // #ifndef included_IBTK_LMarkerCoarsen

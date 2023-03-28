@@ -190,7 +190,7 @@ ForceProjector::calculateEulerianBodyForce(const double /*new_time*/, const doub
 
         } // iterate over patches
 
-    } // all levels.
+    }     // all levels.
 
     // spread the lagrangian force from finest level to the finest level.
     std::vector<Pointer<LData> > F_data(finest_ln + 1, Pointer<LData>(NULL));

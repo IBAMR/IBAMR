@@ -940,7 +940,8 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
 } // MatVecMult_KMInv
 
 // Routine to apply DirectMobility preconditioner
-PetscErrorCode KrylovMobilitySolver::PCApply_KMInv(PC /*pc*/, Vec /*x*/, Vec /*y*/)
+PetscErrorCode
+KrylovMobilitySolver::PCApply_KMInv(PC /*pc*/, Vec /*x*/, Vec /*y*/)
 {
     PetscFunctionBeginUser;
     TBOX_ERROR(

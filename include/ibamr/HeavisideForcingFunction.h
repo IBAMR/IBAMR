@@ -130,4 +130,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_HeavisideForcingFunction
+#endif // #ifndef included_HeavisideForcingFunction

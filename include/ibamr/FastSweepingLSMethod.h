@@ -140,4 +140,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_FastSweepingLSMethod
+#endif // #ifndef included_IBAMR_FastSweepingLSMethod

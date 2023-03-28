@@ -483,7 +483,7 @@ PoissonUtilities::computeMatrixCoefficients(SideData<NDIM, double>& matrix_coeff
             mat_vals[stencil_index_diag] -= D / dx_sq;     // diagonal
             mat_vals[stencil_index_diag] -= D / dx_sq;     // diagonal
         }
-        mat_vals[stencil_index_diag] += C; // diagonal
+        mat_vals[stencil_index_diag] += C;                 // diagonal
 
         for (int stencil_index = 0; stencil_index < stencil_sz; ++stencil_index)
         {

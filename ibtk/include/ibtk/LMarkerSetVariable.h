@@ -32,4 +32,4 @@ using LMarkerSetVariable = LSetVariable<LMarker>;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LMarkerSetVariable
+#endif // #ifndef included_IBTK_LMarkerSetVariable

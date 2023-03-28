@@ -140,4 +140,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LMarkerRefine
+#endif // #ifndef included_IBTK_LMarkerRefine

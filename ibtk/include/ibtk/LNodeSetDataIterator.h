@@ -32,4 +32,4 @@ using LNodeSetDataIterator = LSetDataIterator<LNode>;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LNodeSetDataIterator
+#endif // #ifndef included_IBTK_LNodeSetDataIterator

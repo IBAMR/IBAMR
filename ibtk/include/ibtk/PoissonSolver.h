@@ -123,4 +123,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_PoissonSolver
+#endif // #ifndef included_IBTK_PoissonSolver

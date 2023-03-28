@@ -155,4 +155,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_AdvDiffConvectiveOperatorManager
+#endif // #ifndef included_IBAMR_AdvDiffConvectiveOperatorManager

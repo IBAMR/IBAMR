@@ -205,4 +205,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CartSideDoubleDivPreservingRefine
+#endif // #ifndef included_IBTK_CartSideDoubleDivPreservingRefine

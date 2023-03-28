@@ -191,7 +191,7 @@ main()
                     const double z = k * dz;
                     if ((std::pow(y / width, 2) + std::pow(z / depth, 2)) <= 1) // use elliptical cross sections
                     {
-                        shape_new[0].push_back(xbase); // right side.
+                        shape_new[0].push_back(xbase);                          // right side.
                         shape_new[1].push_back(ybase + y);
                         shape_new[2].push_back(z);
 

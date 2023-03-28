@@ -146,4 +146,4 @@ LSetDataIterator<T>::getCellIndex() const
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LSetDataIterator_inl_h
+#endif // #ifndef included_IBTK_LSetDataIterator_inl_h

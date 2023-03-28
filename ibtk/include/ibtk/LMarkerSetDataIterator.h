@@ -32,4 +32,4 @@ using LMarkerSetDataIterator = LSetDataIterator<LMarker>;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LMarkerSetDataIterator
+#endif // #ifndef included_IBTK_LMarkerSetDataIterator

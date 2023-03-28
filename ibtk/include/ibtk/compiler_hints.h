@@ -98,4 +98,4 @@ namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_compiler_hints
+#endif // #ifndef included_IBTK_compiler_hints

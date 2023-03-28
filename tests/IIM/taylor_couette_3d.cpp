@@ -190,8 +190,8 @@ main(int argc, char* argv[])
         OMEGA1 = input_db->getDouble("OMEGA1"); // radius of the inner circle
         OMEGA2 = input_db->getDouble("OMEGA2"); // radius of the outer circle
 
-        AA = input_db->getDouble("AA"); // radius of the inner circle
-        BB = input_db->getDouble("BB"); // radius of the outer circle
+        AA = input_db->getDouble("AA");         // radius of the inner circle
+        BB = input_db->getDouble("BB");         // radius of the outer circle
         shift = input_db->getDouble("SHIFT");
         fac = input_db->getDouble("FAC");
         const double ds = input_db->getDouble("MFAC") * dx;

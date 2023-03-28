@@ -533,4 +533,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_PoissonFACPreconditionerStrategy
+#endif // #ifndef included_IBTK_PoissonFACPreconditionerStrategy

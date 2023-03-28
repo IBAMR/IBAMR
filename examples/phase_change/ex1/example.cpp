@@ -422,11 +422,8 @@ main(int argc, char* argv[])
         // Register H Div U term in the Heaviside equation.
         Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F");
         adv_diff_integrator->registerSourceTerm(F_var, true);
-        Pointer<CartGridFunction> H_forcing_fcn =
-            new HeavisideForcingFunction("H_forcing_fcn",
-                                         adv_diff_integrator,
-                                         H_var,
-                                         time_integrator->getAdvectionVelocityVariable());
+        Pointer<CartGridFunction> H_forcing_fcn = new HeavisideForcingFunction(
+            "H_forcing_fcn", adv_diff_integrator, H_var, time_integrator->getAdvectionVelocityVariable());
         adv_diff_integrator->setSourceTermFunction(F_var, H_forcing_fcn);
         adv_diff_integrator->setSourceTerm(H_var, F_var);
 

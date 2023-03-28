@@ -209,4 +209,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_AdvDiffPPMConvectiveOperator
+#endif // #ifndef included_IBAMR_AdvDiffPPMConvectiveOperator

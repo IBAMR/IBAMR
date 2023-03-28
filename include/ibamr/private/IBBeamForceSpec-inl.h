@@ -192,4 +192,4 @@ IBBeamForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBBeamForceSpec_inl
+#endif // #ifndef included_IBAMR_IBBeamForceSpec_inl

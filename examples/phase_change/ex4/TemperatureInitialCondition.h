@@ -99,4 +99,4 @@ private:
 };
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_TemperatureInitialCondition
+#endif // #ifndef included_TemperatureInitialCondition

@@ -139,4 +139,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_NewtonKrylovSolverManager
+#endif // #ifndef included_IBTK_NewtonKrylovSolverManager

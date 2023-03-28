@@ -217,4 +217,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_StreamableManager
+#endif // #ifndef included_IBTK_StreamableManager

@@ -138,4 +138,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LIndexSetDataFactory
+#endif // #ifndef included_IBTK_LIndexSetDataFactory
