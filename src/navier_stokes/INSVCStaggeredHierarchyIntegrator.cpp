@@ -35,6 +35,7 @@
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/CartSideDoubleDivPreservingRefine.h"
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
@@ -518,6 +519,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", NDIM);
 #endif
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
+    d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F");
 
 #if (NDIM == 3)
     d_Omega_Norm_var = new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
@@ -930,6 +932,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());
 
 // Register scratch variables that are maintained by the
 // INSVCStaggeredHierarchyIntegrator.
@@ -1420,6 +1423,37 @@ INSVCStaggeredHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
 } // registerBrinkmanPenalizationStrategy
 
 void
+INSVCStaggeredHierarchyIntegrator::registerDivergenceVelocitySourceFunction(Pointer<CartGridFunction> Div_U_F_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    if (d_Div_U_F_fcn)
+    {
+        Pointer<CartGridFunctionSet> p_F_fcn = d_Div_U_F_fcn;
+        if (!p_F_fcn)
+        {
+            pout << d_object_name << "::registerDivergenceVelocitySourceFunction(): WARNING:\n"
+                 << "  source term function has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered "
+                    "with "
+                    "the solver\n"
+                 << "  when evaluating the source term value for the div U equation.\n";
+            p_F_fcn = new CartGridFunctionSet(d_object_name + "::Div_U_F_function_set");
+            p_F_fcn->addFunction(d_Div_U_F_fcn);
+        }
+        p_F_fcn->addFunction(Div_U_F_fcn);
+        d_Div_U_F_fcn = p_F_fcn;
+    }
+    else
+    {
+        d_Div_U_F_fcn = Div_U_F_fcn;
+    }
+    return;
+} // registerDivergenceVelocitySourceFunction
+
+void
 INSVCStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Pointer<CartGridFunction> rho_init_fcn)
 {
 #if !defined(NDEBUG)
@@ -1531,14 +1565,150 @@ INSVCStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
     d_div_U_norm_2_pre = d_hier_cc_data_ops->L2Norm(d_Div_U_idx, wgt_cc_idx);
     d_div_U_norm_oo_pre = d_hier_cc_data_ops->maxNorm(d_Div_U_idx, wgt_cc_idx);
 
+    // Free vector space.
+    if (d_U_rhs_vec)
+    {
+        d_U_rhs_vec->freeVectorComponents();
+        d_U_rhs_vec.setNull();
+    }
+    if (d_U_adv_vec)
+    {
+        d_U_adv_vec->freeVectorComponents();
+        d_U_adv_vec.setNull();
+    }
+    if (d_N_vec)
+    {
+        d_N_vec->freeVectorComponents();
+        d_N_vec.setNull();
+    }
+    if (d_P_rhs_vec)
+    {
+        d_P_rhs_vec->freeVectorComponents();
+        d_P_rhs_vec.setNull();
+    }
+
+    for (auto& nul_vec : d_nul_vecs)
+    {
+        if (nul_vec)
+        {
+            nul_vec->freeVectorComponents();
+            nul_vec.setNull();
+        }
+    }
+
+    for (auto& U_nul_vec : d_U_nul_vecs)
+    {
+        if (U_nul_vec)
+        {
+            U_nul_vec->freeVectorComponents();
+            U_nul_vec.setNull();
+        }
+    }
+
+    d_vectors_need_init = true;
+
+    // Deallocate linear solvers.
+    d_velocity_solver->deallocateSolverState();
+    d_pressure_solver->deallocateSolverState();
+    d_stokes_solver->deallocateSolverState();
+
+    d_velocity_solver_needs_init = true;
+    d_pressure_solver_needs_init = true;
+    d_stokes_solver_needs_init = true;
+
     return;
 } // regridHierarchyBeginSpecialized
 
 void
 INSVCStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
 {
-    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    // Reset hierarchy dependent data and objects.
+    const int coarsest_hier_level = 0;
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+
+    // Reset the hierarchy operations objects for the new hierarchy configuration.
+    d_hier_cc_data_ops->setPatchHierarchy(d_hierarchy);
+    d_hier_cc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+
+    d_hier_fc_data_ops->setPatchHierarchy(d_hierarchy);
+    d_hier_fc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+
+    d_hier_sc_data_ops->setPatchHierarchy(d_hierarchy);
+    d_hier_sc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+
+    d_hier_nc_data_ops->setPatchHierarchy(d_hierarchy);
+    d_hier_nc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+
+    d_hier_ec_data_ops->setPatchHierarchy(d_hierarchy);
+    d_hier_ec_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+
+    if (d_manage_hier_math_ops)
+    {
+        d_hier_math_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+    }
+
+    // Setup the patch boundary filling objects.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
+                                                     DATA_REFINE_TYPE,
+                                                     USE_CF_INTERPOLATION,
+                                                     DATA_COARSEN_TYPE,
+                                                     d_bdry_extrap_type, // TODO: update variable name
+                                                     CONSISTENT_TYPE_2_BDRY,
+                                                     d_U_bc_coefs);
+    d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
+
+    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx,
+                                                     DATA_REFINE_TYPE,
+                                                     USE_CF_INTERPOLATION,
+                                                     DATA_COARSEN_TYPE,
+                                                     d_bdry_extrap_type, // TODO: update variable name
+                                                     CONSISTENT_TYPE_2_BDRY,
+                                                     d_P_bc_coef);
+    d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
+
+    if (d_Q_fcn)
+    {
+        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
+                                                         DATA_REFINE_TYPE,
+                                                         USE_CF_INTERPOLATION,
+                                                         DATA_COARSEN_TYPE,
+                                                         d_bdry_extrap_type, // TODO: update variable name
+                                                         CONSISTENT_TYPE_2_BDRY);
+        d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
+    }
+
+    if (!d_mu_is_const)
+    {
+        // These options are chosen to ensure that information is propagated
+        // conservatively from the coarse cells only
+        InterpolationTransactionComponent mu_bc_component(
+            d_mu_scratch_idx, d_mu_refine_type, false, d_mu_coarsen_type, d_mu_bdry_extrap_type, false, d_mu_bc_coef);
+        d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+        d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
+    }
+
+    // Setup the patch boundary synchronization objects.
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
+    SynchronizationTransactionComponent synch_transaction =
+        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
+    d_side_synch_op = new SideDataSynchronization();
+    d_side_synch_op->initializeOperatorState(synch_transaction, d_hierarchy);
+
+    // Indicate that vectors and solvers need to be re-initialized.
+    d_coarsest_reset_ln = coarsest_hier_level;
+    d_finest_reset_ln = finest_hier_level;
+    d_vectors_need_init = true;
+    d_convective_op_needs_init = true;
+    d_velocity_solver_needs_init = true;
+    d_pressure_solver_needs_init = true;
+    d_stokes_solver_needs_init = true;
+
     // Determine the divergence of the velocity field after regridding.
+    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     d_hier_math_ops->div(d_Div_U_idx,
                          d_Div_U_var,
                          1.0,
@@ -1563,6 +1733,8 @@ void
 INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
                                                                                const bool initial_time)
 {
+    if (initial_time && d_Div_U_F_fcn) return;
+
     // Project the interpolated velocity if needed.
     if (initial_time || d_do_regrid_projection)
     {
@@ -1750,8 +1922,8 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     const int coarsest_level,
     const int finest_level)
 {
-    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
+    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
                 (finest_level <= hierarchy->getFinestLevelNumber()));
@@ -1760,77 +1932,8 @@ INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         TBOX_ASSERT(hierarchy->getPatchLevel(ln));
     }
 #else
-    NULL_USE(coarsest_level);
-    NULL_USE(finest_level);
+    NULL_USE(base_hierarchy);
 #endif
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
-
-    // Reset the hierarchy operations objects for the new hierarchy configuration.
-    d_hier_cc_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_cc_data_ops->resetLevels(0, finest_hier_level);
-
-    d_hier_fc_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_fc_data_ops->resetLevels(0, finest_hier_level);
-
-    d_hier_sc_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_sc_data_ops->resetLevels(0, finest_hier_level);
-
-    d_hier_nc_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_nc_data_ops->resetLevels(0, finest_hier_level);
-
-    d_hier_ec_data_ops->setPatchHierarchy(hierarchy);
-    d_hier_ec_data_ops->resetLevels(0, finest_hier_level);
-
-    // Setup the patch boundary filling objects.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
-                                                     DATA_REFINE_TYPE,
-                                                     USE_CF_INTERPOLATION,
-                                                     DATA_COARSEN_TYPE,
-                                                     d_bdry_extrap_type, // TODO: update variable name
-                                                     CONSISTENT_TYPE_2_BDRY,
-                                                     d_U_bc_coefs);
-    d_U_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_U_bdry_bc_fill_op->initializeOperatorState(U_bc_component, d_hierarchy);
-
-    InterpolationTransactionComponent P_bc_component(d_P_scratch_idx,
-                                                     DATA_REFINE_TYPE,
-                                                     USE_CF_INTERPOLATION,
-                                                     DATA_COARSEN_TYPE,
-                                                     d_bdry_extrap_type, // TODO: update variable name
-                                                     CONSISTENT_TYPE_2_BDRY,
-                                                     d_P_bc_coef);
-    d_P_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    d_P_bdry_bc_fill_op->initializeOperatorState(P_bc_component, d_hierarchy);
-
-    if (d_Q_fcn)
-    {
-        InterpolationTransactionComponent Q_bc_component(d_Q_scratch_idx,
-                                                         DATA_REFINE_TYPE,
-                                                         USE_CF_INTERPOLATION,
-                                                         DATA_COARSEN_TYPE,
-                                                         d_bdry_extrap_type, // TODO: update variable name
-                                                         CONSISTENT_TYPE_2_BDRY);
-        d_Q_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_Q_bdry_bc_fill_op->initializeOperatorState(Q_bc_component, d_hierarchy);
-    }
-
-    if (!d_mu_is_const)
-    {
-        // These options are chosen to ensure that information is propagated
-        // conservatively from the coarse cells only
-        InterpolationTransactionComponent mu_bc_component(
-            d_mu_scratch_idx, d_mu_refine_type, false, d_mu_coarsen_type, d_mu_bdry_extrap_type, false, d_mu_bc_coef);
-        d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-        d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
-    }
-
-    // Setup the patch boundary synchronization objects.
-    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
-    SynchronizationTransactionComponent synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
-    d_side_synch_op = new SideDataSynchronization();
-    d_side_synch_op->initializeOperatorState(synch_transaction, d_hierarchy);
 
     // Indicate that vectors and solvers need to be re-initialized.
     d_coarsest_reset_ln = coarsest_level;

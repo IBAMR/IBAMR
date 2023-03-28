@@ -927,34 +927,15 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setTransportedMassDensityVaria
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-INSVCStaggeredNonConservativeHierarchyIntegrator::initializeLevelDataSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int level_number,
-    const double init_data_time,
-    const bool can_be_refined,
-    const bool initial_time,
-    const Pointer<BasePatchLevel<NDIM> > base_old_level,
-    const bool allocate_data)
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridHierarchyEndSpecialized()
 {
-    INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
-        base_hierarchy, level_number, init_data_time, can_be_refined, initial_time, base_old_level, allocate_data);
-    return;
-} // initializeLevelDataSpecialized
+    INSVCStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized();
 
-void
-INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int coarsest_level,
-    const int finest_level)
-{
-    INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-        base_hierarchy, coarsest_level, finest_level);
-
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     if (!d_rho_is_const)
     {
         // These options are chosen to ensure that information is propagated
         // conservatively from the coarse cells only
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent rho_bc_component(d_rho_scratch_idx,
                                                            d_rho_refine_type,
                                                            false,
@@ -966,28 +947,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
         d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
     }
     return;
-} // resetHierarchyConfigurationSpecialized
-
-void
-INSVCStaggeredNonConservativeHierarchyIntegrator::applyGradientDetectorSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-    const int level_number,
-    const double error_data_time,
-    const int tag_index,
-    const bool initial_time,
-    const bool uses_richardson_extrapolation_too)
-{
-    INSVCStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(
-        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too);
-    return;
-} // applyGradientDetectorSpecialized
-
-void
-INSVCStaggeredNonConservativeHierarchyIntegrator::setupPlotDataSpecialized()
-{
-    INSVCStaggeredHierarchyIntegrator::setupPlotDataSpecialized();
-    return;
-} // setupPlotDataSpecialized
+} // regridHierarchyEndSpecialized
 
 void
 INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()

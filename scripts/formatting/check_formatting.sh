@@ -29,7 +29,7 @@ p = subprocess.Popen(["git", "clang-format", "--diff", "--extensions=C,c,cpp,h"]
 output, err = p.communicate()
 
 if output not in ['no modified files to format\n', 'clang-format did not modify any files\n']:
-    print "Run git \"clang-format --extensions=C,c,cpp,h\", then commit.\n"        
+    print("Run git \"clang-format --extensions=C,c,cpp,h\", then commit.\n")        
     exit(1)
 else:
     exit(0)

@@ -153,40 +153,9 @@ public:
 
 protected:
     /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.
-     */
-    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                        int level_number,
-                                        double init_data_time,
-                                        bool can_be_refined,
-                                        bool initial_time,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                                        bool allocate_data) override;
-
-    /*!
      * Reset cached hierarchy dependent data.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
-
-    /*!
-     * Set integer tags to "one" in cells where refinement of the given level
-     * should occur according to the magnitude of the fluid vorticity.
-     */
-    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                          int level_number,
-                                          double error_data_time,
-                                          int tag_index,
-                                          bool initial_time,
-                                          bool uses_richardson_extrapolation_too) override;
-
-    /*!
-     * Prepare variables for plotting.
-     */
-    void setupPlotDataSpecialized() override;
+    void regridHierarchyEndSpecialized() override;
 
     /*!
      * Project the velocity field following a regridding operation.

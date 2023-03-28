@@ -20,8 +20,8 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
+#include "ibamr/MassIntegrator.h"
 
 #include <string>
 #include <vector>
@@ -166,35 +166,14 @@ public:
 
 protected:
     /*!
-     * Initialize data on a new level after it is inserted into an AMR patch
-     * hierarchy by the gridding algorithm.
+     * Reset cached hierarchy dependent data before regridding.
      */
-    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                        int level_number,
-                                        double init_data_time,
-                                        bool can_be_refined,
-                                        bool initial_time,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
-                                        bool allocate_data) override;
+    void regridHierarchyBeginSpecialized() override;
 
     /*!
-     * Reset cached hierarchy dependent data.
+     * Reset cached hierarchy dependent data after regridding.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
-
-    /*!
-     * Set integer tags to "one" in cells where refinement of the given level
-     * should occur according to the magnitude of the fluid vorticity.
-     */
-    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                          int level_number,
-                                          double error_data_time,
-                                          int tag_index,
-                                          bool initial_time,
-                                          bool uses_richardson_extrapolation_too) override;
+    void regridHierarchyEndSpecialized() override;
 
     /*!
      * Prepare variables for plotting.
@@ -292,7 +271,7 @@ private:
     /*
      * Conservative density and momentum integrator.
      */
-    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredConservativeMassMomentumIntegrator> d_rho_p_integrator;
+    SAMRAI::tbox::Pointer<IBAMR::MassIntegrator> d_rho_p_integrator;
 };
 } // namespace IBAMR
 
