@@ -185,6 +185,13 @@ public:
                                                 const bool output_lf_var = true);
 
     /*!
+     * \brief Register gradient of liquid fraction variable.
+     */
+    virtual void registerLiquidFractionGradientVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_gradient_var,
+        const bool output_lf_gradient_var = true);
+
+    /*!
      * \brief Register Heaviside variable \f$ H \f$ maintained by AdvDiffHierarchyIntegrator.
      */
     void registerHeavisideVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var);
@@ -343,7 +350,7 @@ protected:
     /*!
      * Solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var, d_lf_pre_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var, d_lf_gradient_var, d_lf_pre_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
@@ -374,8 +381,8 @@ protected:
     /*!
      * Boolean to output the variables in visit.
      */
-    bool d_output_lf = false, d_output_T = false, d_output_rho = false, d_output_Cp = false, d_output_Div_U_F = false,
-         d_output_temp_k = false;
+    bool d_output_lf = false, d_output_lf_gradient = false, d_output_T = false, d_output_rho = false,
+         d_output_Cp = false, d_output_Div_U_F = false, d_output_temp_k = false;
 
     /*!
      * Data shynchronization operator.
@@ -443,6 +450,8 @@ protected:
      */
     int d_lf_scratch_idx = IBTK::invalid_index, d_lf_current_idx = IBTK::invalid_index,
         d_lf_new_idx = IBTK::invalid_index;
+    int d_lf_gradient_scratch_idx = IBTK::invalid_index, d_lf_gradient_current_idx = IBTK::invalid_index,
+        d_lf_gradient_new_idx = IBTK::invalid_index;
     int d_T_scratch_idx = IBTK::invalid_index, d_T_current_idx = IBTK::invalid_index, d_T_new_idx = IBTK::invalid_index;
     int d_rho_scratch_idx = IBTK::invalid_index, d_rho_current_idx = IBTK::invalid_index,
         d_rho_new_idx = IBTK::invalid_index;
