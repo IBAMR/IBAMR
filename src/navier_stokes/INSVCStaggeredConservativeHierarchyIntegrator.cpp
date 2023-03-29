@@ -17,7 +17,7 @@
 #include "ibamr/BrinkmanPenalizationStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h"
+#include "ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesFACPreconditioner.h"
@@ -133,9 +133,18 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     }
 
     // Initialize conservative mass and momentum integrator.
-    d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumIntegrator(
-        "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumIntegrator",
-        input_db->getDatabase("mass_momentum_integrator_db"));
+    if (input_db->getDatabase("mass_momentum_integrator_db")->keyExists("density_time_stepping_type"))
+    {
+        if (input_db->getDatabase("mass_momentum_integrator_db")->getString("density_time_stepping_type") == "SSPRK3" ||
+            input_db->getDatabase("mass_momentum_integrator_db")->getString("density_time_stepping_type") == "SSPRK2")
+            d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(
+                "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumSSPRKIntegrator",
+                input_db->getDatabase("mass_momentum_integrator_db"));
+        else
+            d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumRKIntegrator(
+                "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumRKIntegrator",
+                input_db->getDatabase("mass_momentum_integrator_db"));
+    }
     d_convective_op_type = "NONE";
 
     // Side centered state variable for density and interpolated density variable
@@ -205,9 +214,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
     }
 
     // Set various objects with conservative time integrator.
-    d_rho_p_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
-    d_rho_p_integrator->setSideCenteredDensityBoundaryConditions(d_rho_sc_bc_coefs);
-    if (d_S_fcn) d_rho_p_integrator->setMassDensitySourceTerm(d_S_fcn);
+    Pointer<INSVCStaggeredConservativeMassMomentumRKIntegrator> rho_p_rk_integrator = d_rho_p_integrator;
+    rho_p_rk_integrator->setSideCenteredVelocityBoundaryConditions(d_U_bc_coefs);
+    d_rho_p_integrator->setDensityBoundaryConditions(d_rho_sc_bc_coefs);
+    if (d_S_fcn) rho_p_rk_integrator->setMassDensitySourceTerm(d_S_fcn);
 
     return;
 } // initializeHierarchyIntegrator
@@ -487,11 +497,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         // set.
 
         // Set the rho^{n} density
-        d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+        d_rho_p_integrator->setDensityPatchDataIndex(d_rho_sc_current_idx);
 
         // Set the convective derivative patch data index.
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        d_rho_p_integrator->setSideCenteredConvectiveDerivativePatchDataIndex(N_idx);
+        d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(N_idx);
 
         // Data for the conservative time integrator is for cycle 0
         const int ins_cycle_num = 0;
@@ -622,10 +632,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             d_rho_p_integrator->setCycleNumber(cycle_num);
 
             // Set the patch data index for convective derivative.
-            d_rho_p_integrator->setSideCenteredConvectiveDerivativePatchDataIndex(N_idx);
+            d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(N_idx);
 
             // Always set to current because we want to update rho^{n} to rho^{n+1}
-            d_rho_p_integrator->setSideCenteredDensityPatchDataIndex(d_rho_sc_current_idx);
+            d_rho_p_integrator->setDensityPatchDataIndex(d_rho_sc_current_idx);
 
             // Set the velocities used to update the density
             if (IBTK::rel_equal_eps(d_integrator_time, d_start_time))
@@ -648,7 +658,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
         // Set the full convective term depending on the time stepping type
         d_hier_sc_data_ops->copyData(d_N_full_idx, N_idx, /*interior_only*/ true);
     }
-    const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedSideCenteredDensityPatchDataIndex();
+    const int rho_sc_new_idx = d_rho_p_integrator->getUpdatedDensityPatchDataIndex();
     d_hier_sc_data_ops->copyData(d_rho_sc_new_idx,
                                  rho_sc_new_idx,
                                  /*interior_only*/ true);
@@ -1043,7 +1053,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
         p_regrid_projection_solver->setNullspace(true);
     }
 
-    // Setup the right-hand-side vector for the projection-Poisson solve.
     d_hier_math_ops->div(d_Div_U_idx,
                          d_Div_U_var,
                          -1.0,
@@ -1203,10 +1212,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
 #endif
 
-    // D_sc = -1/rho
+    // D_sc = -1/(rho + dt*chi/kappa)
     P_problem_coefs.setCZero();
+    d_hier_sc_data_ops->axpy(d_pressure_D_idx, dt, d_velocity_L_idx, d_rho_sc_scratch_idx, /*interior_only*/ false);
     d_hier_sc_data_ops->reciprocal(d_pressure_D_idx,
-                                   d_rho_sc_scratch_idx,
+                                   d_pressure_D_idx,
                                    /*interior_only*/ false);
     d_hier_sc_data_ops->scale(d_pressure_D_idx,
                               -1.0,
@@ -1407,6 +1417,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
+    // Account for source term of a Div U equation.
+    if (d_Div_U_F_fcn)
+    {
+        d_Div_U_F_fcn->setDataOnPatchHierarchy(d_Div_U_F_idx, d_Div_U_F_var, d_hierarchy, half_time);
+        d_hier_cc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+    }
+
     // Add Brinkman penalized velocity term.
     d_hier_sc_data_ops->add(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
@@ -1506,6 +1524,14 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
     }
+
+    // reset source term of a Div U equation.
+    if (d_Div_U_F_fcn)
+    {
+        d_hier_cc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+    }
+
     d_hier_sc_data_ops->subtract(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
 

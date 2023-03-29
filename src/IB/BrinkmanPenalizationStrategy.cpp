@@ -79,11 +79,11 @@ BrinkmanPenalizationStrategy::putToDatabase(Pointer<Database> /*db*/)
 } // putToDatabase
 
 void
-BrinkmanPenalizationStrategy::setBrinkmanCoefficient(double chi)
+BrinkmanPenalizationStrategy::setBrinkmanPenaltyFactor(double penalty_factor)
 {
-    d_chi = chi;
+    d_penalty_factor = penalty_factor;
     return;
-} // setBrinkmanCoefficient
+} // setBrinkmanPenaltyFactor
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 

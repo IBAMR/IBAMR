@@ -57,8 +57,10 @@ SET(CXX_SRC
   # adv diff
   adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp
   adv_diff/AdvDiffConvectiveOperatorManager.cpp
+  adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
   adv_diff/AdvDiffCUIConvectiveOperator.cpp
   adv_diff/AdvDiffCenteredConvectiveOperator.cpp
+  adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
   adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp
   adv_diff/AdvDiffSemiImplicitHierarchyIntegrator.cpp
   adv_diff/AdvDiffHierarchyIntegrator.cpp
@@ -95,6 +97,8 @@ SET(CXX_SRC
   navier_stokes/StaggeredStokesPETScVecUtilities.cpp
   navier_stokes/INSCollocatedVelocityBcCoef.cpp
   navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp
+  navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+  navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
   navier_stokes/StaggeredStokesPhysicalBoundaryHelper.cpp
   navier_stokes/INSStaggeredVelocityBcCoef.cpp
   navier_stokes/INSStaggeredCUIConvectiveOperator.cpp
@@ -118,12 +122,12 @@ SET(CXX_SRC
   navier_stokes/INSStaggeredPressureBcCoef.cpp
   navier_stokes/StokesBcCoefStrategy.cpp
   navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp
+  navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
   navier_stokes/SurfaceTensionForceFunction.cpp
   navier_stokes/StaggeredStokesLevelRelaxationFACOperator.cpp
   navier_stokes/INSVCStaggeredPressureBcCoef.cpp
   navier_stokes/StaggeredStokesProjectionPreconditioner.cpp
   navier_stokes/StaggeredStokesFACPreconditionerStrategy.cpp
-  navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
   navier_stokes/StaggeredStokesOpenBoundaryStabilizer.cpp
   navier_stokes/StaggeredStokesBlockPreconditioner.cpp
   navier_stokes/StaggeredStokesOperator.cpp
@@ -131,10 +135,19 @@ SET(CXX_SRC
   navier_stokes/StaggeredStokesSolver.cpp
   navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
 
+  # phase change
+  phase_change/AllenCahnHierarchyIntegrator.cpp
+  phase_change/EnthalpyHierarchyIntegrator.cpp
+  phase_change/HeavisideForcingFunction.cpp
+  phase_change/EnthalpyHierarchyIntegrator.cpp
+  phase_change/PhaseChangeDivUSourceFunction.cpp
+  phase_change/PhaseChangeHierarchyIntegrator.cpp
+
   # IB
   IB/IBInstrumentPanel.cpp
   IB/BrinkmanPenalizationStrategy.cpp
   IB/BrinkmanAdvDiffBcHelper.cpp
+  IB/CarmanKozenyDragForce.cpp
   IB/PenaltyIBMethod.cpp
   IB/GeneralizedIBMethod.cpp
   IB/IBLagrangianForceStrategy.cpp
@@ -212,6 +225,7 @@ SET(CXX_SRC
   utilities/RNG.cpp
   utilities/CellConvectiveOperator.cpp
   utilities/ConvectiveOperator.cpp
+  utilities/MassIntegrator.cpp
   )
 
 IF(${IBAMR_HAVE_LIBMESH})

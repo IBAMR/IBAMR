@@ -199,7 +199,8 @@ libIBAMR2d_a_LIBADD =
 am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
-	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
+	../src/IB/CarmanKozenyDragForce.cpp ../src/IB/CIBMethod.cpp \
+	../src/IB/CIBMobilitySolver.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
@@ -247,6 +248,8 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
+	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
+	../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -291,12 +294,14 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 	../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
-	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
 	../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
+	../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 	../src/navier_stokes/SpongeLayerForceFunction.cpp \
 	../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
@@ -319,7 +324,13 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 	../src/utilities/CellConvectiveOperator.cpp \
+	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+	../src/phase_change/HeavisideForcingFunction.cpp \
+	../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+	../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
+	../src/utilities/MassIntegrator.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
 	../src/wave_generation/FirstOrderStokesWaveGenerator.cpp \
 	../src/wave_generation/IrregularWaveBcCoef.cpp \
@@ -379,6 +390,7 @@ am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBSaddlePointSolver.$(OBJEXT) \
@@ -434,6 +446,8 @@ am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-WallForceEvaluator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
+	../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT) \
+	../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffPredictorCorrectorHierarchyIntegrator.$(OBJEXT) \
@@ -478,12 +492,14 @@ am__objects_2 =  \
 	../src/navier_stokes/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.$(OBJEXT) \
-	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-SpongeLayerForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.$(OBJEXT) \
@@ -506,7 +522,13 @@ am__objects_2 =  \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-CellConvectiveOperator.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-ConvectiveOperator.$(OBJEXT) \
+	../src/utilities/libIBAMR2d_a-MassIntegrator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-FirstOrderStokesWaveGenerator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-IrregularWaveBcCoef.$(OBJEXT) \
@@ -545,7 +567,8 @@ libIBAMR3d_a_LIBADD =
 am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
-	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
+	../src/IB/CarmanKozenyDragForce.cpp ../src/IB/CIBMethod.cpp \
+	../src/IB/CIBMobilitySolver.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
@@ -593,6 +616,8 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
+	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
+	../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -637,12 +662,14 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 	../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
-	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
 	../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
+	../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 	../src/navier_stokes/SpongeLayerForceFunction.cpp \
 	../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
@@ -665,7 +692,13 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 	../src/utilities/CellConvectiveOperator.cpp \
+	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+	../src/phase_change/HeavisideForcingFunction.cpp \
+	../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+	../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
+	../src/utilities/MassIntegrator.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
 	../src/wave_generation/FirstOrderStokesWaveGenerator.cpp \
 	../src/wave_generation/IrregularWaveBcCoef.cpp \
@@ -725,6 +758,7 @@ am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBSaddlePointSolver.$(OBJEXT) \
@@ -780,6 +814,8 @@ am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
+	../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT) \
+	../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffPredictorCorrectorHierarchyIntegrator.$(OBJEXT) \
@@ -824,12 +860,14 @@ am__objects_4 =  \
 	../src/navier_stokes/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.$(OBJEXT) \
-	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-SpongeLayerForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.$(OBJEXT) \
@@ -852,7 +890,13 @@ am__objects_4 =  \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-CellConvectiveOperator.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-ConvectiveOperator.$(OBJEXT) \
+	../src/utilities/libIBAMR3d_a-MassIntegrator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-FirstOrderStokesWaveGenerator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-IrregularWaveBcCoef.$(OBJEXT) \
@@ -911,6 +955,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po \
@@ -981,6 +1026,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po \
@@ -1042,8 +1088,10 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po \
+	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po \
+	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po \
@@ -1054,8 +1102,10 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po \
+	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po \
+	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po \
@@ -1113,12 +1163,14 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po \
-	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Po \
@@ -1161,12 +1213,14 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po \
-	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Po \
@@ -1188,11 +1242,23 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po \
@@ -1284,6 +1350,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
+	../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
+	../include/ibamr/AdvDiffCUIConservativeConvectiveOperator.h \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 	../include/ibamr/AdvDiffHierarchyIntegrator.h \
@@ -1295,6 +1363,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/AllenCahnHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
@@ -1304,110 +1373,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/CIBSaddlePointSolver.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
-	../include/ibamr/CIBStrategy.h \
-	../include/ibamr/CellConvectiveOperator.h \
-	../include/ibamr/ConstraintIBKinematics.h \
-	../include/ibamr/ConstraintIBMethod.h \
-	../include/ibamr/ConvectiveOperator.h \
-	../include/ibamr/GeneralizedIBMethod.h \
-	../include/ibamr/DirectMobilitySolver.h \
-	../include/ibamr/FastSweepingLSMethod.h \
-	../include/ibamr/FifthOrderStokesWaveGenerator.h \
-	../include/ibamr/FirstOrderStokesWaveGenerator.h \
-	../include/ibamr/IBAnchorPointSpec.h \
-	../include/ibamr/IBBeamForceSpec.h \
-	../include/ibamr/IBExplicitHierarchyIntegrator.h \
-	../include/ibamr/IBHierarchyIntegrator.h \
-	../include/ibamr/IBHydrodynamicForceEvaluator.h \
-	../include/ibamr/IBImplicitStaggeredHierarchyIntegrator.h \
-	../include/ibamr/IBImplicitStrategy.h \
-	../include/ibamr/IBInstrumentPanel.h \
-	../include/ibamr/IBInstrumentationSpec.h \
-	../include/ibamr/IBInterpolantHierarchyIntegrator.h \
-	../include/ibamr/IBInterpolantMethod.h \
-	../include/ibamr/IBKirchhoffRodForceGen.h \
-	../include/ibamr/IBLagrangianForceStrategy.h \
-	../include/ibamr/IBLagrangianForceStrategySet.h \
-	../include/ibamr/IBLagrangianSourceStrategy.h \
-	../include/ibamr/IBLevelSetMethod.h \
-	../include/ibamr/IBMethod.h \
-	../include/ibamr/IBMethodPostProcessStrategy.h \
-	../include/ibamr/IBRedundantInitializer.h \
-	../include/ibamr/IBRodForceSpec.h \
-	../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
-	../include/ibamr/IBSourceSpec.h \
-	../include/ibamr/IBSpringForceFunctions.h \
-	../include/ibamr/IBSpringForceSpec.h \
-	../include/ibamr/IBStandardForceGen.h \
-	../include/ibamr/IBStandardInitializer.h \
-	../include/ibamr/IBStandardSourceGen.h \
-	../include/ibamr/IBStrategy.h ../include/ibamr/IBStrategySet.h \
-	../include/ibamr/IBTargetPointForceSpec.h \
-	../include/ibamr/INSCollocatedCenteredConvectiveOperator.h \
-	../include/ibamr/INSCollocatedConvectiveOperatorManager.h \
-	../include/ibamr/INSCollocatedHierarchyIntegrator.h \
-	../include/ibamr/INSCollocatedPPMConvectiveOperator.h \
-	../include/ibamr/INSCollocatedVelocityBcCoef.h \
-	../include/ibamr/INSHierarchyIntegrator.h \
-	../include/ibamr/INSIntermediateVelocityBcCoef.h \
-	../include/ibamr/INSProjectionBcCoef.h \
-	../include/ibamr/INSStaggeredCenteredConvectiveOperator.h \
-	../include/ibamr/INSStaggeredConvectiveOperatorManager.h \
-	../include/ibamr/INSStaggeredCUIConvectiveOperator.h \
-	../include/ibamr/INSStaggeredHierarchyIntegrator.h \
-	../include/ibamr/INSStaggeredPPMConvectiveOperator.h \
-	../include/ibamr/INSStaggeredPressureBcCoef.h \
-	../include/ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h \
-	../include/ibamr/INSStaggeredStochasticForcing.h \
-	../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
-	../include/ibamr/INSStaggeredVelocityBcCoef.h \
-	../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h \
-	../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredPressureBcCoef.h \
-	../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
-	../include/ibamr/IrregularWaveBcCoef.h \
-	../include/ibamr/IrregularWaveGenerator.h \
-	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
-	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
-	../include/ibamr/KrylovMobilitySolver.h \
-	../include/ibamr/LSInitStrategy.h \
-	../include/ibamr/MobilityFunctions.h \
-	../include/ibamr/NonbondedForceEvaluator.h \
-	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
-	../include/ibamr/PenaltyIBMethod.h \
-	../include/ibamr/RelaxationLSBcCoefs.h \
-	../include/ibamr/RelaxationLSMethod.h \
-	../include/ibamr/SpongeLayerForceFunction.h \
-	../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
-	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
-	../include/ibamr/StaggeredStokesFACPreconditioner.h \
-	../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
-	../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
-	../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
-	../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
-	../include/ibamr/StaggeredStokesOperator.h \
-	../include/ibamr/StaggeredStokesPETScLevelSolver.h \
-	../include/ibamr/StaggeredStokesPETScMatUtilities.h \
-	../include/ibamr/StaggeredStokesPETScVecUtilities.h \
-	../include/ibamr/StaggeredStokesPhysicalBoundaryHelper.h \
-	../include/ibamr/StaggeredStokesProjectionPreconditioner.h \
-	../include/ibamr/StaggeredStokesSolver.h \
-	../include/ibamr/StaggeredStokesSolverManager.h \
-	../include/ibamr/StokesBcCoefStrategy.h \
-	../include/ibamr/StokesFifthOrderWaveBcCoef.h \
-	../include/ibamr/StokesFirstOrderWaveBcCoef.h \
-	../include/ibamr/StokesSecondOrderWaveBcCoef.h \
-	../include/ibamr/StokesSpecifications.h \
-	../include/ibamr/StokesWaveGeneratorStrategy.h \
-	../include/ibamr/SurfaceTensionForceFunction.h \
-	../include/ibamr/VCStaggeredStokesOperator.h \
-	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
-	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
-	../include/ibamr/WaveDampingFunctions.h \
-	../include/ibamr/WaveGenerationFunctions.h \
-	../include/ibamr/RNG.h ../include/ibamr/FEMechanicsBase.h \
+	../include/ibamr/CIBStrategy.h <<<<<<< HEAD \
+	../include/ibamr/FEMechanicsBase.h \
 	../include/ibamr/FEMechanicsExplicitIntegrator.h \
 	../include/ibamr/FESurfaceDistanceEvaluator.h \
 	../include/ibamr/IBFECentroidPostProcessor.h \
@@ -1708,6 +1675,8 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h $(am__append_3) \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
+	../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
+	../include/ibamr/AdvDiffCUIConservativeConvectiveOperator.h \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 	../include/ibamr/AdvDiffHierarchyIntegrator.h \
@@ -1719,6 +1688,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/AllenCahnHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
@@ -1728,115 +1698,12 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/CIBSaddlePointSolver.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
-	../include/ibamr/CIBStrategy.h \
-	../include/ibamr/CellConvectiveOperator.h \
-	../include/ibamr/ConstraintIBKinematics.h \
-	../include/ibamr/ConstraintIBMethod.h \
-	../include/ibamr/ConvectiveOperator.h \
-	../include/ibamr/GeneralizedIBMethod.h \
-	../include/ibamr/DirectMobilitySolver.h \
-	../include/ibamr/FastSweepingLSMethod.h \
-	../include/ibamr/FifthOrderStokesWaveGenerator.h \
-	../include/ibamr/FirstOrderStokesWaveGenerator.h \
-	../include/ibamr/IBAnchorPointSpec.h \
-	../include/ibamr/IBBeamForceSpec.h \
-	../include/ibamr/IBExplicitHierarchyIntegrator.h \
-	../include/ibamr/IBHierarchyIntegrator.h \
-	../include/ibamr/IBHydrodynamicForceEvaluator.h \
-	../include/ibamr/IBImplicitStaggeredHierarchyIntegrator.h \
-	../include/ibamr/IBImplicitStrategy.h \
-	../include/ibamr/IBInstrumentPanel.h \
-	../include/ibamr/IBInstrumentationSpec.h \
-	../include/ibamr/IBInterpolantHierarchyIntegrator.h \
-	../include/ibamr/IBInterpolantMethod.h \
-	../include/ibamr/IBKirchhoffRodForceGen.h \
-	../include/ibamr/IBLagrangianForceStrategy.h \
-	../include/ibamr/IBLagrangianForceStrategySet.h \
-	../include/ibamr/IBLagrangianSourceStrategy.h \
-	../include/ibamr/IBLevelSetMethod.h \
-	../include/ibamr/IBMethod.h \
-	../include/ibamr/IBMethodPostProcessStrategy.h \
-	../include/ibamr/IBRedundantInitializer.h \
-	../include/ibamr/IBRodForceSpec.h \
-	../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
-	../include/ibamr/IBSourceSpec.h \
-	../include/ibamr/IBSpringForceFunctions.h \
-	../include/ibamr/IBSpringForceSpec.h \
-	../include/ibamr/IBStandardForceGen.h \
-	../include/ibamr/IBStandardInitializer.h \
-	../include/ibamr/IBStandardSourceGen.h \
-	../include/ibamr/IBStrategy.h ../include/ibamr/IBStrategySet.h \
-	../include/ibamr/IBTargetPointForceSpec.h \
-	../include/ibamr/INSCollocatedCenteredConvectiveOperator.h \
-	../include/ibamr/INSCollocatedConvectiveOperatorManager.h \
-	../include/ibamr/INSCollocatedHierarchyIntegrator.h \
-	../include/ibamr/INSCollocatedPPMConvectiveOperator.h \
-	../include/ibamr/INSCollocatedVelocityBcCoef.h \
-	../include/ibamr/INSHierarchyIntegrator.h \
-	../include/ibamr/INSIntermediateVelocityBcCoef.h \
-	../include/ibamr/INSProjectionBcCoef.h \
-	../include/ibamr/INSStaggeredCenteredConvectiveOperator.h \
-	../include/ibamr/INSStaggeredConvectiveOperatorManager.h \
-	../include/ibamr/INSStaggeredCUIConvectiveOperator.h \
-	../include/ibamr/INSStaggeredHierarchyIntegrator.h \
-	../include/ibamr/INSStaggeredPPMConvectiveOperator.h \
-	../include/ibamr/INSStaggeredPressureBcCoef.h \
-	../include/ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h \
-	../include/ibamr/INSStaggeredStochasticForcing.h \
-	../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
-	../include/ibamr/INSStaggeredVelocityBcCoef.h \
-	../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h \
-	../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredPressureBcCoef.h \
-	../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
-	../include/ibamr/IrregularWaveBcCoef.h \
-	../include/ibamr/IrregularWaveGenerator.h \
-	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
-	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
-	../include/ibamr/KrylovMobilitySolver.h \
-	../include/ibamr/LSInitStrategy.h \
-	../include/ibamr/MobilityFunctions.h \
-	../include/ibamr/NonbondedForceEvaluator.h \
-	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
-	../include/ibamr/PenaltyIBMethod.h \
-	../include/ibamr/RelaxationLSBcCoefs.h \
-	../include/ibamr/RelaxationLSMethod.h \
-	../include/ibamr/SpongeLayerForceFunction.h \
-	../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
-	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
-	../include/ibamr/StaggeredStokesFACPreconditioner.h \
-	../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
-	../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
-	../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
-	../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
-	../include/ibamr/StaggeredStokesOperator.h \
-	../include/ibamr/StaggeredStokesPETScLevelSolver.h \
-	../include/ibamr/StaggeredStokesPETScMatUtilities.h \
-	../include/ibamr/StaggeredStokesPETScVecUtilities.h \
-	../include/ibamr/StaggeredStokesPhysicalBoundaryHelper.h \
-	../include/ibamr/StaggeredStokesProjectionPreconditioner.h \
-	../include/ibamr/StaggeredStokesSolver.h \
-	../include/ibamr/StaggeredStokesSolverManager.h \
-	../include/ibamr/StokesBcCoefStrategy.h \
-	../include/ibamr/StokesFifthOrderWaveBcCoef.h \
-	../include/ibamr/StokesFirstOrderWaveBcCoef.h \
-	../include/ibamr/StokesSecondOrderWaveBcCoef.h \
-	../include/ibamr/StokesSpecifications.h \
-	../include/ibamr/StokesSpecifications.h \
-	../include/ibamr/StokesWaveGeneratorStrategy.h \
-	../include/ibamr/SurfaceTensionForceFunction.h \
-	../include/ibamr/VCStaggeredStokesOperator.h \
-	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
-	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
-	../include/ibamr/WaveDampingFunctions.h \
-	../include/ibamr/WaveGenerationFunctions.h \
-	../include/ibamr/RNG.h $(am__append_5)
+	../include/ibamr/CIBStrategy.h <<<<<<< HEAD $(am__append_5)
 DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
-	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
+	../src/IB/CarmanKozenyDragForce.cpp ../src/IB/CIBMethod.cpp \
+	../src/IB/CIBMobilitySolver.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
@@ -1884,6 +1751,8 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
+	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
+	../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -1928,12 +1797,14 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 	../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
-	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
 	../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
+	../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 	../src/navier_stokes/SpongeLayerForceFunction.cpp \
 	../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
@@ -1956,7 +1827,13 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
 	../src/utilities/CellConvectiveOperator.cpp \
+	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+	../src/phase_change/HeavisideForcingFunction.cpp \
+	../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+	../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
+	../src/utilities/MassIntegrator.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
 	../src/wave_generation/FirstOrderStokesWaveGenerator.cpp \
 	../src/wave_generation/IrregularWaveBcCoef.cpp \
@@ -2106,6 +1983,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBMobilitySolver.$(OBJEXT):  \
@@ -2221,6 +2100,12 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	@$(MKDIR_P) ../src/adv_diff/$(DEPDIR)
 	@: > ../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT):  \
+	../src/adv_diff/$(am__dirstamp) \
+	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
+../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT):  \
+	../src/adv_diff/$(am__dirstamp) \
+	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
+../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT):  \
@@ -2379,7 +2264,10 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.$(OBJEXT):  \
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT):  \
@@ -2395,6 +2283,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT):  \
@@ -2469,7 +2360,31 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/utilities/libIBAMR2d_a-CellConvectiveOperator.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/$(am__dirstamp):
+	@$(MKDIR_P) ../src/phase_change
+	@: > ../src/phase_change/$(am__dirstamp)
+../src/phase_change/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../src/phase_change/$(DEPDIR)
+	@: > ../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBAMR2d_a-ConvectiveOperator.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR2d_a-MassIntegrator.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/wave_generation/$(am__dirstamp):
@@ -2641,6 +2556,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBMobilitySolver.$(OBJEXT):  \
@@ -2750,6 +2667,12 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT):  \
+	../src/adv_diff/$(am__dirstamp) \
+	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
+../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT):  \
+	../src/adv_diff/$(am__dirstamp) \
+	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
+../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT):  \
@@ -2884,7 +2807,10 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.$(OBJEXT):  \
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT):  \
@@ -2900,6 +2826,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT):  \
@@ -2968,7 +2897,25 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBAMR3d_a-ConvectiveOperator.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR3d_a-MassIntegrator.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.$(OBJEXT):  \
@@ -3113,6 +3060,7 @@ mostlyclean-compile:
 	-rm -f ../src/complex_fluids/*.$(OBJEXT)
 	-rm -f ../src/level_set/*.$(OBJEXT)
 	-rm -f ../src/navier_stokes/*.$(OBJEXT)
+	-rm -f ../src/phase_change/*.$(OBJEXT)
 	-rm -f ../src/utilities/*.$(OBJEXT)
 	-rm -f ../src/wave_generation/*.$(OBJEXT)
 
@@ -3129,6 +3077,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po@am__quote@ # am--include-marker
@@ -3199,6 +3148,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po@am__quote@ # am--include-marker
@@ -3260,8 +3210,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po@am__quote@ # am--include-marker
@@ -3272,8 +3224,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po@am__quote@ # am--include-marker
@@ -3331,12 +3285,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@ # am--include-marker
@@ -3379,12 +3335,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Po@am__quote@ # am--include-marker
@@ -3406,11 +3364,23 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
@@ -3504,6 +3474,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationStrategy.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.obj `if test -f '../src/IB/BrinkmanPenalizationStrategy.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationStrategy.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o: ../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo -c -o ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o `test -f '../src/IB/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CarmanKozenyDragForce.cpp' object='../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o `test -f '../src/IB/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/IB/CarmanKozenyDragForce.cpp
+
+../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj: ../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo -c -o ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj `if test -f '../src/IB/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/IB/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CarmanKozenyDragForce.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CarmanKozenyDragForce.cpp' object='../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj `if test -f '../src/IB/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/IB/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CarmanKozenyDragForce.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-CIBMethod.o: ../src/IB/CIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBMethod.o `test -f '../src/IB/CIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/CIBMethod.cpp
@@ -4275,6 +4259,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp'; fi`
 
+../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o: ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o `test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o `test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+
+../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj: ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj `if test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj `if test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; fi`
+
+../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.o: ../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
+
+../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.obj: ../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; fi`
+
 ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.o: ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
@@ -4891,19 +4903,33 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; fi`
 
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o' libtool=no @AMDEPBACKSLASH@
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
 
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; fi`
+
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.o: ../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
@@ -4974,6 +5000,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp' object='../src/navier_stokes/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj `if test -f '../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; then $(CYGPATH_W) '../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; fi`
+
+../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.o: ../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.o `test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' || echo '$(srcdir)/'`../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' object='../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.o `test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' || echo '$(srcdir)/'`../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
+
+../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.obj: ../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.obj `if test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; then $(CYGPATH_W) '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' object='../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.obj `if test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; then $(CYGPATH_W) '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o: ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.o `test -f '../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp' || echo '$(srcdir)/'`../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
@@ -5283,6 +5323,76 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-CellConvectiveOperator.obj `if test -f '../src/utilities/CellConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/utilities/CellConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/CellConvectiveOperator.cpp'; fi`
 
+../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+
+../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+
 ../src/utilities/libIBAMR2d_a-ConvectiveOperator.o: ../src/utilities/ConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-ConvectiveOperator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Tpo -c -o ../src/utilities/libIBAMR2d_a-ConvectiveOperator.o `test -f '../src/utilities/ConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/utilities/ConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
@@ -5296,6 +5406,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ConvectiveOperator.cpp' object='../src/utilities/libIBAMR2d_a-ConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-ConvectiveOperator.obj `if test -f '../src/utilities/ConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/utilities/ConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ConvectiveOperator.cpp'; fi`
+
+../src/utilities/libIBAMR2d_a-MassIntegrator.o: ../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-MassIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Tpo -c -o ../src/utilities/libIBAMR2d_a-MassIntegrator.o `test -f '../src/utilities/MassIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MassIntegrator.cpp' object='../src/utilities/libIBAMR2d_a-MassIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-MassIntegrator.o `test -f '../src/utilities/MassIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/MassIntegrator.cpp
+
+../src/utilities/libIBAMR2d_a-MassIntegrator.obj: ../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-MassIntegrator.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Tpo -c -o ../src/utilities/libIBAMR2d_a-MassIntegrator.obj `if test -f '../src/utilities/MassIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/MassIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MassIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MassIntegrator.cpp' object='../src/utilities/libIBAMR2d_a-MassIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-MassIntegrator.obj `if test -f '../src/utilities/MassIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/MassIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MassIntegrator.cpp'; fi`
 
 ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
@@ -5688,6 +5812,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationStrategy.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.obj `if test -f '../src/IB/BrinkmanPenalizationStrategy.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationStrategy.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o: ../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo -c -o ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o `test -f '../src/IB/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CarmanKozenyDragForce.cpp' object='../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o `test -f '../src/IB/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/IB/CarmanKozenyDragForce.cpp
+
+../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj: ../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo -c -o ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj `if test -f '../src/IB/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/IB/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CarmanKozenyDragForce.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CarmanKozenyDragForce.cpp' object='../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj `if test -f '../src/IB/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/IB/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CarmanKozenyDragForce.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-CIBMethod.o: ../src/IB/CIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBMethod.o `test -f '../src/IB/CIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/CIBMethod.cpp
@@ -6459,6 +6597,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp'; fi`
 
+../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o: ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o `test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' object='../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o `test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+
+../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj: ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj `if test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' object='../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj `if test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; fi`
+
+../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.o: ../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
+
+../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.obj: ../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp'; fi`
+
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.o: ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po
@@ -7075,19 +7241,33 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; fi`
 
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o' libtool=no @AMDEPBACKSLASH@
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
 
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; fi`
+
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.o: ../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
@@ -7158,6 +7338,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp' object='../src/navier_stokes/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.obj `if test -f '../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; then $(CYGPATH_W) '../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp'; fi`
+
+../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.o: ../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.o `test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' || echo '$(srcdir)/'`../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' object='../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.o `test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' || echo '$(srcdir)/'`../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
+
+../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.obj: ../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.obj `if test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; then $(CYGPATH_W) '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' object='../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.obj `if test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; then $(CYGPATH_W) '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o: ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.o `test -f '../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp' || echo '$(srcdir)/'`../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp
@@ -7467,6 +7661,76 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.obj `if test -f '../src/utilities/CellConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/utilities/CellConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/CellConvectiveOperator.cpp'; fi`
 
+../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+
+../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+
 ../src/utilities/libIBAMR3d_a-ConvectiveOperator.o: ../src/utilities/ConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-ConvectiveOperator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Tpo -c -o ../src/utilities/libIBAMR3d_a-ConvectiveOperator.o `test -f '../src/utilities/ConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/utilities/ConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
@@ -7480,6 +7744,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ConvectiveOperator.cpp' object='../src/utilities/libIBAMR3d_a-ConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-ConvectiveOperator.obj `if test -f '../src/utilities/ConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/utilities/ConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ConvectiveOperator.cpp'; fi`
+
+../src/utilities/libIBAMR3d_a-MassIntegrator.o: ../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-MassIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Tpo -c -o ../src/utilities/libIBAMR3d_a-MassIntegrator.o `test -f '../src/utilities/MassIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MassIntegrator.cpp' object='../src/utilities/libIBAMR3d_a-MassIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-MassIntegrator.o `test -f '../src/utilities/MassIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/MassIntegrator.cpp
+
+../src/utilities/libIBAMR3d_a-MassIntegrator.obj: ../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-MassIntegrator.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Tpo -c -o ../src/utilities/libIBAMR3d_a-MassIntegrator.obj `if test -f '../src/utilities/MassIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/MassIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MassIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MassIntegrator.cpp' object='../src/utilities/libIBAMR3d_a-MassIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-MassIntegrator.obj `if test -f '../src/utilities/MassIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/MassIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MassIntegrator.cpp'; fi`
 
 ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o: ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o -MD -MP -MF ../src/wave_generation/$(DEPDIR)/libIBAMR3d_a-FifthOrderStokesWaveGenerator.Tpo -c -o ../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.o `test -f '../src/wave_generation/FifthOrderStokesWaveGenerator.cpp' || echo '$(srcdir)/'`../src/wave_generation/FifthOrderStokesWaveGenerator.cpp
@@ -7999,6 +8277,8 @@ distclean-generic:
 	-rm -f ../src/level_set/$(am__dirstamp)
 	-rm -f ../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/navier_stokes/$(am__dirstamp)
+	-rm -f ../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ../src/phase_change/$(am__dirstamp)
 	-rm -f ../src/utilities/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/utilities/$(am__dirstamp)
 	-rm -f ../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
@@ -8034,6 +8314,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po
@@ -8104,6 +8385,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po
@@ -8165,8 +8447,10 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po
@@ -8177,8 +8461,10 @@ distclean: distclean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po
@@ -8236,12 +8522,14 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Po
@@ -8284,12 +8572,14 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Po
@@ -8311,11 +8601,23 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po
@@ -8392,6 +8694,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po
@@ -8462,6 +8765,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po
@@ -8523,8 +8827,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConservativeConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po
@@ -8535,8 +8841,10 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffStochasticForcing.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffWavePropConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConservativeConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po
@@ -8594,12 +8902,14 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SpongeLayerForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StaggeredStokesBlockFactorizationPreconditioner.Po
@@ -8642,12 +8952,14 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SpongeLayerForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesBlockFactorizationPreconditioner.Po
@@ -8669,11 +8981,23 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po
@@ -8746,6 +9070,122 @@ clean-local:
 	rm -f $(PWD)/../src/libIBAMR.a
 	rm -f $(PWD)/../src/libIBAMR2d.a
 	rm -f $(PWD)/../src/libIBAMR3d.a
+../include/ibamr/CellConvectiveOperator.h \
+=======
+../include/ibamr/CarmanKozenyDragForce.h \
+>>>>>>> 5c508c61d (phase change: library and tests)
+../include/ibamr/ConstraintIBKinematics.h \
+../include/ibamr/ConstraintIBMethod.h \
+../include/ibamr/ConvectiveOperator.h \
+../include/ibamr/GeneralizedIBMethod.h \
+../include/ibamr/DirectMobilitySolver.h \
+../include/ibamr/EnthalpyHierarchyIntegrator.h \
+../include/ibamr/FastSweepingLSMethod.h \
+../include/ibamr/FifthOrderStokesWaveGenerator.h \
+../include/ibamr/FirstOrderStokesWaveGenerator.h \
+../include/ibamr/HeavisideForcingFunction.h \
+../include/ibamr/IBAnchorPointSpec.h \
+../include/ibamr/IBBeamForceSpec.h \
+../include/ibamr/IBExplicitHierarchyIntegrator.h \
+../include/ibamr/IBHierarchyIntegrator.h \
+../include/ibamr/IBHydrodynamicForceEvaluator.h \
+../include/ibamr/IBImplicitStaggeredHierarchyIntegrator.h \
+../include/ibamr/IBImplicitStrategy.h \
+../include/ibamr/IBInstrumentPanel.h \
+../include/ibamr/IBInstrumentationSpec.h \
+../include/ibamr/IBInterpolantHierarchyIntegrator.h \
+../include/ibamr/IBInterpolantMethod.h \
+../include/ibamr/IBKirchhoffRodForceGen.h \
+../include/ibamr/IBLagrangianForceStrategy.h \
+../include/ibamr/IBLagrangianForceStrategySet.h \
+../include/ibamr/IBLagrangianSourceStrategy.h \
+../include/ibamr/IBLevelSetMethod.h \
+../include/ibamr/IBMethod.h \
+../include/ibamr/IBMethodPostProcessStrategy.h \
+../include/ibamr/IBRedundantInitializer.h \
+../include/ibamr/IBRodForceSpec.h \
+../include/ibamr/IBHydrodynamicSurfaceForceEvaluator.h \
+../include/ibamr/IBSourceSpec.h \
+../include/ibamr/IBSpringForceFunctions.h \
+../include/ibamr/IBSpringForceSpec.h \
+../include/ibamr/IBStandardForceGen.h \
+../include/ibamr/IBStandardInitializer.h \
+../include/ibamr/IBStandardSourceGen.h \
+../include/ibamr/IBStrategy.h \
+../include/ibamr/IBStrategySet.h \
+../include/ibamr/IBTargetPointForceSpec.h \
+../include/ibamr/INSCollocatedCenteredConvectiveOperator.h \
+../include/ibamr/INSCollocatedConvectiveOperatorManager.h \
+../include/ibamr/INSCollocatedHierarchyIntegrator.h \
+../include/ibamr/INSCollocatedPPMConvectiveOperator.h \
+../include/ibamr/INSCollocatedVelocityBcCoef.h \
+../include/ibamr/INSHierarchyIntegrator.h \
+../include/ibamr/INSIntermediateVelocityBcCoef.h \
+../include/ibamr/INSProjectionBcCoef.h \
+../include/ibamr/INSStaggeredCenteredConvectiveOperator.h \
+../include/ibamr/INSStaggeredConvectiveOperatorManager.h \
+../include/ibamr/INSStaggeredCUIConvectiveOperator.h \
+../include/ibamr/INSStaggeredHierarchyIntegrator.h \
+../include/ibamr/INSStaggeredPPMConvectiveOperator.h \
+../include/ibamr/INSStaggeredPressureBcCoef.h \
+../include/ibamr/INSStaggeredStabilizedPPMConvectiveOperator.h \
+../include/ibamr/INSStaggeredStochasticForcing.h \
+../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
+../include/ibamr/INSStaggeredVelocityBcCoef.h \
+../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
+../include/ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h \
+../include/ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h \
+../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
+../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
+../include/ibamr/INSVCStaggeredPressureBcCoef.h \
+../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
+../include/ibamr/IrregularWaveBcCoef.h \
+../include/ibamr/IrregularWaveGenerator.h \
+../include/ibamr/KrylovFreeBodyMobilitySolver.h \
+../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
+../include/ibamr/KrylovMobilitySolver.h \
+../include/ibamr/LSInitStrategy.h \
+../include/ibamr/MarangoniSurfaceTensionForceFunction.h \
+../include/ibamr/MassIntegrator.h \
+../include/ibamr/MobilityFunctions.h \
+../include/ibamr/NonbondedForceEvaluator.h \
+../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
+../include/ibamr/PenaltyIBMethod.h \
+../include/ibamr/PhaseChangeDivUSourceFunction.h \
+../include/ibamr/PhaseChangeHierarchyIntegrator.h \
+../include/ibamr/RelaxationLSBcCoefs.h \
+../include/ibamr/RelaxationLSMethod.h \
+../include/ibamr/SpongeLayerForceFunction.h \
+../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
+../include/ibamr/StaggeredStokesBlockPreconditioner.h \
+../include/ibamr/StaggeredStokesFACPreconditioner.h \
+../include/ibamr/StaggeredStokesFACPreconditionerStrategy.h \
+../include/ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h \
+../include/ibamr/StaggeredStokesLevelRelaxationFACOperator.h \
+../include/ibamr/StaggeredStokesOpenBoundaryStabilizer.h \
+../include/ibamr/StaggeredStokesOperator.h \
+../include/ibamr/StaggeredStokesPETScLevelSolver.h \
+../include/ibamr/StaggeredStokesPETScMatUtilities.h \
+../include/ibamr/StaggeredStokesPETScVecUtilities.h \
+../include/ibamr/StaggeredStokesPhysicalBoundaryHelper.h \
+../include/ibamr/StaggeredStokesProjectionPreconditioner.h \
+../include/ibamr/StaggeredStokesSolver.h \
+../include/ibamr/StaggeredStokesSolverManager.h \
+../include/ibamr/StokesBcCoefStrategy.h \
+../include/ibamr/StokesFifthOrderWaveBcCoef.h \
+../include/ibamr/StokesFirstOrderWaveBcCoef.h \
+../include/ibamr/StokesSecondOrderWaveBcCoef.h \
+../include/ibamr/StokesSpecifications.h \
+../include/ibamr/StokesSpecifications.h \
+../include/ibamr/StokesWaveGeneratorStrategy.h \
+../include/ibamr/SurfaceTensionForceFunction.h \
+../include/ibamr/VCStaggeredStokesOperator.h \
+../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
+../include/ibamr/Wall.h \
+../include/ibamr/WallForceEvaluator.h \
+../include/ibamr/WaveDampingFunctions.h \
+../include/ibamr/WaveGenerationFunctions.h \
+../include/ibamr/RNG.h
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
