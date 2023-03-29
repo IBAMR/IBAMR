@@ -283,6 +283,11 @@ public:
     registerBrinkmanPenalizationStrategy(SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> brinkman_force);
 
     /*!
+     * \brief Register function to compute the source term of the div U equation.
+     */
+    void registerDivergenceVelocitySourceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Div_U_F_fcn);
+
+    /*!
      * \brief Supply initial conditions for the density field, if maintained by the fluid integrator.
      */
     void registerMassDensityInitialConditions(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_init_fcn);
@@ -574,6 +579,7 @@ protected:
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_F_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_Norm_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_regrid_var;
@@ -633,6 +639,11 @@ protected:
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx;
 
     /*!
+     * Functions to set the RHS of div U equation.
+     */
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_Div_U_F_fcn;
+
+    /*!
      * Brinkman force strategy objects registered with this integrator.
      */
     std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> > d_brinkman_force;
@@ -665,7 +676,7 @@ protected:
      *
      * Plot variables have one context: current.
      */
-    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_EE_idx;
+    int d_U_cc_idx, d_F_cc_idx, d_Omega_idx, d_Div_U_idx, d_Div_U_F_idx, d_EE_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the

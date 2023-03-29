@@ -85,7 +85,7 @@ BrinkmanPenalizationStrategy::setBrinkmanCoefficient(double chi)
         "BrinkmanPenalizationStrategy", "setBrinkmanCoefficient", "setBrinkmanPenaltyFactor");
     d_penalty_factor = chi;
     return;
-} // setBrinkmanCoefficient
+} // setBrinkmanPenaltyFactor
 
 void
 BrinkmanPenalizationStrategy::setBrinkmanPenaltyFactor(double penalty_factor)

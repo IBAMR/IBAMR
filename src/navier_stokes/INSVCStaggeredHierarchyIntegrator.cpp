@@ -519,6 +519,7 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", NDIM);
 #endif
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
+    d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F");
 
 #if (NDIM == 3)
     d_Omega_Norm_var = new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
@@ -931,6 +932,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());
 
 // Register scratch variables that are maintained by the
 // INSVCStaggeredHierarchyIntegrator.
@@ -1413,6 +1415,37 @@ INSVCStaggeredHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
 } // registerBrinkmanPenalizationStrategy
 
 void
+INSVCStaggeredHierarchyIntegrator::registerDivergenceVelocitySourceFunction(Pointer<CartGridFunction> Div_U_F_fcn)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!d_integrator_is_initialized);
+#endif
+    if (d_Div_U_F_fcn)
+    {
+        Pointer<CartGridFunctionSet> p_F_fcn = d_Div_U_F_fcn;
+        if (!p_F_fcn)
+        {
+            pout << d_object_name << "::registerDivergenceVelocitySourceFunction(): WARNING:\n"
+                 << "  source term function has already been set.\n"
+                 << "  functions will be evaluated in the order in which they were "
+                    "registered "
+                    "with "
+                    "the solver\n"
+                 << "  when evaluating the source term value for the div U equation.\n";
+            p_F_fcn = new CartGridFunctionSet(d_object_name + "::Div_U_F_function_set");
+            p_F_fcn->addFunction(d_Div_U_F_fcn);
+        }
+        p_F_fcn->addFunction(Div_U_F_fcn);
+        d_Div_U_F_fcn = p_F_fcn;
+    }
+    else
+    {
+        d_Div_U_F_fcn = Div_U_F_fcn;
+    }
+    return;
+} // registerDivergenceVelocitySourceFunction
+
+void
 INSVCStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Pointer<CartGridFunction> rho_init_fcn)
 {
 #if !defined(NDEBUG)
@@ -1556,6 +1589,8 @@ void
 INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
                                                                                const bool initial_time)
 {
+    if (initial_time && d_Div_U_F_fcn) return;
+
     // Project the interpolated velocity if needed.
     if (initial_time || d_do_regrid_projection)
     {

@@ -221,6 +221,7 @@ endif
 pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 ../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
+../include/ibamr/AdvDiffCUIConservativeConvectiveOperator.h \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 ../include/ibamr/AdvDiffHierarchyIntegrator.h \

@@ -86,7 +86,7 @@ PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
     PatchCellDataOpsReal<NDIM, double> patch_cc_data_ops;
     patch_cc_data_ops.copyData(div_u_cc_data, S_cc_data, patch->getBox());
 
-    return;
+   return;
 } // setDataOnPatch
 
 } // namespace IBAMR
