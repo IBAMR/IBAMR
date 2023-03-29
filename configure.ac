@@ -290,6 +290,7 @@ AC_CONFIG_FILES([
   src/level_set/fortran/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
+  src/phase_change/Makefile
   src/utilities/Makefile
   src/wave_generation/Makefile
   tests/attest.conf
@@ -310,6 +311,7 @@ AC_CONFIG_FILES([
   tests/level_set/Makefile
   tests/multiphase_flow/Makefile
   tests/navier_stokes/Makefile
+  tests/phase_change/Makefile
   tests/physical_boundary/Makefile
   tests/refine/Makefile
   tests/spread/Makefile

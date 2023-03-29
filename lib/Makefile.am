@@ -50,6 +50,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 ../src/IB/BrinkmanPenalizationStrategy.cpp \
+../src/IB/CarmanKozenyDragForce.cpp \
 ../src/IB/CIBMethod.cpp \
 ../src/IB/CIBMobilitySolver.cpp \
 ../src/IB/CIBSaddlePointSolver.cpp \
@@ -105,6 +106,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/Wall.cpp \
 ../src/IB/WallForceEvaluator.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
+../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
+../src/adv_diff/AdvDiffCUIConservativeConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 ../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
@@ -149,12 +152,14 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 ../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
-../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
+../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp \
+../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
 ../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
 ../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
+../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
 ../src/navier_stokes/SpongeLayerForceFunction.cpp \
 ../src/navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp \
@@ -176,7 +181,13 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+../src/phase_change/HeavisideForcingFunction.cpp \
+../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
+../src/utilities/MassIntegrator.cpp \
 ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
 ../src/wave_generation/FirstOrderStokesWaveGenerator.cpp \
 ../src/wave_generation/IrregularWaveBcCoef.cpp \
@@ -209,6 +220,8 @@ endif
 
 pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
+../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
+../include/ibamr/AdvDiffCUIConservativeConvectiveOperator.h \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 ../include/ibamr/AdvDiffHierarchyIntegrator.h \
@@ -220,6 +233,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/AllenCahnHierarchyIntegrator.h \
 ../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 ../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 ../include/ibamr/BrinkmanPenalizationStrategy.h \
@@ -230,14 +244,17 @@ pkg_include_HEADERS += \
 ../include/ibamr/CIBStaggeredStokesOperator.h \
 ../include/ibamr/CIBStaggeredStokesSolver.h \
 ../include/ibamr/CIBStrategy.h \
+../include/ibamr/CarmanKozenyDragForce.h \
 ../include/ibamr/ConstraintIBKinematics.h \
 ../include/ibamr/ConstraintIBMethod.h \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
+../include/ibamr/EnthalpyHierarchyIntegrator.h \
 ../include/ibamr/FastSweepingLSMethod.h \
 ../include/ibamr/FifthOrderStokesWaveGenerator.h \
 ../include/ibamr/FirstOrderStokesWaveGenerator.h \
+../include/ibamr/HeavisideForcingFunction.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -287,7 +304,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 ../include/ibamr/INSStaggeredVelocityBcCoef.h \
 ../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
-../include/ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h \
+../include/ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h \
+../include/ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h \
 ../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
 ../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
 ../include/ibamr/INSVCStaggeredPressureBcCoef.h \
@@ -298,10 +316,14 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
 ../include/ibamr/LSInitStrategy.h \
+../include/ibamr/MarangoniSurfaceTensionForceFunction.h \
+../include/ibamr/MassIntegrator.h \
 ../include/ibamr/MobilityFunctions.h \
 ../include/ibamr/NonbondedForceEvaluator.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 ../include/ibamr/PenaltyIBMethod.h \
+../include/ibamr/PhaseChangeDivUSourceFunction.h \
+../include/ibamr/PhaseChangeHierarchyIntegrator.h \
 ../include/ibamr/RelaxationLSBcCoefs.h \
 ../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \

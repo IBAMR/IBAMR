@@ -81,7 +81,7 @@ public:
     /*!
      * \brief Set Brinkman penalization penalty factor.
      */
-    virtual void setBrinkmanCoefficient(double chi);
+    virtual void setBrinkmanPenaltyFactor(double penalty_factor);
 
     /*!
      * \brief Write out object state to the given database.
@@ -101,9 +101,9 @@ public:
     /*
      * \brief Get the Brinkman coefficient.
      */
-    double getBrinkmanCoefficient() const
+    double getBrinkmanPenaltyFactor() const
     {
-        return d_chi;
+        return d_penalty_factor;
     } // getBrinkmanPenaltyFactor
 
     /*
@@ -134,9 +134,20 @@ protected:
            d_new_time = std::numeric_limits<double>::quiet_NaN();
 
     /*
-     * Brinkman coefficient.
+     * Factor to be multiplied with the penalty term.
      */
-    double d_chi = 1e8;
+    double d_penalty_factor = 1.0;
+
+    /*
+     * Boolean to use the inertial scale \f$ \rho/\Delta t \f$ as the penalty value.
+     * By default inertia scale is used.
+     */
+    bool d_use_rho_scale = true;
+
+    /*
+     * Boolean to use the viscous scale \f$ \mu/h^2 \f$ as the penalty value.
+     */
+    bool d_use_mu_scale = false;
 
 private:
     /*!
