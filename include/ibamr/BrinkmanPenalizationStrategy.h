@@ -18,7 +18,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibamr/config.h>
+#include "ibtk/ibtk_utilities.h"
 
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
@@ -79,6 +79,13 @@ public:
     virtual void postprocessComputeBrinkmanPenalization(double current_time, double new_time, int num_cycles);
 
     /*!
+     * \brief Set the Brinkman penalization coefficient.
+     *
+     * @deprecated Use setBrinkmanPenaltyFactor() instead.
+     */
+    virtual void setBrinkmanCoefficient(double chi);
+
+    /*!
      * \brief Set Brinkman penalization penalty factor.
      */
     virtual void setBrinkmanPenaltyFactor(double penalty_factor);
@@ -97,6 +104,19 @@ public:
     {
         return d_object_name;
     } // getName
+
+    /*
+     * \brief Get the Brinkman coefficient.
+     *
+     * @deprecated Use getBrinkmanPenaltyFactor() instead.
+     *
+     */
+    double getBrinkmanCoefficient() const
+    {
+        IBTK_DEPRECATED_MEMBER_FUNCTION2(
+            "BrinkmanPenalizationStrategy", "getBrinkmanCoefficient", "getBrinkmanPenaltyFactor");
+        return d_penalty_factor;
+    } // getBrinkmanCoefficient
 
     /*
      * \brief Get the Brinkman coefficient.
