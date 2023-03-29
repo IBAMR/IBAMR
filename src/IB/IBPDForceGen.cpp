@@ -1347,45 +1347,54 @@ IBPDForceGen::computeLagrangianTargetPointForce(Pointer<LData> F_data,
         {
             X_target = X0[k]->data();
             Eigen::Map<const IBTK::Vector> eig_X_target(X_target);
+            #if (NDIM == 2)
             if (X0_node[local_idx * NDIM + 0] == eig_X_target(0) && X0_node[local_idx * NDIM + 1] == eig_X_target(1))
             {
                 petsc_node_idxs[k] = local_idx;
                 petsc_global_node_idxs[k] = petsc_idx;
             }
+            #endif
+            #if (NDIM == 3)
+            if (X0_node[local_idx * NDIM + 0] == eig_X_target(0) && X0_node[local_idx * NDIM + 1] == eig_X_target(1) && X0_node[local_idx * NDIM + 2] == eig_X_target(2))
+            {
+                petsc_node_idxs[k] = local_idx;
+                petsc_global_node_idxs[k] = petsc_idx;
+            }
+            #endif
         }
     }
 
-    // kblock = 0;
-    // for (; kblock < (num_target_points - 1) / BLOCKSIZE;
-    //      ++kblock) // ensure that the last block is NOT handled by this first loop
-    // {
-    //     PREFETCH_READ_NTA_BLOCK(petsc_node_idxs + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
-    //     PREFETCH_READ_NTA_BLOCK(petsc_global_node_idxs + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
-    //     PREFETCH_READ_NTA_BLOCK(kappa + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
-    //     PREFETCH_READ_NTA_BLOCK(eta + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
-    //     PREFETCH_READ_NTA_BLOCK(X0 + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
-    //     for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
-    //     {
-    //         k = kblock * BLOCKSIZE + kunroll;
-    //         local_idx = NDIM * petsc_node_idxs[k];
-    //         lag_idx = petsc_global_node_idxs[k];
-    //         PREFETCH_READ_NTA_NDIM_BLOCK(F_node + NDIM * petsc_node_idxs[k + 1]);
-    //         PREFETCH_READ_NTA_NDIM_BLOCK(X_node + NDIM * petsc_node_idxs[k + 1]);
-    //         PREFETCH_READ_NTA(kappa[k + 1]);
-    //         PREFETCH_READ_NTA(eta[k + 1]);
-    //         PREFETCH_READ_NTA(X0[k + 1]);
-    //         K = *kappa[k];
-    //         E = *eta[k];
-    //         X_target = X0[k]->data();
+    kblock = 0;
+    for (; kblock < (num_target_points - 1) / BLOCKSIZE;
+         ++kblock) // ensure that the last block is NOT handled by this first loop
+    {
+        PREFETCH_READ_NTA_BLOCK(petsc_node_idxs + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(petsc_global_node_idxs + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(kappa + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(eta + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
+        PREFETCH_READ_NTA_BLOCK(X0 + BLOCKSIZE * (kblock + 1), BLOCKSIZE);
+        for (kunroll = 0; kunroll < BLOCKSIZE; ++kunroll)
+        {
+            k = kblock * BLOCKSIZE + kunroll;
+            local_idx = NDIM * petsc_node_idxs[k];
+            lag_idx = petsc_global_node_idxs[k];
+            PREFETCH_READ_NTA_NDIM_BLOCK(F_node + NDIM * petsc_node_idxs[k + 1]);
+            PREFETCH_READ_NTA_NDIM_BLOCK(X_node + NDIM * petsc_node_idxs[k + 1]);
+            PREFETCH_READ_NTA(kappa[k + 1]);
+            PREFETCH_READ_NTA(eta[k + 1]);
+            PREFETCH_READ_NTA(X0[k + 1]);
+            K = *kappa[k];
+            E = *eta[k];
+            X_target = X0[k]->data();
 
-    //         Eigen::Map<const IBTK::Vector> eig_X(&X_node[local_idx]);
-    //         Eigen::Map<const IBTK::Vector> eig_X_target(X_target);
-    //         Eigen::Map<const IBTK::Vector> eig_U(&U_node[local_idx]);
-    //         Eigen::Map<IBTK::Vector> eig_F(&F_node[local_idx]);
+            Eigen::Map<const IBTK::Vector> eig_X(&X_node[local_idx]);
+            Eigen::Map<const IBTK::Vector> eig_X_target(X_target);
+            Eigen::Map<const IBTK::Vector> eig_U(&U_node[local_idx]);
+            Eigen::Map<IBTK::Vector> eig_F(&F_node[local_idx]);
 
-    //         d_target_point_force_fcn(eig_X, eig_X_target, eig_U, K, E, lag_idx, eig_F);
-    //     }
-    // }
+            d_target_point_force_fcn(eig_X, eig_X_target, eig_U, K, E, lag_idx, eig_F);
+        }
+    }
     for (k = 0; k < num_target_points; ++k)
     {
         // std::cout << "petsc_node_idx = " << petsc_node_idxs[k] << std::endl;
