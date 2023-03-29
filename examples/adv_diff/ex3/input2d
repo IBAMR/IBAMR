@@ -15,9 +15,6 @@ INDICATOR_FUNCTION_TYPE = "SMOOTH"
 ETA = 1e-8
 NUMBER_OF_INTERFACE_CELLS = 2.0
 FLUID_IS_INTERIOR_TO_CYLINDER = FALSE     // flag to identify whether the fluid is inside the                                            cylinder or outside
-BrinkmanPenalization {
-    chi = ETA
-}
 
 // exact solution function expressions
 Q = "sin(X_0)*sin(X_1)"
