@@ -79,6 +79,15 @@ BrinkmanPenalizationStrategy::putToDatabase(Pointer<Database> /*db*/)
 } // putToDatabase
 
 void
+BrinkmanPenalizationStrategy::setBrinkmanCoefficient(double chi)
+{
+    IBTK_DEPRECATED_MEMBER_FUNCTION2(
+        "BrinkmanPenalizationStrategy", "setBrinkmanCoefficient", "setBrinkmanPenaltyFactor");
+    d_penalty_factor = chi;
+    return;
+} // setBrinkmanCoefficient
+
+void
 BrinkmanPenalizationStrategy::setBrinkmanPenaltyFactor(double penalty_factor)
 {
     d_penalty_factor = penalty_factor;
