@@ -264,7 +264,7 @@ public:
     /*!
      * \brief Get the source term patch data index for the div U equation.
      */
-    int getDivergenceVelocitySourceTermIndex();
+    int getVelocityDivergencePatchDataIndex();
 
     /*!
      * \brief Compute the source term for the div U equation.
