@@ -27,6 +27,7 @@
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "FaceVariable.h"
 #include "IntVector.h"
@@ -208,6 +209,15 @@ INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fc
 void
 INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_fcn)
 {
+    IBTK_DEPRECATED_MEMBER_FUNCTION2(
+        "INSHierarchyIntegrator", "registerFluidSourceFunction", "registerVelocityDivergenceFunction");
+    registerVelocityDivergenceFunction(Q_fcn);
+    return;
+} // registerFluidSourceFunction
+
+void
+INSHierarchyIntegrator::registerVelocityDivergenceFunction(Pointer<CartGridFunction> Q_fcn)
+{
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
@@ -254,8 +264,16 @@ INSHierarchyIntegrator::getBodyForceVariable() const
 Pointer<Variable<NDIM> >
 INSHierarchyIntegrator::getFluidSourceVariable() const
 {
+    IBTK_DEPRECATED_MEMBER_FUNCTION2(
+        "INSHierarchyIntegrator", "getFluidSourceVariable", "getVelocityDivergenceVariable");
     return d_Q_var;
 } // getFluidSourceVariable
+
+Pointer<Variable<NDIM> >
+INSHierarchyIntegrator::getVelocityDivergenceVariable() const
+{
+    return d_Q_var;
+} // getVelocityDivergenceVariable
 
 Pointer<FaceVariable<NDIM, double> >
 INSHierarchyIntegrator::getAdvectionVelocityVariable() const

@@ -18,6 +18,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/config.h>
+
 #include "ibtk/ibtk_utilities.h"
 
 #include "tbox/Database.h"

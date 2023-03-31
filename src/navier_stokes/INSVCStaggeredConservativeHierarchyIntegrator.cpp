@@ -972,6 +972,17 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupPlotDataSpecialized()
 void
 INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
 {
+    // Here we want to impose the condition
+    // U := U* - 1/rho * Grad Phi
+    //
+    // Taking the divergence on both sides of the above equation, we get
+    // Div U = Div U* - Div (1/rho * Grad Phi)
+    //
+    //  ===>   - Div (1/rho * Grad Phi) =  Div U - Div U*
+    //
+    // Here, Div U is the externally supplied velocity divergence source
+    // and U* is velocity after the regridding operation.
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
@@ -1080,7 +1091,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
                 "residual norm        = "
              << regrid_projection_solver->getResidualNorm() << "\n";
 
-    // Fill ghost cells for Phi, compute Grad Phi, and set U := U - 1/rho * Grad
+    // Fill ghost cells for Phi, compute Grad Phi, and set U = U* - 1/rho * Grad
     // Phi
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(d_P_scratch_idx,
@@ -1418,22 +1429,18 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     }
 
     // Account for source term of a Div U equation.
-    if (d_Div_U_F_fcn)
+    // Note that the VCStaggeredStokes operator has -div u in the operator.
+    // We therefore subract the supplied div u from the RHS vector.
+    if (d_Q_fcn)
     {
-        d_Div_U_F_fcn->setDataOnPatchHierarchy(d_Div_U_F_idx, d_Div_U_F_var, d_hierarchy, half_time);
-        d_hier_cc_data_ops->add(
-            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+        d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, half_time);
+        d_hier_cc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
 
     // Add Brinkman penalized velocity term.
     d_hier_sc_data_ops->add(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
-
-    // Account for internal source/sink distributions.
-    if (d_Q_fcn)
-    {
-        TBOX_ERROR("Presently not supported for variable coefficient problems");
-    }
 
     // Set solution components to equal most recent approximations to u(n+1) and
     // p(n+1/2).
@@ -1525,20 +1532,16 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
         d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
     }
 
-    // reset source term of a Div U equation.
-    if (d_Div_U_F_fcn)
+    // Reset source term of Div U equation.
+    if (d_Q_fcn)
     {
-        d_hier_cc_data_ops->subtract(
-            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Div_U_F_idx);
+        d_hier_cc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
 
     d_hier_sc_data_ops->subtract(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
 
-    if (d_Q_fcn)
-    {
-        TBOX_ERROR("Presently not supported for variable coefficient problems");
-    }
     return;
 } // resetSolverVectors
 
