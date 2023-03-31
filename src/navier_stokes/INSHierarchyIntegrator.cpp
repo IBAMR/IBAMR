@@ -226,8 +226,8 @@ INSHierarchyIntegrator::registerVelocityDivergenceFunction(Pointer<CartGridFunct
         Pointer<CartGridFunctionSet> p_Q_fcn = d_Q_fcn;
         if (!p_Q_fcn)
         {
-            pout << d_object_name << "::registerFluidSourceFunction(): WARNING:\n"
-                 << "  fluid source function has already been set.\n"
+            pout << d_object_name << "::registerVelocityDivergenceFunction(): WARNING:\n"
+                 << "  velocity divergence function has already been set.\n"
                  << "  functions will be evaluated in the order in which they were "
                     "registered with the solver\n"
                  << "  when evaluating the fluid source term value.\n";
@@ -241,7 +241,7 @@ INSHierarchyIntegrator::registerVelocityDivergenceFunction(Pointer<CartGridFunct
         d_Q_fcn = Q_fcn;
     }
     return;
-} // registerFluidSourceFunction
+} // registerVelocityDivergenceFunction
 
 Pointer<Variable<NDIM> >
 INSHierarchyIntegrator::getVelocityVariable() const
