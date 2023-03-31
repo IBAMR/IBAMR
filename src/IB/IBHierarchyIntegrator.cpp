@@ -369,7 +369,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     // Initialize the fluid solver.
     if (d_ib_method_ops->hasFluidSources())
     {
-        d_ins_hier_integrator->registerFluidSourceFunction(new IBEulerianSourceFunction(this));
+        d_ins_hier_integrator->registerVelocityDivergenceFunction(new IBEulerianSourceFunction(this));
     }
     d_ins_hier_integrator->initializeHierarchyIntegrator(hierarchy, gridding_alg);
 
@@ -617,7 +617,7 @@ IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
     d_u_var = d_ins_hier_integrator->getVelocityVariable();
     d_p_var = d_ins_hier_integrator->getPressureVariable();
     d_f_var = d_ins_hier_integrator->getBodyForceVariable();
-    d_q_var = d_ins_hier_integrator->getFluidSourceVariable();
+    d_q_var = d_ins_hier_integrator->getVelocityDivergenceVariable();
     d_current_context = d_ins_hier_integrator->getCurrentContext();
     d_scratch_context = d_ins_hier_integrator->getScratchContext();
     d_new_context = d_ins_hier_integrator->getNewContext();
