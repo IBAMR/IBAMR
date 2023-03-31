@@ -727,10 +727,10 @@ PhaseChangeHierarchyIntegrator::setEnergyEquationSourceTermFunction(Pointer<IBTK
 } // setTemperatureSourceTermFunction
 
 int
-PhaseChangeHierarchyIntegrator::getDivergenceVelocitySourceTermIndex()
+PhaseChangeHierarchyIntegrator::getVelocityDivergencePatchDataIndex()
 {
     return d_Div_U_F_idx;
-} // getDivergenceVelocitySourceTermIndex
+} // getVelocityDivergencePatchDataIndex
 
 void
 PhaseChangeHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>*& rho_bc_coef)

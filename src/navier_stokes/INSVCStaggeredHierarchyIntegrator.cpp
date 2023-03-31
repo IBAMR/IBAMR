@@ -1556,8 +1556,6 @@ void
 INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
                                                                                const bool initial_time)
 {
-    // if (initial_time && d_Q_fcn) return;
-
     // Project the interpolated velocity if needed.
     if (initial_time || d_do_regrid_projection)
     {

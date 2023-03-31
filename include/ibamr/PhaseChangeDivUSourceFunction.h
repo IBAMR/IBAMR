@@ -11,25 +11,47 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_PhaseChangeDivUSourceFunction
-#define included_PhaseChangeDivUSourceFunction
+#ifndef included_IBAMR_PhaseChangeDivUSourceFunction
+#define included_IBAMR_PhaseChangeDivUSourceFunction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 // IBAMR INCLUDES
-#include <ibamr/PhaseChangeHierarchyIntegrator.h>
+#include <ibamr/config.h>
 
-#include <ibtk/muParserCartGridFunction.h>
+#include "ibtk/CartGridFunction.h"
 
-#include <ibamr/app_namespaces.h>
+#include "tbox/Pointer.h"
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class Variable;
+template <int DIM>
+class PatchHierarchy;
+template <int DIM>
+class PatchLevel;
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
+
+namespace IBAMR
+{
+class PhaseChangeHierarchyIntegrator;
+} // namespace IBAMR
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
+namespace IBAMR
+{
 /*!
  * \brief Class PhaseChangeDivUSourceFunction class set the RHS of the Div U equation computed from the
  * PhaseChangeHierarchyIntegrator class.
  */
-class PhaseChangeDivUSourceFunction : public CartGridFunction
+class PhaseChangeDivUSourceFunction : public IBTK::CartGridFunction
 {
 public:
     /*!
@@ -68,11 +90,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL)) override;
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 
@@ -101,13 +124,9 @@ private:
      * Name of this object.
      */
     SAMRAI::tbox::Pointer<IBAMR::PhaseChangeHierarchyIntegrator> d_pc_hier_integrator;
-
-    /*!
-     * Pointer to HierarchyCellDataOpsReal.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
 };
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_PhaseChangeDivUSourceFunction
+#endif // #ifndef included_IBAMR_PhaseChangeDivUSourceFunction

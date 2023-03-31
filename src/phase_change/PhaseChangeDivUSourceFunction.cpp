@@ -12,11 +12,16 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include "ibamr/ConvectiveOperator.h"
 #include "ibamr/PhaseChangeDivUSourceFunction.h"
-#include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include "ibamr/PhaseChangeHierarchyIntegrator.h"
 
-#include <SAMRAI_config.h>
+#include "SAMRAIVectorReal.h"
 
+#include "ibamr/app_namespaces.h"
+
+namespace IBAMR
+{
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PhaseChangeDivUSourceFunction::PhaseChangeDivUSourceFunction(
@@ -46,9 +51,6 @@ PhaseChangeDivUSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
 #endif
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-    d_hier_cc_data_ops = new HierarchyCellDataOpsReal<NDIM, double>(hierarchy, coarsest_ln, finest_ln);
 
     // Fill data on each patch level
     CartGridFunction::setDataOnPatchHierarchy(
@@ -58,23 +60,35 @@ PhaseChangeDivUSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > /*patch*/,
+                                              Pointer<Variable<NDIM> > var,
+                                              Pointer<Patch<NDIM> > patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
                                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
+#if !defined(NDEBUG)
+    Pointer<CellVariable<NDIM, double> > cc_var = var;
+    TBOX_ASSERT(cc_var);
+#else
+    NULL_USE(var);
+#endif
+
+    Pointer<CellData<NDIM, double> > div_u_cc_data = patch->getPatchData(data_idx);
     if (initial_time)
     {
-        d_hier_cc_data_ops->setToScalar(data_idx, 0.0);
+        div_u_cc_data->fill(0.0);
+        return;
     }
 
-    // set Div U = S where source term S is computed from PhaseChangeHierarchyIntegrator.
-    const int S_idx = d_pc_hier_integrator->getDivergenceVelocitySourceTermIndex();
-    d_hier_cc_data_ops->copyData(data_idx, S_idx);
-    // d_hier_cc_data_ops->scale(data_idx, -1.0, S_idx);
+    // Set Div U = S where source term S is computed from PhaseChangeHierarchyIntegrator.
+    const int S_idx = d_pc_hier_integrator->getVelocityDivergencePatchDataIndex();
+    Pointer<CellData<NDIM, double> > S_cc_data = patch->getPatchData(S_idx);
+    PatchCellDataOpsReal<NDIM, double> patch_cc_data_ops;
+    patch_cc_data_ops.copyData(div_u_cc_data, S_cc_data, patch->getBox());
 
     return;
 } // setDataOnPatch
+
+} // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
