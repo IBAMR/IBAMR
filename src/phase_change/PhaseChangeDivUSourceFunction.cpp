@@ -64,11 +64,15 @@ PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
                                               const bool initial_time,
                                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
 {
-    if (initial_time) return;
+    if (initial_time)
+    {
+        d_hier_cc_data_ops->setToScalar(data_idx, 0.0);
+    }
 
-    // set -Div U = -S where source term S is computed from PhaseChangeHierarchyIntegrator.
+    // set Div U = S where source term S is computed from PhaseChangeHierarchyIntegrator.
     const int S_idx = d_pc_hier_integrator->getDivergenceVelocitySourceTermIndex();
-    d_hier_cc_data_ops->scale(data_idx, -1.0, S_idx);
+    d_hier_cc_data_ops->copyData(data_idx, S_idx);
+    // d_hier_cc_data_ops->scale(data_idx, -1.0, S_idx);
 
     return;
 } // setDataOnPatch

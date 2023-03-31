@@ -519,7 +519,6 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     d_Omega_var = new CellVariable<NDIM, double>(d_object_name + "::Omega", NDIM);
 #endif
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
-    d_Div_U_F_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U_F");
 
 #if (NDIM == 3)
     d_Omega_Norm_var = new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
@@ -920,7 +919,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
 
     // Register plot variables that are maintained by the
-    // INSCollocatedHierarchyIntegrator.
+    // INSVCStaggeredHierarchyIntegrator.
     registerVariable(d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
     if (d_F_fcn)
     {
@@ -932,7 +931,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
-    registerVariable(d_Div_U_F_idx, d_Div_U_F_var, no_ghosts, getCurrentContext());
 
 // Register scratch variables that are maintained by the
 // INSVCStaggeredHierarchyIntegrator.
@@ -942,14 +940,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     registerVariable(d_U_regrid_idx, d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_U_src_idx, d_U_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
-    if (d_Q_fcn)
-    {
-        registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
-    }
-    else
-    {
-        d_F_div_idx = invalid_index;
-    }
 
     // Register variables for plotting.
     if (d_visit_writer)
@@ -988,7 +978,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
         if (d_Q_fcn && d_output_Q)
         {
-            d_visit_writer->registerPlotQuantity("Q", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
+            d_visit_writer->registerPlotQuantity("Q::Div_U", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
         }
 
         if (d_output_Omega)
@@ -1423,37 +1413,6 @@ INSVCStaggeredHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
 } // registerBrinkmanPenalizationStrategy
 
 void
-INSVCStaggeredHierarchyIntegrator::registerDivergenceVelocitySourceFunction(Pointer<CartGridFunction> Div_U_F_fcn)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!d_integrator_is_initialized);
-#endif
-    if (d_Div_U_F_fcn)
-    {
-        Pointer<CartGridFunctionSet> p_F_fcn = d_Div_U_F_fcn;
-        if (!p_F_fcn)
-        {
-            pout << d_object_name << "::registerDivergenceVelocitySourceFunction(): WARNING:\n"
-                 << "  source term function has already been set.\n"
-                 << "  functions will be evaluated in the order in which they were "
-                    "registered "
-                    "with "
-                    "the solver\n"
-                 << "  when evaluating the source term value for the div U equation.\n";
-            p_F_fcn = new CartGridFunctionSet(d_object_name + "::Div_U_F_function_set");
-            p_F_fcn->addFunction(d_Div_U_F_fcn);
-        }
-        p_F_fcn->addFunction(Div_U_F_fcn);
-        d_Div_U_F_fcn = p_F_fcn;
-    }
-    else
-    {
-        d_Div_U_F_fcn = Div_U_F_fcn;
-    }
-    return;
-} // registerDivergenceVelocitySourceFunction
-
-void
 INSVCStaggeredHierarchyIntegrator::registerMassDensityInitialConditions(const Pointer<CartGridFunction> rho_init_fcn)
 {
 #if !defined(NDEBUG)
@@ -1597,7 +1556,7 @@ void
 INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
                                                                                const bool initial_time)
 {
-    if (initial_time && d_Div_U_F_fcn) return;
+    // if (initial_time && d_Q_fcn) return;
 
     // Project the interpolated velocity if needed.
     if (initial_time || d_do_regrid_projection)

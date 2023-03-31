@@ -992,6 +992,17 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupPlotDataSpecialized()
 void
 INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
 {
+    // Here we want to impose the condition
+    // U := U* - 1/rho * Grad Phi
+    //
+    // Taking the divergence on both sides of the above equation, we get
+    // Div U = Div U* - Div (1/rho * Grad Phi)
+    //
+    //  ===>   - Div (1/rho * Grad Phi) =  Div U - Div U*
+    //
+    // Here, Div U is the externally supplied velocity divergence source
+    // and U* is velocity after the regridding operation.
+
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
@@ -1668,10 +1679,14 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
-    // Account for internal source/sink distributions.
+    // Account for source term of a Div U equation.
+    // Note that the VCStaggeredStokes operator has -div u in the operator.
+    // We therefore subract the supplied div u from the RHS vector.
     if (d_Q_fcn)
     {
-        TBOX_ERROR("Presently not supported for variable coefficient problems");
+        d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, half_time);
+        d_hier_cc_data_ops->subtract(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
 
     // Set solution components to equal most recent approximations to u(n+1) and
@@ -1788,10 +1803,14 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
         d_hier_sc_data_ops->copyData(d_F_new_idx, d_F_scratch_idx);
     }
+
+    // Reset source term of Div U equation.
     if (d_Q_fcn)
     {
-        TBOX_ERROR("Presently not supported for variable coefficient problems");
+        d_hier_cc_data_ops->add(
+            rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
+
     return;
 } // resetSolverVectors
 
