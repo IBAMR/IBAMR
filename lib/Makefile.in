@@ -199,7 +199,8 @@ libIBAMR2d_a_LIBADD =
 am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
-	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
+	../src/IB/CarmanKozenyDragForce.cpp ../src/IB/CIBMethod.cpp \
+	../src/IB/CIBMobilitySolver.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
@@ -378,6 +379,7 @@ am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBSaddlePointSolver.$(OBJEXT) \
@@ -543,7 +545,8 @@ libIBAMR3d_a_LIBADD =
 am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
-	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
+	../src/IB/CarmanKozenyDragForce.cpp ../src/IB/CIBMethod.cpp \
+	../src/IB/CIBMobilitySolver.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
@@ -722,6 +725,7 @@ am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBMobilitySolver.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBSaddlePointSolver.$(OBJEXT) \
@@ -907,6 +911,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po \
@@ -977,6 +982,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po \
@@ -1299,6 +1305,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
 	../include/ibamr/CIBStrategy.h \
+	../include/ibamr/CarmanKozenyDragForce.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
@@ -1722,6 +1729,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
 	../include/ibamr/CIBStrategy.h \
+	../include/ibamr/CarmanKozenyDragForce.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
@@ -1828,7 +1836,8 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
-	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
+	../src/IB/CarmanKozenyDragForce.cpp ../src/IB/CIBMethod.cpp \
+	../src/IB/CIBMobilitySolver.cpp \
 	../src/IB/CIBSaddlePointSolver.cpp \
 	../src/IB/CIBStaggeredStokesOperator.cpp \
 	../src/IB/CIBStaggeredStokesSolver.cpp \
@@ -2096,6 +2105,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
@@ -2629,6 +2640,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT): ../src/IB/$(am__dirstamp) \
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-CIBMobilitySolver.$(OBJEXT):  \
@@ -3114,6 +3127,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po@am__quote@ # am--include-marker
@@ -3184,6 +3198,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po@am__quote@ # am--include-marker
@@ -3487,6 +3502,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationStrategy.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.obj `if test -f '../src/IB/BrinkmanPenalizationStrategy.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationStrategy.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o: ../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo -c -o ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o `test -f '../src/IB/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CarmanKozenyDragForce.cpp' object='../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.o `test -f '../src/IB/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/IB/CarmanKozenyDragForce.cpp
+
+../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj: ../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo -c -o ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj `if test -f '../src/IB/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/IB/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CarmanKozenyDragForce.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CarmanKozenyDragForce.cpp' object='../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-CarmanKozenyDragForce.obj `if test -f '../src/IB/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/IB/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CarmanKozenyDragForce.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-CIBMethod.o: ../src/IB/CIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-CIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-CIBMethod.o `test -f '../src/IB/CIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/CIBMethod.cpp
@@ -5657,6 +5686,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationStrategy.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.obj `if test -f '../src/IB/BrinkmanPenalizationStrategy.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationStrategy.cpp'; fi`
+
+../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o: ../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo -c -o ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o `test -f '../src/IB/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CarmanKozenyDragForce.cpp' object='../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.o `test -f '../src/IB/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/IB/CarmanKozenyDragForce.cpp
+
+../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj: ../src/IB/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo -c -o ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj `if test -f '../src/IB/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/IB/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CarmanKozenyDragForce.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/CarmanKozenyDragForce.cpp' object='../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-CarmanKozenyDragForce.obj `if test -f '../src/IB/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/IB/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/CarmanKozenyDragForce.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-CIBMethod.o: ../src/IB/CIBMethod.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-CIBMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-CIBMethod.o `test -f '../src/IB/CIBMethod.cpp' || echo '$(srcdir)/'`../src/IB/CIBMethod.cpp
@@ -7989,6 +8032,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po
@@ -8059,6 +8103,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po
@@ -8345,6 +8390,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStaggeredStokesSolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-DirectMobilitySolver.Po
@@ -8415,6 +8461,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStaggeredStokesSolver.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBStrategy.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBKinematics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-ConstraintIBMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-DirectMobilitySolver.Po

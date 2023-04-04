@@ -135,6 +135,7 @@ SET(CXX_SRC
   IB/IBInstrumentPanel.cpp
   IB/BrinkmanPenalizationStrategy.cpp
   IB/BrinkmanAdvDiffBcHelper.cpp
+  IB/CarmanKozenyDragForce.cpp
   IB/PenaltyIBMethod.cpp
   IB/GeneralizedIBMethod.cpp
   IB/IBLagrangianForceStrategy.cpp

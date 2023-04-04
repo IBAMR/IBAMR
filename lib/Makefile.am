@@ -50,6 +50,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 ../src/IB/BrinkmanPenalizationStrategy.cpp \
+../src/IB/CarmanKozenyDragForce.cpp \
 ../src/IB/CIBMethod.cpp \
 ../src/IB/CIBMobilitySolver.cpp \
 ../src/IB/CIBSaddlePointSolver.cpp \
@@ -230,6 +231,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/CIBStaggeredStokesOperator.h \
 ../include/ibamr/CIBStaggeredStokesSolver.h \
 ../include/ibamr/CIBStrategy.h \
+../include/ibamr/CarmanKozenyDragForce.h \
 ../include/ibamr/ConstraintIBKinematics.h \
 ../include/ibamr/ConstraintIBMethod.h \
 ../include/ibamr/ConvectiveOperator.h \
