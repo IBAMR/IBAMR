@@ -1327,9 +1327,6 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
                                                                const bool skip_synchronize_new_state_data,
                                                                const int num_cycles)
 {
-    INSHierarchyIntegrator::postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
@@ -1402,6 +1399,9 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
         adv_diff_hier_integrator->postprocessIntegrateHierarchy(
             current_time, new_time, skip_synchronize_new_state_data, adv_diff_num_cycles);
     }
+
+    INSHierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     // Execute any registered callbacks.
     executePostprocessIntegrateHierarchyCallbackFcns(

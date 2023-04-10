@@ -382,7 +382,7 @@ protected:
      * Eulerian variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_p_var, d_f_var, d_q_var;
-    int d_u_idx, d_p_idx, d_f_idx, d_f_current_idx, d_q_idx;
+    int d_u_idx = IBTK::invalid_index, d_p_idx = IBTK::invalid_index, d_f_idx = IBTK::invalid_index, d_f_current_idx = IBTK::invalid_index, d_q_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_ib_context;
 
     /*
@@ -408,7 +408,7 @@ protected:
      * Lagrangian marker data structures.
      */
     SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
-    int d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx;
+    int d_mark_current_idx = IBTK::invalid_index, d_mark_new_idx = IBTK::invalid_index, d_mark_scratch_idx = IBTK::invalid_index;
     std::vector<IBTK::Point> d_mark_init_posns;
     std::string d_mark_file_name;
 
