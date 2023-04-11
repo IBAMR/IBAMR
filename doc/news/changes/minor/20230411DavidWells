@@ -1,0 +1,3 @@
+Improved: IBTK::SAMRAIGhostDataAccumulator now logs how much time it uses via tbox::TimerManager.
+<br>
+(David Wells, 2023/04/11)
