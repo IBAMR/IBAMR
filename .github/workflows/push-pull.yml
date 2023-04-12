@@ -50,7 +50,7 @@ jobs:
       CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         id: git
       - name: Create keys
         id: keys
@@ -157,7 +157,7 @@ jobs:
       CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         id: git
       - name: Create keys
         id: keys
@@ -227,7 +227,7 @@ jobs:
       SCCACHE_CACHE_SIZE: 500M
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         id: git
       - name: Create keys
         id: keys
@@ -304,7 +304,7 @@ jobs:
       CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         id: git
       - name: Create keys
         id: keys
@@ -373,7 +373,7 @@ jobs:
       CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         id: git
       - name: Create keys
         id: keys
