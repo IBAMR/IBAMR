@@ -84,9 +84,9 @@ AdvDiffCenteredConvectiveOperator::AdvDiffCenteredConvectiveOperator(std::string
 
 void
 AdvDiffCenteredConvectiveOperator::interpolateToFaceOnPatch(FaceData<NDIM, double>& q_interp_data,
-                                                            CellData<NDIM, double>& Q_cell_data,
-                                                            FaceData<NDIM, double>& u_data,
-                                                            Patch<NDIM>& patch)
+                                                            const CellData<NDIM, double>& Q_cell_data,
+                                                            const FaceData<NDIM, double>& u_data,
+                                                            const Patch<NDIM>& patch)
 {
     const auto& patch_box = patch.getBox();
     const auto& patch_lower = patch_box.lower();

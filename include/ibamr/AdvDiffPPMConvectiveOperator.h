@@ -73,9 +73,9 @@ public:
      * \TODO Revisit this function name.
      */
     void interpolateToFaceOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_interp_data,
-                                  SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
-                                  SAMRAI::pdat::FaceData<NDIM, double>& u_data,
-                                  SAMRAI::hier::Patch<NDIM>& patch) override;
+                                  const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
+                                  const SAMRAI::pdat::FaceData<NDIM, double>& u_data,
+                                  const SAMRAI::hier::Patch<NDIM>& patch) override;
 
 private:
     /*!

@@ -27,7 +27,7 @@
 namespace IBAMR
 {
 /*!
- * \brief Class CellConvectiveOperator is a abstract class for an implementation of
+ * \brief Class CellConvectiveOperator is an abstract class for an implementation of
  * a convective differencing operator.
  */
 class CellConvectiveOperator : public ConvectiveOperator
@@ -85,9 +85,9 @@ public:
      * \TODO Revisit this function name.
      */
     virtual void interpolateToFaceOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_interp_data,
-                                          SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
-                                          SAMRAI::pdat::FaceData<NDIM, double>& u_data,
-                                          SAMRAI::hier::Patch<NDIM>& patch) = 0;
+                                          const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
+                                          const SAMRAI::pdat::FaceData<NDIM, double>& u_data,
+                                          const SAMRAI::hier::Patch<NDIM>& patch) = 0;
 
     /*!
      * \brief Evaluate the face-centered flux Q to a face-centered field q using the provided advection velocity field.
@@ -97,10 +97,9 @@ public:
      * \TODO Revisit this function name.
      */
     virtual void evaluateAdvectiveFluxOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_flux_data,
-                                              SAMRAI::pdat::FaceData<NDIM, double>& q_interp_data,
-                                              SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
-                                              SAMRAI::pdat::FaceData<NDIM, double>& u_data,
-                                              SAMRAI::hier::Patch<NDIM>& patch);
+                                              const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
+                                              const SAMRAI::pdat::FaceData<NDIM, double>& u_data,
+                                              const SAMRAI::hier::Patch<NDIM>& patch);
 
     /*!
      * \brief Compute N = u * grad Q or N = div(Q u).

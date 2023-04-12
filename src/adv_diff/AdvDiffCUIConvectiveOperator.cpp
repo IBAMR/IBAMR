@@ -105,9 +105,9 @@ AdvDiffCUIConvectiveOperator::AdvDiffCUIConvectiveOperator(std::string object_na
 
 void
 AdvDiffCUIConvectiveOperator::interpolateToFaceOnPatch(FaceData<NDIM, double>& q_interp_data,
-                                                       CellData<NDIM, double>& Q_cell_data,
-                                                       FaceData<NDIM, double>& u_data,
-                                                       Patch<NDIM>& patch)
+                                                       const CellData<NDIM, double>& Q_cell_data,
+                                                       const FaceData<NDIM, double>& u_data,
+                                                       const Patch<NDIM>& patch)
 {
     const auto& patch_box = patch.getBox();
     const auto& patch_lower = patch_box.lower();
@@ -125,7 +125,7 @@ AdvDiffCUIConvectiveOperator::interpolateToFaceOnPatch(FaceData<NDIM, double>& q
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_interp_data_gcw.min() == q_interp_data_gcw.max());
 #endif
-    CellData<NDIM, double>& Q0_data = Q_cell_data;
+    const CellData<NDIM, double>& Q0_data = Q_cell_data;
     CellData<NDIM, double> Q1_data(patch_box, 1, Q_cell_data_gcw);
 #if (NDIM == 3)
     CellData<NDIM, double> Q2_data(patch_box, 1, Q_cell_data_gcw);

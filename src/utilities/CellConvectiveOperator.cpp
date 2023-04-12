@@ -365,7 +365,6 @@ CellConvectiveOperator::evaluateAdvectiveFluxOnHierarchy(int q_flux_idx, int Q_c
             auto patch = level->getPatch(p());
             Pointer<CellData<NDIM, double> > Q_ghost_data = patch->getPatchData(d_Q_ghost_idx);
             Pointer<FaceData<NDIM, double> > q_flux_data = patch->getPatchData(q_flux_idx);
-            Pointer<FaceData<NDIM, double> > q_interp_data = patch->getPatchData(d_q_interp_idx);
             Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_idx);
 
             // Enforce physical boundary conditions at inflow boundaries.
@@ -381,7 +380,7 @@ CellConvectiveOperator::evaluateAdvectiveFluxOnHierarchy(int q_flux_idx, int Q_c
                 d_homogeneous_bc);
 
             // Evaluate the implementation-specific interpolation routine.
-            evaluateAdvectiveFluxOnPatch(*q_flux_data, *q_interp_data, *Q_ghost_data, *u_data, *patch);
+            evaluateAdvectiveFluxOnPatch(*q_flux_data, *Q_ghost_data, *u_data, *patch);
         }
     }
 
@@ -577,10 +576,9 @@ CellConvectiveOperator::computeConservativeDerivativeOnHierarchy(int N_cell_idx,
 
 void
 CellConvectiveOperator::evaluateAdvectiveFluxOnPatch(FaceData<NDIM, double>& q_flux_data,
-                                                     FaceData<NDIM, double>& q_interp_data,
-                                                     CellData<NDIM, double>& Q_cell_data,
-                                                     FaceData<NDIM, double>& u_data,
-                                                     Patch<NDIM>& patch)
+                                                     const CellData<NDIM, double>& Q_cell_data,
+                                                     const FaceData<NDIM, double>& u_data,
+                                                     const Patch<NDIM>& patch)
 {
     if (!d_is_initialized)
     {
@@ -588,17 +586,20 @@ CellConvectiveOperator::evaluateAdvectiveFluxOnPatch(FaceData<NDIM, double>& q_f
                    << "  operator must be initialized\n");
     }
 
-    // Interpolate from cell centers to cell faces.
-    interpolateToFaceOnPatch(q_interp_data, Q_cell_data, u_data, patch);
-
-    // Evaluate the advective flux.
+    // Setup temporary data.
     const auto& patch_box = patch.getBox();
     const auto& patch_lower = patch_box.lower();
     const auto& patch_upper = patch_box.upper();
 
     const auto& u_data_gcw = u_data.getGhostCellWidth();
     const IntVector<NDIM>& q_flux_data_gcw = q_flux_data.getGhostCellWidth();
+    FaceData<NDIM, double> q_interp_data(patch_box, q_flux_data.getDepth(), q_flux_data_gcw);
     const IntVector<NDIM>& q_interp_data_gcw = q_interp_data.getGhostCellWidth();
+
+    // Interpolate from cell centers to cell faces.
+    interpolateToFaceOnPatch(q_interp_data, Q_cell_data, u_data, patch);
+
+    // Evaluate the advective flux.
     for (int d = 0; d < Q_cell_data.getDepth(); ++d)
     {
         static const double dt = 1.0;
