@@ -42,6 +42,8 @@
 #include <ibtk/BoxPartitioner.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
+#include <ibtk/LMarkerSetData.h>
+#include <ibtk/LMarkerUtilities.h>
 #include <ibtk/libmesh_utilities.h>
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
@@ -122,6 +124,80 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
  *    executable <input file name> <restart directory> <restart number>        *
  *                                                                             *
  *******************************************************************************/
+
+
+// A utility function that prints @p out to pout by sending each string to
+// rank 0.
+inline void
+print_strings_on_pout(const std::string& out)
+{
+    using namespace SAMRAI::tbox;
+    const int n_nodes = IBTK_MPI::getNodes();
+    std::vector<unsigned long> string_sizes(n_nodes);
+
+    const unsigned long size = out.size();
+    int ierr = MPI_Gather(
+        &size, 1, MPI_UNSIGNED_LONG, string_sizes.data(), 1, MPI_UNSIGNED_LONG, 0, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+
+    // MPI_Gatherv would be more efficient, but this just a test so its
+    // not too important
+    if (IBTK_MPI::getRank() == 0)
+    {
+        pout << out;
+        for (int r = 1; r < n_nodes; ++r)
+        {
+            std::string input;
+            input.resize(string_sizes[r]);
+            ierr = MPI_Recv(&input[0], string_sizes[r], MPI_CHAR, r, 0, IBTK_MPI::getCommunicator(), MPI_STATUS_IGNORE);
+            TBOX_ASSERT(ierr == 0);
+            pout << input;
+        }
+    }
+    else
+        MPI_Send(out.data(), size, MPI_CHAR, 0, 0, IBTK_MPI::getCommunicator());
+}
+void
+print_markers(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+              Pointer<IBHierarchyIntegrator> time_integrator)
+{
+    TBOX_ASSERT(time_integrator);
+
+    std::ostringstream out;
+    out << std::setprecision(16);
+    out << "rank = " << SAMRAI_MPI::getRank() << std::endl;
+    out << "  printing markers...\n";
+
+    const int mark_current_idx = time_integrator->d_mark_current_idx;
+
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        out << "    level number = " << ln << std::endl;
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            out << "      patch number = " << p() << std::endl;
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<LMarkerSetData> mark_current_data = patch->getPatchData(mark_current_idx);
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geo = patch->getPatchGeometry();
+            out << "        x_lo = " << patch_geo->getXLower()[0] << ", " << patch_geo->getXLower()[1] << std::endl;
+            out << "        x_up = " << patch_geo->getXUpper()[0] << ", " << patch_geo->getXUpper()[1] << std::endl;
+
+            const unsigned int num_patch_marks = LMarkerUtilities::countMarkersOnPatch(mark_current_data);
+            std::vector<double> X_mark_current;
+            LMarkerUtilities::collectMarkerPositionsOnPatch(X_mark_current, mark_current_data);
+
+            TBOX_ASSERT(NDIM * num_patch_marks == X_mark_current.size());
+            out << "      Marker locations =\n";
+            for (unsigned int i = 0; i < num_patch_marks; ++i)
+            {
+                out << "        " << X_mark_current[NDIM * i + 0] << ", " << X_mark_current[NDIM * i + 1] << std::endl;
+            }
+        }
+    }
+
+    print_strings_on_pout(out.str());
+}
 
 int
 main(int argc, char* argv[])
@@ -445,6 +521,8 @@ main(int argc, char* argv[])
             }
         }
 
+        print_markers(patch_hierarchy, time_integrator);
+
         // Open streams to save volume of structure.
         ofstream volume_stream;
         if (IBTK_MPI::getRank() == 0)
@@ -566,6 +644,8 @@ main(int argc, char* argv[])
                 volume_stream.setf(ios::fixed, ios::floatfield);
                 volume_stream << loop_time << " " << J_integral << endl;
             }
+
+            print_markers(patch_hierarchy, time_integrator);
         }
 
         // Close the logging streams.

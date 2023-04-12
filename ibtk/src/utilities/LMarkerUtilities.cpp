@@ -275,9 +275,7 @@ LMarkerUtilities::eulerStep(const int mark_current_idx,
             Pointer<LMarkerSetData> mark_new_data = patch->getPatchData(mark_new_idx);
 
             const unsigned int num_patch_marks = countMarkersOnPatch(mark_current_data);
-#if !defined(NDEBUG)
-            TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data));
-#endif
+            // TBOX_ASSERT(num_patch_marks == countMarkersOnPatch(mark_new_data)); // TODO: set data on new
             // Collect the local marker positions at time n.
             std::vector<double> X_mark_current;
             collectMarkerPositionsOnPatch(X_mark_current, mark_current_data);
@@ -297,6 +295,10 @@ LMarkerUtilities::eulerStep(const int mark_current_idx,
             {
                 X_mark_new[k] = X_mark_current[k] + dt * U_mark_current[k];
             }
+
+            // mark_new_data is allocated but doesn't contain any markers -
+            // copy them over and then update them
+            mark_current_data->copy2(*mark_new_data);
 
             // Prevent markers from leaving the computational domain through
             // physical boundaries (but *not* through periodic boundaries).
@@ -479,6 +481,11 @@ LMarkerUtilities::collectMarkersOnPatchHierarchy(const int mark_idx, Pointer<Pat
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
         Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln - 1);
+
+        // communicate data in ghost regions.
+        Pointer<RefineAlgorithm<NDIM> > mark_level_fill_alg = new RefineAlgorithm<NDIM>();
+        mark_level_fill_alg->registerRefine(mark_idx, mark_idx, mark_idx, nullptr);
+        mark_level_fill_alg->createSchedule(level, nullptr)->fillData(0.0);
 
         // Allocate scratch data.
         coarser_level->allocatePatchData(mark_scratch_idx);
@@ -675,6 +682,8 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
             Pointer<PatchLevel<NDIM> > src_level = old_level;
             RefinePatchStrategy<NDIM>* refine_mark_op = nullptr;
             copy_mark_alg->createSchedule(dst_level, src_level, refine_mark_op)->fillData(0.0);
+            // TODO: I think this is only called when we copy between two
+            // different patch hierarchies, so we don't need to prune
         }
         else if (level_number > 0)
         {
@@ -685,6 +694,7 @@ LMarkerUtilities::initializeMarkersOnLevel(const int mark_idx,
             {
                 Pointer<PatchLevel<NDIM> > dst_level = hierarchy->getPatchLevel(ln);
                 refine_mark_alg->createSchedule(dst_level, nullptr, ln - 1, hierarchy, refine_mark_op)->fillData(0.0);
+                LMarkerUtilities::pruneInvalidMarkers(mark_idx, hierarchy, ln - 1, ln);
             }
         }
     }
