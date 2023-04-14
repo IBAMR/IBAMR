@@ -1758,12 +1758,6 @@ INSStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
     d_hier_sc_data_ops->setPatchHierarchy(d_hierarchy);
     d_hier_sc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
 
-    if (d_manage_hier_math_ops)
-    {
-        d_hier_math_ops->setPatchHierarchy(d_hierarchy);
-        d_hier_math_ops->resetLevels(coarsest_hier_level, finest_hier_level);
-    }
-
     // Setup the patch boundary filling objects.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
@@ -1844,6 +1838,22 @@ void
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
                                                                              const bool initial_time)
 {
+    if (initial_time)
+    {
+        const int coarsest_hier_level = 0;
+        const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+
+        // Reset the hierarchy operations objects for the new hierarchy configuration.
+        d_hier_cc_data_ops->setPatchHierarchy(d_hierarchy);
+        d_hier_cc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+
+        d_hier_fc_data_ops->setPatchHierarchy(d_hierarchy);
+        d_hier_fc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+
+        d_hier_sc_data_ops->setPatchHierarchy(d_hierarchy);
+        d_hier_sc_data_ops->resetLevels(coarsest_hier_level, finest_hier_level);
+    }
+
     // Project the interpolated velocity if needed.
     if (initial_time || d_do_regrid_projection)
     {

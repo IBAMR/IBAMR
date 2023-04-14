@@ -195,18 +195,6 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
         const int coarsest_ln = 0;
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
         d_gridding_alg->getTagAndInitializeStrategy()->resetHierarchyConfiguration(d_hierarchy, coarsest_ln, finest_ln);
-
-        // Reset hierarchy dependent data for all integrators.
-        hier_integrators.push_back(this);
-        while (!hier_integrators.empty())
-        {
-            HierarchyIntegrator* integrator = hier_integrators.front();
-            integrator->regridHierarchyEndSpecialized();
-            // Add child integrators to the end of the list
-            hier_integrators.pop_front();
-            hier_integrators.insert(
-                hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
-        }
     }
     else
     {
@@ -219,18 +207,6 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
             d_gridding_alg->makeFinerLevel(d_hierarchy, d_integrator_time, initial_time, d_tag_buffer[level_number]);
             done = !d_hierarchy->finerLevelExists(level_number);
             ++level_number;
-        }
-
-        // Reset hierarchy dependent data for all integrators.
-        hier_integrators.push_back(this);
-        while (!hier_integrators.empty())
-        {
-            HierarchyIntegrator* integrator = hier_integrators.front();
-            integrator->regridHierarchyEndSpecialized();
-            // Add child integrators to the end of the list
-            hier_integrators.pop_front();
-            hier_integrators.insert(
-                hier_integrators.end(), integrator->d_child_integrators.begin(), integrator->d_child_integrators.end());
         }
 
         // Initialize composite hierarchy data that was not initailized by
@@ -763,6 +739,74 @@ HierarchyIntegrator::registerRegridHierarchyCallback(RegridHierarchyCallbackFcnP
 void
 HierarchyIntegrator::initializeCompositeHierarchyData(double init_data_time, bool initial_time)
 {
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+
+    // Initialize or reset the hierarchy math operations object.
+    d_hier_math_ops = buildHierarchyMathOps(d_hierarchy);
+    if (d_manage_hier_math_ops)
+    {
+        d_hier_math_ops->setPatchHierarchy(d_hierarchy);
+        d_hier_math_ops->resetLevels(0, finest_hier_level);
+    }
+
+    // If we have added or removed a level, resize the communication schedule
+    // vectors.
+    for (const auto& ghostfill_alg : d_ghostfill_algs)
+    {
+        d_ghostfill_scheds[ghostfill_alg.first].resize(finest_hier_level + 1);
+    }
+
+    for (const auto& prolong_alg : d_prolong_algs)
+    {
+        d_prolong_scheds[prolong_alg.first].resize(finest_hier_level + 1);
+    }
+
+    for (const auto& coarsen_alg : d_coarsen_algs)
+    {
+        d_coarsen_scheds[coarsen_alg.first].resize(finest_hier_level + 1);
+    }
+
+    // (Re)build ghost cell filling communication schedules.  These are created
+    // for all levels in the hierarchy.
+    for (const auto& ghostfill_alg : d_ghostfill_algs)
+    {
+        for (int ln = 0; ln <= finest_hier_level; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            d_ghostfill_scheds[ghostfill_alg.first][ln] = ghostfill_alg.second->createSchedule(
+                level, ln - 1, d_hierarchy, d_ghostfill_strategies[ghostfill_alg.first].get());
+        }
+    }
+
+    // (Re)build data prolongation communication schedules.  These are set only for levels
+    // >= 1.
+    for (const auto& prolong_alg : d_prolong_algs)
+    {
+        for (int ln = 1; ln <= finest_hier_level; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            d_prolong_scheds[prolong_alg.first][ln] =
+                prolong_alg.second->createSchedule(level,
+                                                   Pointer<PatchLevel<NDIM> >(),
+                                                   ln - 1,
+                                                   d_hierarchy,
+                                                   d_prolong_strategies[prolong_alg.first].get());
+        }
+    }
+
+    // (Re)build coarsen communication schedules.  These are set only for levels
+    // >= 1.
+    for (const auto& coarsen_alg : d_coarsen_algs)
+    {
+        for (int ln = 1; ln <= finest_hier_level; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+            d_coarsen_scheds[coarsen_alg.first][ln] =
+                coarsen_alg.second->createSchedule(coarser_level, level, d_coarsen_strategies[coarsen_alg.first].get());
+        }
+    }
+
     // Perform specialized data initialization.
     initializeCompositeHierarchyDataSpecialized(init_data_time, initial_time);
 
@@ -884,80 +928,6 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
                                                  const int coarsest_level,
                                                  const int finest_level)
 {
-    const Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
-#if !defined(NDEBUG)
-    TBOX_ASSERT(hierarchy);
-    TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
-                (finest_level <= hierarchy->getFinestLevelNumber()));
-    for (int ln = 0; ln <= finest_level; ++ln)
-    {
-        TBOX_ASSERT(hierarchy->getPatchLevel(ln));
-    }
-#endif
-    const int finest_hier_level = hierarchy->getFinestLevelNumber();
-
-    // Initialize or reset the hierarchy math operations object.
-    d_hier_math_ops = buildHierarchyMathOps(hierarchy);
-    if (d_manage_hier_math_ops)
-    {
-        d_hier_math_ops->setPatchHierarchy(hierarchy);
-        d_hier_math_ops->resetLevels(0, finest_hier_level);
-    }
-
-    // If we have added or removed a level, resize the communication schedule
-    // vectors.
-    for (const auto& ghostfill_alg : d_ghostfill_algs)
-    {
-        d_ghostfill_scheds[ghostfill_alg.first].resize(finest_hier_level + 1);
-    }
-
-    for (const auto& prolong_alg : d_prolong_algs)
-    {
-        d_prolong_scheds[prolong_alg.first].resize(finest_hier_level + 1);
-    }
-
-    for (const auto& coarsen_alg : d_coarsen_algs)
-    {
-        d_coarsen_scheds[coarsen_alg.first].resize(finest_hier_level + 1);
-    }
-
-    // (Re)build ghost cell filling communication schedules.  These are created
-    // for all levels in the hierarchy.
-    for (const auto& ghostfill_alg : d_ghostfill_algs)
-    {
-        for (int ln = coarsest_level; ln <= std::min(finest_level + 1, finest_hier_level); ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            d_ghostfill_scheds[ghostfill_alg.first][ln] = ghostfill_alg.second->createSchedule(
-                level, ln - 1, hierarchy, d_ghostfill_strategies[ghostfill_alg.first].get());
-        }
-    }
-
-    // (Re)build data prolongation communication schedules.  These are set only for levels
-    // >= 1.
-    for (const auto& prolong_alg : d_prolong_algs)
-    {
-        for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            d_prolong_scheds[prolong_alg.first][ln] = prolong_alg.second->createSchedule(
-                level, Pointer<PatchLevel<NDIM> >(), ln - 1, hierarchy, d_prolong_strategies[prolong_alg.first].get());
-        }
-    }
-
-    // (Re)build coarsen communication schedules.  These are set only for levels
-    // >= 1.
-    for (const auto& coarsen_alg : d_coarsen_algs)
-    {
-        for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = hierarchy->getPatchLevel(ln - 1);
-            d_coarsen_scheds[coarsen_alg.first][ln] =
-                coarsen_alg.second->createSchedule(coarser_level, level, d_coarsen_strategies[coarsen_alg.first].get());
-        }
-    }
-
     // Perform specialized reset operations.
     resetHierarchyConfigurationSpecialized(base_hierarchy, coarsest_level, finest_level);
 
