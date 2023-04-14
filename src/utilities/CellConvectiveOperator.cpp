@@ -730,22 +730,14 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
         level->allocatePatchData(d_Q_ghost_idx);
         level->allocatePatchData(d_Q_scratch_idx);
         level->allocatePatchData(d_q_interp_idx);
+        level->allocatePatchData(d_q_flux_idx);
         d_Q_cell_refine_scheds[ln] =
             d_Q_cell_refine_alg->createSchedule(level, ln - 1, d_hierarchy, d_Q_cell_refine_bdry_op);
-        switch (d_difference_form)
+        if (ln > coarsest_ln)
         {
-        case ADVECTIVE:
-            if (ln > coarsest_ln)
-                d_q_interp_coarsen_scheds[ln] = d_q_interp_coarsen_alg->createSchedule(coarser_level, level);
-            break;
-        case CONSERVATIVE:
-            level->allocatePatchData(d_q_flux_idx, d_current_time);
-            if (ln > coarsest_ln)
-                d_q_flux_coarsen_scheds[ln] = d_q_flux_coarsen_alg->createSchedule(coarser_level, level);
-            break;
-        default:
-            TBOX_ERROR("CellConvectiveOperator::initializeOperatorState(): unsupported ConvectiveDifferencingType "
-                       << enum_to_string(d_difference_form) << "\n");
+            d_q_interp_coarsen_scheds[ln] = d_q_interp_coarsen_alg->createSchedule(coarser_level, level);
+            d_q_flux_coarsen_scheds[ln] = d_q_flux_coarsen_alg->createSchedule(coarser_level, level);
+        }
         }
     }
 
