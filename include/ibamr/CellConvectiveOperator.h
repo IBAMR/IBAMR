@@ -174,9 +174,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_Q_cell_refine_bdry_op;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_Q_cell_refine_scheds;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_q_flux_coarsen_op, d_q_interp_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_q_interp_coarsen_alg, d_q_flux_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_q_interp_coarsen_scheds,
-        d_q_flux_coarsen_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_q_flux_coarsen_alg, d_q_interp_coarsen_alg;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_q_flux_coarsen_scheds,
+        d_q_interp_coarsen_scheds;
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
@@ -185,8 +185,8 @@ private:
 
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_cell_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_q_interp_var, d_q_flux_var, d_u_var;
-    int d_Q_scratch_idx, d_Q_ghost_idx, d_q_interp_idx, d_q_flux_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_q_flux_var, d_q_interp_var, d_u_var;
+    int d_Q_scratch_idx, d_Q_ghost_idx, d_q_flux_idx, d_q_interp_idx;
 };
 } // namespace IBAMR
 

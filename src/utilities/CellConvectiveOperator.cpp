@@ -240,19 +240,6 @@ CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
         d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_cell_var, context, Q_min_ghost_cell_width);
         d_Q_ghost_idx = var_db->registerClonedPatchDataIndex(d_Q_cell_var, d_Q_scratch_idx);
 
-        const std::string q_interp_var_name = d_object_name + "::q_interp";
-        d_q_interp_var = var_db->getVariable(q_interp_var_name);
-        if (d_q_interp_var)
-        {
-            d_q_interp_idx = var_db->mapVariableAndContextToIndex(d_q_interp_var, context);
-        }
-        else
-        {
-            d_q_interp_var = new FaceVariable<NDIM, double>(q_interp_var_name, Q_depth);
-            d_q_interp_idx = var_db->registerVariableAndContext(d_q_interp_var, context, IntVector<NDIM>(0));
-        }
-        TBOX_ASSERT(d_q_interp_idx >= 0);
-
         const std::string q_flux_var_name = d_object_name + "::q_flux";
         d_q_flux_var = var_db->getVariable(q_flux_var_name);
         if (d_q_flux_var)
@@ -265,6 +252,19 @@ CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
             d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVector<NDIM>(0));
         }
         TBOX_ASSERT(d_q_flux_idx >= 0);
+
+        const std::string q_interp_var_name = d_object_name + "::q_interp";
+        d_q_interp_var = var_db->getVariable(q_interp_var_name);
+        if (d_q_interp_var)
+        {
+            d_q_interp_idx = var_db->mapVariableAndContextToIndex(d_q_interp_var, context);
+        }
+        else
+        {
+            d_q_interp_var = new FaceVariable<NDIM, double>(q_interp_var_name, Q_depth);
+            d_q_interp_idx = var_db->registerVariableAndContext(d_q_interp_var, context, IntVector<NDIM>(0));
+        }
+        TBOX_ASSERT(d_q_interp_idx >= 0);
     }
 
     // Setup Timers.
@@ -729,14 +729,14 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
         Pointer<PatchLevel<NDIM> > coarser_level = (ln > coarsest_ln) ? d_hierarchy->getPatchLevel(ln - 1) : nullptr;
         level->allocatePatchData(d_Q_ghost_idx);
         level->allocatePatchData(d_Q_scratch_idx);
-        level->allocatePatchData(d_q_interp_idx);
         level->allocatePatchData(d_q_flux_idx);
+        level->allocatePatchData(d_q_interp_idx);
         d_Q_cell_refine_scheds[ln] =
             d_Q_cell_refine_alg->createSchedule(level, ln - 1, d_hierarchy, d_Q_cell_refine_bdry_op);
         if (ln > coarsest_ln)
         {
-            d_q_interp_coarsen_scheds[ln] = d_q_interp_coarsen_alg->createSchedule(coarser_level, level);
             d_q_flux_coarsen_scheds[ln] = d_q_flux_coarsen_alg->createSchedule(coarser_level, level);
+            d_q_interp_coarsen_scheds[ln] = d_q_interp_coarsen_alg->createSchedule(coarser_level, level);
         }
         }
     }
@@ -760,13 +760,13 @@ CellConvectiveOperator::deallocateOperatorState()
     d_Q_cell_refine_bdry_op.setNull();
     d_Q_cell_refine_scheds.clear();
 
-    d_q_interp_coarsen_op.setNull();
-    d_q_interp_coarsen_alg.setNull();
-    d_q_interp_coarsen_scheds.clear();
-
     d_q_flux_coarsen_op.setNull();
     d_q_flux_coarsen_alg.setNull();
     d_q_flux_coarsen_scheds.clear();
+
+    d_q_interp_coarsen_op.setNull();
+    d_q_interp_coarsen_alg.setNull();
+    d_q_interp_coarsen_scheds.clear();
 
     // Deallocate scratch data.
     const int coarsest_ln = 0, finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -775,19 +775,8 @@ CellConvectiveOperator::deallocateOperatorState()
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_Q_ghost_idx);
         level->deallocatePatchData(d_Q_scratch_idx);
+        level->deallocatePatchData(d_q_flux_idx);
         level->deallocatePatchData(d_q_interp_idx);
-        switch (d_difference_form)
-        {
-        case ADVECTIVE:
-            // intentionally blank
-            break;
-        case CONSERVATIVE:
-            level->allocatePatchData(d_q_flux_idx, d_current_time);
-            break;
-        default:
-            TBOX_ERROR("CellConvectiveOperator::initializeOperatorState(): unsupported ConvectiveDifferencingType "
-                       << enum_to_string(d_difference_form) << "\n");
-        }
     }
 
     d_is_initialized = false;
