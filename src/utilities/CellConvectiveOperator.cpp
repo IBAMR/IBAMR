@@ -15,6 +15,7 @@
 
 #include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
 #include "ibamr/CellConvectiveOperator.h"
+#include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
 #include "ibtk/CartExtrapPhysBdryOp.h"
@@ -575,6 +576,150 @@ CellConvectiveOperator::computeConservativeDerivativeOnHierarchy(int N_cell_idx,
 } // computeConservativeDerivativeOnHierarchy
 
 void
+CellConvectiveOperator::computeSkewSymmetricDerivativeOnHierarchy(int N_cell_idx,
+                                                                  int q_interp_idx,
+                                                                  int q_flux_idx,
+                                                                  int u_idx,
+                                                                  bool synch_cf_bdry)
+{
+    if (!d_is_initialized)
+    {
+        TBOX_ERROR("CellConvectiveOperator::computeConservativeDerivativeOnHierarchy():\n"
+                   << "  operator must be initialized\n");
+    }
+
+    // Setup communications algorithms.
+    CoarsenAlgorithm<NDIM> flux_coarsen_alg, interp_coarsen_alg;
+    flux_coarsen_alg.registerCoarsen(q_flux_idx, q_flux_idx, d_q_flux_coarsen_op);
+    interp_coarsen_alg.registerCoarsen(q_interp_idx, q_interp_idx, d_q_interp_coarsen_op);
+
+    // Difference values on the patches.
+    auto coarsest_ln = 0, finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+    {
+        // Synchronize data as requested.
+        if (synch_cf_bdry && ln > coarsest_ln)
+        {
+            flux_coarsen_alg.resetSchedule(d_q_flux_coarsen_scheds[ln]);
+            interp_coarsen_alg.resetSchedule(d_q_interp_coarsen_scheds[ln]);
+            d_q_flux_coarsen_scheds[ln]->coarsenData();
+            d_q_interp_coarsen_scheds[ln]->coarsenData();
+            d_q_flux_coarsen_alg->resetSchedule(d_q_flux_coarsen_scheds[ln]);
+            d_q_interp_coarsen_alg->resetSchedule(d_q_interp_coarsen_scheds[ln]);
+        }
+
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            auto patch = level->getPatch(p());
+
+            const auto& patch_box = patch->getBox();
+            const auto& patch_lower = patch_box.lower();
+            const auto& patch_upper = patch_box.upper();
+
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const dx = patch_geom->getDx();
+
+            Pointer<CellData<NDIM, double> > N_cell_data = patch->getPatchData(N_cell_idx);
+            const auto& N_cell_data_gcw = N_cell_data->getGhostCellWidth();
+#if !defined(NDEBUG)
+            TBOX_ASSERT(N_cell_data_gcw.min() == N_cell_data_gcw.max());
+#endif
+            Pointer<FaceData<NDIM, double> > q_flux_data = patch->getPatchData(q_flux_idx);
+            const auto& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
+#if !defined(NDEBUG)
+            TBOX_ASSERT(q_flux_data_gcw.min() == q_flux_data_gcw.max());
+#endif
+            Pointer<FaceData<NDIM, double> > q_interp_data = patch->getPatchData(q_interp_idx);
+            const auto& q_interp_data_gcw = q_interp_data->getGhostCellWidth();
+#if !defined(NDEBUG)
+            TBOX_ASSERT(q_interp_data_gcw.min() == q_interp_data_gcw.max());
+#endif
+            Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+            const auto& u_data_gcw = u_data->getGhostCellWidth();
+            for (int d = 0; d < N_cell_data->getDepth(); ++d)
+            {
+                ADVECT_DERIVATIVE_FC(dx,
+#if (NDIM == 2)
+                                     patch_lower(0),
+                                     patch_upper(0),
+                                     patch_lower(1),
+                                     patch_upper(1),
+                                     u_data_gcw(0),
+                                     u_data_gcw(1),
+                                     q_interp_data_gcw(0),
+                                     q_interp_data_gcw(1),
+                                     u_data->getPointer(0),
+                                     u_data->getPointer(1),
+                                     q_interp_data->getPointer(0, d),
+                                     q_interp_data->getPointer(1, d),
+                                     N_cell_data_gcw(0),
+                                     N_cell_data_gcw(1),
+#endif
+#if (NDIM == 3)
+                                     patch_lower(0),
+                                     patch_upper(0),
+                                     patch_lower(1),
+                                     patch_upper(1),
+                                     patch_lower(2),
+                                     patch_upper(2),
+                                     u_data_gcw(0),
+                                     u_data_gcw(1),
+                                     u_data_gcw(2),
+                                     q_interp_data_gcw(0),
+                                     q_interp_data_gcw(1),
+                                     q_interp_data_gcw(2),
+                                     u_data->getPointer(0),
+                                     u_data->getPointer(1),
+                                     u_data->getPointer(2),
+                                     q_interp_data->getPointer(0, d),
+                                     q_interp_data->getPointer(1, d),
+                                     q_interp_data->getPointer(2, d),
+                                     N_cell_data_gcw(0),
+                                     N_cell_data_gcw(1),
+                                     N_cell_data_gcw(2),
+#endif
+                                     N_cell_data->getPointer(d));
+
+                static const double alpha = 0.5;
+                F_TO_C_DIV_ADD_FC(N_cell_data->getPointer(d),
+                                  N_cell_data_gcw.min(),
+                                  alpha,
+#if (NDIM == 2)
+                                  q_flux_data->getPointer(0, d),
+                                  q_flux_data->getPointer(1, d),
+                                  q_flux_data_gcw.min(),
+                                  alpha,
+                                  N_cell_data->getPointer(d),
+                                  N_cell_data_gcw.min(),
+                                  patch_lower(0),
+                                  patch_upper(0),
+                                  patch_lower(1),
+                                  patch_upper(1),
+#endif
+#if (NDIM == 3)
+                                  q_flux_data->getPointer(0, d),
+                                  q_flux_data->getPointer(1, d),
+                                  q_flux_data->getPointer(2, d),
+                                  q_flux_data_gcw.min(),
+                                  alpha,
+                                  N_cell_data->getPointer(d),
+                                  N_cell_data_gcw.min(),
+                                  patch_lower(0),
+                                  patch_upper(0),
+                                  patch_lower(1),
+                                  patch_upper(1),
+                                  patch_lower(2),
+                                  patch_upper(2),
+#endif
+                                  dx);
+            }
+        }
+    }
+    return;
+} // computeSkewSymmetricDerivativeOnHierarchy
+
+void
 CellConvectiveOperator::evaluateAdvectiveFluxOnPatch(FaceData<NDIM, double>& q_flux_data,
                                                      const CellData<NDIM, double>& Q_cell_data,
                                                      const FaceData<NDIM, double>& u_data,
@@ -672,6 +817,11 @@ CellConvectiveOperator::applyConvectiveOperator(int Q_idx, int N_idx)
         evaluateAdvectiveFluxOnHierarchy(d_q_flux_idx, Q_idx, d_u_idx, /*synch_cf_bdry*/ false);
         computeConservativeDerivativeOnHierarchy(N_idx, d_q_flux_idx, /*synch_cf_bdry*/ true);
         break;
+    case SKEW_SYMMETRIC:
+        interpolateToFaceOnHierarchy(d_q_interp_idx, Q_idx, d_u_idx, /*synch_cf_bdry*/ false);
+        evaluateAdvectiveFluxOnHierarchy(d_q_flux_idx, Q_idx, d_u_idx, /*synch_cf_bdry*/ false);
+        computeSkewSymmetricDerivativeOnHierarchy(N_idx, d_q_interp_idx, d_q_flux_idx, d_u_idx, /*synch_cf_bdry*/ true);
+        break;
     default:
         TBOX_ERROR("CellConvectiveOperator::applyConvectiveOperator(): unsupported ConvectiveDifferencingType "
                    << enum_to_string(d_difference_form) << "\n");
@@ -737,7 +887,6 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
         {
             d_q_flux_coarsen_scheds[ln] = d_q_flux_coarsen_alg->createSchedule(coarser_level, level);
             d_q_interp_coarsen_scheds[ln] = d_q_interp_coarsen_alg->createSchedule(coarser_level, level);
-        }
         }
     }
 

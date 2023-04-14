@@ -72,6 +72,15 @@ public:
     virtual void computeConservativeDerivativeOnHierarchy(int N_cell_idx, int q_flux_idx, bool synch_cf_bdry = true);
 
     /*!
+     * \brief Compute the skew-symmetric derivative N = 0.5[u * grad Q + div(Q u)] on the patch hierarchy.
+     */
+    virtual void computeSkewSymmetricDerivativeOnHierarchy(int N_cell_idx,
+                                                           int q_interp_idx,
+                                                           int q_flux_idx,
+                                                           int u_idx,
+                                                           bool synch_cf_bdry = true);
+
+    /*!
      * \brief Interpolate a cell-centered field Q to a face-centered field q on a single grid patch.
      */
     virtual void interpolateToFaceOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_interp_data,
