@@ -60,6 +60,10 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 namespace
 {
+static Timer *t_constructor;
+static Timer *t_accumulate_ghost_data;
+static Timer *t_add_or_get;
+
 // The code leading to VecGetValues and VecSetValues is identical, so use one
 // function for both. Here the last argument is true if we set and false if we
 // get.
@@ -72,6 +76,7 @@ add_or_get(Pointer<PatchLevel<NDIM> >& level,
            Vec vec,
            const bool add)
 {
+    IBTK_TIMER_START(t_add_or_get);
     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -122,6 +127,7 @@ add_or_get(Pointer<PatchLevel<NDIM> >& level,
         ierr = VecGhostRestoreLocalForm(vec, &local);
         IBTK_CHKERRQ(ierr);
     }
+    IBTK_TIMER_STOP(t_add_or_get);
 }
 } // namespace
 
@@ -133,6 +139,13 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
                                                        const int finest_ln)
     : d_hierarchy(patch_hierarchy), d_var(var), d_gcw(gcw), d_coarsest_ln(coarsest_ln), d_finest_ln(finest_ln)
 {
+    auto set_timer = [&](const char *name)
+    { return TimerManager::getManager()->getTimer(name); };
+    t_constructor = set_timer("IBTK::SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator()");
+    t_accumulate_ghost_data = set_timer("IBTK::SAMRAIGhostDataAccumulator::accumulateGhostData()");
+    t_add_or_get = set_timer("IBTK::SAMRAIGhostDataAccumulator::accumulateGhostData()[add_or_get]");
+
+    IBTK_TIMER_START(t_constructor);
     // Determine data layout:
     Pointer<CellVariable<NDIM, double> > cc_var = var;
     Pointer<SideVariable<NDIM, double> > sc_var = var;
@@ -269,11 +282,13 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
             }
         }
     } // loop over levels
+    IBTK_TIMER_STOP(t_constructor);
 }
 
 void
 SAMRAIGhostDataAccumulator::accumulateGhostData(const int idx)
 {
+    IBTK_TIMER_START(t_accumulate_ghost_data);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     Pointer<Variable<NDIM> > var;
     var_db->mapIndexToVariable(idx, var);
@@ -327,6 +342,7 @@ SAMRAIGhostDataAccumulator::accumulateGhostData(const int idx)
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         add_or_get(level, d_gcw, d_cc_data, d_local_dof_idx, idx, d_vecs[ln], false);
     }
+    IBTK_TIMER_STOP(t_accumulate_ghost_data);
 }
 
 SAMRAIGhostDataAccumulator::~SAMRAIGhostDataAccumulator()
