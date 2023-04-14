@@ -65,8 +65,6 @@ public:
 
     /*!
      * \brief Interpolate a cell-centered field Q to a face-centered field q on a single grid patch.
-     *
-     * \TODO Revisit this function name.
      */
     void interpolateToFaceOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_interp_data,
                                   const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,

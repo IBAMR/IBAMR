@@ -51,38 +51,28 @@ public:
     /*!
      * \brief Interpolate a cell-centered field Q to a face-centered field q, possibly using the provided advection
      * velocity field.
-     *
-     * \TODO Revisit this function name.
      */
     virtual void interpolateToFaceOnHierarchy(int q_interp_idx, int Q_cell_idx, int u_idx, bool synch_cf_bdry = true);
 
     /*!
      * \brief Evaluate the face-centered flux Q to a face-centered field q using the provided advection velocity field.
-     *
-     * \TODO Revisit this function name.
      */
     virtual void
     evaluateAdvectiveFluxOnHierarchy(int q_flux_idx, int Q_cell_idx, int u_idx, const bool synch_cf_bdry = true);
 
     /*!
      * \brief Compute the advective derivative N = u * grad Q on the patch hierarchy.
-     *
-     * \TODO Revisit this function name.
      */
     virtual void
     computeAdvectiveDerivativeOnHierarchy(int N_cell_idx, int q_interp_idx, int u_idx, bool synch_cf_bdry = true);
 
     /*!
      * \brief Compute the conservative derivative N = div(Q u) on the patch hierarchy.
-     *
-     * \TODO Revisit this function name.
      */
     virtual void computeConservativeDerivativeOnHierarchy(int N_cell_idx, int q_flux_idx, bool synch_cf_bdry = true);
 
     /*!
      * \brief Interpolate a cell-centered field Q to a face-centered field q on a single grid patch.
-     *
-     * \TODO Revisit this function name.
      */
     virtual void interpolateToFaceOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_interp_data,
                                           const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
@@ -93,8 +83,6 @@ public:
      * \brief Evaluate the face-centered flux Q to a face-centered field q using the provided advection velocity field.
      *
      * A default implementation is provided that uses interpolateToFaceOnPatch to determine the advective fluxes.
-     *
-     * \TODO Revisit this function name.
      */
     virtual void evaluateAdvectiveFluxOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_flux_data,
                                               const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
