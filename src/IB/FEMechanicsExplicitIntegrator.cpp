@@ -42,6 +42,9 @@ namespace IBAMR
 
 namespace
 {
+static Timer* t_preprocess_integrate_data;
+static Timer* t_postprocess_integrate_data;
+static Timer* t_compute_lagrangian_force;
 // Version of FEMechanicsExplicitIntegrator restart file data.
 const int EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION = 0;
 } // namespace
@@ -73,6 +76,7 @@ FEMechanicsExplicitIntegrator::FEMechanicsExplicitIntegrator(const std::string& 
 void
 FEMechanicsExplicitIntegrator::preprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
+    IBAMR_TIMER_START(t_preprocess_integrate_data);
     FEMechanicsBase::preprocessIntegrateData(current_time, new_time, num_cycles);
 
     // Initialize variables.
@@ -80,11 +84,13 @@ FEMechanicsExplicitIntegrator::preprocessIntegrateData(double current_time, doub
     d_U_vecs->copy("solution", { "current", "new", "half" });
     d_F_vecs->copy("solution", { "current", "new", "half" });
     if (d_P_vecs) d_P_vecs->copy("solution", { "current", "new", "half" });
+    IBAMR_TIMER_STOP(t_preprocess_integrate_data);
 }
 
 void
 FEMechanicsExplicitIntegrator::postprocessIntegrateData(double current_time, double new_time, int num_cycles)
 {
+    IBAMR_TIMER_START(t_postprocess_integrate_data);
     std::vector<std::vector<PetscVector<double>*> > vecs{ d_X_vecs->get("new"),
                                                           d_U_vecs->get("new"),
                                                           d_F_vecs->get("new") };
@@ -97,6 +103,7 @@ FEMechanicsExplicitIntegrator::postprocessIntegrateData(double current_time, dou
     if (d_P_vecs) d_P_vecs->copy("new", { "solution", "current" });
 
     FEMechanicsBase::postprocessIntegrateData(current_time, new_time, num_cycles);
+    IBAMR_TIMER_STOP(t_postprocess_integrate_data);
 }
 
 void
@@ -655,6 +662,7 @@ FEMechanicsExplicitIntegrator::SSPRK3Step(const double current_time, const doubl
 void
 FEMechanicsExplicitIntegrator::computeLagrangianForce(const double data_time)
 {
+    IBAMR_TIMER_START(t_compute_lagrangian_force);
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
     batch_vec_ghost_update(d_X_vecs->get(data_time_str), INSERT_VALUES, SCATTER_FORWARD);
     d_F_vecs->zero("RHS Vector");
@@ -689,6 +697,7 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(const double data_time)
         }
     }
     d_F_vecs->copy("solution", { data_time_str });
+    IBAMR_TIMER_STOP(t_compute_lagrangian_force);
 }
 
 void
@@ -699,6 +708,7 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(PetscVector<double>& F_vec
                                                       const double data_time,
                                                       const unsigned int part)
 {
+    IBAMR_TIMER_START(t_compute_lagrangian_force);
     batch_vec_ghost_update({ &X_vec }, INSERT_VALUES, SCATTER_FORWARD);
     auto& F_tmp_vec = d_F_vecs->get("RHS Vector", part);
     auto& F_rhs_vec = d_F_vecs->get("tmp", part);
@@ -723,6 +733,7 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(PetscVector<double>& F_vec
         int ierr = VecAXPY(F_vec.vec(), -eta, U_vec.vec());
         IBTK_CHKERRQ(ierr);
     }
+    IBAMR_TIMER_STOP(t_compute_lagrangian_force);
 }
 
 void
@@ -821,6 +832,11 @@ FEMechanicsExplicitIntegrator::doForwardEulerStep(PetscVector<double>& X_new_vec
 void
 FEMechanicsExplicitIntegrator::commonConstructor(const Pointer<Database>& input_db)
 {
+    // Setup timers.
+    auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
+    IBAMR_DO_ONCE(t_preprocess_integrate_data = set_timer("IBAMR::FEMechanicsExplicitIntegrator::preprocessIntegrateData()");
+                  t_postprocess_integrate_data = set_timer("IBAMR::FEMechanicsExplicitIntegrator::postprocessIntegrateData()");
+                  t_compute_lagrangian_force = set_timer("IBAMR::FEMechanicsExplicitIntegrator::computeLagrangianForce()"););
     // Set some default values.
     d_rhos.resize(d_meshes.size(), 1.0);
     d_etas.resize(d_meshes.size(), 0.0);
