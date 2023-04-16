@@ -170,6 +170,11 @@ protected:
     void regridHierarchyEndSpecialized() override;
 
     /*!
+     * Perform data initialization after the entire hierarchy has been constructed.
+     */
+    void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time) override;
+
+    /*!
      * Set integer tags to "one" in cells where refinement of the given level
      * should occur according to the magnitude of the fluid vorticity.
      */

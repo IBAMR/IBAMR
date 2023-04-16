@@ -966,6 +966,31 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridHierarchyEndSpecialized(
 } // regridHierarchyEndSpecialized
 
 void
+INSVCStaggeredNonConservativeHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double init_data_time,
+                                                                                              bool initial_time)
+{
+    if (!d_rho_is_const && initial_time)
+    {
+        // These options are chosen to ensure that information is propagated
+        // conservatively from the coarse cells only
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        InterpolationTransactionComponent rho_bc_component(d_rho_scratch_idx,
+                                                           d_rho_refine_type,
+                                                           false,
+                                                           d_rho_coarsen_type,
+                                                           d_rho_bdry_extrap_type,
+                                                           false,
+                                                           d_rho_bc_coef);
+        d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+        d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
+    }
+
+    INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(init_data_time, initial_time);
+
+    return;
+} // initializeCompositeHierarchyDataSpecialized
+
+void
 INSVCStaggeredNonConservativeHierarchyIntegrator::applyGradientDetectorSpecialized(
     const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     const int level_number,
