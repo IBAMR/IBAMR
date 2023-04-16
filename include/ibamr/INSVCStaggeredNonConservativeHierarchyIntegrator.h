@@ -165,12 +165,9 @@ protected:
                                         bool allocate_data) override;
 
     /*!
-     * Reset cached hierarchy dependent data.
+     * Update the current hierarchy data after regridding.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
+    void regridHierarchyEndSpecialized() override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level

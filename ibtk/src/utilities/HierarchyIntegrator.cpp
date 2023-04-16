@@ -807,14 +807,18 @@ HierarchyIntegrator::initializeCompositeHierarchyData(double init_data_time, boo
         }
     }
 
-    // Perform specialized data initialization.
-    initializeCompositeHierarchyDataSpecialized(init_data_time, initial_time);
-
     // Initialize data associated with any child integrators.
     for (const auto& child_integrator : d_child_integrators)
     {
         child_integrator->initializeCompositeHierarchyData(init_data_time, initial_time);
     }
+
+    // Perform specialized data initialization.
+    // Note that we do to this after the child integrators have called their own
+    // initializeCompositeHierarchyData(), as this routine can potentially depend
+    // upon functionality from the child integrators.
+    initializeCompositeHierarchyDataSpecialized(init_data_time, initial_time);
+
     return;
 } // initializeCompositeHierarchyData
 

@@ -178,12 +178,14 @@ protected:
                                         bool allocate_data) override;
 
     /*!
-     * Reset cached hierarchy dependent data.
+     * Prepare the current hierarchy for regridding. Here we deallocate the mass integrator.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
+    void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Update the current hierarchy data after regridding. Here we initialize the mass integrator.
+     */
+    void regridHierarchyEndSpecialized() override;
 
     /*!
      * Set integer tags to "one" in cells where refinement of the given level

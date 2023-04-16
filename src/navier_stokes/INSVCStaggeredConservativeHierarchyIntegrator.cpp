@@ -926,17 +926,21 @@ INSVCStaggeredConservativeHierarchyIntegrator::initializeLevelDataSpecialized(
 } // initializeLevelDataSpecialized
 
 void
-INSVCStaggeredConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int coarsest_level,
-    const int finest_level)
+INSVCStaggeredConservativeHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
-    INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-        base_hierarchy, coarsest_level, finest_level);
-    d_rho_p_integrator->setHierarchyMathOps(d_hier_math_ops);
-    d_rho_p_integrator->initializeTimeIntegrator(base_hierarchy);
+    INSVCStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized();
+    d_rho_p_integrator->deallocateTimeIntegrator();
     return;
-} // resetHierarchyConfigurationSpecialized
+} // regridHierarchyBeginSpecialized
+
+void
+INSVCStaggeredConservativeHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
+    INSVCStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized();
+    d_rho_p_integrator->setHierarchyMathOps(d_hier_math_ops);
+    d_rho_p_integrator->initializeTimeIntegrator(d_hierarchy);
+    return;
+} // regridHierarchyEndSpecialized
 
 void
 INSVCStaggeredConservativeHierarchyIntegrator::applyGradientDetectorSpecialized(

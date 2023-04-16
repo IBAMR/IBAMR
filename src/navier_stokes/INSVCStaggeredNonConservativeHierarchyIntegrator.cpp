@@ -942,19 +942,15 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeLevelDataSpecialized
 } // initializeLevelDataSpecialized
 
 void
-INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
-    const int coarsest_level,
-    const int finest_level)
+INSVCStaggeredNonConservativeHierarchyIntegrator::regridHierarchyEndSpecialized()
 {
-    INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-        base_hierarchy, coarsest_level, finest_level);
+    INSVCStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized();
 
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     if (!d_rho_is_const)
     {
         // These options are chosen to ensure that information is propagated
         // conservatively from the coarse cells only
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent rho_bc_component(d_rho_scratch_idx,
                                                            d_rho_refine_type,
                                                            false,
@@ -965,8 +961,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetHierarchyConfigurationSpe
         d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
         d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
     }
+
     return;
-} // resetHierarchyConfigurationSpecialized
+} // regridHierarchyEndSpecialized
 
 void
 INSVCStaggeredNonConservativeHierarchyIntegrator::applyGradientDetectorSpecialized(
