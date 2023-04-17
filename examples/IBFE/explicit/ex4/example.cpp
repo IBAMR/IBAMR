@@ -188,10 +188,26 @@ print_markers(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             LMarkerUtilities::collectMarkerPositionsOnPatch(X_mark_current, mark_current_data);
 
             TBOX_ASSERT(NDIM * num_patch_marks == X_mark_current.size());
-            out << "      Marker locations =\n";
-            for (unsigned int i = 0; i < num_patch_marks; ++i)
+            const auto &box = mark_current_data->getGhostBox();
+            out << "      ghost width = " << mark_current_data->getGhostCellWidth() << std::endl;
+            BoxIterator<NDIM> box_it(box);
+            while (box_it)
             {
-                out << "        " << X_mark_current[NDIM * i + 0] << ", " << X_mark_current[NDIM * i + 1] << std::endl;
+                const auto *item = mark_current_data->getItem(*box_it);
+                if (item)
+                {
+                    const LSet<LMarker> &markers = *item;
+                    if (!markers.empty())
+                    {
+                        out << "      Markers (as stored by SAMRAI) on index " << *box_it << " =\n";
+                        for (const auto &ptr : markers.getDataSet())
+                        {
+                            out << "        " << ptr->getPosition()[0] << ", " << ptr->getPosition()[1] << std::endl;
+                        }
+                    }
+                }
+
+                box_it++;
             }
         }
     }
@@ -506,11 +522,13 @@ main(int argc, char* argv[])
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
                 if (NDIM < 3)
                 {
+#if 0
                     IBTK::BoxPartitioner partitioner(*patch_hierarchy, position_system);
                     partitioner.writePartitioning("patch-part-" + std::to_string(iteration_num) + ".txt");
                     // Write partitioning data from libMesh.
                     IBTK::write_node_partitioning("node-part-" + std::to_string(iteration_num) + ".txt",
                                                   position_system);
+#endif
                 }
             }
             if (uses_exodus)

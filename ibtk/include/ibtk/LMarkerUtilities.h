@@ -129,13 +129,13 @@ public:
                                          SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level);
 
     /*!
-     * Prune marker data in refined regions of the specified levels of the patch
-     * hierarchy.
+     * Remove markers in @p level_number which are covered by a patch existing in <tt>level_number + 1</tt>.
+     *
+     * @note This function is typically called after refining markers.
      */
     static void pruneInvalidMarkers(int mark_idx,
                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                    int coarsest_ln = invalid_level_number,
-                                    int finest_ln = invalid_level_number);
+                                    int level_number);
 
     /*!
      * Count the markers.
@@ -145,7 +145,6 @@ public:
                                      int coarsest_ln = invalid_level_number,
                                      int finest_ln = invalid_level_number);
 
-private:
     /*!
      * \brief Default constructor.
      *
@@ -183,31 +182,36 @@ private:
     /*!
      * Determine the number of markers in a patch.
      */
-    static unsigned int countMarkersOnPatch(SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+    static unsigned int countMarkersOnPatch(SAMRAI::tbox::Pointer<LMarkerSetData> mark_data,
+                                            const bool ghosted = false);
 
     /*!
      * Collect marker positions into a single vector.
      */
     static void collectMarkerPositionsOnPatch(std::vector<double>& X_mark,
-                                              SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+                                              SAMRAI::tbox::Pointer<LMarkerSetData> mark_data,
+                                              const bool ghosted = false);
 
     /*!
      * Reset marker positions from a single vector.
      */
     static void resetMarkerPositionsOnPatch(const std::vector<double>& X_mark,
-                                            SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+                                            SAMRAI::tbox::Pointer<LMarkerSetData> mark_data,
+                                            const bool ghosted = false);
 
     /*!
      * Collect marker velocities into a single vector.
      */
     static void collectMarkerVelocitiesOnPatch(std::vector<double>& U_mark,
-                                               SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+                                               SAMRAI::tbox::Pointer<LMarkerSetData> mark_data,
+                                               const bool ghosted = false);
 
     /*!
      * Reset marker velocities from a single vector.
      */
     static void resetMarkerVelocitiesOnPatch(const std::vector<double>& U_mark,
-                                             SAMRAI::tbox::Pointer<LMarkerSetData> mark_data);
+                                             SAMRAI::tbox::Pointer<LMarkerSetData> mark_data,
+                                             const bool ghosted = false);
 
     /*!
      * Prevent markers from leaving the computational domain through physical

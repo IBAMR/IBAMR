@@ -252,6 +252,29 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                                d_ins_hier_integrator->getNewContext());
     if (d_mark_var)
     {
+        // This won't work because we need to advance data within some ghost region of width 1.
+        //
+        // One possibility:
+        // 1. Update ghost data prior to timestepping.
+        // 2. Timestep.
+        // 3. After timestepping, everything is stored by the correct cell so save it as 'new'
+
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            Pointer<RefineAlgorithm<NDIM> > mark_level_fill_alg = new RefineAlgorithm<NDIM>();
+            mark_level_fill_alg->registerRefine(d_mark_scratch_idx, d_mark_current_idx, d_mark_scratch_idx, nullptr);
+            mark_level_fill_alg->createSchedule(level, nullptr)->fillData(0.0);
+        }
+
+        d_hier_velocity_data_ops->copyData(d_u_idx, u_current_idx);
+        for (const auto& u_ghost_fill_sched : getGhostfillRefineSchedules(d_object_name + "::u"))
+        {
+            if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(new_time);
+        }
+        LMarkerUtilities::eulerStep(d_mark_scratch_idx, d_mark_new_idx, d_u_idx, dt, "PIECEWISE_LINEAR", d_hierarchy);
+
+#if 0
         // do a prediction step based on the current velocity. Since dt can
         // change between timesteps we have to always do both the predictor
         // and corrector.
@@ -269,6 +292,7 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
             if (u_ghost_fill_sched) u_ghost_fill_sched->fillData(new_time);
         }
         LMarkerUtilities::trapezoidalStep(d_mark_current_idx, d_mark_new_idx, d_u_idx, dt, "PIECEWISE_LINEAR", d_hierarchy);
+#endif
     }
 
     const int coarsest_ln = 0;
@@ -359,7 +383,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
-    const IntVector<NDIM> ghosts = 1;
 
     d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
     d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, ib_ghosts);
@@ -387,6 +410,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     if (!d_mark_file_name.empty())
     {
         d_mark_var = new LMarkerSetVariable(d_object_name + "::markers");
+        const IntVector<NDIM> ghosts = 2; // TODO
         registerVariable(d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx, d_mark_var, ghosts);
     }
 
@@ -608,8 +632,6 @@ IBHierarchyIntegrator::regridHierarchyEndSpecialized()
     // levels of the patch hierarchy.
     if (d_mark_var)
     {
-        LMarkerUtilities::pruneInvalidMarkers(d_mark_current_idx, d_hierarchy);
-
         for (int ln = 1; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             LMarkerUtilities::initializeMarkersOnLevel(d_mark_current_idx, {}, d_hierarchy, ln, false, nullptr);
@@ -708,9 +730,9 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
 #endif
 
     // Initialize marker data
-    if (d_mark_var)
+    if (d_mark_var && initial_time)
     {
-        plog << d_object_name + "::initializeLevelDataSpecialized(): setting up markers on levels" << std::endl;
+        plog << d_object_name + "::initializeLevelDataSpecialized(): setting up markers on level " << level_number << std::endl;
         LMarkerUtilities::initializeMarkersOnLevel(
             d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
     }

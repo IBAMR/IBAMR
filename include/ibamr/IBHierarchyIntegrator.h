@@ -407,10 +407,12 @@ protected:
     /*
      * Lagrangian marker data structures.
      */
+public:
     SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
     int d_mark_current_idx = IBTK::invalid_index, d_mark_new_idx = IBTK::invalid_index, d_mark_scratch_idx = IBTK::invalid_index;
     std::vector<IBTK::Point> d_mark_init_posns;
     std::string d_mark_file_name;
+protected:
 
     /*!
      * \brief A class to communicate the Eulerian body force computed by class
