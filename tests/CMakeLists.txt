@@ -268,6 +268,7 @@ SETUP_2D(IBTK samraidatacache_01.cpp)
 SETUP_2D(IBTK secondary_hierarchy_01.cpp)
 SETUP_2D(IBTK vc_viscous_solver.cpp)
 SETUP_2D(IBTK helmholtz.cpp)
+SETUP_2D(IBTK marker_points_01.cpp)
 
 IF(${IBAMR_HAVE_LIBMESH})
   SETUP_3D(IBTK bounding_boxes_01.cpp)

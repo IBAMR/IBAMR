@@ -1,0 +1,13 @@
+before pruning:
+  index = 3 X = 0.6, 0.7 V = 3, 2 contains = 1
+  index = 4 X = 0.2, 0.8 V = 4, 3 contains = 0
+  index = 5 X = 0.1, 0.2 V = 5, 4 contains = 1
+  index = 8 X = 0.9, 0.9 V = 8, 7 contains = 1
+  index = 9 X = 1, 0.25 V = 9, 8 contains = 0
+after pruning:
+  index = 3 X = 0.6, 0.7 V = 3, 2
+  index = 5 X = 0.1, 0.2 V = 5, 4
+  index = 8 X = 0.9, 0.9 V = 8, 7
+pruned points:
+  4
+  9
