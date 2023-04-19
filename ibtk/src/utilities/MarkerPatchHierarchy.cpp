@@ -15,9 +15,13 @@
 
 #include <ibtk/IBTK_MPI.h>
 #include <ibtk/IndexUtilities.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/MarkerPatchHierarchy.h>
 
 #include <CartesianGridGeometry.h>
+#include <mpi.h>
+
+#include <numeric>
 
 #include <ibtk/app_namespaces.h>
 
@@ -76,6 +80,52 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level
     TBOX_ASSERT(coarse_size == combined_size);
 
     return result;
+}
+
+void
+do_interpolation(const int data_idx,
+                 const std::vector<double>& positions,
+                 const Pointer<Patch<NDIM> > patch,
+                 const std::string& kernel,
+                 std::vector<double>& velocities)
+{
+    Pointer<PatchData<NDIM> > data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM, double> > cc_data = data;
+    Pointer<SideData<NDIM, double> > sc_data = data;
+    const bool is_cc_data = cc_data;
+    const bool is_sc_data = sc_data;
+    // Only interpolate things within 1 cell of the patch box - we aren't
+    // guaranteed to have more ghost data than that
+    Box<NDIM> interp_box = data->getBox();
+    interp_box.grow(1);
+#ifndef NDEBUG
+    std::fill(velocities.begin(), velocities.end(), std::numeric_limits<double>::signaling_NaN());
+#endif
+
+    if (is_cc_data)
+    {
+        LEInteractor::interpolate(velocities, NDIM, positions, NDIM, cc_data, patch, interp_box, kernel);
+    }
+    else if (is_sc_data)
+    {
+        LEInteractor::interpolate(velocities, NDIM, positions, NDIM, sc_data, patch, interp_box, kernel);
+    }
+    else
+    {
+        TBOX_ERROR("not implemented");
+    }
+#ifndef NDEBUG
+    for (const double& v : velocities)
+    {
+        if (std::isnan(v))
+        {
+            TBOX_ERROR(
+                "One of the marker points inside a patch did not have its velocity set by interpolation. "
+                "This most likely means that the marker point is outside of its assigned patch, which "
+                "should not happen at this point.");
+        }
+    }
+#endif
 }
 } // namespace
 MarkerPatch::MarkerPatch(const Box<NDIM>& patch_box,
@@ -264,6 +314,178 @@ MarkerPatchHierarchy::getMarkerPatch(const int ln, const int local_patch_num) co
     TBOX_ASSERT(ln < static_cast<int>(d_marker_patches.size()));
     TBOX_ASSERT(local_patch_num < static_cast<int>(d_marker_patches[ln].size()));
     return d_marker_patches[ln][local_patch_num];
+}
+
+void
+MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
+{
+    const auto rank = IBTK_MPI::getRank();
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        unsigned int local_patch_num = 0;
+        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        {
+            if (rank == current_level->getMappingForPatch(p))
+            {
+                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
+                do_interpolation(u_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
+                ++local_patch_num;
+            }
+        }
+    }
+}
+
+void
+MarkerPatchHierarchy::midpointStep(const double dt,
+                                   const int u_half_idx,
+                                   const int u_new_idx,
+                                   const std::string& kernel)
+{
+    const auto rank = IBTK_MPI::getRank();
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        unsigned int local_patch_num = 0;
+        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        {
+            if (rank == current_level->getMappingForPatch(p))
+            {
+                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
+                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+
+                // 1. Do a forward Euler step:
+                std::vector<double> half_positions(marker_patch.d_positions);
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    half_positions[i] = marker_patch.d_positions[i] + 0.5 * dt * marker_patch.d_velocities[i];
+                }
+
+                // 2. Interpolate midpoint velocity:
+                std::vector<double> half_velocities(marker_patch.d_velocities);
+                do_interpolation(u_half_idx, half_positions, patch, kernel, half_velocities);
+
+                // 3. Do a midpoint step:
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    marker_patch.d_positions[i] += dt * half_velocities[i];
+                }
+
+                // 4. Interpolate the velocity at the new time:
+                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
+
+                ++local_patch_num;
+            }
+        }
+    }
+
+    pruneAndRedistribute();
+}
+
+void
+MarkerPatchHierarchy::pruneAndRedistribute()
+{
+    // 1. Collect all markers which have left their respective patches:
+    std::vector<int> moved_indices;
+    std::vector<double> moved_positions;
+    std::vector<double> moved_velocities;
+    for (auto& level_marker_patches : d_marker_patches)
+    {
+        for (auto& marker_patch : level_marker_patches)
+        {
+            const auto moved_markers = marker_patch.prune();
+            const auto n_moved_markers = std::get<0>(moved_markers).size();
+            moved_indices.reserve(moved_indices.size() + n_moved_markers);
+            moved_positions.reserve(moved_indices.size() + n_moved_markers);
+            moved_velocities.reserve(moved_indices.size() + n_moved_markers);
+            for (unsigned int k = 0; k < std::get<0>(moved_markers).size(); ++k)
+            {
+                moved_indices.push_back(std::get<0>(moved_markers)[k]);
+                // TODO: we should handle periodic shifts here! Also - what do
+                // we want to do for particles which travel outside the
+                // physical domain?
+                moved_positions.insert(moved_positions.end(),
+                                       std::get<1>(moved_markers)[k].data(),
+                                       std::get<1>(moved_markers)[k].data() + NDIM);
+                moved_velocities.insert(moved_velocities.end(),
+                                        std::get<2>(moved_markers)[k].data(),
+                                        std::get<2>(moved_markers)[k].data() + NDIM);
+            }
+        }
+    }
+
+    // 2. Communicate data so all processors have all errant marker points:
+    const auto rank = IBTK_MPI::getRank();
+    const auto n_procs = IBTK_MPI::getNodes();
+    const int num_indices = moved_indices.size();
+    std::vector<int> counts(n_procs);
+    int ierr = MPI_Allgather(&num_indices, 1, MPI_INT, counts.data(), 1, MPI_INT, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    // We want the first entry to be zero and the last to be the sum
+    std::vector<int> offsets(n_procs + 1);
+    std::partial_sum(counts.begin(), counts.end(), offsets.begin() + 1);
+    std::vector<int> vector_counts;
+    std::vector<int> vector_offsets;
+    for (int r = 0; r < n_procs; ++r)
+    {
+        vector_counts.push_back(counts[r] * NDIM);
+        vector_offsets.push_back(offsets[r] * NDIM);
+    }
+    const auto num_total_indices = offsets.back();
+
+    std::vector<int> new_indices(num_total_indices);
+    std::vector<double> new_positions(num_total_indices * NDIM);
+    std::vector<double> new_velocities(num_total_indices * NDIM);
+    ierr = MPI_Allgatherv(moved_indices.data(),
+                          num_indices,
+                          MPI_INT,
+                          new_indices.data(),
+                          counts.data(),
+                          offsets.data(),
+                          MPI_INT,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    ierr = MPI_Allgatherv(moved_positions.data(),
+                          num_indices * NDIM,
+                          MPI_DOUBLE,
+                          new_positions.data(),
+                          vector_counts.data(),
+                          vector_offsets.data(),
+                          MPI_DOUBLE,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    ierr = MPI_Allgatherv(moved_velocities.data(),
+                          num_indices * NDIM,
+                          MPI_DOUBLE,
+                          new_velocities.data(),
+                          vector_counts.data(),
+                          vector_offsets.data(),
+                          MPI_DOUBLE,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+
+    // 3. Emplace the marker points.
+    unsigned int num_emplaced_markers = 0;
+    std::vector<bool> marker_emplaced(new_indices.size());
+
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        for (MarkerPatch& marker_patch : d_marker_patches[ln])
+        {
+            for (unsigned int k = 0; k < new_indices.size(); ++k)
+            {
+                IBTK::Point position(&new_positions[k * NDIM]);
+                IBTK::Vector velocity(&new_velocities[k * NDIM]);
+                if (!marker_emplaced[k] && marker_patch.contains(position))
+                {
+                    marker_emplaced[k] = true;
+                    marker_patch.insert(new_indices[k], position, velocity);
+                    ++num_emplaced_markers;
+                }
+            }
+        }
+    }
 }
 
 } // namespace IBTK

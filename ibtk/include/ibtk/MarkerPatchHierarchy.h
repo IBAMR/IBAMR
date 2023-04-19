@@ -147,12 +147,36 @@ public:
      * Save the present state of the object to a SAMRAI database.
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
-
-    virtual
-    void advance(const double dt, const int u_idx);
 #endif
 
+    /**
+     * Set marker velocities with some given velocity field @p u_idx and
+     * interaction kernel @p kernel.
+     */
+    void setVelocities(const int u_idx, const std::string& kernel);
+
+    /**
+     * Advect the markers by some given velocity field at half and new times
+     * and the interaction kernel @p kernel.
+     *
+     * This time integrator is the 'explicit midpoint' method, which uses the
+     * present velocity to predict a midpoint position and then uses the
+     * midpoint velocity velocity to compute the new position.
+     *
+     * @note This function assumes that @p u_half_idx and @p u_new_idx have
+     * up-to-date ghost values with sufficient width for @p kernel. See
+     * LEInteractor for kernel names.
+     */
+    void midpointStep(const double dt, const int u_half_idx, const int u_new_idx, const std::string& kernel);
+
 protected:
+    /**
+     * Redistribute any particles which may have moved outside of their
+     * patches, taking into account physical boundaries (markers are not
+     * allowed to escape) and periodicity.
+     */
+    void pruneAndRedistribute();
+
     std::string d_object_name;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;

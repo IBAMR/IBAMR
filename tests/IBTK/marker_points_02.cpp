@@ -12,12 +12,19 @@
 // ---------------------------------------------------------------------
 
 #include <ibtk/AppInitializer.h>
+#include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/IBTKInit.h>
+#include <ibtk/LEInteractor.h>
 #include <ibtk/MarkerPatchHierarchy.h>
+#include <ibtk/ibtk_utilities.h>
+#include <ibtk/muParserCartGridFunction.h>
+#include <ibtk/muParserRobinBcCoefs.h>
 
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
+#include <HierarchySideDataOpsReal.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
@@ -57,9 +64,29 @@ main(int argc, char** argv)
     const auto rank = IBTK_MPI::getRank();
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
     Pointer<Database> input_db = app_initializer->getInputDatabase();
+    Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : nullptr;
+    const bool set_velocity = test_db && test_db->getBoolWithDefault("set_velocity", false);
+    const bool timestep = test_db && test_db->getBoolWithDefault("timestep", false);
+
+    int u_idx = IBTK::invalid_index;
+    Pointer<hier::Variable<NDIM> > u_var;
+    if (set_velocity)
+    {
+        // Set up the velocity on the Cartesian grid:
+        u_var = new pdat::SideVariable<NDIM, double>("u_sc", 1);
+        const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
+        const int ghost_width = LEInteractor::getMinimumGhostWidth(kernel);
+
+        auto* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+        tbox::Pointer<hier::VariableContext> ctx = var_db->getContext("context");
+        u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVector<NDIM>(ghost_width));
+    }
 
     Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
         "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+    grid_geometry->addSpatialRefineOperator(new CartesianCellDoubleLinearRefine<NDIM>());
+    grid_geometry->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
+
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
     Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
         "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
@@ -93,10 +120,70 @@ main(int argc, char** argv)
         for (unsigned int j = 0; j < 10; ++j)
         {
             positions.emplace_back(double(i) / 10.0, double(j) / 10.0);
-            velocities.emplace_back(double(i) * 10 + j, 0.0);
+            if (set_velocity)
+                velocities.emplace_back(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+            else
+                velocities.emplace_back(double(i) * 10 + j, 0.0);
         }
     }
     MarkerPatchHierarchy marker_points("MarkerPoints", patch_hierarchy, positions, velocities);
+
+    if (set_velocity)
+    {
+        // Set up the velocity on the Cartesian grid:
+        const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
+
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(u_idx, 0.0);
+        }
+        HierarchySideDataOpsReal<NDIM, double> ops(patch_hierarchy);
+        ops.setToScalar(u_idx, std::numeric_limits<double>::quiet_NaN(), false);
+        IBTK::muParserCartGridFunction u_fcn("u", test_db->getDatabase("u"), patch_hierarchy->getGridGeometry());
+        u_fcn.setDataOnPatchHierarchy(u_idx, u_var, patch_hierarchy, 0.0);
+
+        using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        std::vector<ITC> ghost_cell_components(1);
+        std::vector<std::unique_ptr<muParserRobinBcCoefs> > u_bc_coefs;
+        std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coef_ptrs;
+
+        if (test_db->keyExists("UBcCoefs_0"))
+        {
+            for (int d = 0; d < NDIM; ++d)
+            {
+                u_bc_coefs.emplace_back(new muParserRobinBcCoefs("u_bc_coefs_" + std::to_string(d),
+                                                                 test_db->getDatabase("UBcCoefs_" + std::to_string(d)),
+                                                                 grid_geometry));
+                u_bc_coef_ptrs.push_back(u_bc_coefs.back().get());
+            }
+        }
+
+        ghost_cell_components[0] = ITC(
+            u_idx, "SPECIALIZED_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, u_bc_coef_ptrs, nullptr);
+        IBTK::HierarchyGhostCellInterpolation ghost_fill_op;
+        ghost_fill_op.initializeOperatorState(ghost_cell_components, patch_hierarchy);
+        ghost_fill_op.fillData(/*time*/ 0.0);
+
+        // interpolate:
+        marker_points.setVelocities(u_idx, kernel);
+    }
+
+    if (timestep)
+    {
+        // Pick CFL = 1.0 to simulate the largest marker point travel possible:
+        Pointer<PatchLevel<NDIM> > finest_level =
+            patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+        const double dx = get_min_patch_dx(*finest_level);
+        const double U_MAX = 1.0;
+        const double dt = dx / U_MAX;
+
+        const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
+        for (int i = 0; i < 10; ++i)
+        {
+            marker_points.midpointStep(dt, u_idx, u_idx, kernel);
+        }
+    }
 
     std::ostringstream out;
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
