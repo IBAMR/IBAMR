@@ -28,6 +28,7 @@
 #include <CartesianGridGeometry.h>
 #include <PatchHierarchy.h>
 
+#include <deque>
 #include <iosfwd>
 #include <string>
 #include <vector>
@@ -111,6 +112,52 @@ private:
     // Allow MarkerPatchHierarchy to directly manipulate the arrays owned by this
     // class for timestepping.
     friend class MarkerPatchHierarchy;
+};
+
+/*!
+ * Implementation of marker points, also sometimes called particles. These
+ * points are akin to IB points except they are simply advected by the fluid
+ * and do not apply any force upon it.
+ */
+class MarkerPatchHierarchy : public SAMRAI::tbox::DescribedClass
+{
+public:
+    /**
+     * Constructor.
+     *
+     * @p positions and @p velocities should be the positions and velocities
+     * of the markers. These vectors should contain the complete (i.e., the
+     * same on each processor) list of markers and are implicitly numbered by
+     * their array index.
+     */
+    MarkerPatchHierarchy(const std::string& name,
+                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                         const EigenAlignedVector<IBTK::Point>& positions,
+                         const EigenAlignedVector<IBTK::Point>& velocities);
+
+    void reinit(const EigenAlignedVector<IBTK::Point>& positions, const EigenAlignedVector<IBTK::Point>& velocities);
+
+    /**
+     * Get the MarkerPatch associated with the present level and local patch number.
+     */
+    const MarkerPatch& getMarkerPatch(const int ln, const int local_patch_num) const;
+
+#if 0
+    /**
+     * Save the present state of the object to a SAMRAI database.
+     */
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    virtual
+    void advance(const double dt, const int u_idx);
+#endif
+
+protected:
+    std::string d_object_name;
+
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+
+    std::vector<std::deque<MarkerPatch> > d_marker_patches;
 };
 } // namespace IBTK
 

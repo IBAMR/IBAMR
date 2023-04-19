@@ -25,6 +25,59 @@
 
 namespace IBTK
 {
+namespace
+{
+std::vector<std::vector<hier::Box<NDIM> > >
+compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level,
+                                   const Pointer<BasePatchLevel<NDIM> >& f_level)
+{
+    const Pointer<PatchLevel<NDIM> > coarse_level = c_level;
+    const Pointer<PatchLevel<NDIM> > fine_level = f_level;
+    TBOX_ASSERT(coarse_level);
+    TBOX_ASSERT(fine_level);
+    TBOX_ASSERT(coarse_level->getLevelNumber() + 1 == fine_level->getLevelNumber());
+
+    const IntVector<NDIM> ratio = fine_level->getRatioToCoarserLevel();
+
+    // Get all (including those not on this processor) fine-level boxes:
+    BoxList<NDIM> finer_box_list;
+    long combined_size = 0;
+    for (int i = 0; i < fine_level->getNumberOfPatches(); ++i)
+    {
+        Box<NDIM> patch_box = fine_level->getBoxForPatch(i);
+        patch_box.coarsen(ratio);
+        combined_size += patch_box.size();
+        finer_box_list.addItem(patch_box);
+    }
+    finer_box_list.simplifyBoxes();
+
+    // Remove said boxes from each coarse-level patch:
+    const auto rank = IBTK_MPI::getRank();
+    std::vector<std::vector<Box<NDIM> > > result;
+    long coarse_size = 0;
+    for (int i = 0; i < coarse_level->getNumberOfPatches(); ++i)
+    {
+        BoxList<NDIM> coarse_box_list;
+        coarse_box_list.addItem(coarse_level->getBoxForPatch(i));
+        coarse_size += coarse_box_list.getFirstItem().size();
+        coarse_box_list.removeIntersections(finer_box_list);
+
+        const bool patch_is_local = rank == coarse_level->getMappingForPatch(i);
+        if (patch_is_local) result.emplace_back();
+        typename tbox::List<Box<NDIM> >::Iterator it(coarse_box_list);
+        while (it)
+        {
+            if (patch_is_local) result.back().push_back(*it);
+            combined_size += (*it).size();
+            it++;
+        }
+    }
+
+    TBOX_ASSERT(coarse_size == combined_size);
+
+    return result;
+}
+} // namespace
 MarkerPatch::MarkerPatch(const Box<NDIM>& patch_box,
                          const std::vector<Box<NDIM> >& nonoverlapping_patch_boxes,
                          const Pointer<CartesianGridGeometry<NDIM> >& grid_geom,
@@ -121,4 +174,96 @@ MarkerPatch::size() const
 #endif
     return d_indices.size();
 }
+
+MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
+                                           Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                           const EigenAlignedVector<IBTK::Point>& positions,
+                                           const EigenAlignedVector<IBTK::Point>& velocities)
+    : d_object_name(name), d_hierarchy(patch_hierarchy)
+{
+    reinit(positions, velocities);
+}
+
+void
+MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
+                             const EigenAlignedVector<IBTK::Point>& velocities)
+{
+    TBOX_ASSERT(positions.size() == velocities.size());
+    const auto rank = IBTK_MPI::getRank();
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    unsigned int num_emplaced_markers = 0;
+    std::vector<bool> marker_emplaced(positions.size());
+
+    auto insert_markers = [&](MarkerPatch& marker_patch) {
+        for (unsigned int k = 0; k < positions.size(); ++k)
+        {
+            if (!marker_emplaced[k] && marker_patch.contains(positions[k]))
+            {
+                marker_emplaced[k] = true;
+                marker_patch.insert(k, positions[k], velocities[k]);
+                ++num_emplaced_markers;
+            }
+        }
+    };
+
+    d_marker_patches.clear();
+    d_marker_patches.resize(d_hierarchy->getFinestLevelNumber() + 1);
+
+    // Assign particles to levels in a top-down way:
+    //
+    // 1. Compute a set of boxes for the patch which do not intersect any
+    //    finer patch level.
+    // 2. Emplace particles in the vector corresponding to the local index of a
+    //    patch in the present level.
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM> > finer_level =
+            ln == d_hierarchy->getFinestLevelNumber() ? nullptr : d_hierarchy->getPatchLevel(ln + 1);
+        const IntVector<NDIM>& ratio = current_level->getRatio();
+
+        // If there is no finer level then each Patch has exactly one
+        // nonoverlapping box
+        if (!finer_level)
+        {
+            for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
+            {
+                if (rank == current_level->getMappingForPatch(i))
+                {
+                    const Box<NDIM> box = current_level->getPatch(i)->getBox();
+                    d_marker_patches[ln].emplace_back(box, std::vector<Box<NDIM> >{ box }, grid_geom, ratio);
+                    insert_markers(d_marker_patches[ln].back());
+                }
+            }
+        }
+        // otherwise we need to subtract off the boxes on the finer level first.
+        else
+        {
+            const std::vector<std::vector<hier::Box<NDIM> > > nonoverlapping_patch_boxes =
+                compute_nonoverlapping_patch_boxes(current_level, finer_level);
+            unsigned int local_num = 0;
+            for (int i = 0; i < current_level->getNumberOfPatches(); ++i)
+            {
+                if (rank == current_level->getMappingForPatch(i))
+                {
+                    d_marker_patches[ln].emplace_back(
+                        current_level->getPatch(i)->getBox(), nonoverlapping_patch_boxes[local_num], grid_geom, ratio);
+                    insert_markers(d_marker_patches[ln].back());
+                    ++local_num;
+                }
+            }
+        }
+    }
+    num_emplaced_markers = IBTK_MPI::sumReduction(num_emplaced_markers);
+    TBOX_ASSERT(num_emplaced_markers == positions.size());
+}
+
+const MarkerPatch&
+MarkerPatchHierarchy::getMarkerPatch(const int ln, const int local_patch_num) const
+{
+    TBOX_ASSERT(ln < static_cast<int>(d_marker_patches.size()));
+    TBOX_ASSERT(local_patch_num < static_cast<int>(d_marker_patches[ln].size()));
+    return d_marker_patches[ln][local_patch_num];
+}
+
 } // namespace IBTK
