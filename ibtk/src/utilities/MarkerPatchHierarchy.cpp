@@ -229,7 +229,14 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
                                            Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                            const EigenAlignedVector<IBTK::Point>& positions,
                                            const EigenAlignedVector<IBTK::Point>& velocities)
-    : d_object_name(name), d_num_markers(positions.size()), d_hierarchy(patch_hierarchy)
+    : d_object_name(name),
+      d_num_markers(positions.size()),
+      d_hierarchy(patch_hierarchy),
+      d_markers_outside_domain(
+          Box<NDIM>(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max()),
+          std::vector<Box<NDIM> >{ Box<NDIM>(std::numeric_limits<int>::lowest(), std::numeric_limits<int>::max()) },
+          d_hierarchy->getGridGeometry(),
+          IntVector<NDIM>(1))
 {
     reinit(positions, velocities);
 }
@@ -304,6 +311,36 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
             }
         }
     }
+
+    // Handle any markers which may be outside of the domain:
+    if (rank == 0)
+    {
+        d_markers_outside_domain.d_indices.resize(0);
+        d_markers_outside_domain.d_positions.resize(0);
+        d_markers_outside_domain.d_velocities.resize(0);
+
+        const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+        const double* const domain_x_lower = grid_geom->getXLower();
+        const double* const domain_x_upper = grid_geom->getXUpper();
+        for (unsigned int k = 0; k < positions.size(); ++k)
+        {
+            const auto& position = positions[k];
+            bool point_outside_domain = false;
+            for (unsigned int d = 0; d < NDIM; ++d)
+                point_outside_domain =
+                    point_outside_domain || ((position[d] < domain_x_lower[d]) || (domain_x_upper[d] <= position[d]));
+
+            if (point_outside_domain)
+            {
+                marker_emplaced[k] = true;
+                IBTK::Vector v;
+                v.fill(0);
+                d_markers_outside_domain.insert(k, position, v);
+                ++num_emplaced_markers;
+            }
+        }
+    }
+
     num_emplaced_markers = IBTK_MPI::sumReduction(num_emplaced_markers);
     TBOX_ASSERT(num_emplaced_markers == positions.size());
 }
@@ -512,10 +549,37 @@ MarkerPatchHierarchy::pruneAndRedistribute()
 
     // 5. Account for points outside the computational domain which could not
     //    re-enter the domain via a periodic boundary.
+    if (rank == 0)
+    {
+        for (unsigned int k = 0; k < new_indices.size(); ++k)
+        {
+            if (!marker_emplaced[k])
+            {
+                IBTK::Point position(&new_positions[k * NDIM]);
+                // Set external velocities to zero
+                IBTK::Vector velocity;
+                velocity.fill(0.0);
+                bool point_outside_domain = false;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                    point_outside_domain = point_outside_domain ||
+                                           ((position[d] < domain_x_lower[d]) || (domain_x_upper[d] <= position[d]));
+
+                if (point_outside_domain)
+                {
+                    marker_emplaced[k] = true;
+                    d_markers_outside_domain.insert(new_indices[k], position, velocity);
+                    ++num_emplaced_markers;
+                }
+            }
+        }
+    }
 
     // 6. Check that we accounted for all points.
 #ifndef NDEBUG
-    std::vector<int> marker_check(getNumberOfMarkers());
+    ierr = MPI_Allreduce(MPI_IN_PLACE, &num_emplaced_markers, 1, MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(num_emplaced_markers == new_indices.size());
+
+    std::vector<unsigned int> marker_check(getNumberOfMarkers());
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
         for (MarkerPatch& marker_patch : d_marker_patches[ln])
@@ -528,8 +592,17 @@ MarkerPatchHierarchy::pruneAndRedistribute()
             }
         }
     }
+    if (rank == 0)
+    {
+        for (unsigned int k = 0; k < d_markers_outside_domain.size(); ++k)
+        {
+            const auto index = std::get<0>(d_markers_outside_domain[k]);
+            TBOX_ASSERT(index < long(getNumberOfMarkers()));
+            marker_check[index] += 1;
+        }
+    }
     ierr = MPI_Allreduce(
-        MPI_IN_PLACE, marker_check.data(), marker_check.size(), MPI_INT, MPI_SUM, IBTK_MPI::getCommunicator());
+        MPI_IN_PLACE, marker_check.data(), marker_check.size(), MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
     for (unsigned int i = 0; i < getNumberOfMarkers(); ++i)
     {
         if (marker_check[i] != 1)

@@ -48,7 +48,6 @@ public:
     /*!
      * Constructor.
      *
-     *
      * @param[in] patch_box Box, defined over the patch's level's index space,
      *            for the present Patch.
      * @param[in] nonoverlapping_patch_boxes The subset of @p patch_box which is
@@ -189,6 +188,8 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
 
     std::vector<std::deque<MarkerPatch> > d_marker_patches;
+
+    MarkerPatch d_markers_outside_domain;
 };
 } // namespace IBTK
 
