@@ -25,8 +25,6 @@
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/IBTK_MPI.h"
-#include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LMarkerUtilities.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 
@@ -345,12 +343,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
         d_q_idx = invalid_index;
     }
 
-    if (!d_mark_file_name.empty())
-    {
-        d_mark_var = new LMarkerSetVariable(d_object_name + "::markers");
-        registerVariable(d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx, d_mark_var, ghosts);
-    }
-
     // Initialize the fluid solver.
     if (d_ib_method_ops->hasFluidSources())
     {
@@ -456,12 +448,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     registerGhostfillRefineAlgorithm(
         d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, std::move(refine_patch_bdry_op));
 
-    // Read in initial marker positions.
-    if (!d_mark_file_name.empty())
-    {
-        LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_file_name, hierarchy->getGridGeometry());
-    }
-
     // Setup the tag buffer.
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = d_tag_buffer.size();
@@ -541,12 +527,6 @@ IBHierarchyIntegrator::regridHierarchyBeginSpecialized()
     // the distribution of patches.
     updateWorkloadEstimates();
 
-    // Collect the marker particles to level 0 of the patch hierarchy.
-    if (d_mark_var)
-    {
-        LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
-    }
-
     // Before regridding, begin Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
@@ -560,13 +540,6 @@ IBHierarchyIntegrator::regridHierarchyEndSpecialized()
     // After regridding, finish Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
     d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
-
-    // Prune any duplicated markers located in the "invalid" regions of coarser
-    // levels of the patch hierarchy.
-    if (d_mark_var)
-    {
-        LMarkerUtilities::pruneInvalidMarkers(d_mark_current_idx, d_hierarchy);
-    }
 
     if (d_enable_logging)
     {
@@ -658,13 +631,6 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-
-    // Initialize marker data
-    if (d_mark_var)
-    {
-        LMarkerUtilities::initializeMarkersOnLevel(
-            d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
-    }
 
     // Initialize IB data.
     d_ib_method_ops->initializeLevelData(
@@ -759,7 +725,6 @@ IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart
         d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("time_stepping_type"));
     else if (db->keyExists("timestepping_type"))
         d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("timestepping_type"));
-    if (db->keyExists("marker_file_name")) d_mark_file_name = db->getString("marker_file_name");
     return;
 } // getFromInput
 

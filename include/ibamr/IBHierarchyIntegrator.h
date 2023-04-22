@@ -26,7 +26,6 @@
 
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/HierarchyIntegrator.h"
-#include "ibtk/LMarkerSetVariable.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "CellVariable.h"
@@ -415,14 +414,6 @@ protected:
      * Body force functions.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_body_force_fcn;
-
-    /*
-     * Lagrangian marker data structures.
-     */
-    SAMRAI::tbox::Pointer<IBTK::LMarkerSetVariable> d_mark_var;
-    int d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx;
-    std::vector<IBTK::Point> d_mark_init_posns;
-    std::string d_mark_file_name;
 
     /*!
      * \brief A class to communicate the Eulerian body force computed by class
