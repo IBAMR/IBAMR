@@ -196,16 +196,9 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_u_idx, current_time);
-        level->allocatePatchData(d_f_idx, current_time);
-        if (d_f_current_idx != invalid_index) level->allocatePatchData(d_f_current_idx, current_time);
-        if (d_ib_method_ops->hasFluidSources())
-        {
-            level->allocatePatchData(d_p_idx, current_time);
-            level->allocatePatchData(d_q_idx, current_time);
-        }
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
+        level->allocatePatchData(d_ib_data, current_time);
     }
 
     // Determine whether there has been a time step size change.
@@ -248,14 +241,7 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_u_idx);
-        level->deallocatePatchData(d_f_idx);
-        if (d_f_current_idx != invalid_index) level->deallocatePatchData(d_f_current_idx);
-        if (d_ib_method_ops->hasFluidSources())
-        {
-            level->deallocatePatchData(d_p_idx);
-            level->deallocatePatchData(d_q_idx);
-        }
+        level->deallocatePatchData(d_ib_data);
     }
 
     // Determine the CFL number.
@@ -334,25 +320,24 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
-    const IntVector<NDIM> ghosts = 1;
+    const IntVector<NDIM> ib_ghosts(d_ib_method_ops->getMinimumGhostCellWidth());
+    const IntVector<NDIM> ghosts(1);
 
     d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
+    d_ib_data.setFlag(d_u_idx);
     d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, ib_ghosts);
-    switch (d_time_stepping_type)
+    d_ib_data.setFlag(d_f_idx);
+    if (d_time_stepping_type == FORWARD_EULER || d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
-    case FORWARD_EULER:
-    case TRAPEZOIDAL_RULE:
         d_f_current_idx = var_db->registerClonedPatchDataIndex(d_f_var, d_f_idx);
-        break;
-    default:
-        d_f_current_idx = invalid_index;
+        d_ib_data.setFlag(d_f_current_idx);
     }
-
     if (d_ib_method_ops->hasFluidSources())
     {
         d_p_idx = var_db->registerVariableAndContext(d_p_var, d_ib_context, ib_ghosts);
+        d_ib_data.setFlag(d_p_idx);
         d_q_idx = var_db->registerVariableAndContext(d_q_var, d_ib_context, ib_ghosts);
+        d_ib_data.setFlag(d_q_idx);
     }
     else
     {

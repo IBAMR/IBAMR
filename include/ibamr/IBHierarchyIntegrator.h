@@ -382,8 +382,20 @@ protected:
      * Eulerian variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var, d_p_var, d_f_var, d_q_var;
-    int d_u_idx, d_p_idx, d_f_idx, d_f_current_idx, d_q_idx;
+    int d_u_idx = IBTK::invalid_index, d_p_idx = IBTK::invalid_index, d_f_idx = IBTK::invalid_index,
+        d_f_current_idx = IBTK::invalid_index, d_q_idx = IBTK::invalid_index;
+
+    /*!
+     * Context containing all patch data indices relevant to IB operations.
+     */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_ib_context;
+
+    /*!
+     * ComponentSelector corresponding to d_ib_context. Also contains patch data
+     * indices for relevant cloned indices (which, as they are clones, cannot be
+     * placed in the Context).
+     */
+    SAMRAI::hier::ComponentSelector d_ib_data;
 
     /*
      * Refine and coarsen algorithm data.
@@ -614,4 +626,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBHierarchyIntegrator
+#endif // #ifndef included_IBAMR_IBHierarchyIntegrator
