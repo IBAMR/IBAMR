@@ -20,9 +20,12 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/IBHierarchyIntegrator.h"
+#include <ibamr/IBHierarchyIntegrator.h>
 
-#include "tbox/Pointer.h"
+#include <ibtk/MarkerPatchHierarchy.h>
+#include <ibtk/ibtk_utilities.h>
+
+#include <tbox/Pointer.h>
 
 #include <string>
 
@@ -56,6 +59,12 @@ namespace IBAMR
 /*!
  * \brief Class IBExplicitHierarchyIntegrator is an implementation of a formally
  * second-order accurate, semi-implicit version of the immersed boundary method.
+ *
+ * <h2>Working with marker points</h2>
+ * - Specify the IB kernel in the input database as IB_delta_fcn
+ * - Specify the output directory for H5Part data in the input database as
+     viz_dump_dirname
+ * - Set marker point positions with setMarkerPoints()
  */
 class IBExplicitHierarchyIntegrator : public IBHierarchyIntegrator
 {
@@ -111,11 +120,71 @@ public:
     initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
+    /*!
+     * Set the marker points stored by this class. This call is collective and
+     * @p markers should be the same set of marker points on all processors.
+     */
+    virtual void setMarkers(const IBTK::EigenAlignedVector<IBTK::Point>& markers);
+
+    /*!
+     * Collect all marker point positions and velocities. This call is
+     * collective.
+     */
+    virtual std::pair<IBTK::EigenAlignedVector<IBTK::Point>, IBTK::EigenAlignedVector<IBTK::Vector> >
+    collectAllMarkers() const;
+
+    /*!
+     * Write marker plot data. This function does nothing if there are no markers.
+     */
+    virtual void writeMarkerPlotData(const int time_step,
+                                     const double simulation_time = 0.0,
+                                     const bool save_velocites = true) const;
+
 protected:
+    /*!
+     * Perform necessary data movement, workload estimation, and logging prior
+     * to regridding.
+     */
+    void regridHierarchyBeginSpecialized() override;
+
+    /*!
+     * Perform necessary data movement and logging after regridding.
+     */
+    void regridHierarchyEndSpecialized() override;
+
     /*!
      * Write out specialized object state to the given database.
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
+     * Velocity patch index at the halfway point with IB ghosting. Used only for
+     * advecting marker points.
+     */
+    int d_u_half_idx = IBTK::invalid_index;
+
+    /*!
+     * Implementation of marker points.
+     */
+    SAMRAI::tbox::Pointer<IBTK::MarkerPatchHierarchy> d_markers;
+
+    /*!
+     * Boolean indicating whether or not we have set marker point velocities.
+     * Since markers can be added at any time (including before the hierarchy is
+     * set up) we must check at the beginning of each time step to see if we
+     * need to call MarkerPatchHierarchy::setVelocities().
+     */
+    bool d_marker_velocities_set = false;
+
+    /*!
+     * IB kernel used for interpolation with d_marker_points.
+     */
+    std::string d_marker_kernel;
+
+    /*!
+     * Directory for marker point output data.
+     */
+    std::string d_viz_dump_dirname;
 
 private:
     /*!
@@ -150,9 +219,24 @@ private:
      * members.
      */
     void getFromRestart();
+
+    /*!
+     * Structure describing data temporarily stored by this class during a regrid.
+     */
+    struct RegridData
+    {
+        IBTK::EigenAlignedVector<IBTK::Point> d_marker_positions;
+
+        IBTK::EigenAlignedVector<IBTK::Vector> d_marker_velocities;
+    };
+
+    /*!
+     * Pointer to data only stored during regrids.
+     */
+    SAMRAI::tbox::Pointer<RegridData> d_regrid_temporary_data;
 };
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBExplicitHierarchyIntegrator
+#endif // #ifndef included_IBAMR_IBExplicitHierarchyIntegrator
