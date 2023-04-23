@@ -82,6 +82,62 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level
     return result;
 }
 
+std::tuple<std::vector<double>, std::vector<double>, std::vector<int> >
+collect_markers(const std::vector<double>& local_positions,
+                const std::vector<double>& local_velocities,
+                const std::vector<int> &local_indices)
+{
+    const auto n_procs = IBTK_MPI::getNodes();
+    const int num_indices = local_indices.size();
+    std::vector<int> counts(n_procs);
+    int ierr = MPI_Allgather(&num_indices, 1, MPI_INT, counts.data(), 1, MPI_INT, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    // We want the first entry to be zero and the last to be the sum
+    std::vector<int> offsets(n_procs + 1);
+    std::partial_sum(counts.begin(), counts.end(), offsets.begin() + 1);
+    std::vector<int> vector_counts;
+    std::vector<int> vector_offsets;
+    for (int r = 0; r < n_procs; ++r)
+    {
+        vector_counts.push_back(counts[r] * NDIM);
+        vector_offsets.push_back(offsets[r] * NDIM);
+    }
+    const auto num_total_indices = offsets.back();
+
+    std::vector<int> new_indices(num_total_indices);
+    std::vector<double> new_positions(num_total_indices * NDIM);
+    std::vector<double> new_velocities(num_total_indices * NDIM);
+    ierr = MPI_Allgatherv(local_indices.data(),
+                          num_indices,
+                          MPI_INT,
+                          new_indices.data(),
+                          counts.data(),
+                          offsets.data(),
+                          MPI_INT,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    ierr = MPI_Allgatherv(local_positions.data(),
+                          num_indices * NDIM,
+                          MPI_DOUBLE,
+                          new_positions.data(),
+                          vector_counts.data(),
+                          vector_offsets.data(),
+                          MPI_DOUBLE,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    ierr = MPI_Allgatherv(local_velocities.data(),
+                          num_indices * NDIM,
+                          MPI_DOUBLE,
+                          new_velocities.data(),
+                          vector_counts.data(),
+                          vector_offsets.data(),
+                          MPI_DOUBLE,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+
+    return std::make_tuple(std::move(new_positions), std::move(new_velocities), std::move(new_indices));
+}
+
 void
 do_interpolation(const int data_idx,
                  const std::vector<double>& positions,
@@ -429,10 +485,12 @@ MarkerPatchHierarchy::midpointStep(const double dt,
 void
 MarkerPatchHierarchy::pruneAndRedistribute()
 {
+    const auto rank = IBTK_MPI::getRank();
+
     // 1. Collect all markers which have left their respective patches:
-    std::vector<int> moved_indices;
     std::vector<double> moved_positions;
     std::vector<double> moved_velocities;
+    std::vector<int> moved_indices;
     for (auto& level_marker_patches : d_marker_patches)
     {
         for (auto& marker_patch : level_marker_patches)
@@ -456,54 +514,11 @@ MarkerPatchHierarchy::pruneAndRedistribute()
     }
 
     // 2. Communicate data so all processors have all errant marker points:
-    const auto rank = IBTK_MPI::getRank();
-    const auto n_procs = IBTK_MPI::getNodes();
-    const int num_indices = moved_indices.size();
-    std::vector<int> counts(n_procs);
-    int ierr = MPI_Allgather(&num_indices, 1, MPI_INT, counts.data(), 1, MPI_INT, IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(ierr == 0);
-    // We want the first entry to be zero and the last to be the sum
-    std::vector<int> offsets(n_procs + 1);
-    std::partial_sum(counts.begin(), counts.end(), offsets.begin() + 1);
-    std::vector<int> vector_counts;
-    std::vector<int> vector_offsets;
-    for (int r = 0; r < n_procs; ++r)
-    {
-        vector_counts.push_back(counts[r] * NDIM);
-        vector_offsets.push_back(offsets[r] * NDIM);
-    }
-    const auto num_total_indices = offsets.back();
-
-    std::vector<int> new_indices(num_total_indices);
-    std::vector<double> new_positions(num_total_indices * NDIM);
-    std::vector<double> new_velocities(num_total_indices * NDIM);
-    ierr = MPI_Allgatherv(moved_indices.data(),
-                          num_indices,
-                          MPI_INT,
-                          new_indices.data(),
-                          counts.data(),
-                          offsets.data(),
-                          MPI_INT,
-                          IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(ierr == 0);
-    ierr = MPI_Allgatherv(moved_positions.data(),
-                          num_indices * NDIM,
-                          MPI_DOUBLE,
-                          new_positions.data(),
-                          vector_counts.data(),
-                          vector_offsets.data(),
-                          MPI_DOUBLE,
-                          IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(ierr == 0);
-    ierr = MPI_Allgatherv(moved_velocities.data(),
-                          num_indices * NDIM,
-                          MPI_DOUBLE,
-                          new_velocities.data(),
-                          vector_counts.data(),
-                          vector_offsets.data(),
-                          MPI_DOUBLE,
-                          IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(ierr == 0);
+    std::vector<double> new_positions;
+    std::vector<double> new_velocities;
+    std::vector<int> new_indices;
+    std::tie(new_positions, new_velocities, new_indices) =
+        collect_markers(moved_positions, moved_velocities, moved_indices);
 
     // 3. Apply periodicity constraints.
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -576,8 +591,12 @@ MarkerPatchHierarchy::pruneAndRedistribute()
 
     // 6. Check that we accounted for all points.
 #ifndef NDEBUG
-    ierr = MPI_Allreduce(MPI_IN_PLACE, &num_emplaced_markers, 1, MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(num_emplaced_markers == new_indices.size());
+    {
+        const int ierr =
+            MPI_Allreduce(MPI_IN_PLACE, &num_emplaced_markers, 1, MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == 0);
+        TBOX_ASSERT(num_emplaced_markers == new_indices.size());
+    }
 
     std::vector<unsigned int> marker_check(getNumberOfMarkers());
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
@@ -601,8 +620,11 @@ MarkerPatchHierarchy::pruneAndRedistribute()
             marker_check[index] += 1;
         }
     }
-    ierr = MPI_Allreduce(
-        MPI_IN_PLACE, marker_check.data(), marker_check.size(), MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+    {
+        const int ierr = MPI_Allreduce(
+            MPI_IN_PLACE, marker_check.data(), marker_check.size(), MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == 0);
+    }
     for (unsigned int i = 0; i < getNumberOfMarkers(); ++i)
     {
         if (marker_check[i] != 1)
