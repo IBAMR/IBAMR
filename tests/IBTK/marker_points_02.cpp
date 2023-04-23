@@ -68,6 +68,7 @@ main(int argc, char** argv)
     Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : nullptr;
     const bool set_velocity = test_db && test_db->getBoolWithDefault("set_velocity", false);
     const bool timestep = test_db && test_db->getBoolWithDefault("timestep", false);
+    const bool collective_print = test_db && test_db->getBoolWithDefault("collective_print", false);
 
     int u_idx = IBTK::invalid_index;
     Pointer<hier::Variable<NDIM> > u_var;
@@ -131,9 +132,6 @@ main(int argc, char** argv)
 
     if (set_velocity)
     {
-        // Set up the velocity on the Cartesian grid:
-        const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
-
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -168,6 +166,7 @@ main(int argc, char** argv)
         ghost_fill_op.fillData(/*time*/ 0.0);
 
         // interpolate:
+        const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
         marker_points.setVelocities(u_idx, kernel);
     }
 
@@ -188,22 +187,43 @@ main(int argc, char** argv)
         }
     }
 
-    std::ostringstream out;
-    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    if (collective_print)
     {
-        int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = patch_hierarchy->getPatchLevel(ln);
-        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        auto all_points = marker_points.collectAllMarkers();
+        for (unsigned int k = 0; k < marker_points.getNumberOfMarkers(); ++k)
         {
-            if (rank == current_level->getMappingForPatch(p))
+            plog << "X = ";
+            for (unsigned int d = 0; d < NDIM - 1; ++d)
             {
-                out << "level = " << ln << " patch = " << current_level->getPatch(p)->getBox() << std::endl;
-                test(marker_points.getMarkerPatch(ln, local_patch_num), out);
-
-                ++local_patch_num;
+                plog << all_points.first[k][d] << ", ";
             }
+            plog << all_points.first[k][NDIM - 1] << " V = ";
+            for (unsigned int d = 0; d < NDIM - 1; ++d)
+            {
+                plog << all_points.second[k][d] << ", ";
+            }
+            plog << all_points.second[k][NDIM - 1] << '\n';
         }
     }
+    else
+    {
+        std::ostringstream out;
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            int local_patch_num = 0;
+            Pointer<PatchLevel<NDIM> > current_level = patch_hierarchy->getPatchLevel(ln);
+            for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+            {
+                if (rank == current_level->getMappingForPatch(p))
+                {
+                    out << "level = " << ln << " patch = " << current_level->getPatch(p)->getBox() << std::endl;
+                    test(marker_points.getMarkerPatch(ln, local_patch_num), out);
 
-    print_strings_on_plog_0(out.str());
+                    ++local_patch_num;
+                }
+            }
+        }
+
+        print_strings_on_plog_0(out.str());
+    }
 }

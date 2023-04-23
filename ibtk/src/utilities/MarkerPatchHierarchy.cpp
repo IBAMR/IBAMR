@@ -415,6 +415,57 @@ MarkerPatchHierarchy::getNumberOfMarkers() const
     return d_num_markers;
 }
 
+std::pair<EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> >
+MarkerPatchHierarchy::collectAllMarkers() const
+{
+    std::vector<double> local_positions;
+    std::vector<double> local_velocities;
+    std::vector<int> local_indices;
+
+    auto extract_markers = [&](const MarkerPatch& marker_patch)
+    {
+        for (unsigned int k = 0; k < marker_patch.size(); ++k)
+        {
+            const auto marker_point = marker_patch[k];
+            local_indices.push_back(std::get<0>(marker_point));
+            local_positions.insert(
+                local_positions.end(), std::get<1>(marker_point).data(), std::get<1>(marker_point).data() + NDIM);
+            local_velocities.insert(
+                local_velocities.end(), std::get<2>(marker_point).data(), std::get<2>(marker_point).data() + NDIM);
+        }
+    };
+
+    for (const auto& level_marker_patches : d_marker_patches)
+    {
+        for (const auto& marker_patch : level_marker_patches)
+        {
+            extract_markers(marker_patch);
+        }
+    }
+    if (IBTK_MPI::getRank() == 0)
+    {
+        extract_markers(d_markers_outside_domain);
+    }
+
+    auto result = collect_markers(local_positions, local_velocities, local_indices);
+    const auto& global_positions = std::get<0>(result);
+    const auto& global_velocities = std::get<1>(result);
+    const auto& global_indices = std::get<2>(result);
+    TBOX_ASSERT(global_positions.size() == getNumberOfMarkers() * NDIM);
+    TBOX_ASSERT(global_velocities.size() == getNumberOfMarkers() * NDIM);
+    TBOX_ASSERT(global_indices.size() == getNumberOfMarkers());
+
+    EigenAlignedVector<IBTK::Point> positions(getNumberOfMarkers());
+    EigenAlignedVector<IBTK::Vector> velocities(getNumberOfMarkers());
+    for (unsigned int k = 0; k < getNumberOfMarkers(); ++k)
+    {
+        positions[global_indices[k]] = IBTK::Point(&global_positions[k * NDIM]);
+        velocities[global_indices[k]] = IBTK::Vector(&global_velocities[k * NDIM]);
+    }
+
+    return std::make_pair(std::move(positions), std::move(velocities));
+}
+
 void
 MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
 {

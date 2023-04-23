@@ -146,6 +146,13 @@ public:
      */
     std::size_t getNumberOfMarkers() const;
 
+    /**
+     * Collect all markers on all processors in a single array.
+     */
+    std::pair<EigenAlignedVector<IBTK::Point>,
+              EigenAlignedVector<IBTK::Vector>>
+    collectAllMarkers() const;
+
 #if 0
     /**
      * Save the present state of the object to a SAMRAI database.
