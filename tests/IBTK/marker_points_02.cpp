@@ -22,6 +22,8 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <tbox/RestartManager.h>
+
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
@@ -69,6 +71,7 @@ main(int argc, char** argv)
     const bool set_velocity = test_db && test_db->getBoolWithDefault("set_velocity", false);
     const bool timestep = test_db && test_db->getBoolWithDefault("timestep", false);
     const bool collective_print = test_db && test_db->getBoolWithDefault("collective_print", false);
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
 
     int u_idx = IBTK::invalid_index;
     Pointer<hier::Variable<NDIM> > u_var;
@@ -117,15 +120,18 @@ main(int argc, char** argv)
     // Set up marker points.
     EigenAlignedVector<IBTK::Point> positions;
     EigenAlignedVector<IBTK::Vector> velocities;
-    for (unsigned int i = 0; i < 10; ++i)
+    if (!from_restart)
     {
-        for (unsigned int j = 0; j < 10; ++j)
+        for (unsigned int i = 0; i < 10; ++i)
         {
-            positions.emplace_back(double(i) / 10.0, double(j) / 10.0);
-            if (set_velocity)
-                velocities.emplace_back(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-            else
-                velocities.emplace_back(double(i) * 10 + j, 0.0);
+            for (unsigned int j = 0; j < 10; ++j)
+            {
+                positions.emplace_back(double(i) / 10.0, double(j) / 10.0);
+                if (set_velocity)
+                    velocities.emplace_back(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+                else
+                    velocities.emplace_back(double(i) * 10 + j, 0.0);
+            }
         }
     }
     MarkerPatchHierarchy marker_points("MarkerPoints", patch_hierarchy, positions, velocities);
@@ -181,9 +187,15 @@ main(int argc, char** argv)
 
         const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
         const int num_timesteps = test_db->getIntegerWithDefault("num_timesteps", 10);
-        for (int i = 0; i < num_timesteps; ++i)
+        const int starting_step = from_restart ? app_initializer->getRestartRestoreNumber() + 1 : 0;
+        for (int i = starting_step; i < num_timesteps; ++i)
         {
             marker_points.midpointStep(dt, u_idx, u_idx, kernel);
+
+            if (app_initializer->dumpRestartData() && (i % app_initializer->getRestartDumpInterval() == 0))
+            {
+                RestartManager::getManager()->writeRestartFile(app_initializer->getRestartDumpDirectory(), i);
+            }
         }
     }
 

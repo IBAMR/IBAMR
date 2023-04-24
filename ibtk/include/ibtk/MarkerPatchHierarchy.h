@@ -118,7 +118,7 @@ private:
  * points are akin to IB points except they are simply advected by the fluid
  * and do not apply any force upon it.
  */
-class MarkerPatchHierarchy : public SAMRAI::tbox::DescribedClass
+class MarkerPatchHierarchy : public SAMRAI::tbox::Serializable
 {
 public:
     /**
@@ -132,9 +132,27 @@ public:
     MarkerPatchHierarchy(const std::string& name,
                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
                          const EigenAlignedVector<IBTK::Point>& positions,
-                         const EigenAlignedVector<IBTK::Point>& velocities);
+                         const EigenAlignedVector<IBTK::Point>& velocities,
+                         const bool register_for_restart = true);
+    
+    virtual ~MarkerPatchHierarchy();
 
     void reinit(const EigenAlignedVector<IBTK::Point>& positions, const EigenAlignedVector<IBTK::Point>& velocities);
+
+    /**
+     * Save the present state of the object (i.e., the marker point data) to a
+     * SAMRAI database.
+     *
+     * @note Since the constructor requires a pointer to the PatchHierarchy this
+     * function relies on the constructor to set up all geometric and index
+     * space data and only saves the markers themselves.
+     */
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /**
+     * Load the marker points from a database.
+     */
+    virtual void getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /**
      * Get the MarkerPatch associated with the present level and local patch number.
@@ -149,16 +167,7 @@ public:
     /**
      * Collect all markers on all processors in a single array.
      */
-    std::pair<EigenAlignedVector<IBTK::Point>,
-              EigenAlignedVector<IBTK::Vector>>
-    collectAllMarkers() const;
-
-#if 0
-    /**
-     * Save the present state of the object to a SAMRAI database.
-     */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
-#endif
+    std::pair<EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> > collectAllMarkers() const;
 
     /**
      * Set marker velocities with some given velocity field @p u_idx and
@@ -189,6 +198,8 @@ protected:
     void pruneAndRedistribute();
 
     std::string d_object_name;
+
+    bool d_register_for_restart;
 
     std::size_t d_num_markers;
 

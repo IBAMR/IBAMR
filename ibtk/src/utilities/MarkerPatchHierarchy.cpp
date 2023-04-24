@@ -18,9 +18,12 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/MarkerPatchHierarchy.h>
 
+#include <tbox/RestartManager.h>
+
 #include <CartesianGridGeometry.h>
 #include <mpi.h>
 
+#include <limits>
 #include <numeric>
 
 #include <ibtk/app_namespaces.h>
@@ -85,7 +88,7 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level
 std::tuple<std::vector<double>, std::vector<double>, std::vector<int> >
 collect_markers(const std::vector<double>& local_positions,
                 const std::vector<double>& local_velocities,
-                const std::vector<int> &local_indices)
+                const std::vector<int>& local_indices)
 {
     const auto n_procs = IBTK_MPI::getNodes();
     const int num_indices = local_indices.size();
@@ -184,6 +187,7 @@ do_interpolation(const int data_idx,
 #endif
 }
 } // namespace
+
 MarkerPatch::MarkerPatch(const Box<NDIM>& patch_box,
                          const std::vector<Box<NDIM> >& nonoverlapping_patch_boxes,
                          const Pointer<CartesianGridGeometry<NDIM> >& grid_geom,
@@ -284,8 +288,10 @@ MarkerPatch::size() const
 MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
                                            Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                            const EigenAlignedVector<IBTK::Point>& positions,
-                                           const EigenAlignedVector<IBTK::Point>& velocities)
+                                           const EigenAlignedVector<IBTK::Point>& velocities,
+                                           const bool register_for_restart)
     : d_object_name(name),
+      d_register_for_restart(register_for_restart),
       d_num_markers(positions.size()),
       d_hierarchy(patch_hierarchy),
       d_markers_outside_domain(
@@ -295,6 +301,26 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
           IntVector<NDIM>(1))
 {
     reinit(positions, velocities);
+
+    if (register_for_restart)
+    {
+        auto* restart_manager = RestartManager::getManager();
+        restart_manager->registerRestartItem(d_object_name, this);
+        if (restart_manager->isFromRestart())
+        {
+            auto restart_db = restart_manager->getRootDatabase()->getDatabase(d_object_name);
+            TBOX_ASSERT(restart_db);
+            getFromDatabase(restart_db);
+        }
+    }
+}
+
+MarkerPatchHierarchy::~MarkerPatchHierarchy()
+{
+    if (d_register_for_restart)
+    {
+        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+    }
 }
 
 void
@@ -307,7 +333,8 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
     unsigned int num_emplaced_markers = 0;
     std::vector<bool> marker_emplaced(positions.size());
 
-    auto insert_markers = [&](MarkerPatch& marker_patch) {
+    auto insert_markers = [&](MarkerPatch& marker_patch)
+    {
         for (unsigned int k = 0; k < positions.size(); ++k)
         {
             if (!marker_emplaced[k] && marker_patch.contains(positions[k]))
@@ -399,6 +426,87 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
 
     num_emplaced_markers = IBTK_MPI::sumReduction(num_emplaced_markers);
     TBOX_ASSERT(num_emplaced_markers == positions.size());
+}
+
+void
+MarkerPatchHierarchy::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+{
+    TBOX_ASSERT(d_num_markers <= std::numeric_limits<int>::max());
+    db->putInteger("num_markers", int(d_num_markers));
+
+    auto put_marker_patch = [&](const MarkerPatch& marker_patch, const std::string& prefix)
+    {
+        db->putInteger(prefix + "_num_markers", static_cast<int>(marker_patch.d_indices.size()));
+        // Yet another SAMRAI bug: we are not allowed to store zero-length
+        // arrays in the database so we have to special-case that here ourselves
+        if (marker_patch.d_indices.size() > 0)
+        {
+            db->putIntegerArray(
+                prefix + "_indices", marker_patch.d_indices.data(), static_cast<int>(marker_patch.d_indices.size()));
+            db->putDoubleArray(prefix + "_positions",
+                               marker_patch.d_positions.data(),
+                               static_cast<int>(marker_patch.d_positions.size()));
+            db->putDoubleArray(prefix + "_velocities",
+                               marker_patch.d_velocities.data(),
+                               static_cast<int>(marker_patch.d_velocities.size()));
+        }
+    };
+
+    int marker_patch_num = 0;
+    for (const auto& level_marker_patches : d_marker_patches)
+    {
+        for (const auto& marker_patch : level_marker_patches)
+        {
+            const std::string key_prefix = "patch_" + std::to_string(marker_patch_num);
+            put_marker_patch(marker_patch, key_prefix);
+            ++marker_patch_num;
+        }
+    }
+
+    put_marker_patch(d_markers_outside_domain, "outside_domain_");
+}
+
+void
+MarkerPatchHierarchy::getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+{
+    d_num_markers = static_cast<std::size_t>(db->getInteger("num_markers"));
+
+    int num_loaded_markers = 0;
+    auto get_marker_patch = [&](MarkerPatch& marker_patch, const std::string& prefix)
+    {
+        const auto num_markers = static_cast<std::size_t>(db->getInteger(prefix + "_num_markers"));
+        // No arrays are saved if num_markers == 0
+        if (num_markers > 0)
+        {
+            marker_patch.d_indices.resize(num_markers);
+            marker_patch.d_positions.resize(num_markers * NDIM);
+            marker_patch.d_velocities.resize(num_markers * NDIM);
+            db->getIntegerArray(
+                prefix + "_indices", marker_patch.d_indices.data(), static_cast<int>(marker_patch.d_indices.size()));
+            db->getDoubleArray(prefix + "_positions",
+                               marker_patch.d_positions.data(),
+                               static_cast<int>(marker_patch.d_positions.size()));
+            db->getDoubleArray(prefix + "_velocities",
+                               marker_patch.d_velocities.data(),
+                               static_cast<int>(marker_patch.d_velocities.size()));
+        }
+        num_loaded_markers += static_cast<int>(num_markers);
+    };
+
+    int marker_patch_num = 0;
+    for (auto& level_marker_patches : d_marker_patches)
+    {
+        for (auto& marker_patch : level_marker_patches)
+        {
+            const std::string key_prefix = "patch_" + std::to_string(marker_patch_num);
+            get_marker_patch(marker_patch, key_prefix);
+            ++marker_patch_num;
+        }
+    }
+
+    get_marker_patch(d_markers_outside_domain, "outside_domain_");
+    num_loaded_markers = IBTK_MPI::sumReduction(num_loaded_markers);
+    TBOX_ASSERT(num_loaded_markers == static_cast<int>(d_num_markers));
 }
 
 const MarkerPatch&
