@@ -149,6 +149,18 @@ public:
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
+    /*!
+     * Write the particles to a single H5Part file.
+     *
+     * H5Part is a simple HDF5 schema for particles which VisIt understands. You
+     * should either use the file suffix .h5part or use the VisIt H5Part reader
+     * explicitly. To visualize, select 'Mesh -> particles'.
+     */
+    void writeH5Part(const std::string& filename,
+                     const int time_step,
+                     const double simulation_time,
+                     const bool write_velocities = true) const;
+
     /**
      * Load the marker points from a database.
      */

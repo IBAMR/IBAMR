@@ -22,6 +22,7 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <tbox/HDFDatabase.h>
 #include <tbox/RestartManager.h>
 
 #include <BergerRigoutsos.h>
@@ -71,6 +72,7 @@ main(int argc, char** argv)
     const bool set_velocity = test_db && test_db->getBoolWithDefault("set_velocity", false);
     const bool timestep = test_db && test_db->getBoolWithDefault("timestep", false);
     const bool collective_print = test_db && test_db->getBoolWithDefault("collective_print", false);
+    const bool test_h5part = test_db && test_db->getBoolWithDefault("test_h5part", false);
     const bool from_restart = RestartManager::getManager()->isFromRestart();
 
     int u_idx = IBTK::invalid_index;
@@ -190,11 +192,68 @@ main(int argc, char** argv)
         const int starting_step = from_restart ? app_initializer->getRestartRestoreNumber() + 1 : 0;
         for (int i = starting_step; i < num_timesteps; ++i)
         {
+            if (test_h5part)
+            {
+                marker_points.writeH5Part("markers-" + std::to_string(i) + ".h5part", i, dt * i);
+            }
             marker_points.midpointStep(dt, u_idx, u_idx, kernel);
 
             if (app_initializer->dumpRestartData() && (i % app_initializer->getRestartDumpInterval() == 0))
             {
                 RestartManager::getManager()->writeRestartFile(app_initializer->getRestartDumpDirectory(), i);
+            }
+        }
+        if (test_h5part)
+        {
+            const std::string last_file_name = "markers-" + std::to_string(num_timesteps) + ".h5part";
+            marker_points.writeH5Part(last_file_name, num_timesteps, dt * num_timesteps);
+
+            auto pair = marker_points.collectAllMarkers();
+            if (IBTK_MPI::getRank() == 0)
+            {
+                // load that file again and make sure it contains what we think it does
+                HDFDatabase hdf5_database("hdf5_test_database_0");
+                const bool can_load = hdf5_database.open(last_file_name);
+                TBOX_ASSERT(can_load);
+                plog << "Keys in " << last_file_name << " top database:\n";
+                const auto all_keys_0 = hdf5_database.getAllKeys();
+                for (int i = 0; i < all_keys_0.size(); ++i) plog << all_keys_0[i] << '\n';
+
+                Pointer<Database> step_db = hdf5_database.getDatabase("Step#0");
+                plog << "Keys in " << last_file_name << " Step#0 database:\n";
+                const auto all_keys_1 = step_db->getAllKeys();
+                for (int i = 0; i < all_keys_1.size(); ++i) plog << all_keys_1[i] << '\n';
+
+                std::vector<double> xs(marker_points.getNumberOfMarkers());
+                std::vector<double> ys(marker_points.getNumberOfMarkers());
+                std::vector<double> pxs(marker_points.getNumberOfMarkers());
+                std::vector<double> pys(marker_points.getNumberOfMarkers());
+#if NDIM == 3
+                std::vector<double> zs(marker_points.getNumberOfMarkers());
+                std::vector<double> pzs(marker_points.getNumberOfMarkers());
+#endif
+                step_db->getDoubleArray("x", xs.data(), marker_points.getNumberOfMarkers());
+                step_db->getDoubleArray("y", ys.data(), marker_points.getNumberOfMarkers());
+                step_db->getDoubleArray("px", pxs.data(), marker_points.getNumberOfMarkers());
+                step_db->getDoubleArray("py", pys.data(), marker_points.getNumberOfMarkers());
+#if NDIM == 3
+                step_db->getDoubleArray("z", zs.data(), marker_points.getNumberOfMarkers());
+                step_db->getDoubleArray("pz", pzs.data(), marker_points.getNumberOfMarkers());
+#endif
+                for (unsigned int k = 0; k < marker_points.getNumberOfMarkers(); ++k)
+                {
+                    IBTK::Point X, V;
+                    X[0] = xs[k];
+                    V[0] = pxs[k];
+                    X[1] = ys[k];
+                    V[1] = pys[k];
+#if NDIM == 3
+                    X[2] = zs[k];
+                    V[2] = pzs[k];
+#endif
+                    TBOX_ASSERT(X == pair.first[k]);
+                    TBOX_ASSERT(V == pair.second[k]);
+                }
             }
         }
     }

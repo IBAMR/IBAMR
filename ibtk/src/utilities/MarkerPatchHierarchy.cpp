@@ -18,6 +18,7 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/MarkerPatchHierarchy.h>
 
+#include <hdf5.h>
 #include <tbox/RestartManager.h>
 
 #include <CartesianGridGeometry.h>
@@ -464,6 +465,143 @@ MarkerPatchHierarchy::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database
     }
 
     put_marker_patch(d_markers_outside_domain, "outside_domain_");
+}
+
+void
+MarkerPatchHierarchy::writeH5Part(const std::string& filename,
+                                  const int /*time_step*/,
+                                  const double simulation_time,
+                                  const bool write_velocities) const
+{
+    const auto pair = collectAllMarkers();
+    const auto& positions = pair.first;
+    const auto& velocities = pair.second;
+
+    const std::array<std::string, NDIM> position_datasets{ { "x",
+                                                             "y",
+#if NDIM == 3
+                                                             "z"
+#endif
+    } };
+
+    // technically momentum, but marker points don't have mass so this is the
+    // nearest equivalent for us
+    const std::array<std::string, NDIM> velocity_datasets{ { "px",
+                                                             "py",
+#if NDIM == 3
+                                                             "pz"
+#endif
+    } };
+
+    // Make these files also compatible with SAMRAI by encoding their types
+    // in the manner perscribed by HDFDatabase.C
+    auto set_samrai_attribute = [](const hid_t dataset_id, const int type_key)
+    {
+        const hid_t attribute_id = H5Screate(H5S_SCALAR);
+        TBOX_ASSERT(attribute_id >= 0);
+        const auto samrai_attribute_type = H5T_STD_I8BE;
+        const hid_t attribute =
+            H5Acreate(dataset_id, "Type", samrai_attribute_type, attribute_id, H5P_DEFAULT, H5P_DEFAULT);
+        TBOX_ASSERT(attribute >= 0);
+        herr_t status = H5Awrite(attribute, H5T_NATIVE_INT, &type_key);
+        TBOX_ASSERT(status == 0);
+        status = H5Aclose(attribute);
+        TBOX_ASSERT(status == 0);
+        status = H5Sclose(attribute_id);
+        TBOX_ASSERT(status == 0);
+    };
+    // These values are defined in HDFDatabase.C
+    constexpr int samrai_int_array = 7;
+    constexpr int samrai_double_array = 5;
+
+    const hsize_t dims[1]{ getNumberOfMarkers() };
+    const hid_t dataspace_id = H5Screate_simple(1, dims, nullptr);
+
+    if (IBTK_MPI::getRank() == 0)
+    {
+        hid_t file_id = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        if (file_id < 0)
+        {
+            TBOX_ERROR("An error occurred when calling H5Fcreate() with filename " << filename << std::endl);
+        }
+        hid_t group_id = H5Gcreate2(file_id, "/Step#0", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        TBOX_ASSERT(group_id >= 0);
+        // Save the current time in a way VisIt can understand:
+        {
+            const hid_t attribute_id = H5Screate(H5S_SCALAR);
+            TBOX_ASSERT(attribute_id >= 0);
+            const hid_t attribute =
+                H5Acreate(group_id, "time", H5T_NATIVE_DOUBLE, attribute_id, H5P_DEFAULT, H5P_DEFAULT);
+            TBOX_ASSERT(attribute >= 0);
+            herr_t status = H5Awrite(attribute, H5T_NATIVE_DOUBLE, &simulation_time);
+            TBOX_ASSERT(status == 0);
+            status = H5Aclose(attribute);
+            TBOX_ASSERT(status == 0);
+            status = H5Sclose(attribute_id);
+            TBOX_ASSERT(status == 0);
+        }
+
+        const hid_t id_dataset_id =
+            H5Dcreate2(group_id, "id", H5T_NATIVE_INT, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        TBOX_ASSERT(id_dataset_id >= 0);
+        set_samrai_attribute(id_dataset_id, samrai_int_array);
+        std::vector<int> ids(getNumberOfMarkers());
+        herr_t status = H5Dwrite(id_dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, ids.data());
+        TBOX_ASSERT(status == 0);
+        status = H5Dclose(id_dataset_id);
+        TBOX_ASSERT(status == 0);
+
+        // H5Part assumes all properties are in 1D arrays so we need to unpack first
+        std::vector<double> unpacked_positions(getNumberOfMarkers());
+        std::vector<double> unpacked_velocities(write_velocities ? getNumberOfMarkers() : 0u);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            for (unsigned int k = 0; k < getNumberOfMarkers(); ++k)
+            {
+                unpacked_positions[k] = positions[k][d];
+                if (write_velocities)
+                {
+                    unpacked_velocities[k] = velocities[k][d];
+                }
+            }
+
+            const hid_t position_dataset_id = H5Dcreate2(group_id,
+                                                         position_datasets[d].c_str(),
+                                                         H5T_NATIVE_DOUBLE,
+                                                         dataspace_id,
+                                                         H5P_DEFAULT,
+                                                         H5P_DEFAULT,
+                                                         H5P_DEFAULT);
+            set_samrai_attribute(position_dataset_id, samrai_double_array);
+            TBOX_ASSERT(position_dataset_id >= 0);
+            status = H5Dwrite(
+                position_dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, unpacked_positions.data());
+            TBOX_ASSERT(status == 0);
+            status = H5Dclose(position_dataset_id);
+            TBOX_ASSERT(status == 0);
+            if (write_velocities)
+            {
+                const hid_t velocity_dataset_id = H5Dcreate2(group_id,
+                                                             velocity_datasets[d].c_str(),
+                                                             H5T_NATIVE_DOUBLE,
+                                                             dataspace_id,
+                                                             H5P_DEFAULT,
+                                                             H5P_DEFAULT,
+                                                             H5P_DEFAULT);
+                status = H5Dwrite(
+                    velocity_dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, unpacked_velocities.data());
+                set_samrai_attribute(velocity_dataset_id, samrai_double_array);
+                TBOX_ASSERT(status == 0);
+                status = H5Dclose(velocity_dataset_id);
+                TBOX_ASSERT(status == 0);
+            }
+        }
+
+        status = H5Gclose(group_id);
+        TBOX_ASSERT(status == 0);
+        status = H5Fclose(file_id);
+        TBOX_ASSERT(status == 0);
+    }
 }
 
 void
