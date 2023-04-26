@@ -329,6 +329,7 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
                              const EigenAlignedVector<IBTK::Point>& velocities)
 {
     TBOX_ASSERT(positions.size() == velocities.size());
+    d_num_markers = positions.size();
     const auto rank = IBTK_MPI::getRank();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     unsigned int num_emplaced_markers = 0;
@@ -427,6 +428,24 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
 
     num_emplaced_markers = IBTK_MPI::sumReduction(num_emplaced_markers);
     TBOX_ASSERT(num_emplaced_markers == positions.size());
+    // Do one more expensive check in debug mode:
+#ifndef NDEBUG
+    std::vector<unsigned int> marker_check(positions.size());
+    for (unsigned int k = 0; k < marker_check.size(); ++k)
+        if (marker_emplaced[k]) marker_check[k] += 1;
+    const int ierr = MPI_Allreduce(
+        MPI_IN_PLACE, marker_check.data(), marker_check.size(), MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    for (unsigned int k = 0; k < getNumberOfMarkers(); ++k)
+    {
+        if (marker_check[k] != 1)
+        {
+            TBOX_ERROR(d_object_name
+                       << ": Marker point " << k << " is presently owned by " << marker_check[k]
+                       << " patches. The most likely cause of this error is that the CFL number is greater than 1.");
+        }
+    }
+#endif
 }
 
 void
