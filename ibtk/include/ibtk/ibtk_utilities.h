@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include "PatchHierarchy.h"
+#include "SAMRAIVectorReal.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
@@ -324,6 +325,68 @@ using FRDV = FreeRigidDOFVector;
 
 static const int invalid_level_number = -1;
 static const int invalid_index = -1;
+
+/*!
+ * Deallocate a SAMRAIVectorReal.
+ */
+inline void
+deallocate_vector_data(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                       int coarsest_ln = invalid_level_number,
+                       int finest_ln = invalid_level_number)
+{
+    const int coarsest_ln_in = x.getCoarsestLevelNumber();
+    const int finest_ln_in = x.getFinestLevelNumber();
+
+    // By default, deallocate data over the full range of levels set in the vector.
+    if (coarsest_ln == invalid_level_number) coarsest_ln = coarsest_ln_in;
+    if (finest_ln == invalid_level_number) finest_ln = finest_ln_in;
+
+    // If the coarsest level in the vector is finer than the finest level in the patch hierarchy, then there (should
+    // be!) no data to deallocate.
+    const auto& hierarchy = x.getPatchHierarchy();
+    if (coarsest_ln > hierarchy->getFinestLevelNumber()) return;
+
+    // Ensure that we only deallocate vector data on a range of levels that is actually in the hierarchy:
+    finest_ln = std::min(finest_ln, hierarchy->getFinestLevelNumber());
+    x.resetLevels(coarsest_ln, std::min(finest_ln, hierarchy->getFinestLevelNumber()));
+    x.deallocateVectorData();
+
+    // Restore the range of level numbers (even if that range of levels no longer makes sense for the hierarchy
+    // configuration):
+    x.resetLevels(coarsest_ln_in, finest_ln_in);
+    return;
+}
+
+/*!
+ * Free the components of a SAMRAIVectorReal.
+ */
+inline void
+free_vector_components(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+                       int coarsest_ln = invalid_level_number,
+                       int finest_ln = invalid_level_number)
+{
+    const int coarsest_ln_in = x.getCoarsestLevelNumber();
+    const int finest_ln_in = x.getFinestLevelNumber();
+
+    // By default, deallocate data over the full range of levels set in the vector.
+    if (coarsest_ln == invalid_level_number) coarsest_ln = coarsest_ln_in;
+    if (finest_ln == invalid_level_number) finest_ln = finest_ln_in;
+
+    // If the coarsest level in the vector is finer than the finest level in the patch hierarchy, then there (should
+    // be!) no components to free on those levels.
+    const auto& hierarchy = x.getPatchHierarchy();
+    if (coarsest_ln > hierarchy->getFinestLevelNumber()) return;
+
+    // Ensure that we only free vector components on a range of levels that is actually in the hierarchy:
+    finest_ln = std::min(finest_ln, hierarchy->getFinestLevelNumber());
+    x.resetLevels(coarsest_ln, std::min(finest_ln, hierarchy->getFinestLevelNumber()));
+    x.freeVectorComponents();
+
+    // Restore the range of level numbers (even if that range of levels no longer makes sense for the hierarchy
+    // configuration):
+    x.resetLevels(coarsest_ln_in, finest_ln_in);
+    return;
+}
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

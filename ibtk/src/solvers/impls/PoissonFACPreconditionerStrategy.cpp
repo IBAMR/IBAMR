@@ -484,13 +484,10 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
     }
 
     // Delete the solution and rhs vectors.
-    d_solution->resetLevels(
-        0, std::min(d_solution->getFinestLevelNumber(), d_solution->getPatchHierarchy()->getFinestLevelNumber()));
-    d_solution->freeVectorComponents();
+    free_vector_components(*d_solution);
     d_solution.setNull();
 
-    d_rhs->resetLevels(0, std::min(d_rhs->getFinestLevelNumber(), d_rhs->getPatchHierarchy()->getFinestLevelNumber()));
-    d_rhs->freeVectorComponents();
+    free_vector_components(*d_rhs);
     d_rhs.setNull();
 
     // Only fully deallocate operator data when we are not reinitializing the
