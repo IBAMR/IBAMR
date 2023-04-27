@@ -423,6 +423,8 @@ HierarchyIntegrator::regridHierarchy()
     }
 
     // Regrid the hierarchy.
+    const int finest_ln_before_regrid = d_hierarchy->getFinestLevelNumber();
+    d_may_need_to_reset_hierarchy_configuration = true;
     switch (d_regrid_mode)
     {
     case STANDARD:
@@ -440,8 +442,21 @@ HierarchyIntegrator::regridHierarchy()
                                  << std::endl);
     }
 
-    const double new_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
+    // SAMRAI does not call resetHierarchyConfiguration if the number of levels changes but there are no other
+    // modifications to the patch levels. However, this leaves data structures that depend on the number of levels in an
+    // inconsistent state. So make sure to call resetHierarchyConfiguration manually here.
+    const int finest_ln_after_regrid = d_hierarchy->getFinestLevelNumber();
+    const bool number_of_levels_changed = finest_ln_before_regrid != finest_ln_after_regrid;
+    if (number_of_levels_changed && d_may_need_to_reset_hierarchy_configuration)
+    {
+        resetHierarchyConfiguration(
+            d_hierarchy, /*coarsest_level*/ 0, /*finest_level*/ d_hierarchy->getFinestLevelNumber());
+    }
+    d_may_need_to_reset_hierarchy_configuration = false;
 
+    // Check for changes in the computed domain volume, which can indicate overlapping patches in the AMR grid
+    // hierarchy.
+    const double new_volume = check_volume_change ? d_hier_math_ops->getVolumeOfPhysicalDomain() : 0.0;
     if (check_volume_change && !IBTK::rel_equal_eps(old_volume, new_volume))
     {
         TBOX_WARNING(
@@ -942,6 +957,9 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     {
         child_integrator->resetHierarchyConfiguration(base_hierarchy, coarsest_level, finest_level);
     }
+
+    // Indicate that resetHierarchyConfiguration was called --- so we don't need to call it again.
+    d_may_need_to_reset_hierarchy_configuration = false;
     return;
 } // resetHierarchyConfiguration
 
@@ -1376,7 +1394,8 @@ HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHie
     return;
 } // applyGradientDetectorSpecialized
 
-void HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
+void
+HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;
