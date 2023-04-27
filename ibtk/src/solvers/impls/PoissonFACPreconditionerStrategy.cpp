@@ -475,16 +475,21 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
     deallocateOperatorStateSpecialized(coarsest_reset_ln, finest_reset_ln);
 
     // Deallocate scratch data.
-    for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
+    for (int ln = coarsest_reset_ln;
+         ln <= std::min({ d_finest_ln, finest_reset_ln, d_hierarchy->getFinestLevelNumber() });
+         ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_scratch_idx)) level->deallocatePatchData(d_scratch_idx);
     }
 
     // Delete the solution and rhs vectors.
+    d_solution->resetLevels(
+        0, std::min(d_solution->getFinestLevelNumber(), d_solution->getPatchHierarchy()->getFinestLevelNumber()));
     d_solution->freeVectorComponents();
     d_solution.setNull();
 
+    d_rhs->resetLevels(0, std::min(d_rhs->getFinestLevelNumber(), d_rhs->getPatchHierarchy()->getFinestLevelNumber()));
     d_rhs->freeVectorComponents();
     d_rhs.setNull();
 

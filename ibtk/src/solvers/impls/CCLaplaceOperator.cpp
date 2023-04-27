@@ -254,9 +254,11 @@ CCLaplaceOperator::deallocateOperatorState()
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
 
     // Delete the solution and rhs vectors.
+    d_x->resetLevels(0, std::min(d_x->getFinestLevelNumber(), d_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_x->freeVectorComponents();
     d_x.setNull();
 
+    d_b->resetLevels(0, std::min(d_b->getFinestLevelNumber(), d_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_b->freeVectorComponents();
     d_b.setNull();
 

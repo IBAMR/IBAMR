@@ -374,11 +374,13 @@ PETScKrylovLinearSolver::deallocateSolverState()
     }
 
     // Dealocate scratch data.
+    d_b->resetLevels(0, std::min(d_b->getFinestLevelNumber(), d_b->getPatchHierarchy()->getFinestLevelNumber()));
     d_b->deallocateVectorData();
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = nullptr;
+    d_x->resetLevels(0, std::min(d_x->getFinestLevelNumber(), d_x->getPatchHierarchy()->getFinestLevelNumber()));
     d_x->freeVectorComponents();
     d_x.setNull();
 
