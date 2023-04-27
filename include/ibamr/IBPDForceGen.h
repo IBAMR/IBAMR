@@ -171,6 +171,7 @@ public:
      */
     void computeLagrangianForceAndDamage(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
                                          SAMRAI::tbox::Pointer<IBTK::LData> D_data,
+                                         SAMRAI::tbox::Pointer<IBTK::LData> J_data,
                                          SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                          SAMRAI::tbox::Pointer<IBTK::LData> U_data,
                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,

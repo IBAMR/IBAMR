@@ -210,6 +210,7 @@ IBPDMethod::computeLagrangianForce(const double data_time)
         {
             d_ib_pd_force_fcn->computeLagrangianForceAndDamage((*F_data)[ln],
                                                                d_l_data_manager->getLData("damage", ln),
+                                                               d_l_data_manager->getLData("jacobian", ln),
                                                                (*X_data)[ln],
                                                                (*U_data)[ln],
                                                                d_hierarchy,
@@ -261,6 +262,7 @@ IBPDMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     if (initial_time)
     {
         VecSet(d_l_data_manager->getLData("damage", struct_ln)->getVec(), 0.0);
+        VecSet(d_l_data_manager->getLData("jacobian", struct_ln)->getVec(), 1.0);
     }
 
     // Register plot quantities.
@@ -268,6 +270,9 @@ IBPDMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     {
         Pointer<LData> dmg_data = d_l_data_manager->getLData("damage", struct_ln);
         d_silo_writer->registerVariableData("damage", dmg_data, struct_ln);
+
+        Pointer<LData> jacobian_data = d_l_data_manager->getLData("jacobian", struct_ln);
+        d_silo_writer->registerVariableData("jacobian", jacobian_data, struct_ln);
     }
 
     // Initialize unshifted X0 data.
@@ -365,6 +370,7 @@ IBPDMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     {
         // Create LData for damage variable.
         d_l_data_manager->createLData("damage", level_number, 1, /*manage_data*/ true);
+        d_l_data_manager->createLData("jacobian", level_number, 1, /*manage_data*/ true);
 
         // Create unshifted initial position of the structure.
         Pointer<IBTK::LData> X0_unshifted_data = d_l_data_manager->createLData("X0_unshifted",
