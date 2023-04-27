@@ -229,7 +229,7 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
                                            Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                            const EigenAlignedVector<IBTK::Point>& positions,
                                            const EigenAlignedVector<IBTK::Point>& velocities)
-    : d_object_name(name), d_hierarchy(patch_hierarchy)
+    : d_object_name(name), d_num_markers(positions.size()), d_hierarchy(patch_hierarchy)
 {
     reinit(positions, velocities);
 }
@@ -314,6 +314,12 @@ MarkerPatchHierarchy::getMarkerPatch(const int ln, const int local_patch_num) co
     TBOX_ASSERT(ln < static_cast<int>(d_marker_patches.size()));
     TBOX_ASSERT(local_patch_num < static_cast<int>(d_marker_patches[ln].size()));
     return d_marker_patches[ln][local_patch_num];
+}
+
+std::size_t
+MarkerPatchHierarchy::getNumberOfMarkers() const
+{
+    return d_num_markers;
 }
 
 void
@@ -402,9 +408,6 @@ MarkerPatchHierarchy::pruneAndRedistribute()
             for (unsigned int k = 0; k < std::get<0>(moved_markers).size(); ++k)
             {
                 moved_indices.push_back(std::get<0>(moved_markers)[k]);
-                // TODO: we should handle periodic shifts here! Also - what do
-                // we want to do for particles which travel outside the
-                // physical domain?
                 moved_positions.insert(moved_positions.end(),
                                        std::get<1>(moved_markers)[k].data(),
                                        std::get<1>(moved_markers)[k].data() + NDIM);
@@ -465,7 +468,27 @@ MarkerPatchHierarchy::pruneAndRedistribute()
                           IBTK_MPI::getCommunicator());
     TBOX_ASSERT(ierr == 0);
 
-    // 3. Emplace the marker points.
+    // 3. Apply periodicity constraints.
+    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    const double* const domain_x_lower = grid_geom->getXLower();
+    const double* const domain_x_upper = grid_geom->getXUpper();
+    const IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift();
+    for (unsigned int k = 0; k < new_indices.size(); ++k)
+    {
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (periodic_shift[d])
+            {
+                double domain_length = domain_x_upper[d] - domain_x_lower[d];
+                double& X = new_positions[k * NDIM + d];
+                if (X < domain_x_lower[d]) X += domain_length;
+                if (X >= domain_x_upper[d]) X -= domain_length;
+                TBOX_ASSERT(X >= domain_x_lower[d] && X < domain_x_upper[d]);
+            }
+        }
+    }
+
+    // 4. Emplace the marker points.
     unsigned int num_emplaced_markers = 0;
     std::vector<bool> marker_emplaced(new_indices.size());
 
@@ -486,6 +509,36 @@ MarkerPatchHierarchy::pruneAndRedistribute()
             }
         }
     }
-}
 
+    // 5. Account for points outside the computational domain which could not
+    //    re-enter the domain via a periodic boundary.
+
+    // 6. Check that we accounted for all points.
+#ifndef NDEBUG
+    std::vector<int> marker_check(getNumberOfMarkers());
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        for (MarkerPatch& marker_patch : d_marker_patches[ln])
+        {
+            for (unsigned int k = 0; k < marker_patch.size(); ++k)
+            {
+                const auto index = std::get<0>(marker_patch[k]);
+                TBOX_ASSERT(index < long(getNumberOfMarkers()));
+                marker_check[index] += 1;
+            }
+        }
+    }
+    ierr = MPI_Allreduce(
+        MPI_IN_PLACE, marker_check.data(), marker_check.size(), MPI_INT, MPI_SUM, IBTK_MPI::getCommunicator());
+    for (unsigned int i = 0; i < getNumberOfMarkers(); ++i)
+    {
+        if (marker_check[i] != 1)
+        {
+            TBOX_ERROR(d_object_name
+                       << ": Marker point " << i << " is presently owned by " << marker_check[i]
+                       << " patches. The most likely cause of this error is that the CFL number is greater than 1.");
+        }
+    }
+#endif
+}
 } // namespace IBTK

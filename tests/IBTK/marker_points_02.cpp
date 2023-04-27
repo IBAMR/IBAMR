@@ -13,6 +13,7 @@
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartSideDoubleSpecializedLinearRefine.h>
+#include <ibtk/CartSideRobinPhysBdryOp.h>
 #include <ibtk/HierarchyGhostCellInterpolation.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/LEInteractor.h>
@@ -143,8 +144,6 @@ main(int argc, char** argv)
         IBTK::muParserCartGridFunction u_fcn("u", test_db->getDatabase("u"), patch_hierarchy->getGridGeometry());
         u_fcn.setDataOnPatchHierarchy(u_idx, u_var, patch_hierarchy, 0.0);
 
-        using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<ITC> ghost_cell_components(1);
         std::vector<std::unique_ptr<muParserRobinBcCoefs> > u_bc_coefs;
         std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coef_ptrs;
 
@@ -159,8 +158,11 @@ main(int argc, char** argv)
             }
         }
 
+        // sync ghost data:
+        using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        std::vector<ITC> ghost_cell_components(1);
         ghost_cell_components[0] = ITC(
-            u_idx, "SPECIALIZED_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, u_bc_coef_ptrs, nullptr);
+            u_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", true, u_bc_coef_ptrs, nullptr);
         IBTK::HierarchyGhostCellInterpolation ghost_fill_op;
         ghost_fill_op.initializeOperatorState(ghost_cell_components, patch_hierarchy);
         ghost_fill_op.fillData(/*time*/ 0.0);
@@ -179,7 +181,8 @@ main(int argc, char** argv)
         const double dt = dx / U_MAX;
 
         const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
-        for (int i = 0; i < 10; ++i)
+        const int num_timesteps = test_db->getIntegerWithDefault("num_timesteps", 10);
+        for (int i = 0; i < num_timesteps; ++i)
         {
             marker_points.midpointStep(dt, u_idx, u_idx, kernel);
         }

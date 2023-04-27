@@ -142,6 +142,11 @@ public:
      */
     const MarkerPatch& getMarkerPatch(const int ln, const int local_patch_num) const;
 
+    /**
+     * Get the total number of marker points stored across all processors.
+     */
+    std::size_t getNumberOfMarkers() const;
+
 #if 0
     /**
      * Save the present state of the object to a SAMRAI database.
@@ -178,6 +183,8 @@ protected:
     void pruneAndRedistribute();
 
     std::string d_object_name;
+
+    std::size_t d_num_markers;
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
 
