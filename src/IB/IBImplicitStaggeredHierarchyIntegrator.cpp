@@ -533,9 +533,9 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
     IBTK_CHKERRQ(ierr);
     PETScSAMRAIVectorReal::destroyPETScVector(eul_sol_petsc_vec);
     PETScSAMRAIVectorReal::destroyPETScVector(eul_rhs_petsc_vec);
-    eul_rhs_vec->freeVectorComponents();
-    d_u_scratch_vec->freeVectorComponents();
-    d_f_scratch_vec->freeVectorComponents();
+    free_vector_components(*eul_rhs_vec);
+    free_vector_components(*d_u_scratch_vec);
+    free_vector_components(*d_f_scratch_vec);
     ierr = VecDestroy(&lag_sol_petsc_vec);
     IBTK_CHKERRQ(ierr);
     ierr = VecDestroy(&lag_rhs_petsc_vec);
@@ -780,8 +780,8 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     PETScSAMRAIVectorReal::destroyPETScVector(eul_res_petsc_vec);
 
     // Deallocate Eulerian components.
-    eul_rhs_vec->freeVectorComponents();
-    d_f_scratch_vec->freeVectorComponents();
+    free_vector_components(*eul_rhs_vec);
+    free_vector_components(*d_f_scratch_vec);
 
     // Deallocate solvers and operators.
     p_stokes_solver->deallocateSolverState();

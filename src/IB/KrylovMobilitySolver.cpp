@@ -543,7 +543,7 @@ KrylovMobilitySolver::deallocateSolverState()
         d_samrai_temp[i]->resetLevels(d_samrai_temp[i]->getCoarsestLevelNumber(),
                                       std::min(d_samrai_temp[i]->getFinestLevelNumber(),
                                                d_samrai_temp[i]->getPatchHierarchy()->getFinestLevelNumber()));
-        d_samrai_temp[i]->freeVectorComponents();
+        free_vector_components(*d_samrai_temp[i]);
         d_samrai_temp[i].setNull();
     }
 
@@ -598,14 +598,14 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
 
     for (const auto& nul_vec : d_nul_vecs)
     {
-        if (nul_vec) nul_vec->freeVectorComponents();
+        if (nul_vec) free_vector_components(*nul_vec);
     }
     const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
     d_nul_vecs.resize(n_nul_vecs);
 
     for (const auto& U_nul_vec : d_U_nul_vecs)
     {
-        if (U_nul_vec) U_nul_vec->freeVectorComponents();
+        if (U_nul_vec) free_vector_components(*U_nul_vec);
     }
     const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
     d_U_nul_vecs.resize(n_U_nul_vecs);

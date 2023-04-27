@@ -438,13 +438,13 @@ INSCollocatedHierarchyIntegrator::~INSCollocatedHierarchyIntegrator()
 {
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
-    if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
-    if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
-    if (d_N_vec) d_N_vec->freeVectorComponents();
-    if (d_Phi_rhs_vec) d_Phi_rhs_vec->freeVectorComponents();
+    if (d_U_rhs_vec) free_vector_components(*d_U_rhs_vec);
+    if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
+    if (d_N_vec) free_vector_components(*d_N_vec);
+    if (d_Phi_rhs_vec) free_vector_components(*d_Phi_rhs_vec);
     for (const auto& U_nul_vec : d_U_nul_vecs)
     {
-        if (U_nul_vec) U_nul_vec->freeVectorComponents();
+        if (U_nul_vec) free_vector_components(*U_nul_vec);
     }
     return;
 } // ~INSCollocatedHierarchyIntegrator
@@ -1507,12 +1507,12 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     }
 
     // Deallocate scratch data.
-    d_U_rhs_vec->deallocateVectorData();
-    d_Phi_rhs_vec->deallocateVectorData();
+    deallocate_vector_data(*d_U_rhs_vec);
+    deallocate_vector_data(*d_Phi_rhs_vec);
     if (!d_creeping_flow)
     {
-        d_U_adv_vec->deallocateVectorData();
-        d_N_vec->deallocateVectorData();
+        deallocate_vector_data(*d_U_adv_vec);
+        deallocate_vector_data(*d_N_vec);
     }
 
     // Deallocate any registered advection-diffusion solver.
@@ -2066,10 +2066,10 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
             new SAMRAIVectorReal<NDIM, double>(d_object_name + "::Phi_vec", d_hierarchy, coarsest_ln, finest_ln);
         d_Phi_vec->addComponent(d_Phi_var, d_Phi_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
-        if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
-        if (d_N_vec) d_N_vec->freeVectorComponents();
-        if (d_Phi_rhs_vec) d_Phi_rhs_vec->freeVectorComponents();
+        if (d_U_rhs_vec) free_vector_components(*d_U_rhs_vec);
+        if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
+        if (d_N_vec) free_vector_components(*d_N_vec);
+        if (d_Phi_rhs_vec) free_vector_components(*d_Phi_rhs_vec);
 
         d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
         d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
@@ -2078,7 +2078,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
 
         for (const auto& U_nul_vec : d_U_nul_vecs)
         {
-            if (U_nul_vec) U_nul_vec->freeVectorComponents();
+            if (U_nul_vec) free_vector_components(*U_nul_vec);
         }
         const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
         d_U_nul_vecs.resize(n_U_nul_vecs);
