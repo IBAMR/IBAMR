@@ -428,8 +428,8 @@ private:
         solver->d_hier_velocity_data_ops->add(f_u_idx, f_u_idx, f_u_dup_idx);
         VecDestroy(&left);
         VecDestroy(&right);
-        f_g_duplicate->deallocateVectorData();
-        f_g_duplicate->freeVectorComponents();
+        deallocate_vector_data(*f_g_duplicate);
+        free_vector_components(*f_g_duplicate);
         PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
         PetscFunctionReturn(0);
     } // matApply2
@@ -865,11 +865,11 @@ main(int argc, char* argv[])
 
         // Deallocate solver and vector components
         stokes_ib_solver->deallocateSolver();
-        eul_sol_vec->deallocateVectorData();
-        eul_rhs_vec->deallocateVectorData();
+        deallocate_vector_data(*eul_sol_vec);
+        deallocate_vector_data(*eul_rhs_vec);
 
-        eul_sol_vec->freeVectorComponents();
-        eul_rhs_vec->freeVectorComponents();
+        free_vector_components(*eul_sol_vec);
+        free_vector_components(*eul_rhs_vec);
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).

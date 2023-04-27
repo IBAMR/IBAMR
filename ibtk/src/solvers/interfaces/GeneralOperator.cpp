@@ -129,7 +129,7 @@ GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
     zz->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
     apply(x, *zz);
     z.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), zz);
-    zz->freeVectorComponents();
+    free_vector_components(*zz);
     return;
 } // applyAdd
 
