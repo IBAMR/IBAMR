@@ -125,6 +125,7 @@ IBPDMethod::preprocessIntegrateData(double current_time, double new_time, int nu
             resetLagrangianPDForceFunction(current_time, initial_time);
             d_ib_pd_force_fcn_needs_init = false;
         }
+        d_ib_pd_force_fcn->setTimeInterval(current_time, new_time);
     }
 
     return;
@@ -349,9 +350,28 @@ IBPDMethod::initializePDData()
         d_l_data_manager->endDataRedistribution(ln, ln);
     }
 
+    d_ib_pd_force_fcn_needs_init = true;
+
     return;
 
 } // initializePDData
+
+void IBPDMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                       Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    IBMethod::beginDataRedistribution(hierarchy,gridding_alg);
+    return;
+} // beginDataRedistribution
+
+void IBPDMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                       Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    IBMethod::endDataRedistribution(hierarchy,gridding_alg);
+
+    d_ib_pd_force_fcn_needs_init = true;
+
+    return;
+} // endDataRedistribution
 
 void
 IBPDMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
@@ -367,7 +387,7 @@ IBPDMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 
     // Allocate LData corresponding to the Lagrange multiplier.
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
-    {
+    {   
         // Create LData for damage variable.
         d_l_data_manager->createLData("damage", level_number, 1, /*manage_data*/ true);
         d_l_data_manager->createLData("jacobian", level_number, 1, /*manage_data*/ true);

@@ -286,7 +286,6 @@ private:
 
     void computeLagrangianTargetPointForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
                                            SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                           SAMRAI::tbox::Pointer<IBTK::LData> X0_data,
                                            SAMRAI::tbox::Pointer<IBTK::LData> U_data,
                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                            int level_number,

@@ -237,6 +237,21 @@ public:
         bool initial_time) override;
 
     /*!
+     * Begin redistributing Lagrangian data prior to regridding the patch
+     * hierarchy.
+     */
+    void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+
+    /*!
+     * Complete redistributing Lagrangian data following regridding the patch
+     * hierarchy.
+     */
+    void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+
+
+    /*!
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      *
