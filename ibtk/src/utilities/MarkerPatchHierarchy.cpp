@@ -35,6 +35,13 @@ namespace IBTK
 {
 namespace
 {
+static Timer *t_reinit;
+static Timer *t_collect_all_markers;
+static Timer *t_forward_euler_step;
+static Timer *t_midpoint_step;
+static Timer *t_trapezoidal_step;
+static Timer *t_prune_and_redistribute;
+
 std::vector<std::vector<hier::Box<NDIM> > >
 compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level,
                                    const Pointer<BasePatchLevel<NDIM> >& f_level)
@@ -301,6 +308,15 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
           d_hierarchy->getGridGeometry(),
           IntVector<NDIM>(1))
 {
+    auto set_timer = [&](const char *name)
+    { return TimerManager::getManager()->getTimer(name); };
+    t_reinit = set_timer("IBTK::MarkerPatchHierarchy::reinit()");
+    t_collect_all_markers = set_timer("IBTK::MarkerPatchHierarchy::collectAllMarkers()");
+    t_forward_euler_step = set_timer("IBTK::MarkerPatchHierarchy::forwardEulerStep()");
+    t_midpoint_step = set_timer("IBTK::MarkerPatchHierarchy::midpointStep()");
+    t_trapezoidal_step = set_timer("IBTK::MarkerPatchHierarchy::trapezoidalStep()");
+    t_prune_and_redistribute = set_timer("IBTK::MarkerPatchHierarchy::pruneAndRedistribute()");
+
     reinit(positions, velocities);
 
     if (register_for_restart)
@@ -329,6 +345,7 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
                              const EigenAlignedVector<IBTK::Point>& velocities)
 {
     TBOX_ASSERT(positions.size() == velocities.size());
+    IBTK_TIMER_START(t_reinit);
     d_num_markers = positions.size();
     const auto rank = IBTK_MPI::getRank();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -446,6 +463,7 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
         }
     }
 #endif
+    IBTK_TIMER_STOP(t_reinit);
 }
 
 void
@@ -683,6 +701,7 @@ MarkerPatchHierarchy::getNumberOfMarkers() const
 std::pair<EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> >
 MarkerPatchHierarchy::collectAllMarkers() const
 {
+    IBTK_TIMER_START(t_collect_all_markers);
     std::vector<double> local_positions;
     std::vector<double> local_velocities;
     std::vector<int> local_indices;
@@ -728,6 +747,7 @@ MarkerPatchHierarchy::collectAllMarkers() const
         velocities[global_indices[k]] = IBTK::Vector(&global_velocities[k * NDIM]);
     }
 
+    IBTK_TIMER_STOP(t_collect_all_markers);
     return std::make_pair(std::move(positions), std::move(velocities));
 }
 
@@ -755,6 +775,7 @@ MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
 void
 MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
 {
+    IBTK_TIMER_START(t_forward_euler_step);
     const auto rank = IBTK_MPI::getRank();
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
@@ -825,6 +846,7 @@ MarkerPatchHierarchy::backwardEulerStep(const double dt, const int u_new_idx, co
     }
 
     pruneAndRedistribute();
+    IBTK_TIMER_STOP(t_forward_euler_step);
 }
 
 void
@@ -833,6 +855,7 @@ MarkerPatchHierarchy::midpointStep(const double dt,
                                    const int u_new_idx,
                                    const std::string& kernel)
 {
+    IBTK_TIMER_START(t_midpoint_step);
     const auto rank = IBTK_MPI::getRank();
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
@@ -871,11 +894,13 @@ MarkerPatchHierarchy::midpointStep(const double dt,
     }
 
     pruneAndRedistribute();
+    IBTK_TIMER_STOP(t_midpoint_step);
 }
 
 void
 MarkerPatchHierarchy::trapezoidalStep(const double dt, const int u_new_idx, const std::string& kernel)
 {
+    IBTK_TIMER_START(t_trapezoidal_step);
     const auto rank = IBTK_MPI::getRank();
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
     {
@@ -917,11 +942,13 @@ MarkerPatchHierarchy::trapezoidalStep(const double dt, const int u_new_idx, cons
     }
 
     pruneAndRedistribute();
+    IBTK_TIMER_STOP(t_trapezoidal_step);
 }
 
 void
 MarkerPatchHierarchy::pruneAndRedistribute()
 {
+    IBTK_TIMER_START(t_prune_and_redistribute);
     const auto rank = IBTK_MPI::getRank();
 
     // 1. Collect all markers which have left their respective patches:
@@ -1072,5 +1099,6 @@ MarkerPatchHierarchy::pruneAndRedistribute()
         }
     }
 #endif
+    IBTK_TIMER_STOP(t_prune_and_redistribute);
 }
 } // namespace IBTK
