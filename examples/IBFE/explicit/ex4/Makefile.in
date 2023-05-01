@@ -497,7 +497,7 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = example.cpp
-EXTRA_DIST = input2d input3d
+EXTRA_DIST = input2d input2d.markers input3d
 EXAMPLES = $(am__append_1) $(am__append_3)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
