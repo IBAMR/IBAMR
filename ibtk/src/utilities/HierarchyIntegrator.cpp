@@ -424,15 +424,16 @@ HierarchyIntegrator::regridHierarchy()
 
     // Regrid the hierarchy.
     const int finest_ln_before_regrid = d_hierarchy->getFinestLevelNumber();
-    d_may_need_to_reset_hierarchy_configuration = true;
     switch (d_regrid_mode)
     {
     case STANDARD:
+        d_may_need_to_reset_hierarchy_configuration = true;
         d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
         break;
     case AGGRESSIVE:
         for (int k = 0; k < d_gridding_alg->getMaxLevels(); ++k)
         {
+            d_may_need_to_reset_hierarchy_configuration = true;
             d_gridding_alg->regridAllFinerLevels(d_hierarchy, coarsest_ln, d_integrator_time, d_tag_buffer);
         }
         break;
