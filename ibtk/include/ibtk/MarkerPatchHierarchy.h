@@ -134,7 +134,7 @@ public:
                          const EigenAlignedVector<IBTK::Point>& positions,
                          const EigenAlignedVector<IBTK::Point>& velocities,
                          const bool register_for_restart = true);
-    
+
     virtual ~MarkerPatchHierarchy();
 
     void reinit(const EigenAlignedVector<IBTK::Point>& positions, const EigenAlignedVector<IBTK::Point>& velocities);
@@ -188,18 +188,55 @@ public:
     void setVelocities(const int u_idx, const std::string& kernel);
 
     /**
+     * Advect the markers with their present velocity values with the forward
+     * Euler method. After the markers are moved their velocities are reset to
+     * values interpolated from @p u_new_idx via the IB kernel @p kernel.
+     *
+     * @note This function assumes that @p u_new_idx has up-to-date ghost
+     * values with sufficient width for @p kernel. See LEInteractor for kernel
+     * names.
+     */
+    void forwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel);
+
+    /**
+     * Advect the markers with their present velocity values with the explicit
+     * backward Euler method (i.e., a forward Euler prediction step followed by
+     * a backward Euler correction step). After the markers are moved their
+     * velocities are reset to values interpolated from @p u_new_idx via the IB
+     * kernel @p kernel.
+     *
+     * @note This function assumes that @p u_new_idx has up-to-date ghost
+     * values with sufficient width for @p kernel. See LEInteractor for kernel
+     * names.
+     */
+    void backwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel);
+
+    /**
      * Advect the markers by some given velocity field at half and new times
      * and the interaction kernel @p kernel.
      *
      * This time integrator is the 'explicit midpoint' method, which uses the
      * present velocity to predict a midpoint position and then uses the
-     * midpoint velocity velocity to compute the new position.
+     * midpoint velocity to compute the new position.
      *
      * @note This function assumes that @p u_half_idx and @p u_new_idx have
      * up-to-date ghost values with sufficient width for @p kernel. See
      * LEInteractor for kernel names.
      */
     void midpointStep(const double dt, const int u_half_idx, const int u_new_idx, const std::string& kernel);
+
+    /**
+     * Advect the markers by some given velocity field at the end of a timestep
+     * and the interaction kernel @p kernel.
+     *
+     * This time integrator is the 'explicit trapezoid' method, which uses the
+     * present velocity to predict a new position and then uses the
+     * trapezoid rule to correct that position.
+     *
+     * @note This function assumes that @p u_new_idx has up-to-date ghost values
+     * with sufficient width for @p kernel. See LEInteractor for kernel names.
+     */
+    void trapezoidalStep(const double dt, const int u_new_idx, const std::string& kernel);
 
 protected:
     /**

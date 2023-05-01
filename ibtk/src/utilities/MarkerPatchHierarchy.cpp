@@ -753,6 +753,81 @@ MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
 }
 
 void
+MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
+{
+    const auto rank = IBTK_MPI::getRank();
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        unsigned int local_patch_num = 0;
+        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        {
+            if (rank == current_level->getMappingForPatch(p))
+            {
+                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
+                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+
+                // 1. Do a forward Euler step:
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    marker_patch.d_positions[i] += dt * marker_patch.d_velocities[i];
+                }
+
+                // 2. Update the velocities:
+                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
+
+                ++local_patch_num;
+            }
+        }
+    }
+
+    pruneAndRedistribute();
+}
+
+void
+MarkerPatchHierarchy::backwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
+{
+    const auto rank = IBTK_MPI::getRank();
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        unsigned int local_patch_num = 0;
+        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        {
+            if (rank == current_level->getMappingForPatch(p))
+            {
+                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
+                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+
+                // 1. Do a forward Euler step:
+                std::vector<double> new_positions(marker_patch.d_positions);
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    new_positions[i] = marker_patch.d_positions[i] + dt * marker_patch.d_velocities[i];
+                }
+
+                // 2. Compute new velocities:
+                std::vector<double> new_velocities(marker_patch.d_velocities);
+                do_interpolation(u_new_idx, new_positions, patch, kernel, new_velocities);
+
+                // 3. Update the positions:
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    marker_patch.d_positions[i] += dt * new_velocities[i];
+                }
+
+                // 4. Update the velocities:
+                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
+
+                ++local_patch_num;
+            }
+        }
+    }
+
+    pruneAndRedistribute();
+}
+
+void
 MarkerPatchHierarchy::midpointStep(const double dt,
                                    const int u_half_idx,
                                    const int u_new_idx,
@@ -770,7 +845,7 @@ MarkerPatchHierarchy::midpointStep(const double dt,
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
                 Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
 
-                // 1. Do a forward Euler step:
+                // 1. Do a half of a forward Euler step:
                 std::vector<double> half_positions(marker_patch.d_positions);
                 for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
                 {
@@ -788,6 +863,52 @@ MarkerPatchHierarchy::midpointStep(const double dt,
                 }
 
                 // 4. Interpolate the velocity at the new time:
+                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
+
+                ++local_patch_num;
+            }
+        }
+    }
+
+    pruneAndRedistribute();
+}
+
+void
+MarkerPatchHierarchy::trapezoidalStep(const double dt, const int u_new_idx, const std::string& kernel)
+{
+    const auto rank = IBTK_MPI::getRank();
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        unsigned int local_patch_num = 0;
+        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        {
+            if (rank == current_level->getMappingForPatch(p))
+            {
+                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
+                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+
+                // 1. Do a forward Euler step:
+                std::vector<double> new_positions(marker_patch.d_positions);
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    new_positions[i] = marker_patch.d_positions[i] + dt * marker_patch.d_velocities[i];
+                }
+
+                // 2. Interpolate the velocity at the new time:
+                std::vector<double> new_velocities(marker_patch.d_velocities);
+                do_interpolation(u_new_idx, new_positions, patch, kernel, new_velocities);
+
+                // 3. Do a trapezoidal step:
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    // This is left unfactored so it matches the implementations
+                    // elsewhere
+                    marker_patch.d_positions[i] +=
+                        0.5 * dt * marker_patch.d_velocities[i] + 0.5 * dt * new_velocities[i];
+                }
+
+                // 4. Update the velocities:
                 do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
 
                 ++local_patch_num;

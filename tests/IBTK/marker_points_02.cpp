@@ -190,13 +190,33 @@ main(int argc, char** argv)
         const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
         const int num_timesteps = test_db->getIntegerWithDefault("num_timesteps", 10);
         const int starting_step = from_restart ? app_initializer->getRestartRestoreNumber() + 1 : 0;
+        const std::string time_stepping_type = test_db->getStringWithDefault("time_stepping_type", "MIDPOINT_RULE");
         for (int i = starting_step; i < num_timesteps; ++i)
         {
             if (test_h5part)
             {
                 marker_points.writeH5Part("markers-" + std::to_string(i) + ".h5part", i, dt * i);
             }
-            marker_points.midpointStep(dt, u_idx, u_idx, kernel);
+            if (time_stepping_type == "MIDPOINT_RULE")
+            {
+                marker_points.midpointStep(dt, u_idx, u_idx, kernel);
+            }
+            else if (time_stepping_type == "FORWARD_EULER")
+            {
+                marker_points.forwardEulerStep(dt, u_idx, kernel);
+            }
+            else if (time_stepping_type == "BACKWARD_EULER")
+            {
+                marker_points.backwardEulerStep(dt, u_idx, kernel);
+            }
+            else if (time_stepping_type == "TRAPEZOIDAL_RULE")
+            {
+                marker_points.trapezoidalStep(dt, u_idx, kernel);
+            }
+            else
+            {
+                TBOX_ERROR("Unknown time stepping type " << time_stepping_type << '\n');
+            }
 
             if (app_initializer->dumpRestartData() && (i % app_initializer->getRestartDumpInterval() == 0))
             {
