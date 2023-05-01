@@ -202,6 +202,7 @@ SET(CXX_SRC
   utilities/CartGridFunctionSet.cpp
   utilities/EdgeDataSynchronization.cpp
   utilities/NodeDataSynchronization.cpp
+  utilities/MarkerPatchHierarchy.cpp
   utilities/ParallelMap.cpp
   utilities/SideNoCornersFillPattern.cpp
   utilities/box_utilities.cpp

@@ -168,6 +168,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/IBTKInit.cpp \
 ../src/utilities/IndexUtilities.cpp \
 ../src/utilities/LMarkerUtilities.cpp \
+../src/utilities/MarkerPatchHierarchy.cpp \
 ../src/utilities/MergingLoadBalancer.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
 ../src/utilities/NodeSynchCopyFillPattern.cpp \
@@ -301,6 +302,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/LaplaceOperator.h \
 ../include/ibtk/LinearOperator.h \
 ../include/ibtk/LinearSolver.h \
+../include/ibtk/MarkerPatchHierarchy.h \
 ../include/ibtk/NewtonKrylovSolver.h \
 ../include/ibtk/NewtonKrylovSolverManager.h \
 ../include/ibtk/NodeDataSynchronization.h \
