@@ -107,7 +107,8 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	snapshot_cache_01_2d$(EXEEXT) \
 	nodal_interpolation_01_2d$(EXEEXT) \
 	nodal_interpolation_01_3d$(EXEEXT) curl_01_2d$(EXEEXT) \
-	curl_01_3d$(EXEEXT) $(am__EXEEXT_1)
+	curl_01_3d$(EXEEXT) marker_points_01_2d$(EXEEXT) \
+	marker_points_02_2d$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -396,6 +397,22 @@ mapping_01_OBJECTS = $(am_mapping_01_OBJECTS)
 mapping_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(mapping_01_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_marker_points_01_2d_OBJECTS =  \
+	marker_points_01_2d-marker_points_01.$(OBJEXT)
+marker_points_01_2d_OBJECTS = $(am_marker_points_01_2d_OBJECTS)
+marker_points_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+marker_points_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(marker_points_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_marker_points_02_2d_OBJECTS =  \
+	marker_points_02_2d-marker_points_02.$(OBJEXT)
+marker_points_02_2d_OBJECTS = $(am_marker_points_02_2d_OBJECTS)
+marker_points_02_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+marker_points_02_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(marker_points_02_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_mpi_type_wrappers_OBJECTS =  \
 	mpi_type_wrappers-mpi_type_wrappers.$(OBJEXT)
 mpi_type_wrappers_OBJECTS = $(am_mpi_type_wrappers_OBJECTS)
@@ -600,6 +617,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/laplace_03_3d-laplace_03.Po \
 	./$(DEPDIR)/ldata_01-ldata_01.Po \
 	./$(DEPDIR)/mapping_01-mapping_01.Po \
+	./$(DEPDIR)/marker_points_01_2d-marker_points_01.Po \
+	./$(DEPDIR)/marker_points_02_2d-marker_points_02.Po \
 	./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po \
 	./$(DEPDIR)/multilevel_fe_01_2d-multilevel_fe_01.Po \
 	./$(DEPDIR)/multilevel_fe_01_3d-multilevel_fe_01.Po \
@@ -655,6 +674,7 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
 	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
 	$(ldata_01_SOURCES) $(mapping_01_SOURCES) \
+	$(marker_points_01_2d_SOURCES) $(marker_points_02_2d_SOURCES) \
 	$(mpi_type_wrappers_SOURCES) $(multilevel_fe_01_2d_SOURCES) \
 	$(multilevel_fe_01_3d_SOURCES) \
 	$(nodal_interpolation_01_2d_SOURCES) \
@@ -689,6 +709,7 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
 	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
 	$(ldata_01_SOURCES) $(am__mapping_01_SOURCES_DIST) \
+	$(marker_points_01_2d_SOURCES) $(marker_points_02_2d_SOURCES) \
 	$(mpi_type_wrappers_SOURCES) \
 	$(am__multilevel_fe_01_2d_SOURCES_DIST) \
 	$(am__multilevel_fe_01_3d_SOURCES_DIST) \
@@ -1011,6 +1032,12 @@ ibtk_init_SOURCES = ibtk_init.cpp
 ibtk_mpi_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 ibtk_mpi_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 ibtk_mpi_SOURCES = ibtk_mpi.cpp
+marker_points_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+marker_points_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+marker_points_01_2d_SOURCES = marker_points_01.cpp
+marker_points_02_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+marker_points_02_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+marker_points_02_2d_SOURCES = marker_points_02.cpp
 mpi_type_wrappers_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 mpi_type_wrappers_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 mpi_type_wrappers_SOURCES = mpi_type_wrappers.cpp
@@ -1303,6 +1330,14 @@ mapping_01$(EXEEXT): $(mapping_01_OBJECTS) $(mapping_01_DEPENDENCIES) $(EXTRA_ma
 	@rm -f mapping_01$(EXEEXT)
 	$(AM_V_CXXLD)$(mapping_01_LINK) $(mapping_01_OBJECTS) $(mapping_01_LDADD) $(LIBS)
 
+marker_points_01_2d$(EXEEXT): $(marker_points_01_2d_OBJECTS) $(marker_points_01_2d_DEPENDENCIES) $(EXTRA_marker_points_01_2d_DEPENDENCIES) 
+	@rm -f marker_points_01_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(marker_points_01_2d_LINK) $(marker_points_01_2d_OBJECTS) $(marker_points_01_2d_LDADD) $(LIBS)
+
+marker_points_02_2d$(EXEEXT): $(marker_points_02_2d_OBJECTS) $(marker_points_02_2d_DEPENDENCIES) $(EXTRA_marker_points_02_2d_DEPENDENCIES) 
+	@rm -f marker_points_02_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(marker_points_02_2d_LINK) $(marker_points_02_2d_OBJECTS) $(marker_points_02_2d_LDADD) $(LIBS)
+
 mpi_type_wrappers$(EXEEXT): $(mpi_type_wrappers_OBJECTS) $(mpi_type_wrappers_DEPENDENCIES) $(EXTRA_mpi_type_wrappers_DEPENDENCIES) 
 	@rm -f mpi_type_wrappers$(EXEEXT)
 	$(AM_V_CXXLD)$(mpi_type_wrappers_LINK) $(mpi_type_wrappers_OBJECTS) $(mpi_type_wrappers_LDADD) $(LIBS)
@@ -1416,6 +1451,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_03_3d-laplace_03.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ldata_01-ldata_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mapping_01-mapping_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marker_points_01_2d-marker_points_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/marker_points_02_2d-marker_points_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/multilevel_fe_01_2d-multilevel_fe_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/multilevel_fe_01_3d-multilevel_fe_01.Po@am__quote@ # am--include-marker
@@ -1900,6 +1937,34 @@ mapping_01-mapping_01.obj: mapping_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mapping_01_CXXFLAGS) $(CXXFLAGS) -c -o mapping_01-mapping_01.obj `if test -f 'mapping_01.cpp'; then $(CYGPATH_W) 'mapping_01.cpp'; else $(CYGPATH_W) '$(srcdir)/mapping_01.cpp'; fi`
 
+marker_points_01_2d-marker_points_01.o: marker_points_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_points_01_2d_CXXFLAGS) $(CXXFLAGS) -MT marker_points_01_2d-marker_points_01.o -MD -MP -MF $(DEPDIR)/marker_points_01_2d-marker_points_01.Tpo -c -o marker_points_01_2d-marker_points_01.o `test -f 'marker_points_01.cpp' || echo '$(srcdir)/'`marker_points_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/marker_points_01_2d-marker_points_01.Tpo $(DEPDIR)/marker_points_01_2d-marker_points_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='marker_points_01.cpp' object='marker_points_01_2d-marker_points_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_points_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o marker_points_01_2d-marker_points_01.o `test -f 'marker_points_01.cpp' || echo '$(srcdir)/'`marker_points_01.cpp
+
+marker_points_01_2d-marker_points_01.obj: marker_points_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_points_01_2d_CXXFLAGS) $(CXXFLAGS) -MT marker_points_01_2d-marker_points_01.obj -MD -MP -MF $(DEPDIR)/marker_points_01_2d-marker_points_01.Tpo -c -o marker_points_01_2d-marker_points_01.obj `if test -f 'marker_points_01.cpp'; then $(CYGPATH_W) 'marker_points_01.cpp'; else $(CYGPATH_W) '$(srcdir)/marker_points_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/marker_points_01_2d-marker_points_01.Tpo $(DEPDIR)/marker_points_01_2d-marker_points_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='marker_points_01.cpp' object='marker_points_01_2d-marker_points_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_points_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o marker_points_01_2d-marker_points_01.obj `if test -f 'marker_points_01.cpp'; then $(CYGPATH_W) 'marker_points_01.cpp'; else $(CYGPATH_W) '$(srcdir)/marker_points_01.cpp'; fi`
+
+marker_points_02_2d-marker_points_02.o: marker_points_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_points_02_2d_CXXFLAGS) $(CXXFLAGS) -MT marker_points_02_2d-marker_points_02.o -MD -MP -MF $(DEPDIR)/marker_points_02_2d-marker_points_02.Tpo -c -o marker_points_02_2d-marker_points_02.o `test -f 'marker_points_02.cpp' || echo '$(srcdir)/'`marker_points_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/marker_points_02_2d-marker_points_02.Tpo $(DEPDIR)/marker_points_02_2d-marker_points_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='marker_points_02.cpp' object='marker_points_02_2d-marker_points_02.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_points_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o marker_points_02_2d-marker_points_02.o `test -f 'marker_points_02.cpp' || echo '$(srcdir)/'`marker_points_02.cpp
+
+marker_points_02_2d-marker_points_02.obj: marker_points_02.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_points_02_2d_CXXFLAGS) $(CXXFLAGS) -MT marker_points_02_2d-marker_points_02.obj -MD -MP -MF $(DEPDIR)/marker_points_02_2d-marker_points_02.Tpo -c -o marker_points_02_2d-marker_points_02.obj `if test -f 'marker_points_02.cpp'; then $(CYGPATH_W) 'marker_points_02.cpp'; else $(CYGPATH_W) '$(srcdir)/marker_points_02.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/marker_points_02_2d-marker_points_02.Tpo $(DEPDIR)/marker_points_02_2d-marker_points_02.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='marker_points_02.cpp' object='marker_points_02_2d-marker_points_02.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(marker_points_02_2d_CXXFLAGS) $(CXXFLAGS) -c -o marker_points_02_2d-marker_points_02.obj `if test -f 'marker_points_02.cpp'; then $(CYGPATH_W) 'marker_points_02.cpp'; else $(CYGPATH_W) '$(srcdir)/marker_points_02.cpp'; fi`
+
 mpi_type_wrappers-mpi_type_wrappers.o: mpi_type_wrappers.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(mpi_type_wrappers_CXXFLAGS) $(CXXFLAGS) -MT mpi_type_wrappers-mpi_type_wrappers.o -MD -MP -MF $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Tpo -c -o mpi_type_wrappers-mpi_type_wrappers.o `test -f 'mpi_type_wrappers.cpp' || echo '$(srcdir)/'`mpi_type_wrappers.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Tpo $(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
@@ -2328,6 +2393,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/laplace_03_3d-laplace_03.Po
 	-rm -f ./$(DEPDIR)/ldata_01-ldata_01.Po
 	-rm -f ./$(DEPDIR)/mapping_01-mapping_01.Po
+	-rm -f ./$(DEPDIR)/marker_points_01_2d-marker_points_01.Po
+	-rm -f ./$(DEPDIR)/marker_points_02_2d-marker_points_02.Po
 	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
 	-rm -f ./$(DEPDIR)/multilevel_fe_01_2d-multilevel_fe_01.Po
 	-rm -f ./$(DEPDIR)/multilevel_fe_01_3d-multilevel_fe_01.Po
@@ -2423,6 +2490,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/laplace_03_3d-laplace_03.Po
 	-rm -f ./$(DEPDIR)/ldata_01-ldata_01.Po
 	-rm -f ./$(DEPDIR)/mapping_01-mapping_01.Po
+	-rm -f ./$(DEPDIR)/marker_points_01_2d-marker_points_01.Po
+	-rm -f ./$(DEPDIR)/marker_points_02_2d-marker_points_02.Po
 	-rm -f ./$(DEPDIR)/mpi_type_wrappers-mpi_type_wrappers.Po
 	-rm -f ./$(DEPDIR)/multilevel_fe_01_2d-multilevel_fe_01.Po
 	-rm -f ./$(DEPDIR)/multilevel_fe_01_3d-multilevel_fe_01.Po
