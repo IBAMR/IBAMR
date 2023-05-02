@@ -100,7 +100,7 @@ IBHierarchyIntegrator {
    error_on_dt_change  = ERROR_ON_DT_CHANGE
    enable_logging      = ENABLE_LOGGING
    enable_logging_solver_iterations = FALSE
-   time_stepping_type  = "FORWARD_EULER"
+   time_stepping_type  = "BACKWARD_EULER"
 }
 
 IBFEMethod {
