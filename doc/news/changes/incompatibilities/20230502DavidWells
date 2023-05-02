@@ -1,0 +1,8 @@
+Changed: The implementation of FORWARD_EULER provided by
+IBExplicitHierarchyIntegrator was misnamed as it was actually the same 'explicit
+backward Euler' (i.e., a forward Euler prediction followed by a backward Euler
+correction) predictor-corrector method as BACKWARD_EULER. FORWARD_EULER is now
+really the forward Euler method. The previous implementation is still available
+as BACKWARD_EULER.
+<br>
+(David Wells, 2023/05/02)

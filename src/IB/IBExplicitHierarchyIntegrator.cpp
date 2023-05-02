@@ -315,6 +315,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
         switch (d_time_stepping_type)
         {
         case FORWARD_EULER:
+            break;
         case BACKWARD_EULER:
             d_ib_method_ops->backwardEulerStep(current_time, new_time);
             break;
