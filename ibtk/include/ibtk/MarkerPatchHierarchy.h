@@ -118,7 +118,7 @@ private:
  * points are akin to IB points except they are simply advected by the fluid
  * and do not apply any force upon it.
  */
-class MarkerPatchHierarchy : public SAMRAI::tbox::DescribedClass
+class MarkerPatchHierarchy : public SAMRAI::tbox::Serializable
 {
 public:
     /**
@@ -132,9 +132,39 @@ public:
     MarkerPatchHierarchy(const std::string& name,
                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
                          const EigenAlignedVector<IBTK::Point>& positions,
-                         const EigenAlignedVector<IBTK::Point>& velocities);
+                         const EigenAlignedVector<IBTK::Point>& velocities,
+                         const bool register_for_restart = true);
+
+    virtual ~MarkerPatchHierarchy();
 
     void reinit(const EigenAlignedVector<IBTK::Point>& positions, const EigenAlignedVector<IBTK::Point>& velocities);
+
+    /**
+     * Save the present state of the object (i.e., the marker point data) to a
+     * SAMRAI database.
+     *
+     * @note Since the constructor requires a pointer to the PatchHierarchy this
+     * function relies on the constructor to set up all geometric and index
+     * space data and only saves the markers themselves.
+     */
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
+     * Write the particles to a single H5Part file.
+     *
+     * H5Part is a simple HDF5 schema for particles which VisIt understands. You
+     * should either use the file suffix .h5part or use the VisIt H5Part reader
+     * explicitly. To visualize, select 'Mesh -> particles'.
+     */
+    void writeH5Part(const std::string& filename,
+                     const int time_step,
+                     const double simulation_time,
+                     const bool write_velocities = true) const;
+
+    /**
+     * Load the marker points from a database.
+     */
+    virtual void getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
 
     /**
      * Get the MarkerPatch associated with the present level and local patch number.
@@ -146,12 +176,10 @@ public:
      */
     std::size_t getNumberOfMarkers() const;
 
-#if 0
     /**
-     * Save the present state of the object to a SAMRAI database.
+     * Collect all markers on all processors in a single array.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
-#endif
+    std::pair<EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> > collectAllMarkers() const;
 
     /**
      * Set marker velocities with some given velocity field @p u_idx and
@@ -160,18 +188,55 @@ public:
     void setVelocities(const int u_idx, const std::string& kernel);
 
     /**
+     * Advect the markers with their present velocity values with the forward
+     * Euler method. After the markers are moved their velocities are reset to
+     * values interpolated from @p u_new_idx via the IB kernel @p kernel.
+     *
+     * @note This function assumes that @p u_new_idx has up-to-date ghost
+     * values with sufficient width for @p kernel. See LEInteractor for kernel
+     * names.
+     */
+    void forwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel);
+
+    /**
+     * Advect the markers with their present velocity values with the explicit
+     * backward Euler method (i.e., a forward Euler prediction step followed by
+     * a backward Euler correction step). After the markers are moved their
+     * velocities are reset to values interpolated from @p u_new_idx via the IB
+     * kernel @p kernel.
+     *
+     * @note This function assumes that @p u_new_idx has up-to-date ghost
+     * values with sufficient width for @p kernel. See LEInteractor for kernel
+     * names.
+     */
+    void backwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel);
+
+    /**
      * Advect the markers by some given velocity field at half and new times
      * and the interaction kernel @p kernel.
      *
      * This time integrator is the 'explicit midpoint' method, which uses the
      * present velocity to predict a midpoint position and then uses the
-     * midpoint velocity velocity to compute the new position.
+     * midpoint velocity to compute the new position.
      *
      * @note This function assumes that @p u_half_idx and @p u_new_idx have
      * up-to-date ghost values with sufficient width for @p kernel. See
      * LEInteractor for kernel names.
      */
     void midpointStep(const double dt, const int u_half_idx, const int u_new_idx, const std::string& kernel);
+
+    /**
+     * Advect the markers by some given velocity field at the end of a timestep
+     * and the interaction kernel @p kernel.
+     *
+     * This time integrator is the 'explicit trapezoid' method, which uses the
+     * present velocity to predict a new position and then uses the
+     * trapezoid rule to correct that position.
+     *
+     * @note This function assumes that @p u_new_idx has up-to-date ghost values
+     * with sufficient width for @p kernel. See LEInteractor for kernel names.
+     */
+    void trapezoidalStep(const double dt, const int u_new_idx, const std::string& kernel);
 
 protected:
     /**
@@ -182,6 +247,8 @@ protected:
     void pruneAndRedistribute();
 
     std::string d_object_name;
+
+    bool d_register_for_restart;
 
     std::size_t d_num_markers;
 

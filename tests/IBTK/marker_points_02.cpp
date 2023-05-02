@@ -22,6 +22,9 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <tbox/HDFDatabase.h>
+#include <tbox/RestartManager.h>
+
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
@@ -68,6 +71,9 @@ main(int argc, char** argv)
     Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : nullptr;
     const bool set_velocity = test_db && test_db->getBoolWithDefault("set_velocity", false);
     const bool timestep = test_db && test_db->getBoolWithDefault("timestep", false);
+    const bool collective_print = test_db && test_db->getBoolWithDefault("collective_print", false);
+    const bool test_h5part = test_db && test_db->getBoolWithDefault("test_h5part", false);
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
 
     int u_idx = IBTK::invalid_index;
     Pointer<hier::Variable<NDIM> > u_var;
@@ -116,24 +122,24 @@ main(int argc, char** argv)
     // Set up marker points.
     EigenAlignedVector<IBTK::Point> positions;
     EigenAlignedVector<IBTK::Vector> velocities;
-    for (unsigned int i = 0; i < 10; ++i)
+    if (!from_restart)
     {
-        for (unsigned int j = 0; j < 10; ++j)
+        for (unsigned int i = 0; i < 10; ++i)
         {
-            positions.emplace_back(double(i) / 10.0, double(j) / 10.0);
-            if (set_velocity)
-                velocities.emplace_back(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
-            else
-                velocities.emplace_back(double(i) * 10 + j, 0.0);
+            for (unsigned int j = 0; j < 10; ++j)
+            {
+                positions.emplace_back(double(i) / 10.0, double(j) / 10.0);
+                if (set_velocity)
+                    velocities.emplace_back(std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
+                else
+                    velocities.emplace_back(double(i) * 10 + j, 0.0);
+            }
         }
     }
     MarkerPatchHierarchy marker_points("MarkerPoints", patch_hierarchy, positions, velocities);
 
     if (set_velocity)
     {
-        // Set up the velocity on the Cartesian grid:
-        const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
-
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -168,6 +174,7 @@ main(int argc, char** argv)
         ghost_fill_op.fillData(/*time*/ 0.0);
 
         // interpolate:
+        const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
         marker_points.setVelocities(u_idx, kernel);
     }
 
@@ -182,28 +189,132 @@ main(int argc, char** argv)
 
         const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
         const int num_timesteps = test_db->getIntegerWithDefault("num_timesteps", 10);
-        for (int i = 0; i < num_timesteps; ++i)
+        const int starting_step = from_restart ? app_initializer->getRestartRestoreNumber() + 1 : 0;
+        const std::string time_stepping_type = test_db->getStringWithDefault("time_stepping_type", "MIDPOINT_RULE");
+        for (int i = starting_step; i < num_timesteps; ++i)
         {
-            marker_points.midpointStep(dt, u_idx, u_idx, kernel);
-        }
-    }
-
-    std::ostringstream out;
-    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        int local_patch_num = 0;
-        Pointer<PatchLevel<NDIM> > current_level = patch_hierarchy->getPatchLevel(ln);
-        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
-        {
-            if (rank == current_level->getMappingForPatch(p))
+            if (test_h5part)
             {
-                out << "level = " << ln << " patch = " << current_level->getPatch(p)->getBox() << std::endl;
-                test(marker_points.getMarkerPatch(ln, local_patch_num), out);
+                marker_points.writeH5Part("markers-" + std::to_string(i) + ".h5part", i, dt * i);
+            }
+            if (time_stepping_type == "MIDPOINT_RULE")
+            {
+                marker_points.midpointStep(dt, u_idx, u_idx, kernel);
+            }
+            else if (time_stepping_type == "FORWARD_EULER")
+            {
+                marker_points.forwardEulerStep(dt, u_idx, kernel);
+            }
+            else if (time_stepping_type == "BACKWARD_EULER")
+            {
+                marker_points.backwardEulerStep(dt, u_idx, kernel);
+            }
+            else if (time_stepping_type == "TRAPEZOIDAL_RULE")
+            {
+                marker_points.trapezoidalStep(dt, u_idx, kernel);
+            }
+            else
+            {
+                TBOX_ERROR("Unknown time stepping type " << time_stepping_type << '\n');
+            }
 
-                ++local_patch_num;
+            if (app_initializer->dumpRestartData() && (i % app_initializer->getRestartDumpInterval() == 0))
+            {
+                RestartManager::getManager()->writeRestartFile(app_initializer->getRestartDumpDirectory(), i);
+            }
+        }
+        if (test_h5part)
+        {
+            const std::string last_file_name = "markers-" + std::to_string(num_timesteps) + ".h5part";
+            marker_points.writeH5Part(last_file_name, num_timesteps, dt * num_timesteps);
+
+            auto pair = marker_points.collectAllMarkers();
+            if (IBTK_MPI::getRank() == 0)
+            {
+                // load that file again and make sure it contains what we think it does
+                HDFDatabase hdf5_database("hdf5_test_database_0");
+                const bool can_load = hdf5_database.open(last_file_name);
+                TBOX_ASSERT(can_load);
+                plog << "Keys in " << last_file_name << " top database:\n";
+                const auto all_keys_0 = hdf5_database.getAllKeys();
+                for (int i = 0; i < all_keys_0.size(); ++i) plog << all_keys_0[i] << '\n';
+
+                Pointer<Database> step_db = hdf5_database.getDatabase("Step#0");
+                plog << "Keys in " << last_file_name << " Step#0 database:\n";
+                const auto all_keys_1 = step_db->getAllKeys();
+                for (int i = 0; i < all_keys_1.size(); ++i) plog << all_keys_1[i] << '\n';
+
+                std::vector<double> xs(marker_points.getNumberOfMarkers());
+                std::vector<double> ys(marker_points.getNumberOfMarkers());
+                std::vector<double> pxs(marker_points.getNumberOfMarkers());
+                std::vector<double> pys(marker_points.getNumberOfMarkers());
+#if NDIM == 3
+                std::vector<double> zs(marker_points.getNumberOfMarkers());
+                std::vector<double> pzs(marker_points.getNumberOfMarkers());
+#endif
+                step_db->getDoubleArray("x", xs.data(), marker_points.getNumberOfMarkers());
+                step_db->getDoubleArray("y", ys.data(), marker_points.getNumberOfMarkers());
+                step_db->getDoubleArray("px", pxs.data(), marker_points.getNumberOfMarkers());
+                step_db->getDoubleArray("py", pys.data(), marker_points.getNumberOfMarkers());
+#if NDIM == 3
+                step_db->getDoubleArray("z", zs.data(), marker_points.getNumberOfMarkers());
+                step_db->getDoubleArray("pz", pzs.data(), marker_points.getNumberOfMarkers());
+#endif
+                for (unsigned int k = 0; k < marker_points.getNumberOfMarkers(); ++k)
+                {
+                    IBTK::Point X, V;
+                    X[0] = xs[k];
+                    V[0] = pxs[k];
+                    X[1] = ys[k];
+                    V[1] = pys[k];
+#if NDIM == 3
+                    X[2] = zs[k];
+                    V[2] = pzs[k];
+#endif
+                    TBOX_ASSERT(X == pair.first[k]);
+                    TBOX_ASSERT(V == pair.second[k]);
+                }
             }
         }
     }
 
-    print_strings_on_plog_0(out.str());
+    if (collective_print)
+    {
+        auto all_points = marker_points.collectAllMarkers();
+        for (unsigned int k = 0; k < marker_points.getNumberOfMarkers(); ++k)
+        {
+            plog << "X = ";
+            for (unsigned int d = 0; d < NDIM - 1; ++d)
+            {
+                plog << all_points.first[k][d] << ", ";
+            }
+            plog << all_points.first[k][NDIM - 1] << " V = ";
+            for (unsigned int d = 0; d < NDIM - 1; ++d)
+            {
+                plog << all_points.second[k][d] << ", ";
+            }
+            plog << all_points.second[k][NDIM - 1] << '\n';
+        }
+    }
+    else
+    {
+        std::ostringstream out;
+        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            int local_patch_num = 0;
+            Pointer<PatchLevel<NDIM> > current_level = patch_hierarchy->getPatchLevel(ln);
+            for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+            {
+                if (rank == current_level->getMappingForPatch(p))
+                {
+                    out << "level = " << ln << " patch = " << current_level->getPatch(p)->getBox() << std::endl;
+                    test(marker_points.getMarkerPatch(ln, local_patch_num), out);
+
+                    ++local_patch_num;
+                }
+            }
+        }
+
+        print_strings_on_plog_0(out.str());
+    }
 }

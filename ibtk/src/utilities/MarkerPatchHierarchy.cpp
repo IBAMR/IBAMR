@@ -18,9 +18,13 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/MarkerPatchHierarchy.h>
 
+#include <hdf5.h>
+#include <tbox/RestartManager.h>
+
 #include <CartesianGridGeometry.h>
 #include <mpi.h>
 
+#include <limits>
 #include <numeric>
 
 #include <ibtk/app_namespaces.h>
@@ -82,6 +86,62 @@ compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level
     return result;
 }
 
+std::tuple<std::vector<double>, std::vector<double>, std::vector<int> >
+collect_markers(const std::vector<double>& local_positions,
+                const std::vector<double>& local_velocities,
+                const std::vector<int>& local_indices)
+{
+    const auto n_procs = IBTK_MPI::getNodes();
+    const int num_indices = local_indices.size();
+    std::vector<int> counts(n_procs);
+    int ierr = MPI_Allgather(&num_indices, 1, MPI_INT, counts.data(), 1, MPI_INT, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    // We want the first entry to be zero and the last to be the sum
+    std::vector<int> offsets(n_procs + 1);
+    std::partial_sum(counts.begin(), counts.end(), offsets.begin() + 1);
+    std::vector<int> vector_counts;
+    std::vector<int> vector_offsets;
+    for (int r = 0; r < n_procs; ++r)
+    {
+        vector_counts.push_back(counts[r] * NDIM);
+        vector_offsets.push_back(offsets[r] * NDIM);
+    }
+    const auto num_total_indices = offsets.back();
+
+    std::vector<int> new_indices(num_total_indices);
+    std::vector<double> new_positions(num_total_indices * NDIM);
+    std::vector<double> new_velocities(num_total_indices * NDIM);
+    ierr = MPI_Allgatherv(local_indices.data(),
+                          num_indices,
+                          MPI_INT,
+                          new_indices.data(),
+                          counts.data(),
+                          offsets.data(),
+                          MPI_INT,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    ierr = MPI_Allgatherv(local_positions.data(),
+                          num_indices * NDIM,
+                          MPI_DOUBLE,
+                          new_positions.data(),
+                          vector_counts.data(),
+                          vector_offsets.data(),
+                          MPI_DOUBLE,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    ierr = MPI_Allgatherv(local_velocities.data(),
+                          num_indices * NDIM,
+                          MPI_DOUBLE,
+                          new_velocities.data(),
+                          vector_counts.data(),
+                          vector_offsets.data(),
+                          MPI_DOUBLE,
+                          IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+
+    return std::make_tuple(std::move(new_positions), std::move(new_velocities), std::move(new_indices));
+}
+
 void
 do_interpolation(const int data_idx,
                  const std::vector<double>& positions,
@@ -128,6 +188,7 @@ do_interpolation(const int data_idx,
 #endif
 }
 } // namespace
+
 MarkerPatch::MarkerPatch(const Box<NDIM>& patch_box,
                          const std::vector<Box<NDIM> >& nonoverlapping_patch_boxes,
                          const Pointer<CartesianGridGeometry<NDIM> >& grid_geom,
@@ -228,8 +289,10 @@ MarkerPatch::size() const
 MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
                                            Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                                            const EigenAlignedVector<IBTK::Point>& positions,
-                                           const EigenAlignedVector<IBTK::Point>& velocities)
+                                           const EigenAlignedVector<IBTK::Point>& velocities,
+                                           const bool register_for_restart)
     : d_object_name(name),
+      d_register_for_restart(register_for_restart),
       d_num_markers(positions.size()),
       d_hierarchy(patch_hierarchy),
       d_markers_outside_domain(
@@ -239,6 +302,26 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
           IntVector<NDIM>(1))
 {
     reinit(positions, velocities);
+
+    if (register_for_restart)
+    {
+        auto* restart_manager = RestartManager::getManager();
+        restart_manager->registerRestartItem(d_object_name, this);
+        if (restart_manager->isFromRestart())
+        {
+            auto restart_db = restart_manager->getRootDatabase()->getDatabase(d_object_name);
+            TBOX_ASSERT(restart_db);
+            getFromDatabase(restart_db);
+        }
+    }
+}
+
+MarkerPatchHierarchy::~MarkerPatchHierarchy()
+{
+    if (d_register_for_restart)
+    {
+        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+    }
 }
 
 void
@@ -246,12 +329,14 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
                              const EigenAlignedVector<IBTK::Point>& velocities)
 {
     TBOX_ASSERT(positions.size() == velocities.size());
+    d_num_markers = positions.size();
     const auto rank = IBTK_MPI::getRank();
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
     unsigned int num_emplaced_markers = 0;
     std::vector<bool> marker_emplaced(positions.size());
 
-    auto insert_markers = [&](MarkerPatch& marker_patch) {
+    auto insert_markers = [&](MarkerPatch& marker_patch)
+    {
         for (unsigned int k = 0; k < positions.size(); ++k)
         {
             if (!marker_emplaced[k] && marker_patch.contains(positions[k]))
@@ -343,6 +428,242 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
 
     num_emplaced_markers = IBTK_MPI::sumReduction(num_emplaced_markers);
     TBOX_ASSERT(num_emplaced_markers == positions.size());
+    // Do one more expensive check in debug mode:
+#ifndef NDEBUG
+    std::vector<unsigned int> marker_check(positions.size());
+    for (unsigned int k = 0; k < marker_check.size(); ++k)
+        if (marker_emplaced[k]) marker_check[k] += 1;
+    const int ierr = MPI_Allreduce(
+        MPI_IN_PLACE, marker_check.data(), marker_check.size(), MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == 0);
+    for (unsigned int k = 0; k < getNumberOfMarkers(); ++k)
+    {
+        if (marker_check[k] != 1)
+        {
+            TBOX_ERROR(d_object_name
+                       << ": Marker point " << k << " is presently owned by " << marker_check[k]
+                       << " patches. The most likely cause of this error is that the CFL number is greater than 1.");
+        }
+    }
+#endif
+}
+
+void
+MarkerPatchHierarchy::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+{
+    TBOX_ASSERT(d_num_markers <= std::numeric_limits<int>::max());
+    db->putInteger("num_markers", int(d_num_markers));
+
+    auto put_marker_patch = [&](const MarkerPatch& marker_patch, const std::string& prefix)
+    {
+        db->putInteger(prefix + "_num_markers", static_cast<int>(marker_patch.d_indices.size()));
+        // Yet another SAMRAI bug: we are not allowed to store zero-length
+        // arrays in the database so we have to special-case that here ourselves
+        if (marker_patch.d_indices.size() > 0)
+        {
+            db->putIntegerArray(
+                prefix + "_indices", marker_patch.d_indices.data(), static_cast<int>(marker_patch.d_indices.size()));
+            db->putDoubleArray(prefix + "_positions",
+                               marker_patch.d_positions.data(),
+                               static_cast<int>(marker_patch.d_positions.size()));
+            db->putDoubleArray(prefix + "_velocities",
+                               marker_patch.d_velocities.data(),
+                               static_cast<int>(marker_patch.d_velocities.size()));
+        }
+    };
+
+    int marker_patch_num = 0;
+    for (const auto& level_marker_patches : d_marker_patches)
+    {
+        for (const auto& marker_patch : level_marker_patches)
+        {
+            const std::string key_prefix = "patch_" + std::to_string(marker_patch_num);
+            put_marker_patch(marker_patch, key_prefix);
+            ++marker_patch_num;
+        }
+    }
+
+    put_marker_patch(d_markers_outside_domain, "outside_domain_");
+}
+
+void
+MarkerPatchHierarchy::writeH5Part(const std::string& filename,
+                                  const int /*time_step*/,
+                                  const double simulation_time,
+                                  const bool write_velocities) const
+{
+    const auto pair = collectAllMarkers();
+    const auto& positions = pair.first;
+    const auto& velocities = pair.second;
+
+    const std::array<std::string, NDIM> position_datasets{ { "x",
+                                                             "y",
+#if NDIM == 3
+                                                             "z"
+#endif
+    } };
+
+    // technically momentum, but marker points don't have mass so this is the
+    // nearest equivalent for us
+    const std::array<std::string, NDIM> velocity_datasets{ { "px",
+                                                             "py",
+#if NDIM == 3
+                                                             "pz"
+#endif
+    } };
+
+    // Make these files also compatible with SAMRAI by encoding their types
+    // in the manner perscribed by HDFDatabase.C
+    auto set_samrai_attribute = [](const hid_t dataset_id, const int type_key)
+    {
+        const hid_t attribute_id = H5Screate(H5S_SCALAR);
+        TBOX_ASSERT(attribute_id >= 0);
+        const auto samrai_attribute_type = H5T_STD_I8BE;
+        const hid_t attribute =
+            H5Acreate(dataset_id, "Type", samrai_attribute_type, attribute_id, H5P_DEFAULT, H5P_DEFAULT);
+        TBOX_ASSERT(attribute >= 0);
+        herr_t status = H5Awrite(attribute, H5T_NATIVE_INT, &type_key);
+        TBOX_ASSERT(status == 0);
+        status = H5Aclose(attribute);
+        TBOX_ASSERT(status == 0);
+        status = H5Sclose(attribute_id);
+        TBOX_ASSERT(status == 0);
+    };
+    // These values are defined in HDFDatabase.C
+    constexpr int samrai_int_array = 7;
+    constexpr int samrai_double_array = 5;
+
+    const hsize_t dims[1]{ getNumberOfMarkers() };
+    const hid_t dataspace_id = H5Screate_simple(1, dims, nullptr);
+
+    if (IBTK_MPI::getRank() == 0)
+    {
+        hid_t file_id = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+        if (file_id < 0)
+        {
+            TBOX_ERROR("An error occurred when calling H5Fcreate() with filename " << filename << std::endl);
+        }
+        hid_t group_id = H5Gcreate2(file_id, "/Step#0", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        TBOX_ASSERT(group_id >= 0);
+        // Save the current time in a way VisIt can understand:
+        {
+            const hid_t attribute_id = H5Screate(H5S_SCALAR);
+            TBOX_ASSERT(attribute_id >= 0);
+            const hid_t attribute =
+                H5Acreate(group_id, "time", H5T_NATIVE_DOUBLE, attribute_id, H5P_DEFAULT, H5P_DEFAULT);
+            TBOX_ASSERT(attribute >= 0);
+            herr_t status = H5Awrite(attribute, H5T_NATIVE_DOUBLE, &simulation_time);
+            TBOX_ASSERT(status == 0);
+            status = H5Aclose(attribute);
+            TBOX_ASSERT(status == 0);
+            status = H5Sclose(attribute_id);
+            TBOX_ASSERT(status == 0);
+        }
+
+        const hid_t id_dataset_id =
+            H5Dcreate2(group_id, "id", H5T_NATIVE_INT, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+        TBOX_ASSERT(id_dataset_id >= 0);
+        set_samrai_attribute(id_dataset_id, samrai_int_array);
+        std::vector<int> ids(getNumberOfMarkers());
+        herr_t status = H5Dwrite(id_dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, ids.data());
+        TBOX_ASSERT(status == 0);
+        status = H5Dclose(id_dataset_id);
+        TBOX_ASSERT(status == 0);
+
+        // H5Part assumes all properties are in 1D arrays so we need to unpack first
+        std::vector<double> unpacked_positions(getNumberOfMarkers());
+        std::vector<double> unpacked_velocities(write_velocities ? getNumberOfMarkers() : 0u);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            for (unsigned int k = 0; k < getNumberOfMarkers(); ++k)
+            {
+                unpacked_positions[k] = positions[k][d];
+                if (write_velocities)
+                {
+                    unpacked_velocities[k] = velocities[k][d];
+                }
+            }
+
+            const hid_t position_dataset_id = H5Dcreate2(group_id,
+                                                         position_datasets[d].c_str(),
+                                                         H5T_NATIVE_DOUBLE,
+                                                         dataspace_id,
+                                                         H5P_DEFAULT,
+                                                         H5P_DEFAULT,
+                                                         H5P_DEFAULT);
+            set_samrai_attribute(position_dataset_id, samrai_double_array);
+            TBOX_ASSERT(position_dataset_id >= 0);
+            status = H5Dwrite(
+                position_dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, unpacked_positions.data());
+            TBOX_ASSERT(status == 0);
+            status = H5Dclose(position_dataset_id);
+            TBOX_ASSERT(status == 0);
+            if (write_velocities)
+            {
+                const hid_t velocity_dataset_id = H5Dcreate2(group_id,
+                                                             velocity_datasets[d].c_str(),
+                                                             H5T_NATIVE_DOUBLE,
+                                                             dataspace_id,
+                                                             H5P_DEFAULT,
+                                                             H5P_DEFAULT,
+                                                             H5P_DEFAULT);
+                status = H5Dwrite(
+                    velocity_dataset_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, unpacked_velocities.data());
+                set_samrai_attribute(velocity_dataset_id, samrai_double_array);
+                TBOX_ASSERT(status == 0);
+                status = H5Dclose(velocity_dataset_id);
+                TBOX_ASSERT(status == 0);
+            }
+        }
+
+        status = H5Gclose(group_id);
+        TBOX_ASSERT(status == 0);
+        status = H5Fclose(file_id);
+        TBOX_ASSERT(status == 0);
+    }
+}
+
+void
+MarkerPatchHierarchy::getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+{
+    d_num_markers = static_cast<std::size_t>(db->getInteger("num_markers"));
+
+    int num_loaded_markers = 0;
+    auto get_marker_patch = [&](MarkerPatch& marker_patch, const std::string& prefix)
+    {
+        const auto num_markers = static_cast<std::size_t>(db->getInteger(prefix + "_num_markers"));
+        // No arrays are saved if num_markers == 0
+        if (num_markers > 0)
+        {
+            marker_patch.d_indices.resize(num_markers);
+            marker_patch.d_positions.resize(num_markers * NDIM);
+            marker_patch.d_velocities.resize(num_markers * NDIM);
+            db->getIntegerArray(
+                prefix + "_indices", marker_patch.d_indices.data(), static_cast<int>(marker_patch.d_indices.size()));
+            db->getDoubleArray(prefix + "_positions",
+                               marker_patch.d_positions.data(),
+                               static_cast<int>(marker_patch.d_positions.size()));
+            db->getDoubleArray(prefix + "_velocities",
+                               marker_patch.d_velocities.data(),
+                               static_cast<int>(marker_patch.d_velocities.size()));
+        }
+        num_loaded_markers += static_cast<int>(num_markers);
+    };
+
+    int marker_patch_num = 0;
+    for (auto& level_marker_patches : d_marker_patches)
+    {
+        for (auto& marker_patch : level_marker_patches)
+        {
+            const std::string key_prefix = "patch_" + std::to_string(marker_patch_num);
+            get_marker_patch(marker_patch, key_prefix);
+            ++marker_patch_num;
+        }
+    }
+
+    get_marker_patch(d_markers_outside_domain, "outside_domain_");
+    num_loaded_markers = IBTK_MPI::sumReduction(num_loaded_markers);
+    TBOX_ASSERT(num_loaded_markers == static_cast<int>(d_num_markers));
 }
 
 const MarkerPatch&
@@ -357,6 +678,57 @@ std::size_t
 MarkerPatchHierarchy::getNumberOfMarkers() const
 {
     return d_num_markers;
+}
+
+std::pair<EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> >
+MarkerPatchHierarchy::collectAllMarkers() const
+{
+    std::vector<double> local_positions;
+    std::vector<double> local_velocities;
+    std::vector<int> local_indices;
+
+    auto extract_markers = [&](const MarkerPatch& marker_patch)
+    {
+        for (unsigned int k = 0; k < marker_patch.size(); ++k)
+        {
+            const auto marker_point = marker_patch[k];
+            local_indices.push_back(std::get<0>(marker_point));
+            local_positions.insert(
+                local_positions.end(), std::get<1>(marker_point).data(), std::get<1>(marker_point).data() + NDIM);
+            local_velocities.insert(
+                local_velocities.end(), std::get<2>(marker_point).data(), std::get<2>(marker_point).data() + NDIM);
+        }
+    };
+
+    for (const auto& level_marker_patches : d_marker_patches)
+    {
+        for (const auto& marker_patch : level_marker_patches)
+        {
+            extract_markers(marker_patch);
+        }
+    }
+    if (IBTK_MPI::getRank() == 0)
+    {
+        extract_markers(d_markers_outside_domain);
+    }
+
+    auto result = collect_markers(local_positions, local_velocities, local_indices);
+    const auto& global_positions = std::get<0>(result);
+    const auto& global_velocities = std::get<1>(result);
+    const auto& global_indices = std::get<2>(result);
+    TBOX_ASSERT(global_positions.size() == getNumberOfMarkers() * NDIM);
+    TBOX_ASSERT(global_velocities.size() == getNumberOfMarkers() * NDIM);
+    TBOX_ASSERT(global_indices.size() == getNumberOfMarkers());
+
+    EigenAlignedVector<IBTK::Point> positions(getNumberOfMarkers());
+    EigenAlignedVector<IBTK::Vector> velocities(getNumberOfMarkers());
+    for (unsigned int k = 0; k < getNumberOfMarkers(); ++k)
+    {
+        positions[global_indices[k]] = IBTK::Point(&global_positions[k * NDIM]);
+        velocities[global_indices[k]] = IBTK::Vector(&global_velocities[k * NDIM]);
+    }
+
+    return std::make_pair(std::move(positions), std::move(velocities));
 }
 
 void
@@ -381,6 +753,81 @@ MarkerPatchHierarchy::setVelocities(const int u_idx, const std::string& kernel)
 }
 
 void
+MarkerPatchHierarchy::forwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
+{
+    const auto rank = IBTK_MPI::getRank();
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        unsigned int local_patch_num = 0;
+        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        {
+            if (rank == current_level->getMappingForPatch(p))
+            {
+                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
+                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+
+                // 1. Do a forward Euler step:
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    marker_patch.d_positions[i] += dt * marker_patch.d_velocities[i];
+                }
+
+                // 2. Update the velocities:
+                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
+
+                ++local_patch_num;
+            }
+        }
+    }
+
+    pruneAndRedistribute();
+}
+
+void
+MarkerPatchHierarchy::backwardEulerStep(const double dt, const int u_new_idx, const std::string& kernel)
+{
+    const auto rank = IBTK_MPI::getRank();
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        unsigned int local_patch_num = 0;
+        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        {
+            if (rank == current_level->getMappingForPatch(p))
+            {
+                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
+                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+
+                // 1. Do a forward Euler step:
+                std::vector<double> new_positions(marker_patch.d_positions);
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    new_positions[i] = marker_patch.d_positions[i] + dt * marker_patch.d_velocities[i];
+                }
+
+                // 2. Compute new velocities:
+                std::vector<double> new_velocities(marker_patch.d_velocities);
+                do_interpolation(u_new_idx, new_positions, patch, kernel, new_velocities);
+
+                // 3. Update the positions:
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    marker_patch.d_positions[i] += dt * new_velocities[i];
+                }
+
+                // 4. Update the velocities:
+                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
+
+                ++local_patch_num;
+            }
+        }
+    }
+
+    pruneAndRedistribute();
+}
+
+void
 MarkerPatchHierarchy::midpointStep(const double dt,
                                    const int u_half_idx,
                                    const int u_new_idx,
@@ -398,7 +845,7 @@ MarkerPatchHierarchy::midpointStep(const double dt,
                 MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
                 Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
 
-                // 1. Do a forward Euler step:
+                // 1. Do a half of a forward Euler step:
                 std::vector<double> half_positions(marker_patch.d_positions);
                 for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
                 {
@@ -427,12 +874,60 @@ MarkerPatchHierarchy::midpointStep(const double dt,
 }
 
 void
+MarkerPatchHierarchy::trapezoidalStep(const double dt, const int u_new_idx, const std::string& kernel)
+{
+    const auto rank = IBTK_MPI::getRank();
+    for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
+    {
+        unsigned int local_patch_num = 0;
+        Pointer<PatchLevel<NDIM> > current_level = d_hierarchy->getPatchLevel(ln);
+        for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+        {
+            if (rank == current_level->getMappingForPatch(p))
+            {
+                MarkerPatch& marker_patch = d_marker_patches[ln][local_patch_num];
+                Pointer<Patch<NDIM> > patch = current_level->getPatch(p);
+
+                // 1. Do a forward Euler step:
+                std::vector<double> new_positions(marker_patch.d_positions);
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    new_positions[i] = marker_patch.d_positions[i] + dt * marker_patch.d_velocities[i];
+                }
+
+                // 2. Interpolate the velocity at the new time:
+                std::vector<double> new_velocities(marker_patch.d_velocities);
+                do_interpolation(u_new_idx, new_positions, patch, kernel, new_velocities);
+
+                // 3. Do a trapezoidal step:
+                for (unsigned int i = 0; i < marker_patch.d_positions.size(); ++i)
+                {
+                    // This is left unfactored so it matches the implementations
+                    // elsewhere
+                    marker_patch.d_positions[i] +=
+                        0.5 * dt * marker_patch.d_velocities[i] + 0.5 * dt * new_velocities[i];
+                }
+
+                // 4. Update the velocities:
+                do_interpolation(u_new_idx, marker_patch.d_positions, patch, kernel, marker_patch.d_velocities);
+
+                ++local_patch_num;
+            }
+        }
+    }
+
+    pruneAndRedistribute();
+}
+
+void
 MarkerPatchHierarchy::pruneAndRedistribute()
 {
+    const auto rank = IBTK_MPI::getRank();
+
     // 1. Collect all markers which have left their respective patches:
-    std::vector<int> moved_indices;
     std::vector<double> moved_positions;
     std::vector<double> moved_velocities;
+    std::vector<int> moved_indices;
     for (auto& level_marker_patches : d_marker_patches)
     {
         for (auto& marker_patch : level_marker_patches)
@@ -456,54 +951,11 @@ MarkerPatchHierarchy::pruneAndRedistribute()
     }
 
     // 2. Communicate data so all processors have all errant marker points:
-    const auto rank = IBTK_MPI::getRank();
-    const auto n_procs = IBTK_MPI::getNodes();
-    const int num_indices = moved_indices.size();
-    std::vector<int> counts(n_procs);
-    int ierr = MPI_Allgather(&num_indices, 1, MPI_INT, counts.data(), 1, MPI_INT, IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(ierr == 0);
-    // We want the first entry to be zero and the last to be the sum
-    std::vector<int> offsets(n_procs + 1);
-    std::partial_sum(counts.begin(), counts.end(), offsets.begin() + 1);
-    std::vector<int> vector_counts;
-    std::vector<int> vector_offsets;
-    for (int r = 0; r < n_procs; ++r)
-    {
-        vector_counts.push_back(counts[r] * NDIM);
-        vector_offsets.push_back(offsets[r] * NDIM);
-    }
-    const auto num_total_indices = offsets.back();
-
-    std::vector<int> new_indices(num_total_indices);
-    std::vector<double> new_positions(num_total_indices * NDIM);
-    std::vector<double> new_velocities(num_total_indices * NDIM);
-    ierr = MPI_Allgatherv(moved_indices.data(),
-                          num_indices,
-                          MPI_INT,
-                          new_indices.data(),
-                          counts.data(),
-                          offsets.data(),
-                          MPI_INT,
-                          IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(ierr == 0);
-    ierr = MPI_Allgatherv(moved_positions.data(),
-                          num_indices * NDIM,
-                          MPI_DOUBLE,
-                          new_positions.data(),
-                          vector_counts.data(),
-                          vector_offsets.data(),
-                          MPI_DOUBLE,
-                          IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(ierr == 0);
-    ierr = MPI_Allgatherv(moved_velocities.data(),
-                          num_indices * NDIM,
-                          MPI_DOUBLE,
-                          new_velocities.data(),
-                          vector_counts.data(),
-                          vector_offsets.data(),
-                          MPI_DOUBLE,
-                          IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(ierr == 0);
+    std::vector<double> new_positions;
+    std::vector<double> new_velocities;
+    std::vector<int> new_indices;
+    std::tie(new_positions, new_velocities, new_indices) =
+        collect_markers(moved_positions, moved_velocities, moved_indices);
 
     // 3. Apply periodicity constraints.
     const Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
@@ -576,8 +1028,12 @@ MarkerPatchHierarchy::pruneAndRedistribute()
 
     // 6. Check that we accounted for all points.
 #ifndef NDEBUG
-    ierr = MPI_Allreduce(MPI_IN_PLACE, &num_emplaced_markers, 1, MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
-    TBOX_ASSERT(num_emplaced_markers == new_indices.size());
+    {
+        const int ierr =
+            MPI_Allreduce(MPI_IN_PLACE, &num_emplaced_markers, 1, MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == 0);
+        TBOX_ASSERT(num_emplaced_markers == new_indices.size());
+    }
 
     std::vector<unsigned int> marker_check(getNumberOfMarkers());
     for (int ln = d_hierarchy->getFinestLevelNumber(); ln >= 0; --ln)
@@ -601,8 +1057,11 @@ MarkerPatchHierarchy::pruneAndRedistribute()
             marker_check[index] += 1;
         }
     }
-    ierr = MPI_Allreduce(
-        MPI_IN_PLACE, marker_check.data(), marker_check.size(), MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+    {
+        const int ierr = MPI_Allreduce(
+            MPI_IN_PLACE, marker_check.data(), marker_check.size(), MPI_UNSIGNED, MPI_SUM, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == 0);
+    }
     for (unsigned int i = 0; i < getNumberOfMarkers(); ++i)
     {
         if (marker_check[i] != 1)
