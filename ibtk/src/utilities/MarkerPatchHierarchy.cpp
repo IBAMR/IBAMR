@@ -317,18 +317,23 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
     t_trapezoidal_step = set_timer("IBTK::MarkerPatchHierarchy::trapezoidalStep()");
     t_prune_and_redistribute = set_timer("IBTK::MarkerPatchHierarchy::pruneAndRedistribute()");
 
-    reinit(positions, velocities);
-
+    // Markers are special in that they are not always set up - in particular,
+    // someone might want to add them later in a simulation. One possibility
+    // is that we restart at step N and then we add markers at step N + M: we
+    // have a restart file but we don't have a marker database in it.
+    auto* restart_manager = RestartManager::getManager();
+    auto restart_db = restart_manager->getRootDatabase();
     if (register_for_restart)
     {
-        auto* restart_manager = RestartManager::getManager();
         restart_manager->registerRestartItem(d_object_name, this);
-        if (restart_manager->isFromRestart())
-        {
-            auto restart_db = restart_manager->getRootDatabase()->getDatabase(d_object_name);
-            TBOX_ASSERT(restart_db);
-            getFromDatabase(restart_db);
-        }
+    }
+    if (restart_manager->isFromRestart() && restart_db->keyExists(d_object_name))
+    {
+        getFromDatabase(restart_db->getDatabase(d_object_name));
+    }
+    else
+    {
+        reinit(positions, velocities);
     }
 }
 
@@ -644,6 +649,9 @@ MarkerPatchHierarchy::writeH5Part(const std::string& filename,
 void
 MarkerPatchHierarchy::getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
 {
+    // the database does not store information present in the patch hierarchy,
+    // so reconstruct the marker patches first:
+    reinit({}, {});
     d_num_markers = static_cast<std::size_t>(db->getInteger("num_markers"));
 
     int num_loaded_markers = 0;
