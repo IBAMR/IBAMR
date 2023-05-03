@@ -17,6 +17,7 @@
 #include "ibtk/GeneralSolver.h"
 #include "ibtk/LinearOperator.h"
 #include "ibtk/LinearSolver.h"
+#include "ibtk/SAMRAIScopedVectorCopy.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "Box.h"
@@ -182,10 +183,8 @@ BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRA
 
     // Clone the right-hand-side vector to avoid modifying it during the
     // preconditioning operation.
-    Pointer<SAMRAIVectorReal<NDIM, double> > f = b.cloneVector(b.getName());
-    f->allocateVectorData();
-    f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false), false);
-    std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > > f_comps = getComponentVectors(f);
+    SAMRAIScopedVectorCopy<double> f(b);
+    auto f_comps = f.getComponentVectors();
 
     // Apply the component preconditioners.
     int count = 0;
@@ -217,10 +216,6 @@ BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRA
         const bool ret_val_comp = pc_comp->solveSystem(*x_comp, *f_comp);
         ret_val = ret_val && ret_val_comp;
     }
-
-    // Free the copied right-hand-side vector data.
-    f->deallocateVectorData();
-    f->freeVectorComponents();
 
     // Deallocate the preconditioner, when necessary.
     if (deallocate_after_solve) deallocateSolverState();

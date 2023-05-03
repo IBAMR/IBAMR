@@ -11,31 +11,21 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
+#include <ibtk/AppInitializer.h>
+#include <ibtk/CCLaplaceOperator.h>
+#include <ibtk/IBTKInit.h>
+#include <ibtk/IBTK_MPI.h>
+#include <ibtk/SAMRAIScopedVectorCopy.h>
+#include <ibtk/SAMRAIScopedVectorDuplicate.h>
+#include <ibtk/muParserCartGridFunction.h>
 
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc objects
-#include <petscsys.h>
-
-// Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
-// Headers for application-specific algorithm/data structure objects
-#include <ibtk/AppInitializer.h>
-#include <ibtk/CCLaplaceOperator.h>
-#include <ibtk/IBTKInit.h>
-#include <ibtk/IBTK_MPI.h>
-#include <ibtk/muParserCartGridFunction.h>
-
-// Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
-
-// test showing orders of accuracy for a cell-centered Laplace solver.
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -57,6 +47,9 @@ main(int argc, char* argv[])
         // file, and enable file logging.
         Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
+        const bool test_copied_vector = input_db->getBoolWithDefault("test_copied_vector", false);
+        const bool test_duplicated_vector = input_db->getBoolWithDefault("test_duplicated_vector", false);
+        const bool test_standard_vector = !test_copied_vector && !test_duplicated_vector;
 
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input
@@ -141,17 +134,42 @@ main(int argc, char* argv[])
         // vector with the patch hierarchy:
         SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, finest_level);
         SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, finest_level);
-        SAMRAIVectorReal<NDIM, double> f_approx_vec("f_approx", patch_hierarchy, 0, finest_level);
+        SAMRAIVectorReal<NDIM, double> f_standard("f_approx", patch_hierarchy, 0, finest_level);
+
+        f_vec.addComponent(f_cc_var, f_cc_idx, cv_cc_idx);
+        SAMRAIScopedVectorDuplicate<double> f_duplicated(f_vec);
+        SAMRAIScopedVectorCopy<double> f_copied(f_vec);
+        SAMRAIVectorReal<NDIM, double>* f_approx_vec_ptr = nullptr;
+
+        if (test_copied_vector)
+        {
+            f_approx_vec_ptr = &static_cast<SAMRAIVectorReal<NDIM, double>&>(f_copied);
+        }
+        else if (test_duplicated_vector)
+        {
+            f_approx_vec_ptr = &static_cast<SAMRAIVectorReal<NDIM, double>&>(f_duplicated);
+        }
+        else if (test_standard_vector)
+        {
+            f_standard.addComponent(f_approx_cc_var, f_approx_cc_idx, cv_cc_idx);
+            f_approx_vec_ptr = &f_standard;
+        }
+        else
+        {
+            TBOX_ERROR("unknown test configuration - should be copied, duplicated, or standard");
+        }
+
         SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, finest_level);
 
         u_vec.addComponent(u_cc_var, u_cc_idx, cv_cc_idx);
-        f_vec.addComponent(f_cc_var, f_cc_idx, cv_cc_idx);
-        f_approx_vec.addComponent(f_approx_cc_var, f_approx_cc_idx, cv_cc_idx);
         e_vec.addComponent(e_cc_var, e_cc_idx, cv_cc_idx);
 
         u_vec.setToScalar(0.0, false);
         f_vec.setToScalar(0.0, false);
-        f_approx_vec.setToScalar(0.0, false);
+        if (!test_duplicated_vector)
+        {
+            f_approx_vec_ptr->setToScalar(0.0, false);
+        }
         e_vec.setToScalar(0.0, false);
 
         // Next, we use functions defined with muParser to set up the right
@@ -174,13 +192,35 @@ main(int argc, char* argv[])
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoef(bc_coef);
         laplace_op.initializeOperatorState(u_vec, f_vec);
-        laplace_op.apply(u_vec, f_approx_vec);
+        if (test_copied_vector)
+        {
+            laplace_op.apply(u_vec, f_copied);
+        }
+        else if (test_duplicated_vector)
+        {
+            laplace_op.apply(u_vec, f_duplicated);
+        }
+        else
+        {
+            laplace_op.apply(u_vec, f_standard);
+        }
 
         // Compute error and print error norms. Here we create temporary smart
         // pointers that will not delete the underlying object since the
         // second argument to the constructor is false.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&f_approx_vec, false));
+        if (test_copied_vector)
+        {
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false), f_copied);
+        }
+        else if (test_duplicated_vector)
+        {
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false), f_duplicated);
+        }
+        else
+        {
+            e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
+                           Pointer<SAMRAIVectorReal<NDIM, double> >(&f_standard, false));
+        }
         const double max_norm = e_vec.maxNorm();
         const double l2_norm = e_vec.L2Norm();
         const double l1_norm = e_vec.L1Norm();

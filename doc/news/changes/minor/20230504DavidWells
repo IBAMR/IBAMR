@@ -1,0 +1,5 @@
+New: added two new classes SAMRAIScopedVectorCopy and
+SAMRAIScopedVectorDuplicate to enable usage of SAMRAI vectors with RAII
+semantics.
+<br>
+(David Wells, 2023/05/04)

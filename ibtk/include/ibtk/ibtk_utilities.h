@@ -24,6 +24,7 @@
 #include "SAMRAIVectorReal.h"
 #include "tbox/MathUtilities.h"
 #include "tbox/PIO.h"
+#include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
@@ -387,8 +388,39 @@ free_vector_components(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
     x.resetLevels(coarsest_ln_in, finest_ln_in);
     return;
 }
+
+/*!
+ * Utility function which asserts that the SAMRAI pointer is not null.
+ *
+ * This is useful for writing generic code in which we might want to assert that
+ * a pointer is not null in the initialization list where we cannot use the
+ * normal assertion macro.
+ */
+template <class T>
+const T&
+checked_dereference(const SAMRAI::tbox::Pointer<T>& p)
+{
+#ifndef NDEBUG
+    TBOX_ASSERT(p);
+#endif
+    return *p;
+}
+
+/*!
+ * Same idea, but for a non-const pointer.
+ */
+template <class T>
+T&
+checked_dereference(SAMRAI::tbox::Pointer<T>& p)
+{
+#ifndef NDEBUG
+    TBOX_ASSERT(p);
+#endif
+    return *p;
+}
+
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_ibtk_utilities
+#endif // #ifndef included_IBTK_ibtk_utilities
