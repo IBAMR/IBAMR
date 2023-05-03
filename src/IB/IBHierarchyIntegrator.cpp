@@ -25,8 +25,6 @@
 #include "ibtk/CartSideRobinPhysBdryOp.h"
 #include "ibtk/HierarchyIntegrator.h"
 #include "ibtk/IBTK_MPI.h"
-#include "ibtk/LMarkerSetVariable.h"
-#include "ibtk/LMarkerUtilities.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
 
@@ -196,16 +194,9 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_u_idx, current_time);
-        level->allocatePatchData(d_f_idx, current_time);
-        if (d_f_current_idx != invalid_index) level->allocatePatchData(d_f_current_idx, current_time);
-        if (d_ib_method_ops->hasFluidSources())
-        {
-            level->allocatePatchData(d_p_idx, current_time);
-            level->allocatePatchData(d_q_idx, current_time);
-        }
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
+        level->allocatePatchData(d_ib_data, current_time);
     }
 
     // Determine whether there has been a time step size change.
@@ -248,14 +239,7 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_u_idx);
-        level->deallocatePatchData(d_f_idx);
-        if (d_f_current_idx != invalid_index) level->deallocatePatchData(d_f_current_idx);
-        if (d_ib_method_ops->hasFluidSources())
-        {
-            level->deallocatePatchData(d_p_idx);
-            level->deallocatePatchData(d_q_idx);
-        }
+        level->deallocatePatchData(d_ib_data);
     }
 
     // Determine the CFL number.
@@ -334,36 +318,29 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     // Initialize all variables.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
-    const IntVector<NDIM> ghosts = 1;
+    const IntVector<NDIM> ib_ghosts(d_ib_method_ops->getMinimumGhostCellWidth());
+    const IntVector<NDIM> ghosts(1);
 
     d_u_idx = var_db->registerVariableAndContext(d_u_var, d_ib_context, ib_ghosts);
+    d_ib_data.setFlag(d_u_idx);
     d_f_idx = var_db->registerVariableAndContext(d_f_var, d_ib_context, ib_ghosts);
-    switch (d_time_stepping_type)
+    d_ib_data.setFlag(d_f_idx);
+    if (d_time_stepping_type == FORWARD_EULER || d_time_stepping_type == TRAPEZOIDAL_RULE)
     {
-    case FORWARD_EULER:
-    case TRAPEZOIDAL_RULE:
         d_f_current_idx = var_db->registerClonedPatchDataIndex(d_f_var, d_f_idx);
-        break;
-    default:
-        d_f_current_idx = invalid_index;
+        d_ib_data.setFlag(d_f_current_idx);
     }
-
     if (d_ib_method_ops->hasFluidSources())
     {
         d_p_idx = var_db->registerVariableAndContext(d_p_var, d_ib_context, ib_ghosts);
+        d_ib_data.setFlag(d_p_idx);
         d_q_idx = var_db->registerVariableAndContext(d_q_var, d_ib_context, ib_ghosts);
+        d_ib_data.setFlag(d_q_idx);
     }
     else
     {
         d_q_var = nullptr;
         d_q_idx = invalid_index;
-    }
-
-    if (!d_mark_file_name.empty())
-    {
-        d_mark_var = new LMarkerSetVariable(d_object_name + "::markers");
-        registerVariable(d_mark_current_idx, d_mark_new_idx, d_mark_scratch_idx, d_mark_var, ghosts);
     }
 
     // Initialize the fluid solver.
@@ -471,12 +448,6 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     registerGhostfillRefineAlgorithm(
         d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, std::move(refine_patch_bdry_op));
 
-    // Read in initial marker positions.
-    if (!d_mark_file_name.empty())
-    {
-        LMarkerUtilities::readMarkerPositions(d_mark_init_posns, d_mark_file_name, hierarchy->getGridGeometry());
-    }
-
     // Setup the tag buffer.
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = d_tag_buffer.size();
@@ -556,12 +527,6 @@ IBHierarchyIntegrator::regridHierarchyBeginSpecialized()
     // the distribution of patches.
     updateWorkloadEstimates();
 
-    // Collect the marker particles to level 0 of the patch hierarchy.
-    if (d_mark_var)
-    {
-        LMarkerUtilities::collectMarkersOnPatchHierarchy(d_mark_current_idx, d_hierarchy);
-    }
-
     // Before regridding, begin Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): starting Lagrangian data movement\n";
     d_ib_method_ops->beginDataRedistribution(d_hierarchy, d_gridding_alg);
@@ -575,13 +540,6 @@ IBHierarchyIntegrator::regridHierarchyEndSpecialized()
     // After regridding, finish Lagrangian data movement.
     if (d_enable_logging) plog << d_object_name << "::regridHierarchy(): finishing Lagrangian data movement\n";
     d_ib_method_ops->endDataRedistribution(d_hierarchy, d_gridding_alg);
-
-    // Prune any duplicated markers located in the "invalid" regions of coarser
-    // levels of the patch hierarchy.
-    if (d_mark_var)
-    {
-        LMarkerUtilities::pruneInvalidMarkers(d_mark_current_idx, d_hierarchy);
-    }
 
     if (d_enable_logging)
     {
@@ -673,13 +631,6 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
     }
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-
-    // Initialize marker data
-    if (d_mark_var)
-    {
-        LMarkerUtilities::initializeMarkersOnLevel(
-            d_mark_current_idx, d_mark_init_posns, hierarchy, level_number, initial_time, old_level);
-    }
 
     // Initialize IB data.
     d_ib_method_ops->initializeLevelData(
@@ -774,7 +725,6 @@ IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart
         d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("time_stepping_type"));
     else if (db->keyExists("timestepping_type"))
         d_time_stepping_type = string_to_enum<TimeSteppingType>(db->getString("timestepping_type"));
-    if (db->keyExists("marker_file_name")) d_mark_file_name = db->getString("marker_file_name");
     return;
 } // getFromInput
 

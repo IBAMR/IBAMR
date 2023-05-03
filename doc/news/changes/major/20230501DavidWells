@@ -1,0 +1,5 @@
+New: IBExplicitHierarchyIntegrator can now be set up to use markers to trace the
+evolution of the fluid. IBFE example 4 (and its input2d.markers input file)
+demonstrates how to do this.
+<br>
+(David Wells, 2023/05/01)

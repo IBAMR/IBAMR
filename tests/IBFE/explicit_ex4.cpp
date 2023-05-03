@@ -63,6 +63,7 @@
  * 3. IBFE part inactivation
  * 4. IBFECentroidPostProcessor
  * 5. IBTK::MergingLoadBalancer
+ * 6. IBTK::MarkerPatchHierarchy
  */
 
 // Elasticity model data.
@@ -353,7 +354,7 @@ main(int argc, char** argv)
                            /*register_for_restart*/ true,
                            restart_read_dirname,
                            restart_restore_num);
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        Pointer<IBExplicitHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
@@ -530,6 +531,39 @@ main(int argc, char** argv)
             other_manager->setPatchHierarchy(patch_hierarchy);
         }
 
+        auto add_markers = [&]()
+        {
+            System& X_system = equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
+            NumericVector<double>& X_vec = *X_system.solution.get();
+            std::vector<double> X_vec_global(X_vec.size());
+            X_vec.localize(X_vec_global);
+
+            EigenAlignedVector<IBTK::Point> positions;
+            const auto n_nodes = mesh.parallel_n_nodes();
+            std::vector<dof_id_type> X_idxs;
+            for (dof_id_type i = 0; i < n_nodes; ++i)
+            {
+                const auto& node = mesh.node_ref(i);
+                IBTK::Point X_node;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    IBTK::get_nodal_dof_indices(X_system.get_dof_map(), &node, d, X_idxs);
+                    X_node[d] = X_vec_global[X_idxs[0]];
+                }
+
+                positions.push_back(X_node);
+            }
+
+
+            time_integrator->setMarkers(positions);
+        };
+
+        // First test for markers: add them at the start
+        if (input_db->getBoolWithDefault("test_markers", false))
+        {
+            add_markers();
+        }
+
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -635,6 +669,80 @@ main(int argc, char** argv)
             {
                 plog << std::setprecision(12) << std::fixed << loop_time << " " << J_integral << std::endl;
             }
+
+            // Second test for markers: add them after a restart (some users
+            // want to add markers later in a simulation)
+            if (iteration_num == 90 && input_db->getBoolWithDefault("test_markers_90", false))
+            {
+                add_markers();
+            }
+        }
+
+        // Markers should still be in the same positions as nodes
+        if (input_db->getBoolWithDefault("test_markers", false) || (iteration_num > 90 && input_db->getBoolWithDefault("test_markers_90", false)))
+        {
+            System& X_system = equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
+            NumericVector<double>& X_vec = *X_system.solution.get();
+            std::vector<double> X_vec_global(X_vec.size());
+            X_vec.localize(X_vec_global);
+            System& U_system = equation_systems->get_system<System>(ib_method_ops->getVelocitySystemName());
+            NumericVector<double>& U_vec = *U_system.solution.get();
+            std::vector<double> U_vec_global(U_vec.size());
+            U_vec.localize(U_vec_global);
+
+            const auto n_nodes = mesh.parallel_n_nodes();
+            TBOX_ASSERT(X_vec_global.size() == NDIM * n_nodes);
+
+            const auto pair = time_integrator->collectAllMarkers();
+            TBOX_ASSERT(pair.first.size() == n_nodes);
+
+            double max_distance = 0.0;
+            double max_velocity_difference = 0.0;
+            std::vector<dof_id_type> X_idxs;
+            std::vector<dof_id_type> U_idxs;
+            for (dof_id_type i = 0; i < n_nodes; ++i)
+            {
+                const auto& X_marker = pair.first[i];
+                const auto& U_marker = pair.second[i];
+                const auto& node = mesh.node_ref(i);
+                IBTK::Point X_node;
+                IBTK::Point U_node;
+                for (unsigned int d = 0; d < NDIM; ++d)
+                {
+                    IBTK::get_nodal_dof_indices(X_system.get_dof_map(), &node, d, X_idxs);
+                    IBTK::get_nodal_dof_indices(U_system.get_dof_map(), &node, d, U_idxs);
+                    X_node[d] = X_vec_global[X_idxs[0]];
+                    U_node[d] = U_vec_global[U_idxs[0]];
+                }
+
+                // print the last node to make sure we aren't doing something
+                // silly like 0 - 0.
+                if (i == n_nodes - 1)
+                {
+                    plog << "Last node X = " << X_node[0] << ", " << X_node[1]
+#if NDIM == 3
+                         << ", " << X_node[2]
+#endif
+                         << '\n'
+                         << "Last marker X = " << X_marker[0] << ", " << X_marker[1]
+#if NDIM == 3
+                         << ", " << X_marker[2]
+#endif
+                         << '\n'
+                         << "Last marker U = " << U_marker[0] << ", " << U_marker[1]
+#if NDIM == 3
+                         << ", " << U_marker[2]
+#endif
+                         << '\n';
+                }
+                X_node -= X_marker;
+                U_node -= U_marker;
+                max_distance = std::max(max_distance, X_node.norm());
+                max_velocity_difference = std::max(max_velocity_difference, U_node.norm());
+            }
+
+            plog << "Maximum distance between markers and nodes = " << max_distance << '\n';
+            plog << "Maximum velocity difference between markers and nodes = " << max_velocity_difference << '\n';
         }
 
         if (input_db->getBoolWithDefault("log_scratch_partitioning", false))

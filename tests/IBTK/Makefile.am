@@ -22,7 +22,7 @@ ghost_accumulation_01_2d ghost_accumulation_01_3d ghost_indices_01_2d \
 ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi equal_eps helmholtz_2d \
 helmholtz_3d secondary_hierarchy_01_2d child_integrators_2d version_macros \
 snapshot_cache_01_2d nodal_interpolation_01_2d nodal_interpolation_01_3d \
-curl_01_2d curl_01_3d
+curl_01_2d curl_01_3d marker_points_01_2d marker_points_02_2d
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
@@ -62,6 +62,14 @@ ibtk_init_SOURCES = ibtk_init.cpp
 ibtk_mpi_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 ibtk_mpi_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 ibtk_mpi_SOURCES = ibtk_mpi.cpp
+
+marker_points_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+marker_points_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+marker_points_01_2d_SOURCES = marker_points_01.cpp
+
+marker_points_02_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+marker_points_02_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+marker_points_02_2d_SOURCES = marker_points_02.cpp
 
 mpi_type_wrappers_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 mpi_type_wrappers_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)

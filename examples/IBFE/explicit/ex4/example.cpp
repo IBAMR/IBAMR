@@ -167,6 +167,7 @@ main(int argc, char* argv[])
         {
             Utilities::recursiveMkdir(postproc_data_dump_dirname);
         }
+        const bool use_markers = input_db->getBoolWithDefault("use_markers", false);
 
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
@@ -266,7 +267,7 @@ main(int argc, char* argv[])
                            /*register_for_restart*/ true,
                            restart_read_dirname,
                            restart_restore_num);
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        Pointer<IBExplicitHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
@@ -416,6 +417,27 @@ main(int argc, char* argv[])
         plog << "Input database:\n";
         input_db->printClassData(plog);
 
+        // Marker points
+        if (use_markers)
+        {
+            EigenAlignedVector<IBTK::Point> positions;
+            for (unsigned int i = 1; i < 100; ++i)
+            {
+                for (unsigned int j = 1; j < 100; ++j)
+                {
+#if NDIM == 2
+                    positions.emplace_back(double(i) / 100.0, double(j) / 100.0);
+#else
+                    for (unsigned int k = 1; k < 100; ++k)
+                    {
+                        positions.emplace_back(double(i) / 100.0, double(j) / 100.0, double(k) / 1.00);
+                    }
+#endif
+                }
+            }
+            time_integrator->setMarkers(positions);
+        }
+
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -428,7 +450,11 @@ main(int argc, char* argv[])
                     equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                if (NDIM < 3)
+                if (use_markers)
+                {
+                    time_integrator->writeMarkerPlotData(iteration_num, loop_time);
+                }
+                if (NDIM < 3 && input_db->getBoolWithDefault("save_extra_partitioning", false))
                 {
                     IBTK::BoxPartitioner partitioner(*patch_hierarchy, position_system);
                     partitioner.writePartitioning("patch-part-" + std::to_string(iteration_num) + ".txt");
@@ -489,7 +515,11 @@ main(int argc, char* argv[])
                         equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                     time_integrator->setupPlotData();
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                    if (NDIM < 3)
+                    if (use_markers)
+                    {
+                        time_integrator->writeMarkerPlotData(iteration_num, loop_time);
+                    }
+                    if (NDIM < 3 && input_db->getBoolWithDefault("save_extra_partitioning", false))
                     {
                         IBTK::BoxPartitioner partitioner(*patch_hierarchy, position_system);
                         partitioner.writePartitioning("patch-part-" + std::to_string(iteration_num) + ".txt");

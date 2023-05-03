@@ -17,7 +17,7 @@ include $(top_srcdir)/config/Make-rules
 ## Dimension-dependent testers
 EXAMPLE_DRIVER = example.cpp
 
-EXTRA_DIST = input2d input3d
+EXTRA_DIST = input2d input2d.markers input3d
 
 EXTRA_PROGRAMS =
 EXAMPLES =
