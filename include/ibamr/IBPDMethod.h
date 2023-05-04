@@ -235,6 +235,23 @@ public:
         int integrator_step,
         double init_data_time,
         bool initial_time) override;
+    
+    /*!
+     * Register a load balancer and work load patch data index with the IB
+     * strategy object.
+     *
+     * @deprecated This method is no longer necessary with the current
+     * workload estimation scheme.
+     */
+    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
+                              int workload_data_idx) override;
+
+    /*!
+     * Add the estimated computational work from the current object per cell
+     * into the specified <code>workload_data_idx</code>.
+     */
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                             const int workload_data_idx) override;    
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
@@ -264,6 +281,15 @@ public:
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
                              bool allocate_data) override;
+
+    /*!
+     * Reset cached hierarchy dependent data.
+     *
+     * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
+     */
+    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                     int coarsest_level,
+                                     int finest_level) override;
 
     /*!
      * Write out object state to the given database.

@@ -356,6 +356,20 @@ IBPDMethod::initializePDData()
 
 } // initializePDData
 
+void
+IBPDMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+{
+    IBMethod::registerLoadBalancer(load_balancer,workload_data_idx);
+    return;
+} // registerLoadBalancer
+
+void
+IBPDMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+{
+    IBMethod::addWorkloadEstimate(hierarchy,workload_data_idx);
+    return;
+} // addWorkloadEstimate
+
 void IBPDMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -401,6 +415,16 @@ IBPDMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 
     return;
 } // initializeLevelData
+
+void
+IBPDMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                      int coarsest_level,
+                                      int finest_level)
+{
+    IBMethod::resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+
+    return;
+} // resetHierarchyConfiguration
 
 void
 IBPDMethod::putToDatabase(Pointer<Database> db)
