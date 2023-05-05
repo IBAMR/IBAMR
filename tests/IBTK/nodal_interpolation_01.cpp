@@ -78,10 +78,15 @@ main(int argc, char* argv[])
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
         Pointer<hier::Variable<NDIM> > u_var;
+        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
         Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
         Pointer<FaceVariable<NDIM, double> > u_fc_var = new FaceVariable<NDIM, double>("u_fc");
 
-        if (var_type == "SIDE")
+        if (var_type == "CELL")
+        {
+            u_var = u_cc_var;
+        }
+        else if (var_type == "SIDE")
         {
             u_var = u_sc_var;
         }
@@ -171,7 +176,12 @@ main(int argc, char* argv[])
         // interpolate from side/face-centered to nodal:
         const bool synch_dst_cf_interface = input_db->getBoolWithDefault("synch_dst_cf_interface", false);
         const bool synch_src_cf_interface = true;
-        if (var_type == "SIDE")
+        if (var_type == "CELL")
+        {
+            hier_math_ops.interp(
+                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_cc_var, NULL, 0.0);
+        }
+        else if (var_type == "SIDE")
         {
             hier_math_ops.interp(
                 u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, NULL, 0.0, synch_src_cf_interface);
