@@ -1175,6 +1175,43 @@ intersect_line_with_face(std::vector<std::pair<double, libMesh::Point> >& t_vals
     t_vals.resize(0);
     switch (elem->type())
     {
+    case libMesh::TRI6:
+    {
+      const libMesh::VectorValue<double>& p = r;
+      const libMesh::VectorValue<double>& d = q;
+      
+      // Linear interpolation:
+      //
+      //    (1-u-v)*p0 + u*p1 + v*p2 = p + t*d
+      //
+      // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+      // http://www.lighthouse3d.com/tutorials/maths/ray-triangle-intersection/
+      const libMesh::Point& p0 = *elem->node_ptr(0);
+      const libMesh::Point& p1 = *elem->node_ptr(1);
+      const libMesh::Point& p2 = *elem->node_ptr(2);
+      
+      const libMesh::VectorValue<double> e1 = p1 - p0;
+      const libMesh::VectorValue<double> e2 = p2 - p0;
+      const libMesh::VectorValue<double> h = d.cross(e2);
+      double a = e1 * h;
+      if (std::abs(a) > std::numeric_limits<double>::epsilon())
+        {
+	  double f = 1.0 / a;
+	  const libMesh::VectorValue<double> s = p - p0;
+	  double u = f * (s * h);
+	  if (u >= -tol && u <= 1.0 + tol)
+            {
+	      const libMesh::VectorValue<double> q = s.cross(e1);
+	      double v = f * (d * q);
+	      if (v >= tol && (u + v) <= 1.0 + tol)
+                {
+		  double t = f * (e2 * q);
+		  t_vals.push_back(std::make_pair(t, libMesh::Point(u, v, 0.0)));
+                }
+            }
+        }
+      break;
+    }
     case libMesh::TRI3:
     {
         const libMesh::VectorValue<double>& p = r;
