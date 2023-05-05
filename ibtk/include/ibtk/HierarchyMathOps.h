@@ -946,6 +946,99 @@ public:
                          double src_ghost_fill_time);
 
     /*!
+     * \brief Interpolate to a node-centered vector/tensor field from a
+     * cell-centered vector/tensor field. Interpolate both in the cell and in
+     * the ghost region.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.
+     *
+     * @warning This function exists for backwards compatibility purposes. New
+     * code should handle ghost regions in the conventional way (i.e., that
+     * ghost data is read-only).
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp_ghosted(int dst_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                        int src_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                        double src_ghost_fill_time);
+
+    /*!
+     * \brief Interpolate to a edge-centered vector/tensor field from a
+     * cell-centered vector/tensor field.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the edge centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * @warning This function exists for backwards compatibility purposes. New
+     * code should handle ghost regions in the conventional way (i.e., that
+     * ghost data is read-only).
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp_ghosted(int dst_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                        int src_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                        double src_ghost_fill_time);
+
+    /*!
+     * \brief Harmonically interpolate to a node-centered vector/tensor field from a
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the node centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * @warning This function exists for backwards compatibility purposes. New
+     * code should handle ghost regions in the conventional way (i.e., that
+     * ghost data is read-only).
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp_ghosted(int dst_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                                 int src_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                 double src_ghost_fill_time);
+
+    /*!
+     * \brief Harmonically interpolate to a edge-centered vector/tensor field from a
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the edge centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * @warning This function exists for backwards compatibility purposes. New
+     * code should handle ghost regions in the conventional way (i.e., that
+     * ghost data is read-only).
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp_ghosted(int dst_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                                 int src_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                 double src_ghost_fill_time);
+
+    /*!
      * \brief Compute the Laplacian of a scalar quantity using centered
      * differences.
      *

@@ -2298,6 +2298,118 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
 } // harmonic_interp
 
 void
+HierarchyMathOps::interp_ghosted(const int dst_idx,
+                                 const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
+                                 const int src_idx,
+                                 const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                                 const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                 const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch, true);
+        }
+    }
+    return;
+} // interp_ghosted
+
+void
+HierarchyMathOps::interp_ghosted(const int dst_idx,
+                                 const Pointer<EdgeVariable<NDIM, double> > /*dst_var*/,
+                                 const int src_idx,
+                                 const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                                 const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                 const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch, true);
+        }
+    }
+    return;
+} // interp_ghosted
+
+void
+HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
+                                          const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
+                                          const int src_idx,
+                                          const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                          const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch, true);
+        }
+    }
+    return;
+} // harmonic_interp_ghosted
+
+void
+HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
+                                          const Pointer<EdgeVariable<NDIM, double> > /*dst_var*/,
+                                          const int src_idx,
+                                          const Pointer<CellVariable<NDIM, double> > /*src_var*/,
+                                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                          const double src_ghost_fill_time)
+{
+    if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Interpolate.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
+
+            d_patch_math_ops.interp(dst_data, src_data, patch, true);
+        }
+    }
+    return;
+} // harmonic_interp_ghosted
+
+void
 HierarchyMathOps::laplace(const int dst_idx,
                           const Pointer<CellVariable<NDIM, double> > dst_var,
                           const PoissonSpecifications& poisson_spec,
