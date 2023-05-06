@@ -91,7 +91,6 @@ SET(CXX_SRC
   # coarsen ops
   coarsen_ops/CartCellDoubleCubicCoarsen.cpp
   coarsen_ops/CartSideDoubleRT0Coarsen.cpp
-  coarsen_ops/LMarkerCoarsen.cpp
   coarsen_ops/CartSideDoubleCubicCoarsen.cpp
 
   # lagrangian
@@ -108,7 +107,6 @@ SET(CXX_SRC
   lagrangian/LSetDataFactory.cpp
   lagrangian/LInitStrategy.cpp
   lagrangian/LSetDataIterator.cpp
-  lagrangian/LMarker.cpp
   lagrangian/LSetVariable.cpp
   lagrangian/LData.cpp
   lagrangian/LMesh.cpp
@@ -124,7 +122,6 @@ SET(CXX_SRC
 
   # refine ops
   refine_ops/CartCellDoubleQuadraticRefine.cpp
-  refine_ops/LMarkerRefine.cpp
   refine_ops/CartSideDoubleSpecializedLinearRefine.cpp
   refine_ops/CartCellDoubleBoundsPreservingConservativeLinearRefine.cpp
   refine_ops/CartSideDoubleDivPreservingRefine.cpp
@@ -214,7 +211,6 @@ SET(CXX_SRC
   utilities/EdgeSynchCopyFillPattern.cpp
   utilities/SecondaryHierarchy.cpp
   utilities/StreamableManager.cpp
-  utilities/LMarkerUtilities.cpp
   utilities/PartitioningBox.cpp
   utilities/SnapshotCache.cpp
   utilities/snapshot_utilities.cpp

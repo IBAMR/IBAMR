@@ -235,16 +235,15 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
-	../src/coarsen_ops/LMarkerCoarsen.cpp \
 	../src/lagrangian/LData.cpp ../src/lagrangian/LDataManager.cpp \
 	../src/lagrangian/LEInteractor.cpp \
 	../src/lagrangian/LIndexSetData.cpp \
 	../src/lagrangian/LIndexSetDataFactory.cpp \
 	../src/lagrangian/LIndexSetVariable.cpp \
 	../src/lagrangian/LInitStrategy.cpp \
-	../src/lagrangian/LMarker.cpp ../src/lagrangian/LMesh.cpp \
-	../src/lagrangian/LNode.cpp ../src/lagrangian/LNodeIndex.cpp \
-	../src/lagrangian/LSet.cpp ../src/lagrangian/LSetData.cpp \
+	../src/lagrangian/LMesh.cpp ../src/lagrangian/LNode.cpp \
+	../src/lagrangian/LNodeIndex.cpp ../src/lagrangian/LSet.cpp \
+	../src/lagrangian/LSetData.cpp \
 	../src/lagrangian/LSetDataFactory.cpp \
 	../src/lagrangian/LSetDataIterator.cpp \
 	../src/lagrangian/LSetVariable.cpp \
@@ -260,7 +259,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
 	../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 	../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
-	../src/refine_ops/LMarkerRefine.cpp \
 	../src/solvers/solver_utilities.cpp \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	../src/solvers/impls/BJacobiPreconditioner.cpp \
@@ -321,7 +319,6 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/HierarchyIntegrator.cpp \
 	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
 	../src/utilities/IndexUtilities.cpp \
-	../src/utilities/LMarkerUtilities.cpp \
 	../src/utilities/MarkerPatchHierarchy.cpp \
 	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
@@ -414,7 +411,6 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/coarsen_ops/libIBTK2d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK2d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.$(OBJEXT) \
-	../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LData.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LDataManager.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LEInteractor.$(OBJEXT) \
@@ -422,7 +418,6 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/lagrangian/libIBTK2d_a-LIndexSetDataFactory.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LIndexSetVariable.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LInitStrategy.$(OBJEXT) \
-	../src/lagrangian/libIBTK2d_a-LMarker.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LMesh.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LNode.$(OBJEXT) \
 	../src/lagrangian/libIBTK2d_a-LNodeIndex.$(OBJEXT) \
@@ -444,7 +439,6 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/refine_ops/libIBTK2d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-CartSideDoubleRT0Refine.$(OBJEXT) \
 	../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
-	../src/refine_ops/libIBTK2d_a-LMarkerRefine.$(OBJEXT) \
 	../src/solvers/libIBTK2d_a-solver_utilities.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK2d_a-BJacobiPreconditioner.$(OBJEXT) \
@@ -506,7 +500,6 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-IBTK_MPI.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-IBTKInit.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-IndexUtilities.$(OBJEXT) \
-	../src/utilities/libIBTK2d_a-LMarkerUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-MarkerPatchHierarchy.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-MergingLoadBalancer.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-NodeDataSynchronization.$(OBJEXT) \
@@ -572,16 +565,15 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
-	../src/coarsen_ops/LMarkerCoarsen.cpp \
 	../src/lagrangian/LData.cpp ../src/lagrangian/LDataManager.cpp \
 	../src/lagrangian/LEInteractor.cpp \
 	../src/lagrangian/LIndexSetData.cpp \
 	../src/lagrangian/LIndexSetDataFactory.cpp \
 	../src/lagrangian/LIndexSetVariable.cpp \
 	../src/lagrangian/LInitStrategy.cpp \
-	../src/lagrangian/LMarker.cpp ../src/lagrangian/LMesh.cpp \
-	../src/lagrangian/LNode.cpp ../src/lagrangian/LNodeIndex.cpp \
-	../src/lagrangian/LSet.cpp ../src/lagrangian/LSetData.cpp \
+	../src/lagrangian/LMesh.cpp ../src/lagrangian/LNode.cpp \
+	../src/lagrangian/LNodeIndex.cpp ../src/lagrangian/LSet.cpp \
+	../src/lagrangian/LSetData.cpp \
 	../src/lagrangian/LSetDataFactory.cpp \
 	../src/lagrangian/LSetDataIterator.cpp \
 	../src/lagrangian/LSetVariable.cpp \
@@ -597,7 +589,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
 	../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 	../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
-	../src/refine_ops/LMarkerRefine.cpp \
 	../src/solvers/solver_utilities.cpp \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	../src/solvers/impls/BJacobiPreconditioner.cpp \
@@ -658,7 +649,6 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/HierarchyIntegrator.cpp \
 	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
 	../src/utilities/IndexUtilities.cpp \
-	../src/utilities/LMarkerUtilities.cpp \
 	../src/utilities/MarkerPatchHierarchy.cpp \
 	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
@@ -749,7 +739,6 @@ am__objects_6 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/coarsen_ops/libIBTK3d_a-CartCellDoubleCubicCoarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK3d_a-CartSideDoubleCubicCoarsen.$(OBJEXT) \
 	../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.$(OBJEXT) \
-	../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LData.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LDataManager.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LEInteractor.$(OBJEXT) \
@@ -757,7 +746,6 @@ am__objects_6 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/lagrangian/libIBTK3d_a-LIndexSetDataFactory.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LIndexSetVariable.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LInitStrategy.$(OBJEXT) \
-	../src/lagrangian/libIBTK3d_a-LMarker.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LMesh.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LNode.$(OBJEXT) \
 	../src/lagrangian/libIBTK3d_a-LNodeIndex.$(OBJEXT) \
@@ -779,7 +767,6 @@ am__objects_6 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/refine_ops/libIBTK3d_a-CartSideDoubleDivPreservingRefine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-CartSideDoubleRT0Refine.$(OBJEXT) \
 	../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT) \
-	../src/refine_ops/libIBTK3d_a-LMarkerRefine.$(OBJEXT) \
 	../src/solvers/libIBTK3d_a-solver_utilities.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-BGaussSeidelPreconditioner.$(OBJEXT) \
 	../src/solvers/impls/libIBTK3d_a-BJacobiPreconditioner.$(OBJEXT) \
@@ -841,7 +828,6 @@ am__objects_6 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-IBTK_MPI.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-IBTKInit.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-IndexUtilities.$(OBJEXT) \
-	../src/utilities/libIBTK3d_a-LMarkerUtilities.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-MarkerPatchHierarchy.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-MergingLoadBalancer.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-NodeDataSynchronization.$(OBJEXT) \
@@ -940,11 +926,9 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleCubicCoarsen.Po \
 	../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleCubicCoarsen.Po \
 	../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po \
-	../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po \
 	../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleCubicCoarsen.Po \
 	../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po \
 	../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po \
-	../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po \
@@ -959,7 +943,6 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LInitStrategy.Po \
-	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMesh.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LNode.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LNodeIndex.Po \
@@ -985,7 +968,6 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LInitStrategy.Po \
-	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMesh.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LNode.Po \
 	../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LNodeIndex.Po \
@@ -1014,13 +996,11 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po \
-	../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleQuadraticRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po \
 	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po \
-	../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po \
 	../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po \
 	../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po \
 	../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po \
@@ -1126,7 +1106,6 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po \
-	../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-MarkerPatchHierarchy.Po \
@@ -1170,7 +1149,6 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po \
-	../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-MarkerPatchHierarchy.Po \
@@ -1606,15 +1584,7 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/LEInteractor.h ../include/ibtk/LIndexSetData.h \
 	../include/ibtk/LIndexSetDataFactory.h \
 	../include/ibtk/LIndexSetVariable.h \
-	../include/ibtk/LInitStrategy.h ../include/ibtk/LMarker.h \
-	../include/ibtk/LMarkerCoarsen.h \
-	../include/ibtk/LMarkerRefine.h ../include/ibtk/LMarkerSet.h \
-	../include/ibtk/LMarkerSetData.h \
-	../include/ibtk/LMarkerSetDataFactory.h \
-	../include/ibtk/LMarkerSetDataIterator.h \
-	../include/ibtk/LMarkerSetVariable.h \
-	../include/ibtk/LMarkerTransaction.h \
-	../include/ibtk/LMarkerUtilities.h ../include/ibtk/LMesh.h \
+	../include/ibtk/LInitStrategy.h ../include/ibtk/LMesh.h \
 	../include/ibtk/LNode.h ../include/ibtk/LNodeIndex.h \
 	../include/ibtk/LNodeIndexSet.h \
 	../include/ibtk/LNodeIndexSetData.h \
@@ -1692,7 +1662,6 @@ pkg_include_HEADERS = ../include/ibtk/IBTK_CHKERRQ.h \
 	../include/ibtk/private/LData-inl.h \
 	../include/ibtk/private/LDataManager-inl.h \
 	../include/ibtk/private/LIndexSetData-inl.h \
-	../include/ibtk/private/LMarker-inl.h \
 	../include/ibtk/private/LMesh-inl.h \
 	../include/ibtk/private/LNode-inl.h \
 	../include/ibtk/private/LNodeIndex-inl.h \
@@ -1717,16 +1686,15 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
 	../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
-	../src/coarsen_ops/LMarkerCoarsen.cpp \
 	../src/lagrangian/LData.cpp ../src/lagrangian/LDataManager.cpp \
 	../src/lagrangian/LEInteractor.cpp \
 	../src/lagrangian/LIndexSetData.cpp \
 	../src/lagrangian/LIndexSetDataFactory.cpp \
 	../src/lagrangian/LIndexSetVariable.cpp \
 	../src/lagrangian/LInitStrategy.cpp \
-	../src/lagrangian/LMarker.cpp ../src/lagrangian/LMesh.cpp \
-	../src/lagrangian/LNode.cpp ../src/lagrangian/LNodeIndex.cpp \
-	../src/lagrangian/LSet.cpp ../src/lagrangian/LSetData.cpp \
+	../src/lagrangian/LMesh.cpp ../src/lagrangian/LNode.cpp \
+	../src/lagrangian/LNodeIndex.cpp ../src/lagrangian/LSet.cpp \
+	../src/lagrangian/LSetData.cpp \
 	../src/lagrangian/LSetDataFactory.cpp \
 	../src/lagrangian/LSetDataIterator.cpp \
 	../src/lagrangian/LSetVariable.cpp \
@@ -1742,7 +1710,6 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
 	../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 	../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
-	../src/refine_ops/LMarkerRefine.cpp \
 	../src/solvers/solver_utilities.cpp \
 	../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 	../src/solvers/impls/BJacobiPreconditioner.cpp \
@@ -1803,7 +1770,6 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/utilities/HierarchyIntegrator.cpp \
 	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
 	../src/utilities/IndexUtilities.cpp \
-	../src/utilities/LMarkerUtilities.cpp \
 	../src/utilities/MarkerPatchHierarchy.cpp \
 	../src/utilities/MergingLoadBalancer.cpp \
 	../src/utilities/NodeDataSynchronization.cpp \
@@ -2062,9 +2028,6 @@ $(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT):  \
 ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.$(OBJEXT):  \
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
-../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.$(OBJEXT):  \
-	../src/coarsen_ops/$(am__dirstamp) \
-	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/lagrangian/$(am__dirstamp):
 	@$(MKDIR_P) ../src/lagrangian
 	@: > ../src/lagrangian/$(am__dirstamp)
@@ -2090,9 +2053,6 @@ $(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/lagrangian/libIBTK2d_a-LInitStrategy.$(OBJEXT):  \
-	../src/lagrangian/$(am__dirstamp) \
-	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK2d_a-LMarker.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/lagrangian/libIBTK2d_a-LMesh.$(OBJEXT):  \
@@ -2168,9 +2128,6 @@ $(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT):  \
-	../src/refine_ops/$(am__dirstamp) \
-	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
-../src/refine_ops/libIBTK2d_a-LMarkerRefine.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/$(am__dirstamp):
@@ -2384,9 +2341,6 @@ $(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-IndexUtilities.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/libIBTK2d_a-LMarkerUtilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-MarkerPatchHierarchy.$(OBJEXT):  \
@@ -2640,9 +2594,6 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.$(OBJEXT):  \
 	../src/coarsen_ops/$(am__dirstamp) \
 	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
-../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.$(OBJEXT):  \
-	../src/coarsen_ops/$(am__dirstamp) \
-	../src/coarsen_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/lagrangian/libIBTK3d_a-LData.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
@@ -2662,9 +2613,6 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/lagrangian/libIBTK3d_a-LInitStrategy.$(OBJEXT):  \
-	../src/lagrangian/$(am__dirstamp) \
-	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
-../src/lagrangian/libIBTK3d_a-LMarker.$(OBJEXT):  \
 	../src/lagrangian/$(am__dirstamp) \
 	../src/lagrangian/$(DEPDIR)/$(am__dirstamp)
 ../src/lagrangian/libIBTK3d_a-LMesh.$(OBJEXT):  \
@@ -2728,9 +2676,6 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.$(OBJEXT):  \
-	../src/refine_ops/$(am__dirstamp) \
-	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
-../src/refine_ops/libIBTK3d_a-LMarkerRefine.$(OBJEXT):  \
 	../src/refine_ops/$(am__dirstamp) \
 	../src/refine_ops/$(DEPDIR)/$(am__dirstamp)
 ../src/solvers/libIBTK3d_a-solver_utilities.$(OBJEXT):  \
@@ -2914,9 +2859,6 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-IndexUtilities.$(OBJEXT):  \
-	../src/utilities/$(am__dirstamp) \
-	../src/utilities/$(DEPDIR)/$(am__dirstamp)
-../src/utilities/libIBTK3d_a-LMarkerUtilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-MarkerPatchHierarchy.$(OBJEXT):  \
@@ -3149,11 +3091,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleCubicCoarsen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleCubicCoarsen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleCubicCoarsen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po@am__quote@ # am--include-marker
@@ -3168,7 +3108,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LInitStrategy.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMesh.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LNode.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LNodeIndex.Po@am__quote@ # am--include-marker
@@ -3194,7 +3133,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LInitStrategy.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMesh.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LNode.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LNodeIndex.Po@am__quote@ # am--include-marker
@@ -3223,13 +3161,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleQuadraticRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po@am__quote@ # am--include-marker
@@ -3335,7 +3271,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-MarkerPatchHierarchy.Po@am__quote@ # am--include-marker
@@ -3379,7 +3314,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-MarkerPatchHierarchy.Po@am__quote@ # am--include-marker
@@ -3647,20 +3581,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK2d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
 
-../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o: ../src/coarsen_ops/LMarkerCoarsen.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo -c -o ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o `test -f '../src/coarsen_ops/LMarkerCoarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/LMarkerCoarsen.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/LMarkerCoarsen.cpp' object='../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.o `test -f '../src/coarsen_ops/LMarkerCoarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/LMarkerCoarsen.cpp
-
-../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.obj: ../src/coarsen_ops/LMarkerCoarsen.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.obj -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo -c -o ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.obj `if test -f '../src/coarsen_ops/LMarkerCoarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/LMarkerCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/LMarkerCoarsen.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/LMarkerCoarsen.cpp' object='../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK2d_a-LMarkerCoarsen.obj `if test -f '../src/coarsen_ops/LMarkerCoarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/LMarkerCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/LMarkerCoarsen.cpp'; fi`
-
 ../src/lagrangian/libIBTK2d_a-LData.o: ../src/lagrangian/LData.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-LData.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Tpo -c -o ../src/lagrangian/libIBTK2d_a-LData.o `test -f '../src/lagrangian/LData.cpp' || echo '$(srcdir)/'`../src/lagrangian/LData.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LData.Po
@@ -3758,20 +3678,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/LInitStrategy.cpp' object='../src/lagrangian/libIBTK2d_a-LInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-LInitStrategy.obj `if test -f '../src/lagrangian/LInitStrategy.cpp'; then $(CYGPATH_W) '../src/lagrangian/LInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/LInitStrategy.cpp'; fi`
-
-../src/lagrangian/libIBTK2d_a-LMarker.o: ../src/lagrangian/LMarker.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-LMarker.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Tpo -c -o ../src/lagrangian/libIBTK2d_a-LMarker.o `test -f '../src/lagrangian/LMarker.cpp' || echo '$(srcdir)/'`../src/lagrangian/LMarker.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/LMarker.cpp' object='../src/lagrangian/libIBTK2d_a-LMarker.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-LMarker.o `test -f '../src/lagrangian/LMarker.cpp' || echo '$(srcdir)/'`../src/lagrangian/LMarker.cpp
-
-../src/lagrangian/libIBTK2d_a-LMarker.obj: ../src/lagrangian/LMarker.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-LMarker.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Tpo -c -o ../src/lagrangian/libIBTK2d_a-LMarker.obj `if test -f '../src/lagrangian/LMarker.cpp'; then $(CYGPATH_W) '../src/lagrangian/LMarker.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/LMarker.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/LMarker.cpp' object='../src/lagrangian/libIBTK2d_a-LMarker.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK2d_a-LMarker.obj `if test -f '../src/lagrangian/LMarker.cpp'; then $(CYGPATH_W) '../src/lagrangian/LMarker.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/LMarker.cpp'; fi`
 
 ../src/lagrangian/libIBTK2d_a-LMesh.o: ../src/lagrangian/LMesh.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK2d_a-LMesh.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMesh.Tpo -c -o ../src/lagrangian/libIBTK2d_a-LMesh.o `test -f '../src/lagrangian/LMesh.cpp' || echo '$(srcdir)/'`../src/lagrangian/LMesh.cpp
@@ -4066,20 +3972,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp' object='../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; fi`
-
-../src/refine_ops/libIBTK2d_a-LMarkerRefine.o: ../src/refine_ops/LMarkerRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK2d_a-LMarkerRefine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Tpo -c -o ../src/refine_ops/libIBTK2d_a-LMarkerRefine.o `test -f '../src/refine_ops/LMarkerRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/LMarkerRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/LMarkerRefine.cpp' object='../src/refine_ops/libIBTK2d_a-LMarkerRefine.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK2d_a-LMarkerRefine.o `test -f '../src/refine_ops/LMarkerRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/LMarkerRefine.cpp
-
-../src/refine_ops/libIBTK2d_a-LMarkerRefine.obj: ../src/refine_ops/LMarkerRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK2d_a-LMarkerRefine.obj -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Tpo -c -o ../src/refine_ops/libIBTK2d_a-LMarkerRefine.obj `if test -f '../src/refine_ops/LMarkerRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/LMarkerRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/LMarkerRefine.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/LMarkerRefine.cpp' object='../src/refine_ops/libIBTK2d_a-LMarkerRefine.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK2d_a-LMarkerRefine.obj `if test -f '../src/refine_ops/LMarkerRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/LMarkerRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/LMarkerRefine.cpp'; fi`
 
 ../src/solvers/libIBTK2d_a-solver_utilities.o: ../src/solvers/solver_utilities.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/libIBTK2d_a-solver_utilities.o -MD -MP -MF ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Tpo -c -o ../src/solvers/libIBTK2d_a-solver_utilities.o `test -f '../src/solvers/solver_utilities.cpp' || echo '$(srcdir)/'`../src/solvers/solver_utilities.cpp
@@ -4935,20 +4827,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-IndexUtilities.obj `if test -f '../src/utilities/IndexUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/IndexUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IndexUtilities.cpp'; fi`
 
-../src/utilities/libIBTK2d_a-LMarkerUtilities.o: ../src/utilities/LMarkerUtilities.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-LMarkerUtilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Tpo -c -o ../src/utilities/libIBTK2d_a-LMarkerUtilities.o `test -f '../src/utilities/LMarkerUtilities.cpp' || echo '$(srcdir)/'`../src/utilities/LMarkerUtilities.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LMarkerUtilities.cpp' object='../src/utilities/libIBTK2d_a-LMarkerUtilities.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-LMarkerUtilities.o `test -f '../src/utilities/LMarkerUtilities.cpp' || echo '$(srcdir)/'`../src/utilities/LMarkerUtilities.cpp
-
-../src/utilities/libIBTK2d_a-LMarkerUtilities.obj: ../src/utilities/LMarkerUtilities.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-LMarkerUtilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Tpo -c -o ../src/utilities/libIBTK2d_a-LMarkerUtilities.obj `if test -f '../src/utilities/LMarkerUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/LMarkerUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LMarkerUtilities.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LMarkerUtilities.cpp' object='../src/utilities/libIBTK2d_a-LMarkerUtilities.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-LMarkerUtilities.obj `if test -f '../src/utilities/LMarkerUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/LMarkerUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LMarkerUtilities.cpp'; fi`
-
 ../src/utilities/libIBTK2d_a-MarkerPatchHierarchy.o: ../src/utilities/MarkerPatchHierarchy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-MarkerPatchHierarchy.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-MarkerPatchHierarchy.Tpo -c -o ../src/utilities/libIBTK2d_a-MarkerPatchHierarchy.o `test -f '../src/utilities/MarkerPatchHierarchy.cpp' || echo '$(srcdir)/'`../src/utilities/MarkerPatchHierarchy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-MarkerPatchHierarchy.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-MarkerPatchHierarchy.Po
@@ -5635,20 +5513,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK3d_a-CartSideDoubleRT0Coarsen.obj `if test -f '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp'; fi`
 
-../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o: ../src/coarsen_ops/LMarkerCoarsen.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo -c -o ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o `test -f '../src/coarsen_ops/LMarkerCoarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/LMarkerCoarsen.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/LMarkerCoarsen.cpp' object='../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.o `test -f '../src/coarsen_ops/LMarkerCoarsen.cpp' || echo '$(srcdir)/'`../src/coarsen_ops/LMarkerCoarsen.cpp
-
-../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.obj: ../src/coarsen_ops/LMarkerCoarsen.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.obj -MD -MP -MF ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo -c -o ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.obj `if test -f '../src/coarsen_ops/LMarkerCoarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/LMarkerCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/LMarkerCoarsen.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Tpo ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/coarsen_ops/LMarkerCoarsen.cpp' object='../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/coarsen_ops/libIBTK3d_a-LMarkerCoarsen.obj `if test -f '../src/coarsen_ops/LMarkerCoarsen.cpp'; then $(CYGPATH_W) '../src/coarsen_ops/LMarkerCoarsen.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/coarsen_ops/LMarkerCoarsen.cpp'; fi`
-
 ../src/lagrangian/libIBTK3d_a-LData.o: ../src/lagrangian/LData.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-LData.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Tpo -c -o ../src/lagrangian/libIBTK3d_a-LData.o `test -f '../src/lagrangian/LData.cpp' || echo '$(srcdir)/'`../src/lagrangian/LData.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LData.Po
@@ -5746,20 +5610,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/LInitStrategy.cpp' object='../src/lagrangian/libIBTK3d_a-LInitStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-LInitStrategy.obj `if test -f '../src/lagrangian/LInitStrategy.cpp'; then $(CYGPATH_W) '../src/lagrangian/LInitStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/LInitStrategy.cpp'; fi`
-
-../src/lagrangian/libIBTK3d_a-LMarker.o: ../src/lagrangian/LMarker.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-LMarker.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Tpo -c -o ../src/lagrangian/libIBTK3d_a-LMarker.o `test -f '../src/lagrangian/LMarker.cpp' || echo '$(srcdir)/'`../src/lagrangian/LMarker.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/LMarker.cpp' object='../src/lagrangian/libIBTK3d_a-LMarker.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-LMarker.o `test -f '../src/lagrangian/LMarker.cpp' || echo '$(srcdir)/'`../src/lagrangian/LMarker.cpp
-
-../src/lagrangian/libIBTK3d_a-LMarker.obj: ../src/lagrangian/LMarker.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-LMarker.obj -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Tpo -c -o ../src/lagrangian/libIBTK3d_a-LMarker.obj `if test -f '../src/lagrangian/LMarker.cpp'; then $(CYGPATH_W) '../src/lagrangian/LMarker.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/LMarker.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Tpo ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/lagrangian/LMarker.cpp' object='../src/lagrangian/libIBTK3d_a-LMarker.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/lagrangian/libIBTK3d_a-LMarker.obj `if test -f '../src/lagrangian/LMarker.cpp'; then $(CYGPATH_W) '../src/lagrangian/LMarker.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/lagrangian/LMarker.cpp'; fi`
 
 ../src/lagrangian/libIBTK3d_a-LMesh.o: ../src/lagrangian/LMesh.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/lagrangian/libIBTK3d_a-LMesh.o -MD -MP -MF ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMesh.Tpo -c -o ../src/lagrangian/libIBTK3d_a-LMesh.o `test -f '../src/lagrangian/LMesh.cpp' || echo '$(srcdir)/'`../src/lagrangian/LMesh.cpp
@@ -6054,20 +5904,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp' object='../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.obj `if test -f '../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp'; fi`
-
-../src/refine_ops/libIBTK3d_a-LMarkerRefine.o: ../src/refine_ops/LMarkerRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK3d_a-LMarkerRefine.o -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Tpo -c -o ../src/refine_ops/libIBTK3d_a-LMarkerRefine.o `test -f '../src/refine_ops/LMarkerRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/LMarkerRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/LMarkerRefine.cpp' object='../src/refine_ops/libIBTK3d_a-LMarkerRefine.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK3d_a-LMarkerRefine.o `test -f '../src/refine_ops/LMarkerRefine.cpp' || echo '$(srcdir)/'`../src/refine_ops/LMarkerRefine.cpp
-
-../src/refine_ops/libIBTK3d_a-LMarkerRefine.obj: ../src/refine_ops/LMarkerRefine.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/refine_ops/libIBTK3d_a-LMarkerRefine.obj -MD -MP -MF ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Tpo -c -o ../src/refine_ops/libIBTK3d_a-LMarkerRefine.obj `if test -f '../src/refine_ops/LMarkerRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/LMarkerRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/LMarkerRefine.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Tpo ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/refine_ops/LMarkerRefine.cpp' object='../src/refine_ops/libIBTK3d_a-LMarkerRefine.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/refine_ops/libIBTK3d_a-LMarkerRefine.obj `if test -f '../src/refine_ops/LMarkerRefine.cpp'; then $(CYGPATH_W) '../src/refine_ops/LMarkerRefine.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/refine_ops/LMarkerRefine.cpp'; fi`
 
 ../src/solvers/libIBTK3d_a-solver_utilities.o: ../src/solvers/solver_utilities.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/solvers/libIBTK3d_a-solver_utilities.o -MD -MP -MF ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Tpo -c -o ../src/solvers/libIBTK3d_a-solver_utilities.o `test -f '../src/solvers/solver_utilities.cpp' || echo '$(srcdir)/'`../src/solvers/solver_utilities.cpp
@@ -6923,20 +6759,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-IndexUtilities.obj `if test -f '../src/utilities/IndexUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/IndexUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/IndexUtilities.cpp'; fi`
 
-../src/utilities/libIBTK3d_a-LMarkerUtilities.o: ../src/utilities/LMarkerUtilities.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-LMarkerUtilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Tpo -c -o ../src/utilities/libIBTK3d_a-LMarkerUtilities.o `test -f '../src/utilities/LMarkerUtilities.cpp' || echo '$(srcdir)/'`../src/utilities/LMarkerUtilities.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LMarkerUtilities.cpp' object='../src/utilities/libIBTK3d_a-LMarkerUtilities.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-LMarkerUtilities.o `test -f '../src/utilities/LMarkerUtilities.cpp' || echo '$(srcdir)/'`../src/utilities/LMarkerUtilities.cpp
-
-../src/utilities/libIBTK3d_a-LMarkerUtilities.obj: ../src/utilities/LMarkerUtilities.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-LMarkerUtilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Tpo -c -o ../src/utilities/libIBTK3d_a-LMarkerUtilities.obj `if test -f '../src/utilities/LMarkerUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/LMarkerUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LMarkerUtilities.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/LMarkerUtilities.cpp' object='../src/utilities/libIBTK3d_a-LMarkerUtilities.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-LMarkerUtilities.obj `if test -f '../src/utilities/LMarkerUtilities.cpp'; then $(CYGPATH_W) '../src/utilities/LMarkerUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/LMarkerUtilities.cpp'; fi`
-
 ../src/utilities/libIBTK3d_a-MarkerPatchHierarchy.o: ../src/utilities/MarkerPatchHierarchy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-MarkerPatchHierarchy.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-MarkerPatchHierarchy.Tpo -c -o ../src/utilities/libIBTK3d_a-MarkerPatchHierarchy.o `test -f '../src/utilities/MarkerPatchHierarchy.cpp' || echo '$(srcdir)/'`../src/utilities/MarkerPatchHierarchy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-MarkerPatchHierarchy.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-MarkerPatchHierarchy.Po
@@ -7659,11 +7481,9 @@ distclean: distclean-am
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po
-	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po
-	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po
@@ -7678,7 +7498,6 @@ distclean: distclean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LInitStrategy.Po
-	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMesh.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LNode.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LNodeIndex.Po
@@ -7704,7 +7523,6 @@ distclean: distclean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LInitStrategy.Po
-	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMesh.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LNode.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LNodeIndex.Po
@@ -7733,13 +7551,11 @@ distclean: distclean-am
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po
-	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleQuadraticRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
-	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
 	-rm -f ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po
 	-rm -f ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po
@@ -7845,7 +7661,6 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-MarkerPatchHierarchy.Po
@@ -7889,7 +7704,6 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-MarkerPatchHierarchy.Po
@@ -7998,11 +7812,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartCellDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Coarsen.Po
-	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK2d_a-LMarkerCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleCubicCoarsen.Po
 	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Coarsen.Po
-	-rm -f ../src/coarsen_ops/$(DEPDIR)/libIBTK3d_a-LMarkerCoarsen.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-BoxPartitioner.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataInterpolation.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-FEDataManager.Po
@@ -8017,7 +7829,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LIndexSetDataFactory.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LIndexSetVariable.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LInitStrategy.Po
-	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMarker.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LMesh.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LNode.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK2d_a-LNodeIndex.Po
@@ -8043,7 +7854,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LIndexSetDataFactory.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LIndexSetVariable.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LInitStrategy.Po
-	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMarker.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LMesh.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LNode.Po
 	-rm -f ../src/lagrangian/$(DEPDIR)/libIBTK3d_a-LNodeIndex.Po
@@ -8072,13 +7882,11 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleDivPreservingRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-CartSideDoubleSpecializedLinearRefine.Po
-	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK2d_a-LMarkerRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleBoundsPreservingConservativeLinearRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartCellDoubleQuadraticRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleDivPreservingRefine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleRT0Refine.Po
 	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-CartSideDoubleSpecializedLinearRefine.Po
-	-rm -f ../src/refine_ops/$(DEPDIR)/libIBTK3d_a-LMarkerRefine.Po
 	-rm -f ../src/solvers/$(DEPDIR)/libIBTK2d_a-solver_utilities.Po
 	-rm -f ../src/solvers/$(DEPDIR)/libIBTK3d_a-solver_utilities.Po
 	-rm -f ../src/solvers/impls/$(DEPDIR)/libIBTK2d_a-BGaussSeidelPreconditioner.Po
@@ -8184,7 +7992,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IndexUtilities.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LMarkerUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemIBVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-LibMeshSystemVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-MarkerPatchHierarchy.Po
@@ -8228,7 +8035,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IndexUtilities.Po
-	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LMarkerUtilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemIBVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-LibMeshSystemVectors.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-MarkerPatchHierarchy.Po

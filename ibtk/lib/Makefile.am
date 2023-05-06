@@ -75,7 +75,6 @@ DIM_DEPENDENT_SOURCES = \
 ../src/coarsen_ops/CartCellDoubleCubicCoarsen.cpp \
 ../src/coarsen_ops/CartSideDoubleCubicCoarsen.cpp \
 ../src/coarsen_ops/CartSideDoubleRT0Coarsen.cpp \
-../src/coarsen_ops/LMarkerCoarsen.cpp \
 ../src/lagrangian/LData.cpp \
 ../src/lagrangian/LDataManager.cpp \
 ../src/lagrangian/LEInteractor.cpp \
@@ -83,7 +82,6 @@ DIM_DEPENDENT_SOURCES = \
 ../src/lagrangian/LIndexSetDataFactory.cpp \
 ../src/lagrangian/LIndexSetVariable.cpp \
 ../src/lagrangian/LInitStrategy.cpp \
-../src/lagrangian/LMarker.cpp \
 ../src/lagrangian/LMesh.cpp \
 ../src/lagrangian/LNode.cpp \
 ../src/lagrangian/LNodeIndex.cpp \
@@ -105,7 +103,6 @@ DIM_DEPENDENT_SOURCES = \
 ../src/refine_ops/CartSideDoubleDivPreservingRefine.cpp \
 ../src/refine_ops/CartSideDoubleRT0Refine.cpp \
 ../src/refine_ops/CartSideDoubleSpecializedLinearRefine.cpp \
-../src/refine_ops/LMarkerRefine.cpp \
 ../src/solvers/solver_utilities.cpp \
 ../src/solvers/impls/BGaussSeidelPreconditioner.cpp \
 ../src/solvers/impls/BJacobiPreconditioner.cpp \
@@ -167,7 +164,6 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/IBTK_MPI.cpp \
 ../src/utilities/IBTKInit.cpp \
 ../src/utilities/IndexUtilities.cpp \
-../src/utilities/LMarkerUtilities.cpp \
 ../src/utilities/MarkerPatchHierarchy.cpp \
 ../src/utilities/MergingLoadBalancer.cpp \
 ../src/utilities/NodeDataSynchronization.cpp \
@@ -267,16 +263,6 @@ pkg_include_HEADERS += \
 ../include/ibtk/LIndexSetDataFactory.h \
 ../include/ibtk/LIndexSetVariable.h \
 ../include/ibtk/LInitStrategy.h \
-../include/ibtk/LMarker.h \
-../include/ibtk/LMarkerCoarsen.h \
-../include/ibtk/LMarkerRefine.h \
-../include/ibtk/LMarkerSet.h \
-../include/ibtk/LMarkerSetData.h \
-../include/ibtk/LMarkerSetDataFactory.h \
-../include/ibtk/LMarkerSetDataIterator.h \
-../include/ibtk/LMarkerSetVariable.h \
-../include/ibtk/LMarkerTransaction.h \
-../include/ibtk/LMarkerUtilities.h \
 ../include/ibtk/LMesh.h \
 ../include/ibtk/LNode.h \
 ../include/ibtk/LNodeIndex.h \
@@ -360,7 +346,6 @@ pkg_include_HEADERS += \
 ../include/ibtk/private/LData-inl.h \
 ../include/ibtk/private/LDataManager-inl.h \
 ../include/ibtk/private/LIndexSetData-inl.h \
-../include/ibtk/private/LMarker-inl.h \
 ../include/ibtk/private/LMesh-inl.h \
 ../include/ibtk/private/LNode-inl.h \
 ../include/ibtk/private/LNodeIndex-inl.h \

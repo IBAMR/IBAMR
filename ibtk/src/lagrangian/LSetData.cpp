@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSetData.h"
@@ -58,14 +57,6 @@ LSetData<T>::LSetData(Box<NDIM> box, IntVector<NDIM> ghosts)
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-#include "ibtk/LMarkerSet.h"
-
-template class SAMRAI::pdat::IndexData<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexDataFactory<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexDataNode<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexIterator<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> >;
-template class SAMRAI::pdat::IndexVariable<NDIM, IBTK::LMarkerSet, CellGeometry<NDIM> >;
-template class IBTK::LSetData<IBTK::LMarker>;
 
 #include "ibtk/LNodeSet.h"
 

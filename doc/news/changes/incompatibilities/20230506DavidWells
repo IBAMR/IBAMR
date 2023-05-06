@@ -1,0 +1,5 @@
+Removed: IBTK::LMarker and related functions and files have been removed from
+the library. This marker class was never fully implemented and its
+fully-functional replacement is IBTK::MarkerPatchHierarchy.
+<br>
+(David Wells, 2023/05/06)

@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSet.h"
@@ -154,7 +153,6 @@ LTransaction<T>::printClassData(std::ostream& stream) const
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-template class IBTK::LTransaction<IBTK::LMarker>;
 template class IBTK::LTransaction<IBTK::LNode>;
 template class IBTK::LTransaction<IBTK::LNodeIndex>;
 
