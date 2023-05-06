@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSet.h"
@@ -104,7 +103,6 @@ LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf)
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-template class IBTK::LSetDataFactory<IBTK::LMarker>;
 template class IBTK::LSetDataFactory<IBTK::LNode>;
 template class IBTK::LSetDataFactory<IBTK::LNodeIndex>;
 

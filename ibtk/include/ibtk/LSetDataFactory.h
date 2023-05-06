@@ -20,7 +20,6 @@
 
 #include <ibtk/config.h>
 
-#include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 

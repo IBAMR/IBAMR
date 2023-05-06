@@ -13,7 +13,6 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibtk/LMarker.h"
 #include "ibtk/LNode.h"
 #include "ibtk/LNodeIndex.h"
 #include "ibtk/LSetDataFactory.h"
@@ -66,7 +65,6 @@ LSetVariable<T>::fineBoundaryRepresentsVariable() const
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-template class IBTK::LSetVariable<IBTK::LMarker>;
 template class IBTK::LSetVariable<IBTK::LNode>;
 template class IBTK::LSetVariable<IBTK::LNodeIndex>;
 
