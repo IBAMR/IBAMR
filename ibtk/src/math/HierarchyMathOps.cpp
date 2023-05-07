@@ -130,8 +130,11 @@ HierarchyMathOps::HierarchyMathOps(std::string name,
                                    Pointer<PatchHierarchy<NDIM> > hierarchy,
                                    const int coarsest_ln,
                                    const int finest_ln,
-                                   std::string coarsen_op_name)
+                                   std::string coarsen_op_name,
+                                   const int dst_fill_box_gcw)
     : d_object_name(std::move(name)),
+      d_dst_fill_box_gcw(dst_fill_box_gcw),
+      d_patch_math_ops(d_dst_fill_box_gcw),
       d_coarsest_ln(coarsest_ln),
       d_finest_ln(finest_ln),
       d_fc_var(new FaceVariable<NDIM, double>(d_object_name + "::scratch_fc")),
@@ -2004,7 +2007,6 @@ HierarchyMathOps::interp(const int dst_idx,
 void
 HierarchyMathOps::interp(const int dst_idx,
                          const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
-                         const bool dst_ghost_interp,
                          const int src_idx,
                          const Pointer<CellVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2024,7 +2026,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
+            d_patch_math_ops.interp(dst_data, src_data, patch);
         }
     }
     return;
@@ -2162,7 +2164,6 @@ HierarchyMathOps::interp(const int dst_idx,
 void
 HierarchyMathOps::interp(const int dst_idx,
                          const Pointer<EdgeVariable<NDIM, double> > /*dst_var*/,
-                         const bool dst_ghost_interp,
                          const int src_idx,
                          const Pointer<CellVariable<NDIM, double> > /*src_var*/,
                          const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2182,7 +2183,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
+            d_patch_math_ops.interp(dst_data, src_data, patch);
         }
     }
     return;
@@ -2242,7 +2243,6 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
 void
 HierarchyMathOps::harmonic_interp(const int dst_idx,
                                   const Pointer<NodeVariable<NDIM, double> > /*dst_var*/,
-                                  const bool dst_ghost_interp,
                                   const int src_idx,
                                   const Pointer<CellVariable<NDIM, double> > /*src_var*/,
                                   const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2262,7 +2262,7 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
+            d_patch_math_ops.interp(dst_data, src_data, patch);
         }
     }
     return;
@@ -2271,7 +2271,6 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
 void
 HierarchyMathOps::harmonic_interp(const int dst_idx,
                                   const Pointer<EdgeVariable<NDIM, double> > /*dst_var*/,
-                                  const bool dst_ghost_interp,
                                   const int src_idx,
                                   const Pointer<CellVariable<NDIM, double> > /*src_var*/,
                                   const Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -2291,7 +2290,7 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
             Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, dst_ghost_interp);
+            d_patch_math_ops.interp(dst_data, src_data, patch);
         }
     }
     return;

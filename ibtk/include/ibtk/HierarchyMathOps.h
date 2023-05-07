@@ -102,7 +102,8 @@ public:
                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                      int coarsest_ln = invalid_level_number,
                      int finest_ln = invalid_level_number,
-                     std::string coarsen_op_name = "CONSERVATIVE_COARSEN");
+                     std::string coarsen_op_name = "CONSERVATIVE_COARSEN",
+                     int dst_fill_box_gcw = 0);
 
     /*!
      * \brief Destructor.
@@ -812,7 +813,6 @@ public:
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-                bool dst_ghost_interp,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -874,7 +874,6 @@ public:
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
-                bool dst_ghost_interp,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -918,7 +917,6 @@ public:
      */
     void harmonic_interp(int dst_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-                         bool dst_ghost_interp,
                          int src_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                          SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -939,7 +937,6 @@ public:
      */
     void harmonic_interp(int dst_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
-                         bool dst_ghost_interp,
                          int src_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                          SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -1492,6 +1489,12 @@ private:
     // Housekeeping.
     std::string d_object_name;
 
+    // Destination fill box ghost cell width.
+    const int d_dst_fill_box_gcw;
+
+    // Patch math operations.
+    PatchMathOps d_patch_math_ops;
+
     // Patch hierarchy information.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
@@ -1532,9 +1535,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
-
-    // Patch math operations.
-    PatchMathOps d_patch_math_ops;
 
     // The cell weights are used to compute norms of data defined on the patch
     // hierarchy.
