@@ -558,8 +558,6 @@ IBExplicitHierarchyIntegrator::regridHierarchyBeginSpecialized()
         d_regrid_temporary_data->d_marker_positions = std::move(pair.first);
         d_regrid_temporary_data->d_marker_velocities = std::move(pair.second);
         d_markers->reinit({}, {});
-        // TODO: the IBFE example crashes after 9700ish timesteps with an
-        // assertion error in the volume calculation - fix it
     }
 } // regridHierarchyBeginSpecialized
 
