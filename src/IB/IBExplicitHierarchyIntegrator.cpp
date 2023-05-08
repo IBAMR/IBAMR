@@ -511,7 +511,12 @@ IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>&
     IBTK::Vector v;
     v.fill(0.0);
     std::fill(velocities.begin(), velocities.end(), v);
+    // explicitly destroy the present markers (should they exist) since the
+    // new one will have the same name. This is necessary because otherwise we
+    // would have two objects with the same name in the restart database.
+    d_markers.setNull();
     d_markers = new MarkerPatchHierarchy(d_object_name + "::markers", d_hierarchy, markers, velocities);
+    d_marker_velocities_set = false;
 } // setMarkers
 
 std::pair<EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> >
