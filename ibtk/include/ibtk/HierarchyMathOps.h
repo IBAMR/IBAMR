@@ -36,6 +36,7 @@
 #include "IntVector.h"
 #include "MultiblockDataTranslator.h"
 #include "NodeVariable.h"
+#include "OuteredgeVariable.h"
 #include "OuterfaceVariable.h"
 #include "OuternodeVariable.h"
 #include "OutersideVariable.h"
@@ -779,7 +780,8 @@ public:
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                double src_ghost_fill_time);
+                double src_ghost_fill_time,
+                bool src_cf_bdry_synch);
 
     /*!
      * \brief Interpolate to a cell-centered vector/tensor field from an
@@ -796,23 +798,22 @@ public:
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
-                double src_ghost_fill_time);
+                double src_ghost_fill_time,
+                bool src_cf_bdry_synch);
 
     /*!
      * \brief Interpolate to a node-centered vector/tensor field from a
      * cell-centered vector/tensor field.
      *
      * Interpolate a vector or tensor field from one variable type to another
-     * using (second-order accurate) averaging.  When specified, the ghost cells
-     * of the node centered variable are computed as averages of the cell centered
-     * variable
+     * using (second-order accurate) averaging.
      *
      * \see setPatchHierarchy
      * \see resetLevels
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-                bool dst_ghost_interp,
+                bool dst_cf_bdry_synch,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -874,7 +875,7 @@ public:
      */
     void interp(int dst_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
-                bool dst_ghost_interp,
+                bool dst_cf_bdry_synch,
                 int src_idx,
                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -918,7 +919,6 @@ public:
      */
     void harmonic_interp(int dst_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
-                         bool dst_ghost_interp,
                          int src_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                          SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
@@ -939,11 +939,103 @@ public:
      */
     void harmonic_interp(int dst_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
-                         bool dst_ghost_interp,
                          int src_idx,
                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
                          SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
                          double src_ghost_fill_time);
+
+    /*!
+     * \brief Interpolate to a node-centered vector/tensor field from a
+     * cell-centered vector/tensor field. Interpolate both in the cell and in
+     * the ghost region.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.
+     *
+     * @warning This function exists for backwards compatibility purposes. New
+     * code should handle ghost regions in the conventional way (i.e., that
+     * ghost data is read-only).
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp_ghosted(int dst_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                        int src_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                        double src_ghost_fill_time);
+
+    /*!
+     * \brief Interpolate to a edge-centered vector/tensor field from a
+     * cell-centered vector/tensor field.
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the edge centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * @warning This function exists for backwards compatibility purposes. New
+     * code should handle ghost regions in the conventional way (i.e., that
+     * ghost data is read-only).
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void interp_ghosted(int dst_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                        int src_idx,
+                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                        SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                        double src_ghost_fill_time);
+
+    /*!
+     * \brief Harmonically interpolate to a node-centered vector/tensor field from a
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the node centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * @warning This function exists for backwards compatibility purposes. New
+     * code should handle ghost regions in the conventional way (i.e., that
+     * ghost data is read-only).
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp_ghosted(int dst_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > dst_var,
+                                 int src_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                 double src_ghost_fill_time);
+
+    /*!
+     * \brief Harmonically interpolate to a edge-centered vector/tensor field from a
+     * cell-centered vector/tensor field. This should be used when the gradients in the src
+     * quantity are large
+     *
+     * Interpolate a vector or tensor field from one variable type to another
+     * using (second-order accurate) averaging.  When specified, the ghost cells
+     * of the edge centered variable are computed as averages of the cell centered
+     * variable
+     *
+     * @warning This function exists for backwards compatibility purposes. New
+     * code should handle ghost regions in the conventional way (i.e., that
+     * ghost data is read-only).
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void harmonic_interp_ghosted(int dst_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > dst_var,
+                                 int src_idx,
+                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src_var,
+                                 SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src_ghost_fill,
+                                 double src_ghost_fill_time);
 
     /*!
      * \brief Compute the Laplacian of a scalar quantity using centered
@@ -1475,6 +1567,12 @@ private:
     void xeqScheduleOutersideRestriction(int dst_idx, int src_idx, int dst_ln);
 
     /*!
+     * \brief Execute schedule for restricting Outeredge data to the specified
+     * level from the next finer level.
+     */
+    void xeqScheduleOuteredgeRestriction(int dst_idx, int src_idx, int dst_ln);
+
+    /*!
      * \brief Reset cell-centered weights, allocating patch data if needed.
      */
     void resetCellWeights(int coarsest_ln, int finest_ln);
@@ -1505,13 +1603,16 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_s_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_nc_v_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_sc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_ec_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::OuteredgeVariable<NDIM, double> > d_oe_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuterfaceVariable<NDIM, double> > d_of_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_s_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OuternodeVariable<NDIM, double> > d_on_v_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::OutersideVariable<NDIM, double> > d_os_var;
-    int d_fc_idx = IBTK::invalid_index, d_nc_s_idx = IBTK::invalid_index, d_nc_v_idx = IBTK::invalid_index,
-        d_sc_idx = IBTK::invalid_index, d_of_idx = IBTK::invalid_index, d_on_s_idx = IBTK::invalid_index,
-        d_on_v_idx = IBTK::invalid_index, d_os_idx = IBTK::invalid_index;
+    int d_ec_idx = IBTK::invalid_index, d_fc_idx = IBTK::invalid_index, d_nc_s_idx = IBTK::invalid_index,
+        d_nc_v_idx = IBTK::invalid_index, d_oe_idx = IBTK::invalid_index, d_sc_idx = IBTK::invalid_index,
+        d_of_idx = IBTK::invalid_index, d_on_s_idx = IBTK::invalid_index, d_on_v_idx = IBTK::invalid_index,
+        d_os_idx = IBTK::invalid_index;
 
     // Communications operators, algorithms, and schedules.
     std::string d_coarsen_op_name;
@@ -1519,14 +1620,17 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_s_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_on_v_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_os_coarsen_op;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_oe_coarsen_op;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_of_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_s_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_on_v_coarsen_alg;
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_os_coarsen_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_oe_coarsen_alg;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_of_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_s_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_on_v_coarsen_scheds;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_os_coarsen_scheds;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_oe_coarsen_scheds;
 
     // Hierarchy data operations.
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
