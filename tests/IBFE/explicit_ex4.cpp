@@ -676,6 +676,17 @@ main(int argc, char** argv)
             {
                 add_markers();
             }
+
+            // third test for markers: make sure we can reset them to
+            // something new in the middle of time stepping
+            if (iteration_num == 50 && input_db->getBoolWithDefault("test_vanishing_markers", false))
+            {
+                time_integrator->setMarkers({});
+            }
+            if (iteration_num == 70 && input_db->getBoolWithDefault("test_vanishing_markers", false))
+            {
+                add_markers();
+            }
         }
 
         // Markers should still be in the same positions as nodes
