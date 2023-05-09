@@ -189,6 +189,7 @@ SET(CXX_SRC
   IB/CIBMethod.cpp
   IB/IBLagrangianSourceStrategy.cpp
   IB/IBStandardSourceGen.cpp
+  IB/ib_visualization_utilities.cpp
 
   # complex fluids
   complex_fluids/CFRoliePolyRelaxation.cpp
