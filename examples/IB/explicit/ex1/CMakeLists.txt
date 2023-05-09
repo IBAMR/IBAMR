@@ -25,7 +25,7 @@ IBAMR_ADD_EXAMPLE(
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
-    input2d input2d.shell input2d.shell_circum_fibers
+    input2d input2d.shell input2d.shell_circum_fibers input2d.remove_link
     curve2d_64.spring curve2d_64.vertex curve2d_128.spring curve2d_128.vertex
     curve2d_256.spring curve2d_256.vertex curve2d_512.spring curve2d_512.vertex
     shell2d_64.spring shell2d_64.vertex shell2d_128.spring shell2d_128.vertex

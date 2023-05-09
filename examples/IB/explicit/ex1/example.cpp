@@ -26,6 +26,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
+#include <ibamr/IBSpringForceSpec.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
@@ -49,6 +50,9 @@ void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  const int iteration_num,
                  const double loop_time,
                  const string& data_dump_dirname);
+
+void
+update_mesh(Pointer<LSiloDataWriter> silo_writer, LDataManager* l_data_manager, const std::string& strct_name, int ln);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -206,6 +210,18 @@ main(int argc, char* argv[])
             ib_method_ops->registerLSiloDataWriter(silo_data_writer);
         }
 
+        // Optionally set up parameters to remove a link in the simulation.
+        bool remove_link = input_db->getBoolWithDefault("REMOVE_LINK", false);
+        std::string strct_name;
+        double remove_link_time;
+        int strct_level_num;
+        if (remove_link)
+        {
+            strct_name = input_db->getString("STRUCT_NAME");
+            remove_link_time = input_db->getDouble("REMOVE_LINK_TIME");
+            strct_level_num = input_db->getInteger("MAX_LEVELS") - 1;
+        }
+
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
@@ -290,6 +306,14 @@ main(int argc, char* argv[])
                             loop_time,
                             postproc_data_dump_dirname);
             }
+
+            if (remove_link && loop_time > remove_link_time)
+            {
+                update_mesh(silo_data_writer, ib_method_ops->getLDataManager(), strct_name, strct_level_num);
+                // Triger a regrid because we remove a data structure.
+                time_integrator->regridHierarchy();
+                remove_link = false;
+            }
         }
 
         // Cleanup Eulerian boundary condition specification objects (when
@@ -345,3 +369,86 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     VecDestroy(&X_lag_vec);
     return;
 } // output_data
+
+// We need to completely rebuild the edge map. This can be inefficient especially in parallel, because only the root
+// processor writes silo data (we don't write parallel Silo files.) So all the edges need to be communicated to the root
+// processor. Also, because we are deleting a link, we need to trigger a regrid after this function is called. An
+// alternative to this is to set the link stiffness to 0.0, and only count nonzero stiffnesses when rebuilding the edge
+// map.
+void
+update_mesh(Pointer<LSiloDataWriter> silo_writer,
+            LDataManager* l_data_manager,
+            const std::string& strct_name,
+            const int ln)
+{
+    // We remove the link between Lagrangian indices 1 and 2 and 2 and 3.
+    // NOTE: We do not build the edge map immediately, so that we can batch all inter-processor communication.
+    pout << "Removing links\n";
+    Pointer<LMesh> lag_mesh = l_data_manager->getLMesh(ln);
+    const std::vector<LNode*>& local_nodes = lag_mesh->getLocalNodes();
+
+    const int nodes = IBTK_MPI::getNodes();
+    const int rank = IBTK_MPI::getRank();
+    std::vector<std::pair<int, int> > edge_vec;
+    edge_vec.reserve(local_nodes.size());
+    int i = 0;
+    // Note we assume the "master index" for a spring is the same as the Lagrangian index. If this were not true, we
+    // would need edge_vec to consist of a triple of int values.
+    for (const auto& node : local_nodes)
+    {
+        const int lag_idx = node->getLagrangianIndex();
+        auto force_spec = node->getNodeDataItem<IBSpringForceSpec>();
+        if (lag_idx == 1 || lag_idx == 2)
+        {
+            node->removeNodeDataItem(Pointer<IBSpringForceSpec>(force_spec, false));
+        }
+        else if (force_spec)
+        {
+            // We need to accumulate all links to regenerate the edge map.
+            const std::vector<int>& slave_idxs = force_spec->getSlaveNodeIndices();
+            for (const auto& slave_idx : slave_idxs)
+            {
+                edge_vec.push_back({ lag_idx, slave_idx });
+                i = i + 1;
+            }
+        }
+    }
+
+    // Allocate data on the root process
+    std::vector<int> num_links_per_proc(nodes);
+    std::vector<int> strides_per_proc(nodes);
+    num_links_per_proc[rank] = edge_vec.size();
+    MPI_Gather(
+        &num_links_per_proc[rank], 1, MPI_INT, num_links_per_proc.data(), 1, MPI_INT, 0, IBTK_MPI::getCommunicator());
+    if (rank == 0)
+    {
+        const int tot_idxs = std::accumulate(num_links_per_proc.begin(), num_links_per_proc.end(), 0);
+        edge_vec.resize(tot_idxs);
+        strides_per_proc[0] = 0;
+        for (int i = 1; i < nodes; ++i) strides_per_proc[i] = strides_per_proc[i - 1] + num_links_per_proc[i - 1];
+    }
+
+    // Now gather to the root process
+    MPI_Gatherv(edge_vec.data(),
+                num_links_per_proc[rank],
+                MPI_2INT,
+                edge_vec.data(),
+                num_links_per_proc.data(),
+                strides_per_proc.data(),
+                MPI_2INT,
+                0,
+                IBTK_MPI::getCommunicator());
+
+    // Now generate the map on the root process.
+    if (rank == 0)
+    {
+        std::multimap<int, std::pair<int, int> > edge_map;
+        for (const auto& pair : edge_vec)
+        {
+            edge_map.insert(std::make_pair(pair.first, pair));
+        }
+        // Inform silo writer of an updated unstructured mesh. IBStandardInitializer creates a structure name of
+        // base_name + "_mesh".
+        silo_writer->registerUnstructuredMesh(strct_name + "_mesh", edge_map, ln);
+    }
+}
