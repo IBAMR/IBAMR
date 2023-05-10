@@ -15,9 +15,9 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp LSLocateInterface.cpp LSLocateInterface.h LevelSetInitialCondition.cpp LevelSetInitialCondition.h SetFluidProperties.cpp SetFluidProperties.h SetLSProperties.cpp SetLSProperties.h
+EXAMPLE_DRIVER = example.cpp LSLocateInterface.cpp LSLocateInterface.h LevelSetInitialCondition.cpp LevelSetInitialCondition.h SetFluidProperties.cpp SetFluidProperties.h SetLSProperties.cpp SetLSProperties.h TagInterfaceRefinementCells.cpp TagInterfaceRefinementCells.h
 
-EXTRA_DIST = input2d
+EXTRA_DIST = input2d input2d.amr
 #EXTRA_DIST += input3d
 
 EXAMPLES =
@@ -41,7 +41,7 @@ main2d_SOURCES = $(EXAMPLE_DRIVER)
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d $(PWD) ; \
+	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
 	fi ;
 
 

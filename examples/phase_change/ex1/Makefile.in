@@ -127,7 +127,8 @@ am__objects_1 = main2d-example.$(OBJEXT) \
 	main2d-LSLocateInterface.$(OBJEXT) \
 	main2d-LevelSetInitialCondition.$(OBJEXT) \
 	main2d-SetFluidProperties.$(OBJEXT) \
-	main2d-SetLSProperties.$(OBJEXT)
+	main2d-SetLSProperties.$(OBJEXT) \
+	main2d-TagInterfaceRefinementCells.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -157,6 +158,7 @@ am__depfiles_remade = ./$(DEPDIR)/main2d-LSLocateInterface.Po \
 	./$(DEPDIR)/main2d-LevelSetInitialCondition.Po \
 	./$(DEPDIR)/main2d-SetFluidProperties.Po \
 	./$(DEPDIR)/main2d-SetLSProperties.Po \
+	./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po \
 	./$(DEPDIR)/main2d-example.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -483,8 +485,8 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp LSLocateInterface.cpp LSLocateInterface.h LevelSetInitialCondition.cpp LevelSetInitialCondition.h SetFluidProperties.cpp SetFluidProperties.h SetLSProperties.cpp SetLSProperties.h
-EXTRA_DIST = input2d
+EXAMPLE_DRIVER = example.cpp LSLocateInterface.cpp LSLocateInterface.h LevelSetInitialCondition.cpp LevelSetInitialCondition.h SetFluidProperties.cpp SetFluidProperties.h SetLSProperties.cpp SetLSProperties.h TagInterfaceRefinementCells.cpp TagInterfaceRefinementCells.h
+EXTRA_DIST = input2d input2d.amr
 #EXTRA_DIST += input3d
 EXAMPLES = $(am__append_1)
 #if SAMRAI3D_ENABLED
@@ -543,6 +545,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LevelSetInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetLSProperties.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -644,6 +647,20 @@ main2d-SetLSProperties.obj: SetLSProperties.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='main2d-SetLSProperties.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
+
+main2d-TagInterfaceRefinementCells.o: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagInterfaceRefinementCells.o -MD -MP -MF $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo -c -o main2d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='main2d-TagInterfaceRefinementCells.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+
+main2d-TagInterfaceRefinementCells.obj: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagInterfaceRefinementCells.obj -MD -MP -MF $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo -c -o main2d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='main2d-TagInterfaceRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -780,6 +797,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
+	-rm -f ./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -830,6 +848,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
+	-rm -f ./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
@@ -877,7 +896,7 @@ uninstall-am:
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d $(PWD) ; \
+	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
 	fi ;
 
 clean-local:
