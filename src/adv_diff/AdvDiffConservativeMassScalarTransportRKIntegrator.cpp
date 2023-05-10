@@ -1067,11 +1067,13 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeTimeIntegrator(
 {
     IBAMR_TIMER_START(t_initialize_integrator);
 
-    if (d_is_initialized) deallocateTimeIntegrator();
-
     // Get the hierarchy configuration.
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     d_hierarchy = hierarchy;
+
+    if (d_is_initialized) deallocateTimeIntegrator();
+
+    // Update the level numbers.
     d_coarsest_ln = 0;
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
@@ -1184,7 +1186,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::deallocateTimeIntegrator()
     d_bc_helper.setNull();
 
     // Deallocate data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_V_scratch_idx)) level->deallocatePatchData(d_V_scratch_idx);

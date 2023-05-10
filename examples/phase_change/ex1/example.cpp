@@ -46,6 +46,7 @@
 #include "LevelSetInitialCondition.h"
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
+#include "TagInterfaceRefinementCells.h"
 
 struct SynchronizeLevelSetCtx
 {
@@ -280,6 +281,13 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > Cp_var = new CellVariable<NDIM, double>("Cp");
         enthalpy_hier_integrator->registerSpecificHeatVariable(Cp_var, true);
 
+        // Tag cells for refinement
+        const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
+        const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
+        TagInterfaceRefinementCells tagger(enthalpy_hier_integrator, lf_var, min_tag_val, max_tag_val);
+        enthalpy_hier_integrator->registerApplyGradientDetectorCallback(
+            &callTagInterfaceRefinementCellsCallbackFunction, static_cast<void*>(&tagger));
+
         // Create Eulerian boundary condition specification objects (when
         // necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -422,18 +430,15 @@ main(int argc, char* argv[])
         // Register H Div U term in the Heaviside equation.
         Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F");
         adv_diff_integrator->registerSourceTerm(F_var, true);
-        Pointer<CartGridFunction> H_forcing_fcn =
-            new HeavisideForcingFunction("H_forcing_fcn",
-                                         adv_diff_integrator,
-                                         H_var,
-                                         time_integrator->getAdvectionVelocityVariable());
+        Pointer<CartGridFunction> H_forcing_fcn = new HeavisideForcingFunction(
+            "H_forcing_fcn", adv_diff_integrator, H_var, time_integrator->getAdvectionVelocityVariable());
         adv_diff_integrator->setSourceTermFunction(F_var, H_forcing_fcn);
         adv_diff_integrator->setSourceTerm(H_var, F_var);
 
         // Register source term for Div U equation.
         Pointer<CartGridFunction> Div_U_forcing_fcn =
             new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator);
-        time_integrator->registerDivergenceVelocitySourceFunction(Div_U_forcing_fcn);
+        time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
         // Configure the drag force object to enforce solid velocity to be zero.
         Pointer<CarmanKozenyDragForce> drag_force =
