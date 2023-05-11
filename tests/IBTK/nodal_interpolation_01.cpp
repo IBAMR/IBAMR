@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-// Check the 'interpolate side/face to nodal' routines.
+// Check the 'interpolate cell/side/face to nodal' routines.
 
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
