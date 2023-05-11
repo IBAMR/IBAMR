@@ -300,13 +300,21 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
         // Interpolate onto node or edge centers
         if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
         {
-            d_hier_math_ops->interp_ghosted(
-                d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, current_time);
+            d_hier_math_ops->interp_ghosted(d_mu_interp_idx,
+                                            d_mu_interp_var,
+                                            d_mu_scratch_idx,
+                                            dynamic_cast<CellVariable<NDIM, double>*>(d_mu_var.getPointer()),
+                                            d_no_fill_op,
+                                            current_time);
         }
         else if (d_mu_vc_interp_type == VC_HARMONIC_INTERP)
         {
-            d_hier_math_ops->harmonic_interp_ghosted(
-                d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, current_time);
+            d_hier_math_ops->harmonic_interp_ghosted(d_mu_interp_idx,
+                                                     d_mu_interp_var,
+                                                     d_mu_scratch_idx,
+                                                     dynamic_cast<CellVariable<NDIM, double>*>(d_mu_var.getPointer()),
+                                                     d_no_fill_op,
+                                                     current_time);
         }
         else
         {
@@ -583,13 +591,21 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchySpecialized(con
         // Interpolate onto node or edge centers
         if (d_mu_vc_interp_type == VC_AVERAGE_INTERP)
         {
-            d_hier_math_ops->interp_ghosted(
-                d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, new_time);
+            d_hier_math_ops->interp_ghosted(d_mu_interp_idx,
+                                            d_mu_interp_var,
+                                            d_mu_scratch_idx,
+                                            dynamic_cast<CellVariable<NDIM, double>*>(d_mu_var.getPointer()),
+                                            d_no_fill_op,
+                                            new_time);
         }
         else if (d_mu_vc_interp_type == VC_HARMONIC_INTERP)
         {
-            d_hier_math_ops->harmonic_interp_ghosted(
-                d_mu_interp_idx, d_mu_interp_var, d_mu_scratch_idx, d_mu_var, d_no_fill_op, new_time);
+            d_hier_math_ops->harmonic_interp_ghosted(d_mu_interp_idx,
+                                                     d_mu_interp_var,
+                                                     d_mu_scratch_idx,
+                                                     dynamic_cast<CellVariable<NDIM, double>*>(d_mu_var.getPointer()),
+                                                     d_no_fill_op,
+                                                     new_time);
         }
         else
         {
