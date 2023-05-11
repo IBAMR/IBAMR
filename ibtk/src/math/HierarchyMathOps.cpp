@@ -1987,7 +1987,7 @@ HierarchyMathOps::interp(const int dst_idx,
                          const bool src_cf_bdry_synch)
 {
     if (src_ghost_fill) src_ghost_fill->fillData(src_ghost_fill_time);
-    Pointer<NodeDataFactory<NDIM, double> > data_factory = dst_var->getPatchDataFactory();
+    Pointer<CellDataFactory<NDIM, double> > data_factory = dst_var->getPatchDataFactory();
     const int depth = data_factory->getDefaultDepth();
     TBOX_ASSERT(depth == 1 || depth == NDIM);
     const int on_idx = depth == 1 ? d_on_s_idx : d_on_v_idx;
