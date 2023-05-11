@@ -2014,7 +2014,7 @@ HierarchyMathOps::interp(const int dst_idx,
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
-                Pointer<OuternodeData<NDIM, double> > on_data = patch->getPatchData(on_data);
+                Pointer<OuternodeData<NDIM, double> > on_data = patch->getPatchData(on_idx);
                 on_data->copy(*src_data);
             }
         }
