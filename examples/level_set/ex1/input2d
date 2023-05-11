@@ -34,12 +34,18 @@ AdvectionVelocityFunction {
     function_1 = "0.0"
 }
 
+QInitFunction {
+   function = "0.001*((X0 - 1.0)^2 + (X1 - 1.0)^2 + 0.1)*(sqrt(X0^2 + X1^2) -1.0)"
+}
+
 LevelSet {
     order              = "THIRD_ORDER_ENO"
     abs_tol            = 1e-5
     max_iterations     = 2*N*REF_RATIO^(MAX_LEVELS - 1)
     physical_bdry_wall = FALSE
     enable_logging     = TRUE
+    apply_subcell_fix  = TRUE
+    apply_sign_fix     = FALSE
 }
 
 LocationIndexRobinBcCoefs {
@@ -70,7 +76,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 2
+   viz_dump_interval           = 10
    viz_dump_dirname            = "viz_advect2d"
    visit_number_procs_per_file = 1
 

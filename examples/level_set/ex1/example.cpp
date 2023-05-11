@@ -177,6 +177,11 @@ main(int argc, char* argv[])
         hyp_patch_ops->setConvectiveDifferencingType(Q_var, difference_form);
         hyp_patch_ops->setPhysicalBcCoefs(Q_var, &physical_bc_coef);
 
+        // Level set initial conditions
+        Pointer<CartGridFunction> Q_init = new muParserCartGridFunction(
+            "Q_init", app_initializer->getComponentDatabase("QInitFunction"), grid_geometry);
+        hyp_patch_ops->setInitialConditions(Q_var, Q_init);
+
         // Set up visualization plot file writer.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit) hyp_patch_ops->registerVisItDataWriter(visit_data_writer);
@@ -204,6 +209,15 @@ main(int argc, char* argv[])
             if (!level->checkAllocated(Q_scratch_idx))
                 level->allocatePatchData(Q_scratch_idx, time_integrator->getIntegratorTime());
             if (!level->checkAllocated(E_idx)) level->allocatePatchData(E_idx, time_integrator->getIntegratorTime());
+        }
+
+        // Write out initial visualization data.
+        int iteration_num = time_integrator->getIntegratorStep();
+        double loop_time = time_integrator->getIntegratorTime();
+        if (dump_viz_data && uses_visit)
+        {
+            pout << "\n\nWriting visualization files...\n\n";
+            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
         const int coarsest_ln = 0;
@@ -322,15 +336,6 @@ main(int argc, char* argv[])
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
-
-        // Write out initial visualization data.
-        int iteration_num = time_integrator->getIntegratorStep();
-        double loop_time = time_integrator->getIntegratorTime();
-        if (dump_viz_data && uses_visit)
-        {
-            pout << "\n\nWriting visualization files...\n\n";
-            visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-        }
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
