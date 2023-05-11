@@ -549,7 +549,7 @@ CartSideRobinPhysBdryOp::getRefineOpStencilWidth() const
 } // getRefineOpStencilWidth
 
 void
-CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
+CartSideRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(const Patch<NDIM>& patch,
                                                             const double fill_time,
                                                             const IntVector<NDIM>& ghost_width_to_fill)
 {
@@ -624,7 +624,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_data_id
                                                          const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
                                                          const double fill_time,
                                                          const IntVector<NDIM>& ghost_width_to_fill,
-                                                         Patch<NDIM>& patch,
+                                                         const Patch<NDIM>& patch,
                                                          const bool adjoint_op)
 {
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
@@ -848,7 +848,7 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                                                              const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
                                                              const double fill_time,
                                                              const IntVector<NDIM>& ghost_width_to_fill,
-                                                             Patch<NDIM>& patch,
+                                                             const Patch<NDIM>& patch,
                                                              const bool adjoint_op)
 {
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
@@ -926,12 +926,14 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                 }
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                patch.setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                        touches_regular_bdry,
-                                                                        touches_periodic_bdry,
-                                                                        dx,
-                                                                        shifted_patch_x_lower.data(),
-                                                                        shifted_patch_x_upper.data()));
+                auto pgeom = patch.getPatchGeometry();
+                Patch<NDIM>& temp_patch = const_cast<Patch<NDIM>&>(patch);
+                temp_patch.setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
+                                                                             touches_regular_bdry,
+                                                                             touches_periodic_bdry,
+                                                                             dx,
+                                                                             shifted_patch_x_lower.data(),
+                                                                             shifted_patch_x_upper.data()));
 
                 // Set the boundary condition coefficients.
                 for (int d = 0; d < patch_data_depth; ++d)
@@ -943,12 +945,10 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                         extended_bc_coef->setTargetPatchDataIndex(patch_data_idx);
                         extended_bc_coef->setHomogeneousBc(d_homogeneous_bc);
                     }
-                    bc_coef->setBcCoefs(acoef_data, bcoef_data, gcoef_data, var, patch, trimmed_bdry_box, fill_time);
+                    bc_coef->setBcCoefs(
+                        acoef_data, bcoef_data, gcoef_data, var, temp_patch, trimmed_bdry_box, fill_time);
                     if (d_homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
                     if (extended_bc_coef) extended_bc_coef->clearTargetPatchDataIndex();
-
-                    // Restore the original patch geometry object.
-                    patch.setPatchGeometry(pgeom);
 
                     // Set the boundary values.
                     if (location_index == 0 || location_index == 1)
@@ -1114,6 +1114,9 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
                     }
 #endif
                 }
+
+                // Restore the patch geometry object.
+                temp_patch.setPatchGeometry(pgeom);
             }
         }
     }

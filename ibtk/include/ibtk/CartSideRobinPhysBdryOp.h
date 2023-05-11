@@ -179,7 +179,7 @@ public:
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
      * all registered scratch components.
      */
-    void accumulateFromPhysicalBoundaryData(SAMRAI::hier::Patch<NDIM>& patch,
+    void accumulateFromPhysicalBoundaryData(const SAMRAI::hier::Patch<NDIM>& patch,
                                             double fill_time,
                                             const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
 
@@ -214,7 +214,7 @@ private:
                                     const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
                                     double fill_time,
                                     const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-                                    SAMRAI::hier::Patch<NDIM>& patch,
+                                    const SAMRAI::hier::Patch<NDIM>& patch,
                                     bool adjoint_op);
 
     /*!
@@ -226,7 +226,7 @@ private:
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
         double fill_time,
         const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        SAMRAI::hier::Patch<NDIM>& patch,
+        const SAMRAI::hier::Patch<NDIM>& patch,
         bool adjoint_op);
 
     /*!

@@ -133,7 +133,7 @@ RobinPhysBdryPatchStrategy::postprocessRefine(Patch<NDIM>& /*fine*/,
 } // postprocessRefine
 
 void
-RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(Patch<NDIM>& /*patch*/,
+RobinPhysBdryPatchStrategy::accumulateFromPhysicalBoundaryData(const Patch<NDIM>& /*patch*/,
                                                                double /*fill_time*/,
                                                                const IntVector<NDIM>& /*ghost_width_to_fill*/)
 {

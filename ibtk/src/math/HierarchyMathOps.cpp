@@ -490,7 +490,7 @@ HierarchyMathOps::curl(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.curl(dst_data, src_data, patch);
+            d_patch_math_ops.curl(dst_data, src_data, *patch);
         }
     }
     else
@@ -674,7 +674,7 @@ HierarchyMathOps::curl(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.curl(dst_data, src_data, patch);
+            d_patch_math_ops.curl(dst_data, src_data, *patch);
         }
     }
     return;
@@ -702,7 +702,7 @@ HierarchyMathOps::curl(const int dst_idx,
             Pointer<FaceData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.curl(dst_data, src_data, patch);
+            d_patch_math_ops.curl(dst_data, src_data, *patch);
         }
     }
     return;
@@ -730,7 +730,7 @@ HierarchyMathOps::curl(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.curl(dst_data, src_data, patch);
+            d_patch_math_ops.curl(dst_data, src_data, *patch);
         }
     }
     return;
@@ -758,7 +758,7 @@ HierarchyMathOps::curl(const int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.curl(dst_data, src_data, patch);
+            d_patch_math_ops.curl(dst_data, src_data, *patch);
         }
     }
     return;
@@ -806,7 +806,7 @@ HierarchyMathOps::curl(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.curl(dst_data, src_data, patch);
+            d_patch_math_ops.curl(dst_data, src_data, *patch);
 
             if (ln > d_coarsest_ln)
             {
@@ -870,7 +870,7 @@ HierarchyMathOps::curl(const int dst_idx,
             Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.curl(dst_data, src_data, patch);
+            d_patch_math_ops.curl(dst_data, src_data, *patch);
         }
     }
     return;
@@ -912,7 +912,8 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
+            d_patch_math_ops.rot(
+                dst_data, src_data, *patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
     }
     return;
@@ -954,7 +955,8 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
+            d_patch_math_ops.rot(
+                dst_data, src_data, *patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
     }
     return;
@@ -996,7 +998,8 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<EdgeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
+            d_patch_math_ops.rot(
+                dst_data, src_data, *patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
     }
     return;
@@ -1034,7 +1037,8 @@ HierarchyMathOps::rot(int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.rot(dst_data, src_data, patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
+            d_patch_math_ops.rot(
+                dst_data, src_data, *patch, has_bc_coefs ? &robin_bc_op : nullptr, src_ghost_fill_time);
         }
     }
     return;
@@ -1071,7 +1075,7 @@ HierarchyMathOps::div(const int dst_idx,
             Pointer<CellData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src2_depth);
+            d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, *patch, dst_depth, src2_depth);
         }
     }
     else
@@ -1151,7 +1155,7 @@ HierarchyMathOps::div(const int dst_idx,
             Pointer<CellData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src2_depth);
+            d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, *patch, dst_depth, src2_depth);
 
             if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
             {
@@ -1209,7 +1213,7 @@ HierarchyMathOps::div(const int dst_idx,
             Pointer<CellData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src2_depth);
+            d_patch_math_ops.div(dst_data, alpha, src1_data, beta, src2_data, *patch, dst_depth, src2_depth);
 
             if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
             {
@@ -1259,7 +1263,7 @@ HierarchyMathOps::grad(const int dst_idx,
             Pointer<CellData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, patch, src1_depth);
+            d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, *patch, src1_depth);
         }
     }
     else
@@ -1358,7 +1362,7 @@ HierarchyMathOps::grad(const int dst_idx,
             Pointer<FaceData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, patch, src1_depth);
+            d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, *patch, src1_depth);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
@@ -1417,7 +1421,7 @@ HierarchyMathOps::grad(const int dst_idx,
             Pointer<SideData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, patch, src1_depth);
+            d_patch_math_ops.grad(dst_data, alpha, src1_data, beta, src2_data, *patch, src1_depth);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
@@ -1624,7 +1628,7 @@ HierarchyMathOps::grad(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
             Pointer<FaceData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
 
-            d_patch_math_ops.grad(dst_data, alpha_data, src1_data, beta, src2_data, patch, src1_depth);
+            d_patch_math_ops.grad(dst_data, alpha_data.getPointer(), src1_data, beta, src2_data, *patch, src1_depth);
 
             // Zero-out data on physical boundaries in the case of non-grid
             // aligned anisotropy.  (This is equivalent to enforcing no-flux
@@ -1721,7 +1725,7 @@ HierarchyMathOps::grad(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
             Pointer<SideData<NDIM, double> > alpha_data = patch->getPatchData(alpha_idx);
 
-            d_patch_math_ops.grad(dst_data, alpha_data, src1_data, beta, src2_data, patch, src1_depth);
+            d_patch_math_ops.grad(dst_data, alpha_data.getPointer(), src1_data, beta, src2_data, *patch, src1_depth);
 
             // Zero-out data on physical boundaries in the case of non-grid
             // aligned anisotropy.  (This is equivalent to enforcing no-flux
@@ -1808,7 +1812,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, *patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
@@ -1856,7 +1860,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, *patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
@@ -1904,7 +1908,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<FaceData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, *patch);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
@@ -1955,7 +1959,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, *patch);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
@@ -2010,7 +2014,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, *patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
@@ -2058,7 +2062,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<EdgeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, *patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
@@ -2110,7 +2114,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, false);
+            d_patch_math_ops.interp(dst_data, src_data, *patch, false);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
@@ -2165,7 +2169,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<FaceData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, *patch);
 
             if ((ln > d_coarsest_ln) && src_cf_bdry_synch)
             {
@@ -2226,7 +2230,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch);
+            d_patch_math_ops.interp(dst_data, src_data, *patch);
 
             if (ln > d_coarsest_ln)
             {
@@ -2293,7 +2297,7 @@ HierarchyMathOps::interp(const int dst_idx,
             Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, false);
+            d_patch_math_ops.interp(dst_data, src_data, *patch, false);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
@@ -2341,7 +2345,7 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
             Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.harmonic_interp(dst_data, src_data, patch);
+            d_patch_math_ops.harmonic_interp(dst_data, src_data, *patch);
 
             if ((ln > d_coarsest_ln) && dst_cf_bdry_synch)
             {
@@ -2385,7 +2389,7 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, false);
+            d_patch_math_ops.interp(dst_data, src_data, *patch, false);
         }
     }
     return;
@@ -2413,7 +2417,7 @@ HierarchyMathOps::harmonic_interp(const int dst_idx,
             Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, false);
+            d_patch_math_ops.interp(dst_data, src_data, *patch, false);
         }
     }
     return;
@@ -2441,7 +2445,7 @@ HierarchyMathOps::interp_ghosted(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, true);
+            d_patch_math_ops.interp(dst_data, src_data, *patch, true);
         }
     }
     return;
@@ -2469,7 +2473,7 @@ HierarchyMathOps::interp_ghosted(const int dst_idx,
             Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, true);
+            d_patch_math_ops.interp(dst_data, src_data, *patch, true);
         }
     }
     return;
@@ -2497,7 +2501,7 @@ HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, true);
+            d_patch_math_ops.interp(dst_data, src_data, *patch, true);
         }
     }
     return;
@@ -2525,7 +2529,7 @@ HierarchyMathOps::harmonic_interp_ghosted(const int dst_idx,
             Pointer<EdgeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.interp(dst_data, src_data, patch, true);
+            d_patch_math_ops.interp(dst_data, src_data, *patch, true);
         }
     }
     return;
@@ -2603,7 +2607,7 @@ HierarchyMathOps::laplace(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
             d_patch_math_ops.laplace(
-                dst_data, alpha, beta, src1_data, gamma, src2_data, patch, dst_depth, src1_depth, src2_depth);
+                dst_data, alpha, beta, src1_data, gamma, src2_data, *patch, dst_depth, src1_depth, src2_depth);
         }
     }
     else
@@ -2819,7 +2823,7 @@ HierarchyMathOps::laplace(const int dst_idx,
             Pointer<SideData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.laplace(dst_data, alpha, beta, src1_data, gamma, src2_data, patch);
+            d_patch_math_ops.laplace(dst_data, alpha, beta, src1_data, gamma, src2_data, *patch);
         }
     }
 
@@ -2920,8 +2924,16 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
             Pointer<SideData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.vc_laplace(
-                dst_data, alpha, beta, coef1_data, coef2_data, src1_data, gamma, src2_data, patch, use_harmonic_interp);
+            d_patch_math_ops.vc_laplace(dst_data,
+                                        alpha,
+                                        beta,
+                                        coef1_data,
+                                        coef2_data,
+                                        src1_data,
+                                        gamma,
+                                        src2_data,
+                                        *patch,
+                                        use_harmonic_interp);
         }
     }
 
@@ -3022,8 +3034,16 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
             Pointer<SideData<NDIM, double> > src2_data =
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
-            d_patch_math_ops.vc_laplace(
-                dst_data, alpha, beta, coef1_data, coef2_data, src1_data, gamma, src2_data, patch, use_harmonic_interp);
+            d_patch_math_ops.vc_laplace(dst_data,
+                                        alpha,
+                                        beta,
+                                        coef1_data,
+                                        coef2_data,
+                                        src1_data,
+                                        gamma,
+                                        src2_data,
+                                        *patch,
+                                        use_harmonic_interp);
         }
     }
 
@@ -3089,7 +3109,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
             d_patch_math_ops.pointwiseMultiply(
-                dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src1_depth, src2_depth);
+                dst_data, alpha, src1_data, beta, src2_data, *patch, dst_depth, src1_depth, src2_depth);
         }
     }
     return;
@@ -3129,7 +3149,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                                src1_data,
                                                beta,
                                                src2_data,
-                                               patch,
+                                               *patch,
                                                dst_depth,
                                                src1_depth,
                                                src2_depth,
@@ -3176,7 +3196,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                                src1_data,
                                                beta_data,
                                                src2_data,
-                                               patch,
+                                               *patch,
                                                dst_depth,
                                                src1_depth,
                                                src2_depth,
@@ -3214,7 +3234,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
             d_patch_math_ops.pointwiseMultiply(
-                dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src1_depth, src2_depth);
+                dst_data, alpha, src1_data, beta, src2_data, *patch, dst_depth, src1_depth, src2_depth);
         }
     }
     return;
@@ -3254,7 +3274,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                                src1_data,
                                                beta,
                                                src2_data,
-                                               patch,
+                                               *patch,
                                                dst_depth,
                                                src1_depth,
                                                src2_depth,
@@ -3301,7 +3321,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                                src1_data,
                                                beta_data,
                                                src2_data,
-                                               patch,
+                                               *patch,
                                                dst_depth,
                                                src1_depth,
                                                src2_depth,
@@ -3339,7 +3359,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
             d_patch_math_ops.pointwiseMultiply(
-                dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src1_depth, src2_depth);
+                dst_data, alpha, src1_data, beta, src2_data, *patch, dst_depth, src1_depth, src2_depth);
         }
     }
     return;
@@ -3379,7 +3399,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                                src1_data,
                                                beta,
                                                src2_data,
-                                               patch,
+                                               *patch,
                                                dst_depth,
                                                src1_depth,
                                                src2_depth,
@@ -3426,7 +3446,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                                src1_data,
                                                beta_data,
                                                src2_data,
-                                               patch,
+                                               *patch,
                                                dst_depth,
                                                src1_depth,
                                                src2_depth,
@@ -3464,7 +3484,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                 (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
 
             d_patch_math_ops.pointwiseMultiply(
-                dst_data, alpha, src1_data, beta, src2_data, patch, dst_depth, src1_depth, src2_depth);
+                dst_data, alpha, src1_data, beta, src2_data, *patch, dst_depth, src1_depth, src2_depth);
         }
     }
     return;
@@ -3504,7 +3524,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                                src1_data,
                                                beta,
                                                src2_data,
-                                               patch,
+                                               *patch,
                                                dst_depth,
                                                src1_depth,
                                                src2_depth,
@@ -3551,7 +3571,7 @@ HierarchyMathOps::pointwiseMultiply(const int dst_idx,
                                                src1_data,
                                                beta_data,
                                                src2_data,
-                                               patch,
+                                               *patch,
                                                dst_depth,
                                                src1_depth,
                                                src2_depth,
@@ -3579,7 +3599,7 @@ HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.pointwiseL1Norm(dst_data, src_data, patch);
+            d_patch_math_ops.pointwiseL1Norm(dst_data, src_data, *patch);
         }
     }
     return;
@@ -3602,7 +3622,7 @@ HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.pointwiseL2Norm(dst_data, src_data, patch);
+            d_patch_math_ops.pointwiseL2Norm(dst_data, src_data, *patch);
         }
     }
     return;
@@ -3625,7 +3645,7 @@ HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<CellData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.pointwiseMaxNorm(dst_data, src_data, patch);
+            d_patch_math_ops.pointwiseMaxNorm(dst_data, src_data, *patch);
         }
     }
     return;
@@ -3648,7 +3668,7 @@ HierarchyMathOps::pointwiseL1Norm(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.pointwiseL1Norm(dst_data, src_data, patch);
+            d_patch_math_ops.pointwiseL1Norm(dst_data, src_data, *patch);
         }
     }
     return;
@@ -3671,7 +3691,7 @@ HierarchyMathOps::pointwiseL2Norm(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.pointwiseL2Norm(dst_data, src_data, patch);
+            d_patch_math_ops.pointwiseL2Norm(dst_data, src_data, *patch);
         }
     }
     return;
@@ -3694,7 +3714,7 @@ HierarchyMathOps::pointwiseMaxNorm(const int dst_idx,
             Pointer<NodeData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<NodeData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.pointwiseMaxNorm(dst_data, src_data, patch);
+            d_patch_math_ops.pointwiseMaxNorm(dst_data, src_data, *patch);
         }
     }
     return;
@@ -3725,7 +3745,7 @@ HierarchyMathOps::strain_rate(const int dst1_idx,
             Pointer<CellData<NDIM, double> > dst2_data = patch->getPatchData(dst2_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.strain_rate(dst1_data, dst2_data, src_data, patch);
+            d_patch_math_ops.strain_rate(dst1_data, dst2_data, src_data, *patch);
         }
     }
     return;
@@ -3752,7 +3772,7 @@ HierarchyMathOps::strain_rate(const int dst_idx,
             Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
             Pointer<SideData<NDIM, double> > src_data = patch->getPatchData(src_idx);
 
-            d_patch_math_ops.strain_rate(dst_data, src_data, patch);
+            d_patch_math_ops.strain_rate(dst_data, src_data, *patch);
         }
     }
     return;
