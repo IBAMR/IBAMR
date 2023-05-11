@@ -435,7 +435,7 @@ main(int argc, char* argv[])
         // Register source term for Div U equation.
         Pointer<CartGridFunction> Div_U_forcing_fcn =
             new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator);
-        time_integrator->registerDivergenceVelocitySourceFunction(Div_U_forcing_fcn);
+        time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
         // Register gravity force.
         std::vector<double> grav_const(NDIM);

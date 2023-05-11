@@ -550,7 +550,7 @@ main(int argc, char* argv[])
         // Register source term for Div U equation.
         Pointer<CartGridFunction> Div_U_forcing_fcn =
             new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", ac_hier_integrator);
-        time_integrator->registerDivergenceVelocitySourceFunction(Div_U_forcing_fcn);
+        time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
         // Register surface tension force.
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
