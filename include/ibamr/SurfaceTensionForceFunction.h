@@ -23,6 +23,7 @@
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyGhostCellInterpolation.h"
 
 #include "CartesianGridGeometry.h"
 #include "IntVector.h"

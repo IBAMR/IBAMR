@@ -16,6 +16,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/config.h>
+
 #include "ibamr/IBStrategy.h"
 
 #include "ibtk/FEDataManager.h"
