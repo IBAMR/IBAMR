@@ -525,7 +525,12 @@ IBExplicitHierarchyIntegrator::collectAllMarkers() const
     if (d_markers)
         return d_markers->collectAllMarkers();
     else
-        return {};
+    {
+        // Some older compilers cannot convert just '{}' into a std::pair so help it out
+        EigenAlignedVector<IBTK::Point> positions;
+        EigenAlignedVector<IBTK::Vector> velocities;
+        return std::make_pair(positions, velocities);
+    }
 } // collectAllMarkers
 
 void
