@@ -75,6 +75,23 @@ CONFIGURE_DOXYGEN
 CONFIGURE_DOT
 
 ###########################################################################
+# Version information (requires sed).
+###########################################################################
+dnl Since this is an M4 script we must use the quadrigraphs @<:@ and @:>@ for
+dnl brackets, i.e., for [ and ]
+ibtk_version_major=$($SED -E "s/^(@<:@0-9@:>@+)\..*/\1/" "$srcdir/../VERSION")
+ibtk_version_minor=$($SED -E "s/^@<:@^.@:>@+\.(@<:@0-9@:>@+)\.@<:@0-9@:>@+.*/\1/" "$srcdir/../VERSION")
+ibtk_version_subminor=$($SED -E "s/^@<:@^.@:>@+\.@<:@^.@:>@+\.(@<:@0-9@:>@+).*/\1/" "$srcdir/../VERSION")
+AC_DEFINE_UNQUOTED(VERSION_MAJOR, $ibtk_version_major, [Major version of IBTK.])
+AC_DEFINE_UNQUOTED(VERSION_MINOR, $ibtk_version_minor, [Minor version of IBTK.])
+AC_DEFINE_UNQUOTED(VERSION_SUBMINOR, $ibtk_version_subminor, [Subminor version of IBTK.])
+
+dnl We have to use a funny name for the key to guarantee that it comes after
+dnl all constant definitions.
+AH_VERBATIM(Z_VERSION_MACRO, [/* Version check macro. */
+#define IBTK_VERSION_GTE(major, minor, subminor) ((IBTK_VERSION_MAJOR * 10000 + IBTK_VERSION_MINOR * 100 + IBTK_VERSION_SUBMINOR) >= (major)*10000 + (minor)*100 + (subminor))])
+
+###########################################################################
 # Checks for optional and required third-party libraries.
 ###########################################################################
 PACKAGE_INITIALIZE_ENVIRONMENT
