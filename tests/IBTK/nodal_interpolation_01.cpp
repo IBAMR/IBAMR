@@ -11,7 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-// Check the 'interpolate side/face to nodal' routines.
+// Check the 'interpolate cell/side/face to nodal' routines.
 
 // Headers for major SAMRAI objects
 #include <BergerRigoutsos.h>
@@ -77,7 +77,7 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<hier::Variable<NDIM> > u_var;
+        Pointer<hier::Variable<NDIM> > u_var, e_var;
         Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
         Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
         Pointer<FaceVariable<NDIM, double> > u_fc_var = new FaceVariable<NDIM, double>("u_fc");
@@ -106,9 +106,25 @@ main(int argc, char* argv[])
             new NodeVariable<NDIM, double>("u_nc", NDIM, fine_boundary_represents_var);
         Pointer<NodeVariable<NDIM, double> > e_nc_var =
             new NodeVariable<NDIM, double>("e_nc", NDIM, fine_boundary_represents_var);
+        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc", NDIM);
 
-        const int u_nc_idx = var_db->registerVariableAndContext(u_nc_var, ctx, IntVector<NDIM>(0));
-        const int e_nc_idx = var_db->registerVariableAndContext(e_nc_var, ctx, IntVector<NDIM>(0));
+        // Don't add more ghosts unless we need them to interpolate_back
+        const bool interp_back = input_db->getBoolWithDefault("interp_back", false);
+        const int u_nc_idx = var_db->registerVariableAndContext(u_nc_var, ctx, IntVector<NDIM>(interp_back ? 1 : 0));
+
+        int e_idx = IBTK::invalid_index;
+        if (interp_back)
+        {
+            // only one implemented right now in HierarchyMathOps
+            TBOX_ASSERT(var_type == "CELL");
+            e_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(0));
+            e_var = e_cc_var;
+        }
+        else
+        {
+            e_idx = var_db->registerVariableAndContext(e_nc_var, ctx, IntVector<NDIM>(0));
+            e_var = e_nc_var;
+        }
 
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -120,10 +136,10 @@ main(int argc, char* argv[])
             visit_data_writer->registerPlotQuantity(u_nc_var->getName() + std::to_string(d), "SCALAR", u_nc_idx, d);
         }
 
-        visit_data_writer->registerPlotQuantity(e_nc_var->getName(), "VECTOR", e_nc_idx);
+        visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "VECTOR", e_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            visit_data_writer->registerPlotQuantity(e_nc_var->getName() + std::to_string(d), "SCALAR", e_nc_idx, d);
+            visit_data_writer->registerPlotQuantity(e_var->getName() + std::to_string(d), "SCALAR", e_idx, d);
         }
 
         // Initialize the AMR patch hierarchy.
@@ -144,7 +160,7 @@ main(int argc, char* argv[])
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_idx, 0.0);
             level->allocatePatchData(u_nc_idx, 0.0);
-            level->allocatePatchData(e_nc_idx, 0.0);
+            level->allocatePatchData(e_idx, 0.0);
         }
 
         // Setup vector objects.
@@ -153,33 +169,41 @@ main(int argc, char* argv[])
         SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
         SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
-        u_vec.addComponent(u_nc_var, u_nc_idx);
-        e_vec.addComponent(e_nc_var, e_nc_idx);
+        // if we are interpolating back then we want to use the variable we
+        // started with - otherwise compare to MMS with node data.
+        if (interp_back)
+        {
+            u_vec.addComponent(u_var, u_idx);
+        }
+        else
+        {
+            u_vec.addComponent(u_nc_var, u_nc_idx);
+        }
 
+        e_vec.addComponent(e_var, e_idx);
         u_vec.setToScalar(0.0);
         e_vec.setToScalar(0.0);
 
         // Setup exact solutions.
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
         u_fcn.setDataOnPatchHierarchy(u_idx, u_var, patch_hierarchy, 0.0);
-        u_fcn.setDataOnPatchHierarchy(e_nc_idx, e_nc_var, patch_hierarchy, 0.0);
+        u_fcn.setDataOnPatchHierarchy(e_idx, e_var, patch_hierarchy, 0.0);
 
         // We need updated ghost values to interpolate from side or face data:
-        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> output_transaction_comps;
+        using ITC = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        std::vector<ITC> output_transaction_comps;
         output_transaction_comps.emplace_back(
             u_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false);
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(output_transaction_comps, patch_hierarchy);
-        hier_bdry_fill->fillData(0.0);
+        HierarchyGhostCellInterpolation hier_bdry_fill;
+        hier_bdry_fill.initializeOperatorState(output_transaction_comps, patch_hierarchy);
+        hier_bdry_fill.fillData(0.0);
 
         // interpolate from side/face-centered to nodal:
         const bool synch_dst_cf_interface = input_db->getBoolWithDefault("synch_dst_cf_interface", false);
         const bool synch_src_cf_interface = true;
         if (var_type == "CELL")
         {
-            hier_math_ops.interp(
-                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_cc_var, NULL, 0.0);
+            hier_math_ops.interp(u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_cc_var, NULL, 0.0);
         }
         else if (var_type == "SIDE")
         {
@@ -192,9 +216,21 @@ main(int argc, char* argv[])
                 u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_fc_var, NULL, 0.0, synch_src_cf_interface);
         }
 
-        // Compute error and print error norms.
+        if (interp_back)
+        {
+            // only node-to-cell is implemented and it requires updated ghost values
+            std::vector<ITC> comps_2;
+            comps_2.emplace_back(u_nc_idx, "LINEAR_REFINE", false, "CONSTANT_COARSEN", "LINEAR", false);
+            HierarchyGhostCellInterpolation hier_bdry_fill_2;
+            hier_bdry_fill_2.initializeOperatorState(comps_2, patch_hierarchy);
+            hier_bdry_fill_2.fillData(0.0);
+
+            hier_math_ops.interp(e_idx, e_cc_var, u_nc_idx, u_nc_var, nullptr, 0.0, true);
+        }
         e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
                        Pointer<SAMRAIVectorReal<NDIM, double> >(&u_vec, false));
+
+        // Compute error and print error norms.
         const double max_norm = e_vec.maxNorm();
 
         std::ostringstream out;
@@ -217,14 +253,17 @@ main(int argc, char* argv[])
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<NodeData<NDIM, double> > e_nc_data = patch->getPatchData(e_nc_idx);
-                for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
+                Pointer<NodeData<NDIM, double> > e_nc_data = patch->getPatchData(e_idx);
+                if (e_nc_data)
                 {
-                    const Box<NDIM> refined_box = refined_region_boxes[i];
-                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
-                    if (!intersection.empty())
+                    for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                     {
-                        e_nc_data->fillAll(0.0, intersection);
+                        const Box<NDIM> refined_box = refined_region_boxes[i];
+                        const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                        if (!intersection.empty())
+                        {
+                            e_nc_data->fillAll(0.0, intersection);
+                        }
                     }
                 }
             }
