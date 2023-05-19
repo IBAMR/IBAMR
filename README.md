@@ -9,14 +9,14 @@ What Is IBAMR?
 IBAMR is a distributed-memory parallel implementation of the immersed boundary (IB) method with support for Cartesian grid adaptive mesh refinement (AMR).  Support for distributed-memory parallelism is via [MPI](http://www.mcs.anl.gov/research/projects/mpi), the Message Passing Interface.
 
 Core IBAMR functionality relies upon several high-quality open-source libraries, including:
- * [SAMRAI](https://computation.llnl.gov/projects/samrai), the Structured Adaptive Mesh Refinement Application Infrastructure
+ * [SAMRAI](https://computing.llnl.gov/projects/samrai), the Structured Adaptive Mesh Refinement Application Infrastructure
  * [PETSc](http://www.mcs.anl.gov/petsc), the Portable, Extensible Toolkit for Scientific Computation
  * [libMesh](http://libmesh.sourceforge.net), a C++ finite element library
- * [*hypre*](http://computation.llnl.gov/casc/linear_solvers/sls_hypre.html), a library of high performance preconditioners that features parallel multigrid methods for both structured and unstructured grid problems.
+ * [*hypre*](https://computing.llnl.gov/projects/hypre-scalable-linear-solvers-multigrid-methods), a library of high performance preconditioners that features parallel multigrid methods for both structured and unstructured grid problems.
 
-IBAMR also uses functionality provided by a number of additional third-party libraries, including: [Boost](http://www.boost.org); [Eigen](http://eigen.tuxfamily.org/index.php); [HDF5](http://www.hdfgroup.org/HDF5); [muParser](http://muparser.beltoforion.de); and [Silo](https://wci.llnl.gov/codes/silo).
+IBAMR also uses functionality provided by a number of additional third-party libraries, including: [Boost](http://www.boost.org); [Eigen](http://eigen.tuxfamily.org/index.php); [HDF5](http://www.hdfgroup.org/HDF5); [muParser](https://beltoforion.de/en/muparser/); and [Silo](http://software.llnl.gov/Silo/).
 
-IBAMR outputs visualization files that can be read by the [VisIt Visualization Tool](https://wci.llnl.gov/codes/visit).
+IBAMR outputs visualization files that can be read by the [VisIt Visualization Tool](https://wci.llnl.gov/simulation/computer-codes/visit).
 
 What Is the IB Method?
 ----------------------
@@ -28,7 +28,8 @@ For general information about the IB method, see [math.nyu.edu/faculty/peskin](h
 Getting Started
 ---------------
 
-IBAMR requires a number of [third-party libraries](../../wiki/ThirdPartyLibraries). [Sample build instructions are provided](../../wiki/Building) for a typical Linux installation. 
+IBAMR requires a number of third-party
+libraries. [Sample build instructions are provided](https://ibamr.github.io/building) for both Linux distributions and macOS. 
 
 For help with git see [the summary document](./doc/git.md) included with the documentation.
 
