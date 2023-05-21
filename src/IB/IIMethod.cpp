@@ -810,7 +810,6 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             U_t_vec = d_U_t_new_vecs[part];
             X_vec = d_X_new_vecs[part];
         }
-        
         copy_and_synch(*X_vec, *X_ghost_vec);
 
         NumericVector<double>* WSS_in_vec = d_use_velocity_jump_conditions ? d_WSS_in_half_vecs[part] : nullptr;
@@ -1053,31 +1052,30 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 // Interpolate x, du, and dv at the quadrature points via
                 // accumulation, e.g., x(qp) = sum_k x_k * phi_k(qp) for each
                 // qp.
-
                 for (unsigned int qp = 0; qp < n_qpoints; ++qp)
                 {
-					for (unsigned int d = 0; d < NDIM; ++d)
-					{
-						for (unsigned int k = 0; k < n_nodes; ++k)
-						{
-							const double& p = phi_X[k][qp];
-							x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
-						}
-					}
-					if (d_use_velocity_jump_conditions)
-					{
-						for (unsigned int axis = 0; axis < NDIM; ++axis)
-						{
-							for (unsigned int d = 0; d < NDIM; ++d)
-							{
-								for (unsigned int k = 0; k < n_nodes_jump; ++k)
-								{
-									const double& p2 = phi_DU_jump[k][qp];
-									DU_jump_qp[axis][NDIM * (qp_offset + qp) + d] += DU_jump_node[axis][k][d] * p2;
-								}
-							}
-						}
-					} 
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                      for (unsigned int k = 0; k < n_nodes; ++k)
+                        {
+                            const double& p = phi_X[k][qp];
+                            x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
+                        }
+                     }
+                     if (d_use_velocity_jump_conditions)
+                     {
+                        for (unsigned int axis = 0; axis < NDIM; ++axis)
+                        {
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                for (unsigned int k = 0; k < n_nodes_jump; ++k)
+                                {
+                                   const double& p2 = phi_DU_jump[k][qp];
+                                   DU_jump_qp[axis][NDIM * (qp_offset + qp) + d] += DU_jump_node[axis][k][d] * p2;
+                                }
+                            }
+                        }
+                    }
                 }
                 for (unsigned int qp = 0; qp < n_qpoints; ++qp)
                 {
@@ -1788,8 +1786,8 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
                     {
                         const double& p_X = phi_X[k][qp];
                         x_qp[NDIM * (qp_offset + qp) + i] += x_node[k][i] * p_X;
-					}
-					for (unsigned int k = 0; k < n_node_tau; ++k)
+                    }
+                    for (unsigned int k = 0; k < n_node_tau; ++k)
                     {
                         const double& p_P = phi_P[k][qp];
                         WSS_in_qp[NDIM * (qp_offset + qp) + i] += (da / dA) * WSS_in_node[k][i] * p_P;
