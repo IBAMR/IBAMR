@@ -627,6 +627,64 @@ c
       return
       end
 c
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out first order relaxation scheme using a single time step 
+c     of Runge-Kutta scheme. 
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine rkls1storder3d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     stage)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,V_gcw
+      INTEGER stage
+
+c
+c     Input/Output.
+c
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+
+c     Prevent compiler warning for unused variables      
+      stage = stage 
+
+      do i2 = ilower2,iupper2
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+              call evalrelax1storder3d(U,U_gcw,V,V_gcw,
+     &                                 ilower0,iupper0,
+     &                                 ilower1,iupper1,
+     &                                 ilower2,iupper2,
+     &                                 i0,i1,i2,dx)
+            enddo
+          enddo
+        enddo
+      
+      return
+      end
+
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute relaxation solution at a given grid cell
@@ -852,6 +910,69 @@ c
 
       return
       end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out relaxation scheme using a single time step of Runge-Kutta 
+c     scheme. Note that this a special case of the Gauss-Seidel sweeps.
+c
+c     Uses second order ENO for spatial discretization with a subcell
+c     fix near the interface
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine rkls3rdordereno3d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     stage,use_subcell,
+     &     use_sign_fix)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,V_gcw
+      INTEGER stage
+      INTEGER use_subcell,use_sign_fix
+
+c
+c     Input/Output.
+c
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+
+c     Prevent compiler warning for unused variable
+      stage = stage  
+
+      do i2 = ilower2,iupper2
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+              call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,
+     &                                    ilower0,iupper0,
+     &                                    ilower1,iupper1,
+     &                                    ilower2,iupper2,
+     &                                    i0,i1,i2,dx,
+     &                                    use_subcell,use_sign_fix)
+          enddo
+        enddo
+      enddo
+      
+      return
+      end      
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out single third order sweep
@@ -1436,6 +1557,71 @@ c
       endif
       return
       end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out third order relaxation scheme using single time step of
+c     Runge-Kutta scheme. This is a special case of Gauss-Seidel updates.
+c
+c     Uses third order WENO for spatial discretization with a subcell
+c     fix near the interface
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine rkls3rdorderweno3d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     stage,
+     &     use_subcell,
+     &     use_sign_fix)
+c
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,V_gcw
+      INTEGER stage
+      INTEGER use_subcell,use_sign_fix
+
+c
+c     Input/Output.
+c
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+
+c     Prevent compiler warning for unused variables
+      stage = stage       
+
+      do i2 = ilower2,iupper2
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+              call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,
+     &                                       ilower0,iupper0,
+     &                                       ilower1,iupper1,
+     &                                       ilower2,iupper2,
+     &                                       i0,i1,i2,dx,
+     &                                       use_subcell,use_sign_fix)
+          enddo
+        enddo
+      enddo
+      
+      return
+      end
+
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -2171,6 +2357,68 @@ c
 
       return
       end
+
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Carry out fifth order relaxation scheme using a single time step of 
+c     Runge-Kutta scheme. This is a special case of Gauss Seidel updates
+c
+c     Uses fifth order WENO for spatial discretization
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine rkls5thorderweno3d(
+     &     U,U_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx,
+     &     stage,
+     &     use_sign_fix)
+      implicit none
+include(TOP_SRCDIR/src/fortran/const.i)dnl
+
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER U_gcw,V_gcw
+      INTEGER stage
+      INTEGER use_sign_fix
+
+c
+c     Input/Output.
+c
+      REAL U(CELL3d(ilower,iupper,U_gcw))
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL dx(0:NDIM-1)
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+
+c     Prevent compiler warning for unused variables
+      stage = stage       
+
+      do i2 = ilower2,iupper2
+        do i1 = ilower1,iupper1
+          do i0 = ilower0,iupper0
+              call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+     &                                     ilower0,iupper0,
+     &                                     ilower1,iupper1,
+     &                                     ilower2,iupper2,
+     &                                     i0,i1,i2,dx,
+     &                                     use_sign_fix)
+            enddo
+          enddo
+        enddo
+     
+      return
+      end
+
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out single fifth order sweep using a WENO stencil

@@ -125,6 +125,9 @@ protected:
     // Level set order.
     LevelSetOrder d_ls_order = FIRST_ORDER_LS;
 
+    // Level set time stepping
+    LevelSetTimeStepping d_ls_ts = GAUSS_SEIDEL_TS;
+
     // Algorithm parameters.
     double d_abs_tol = 1.0e-5;
     int d_max_its = 100;

@@ -35,7 +35,7 @@ AdvectionVelocityFunction {
 }
 
 QInitFunction {
-   function = "0.001*((X0 - 1.0)^2 + (X1 - 1.0)^2 + 0.1)*(sqrt(X0^2 + X1^2) -1.0)"
+   function = "1*((X0 - 1.0)^2 + (X1 - 1.0)^2 + 0.1)*(sqrt(X0^2 + X1^2) -1.0)"
 }
 
 LevelSet {
@@ -46,6 +46,8 @@ LevelSet {
     enable_logging     = TRUE
     apply_subcell_fix  = TRUE
     apply_sign_fix     = FALSE
+    time_stepping_scheme = "RK2"
+    apply_mass_constraint = TRUE
 }
 
 LocationIndexRobinBcCoefs {

@@ -45,6 +45,11 @@ class Patch;
 } // namespace hier
 } // namespace SAMRAI
 
+namespace IBTK
+{
+class HierarchyGhostCellInterpolation;
+} // namespace IBTK
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBAMR
@@ -152,18 +157,29 @@ private:
     /*!
      * \brief Do one relaxation step over the hierarchy.
      */
-    void relax(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+    void relax(SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> D_fill_op,
+               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                int dist_idx,
                int dist_init_idx,
-               const int iter) const;
+               int dist_copy_idx,
+               const int iter,
+               const double time) const;
 
     /*!
-     * \brief Do one relaxation step over a patch.
+     * \brief Do Gauss-Seidel based one relaxation step over a patch.
      */
-    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-               const int iter) const;
+    void relaxGS(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
+                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
+                 const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                 const int iter) const;
+
+    /*!
+     * \brief Do RK based one relaxation step over a patch.
+     */
+    void relaxRK(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
+                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
+                 const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                 const int stage) const;
 
     /*!
      * \brief Compute the Hamiltonian of the indicator field over the hierarchy
