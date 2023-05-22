@@ -203,12 +203,17 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > E_var = new CellVariable<NDIM, double>("E");
         const int E_idx = var_db->registerVariableAndContext(E_var, scratch_ctx);
 
+        // Heaviside
+        Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("H");
+        const int H_idx = var_db->registerVariableAndContext(H_var, scratch_ctx);
+
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             if (!level->checkAllocated(Q_scratch_idx))
                 level->allocatePatchData(Q_scratch_idx, time_integrator->getIntegratorTime());
             if (!level->checkAllocated(E_idx)) level->allocatePatchData(E_idx, time_integrator->getIntegratorTime());
+            if (!level->checkAllocated(H_idx)) level->allocatePatchData(H_idx, time_integrator->getIntegratorTime());
         }
 
         // Write out initial visualization data.
@@ -243,6 +248,8 @@ main(int argc, char* argv[])
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
+                Pointer<CellData<NDIM, double> > Q_scratch_data = patch->getPatchData(Q_scratch_idx);
+                Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
                     CellIndex<NDIM> ci(it());
@@ -266,6 +273,10 @@ main(int argc, char* argv[])
                         );
 
                     (*E_data)(ci) = distance - circle.R;
+
+                    const double phi =
+                        -(*Q_scratch_data)(ci); // This make sure phi is positive inide the circle so that H = 1.
+                    (*H_data)(ci) = IBTK::discontinuous_heaviside(phi);
                 }
             }
         }
@@ -275,6 +286,11 @@ main(int argc, char* argv[])
         const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
         pout << "Error in Q after level set initialization:" << std::endl
              << "L1-norm:  " << std::setprecision(10) << cc_data_ops.L1Norm(E_idx, wgt_cc_idx) << std::endl;
+
+        const double Numerical_volume = cc_data_ops.integral(H_idx, wgt_cc_idx);
+        const double Exact_volume = M_PI * std::pow(circle.R, 2.0);
+        const double error = std::abs(Numerical_volume - Exact_volume) / Exact_volume;
+        pout << "Volume error of a circle:" << std::setprecision(10) << error << std::endl;
 
         double E_domain = 0.0;
         double E_interface = 0.0;
