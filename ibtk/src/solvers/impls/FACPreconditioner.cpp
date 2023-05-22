@@ -16,6 +16,8 @@
 #include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/LinearSolver.h"
+#include "ibtk/SAMRAIScopedVectorCopy.h"
+#include "ibtk/SAMRAIScopedVectorDuplicate.h"
 #include "ibtk/ibtk_enums.h"
 
 #include "MultiblockDataTranslator.h"
@@ -94,48 +96,43 @@ FACPreconditioner::setTimeInterval(const double current_time, const double new_t
 } // setTimeInterval
 
 bool
-FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f)
+FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
-    if (deallocate_after_solve) initializeSolverState(u, f);
+    if (deallocate_after_solve) initializeSolverState(x, b);
 
     // Set the initial guess to equal zero.
-    u.setToScalar(0.0, /*interior_only*/ false);
+    x.setToScalar(0.0, /*interior_only*/ false);
+
+    // Clone the right-hand-side vector to avoid modifying it during the
+    // preconditioning operation.
+    SAMRAIScopedVectorCopy<double> f(b);
+    SAMRAIScopedVectorDuplicate<double> r(b);
 
     // Apply a single FAC cycle.
     if (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0)
     {
-#if !defined(NDEBUG)
-        TBOX_ASSERT(!d_f);
-        TBOX_ASSERT(!d_r);
-#endif
         // V-cycle MG without presmoothing keeps the residual equal to the
         // initial right-hand-side vector f, so we can simply use that vector
         // for the residual in the FAC algorithm.
-        FACVCycleNoPreSmoothing(u, f, d_finest_ln);
+        FACVCycleNoPreSmoothing(x, f, d_finest_ln);
     }
     else
     {
-#if !defined(NDEBUG)
-        TBOX_ASSERT(d_f);
-        TBOX_ASSERT(d_r);
-#endif
-        d_f->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
-        d_r->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&f, false), false);
         switch (d_cycle_type)
         {
         case F_CYCLE:
-            FCycle(u, *d_f, d_finest_ln);
+            FCycle(x, f, r, d_finest_ln);
             break;
         case FMG_CYCLE:
-            FMGCycle(u, *d_f, d_finest_ln, 1);
+            FMGCycle(x, f, r, d_finest_ln, 1);
             break;
         case V_CYCLE:
-            muCycle(u, *d_f, d_finest_ln, 1);
+            muCycle(x, f, r, d_finest_ln, 1);
             break;
         case W_CYCLE:
-            muCycle(u, *d_f, d_finest_ln, 2);
+            muCycle(x, f, r, d_finest_ln, 2);
             break;
         default:
             TBOX_ERROR(d_object_name << "::solveSystem():\n"
@@ -171,15 +168,6 @@ FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& s
 #endif
     d_fac_strategy->initializeOperatorState(solution, rhs);
 
-    // Create temporary vectors.
-    if (!(d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0))
-    {
-        d_f = rhs.cloneVector("");
-        d_r = rhs.cloneVector("");
-        d_f->allocateVectorData();
-        d_r->allocateVectorData();
-    }
-
     // Allocate scratch data.
     d_fac_strategy->allocateScratchData();
 
@@ -195,21 +183,6 @@ FACPreconditioner::deallocateSolverState()
 
     // Deallocate scratch data.
     d_fac_strategy->deallocateScratchData();
-
-    // Destroy temporary vectors.
-    if (d_f)
-    {
-        d_f->deallocateVectorData();
-        d_f->freeVectorComponents();
-        d_f.setNull();
-    }
-
-    if (d_r)
-    {
-        d_r->deallocateVectorData();
-        d_r->freeVectorComponents();
-        d_r.setNull();
-    }
 
     // Deallocate operator state.
     d_fac_strategy->deallocateOperatorState();
@@ -321,7 +294,11 @@ FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
 } // FACVCycleNoPreSmoothing
 
 void
-FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num, int mu)
+FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
+                           SAMRAIVectorReal<NDIM, double>& f,
+                           SAMRAIVectorReal<NDIM, double>& r,
+                           int level_num,
+                           int mu)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -333,10 +310,10 @@ FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<N
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
         }
-        d_fac_strategy->computeResidual(*d_r, u, f, level_num - 1, level_num);
-        d_fac_strategy->restrictResidual(*d_r, f, level_num - 1);
+        d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
+        d_fac_strategy->restrictResidual(r, f, level_num - 1);
         d_fac_strategy->setToZero(u, level_num - 1);
-        for (int k = 0; k < mu; ++k) muCycle(u, f, level_num - 1, mu);
+        for (int k = 0; k < mu; ++k) muCycle(u, f, r, level_num - 1, mu);
         d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
         if (d_num_post_sweeps > 0)
         {
@@ -347,7 +324,10 @@ FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<N
 } // muCycle
 
 void
-FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num)
+FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u,
+                          SAMRAIVectorReal<NDIM, double>& f,
+                          SAMRAIVectorReal<NDIM, double>& r,
+                          int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -359,11 +339,11 @@ FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<ND
         {
             d_fac_strategy->smoothError(u, f, level_num, d_num_pre_sweeps, true, false);
         }
-        d_fac_strategy->computeResidual(*d_r, u, f, level_num - 1, level_num);
-        d_fac_strategy->restrictResidual(*d_r, f, level_num - 1);
+        d_fac_strategy->computeResidual(r, u, f, level_num - 1, level_num);
+        d_fac_strategy->restrictResidual(r, f, level_num - 1);
         d_fac_strategy->setToZero(u, level_num - 1);
-        muCycle(u, f, level_num - 1, 2);
-        muCycle(u, f, level_num - 1, 1);
+        muCycle(u, f, r, level_num - 1, 2);
+        muCycle(u, f, r, level_num - 1, 1);
         d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
         if (d_num_post_sweeps > 0)
         {
@@ -374,7 +354,11 @@ FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<ND
 } // FCycle
 
 void
-FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<NDIM, double>& f, int level_num, int mu)
+FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u,
+                            SAMRAIVectorReal<NDIM, double>& f,
+                            SAMRAIVectorReal<NDIM, double>& r,
+                            int level_num,
+                            int mu)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -383,10 +367,10 @@ FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u, SAMRAIVectorReal<
     else
     {
         d_fac_strategy->restrictResidual(f, f, level_num - 1);
-        FMGCycle(u, f, level_num - 1, mu);
+        FMGCycle(u, f, r, level_num - 1, mu);
         d_fac_strategy->prolongErrorAndCorrect(u, u, level_num);
     }
-    muCycle(u, f, level_num, mu);
+    muCycle(u, f, r, level_num, mu);
     return;
 } // FMGCycle
 

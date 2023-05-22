@@ -269,15 +269,18 @@ protected:
 
     void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
                  int level_num,
                  int mu);
 
     void FCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
                 int level_num);
 
     void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
                   SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
                   int level_num,
                   int mu);
 
@@ -287,7 +290,6 @@ protected:
     int d_finest_ln = 0;
     MGCycleType d_cycle_type = V_CYCLE;
     int d_num_pre_sweeps = 0, d_num_post_sweeps = 2;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_f, d_r;
 
 private:
     /*!
@@ -323,4 +325,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_FACPreconditioner
+#endif // #ifndef included_IBTK_FACPreconditioner
