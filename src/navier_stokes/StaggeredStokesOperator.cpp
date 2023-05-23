@@ -341,16 +341,16 @@ StaggeredStokesOperator::deallocateOperatorState()
     d_P_fill_pattern.setNull();
 
     // Deallocate scratch data.
-    d_x->deallocateVectorData();
+    deallocate_vector_data(*d_x);
 
     // Delete the solution and rhs vectors.
     d_x->resetLevels(d_x->getCoarsestLevelNumber(),
                      std::min(d_x->getFinestLevelNumber(), d_x->getPatchHierarchy()->getFinestLevelNumber()));
-    d_x->freeVectorComponents();
+    free_vector_components(*d_x);
 
     d_b->resetLevels(d_b->getCoarsestLevelNumber(),
                      std::min(d_b->getFinestLevelNumber(), d_b->getPatchHierarchy()->getFinestLevelNumber()));
-    d_b->freeVectorComponents();
+    free_vector_components(*d_b);
 
     d_x.setNull();
     d_b.setNull();
@@ -386,8 +386,8 @@ StaggeredStokesOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
         StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
         apply(*x, *b);
         y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
-        x->freeVectorComponents();
-        b->freeVectorComponents();
+        free_vector_components(*x);
+        free_vector_components(*b);
     }
     const bool homogeneous_bc = true;
     if (d_bc_helper)

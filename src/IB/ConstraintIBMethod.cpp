@@ -535,7 +535,7 @@ ConstraintIBMethod::calculateEulerianMomentum()
 
         momentum[active] = d_hier_sc_data_ops->dot(d_u_fluidSolve_idx, wgt_sc_active_idx);
 
-        wgt_sc_active->freeVectorComponents();
+        free_vector_components(*wgt_sc_active);
     }
 
     if (!IBTK_MPI::getRank() && d_print_output && d_output_eul_mom && (d_timestep_counter % d_output_interval) == 0)

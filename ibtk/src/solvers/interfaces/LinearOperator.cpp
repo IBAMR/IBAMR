@@ -59,8 +59,8 @@ LinearOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& y)
     x->setToScalar(0.0);
     apply(*x, *b);
     y.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), b);
-    x->freeVectorComponents();
-    b->freeVectorComponents();
+    free_vector_components(*x);
+    free_vector_components(*b);
     return;
 } // modifyRhsForBcs
 

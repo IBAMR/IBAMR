@@ -880,12 +880,12 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     // Delete the solution and rhs vectors.
     d_solution->resetLevels(d_solution->getCoarsestLevelNumber(),
                             std::min(d_solution->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
-    d_solution->freeVectorComponents();
+    free_vector_components(*d_solution);
     d_solution.setNull();
 
     d_rhs->resetLevels(d_rhs->getCoarsestLevelNumber(),
                        std::min(d_rhs->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber()));
-    d_rhs->freeVectorComponents();
+    free_vector_components(*d_rhs);
     d_rhs.setNull();
 
     // Only fully deallocate operator data when we are not reinitializing the

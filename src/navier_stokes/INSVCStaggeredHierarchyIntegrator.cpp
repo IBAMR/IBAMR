@@ -35,6 +35,7 @@
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/CartSideDoubleDivPreservingRefine.h"
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
@@ -542,17 +543,17 @@ INSVCStaggeredHierarchyIntegrator::~INSVCStaggeredHierarchyIntegrator()
     d_P_bc_coef = nullptr;
     d_velocity_solver.setNull();
     d_pressure_solver.setNull();
-    if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
-    if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
-    if (d_N_vec) d_N_vec->freeVectorComponents();
-    if (d_P_rhs_vec) d_P_rhs_vec->freeVectorComponents();
+    if (d_U_rhs_vec) free_vector_components(*d_U_rhs_vec);
+    if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
+    if (d_N_vec) free_vector_components(*d_N_vec);
+    if (d_P_rhs_vec) free_vector_components(*d_P_rhs_vec);
     for (const auto& nul_vec : d_nul_vecs)
     {
-        if (nul_vec) nul_vec->freeVectorComponents();
+        if (nul_vec) free_vector_components(*nul_vec);
     }
     for (const auto& U_nul_vec : d_U_nul_vecs)
     {
-        if (U_nul_vec) U_nul_vec->freeVectorComponents();
+        if (U_nul_vec) free_vector_components(*U_nul_vec);
     }
 
     return;
@@ -918,7 +919,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
 
     // Register plot variables that are maintained by the
-    // INSCollocatedHierarchyIntegrator.
+    // INSVCStaggeredHierarchyIntegrator.
     registerVariable(d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
     if (d_F_fcn)
     {
@@ -939,14 +940,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     registerVariable(d_U_regrid_idx, d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_U_src_idx, d_U_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
-    if (d_Q_fcn)
-    {
-        registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
-    }
-    else
-    {
-        d_F_div_idx = invalid_index;
-    }
 
     // Register variables for plotting.
     if (d_visit_writer)
@@ -985,7 +978,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
         if (d_Q_fcn && d_output_Q)
         {
-            d_visit_writer->registerPlotQuantity("Q", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
+            d_visit_writer->registerPlotQuantity("Q::Div_U", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
         }
 
         if (d_output_Omega)
@@ -1288,12 +1281,12 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
     }
 
     // Deallocate scratch data.
-    d_U_rhs_vec->deallocateVectorData();
-    d_P_rhs_vec->deallocateVectorData();
+    deallocate_vector_data(*d_U_rhs_vec);
+    deallocate_vector_data(*d_P_rhs_vec);
     if (!d_creeping_flow)
     {
-        d_U_adv_vec->deallocateVectorData();
-        d_N_vec->deallocateVectorData();
+        deallocate_vector_data(*d_U_adv_vec);
+        deallocate_vector_data(*d_N_vec);
     }
 
     // Deallocate any registered advection-diffusion solver.
@@ -2024,10 +2017,10 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
             new SAMRAIVectorReal<NDIM, double>(d_object_name + "::P_scratch_vec", d_hierarchy, coarsest_ln, finest_ln);
         d_P_scratch_vec->addComponent(d_P_var, d_P_scratch_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        if (d_U_rhs_vec) d_U_rhs_vec->freeVectorComponents();
-        if (d_U_adv_vec) d_U_adv_vec->freeVectorComponents();
-        if (d_N_vec) d_N_vec->freeVectorComponents();
-        if (d_P_rhs_vec) d_P_rhs_vec->freeVectorComponents();
+        if (d_U_rhs_vec) free_vector_components(*d_U_rhs_vec);
+        if (d_U_adv_vec) free_vector_components(*d_U_adv_vec);
+        if (d_N_vec) free_vector_components(*d_N_vec);
+        if (d_P_rhs_vec) free_vector_components(*d_P_rhs_vec);
 
         d_U_rhs_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_rhs_vec");
         d_U_adv_vec = d_U_scratch_vec->cloneVector(d_object_name + "::U_adv_vec");
@@ -2048,14 +2041,14 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
 
         for (const auto& nul_vec : d_nul_vecs)
         {
-            if (nul_vec) nul_vec->freeVectorComponents();
+            if (nul_vec) free_vector_components(*nul_vec);
         }
         const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
         d_nul_vecs.resize(n_nul_vecs);
 
         for (const auto& U_nul_vec : d_U_nul_vecs)
         {
-            if (U_nul_vec) U_nul_vec->freeVectorComponents();
+            if (U_nul_vec) free_vector_components(*U_nul_vec);
         }
         const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
         d_U_nul_vecs.resize(n_U_nul_vecs);

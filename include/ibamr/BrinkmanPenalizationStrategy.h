@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#include "ibtk/ibtk_utilities.h"
+
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
@@ -79,9 +81,16 @@ public:
     virtual void postprocessComputeBrinkmanPenalization(double current_time, double new_time, int num_cycles);
 
     /*!
-     * \brief Set Brinkman penalization penalty factor.
+     * \brief Set the Brinkman penalization coefficient.
+     *
+     * @deprecated Use setBrinkmanPenaltyFactor() instead.
      */
     virtual void setBrinkmanCoefficient(double chi);
+
+    /*!
+     * \brief Set Brinkman penalization penalty factor.
+     */
+    virtual void setBrinkmanPenaltyFactor(double penalty_factor);
 
     /*!
      * \brief Write out object state to the given database.
@@ -100,10 +109,23 @@ public:
 
     /*
      * \brief Get the Brinkman coefficient.
+     *
+     * @deprecated Use getBrinkmanPenaltyFactor() instead.
+     *
      */
     double getBrinkmanCoefficient() const
     {
-        return d_chi;
+        IBTK_DEPRECATED_MEMBER_FUNCTION2(
+            "BrinkmanPenalizationStrategy", "getBrinkmanCoefficient", "getBrinkmanPenaltyFactor");
+        return d_penalty_factor;
+    } // getBrinkmanCoefficient
+
+    /*
+     * \brief Get the Brinkman coefficient.
+     */
+    double getBrinkmanPenaltyFactor() const
+    {
+        return d_penalty_factor;
     } // getBrinkmanPenaltyFactor
 
     /*
@@ -134,9 +156,20 @@ protected:
            d_new_time = std::numeric_limits<double>::quiet_NaN();
 
     /*
-     * Brinkman coefficient.
+     * Factor to be multiplied with the penalty term.
      */
-    double d_chi = 1e8;
+    double d_penalty_factor = 1.0;
+
+    /*
+     * Boolean to use the inertial scale \f$ \rho/\Delta t \f$ as the penalty value.
+     * By default inertia scale is used.
+     */
+    bool d_use_rho_scale = true;
+
+    /*
+     * Boolean to use the viscous scale \f$ \mu/h^2 \f$ as the penalty value.
+     */
+    bool d_use_mu_scale = false;
 
 private:
     /*!

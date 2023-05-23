@@ -162,11 +162,11 @@ PETScSNESJacobianJOWrapper::deallocateOperatorState()
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_y);
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_z);
-    d_x->freeVectorComponents();
+    free_vector_components(*d_x);
     d_x.setNull();
-    d_y->freeVectorComponents();
+    free_vector_components(*d_y);
     d_y.setNull();
-    d_z->freeVectorComponents();
+    free_vector_components(*d_z);
     d_z.setNull();
     d_is_initialized = false;
 }

@@ -199,15 +199,15 @@ FACPreconditioner::deallocateSolverState()
     // Destroy temporary vectors.
     if (d_f)
     {
-        d_f->deallocateVectorData();
-        d_f->freeVectorComponents();
+        deallocate_vector_data(*d_f);
+        free_vector_components(*d_f);
         d_f.setNull();
     }
 
     if (d_r)
     {
-        d_r->deallocateVectorData();
-        d_r->freeVectorComponents();
+        deallocate_vector_data(*d_r);
+        free_vector_components(*d_r);
         d_r.setNull();
     }
 

@@ -254,8 +254,8 @@ PETScSAMRAIVectorReal::VecDestroy_SAMRAI(Vec v)
         PSVR_CAST2(v)->resetLevels(0,
                                    std::min(PSVR_CAST2(v)->getFinestLevelNumber(),
                                             PSVR_CAST2(v)->getPatchHierarchy()->getFinestLevelNumber()));
-        PSVR_CAST2(v)->deallocateVectorData();
-        PSVR_CAST2(v)->freeVectorComponents();
+        deallocate_vector_data(*PSVR_CAST2(v));
+        free_vector_components(*PSVR_CAST2(v));
         PSVR_CAST2(v).setNull();
         destroyPETScVector(PSVR_CAST1(v)->d_petsc_vector);
     }

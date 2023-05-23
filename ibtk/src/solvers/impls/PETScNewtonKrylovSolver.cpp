@@ -383,23 +383,23 @@ PETScNewtonKrylovSolver::deallocateSolverState()
     }
 
     // Deallocate scratch data.
-    d_b->deallocateVectorData();
-    d_r->deallocateVectorData();
+    deallocate_vector_data(*d_b);
+    deallocate_vector_data(*d_r);
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = nullptr;
-    d_x->freeVectorComponents();
+    free_vector_components(*d_x);
     d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = nullptr;
-    d_b->freeVectorComponents();
+    free_vector_components(*d_b);
     d_b.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_r);
     d_petsc_r = nullptr;
-    d_r->freeVectorComponents();
+    free_vector_components(*d_r);
     d_r.setNull();
 
     // Destroy the SNES solver.

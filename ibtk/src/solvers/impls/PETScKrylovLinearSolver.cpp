@@ -22,6 +22,7 @@
 #include "ibtk/PETScMatLOWrapper.h"
 #include "ibtk/PETScPCLSWrapper.h"
 #include "ibtk/PETScSAMRAIVectorReal.h"
+#include "ibtk/ibtk_utilities.h"
 #include "ibtk/solver_utilities.h"
 
 #include "Box.h"
@@ -374,17 +375,17 @@ PETScKrylovLinearSolver::deallocateSolverState()
     }
 
     // Dealocate scratch data.
-    d_b->deallocateVectorData();
+    deallocate_vector_data(*d_b);
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = nullptr;
-    d_x->freeVectorComponents();
+    free_vector_components(*d_x);
     d_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_b);
     d_petsc_b = nullptr;
-    d_b->freeVectorComponents();
+    free_vector_components(*d_b);
     d_b.setNull();
 
     // Deallocate the nullspace object.
@@ -693,12 +694,8 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
     // Clear SAMRAI data structures.
     if (d_nullspace_constant_vec)
     {
-        d_nullspace_constant_vec->resetLevels(
-            0,
-            std::min(d_nullspace_constant_vec->getFinestLevelNumber(),
-                     d_nullspace_constant_vec->getPatchHierarchy()->getFinestLevelNumber()));
-        d_nullspace_constant_vec->deallocateVectorData();
-        d_nullspace_constant_vec->freeVectorComponents();
+        deallocate_vector_data(*d_nullspace_constant_vec);
+        free_vector_components(*d_nullspace_constant_vec);
     }
     d_nullspace_constant_vec.setNull();
     return;

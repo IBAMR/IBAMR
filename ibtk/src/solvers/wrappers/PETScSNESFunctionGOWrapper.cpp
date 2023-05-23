@@ -115,9 +115,9 @@ PETScSNESFunctionGOWrapper::deallocateOperatorState()
     if (!d_is_initialized) return;
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_y);
-    d_x->freeVectorComponents();
+    free_vector_components(*d_x);
     d_x.setNull();
-    d_y->freeVectorComponents();
+    free_vector_components(*d_y);
     d_y.setNull();
     d_is_initialized = false;
     return;

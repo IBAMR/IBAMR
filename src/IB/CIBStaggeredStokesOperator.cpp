@@ -330,16 +330,16 @@ CIBStaggeredStokesOperator::deallocateOperatorState()
     d_P_fill_pattern.setNull();
 
     // Deallocate scratch data.
-    d_x->deallocateVectorData();
+    deallocate_vector_data(*d_x);
 
     // Delete the solution and rhs vectors.
     d_x->resetLevels(d_x->getCoarsestLevelNumber(),
                      std::min(d_x->getFinestLevelNumber(), d_x->getPatchHierarchy()->getFinestLevelNumber()));
-    d_x->freeVectorComponents();
+    free_vector_components(*d_x);
 
     d_b->resetLevels(d_b->getCoarsestLevelNumber(),
                      std::min(d_b->getFinestLevelNumber(), d_b->getPatchHierarchy()->getFinestLevelNumber()));
-    d_b->freeVectorComponents();
+    free_vector_components(*d_b);
 
     d_x.setNull();
     d_b.setNull();
@@ -409,7 +409,7 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
         VecAXPY(W, -1.0, V);
 
         // Deallocate scratch data.
-        x->freeVectorComponents();
+        free_vector_components(*x);
         VecDestroy(&V);
     }
     IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVector(vy[0], &vy0);

@@ -174,24 +174,22 @@ PETScMFFDJacobianOperator::deallocateOperatorState()
     if (!d_is_initialized) return;
 
     // Deallocate scratch data.
-    d_op_u->deallocateVectorData();
+    deallocate_vector_data(*d_op_u);
 
     // Delete the solution and rhs vectors.
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_u);
     d_petsc_u = nullptr;
-    d_op_u->resetLevels(0,
-                        std::min(d_op_u->getFinestLevelNumber(), d_op_u->getPatchHierarchy()->getFinestLevelNumber()));
-    d_op_u->freeVectorComponents();
+    free_vector_components(*d_op_u);
     d_op_u.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_x);
     d_petsc_x = nullptr;
-    d_op_x->freeVectorComponents();
+    free_vector_components(*d_op_x);
     d_op_x.setNull();
 
     PETScSAMRAIVectorReal::destroyPETScVector(d_petsc_y);
     d_petsc_y = nullptr;
-    d_op_y->freeVectorComponents();
+    free_vector_components(*d_op_y);
     d_op_y.setNull();
 
     int ierr = MatDestroy(&d_petsc_jac);

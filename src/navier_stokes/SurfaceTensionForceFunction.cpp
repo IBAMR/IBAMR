@@ -141,29 +141,40 @@ extern "C"
 #endif
                          const double* dx);
 
-    void SC_SURFACE_TENSION_FORCE_FC(double* F0,
-                                     double* F1,
-#if (NDIM == 3)
-                                     double* F2,
+    void SC_SURFACE_TENSION_FORCE_FC(
+#if (NDIM == 2)
+        double* F0,
+        double* F1,
+        const int& F_gcw,
+        const double* K,
+        const int& K_gcw,
+        const double* N00,
+        const double* N11,
+        const int& N_gcw,
+        const int& ilower0,
+        const int& iupper0,
+        const int& ilower1,
+        const int& iupper1
 #endif
-                                     const int& F_gcw,
-                                     const double* K,
-                                     const int& K_gcw,
-                                     const double* N00,
-                                     const double* N11,
 #if (NDIM == 3)
-                                     const double* N22,
+        double* F0,
+        double* F1,
+        double* F2,
+        const int& F_gcw,
+        const double* K,
+        const int& K_gcw,
+        const double* N00,
+        const double* N11,
+        const double* N22,
+        const int& N_gcw,
+        const int& ilower0,
+        const int& iupper0,
+        const int& ilower1,
+        const int& iupper1,
+        const int& ilower2,
+        const int& iupper2
 #endif
-                                     const int& N_gcw,
-                                     const int& ilower0,
-                                     const int& iupper0,
-                                     const int& ilower1,
-                                     const int& iupper1,
-#if (NDIM == 3)
-                                     const int& ilower2,
-                                     const int& iupper2,
-#endif
-                                     const double& sigma);
+    );
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -244,6 +255,12 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(hierarchy);
 #endif
 
+    const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
+    const int finest_ln =
+        (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
+    d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
+    d_hier_sc_data_ops = new HierarchySideDataOpsReal<NDIM, double>(hierarchy, coarsest_ln, finest_ln);
+
     // Get the newest patch data index for the level set variable
     Pointer<CellVariable<NDIM, double> > phi_cc_var = d_ls_var;
 #if !defined(NDEBUG)
@@ -264,9 +281,6 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     d_phi_idx =
         var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::Phi"), cell_ghosts);
 
-    const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
-    const int finest_ln =
-        (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(d_C_idx, data_time);
@@ -331,6 +345,22 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     CartGridFunction::setDataOnPatchHierarchy(
         data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
 
+    // Limit the surface tension force if necessary. This is mainly used in phase change problems
+    // to activate the surface tension force only at the liquid-gas interface.
+    if (d_mask_surface_tension_force)
+    {
+        const double apply_time = data_time;
+        const double current_time = data_time;
+        const double new_time = data_time;
+        d_mask_surface_tension_force(data_idx,
+                                     d_hier_math_ops,
+                                     -1 /*cycle_num*/,
+                                     apply_time,
+                                     current_time,
+                                     new_time,
+                                     d_mask_surface_tension_force_ctx);
+    }
+
     // Deallocate and remove scratch/smooth phi.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -366,9 +396,50 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
     if (initial_time) return;
 
     if (f_cc_data) setDataOnPatchCell(f_cc_data, patch, data_time, initial_time, level);
-    if (f_sc_data) setDataOnPatchSide(f_sc_data, patch, data_time, initial_time, level);
+    if (f_sc_data)
+    {
+        setDataOnPatchSide(f_sc_data, patch, data_time, initial_time, level);
+
+        if (d_compute_surface_tension_coef)
+        {
+            // Compute variable surface tension coefficient sigma as F = sigma*F.
+            const double apply_time = data_time;
+            const double current_time = data_time;
+            const double new_time = data_time;
+            d_compute_surface_tension_coef(data_idx,
+                                           d_hier_math_ops,
+                                           -1 /*cycle_num*/,
+                                           apply_time,
+                                           current_time,
+                                           new_time,
+                                           d_compute_surface_tension_coef_ctx);
+        }
+        else
+        {
+            d_hier_sc_data_ops->scale(data_idx, d_sigma, data_idx, /*interior_only*/ true);
+        }
+    }
     return;
 } // setDataOnPatch
+
+void
+SurfaceTensionForceFunction::registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx)
+{
+    d_mask_surface_tension_force = callback;
+    d_mask_surface_tension_force_ctx = ctx;
+
+    return;
+}
+
+void
+SurfaceTensionForceFunction::registerSurfaceTensionCoefficientFunction(ComputeSurfaceTensionCoefficientPtr callback,
+                                                                       void* ctx)
+{
+    d_compute_surface_tension_coef = callback;
+    d_compute_surface_tension_coef_ctx = ctx;
+
+    return;
+}
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -398,18 +469,7 @@ SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
             {
                 CellIndex<NDIM> ci(it());
                 const double phi = (*phi_data)(ci);
-                if (phi <= -eps)
-                {
-                    (*phi_data)(ci) = 0.0;
-                }
-                else if (phi >= eps)
-                {
-                    (*phi_data)(ci) = 1.0;
-                }
-                else
-                {
-                    (*phi_data)(ci) = 0.5 + 0.5 * phi / eps + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / eps);
-                }
+                (*phi_data)(ci) = IBTK::smooth_heaviside(phi, eps);
             }
         }
     }
@@ -591,30 +651,42 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
                  dx);
 
     // Compute the surface tension force
-    // F = sigma * K * grad(C)
-    SC_SURFACE_TENSION_FORCE_FC(F_data->getPointer(0),
-                                F_data->getPointer(1),
-#if (NDIM == 3)
-                                F_data->getPointer(2),
+    // F = K * grad(C)
+    SC_SURFACE_TENSION_FORCE_FC(
+#if (NDIM == 2)
+        F_data->getPointer(0),
+        F_data->getPointer(1),
+        F_data->getGhostCellWidth().max(),
+        K.getPointer(),
+        K.getGhostCellWidth().max(),
+        N.getPointer(0, 0),
+        N.getPointer(1, 1),
+        N.getGhostCellWidth().max(),
+        patch_box.lower(0),
+        patch_box.upper(0),
+        patch_box.lower(1),
+        patch_box
+            .upper(1)
 #endif
-                                F_data->getGhostCellWidth().max(),
-                                K.getPointer(),
-                                K.getGhostCellWidth().max(),
-                                N.getPointer(0, 0),
-                                N.getPointer(1, 1),
 #if (NDIM == 3)
-                                N.getPointer(2, 2),
+                F_data->getPointer(0),
+        F_data->getPointer(1),
+        F_data->getPointer(2),
+        F_data->getGhostCellWidth().max(),
+        K.getPointer(),
+        K.getGhostCellWidth().max(),
+        N.getPointer(0, 0),
+        N.getPointer(1, 1),
+        N.getPointer(2, 2),
+        N.getGhostCellWidth().max(),
+        patch_box.lower(0),
+        patch_box.upper(0),
+        patch_box.lower(1),
+        patch_box.upper(1),
+        patch_box.lower(2),
+        patch_box.upper(2)
 #endif
-                                N.getGhostCellWidth().max(),
-                                patch_box.lower(0),
-                                patch_box.upper(0),
-                                patch_box.lower(1),
-                                patch_box.upper(1),
-#if (NDIM == 3)
-                                patch_box.lower(2),
-                                patch_box.upper(2),
-#endif
-                                d_sigma);
+    );
 
     return;
 } // setDataOnPatchSide
