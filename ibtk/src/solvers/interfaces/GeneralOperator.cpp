@@ -15,6 +15,8 @@
 
 #include "ibtk/GeneralOperator.h"
 #include "ibtk/HierarchyMathOps.h"
+#include "ibtk/SAMRAIScopedVectorCopy.h"
+#include "ibtk/SAMRAIScopedVectorDuplicate.h"
 
 #include "Box.h"
 #include "SAMRAIVectorReal.h"
@@ -124,12 +126,9 @@ GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
                           SAMRAIVectorReal<NDIM, double>& z)
 {
     // Guard against the case that y == z.
-    Pointer<SAMRAIVectorReal<NDIM, double> > zz = z.cloneVector(z.getName());
-    zz->allocateVectorData();
-    zz->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&z, false));
-    apply(x, *zz);
+    SAMRAIScopedVectorCopy<double> zz(z);
+    apply(x, zz);
     z.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), zz);
-    zz->freeVectorComponents();
     return;
 } // applyAdd
 
