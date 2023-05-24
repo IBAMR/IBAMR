@@ -533,10 +533,29 @@ main(int argc, char* argv[])
         vector<SystemData> velocity_data(1);
         velocity_data[0] = SystemData(fem_solver->getVelocitySystemName(), vars);
 
-        const bool USE_DISCON_ELEMS = input_db->getBool("USE_DISCON_ELEMS");
         const bool USE_NORMALIZED_PRESSURE_JUMP = input_db->getBool("USE_NORMALIZED_PRESSURE_JUMP");
 
-        if (USE_DISCON_ELEMS) ib_method_ops->registerDisconElemFamilyForJumps(BEAM_PART);
+        // Whether to use discontinuous basis functions with element-local support for the jumps + traction
+        // We register the part before initializing the FE equation system
+        const string jump_fe_family = input_db->getString("jump_fe_family");
+        const Order fe_order = (beam_elem_type == "TET4" || beam_elem_type == "HEX8") ? FIRST: SECOND;
+        if (jump_fe_family == "L2_LAGRANGE") 
+        {
+            ib_method_ops->registerDisconElemFamilyForJumps(BEAM_PART, L2_LAGRANGE, FIRST);
+        }
+        else if (jump_fe_family == "MONOMIAL")
+        {
+           ib_method_ops->registerDisconElemFamilyForJumps(BEAM_PART, MONOMIAL, CONSTANT);
+        }
+        else if (jump_fe_family == "LAGRANGE") 
+        {
+           ib_method_ops->registerDisconElemFamilyForJumps(BEAM_PART, LAGRANGE, fe_order);
+        }
+        else
+        {
+           TBOX_ERROR("Unsupported FE family type: " << jump_fe_family << "for discontinuous jumps/traction \n");
+        }
+        
         if (USE_NORMALIZED_PRESSURE_JUMP) ib_method_ops->registerPressureJumpNormalization(BEAM_PART);
 
         ib_method_ops->initializeFEEquationSystems();

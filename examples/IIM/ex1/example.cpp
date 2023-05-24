@@ -87,6 +87,14 @@ tether_force_function(VectorValue<double>& F,
     const std::vector<double>& U = *var_data[0];
     double u_bndry_n = 0.0;
     for (unsigned int d = 0; d < NDIM; ++d) u_bndry_n += n(d) * U[d];
+    
+    double dx_length = 0.0;
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        dx_length += (X(d) - x(d)) * (X(d) - x(d));
+    }
+    dx_length = sqrt(dx_length);
+    TBOX_ASSERT(dx_length < 0.5 * dx);
 
     for (unsigned int d = 0; d < NDIM; ++d)
         F(d) = tether_data->kappa_s_surface * (X(d) - x(d)) - tether_data->eta_s_surface * u_bndry_n * n(d);
@@ -179,6 +187,8 @@ main(int argc, char* argv[])
         ds = mfac * dx;
         const double R_D = input_db->getDouble("R_D");
         string elem_type = input_db->getString("ELEM_TYPE");
+        const string jump_fe_family = input_db->getString("jump_fe_family");
+        const Order fe_order = (elem_type == "TRI3" || elem_type == "QUAD4") ? FIRST: SECOND;
         if (NDIM == 2)
         {
             MeshTools::Generation::build_square(solid_mesh,
@@ -275,10 +285,26 @@ main(int argc, char* argv[])
         vector<SystemData> sys_data(1, SystemData(IIMethod::VELOCITY_SYSTEM_NAME, vars));
         tbox::Pointer<IIMethod> ibfe_ops = ib_ops;
 
-        // Whether to use discontinuous basis functions with element-local support
+        // Whether to use discontinuous basis functions with element-local support for the jumps + traction
         // We ask this before initializing the FE equation system
-        const bool USE_DISCON_ELEMS = input_db->getBool("USE_DISCON_ELEMS");
-        if (USE_DISCON_ELEMS) ibfe_ops->registerDisconElemFamilyForJumps();
+        if (jump_fe_family == "L2_LAGRANGE") 
+        {
+			ibfe_ops->registerDisconElemFamilyForJumps(0, L2_LAGRANGE, FIRST);
+		}
+		else if (jump_fe_family == "MONOMIAL")
+		{
+			ibfe_ops->registerDisconElemFamilyForJumps(0, MONOMIAL, CONSTANT);
+		}
+		else if (jump_fe_family == "LAGRANGE")
+		{
+			ibfe_ops->registerDisconElemFamilyForJumps(0, LAGRANGE, fe_order);
+		}
+		else
+		{
+			TBOX_ERROR("Unsupported FE family type: " << jump_fe_family << "for discontinuous jumps/traction \n");
+		}
+		
+		
 
         ibfe_ops->initializeFEEquationSystems();
         equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();

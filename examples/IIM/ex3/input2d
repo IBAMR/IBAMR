@@ -23,53 +23,52 @@ AirfoilParams
 // grid spacing parameters
 L = 60 * C                                       // width of computational domain
 H = 20 * C
-MAX_LEVELS = 5                                 // maximum number of levels in locally refined grid
-REF_RATIO  = 4                                 // refinement ratio between levels
-N = 32 //64                                        // actual    number of grid cells on coarsest grid level
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N       // effective number of grid cells on finest   grid level
-DX0 = H/N                                      // mesh width on coarsest grid level
-DX  = H/NFINEST                                // mesh width on finest   grid level
-MFAC = 2.0                                     // ratio of Lagrangian mesh width to Cartesian mesh width
-ELEM_TYPE = "TRI3"                             // type of element to use for structure discretization
+MAX_LEVELS = 5                                   // maximum number of levels in locally refined grid
+REF_RATIO  = 4                                   // refinement ratio between levels
+N = 32 //64                                      // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N         // effective number of grid cells on finest   grid level
+DX0 = H/N                                        // mesh width on coarsest grid level
+DX  = H/NFINEST                                  // mesh width on finest   grid level
+MFAC = 2.0                                       // ratio of Lagrangian mesh width to Cartesian mesh width
+ELEM_TYPE = "TRI3"                               // type of element to use for structure discretization
+jump_fe_family = "L2_LAGRANGE"                   // option to use discontinuous L2_Lagrange family for geometries with sharp features
 
 
 // solver parameters
-IB_DELTA_FUNCTION          = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-SPLIT_FORCES   = TRUE
-USE_PRESSURE_JUMP_CONDITIONS        = TRUE           // whether to impose pressure jumps at fluid-structure interfaces
-USE_VELOCITY_JUMP_CONDITIONS        = TRUE           // whether to impose pressure jumps at fluid-structure interfaces
-TRACTION_ACTIVATION_TIME  = 0.0
-USE_L2_LAGRANGE_FAMILY = TRUE
-COMPUTE_FLUID_TRACTION   = TRUE
-WSS_CALC_WIDTH 			   = 1.03
-P_CALC_WIDTH 			   = 1.25
-USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
-IB_POINT_DENSITY           = 4.0                    // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
-SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
-START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 200.0             // final simulation time
-GROW_DT                    = 2.0e0             // growth factor for timesteps
-CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
-CONVECTIVE_OP_TYPE         = "STABILIZED_PPM"              // convective differencing discretization type
-CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
-NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
-CFL_MAX                    = 0.6               // maximum CFL number
-DT                         = 0.05*CFL_MAX*DX   // maximum timestep size
-ERROR_ON_DT_CHANGE         = TRUE              // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER                 = 2                // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U                   = TRUE
-OUTPUT_P                   = TRUE
-OUTPUT_F                   = TRUE
-OUTPUT_OMEGA               = TRUE
-OUTPUT_DIV_U               = TRUE
-ENABLE_LOGGING             = TRUE
+IB_DELTA_FUNCTION            = "IB_3"              // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
+SPLIT_FORCES                 = TRUE
+USE_PRESSURE_JUMP_CONDITIONS = TRUE              // whether to impose pressure jumps at fluid-structure interfaces
+USE_VELOCITY_JUMP_CONDITIONS = TRUE              // whether to impose pressure jumps at fluid-structure interfaces
+TRACTION_ACTIVATION_TIME     = 0.0
+COMPUTE_FLUID_TRACTION       = TRUE
+WSS_CALC_WIDTH 			     = 1.03
+P_CALC_WIDTH 			     = 1.25
+USE_CONSISTENT_MASS_MATRIX   = TRUE              // whether to use a consistent or lumped mass matrix
+IB_POINT_DENSITY             = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
+SOLVER_TYPE                  = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
+START_TIME                   = 0.0e0             // initial simulation time
+END_TIME                     = 200.0             // final simulation time
+GROW_DT                      = 2.0e0             // growth factor for timesteps
+CONVECTIVE_TS_TYPE           = "ADAMS_BASHFORTH" // convective time stepping type
+CONVECTIVE_OP_TYPE           = "STABILIZED_PPM"  // convective differencing discretization type
+CONVECTIVE_FORM              = "ADVECTIVE"       // how to compute the convective terms
+NORMALIZE_PRESSURE           = FALSE             // whether to explicitly force the pressure to have mean zero
+CFL_MAX                      = 0.6               // maximum CFL number
+DT                           = 0.05*CFL_MAX*DX   // maximum timestep size
+ERROR_ON_DT_CHANGE           = TRUE              // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING            = TRUE              // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                   = 2                 // size of tag buffer used by grid generation algorithm
+REGRID_CFL_INTERVAL          = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U                     = TRUE
+OUTPUT_P                     = TRUE
+OUTPUT_F                     = TRUE
+OUTPUT_OMEGA                 = TRUE
+OUTPUT_DIV_U                 = TRUE
+ENABLE_LOGGING               = TRUE
 INITIAL_THETA = 180.0
 NUM_CYCLES = 1
 
-// option to use discontinuous L2_Lagrange family for geometries with sharp features
-USE_DISCON_ELEMS = TRUE
+
 USE_DIRECT_FORCING = FALSE
 
 // model parameters
@@ -127,29 +126,23 @@ IBHierarchyIntegrator {
    dt_max              = DT
    error_on_dt_change  = ERROR_ON_DT_CHANGE
    enable_logging      = ENABLE_LOGGING
-    num_cycles = NUM_CYCLES
+   num_cycles          = NUM_CYCLES
 }
 
 IIMethod {
-   IB_delta_fcn                = IB_DELTA_FUNCTION
-   split_forces                = SPLIT_FORCES
-   use_pressure_jump_conditions   = USE_PRESSURE_JUMP_CONDITIONS
-   use_velocity_jump_conditions   = USE_VELOCITY_JUMP_CONDITIONS
-   use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
-   IB_point_density            = IB_POINT_DENSITY
-   p_calc_width				   = P_CALC_WIDTH
-   wss_calc_width			  = WSS_CALC_WIDTH
-   use_direct_forcing = USE_DIRECT_FORCING
-   compute_fluid_traction     = COMPUTE_FLUID_TRACTION
-   traction_activation_time = TRACTION_ACTIVATION_TIME
-   min_ghost_cell_width = 6
-   pressure_jump_fe_family = "L2_LAGRANGE"
-   velocity_jump_fe_family = "L2_LAGRANGE"
-   wss_fe_family = "L2_LAGRANGE"
-   tau_fe_family = "L2_LAGRANGE"
-   
-   exterior_calc_coef = 1.0
-   
+   IB_delta_fcn                 = IB_DELTA_FUNCTION
+   split_forces                 = SPLIT_FORCES
+   use_pressure_jump_conditions = USE_PRESSURE_JUMP_CONDITIONS
+   use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
+   use_consistent_mass_matrix   = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density             = IB_POINT_DENSITY
+   p_calc_width	                = P_CALC_WIDTH
+   wss_calc_width               = WSS_CALC_WIDTH
+   use_direct_forcing           = USE_DIRECT_FORCING
+   compute_fluid_traction       = COMPUTE_FLUID_TRACTION
+   traction_activation_time     = TRACTION_ACTIVATION_TIME
+   min_ghost_cell_width         = 6
+   exterior_calc_coef           = 1.0 
 }
 
 
@@ -247,8 +240,7 @@ LoadBalancer {
 
 TimerManager{
    print_exclusive = FALSE
-   print_total = TRUE
+   print_total     = TRUE
    print_threshold = 0.1
-
-   timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }

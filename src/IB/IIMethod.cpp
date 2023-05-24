@@ -235,21 +235,29 @@ IIMethod::getFEDataManager(const unsigned int part) const
 } // getFEDataManager
 
 void
-IIMethod::registerDisconElemFamilyForJumps(const unsigned int part)
+IIMethod::registerDisconElemFamilyForJumps(const unsigned int part, 
+                                          libMesh::FEFamily fe_family,
+                                          libMesh::Order fe_order)
 {
     TBOX_ASSERT(!d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_num_parts);
-    if (d_velocity_jump_fe_family == LAGRANGE || d_pressure_jump_fe_family == LAGRANGE 
-		|| d_wss_fe_family == LAGRANGE || d_tau_fe_family == LAGRANGE)
-	 {
-        	TBOX_ERROR(d_object_name << "::IIMethod():\n"
-                                          << " The fe family for the viscous jump, pressure jump, :\n"
-					    << "wall shear stress, and traction need to be explicitly :\n" 
-					    <<  "set to discontinuous L2_LAGRANGE or MONOMIAL via the input file! :\n"
-                                           << std::endl);
+    // Currently the jumps and traction use the same discontinuous FE representation.
+    // The acceptable options are either FIRST order L2_LAGRANGE or CONSTANT MONOMIAL.
+    if ((fe_family == L2_LAGRANGE && fe_order == FIRST) || (fe_family == MONOMIAL && fe_order == CONSTANT))
+    {
+        d_jumps_fe_family[part] = fe_family;
+        d_jumps_fe_order[part] = fe_order;
     }
-    
-    d_use_discon_elem_for_jumps[part] = true;
+    else if (fe_family == LAGRANGE)
+    {
+        d_jumps_fe_family[part] = d_fe_family[part];
+        d_jumps_fe_order[part] = d_fe_order[part];
+    }
+    else
+    {
+        TBOX_ERROR("Unsupported FE family type: " << fe_family << " with FE order:" << fe_order <<
+	"for discontinuous jumps/traction \n");
+    }  
     return;
 } // registerDisconElemFamilyForJumps
 
@@ -2999,48 +3007,38 @@ IIMethod::initializeFEEquationSystems()
 
             if (d_use_velocity_jump_conditions)
             {
-                const auto du_jump_family =
-                    d_use_discon_elem_for_jumps[part] ? d_velocity_jump_fe_family : d_fe_family[part];
-                const auto du_jump_order =
-                    d_use_discon_elem_for_jumps[part] ? d_velocity_jump_fe_order : d_fe_order[part];
-                    
-                const auto wss_family =
-                    d_use_discon_elem_for_jumps[part] ? d_wss_fe_family : d_fe_family[part];
-                const auto wss_order =
-                    d_use_discon_elem_for_jumps[part] ? d_wss_fe_order : d_fe_order[part];
-                const auto tau_family =
-                    d_use_discon_elem_for_jumps[part] ? d_tau_fe_family : d_fe_family[part];
-                const auto tau_order =
-                    d_use_discon_elem_for_jumps[part] ? d_tau_fe_order : d_fe_order[part];
+                const auto jump_family = d_jumps_fe_family[part];
+                const auto jump_order = d_jumps_fe_order[part];
+
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     vector_system_names.push_back(VELOCITY_JUMP_SYSTEM_NAME[d]);
                     vector_variable_prefixes.push_back("DU_jump_" + std::to_string(d));
-                    vector_fe_family.push_back(du_jump_family);
-                    vector_fe_order.push_back(du_jump_order);
+                    vector_fe_family.push_back(jump_family);
+                    vector_fe_order.push_back(jump_order);
                 }
 
                 vector_system_names.push_back(WSS_IN_SYSTEM_NAME);
                 vector_variable_prefixes.push_back("WSS_in");
-                vector_fe_family.push_back(wss_family);
-                vector_fe_order.push_back(wss_order);
+                vector_fe_family.push_back(jump_family);
+                vector_fe_order.push_back(jump_order);
 
                 vector_system_names.push_back(WSS_OUT_SYSTEM_NAME);
                 vector_variable_prefixes.push_back("WSS_out");
-                vector_fe_family.push_back(wss_family);
-                vector_fe_order.push_back(wss_order);
+                vector_fe_family.push_back(jump_family);
+                vector_fe_order.push_back(jump_order);
 
                 if (d_use_pressure_jump_conditions)
                 {
                     vector_system_names.push_back(TAU_IN_SYSTEM_NAME);
                     vector_variable_prefixes.push_back("TAU_IN");
-                    vector_fe_family.push_back(tau_family);
-                    vector_fe_order.push_back(tau_order);
+                    vector_fe_family.push_back(jump_family);
+                    vector_fe_order.push_back(jump_order);
 
                     vector_system_names.push_back(TAU_OUT_SYSTEM_NAME);
                     vector_variable_prefixes.push_back("TAU_OUT");
-                    vector_fe_family.push_back(tau_family);
-                    vector_fe_order.push_back(tau_order);
+                    vector_fe_family.push_back(jump_family);
+                    vector_fe_order.push_back(jump_order);
                 }
             }
 
@@ -3063,18 +3061,9 @@ IIMethod::initializeFEEquationSystems()
                 System& P_jump_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
                 System& P_in_system = equation_systems->add_system<System>(PRESSURE_IN_SYSTEM_NAME);
                 System& P_out_system = equation_systems->add_system<System>(PRESSURE_OUT_SYSTEM_NAME);
-                if (d_use_discon_elem_for_jumps[part])
-                {
-                    P_jump_system.add_variable("P_jump_", d_pressure_jump_fe_order, d_pressure_jump_fe_family);
-                    P_in_system.add_variable("P_in_", d_pressure_jump_fe_order, d_pressure_jump_fe_family);
-                    P_out_system.add_variable("P_out_", d_pressure_jump_fe_order, d_pressure_jump_fe_family);
-                }
-                else
-                {
-                    P_jump_system.add_variable("P_jump_", d_fe_order[part], d_fe_family[part]);
-                    P_in_system.add_variable("P_in_", d_fe_order[part], d_fe_family[part]);
-                    P_out_system.add_variable("P_out_", d_fe_order[part], d_fe_family[part]);
-                }
+                P_jump_system.add_variable("P_jump_", d_jumps_fe_order[part], d_jumps_fe_family[part]);
+                P_in_system.add_variable("P_in_", d_jumps_fe_order[part], d_jumps_fe_family[part]);
+                P_out_system.add_variable("P_out_", d_jumps_fe_order[part], d_jumps_fe_family[part]);
             }
         }
 
@@ -4185,6 +4174,8 @@ IIMethod::commonConstructor(const std::string& object_name,
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);
+    d_jumps_fe_family.resize(d_num_parts, INVALID_FE);
+    d_jumps_fe_order.resize(d_num_parts, INVALID_ORDER);
     d_default_quad_type.resize(d_num_parts, INVALID_Q_RULE);
     d_default_quad_order.resize(d_num_parts, INVALID_ORDER);
 
@@ -4197,7 +4188,6 @@ IIMethod::commonConstructor(const std::string& object_name,
 
     d_use_tangential_velocity.resize(d_num_parts);
     d_normalize_pressure_jump.resize(d_num_parts);
-    d_use_discon_elem_for_jumps.resize(d_num_parts);
 
     // Determine whether we should use first-order or second-order shape
     // functions for each part of the structure.
@@ -4236,6 +4226,8 @@ IIMethod::commonConstructor(const std::string& object_name,
             d_fe_order[part] = SECOND;
             d_default_quad_order[part] = FIFTH;
         }
+        d_jumps_fe_family[part] = d_fe_family[part];
+        d_jumps_fe_order[part] = d_fe_order[part];
 
         // Report configuration.
         pout << "\n";
@@ -4350,39 +4342,16 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     // Force computation settings.
     if (db->isBool("use_pressure_jump_conditions"))
         d_use_pressure_jump_conditions = db->getBool("use_pressure_jump_conditions");
-    if (d_use_pressure_jump_conditions)
-    {
-        if (db->isString("pressure_jump_fe_family"))
-        {
-            d_pressure_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("pressure_jump_fe_family"));
-		}
-		if (db->isString("pressure_jump_fe_order"))
-        {
-		            d_pressure_jump_fe_order  = Utility::string_to_enum<Order>(db->getString("pressure_jump_fe_order"));
-		}
-    }
 
     if (db->isBool("use_velocity_jump_conditions"))
         d_use_velocity_jump_conditions = db->getBool("use_velocity_jump_conditions");
     if (d_use_velocity_jump_conditions)
     {
         if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
-        if (db->isString("velocity_jump_fe_family"))
-            d_velocity_jump_fe_family = Utility::string_to_enum<FEFamily>(db->getString("velocity_jump_fe_family"));
-        if (db->isString("velocity_jump_fe_order"))  
-            d_velocity_jump_fe_order  = Utility::string_to_enum<Order>(db->getString("velocity_jump_fe_order"));
-        if (db->isString("wss_fe_family"))
-            d_wss_fe_family = Utility::string_to_enum<FEFamily>(db->getString("wss_fe_family"));
-        if (db->isString("wss_fe_order"))  
-            d_wss_fe_order  = Utility::string_to_enum<Order>(db->getString("wss_fe_order"));
     }
     if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
     {
         if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
-        if (db->isString("tau_fe_family"))
-            d_tau_fe_family = Utility::string_to_enum<FEFamily>(db->getString("tau_fe_family"));
-        if (db->isString("tau_fe_order"))
-            d_tau_fe_order = Utility::string_to_enum<Order>(db->getString("tau_fe_order"));
     }
     if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
     {

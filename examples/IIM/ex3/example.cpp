@@ -597,11 +597,25 @@ main(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
-        // Whether to use discontinuous basis functions with element-local support
-
-        const bool USE_DISCON_ELEMS = input_db->getBool("USE_DISCON_ELEMS");
-
-        if (USE_DISCON_ELEMS) ib_method_ops->registerDisconElemFamilyForJumps();
+        // Whether to use discontinuous basis functions with element-local support for the jumps + traction
+        // We register the part before initializing the FE equation system
+        const string jump_fe_family = input_db->getString("jump_fe_family");
+        if (jump_fe_family == "L2_LAGRANGE") 
+        {
+            ib_method_ops->registerDisconElemFamilyForJumps(0, L2_LAGRANGE, FIRST);
+        }
+        else if (jump_fe_family == "MONOMIAL")
+        {
+           ib_method_ops->registerDisconElemFamilyForJumps(0, MONOMIAL, CONSTANT);
+        }
+        else if (jump_fe_family == "LAGRANGE") 
+        {
+           ib_method_ops->registerDisconElemFamilyForJumps(0, LAGRANGE, fe_order);
+        }
+        else
+        {
+           TBOX_ERROR("Unsupported FE family type: " << jump_fe_family << "for discontinuous jumps/traction \n");
+        }
 
         // Configure the IBFE solver.
 
@@ -892,8 +906,8 @@ main(int argc, char* argv[])
             Y_n = Y;
             U_n = U;
             sum_Y += Y;
-            pout << "cylinder position = " << Y << "\n";
-            pout << "cylinder velocity = " << U << "\n";
+            pout << "airfoil position = " << Y << "\n";
+            pout << "airfoil velocity = " << U << "\n";
 
             pout << "\n";
             pout << "At end       of timestep # " << iteration_num << "\n";

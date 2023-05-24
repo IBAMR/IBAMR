@@ -21,6 +21,7 @@ ENCLOSURE_ELEM_TYPE = "QUAD4"
 PK1_DEV_QUAD_ORDER = "THIRD"
 PK1_DIL_QUAD_ORDER = "CONSTANT"
 ENCLOSURE_PK1_QUAD_ORDER = "THIRD"
+jump_fe_family = "L2_LAGRANGE"                     // Use L2_Lagrange for jumps & tractoin of the flexible plate
 
 HOUSING_MESH_FILENAME = "phantom_thin_mesh.e"
 BEAM_MESH_FILENAME = "plate.e"
@@ -72,7 +73,6 @@ ETA_FSI_HOUSING = 2500.0 //0.0*DX/DT
 
 ETA_DAMPING = 0.0
 
-USE_DISCON_ELEMS = TRUE
 USE_NORMALIZED_PRESSURE_JUMP = FALSE
 
 
@@ -137,10 +137,6 @@ interp_kernel_fcn = "IB_4"
    wss_calc_width = WSS_CALC_WIDTH
    p_calc_width = P_CALC_WIDTH
    compute_fluid_traction = COMPUTE_FLUID_TRACTION
-         pressure_jump_fe_family      = "L2_LAGRANGE"          // input used
-      velocity_jump_fe_family      = "L2_LAGRANGE"          // input used
-      wss_fe_family                = "L2_LAGRANGE"          // input used
-      tau_fe_family                = "L2_LAGRANGE"          // input used
    
    exterior_calc_coef = 0.0
    

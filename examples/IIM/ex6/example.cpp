@@ -511,11 +511,27 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
         vector<SystemData> velocity_data(1);
         velocity_data[0] = SystemData(fem_solver->getVelocitySystemName(), vars);
-
-        const bool USE_DISCON_ELEMS = input_db->getBool("USE_DISCON_ELEMS");
         const bool USE_NORMALIZED_PRESSURE_JUMP = input_db->getBool("USE_NORMALIZED_PRESSURE_JUMP");
 
-        if (USE_DISCON_ELEMS) ibfe_bndry_ops->registerDisconElemFamilyForJumps();
+        const bool second_order_mesh = (beam_elem_type != "TRI3" && beam_elem_type != "QUAD4");
+        const Order fe_order = second_order_mesh ? SECOND : FIRST;
+        const string jump_fe_family = input_db->getString("jump_fe_family");
+        if (jump_fe_family == "L2_LAGRANGE") 
+        {
+            ibfe_bndry_ops->registerDisconElemFamilyForJumps(0, L2_LAGRANGE, FIRST);
+        }
+        else if (jump_fe_family == "MONOMIAL")
+        {
+           ibfe_bndry_ops->registerDisconElemFamilyForJumps(0, MONOMIAL, CONSTANT);
+        }
+        else if (jump_fe_family == "LAGRANGE") 
+        {
+           ibfe_bndry_ops->registerDisconElemFamilyForJumps(0, LAGRANGE, fe_order);
+        }
+        else
+        {
+           TBOX_ERROR("Unsupported FE family type: " << jump_fe_family << "for discontinuous jumps/traction \n");
+        }
         if (USE_NORMALIZED_PRESSURE_JUMP) ibfe_bndry_ops->registerPressureJumpNormalization();
 
         ibfe_bndry_ops->initializeFEEquationSystems();

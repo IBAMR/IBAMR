@@ -34,7 +34,6 @@ SPLIT_FORCES   = TRUE
 USE_PRESSURE_JUMP_CONDITIONS        = TRUE           // whether to impose pressure jumps at fluid-structure interfaces
 USE_VELOCITY_JUMP_CONDITIONS        = TRUE           // whether to impose pressure jumps at fluid-structure interfaces
 TRACTION_ACTIVATION_TIME  = 0.0
-USE_L2_LAGRANGE_FAMILY = FALSE
 COMPUTE_FLUID_TRACTION   = TRUE
 CALCULATE_INTERIOR_SIDE   = FALSE
 WSS_CALC_WIDTH 			   = 1.03
@@ -124,20 +123,18 @@ IBHierarchyIntegrator {
 }
 
 IIMethod {
-   IB_delta_fcn                = IB_DELTA_FUNCTION
-   split_forces                = SPLIT_FORCES
-   use_pressure_jump_conditions   = USE_PRESSURE_JUMP_CONDITIONS
-   use_velocity_jump_conditions   = USE_VELOCITY_JUMP_CONDITIONS
-   use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
-   IB_point_density            = IB_POINT_DENSITY
-   p_calc_width				   = P_CALC_WIDTH
-   wss_calc_width			  = WSS_CALC_WIDTH
-   compute_fluid_traction     = COMPUTE_FLUID_TRACTION
-   use_l2_lagrange_family  = USE_L2_LAGRANGE_FAMILY 
-   calculate_interior_side  = CALCULATE_INTERIOR_SIDE
-   traction_activation_time = TRACTION_ACTIVATION_TIME
-   min_ghost_cell_width = 6
-   
+   IB_delta_fcn                 = IB_DELTA_FUNCTION
+   split_forces                 = SPLIT_FORCES
+   use_pressure_jump_conditions = USE_PRESSURE_JUMP_CONDITIONS
+   use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
+   use_consistent_mass_matrix   = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density             = IB_POINT_DENSITY
+   p_calc_width	                = P_CALC_WIDTH
+   wss_calc_width               = WSS_CALC_WIDTH
+   compute_fluid_traction       = COMPUTE_FLUID_TRACTION
+   calculate_interior_side      = CALCULATE_INTERIOR_SIDE
+   traction_activation_time     = TRACTION_ACTIVATION_TIME
+   min_ghost_cell_width         = 6
 }
 
 
