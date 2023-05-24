@@ -218,7 +218,7 @@ enum_to_string<LevelSetOrder>(LevelSetOrder val)
  */
 enum LevelSetTimeStepping
 {
-    GAUSS_SEIDEL_TS = 1,
+    GAUSS_SEIDEL_PSEUDO_TS = 1,
     RK1_TS = 2,
     RK2_TS = 3,
     UNKNOWN_LEVEL_SET_TS = -1
@@ -228,7 +228,7 @@ template <>
 inline LevelSetTimeStepping
 string_to_enum<LevelSetTimeStepping>(const std::string& val)
 {
-    if (strcasecmp(val.c_str(), "GAUSS_SEIDEL") == 0) return GAUSS_SEIDEL_TS;
+    if (strcasecmp(val.c_str(), "GAUSS_SEIDEL") == 0) return GAUSS_SEIDEL_PSEUDO_TS;
     if (strcasecmp(val.c_str(), "RK1") == 0) return RK1_TS;
     if (strcasecmp(val.c_str(), "FORWARD_EULER") == 0) return RK1_TS;
     if (strcasecmp(val.c_str(), "RK2") == 0) return RK2_TS;
@@ -239,7 +239,7 @@ template <>
 inline std::string
 enum_to_string<LevelSetTimeStepping>(LevelSetTimeStepping val)
 {
-    if (val == GAUSS_SEIDEL_TS) return "GAUSS_SEIDEL";
+    if (val == GAUSS_SEIDEL_PSEUDO_TS) return "GAUSS_SEIDEL";
     if (val == RK1_TS) return "RK1";
     if (val == RK2_TS) return "RK2";
     return "UNKNOWN_LEVEL_SET_TIME_STEPPING";

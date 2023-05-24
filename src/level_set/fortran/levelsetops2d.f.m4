@@ -408,59 +408,6 @@ c
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-c     Carry out first order relaxation scheme using a single time step of
-c     Runge-Kutta method.
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine rkls1storder2d(
-     &     U,U_gcw,
-     &     V,V_gcw,
-     &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     dx,
-     &     stage)
-c
-      implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
-
-c
-c     Input.
-c
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
-      INTEGER stage
-
-c
-c     Input/Output.
-c
-      REAL U(CELL2d(ilower,iupper,U_gcw))
-      REAL V(CELL2d(ilower,iupper,V_gcw))
-      REAL dx(0:NDIM-1)
-c
-c     Local variables.
-c
-      INTEGER i0,i1
-
-c     Prevent compiler warning for unused variables
-      stage = stage       
-
-      do i1 = ilower1,iupper1
-        do i0 = ilower0,iupper0
-            call evalrelax1storder2d(U,U_gcw,V,V_gcw,
-     &                                 ilower0,iupper0,
-     &                                 ilower1,iupper1,
-     &                                 i0,i1,dx)
-        enddo
-      enddo
-     
-
-      return
-      end
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
 c     Compute relaxation solution at a given grid cell
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -610,66 +557,6 @@ c
 
       return
       end
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Carry out relaxation scheme using a single time step of Runge-Kutta 
-c     scheme. Note that this a special case of the Gauss-Seidel sweeps.
-c
-c     Uses second order ENO for spatial discretization with a subcell
-c     fix near the interface
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine rkls3rdordereno2d(
-     &     U,U_gcw,
-     &     V,V_gcw,
-     &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     dx,
-     &     stage,
-     &     use_subcell,
-     &     use_sign_fix)
-c
-      implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
-
-c
-c     Input.
-c
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
-      INTEGER stage
-      INTEGER use_subcell,use_sign_fix 
-
-c
-c     Input/Output.
-c
-      REAL U(CELL2d(ilower,iupper,U_gcw))
-      REAL V(CELL2d(ilower,iupper,V_gcw))
-      REAL dx(0:NDIM-1)
-c
-c     Local variables.
-c
-      INTEGER i0,i1
-
-c     Prevent compiler warning for unused variable
-
-      stage = stage      
-
-      do i1 = ilower1,iupper1
-        do i0 = ilower0,iupper0
-            call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,
-     &                                  ilower0,iupper0,
-     &                                  ilower1,iupper1,
-     &                                  i0,i1,dx,
-     &                                  use_subcell,use_sign_fix)
-        enddo
-      enddo
-
-      return
-      end  
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -1077,64 +964,6 @@ c
       return
       end
 
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Carry out relaxation scheme using a single time step of Runge-Kutta 
-c     scheme. Note that this a special case of the Gauss-Seidel sweeps.
-c
-c     Uses third order WENO for spatial discretization with a subcell
-c     fix near the interface
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine rkls3rdorderweno2d(
-     &     U,U_gcw,
-     &     V,V_gcw,
-     &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     dx,
-     &     stage,
-     &     use_subcell,
-     &     use_sign_fix)
-c
-      implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
-
-c
-c     Input.
-c
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
-      INTEGER stage
-      INTEGER use_subcell,use_sign_fix
-
-c
-c     Input/Output.
-c
-      REAL U(CELL2d(ilower,iupper,U_gcw))
-      REAL V(CELL2d(ilower,iupper,V_gcw))
-      REAL dx(0:NDIM-1)
-c
-c     Local variables.
-c
-      INTEGER i0,i1
-
-c     Prevent compiler warning for unused variable
-      stage = stage      
-
-      do i1 = ilower1,iupper1
-        do i0 = ilower0,iupper0
-            call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,
-     &                                   ilower0,iupper0,
-     &                                   ilower1,iupper1,
-     &                                   i0,i1,dx,
-     &                                   use_subcell,use_sign_fix)
-        enddo
-      enddo
-      
-      return
-      end      
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -1633,62 +1462,6 @@ c
           enddo
         enddo
       endif
-
-      return
-      end
-
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Carry out fifth order relaxation scheme using a single time step of 
-c     Runge Kutta scheme. This is very similar to the Gauss-Seidel updates.
-c
-c     Uses fifth order WENO for spatial discretization
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine rkls5thorderweno2d(
-     &     U,U_gcw,
-     &     V,V_gcw,
-     &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     dx,
-     &     stage,
-     &     use_sign_fix)
-c
-      implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
-
-c
-c     Input.
-c
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
-      INTEGER stage,use_sign_fix
-
-c
-c     Input/Output.
-c
-      REAL U(CELL2d(ilower,iupper,U_gcw))
-      REAL V(CELL2d(ilower,iupper,V_gcw))
-      REAL dx(0:NDIM-1)
-c
-c     Local variables.
-c
-      INTEGER i0,i1
-
-c     Prevent compiler warning for unused variable
-      stage = stage 
-
-      do i1 = ilower1,iupper1
-        do i0 = ilower0,iupper0
-            call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
-     &                                     ilower0,iupper0,
-     &                                     ilower1,iupper1,
-     &                                     i0,i1,dx,use_sign_fix)
-        enddo
-      enddo
-      
 
       return
       end

@@ -50,15 +50,11 @@
 // FORTRAN ROUTINES
 #if (NDIM == 2)
 #define RELAXATION_LS_1ST_ORDER_FC IBAMR_FC_FUNC(relaxationls1storder2d, RELAXATIONLS1STORDER2D)
-#define RK_LS_1ST_ORDER_FC IBAMR_FC_FUNC(rkls1storder2d, RKLS1STORDER2D)
 #define RELAXATION_LS_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(relaxationls3rdordereno2d, RELAXATIONLS3RDORDERENO2D)
-#define RK_LS_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(rkls3rdordereno2d, RKLS3RDORDERENO2D)
 #define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godunovhamiltonianeno2d, GODUNOVHAMILTONIANENO2D)
 #define RELAXATION_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls3rdorderweno2d, RELAXATIONLS3RDORDERWENO2D)
-#define RK_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(rkls3rdorderweno2d, RKLS3RDORDERWENO2D)
 #define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godunovhamiltonianweno2d, GODUNOVHAMILTONIANWENO2D)
 #define RELAXATION_LS_5TH_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls5thorderweno2d, RELAXATIONLS5THORDERWENO2D)
-#define RK_LS_5TH_ORDER_WENO_FC IBAMR_FC_FUNC(rkls5thorderweno2d, RKLS5THORDERWENO2D)
 #define GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC                                                                          \
     IBAMR_FC_FUNC(godunovhamiltonian5thorderweno2d, GODUNOVHAMILTONIAN5THORDERWENO2D)
 #define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint2d, PROJECTLSMASSCONSTRAINT2D)
@@ -67,15 +63,11 @@
 
 #if (NDIM == 3)
 #define RELAXATION_LS_1ST_ORDER_FC IBAMR_FC_FUNC(relaxationls1storder3d, RELAXATIONLS1STORDER3D)
-#define RK_LS_1ST_ORDER_FC IBAMR_FC_FUNC(rkls1storder3d, RKLS1STORDER3D)
 #define RELAXATION_LS_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(relaxationls3rdordereno3d, RELAXATIONLS3RDORDERENO3D)
-#define RK_LS_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(rkls3rdordereno3d, RKLS3RDORDERENO3D)
 #define GODUNOV_HAMILTONIAN_3RD_ORDER_ENO_FC IBAMR_FC_FUNC(godunovhamiltonianeno3d, GODUNOVHAMILTONIANENO3D)
 #define RELAXATION_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls3rdorderweno3d, RELAXATIONLS3RDORDERWENO3D)
-#define RK_LS_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(rkls3rdorderweno3d, RKLS3RDORDERWENO3D)
 #define GODUNOV_HAMILTONIAN_3RD_ORDER_WENO_FC IBAMR_FC_FUNC(godunovhamiltonianweno3d, GODUNOVHAMILTONIANWENO3D)
 #define RELAXATION_LS_5TH_ORDER_WENO_FC IBAMR_FC_FUNC(relaxationls5thorderweno3d, RELAXATIONLS5THORDERWENO3D)
-#define RK_LS_5TH_ORDER_WENO_FC IBAMR_FC_FUNC(rkls5thorderweno3d, RKLS5THORDERWENO3D)
 #define GODUNOV_HAMILTONIAN_5TH_ORDER_WENO_FC                                                                          \
     IBAMR_FC_FUNC(godunovhamiltonian5thorderweno3d, GODUNOVHAMILTONIAN5THORDERWENO3D)
 #define PROJECT_LS_MASS_CONSTRAINT_FC IBAMR_FC_FUNC(projectlsmassconstraint3d, PROJECTLSMASSCONSTRAINT3D)
@@ -225,71 +217,6 @@ extern "C"
                                   const int& iupper2,
 #endif
                                   const double* dx);
-
-    void RK_LS_1ST_ORDER_FC(double* U,
-                            const int& U_gcw,
-                            const double* V,
-                            const int& V_gcw,
-                            const int& ilower0,
-                            const int& iupper0,
-                            const int& ilower1,
-                            const int& iupper1,
-#if (NDIM == 3)
-                            const int& ilower2,
-                            const int& iupper2,
-#endif
-                            const double* dx,
-                            const int& stage);
-
-    void RK_LS_3RD_ORDER_ENO_FC(double* U,
-                                const int& U_gcw,
-                                const double* V,
-                                const int& V_gcw,
-                                const int& ilower0,
-                                const int& iupper0,
-                                const int& ilower1,
-                                const int& iupper1,
-#if (NDIM == 3)
-                                const int& ilower2,
-                                const int& iupper2,
-#endif
-                                const double* dx,
-                                const int& stage,
-                                const int& use_subcell,
-                                const int& use_sign_fix);
-
-    void RK_LS_3RD_ORDER_WENO_FC(double* U,
-                                 const int& U_gcw,
-                                 const double* V,
-                                 const int& V_gcw,
-                                 const int& ilower0,
-                                 const int& iupper0,
-                                 const int& ilower1,
-                                 const int& iupper1,
-#if (NDIM == 3)
-                                 const int& ilower2,
-                                 const int& iupper2,
-#endif
-                                 const double* dx,
-                                 const int& stage,
-                                 const int& use_subcell,
-                                 const int& use_sign_fix);
-
-    void RK_LS_5TH_ORDER_WENO_FC(double* U,
-                                 const int& U_gcw,
-                                 const double* V,
-                                 const int& V_gcw,
-                                 const int& ilower0,
-                                 const int& iupper0,
-                                 const int& ilower1,
-                                 const int& iupper1,
-#if (NDIM == 3)
-                                 const int& ilower2,
-                                 const int& iupper2,
-#endif
-                                 const double* dx,
-                                 const int& stage,
-                                 const int& use_sign_fix);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -606,7 +533,7 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    if (d_ls_ts == GAUSS_SEIDEL_TS)
+    if (d_ls_ts == GAUSS_SEIDEL_PSEUDO_TS || d_ls_ts == RK1_TS)
     {
         // Fill the ghost cells of dist_idx
         D_fill_op->fillData(time);
@@ -618,24 +545,7 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
                 const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-                relaxGS(dist_data, dist_init_data, patch, iter);
-            }
-        }
-    }
-    else if (d_ls_ts == RK1_TS)
-    {
-        D_fill_op->fillData(time);
-
-        const int stage = 0;
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-                const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-                relaxRK(dist_data, dist_init_data, patch, stage);
+                relax(dist_data, dist_init_data, patch, iter);
             }
         }
     }
@@ -654,7 +564,7 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
                     const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-                    relaxRK(dist_data, dist_init_data, patch, stage);
+                    relax(dist_data, dist_init_data, patch, iter);
                 }
             }
             if (stage == 0) hier_cc_data_ops.copyData(dist_copy_idx, dist_idx);
@@ -670,10 +580,10 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
 } // relax
 
 void
-RelaxationLSMethod::relaxGS(Pointer<CellData<NDIM, double> > dist_data,
-                            const Pointer<CellData<NDIM, double> > dist_init_data,
-                            const Pointer<Patch<NDIM> > patch,
-                            const int iter) const
+RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
+                          const Pointer<CellData<NDIM, double> > dist_init_data,
+                          const Pointer<Patch<NDIM> > patch,
+                          const int iter) const
 {
     double* const D = dist_data->getPointer(0);
     const double* const P = dist_init_data->getPointer(0);
@@ -703,9 +613,31 @@ RelaxationLSMethod::relaxGS(Pointer<CellData<NDIM, double> > dist_data,
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
+    // Here we are solving Hamilton-Jacobi equation of the type
+    //
+    //         d (phi)/dt + sign(phi_0)(|grad phi| - 1) = 0
+    //
+    // till steady state. We use an explicit time stepping scheme to solve the
+    // above equation, which reads as
+    //
+    //         phi_{ijk}^{n+1} =  phi_{ijk}^{n} - dt_{ijk} sign(phi_0)(|grad phi|^n - 1)
+    //
+    // Though the time stepping scheme is fictitious, but it can affect the
+    // spatial order of accuracy. The above update (till steady state) can also be
+    // viewed as Gauss-Seidel (GS) update at grid location (i,j,k). If we choose
+    // to use the GS scheme, we use a roster-scan algorithm to permute (i,j,k)
+    // indices at each iteration.
+
     // Get the direction of sweeping (alternates according to iteration number)
-    const int num_dirs = (NDIM < 3) ? 4 : 8;
-    const int dir = iter % num_dirs;
+    // For RK integrators the sweep direction does not matter so we select the
+    // the usual (i,j,k) direction at each iteration. For GS updates,
+    // we permute (i,j,k) with each iteration.
+    int dir = 0;
+    if (d_ls_ts == GAUSS_SEIDEL_PSEUDO_TS)
+    {
+        const int num_dirs = (NDIM < 3) ? 4 : 8;
+        dir = iter % num_dirs;
+    }
 
     if (d_ls_order == FIRST_ORDER_LS)
     {
@@ -786,122 +718,7 @@ RelaxationLSMethod::relaxGS(Pointer<CellData<NDIM, double> > dist_data,
     }
 
     return;
-} // relaxGS
-
-void
-RelaxationLSMethod::relaxRK(Pointer<CellData<NDIM, double> > dist_data,
-                            const Pointer<CellData<NDIM, double> > dist_init_data,
-                            const Pointer<Patch<NDIM> > patch,
-                            const int stage) const
-{
-    double* const D = dist_data->getPointer(0);
-    const double* const P = dist_init_data->getPointer(0);
-    const int D_ghosts = (dist_data->getGhostCellWidth()).max();
-    const int P_ghosts = (dist_init_data->getGhostCellWidth()).max();
-
-#if !defined(NDEBUG)
-    TBOX_ASSERT(dist_data->getDepth() == 1);
-    TBOX_ASSERT(dist_init_data->getDepth() == 1);
-    if (d_ls_order == FIRST_ORDER_LS)
-    {
-        TBOX_ASSERT(D_ghosts >= 1);
-        TBOX_ASSERT(P_ghosts >= 1);
-    }
-    if (d_ls_order == THIRD_ORDER_ENO_LS || d_ls_order == THIRD_ORDER_WENO_LS)
-    {
-        TBOX_ASSERT(D_ghosts >= 2);
-        TBOX_ASSERT(P_ghosts >= 2);
-    }
-    if (d_ls_order == FIFTH_ORDER_WENO_LS)
-    {
-        TBOX_ASSERT(D_ghosts >= 3);
-    }
-#endif
-
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-    const double* const dx = pgeom->getDx();
-
-    if (d_ls_order == FIRST_ORDER_LS)
-    {
-        RK_LS_1ST_ORDER_FC(D,
-                           D_ghosts,
-                           P,
-                           P_ghosts,
-                           patch_box.lower(0),
-                           patch_box.upper(0),
-                           patch_box.lower(1),
-                           patch_box.upper(1),
-#if (NDIM == 3)
-                           patch_box.lower(2),
-                           patch_box.upper(2),
-#endif
-                           dx,
-                           stage);
-    }
-    else if (d_ls_order == THIRD_ORDER_ENO_LS)
-    {
-        RK_LS_3RD_ORDER_ENO_FC(D,
-                               D_ghosts,
-                               P,
-                               P_ghosts,
-                               patch_box.lower(0),
-                               patch_box.upper(0),
-                               patch_box.lower(1),
-                               patch_box.upper(1),
-#if (NDIM == 3)
-                               patch_box.lower(2),
-                               patch_box.upper(2),
-#endif
-                               dx,
-                               stage,
-                               static_cast<int>(d_apply_subcell_fix),
-                               static_cast<int>(d_apply_sign_fix));
-    }
-    else if (d_ls_order == THIRD_ORDER_WENO_LS)
-    {
-        RK_LS_3RD_ORDER_WENO_FC(D,
-                                D_ghosts,
-                                P,
-                                P_ghosts,
-                                patch_box.lower(0),
-                                patch_box.upper(0),
-                                patch_box.lower(1),
-                                patch_box.upper(1),
-#if (NDIM == 3)
-                                patch_box.lower(2),
-                                patch_box.upper(2),
-#endif
-                                dx,
-                                stage,
-                                static_cast<int>(d_apply_subcell_fix),
-                                static_cast<int>(d_apply_sign_fix));
-    }
-    else if (d_ls_order == FIFTH_ORDER_WENO_LS)
-    {
-        RK_LS_5TH_ORDER_WENO_FC(D,
-                                D_ghosts,
-                                P,
-                                P_ghosts,
-                                patch_box.lower(0),
-                                patch_box.upper(0),
-                                patch_box.lower(1),
-                                patch_box.upper(1),
-#if (NDIM == 3)
-                                patch_box.lower(2),
-                                patch_box.upper(2),
-#endif
-                                dx,
-                                stage,
-                                static_cast<int>(d_apply_sign_fix));
-    }
-    else
-    {
-        TBOX_ERROR("RelaxationLSMethod does not support " << enum_to_string(d_ls_order) << std::endl);
-    }
-
-    return;
-} // relaxRK
+} // relax
 
 void
 RelaxationLSMethod::computeInitialHamiltonian(Pointer<HierarchyMathOps> hier_math_ops,

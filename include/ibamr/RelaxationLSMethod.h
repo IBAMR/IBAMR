@@ -166,20 +166,12 @@ private:
                const double time) const;
 
     /*!
-     * \brief Do Gauss-Seidel based one relaxation step over a patch.
+     * \brief Do one relaxation step over a patch.
      */
-    void relaxGS(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-                 const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                 const int iter) const;
-
-    /*!
-     * \brief Do RK based one relaxation step over a patch.
-     */
-    void relaxRK(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                 const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-                 const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                 const int stage) const;
+    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
+               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
+               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+               const int iter) const;
 
     /*!
      * \brief Compute the Hamiltonian of the indicator field over the hierarchy

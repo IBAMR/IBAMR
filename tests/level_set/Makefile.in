@@ -87,8 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_1)
-@LIBMESH_ENABLED_TRUE@am__append_1 = fe_surface_distance_2d fe_surface_distance_3d
+EXTRA_PROGRAMS = relaxation_ls_2d$(EXEEXT) $(am__EXEEXT_1)
+@LIBMESH_ENABLED_TRUE@am__append_1 = fe_surface_distance_2d fe_surface_distance_3d 
 subdir = tests/level_set
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -143,6 +143,14 @@ fe_surface_distance_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(fe_surface_distance_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_relaxation_ls_2d_OBJECTS =  \
+	relaxation_ls_2d-relaxation_ls.$(OBJEXT)
+relaxation_ls_2d_OBJECTS = $(am_relaxation_ls_2d_OBJECTS)
+relaxation_ls_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+relaxation_ls_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(relaxation_ls_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -160,7 +168,8 @@ depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
 	./$(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po \
-	./$(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po
+	./$(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po \
+	./$(DEPDIR)/relaxation_ls_2d-relaxation_ls.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -181,9 +190,10 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(fe_surface_distance_2d_SOURCES) \
-	$(fe_surface_distance_3d_SOURCES)
+	$(fe_surface_distance_3d_SOURCES) $(relaxation_ls_2d_SOURCES)
 DIST_SOURCES = $(am__fe_surface_distance_2d_SOURCES_DIST) \
-	$(am__fe_surface_distance_3d_SOURCES_DIST)
+	$(am__fe_surface_distance_3d_SOURCES_DIST) \
+	$(relaxation_ls_2d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -469,6 +479,9 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
+relaxation_ls_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+relaxation_ls_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+relaxation_ls_2d_SOURCES = relaxation_ls.cpp 
 @LIBMESH_ENABLED_TRUE@fe_surface_distance_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 @LIBMESH_ENABLED_TRUE@fe_surface_distance_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 @LIBMESH_ENABLED_TRUE@fe_surface_distance_2d_SOURCES = fe_surface_distance.cpp
@@ -518,6 +531,10 @@ fe_surface_distance_3d$(EXEEXT): $(fe_surface_distance_3d_OBJECTS) $(fe_surface_
 	@rm -f fe_surface_distance_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(fe_surface_distance_3d_LINK) $(fe_surface_distance_3d_OBJECTS) $(fe_surface_distance_3d_LDADD) $(LIBS)
 
+relaxation_ls_2d$(EXEEXT): $(relaxation_ls_2d_OBJECTS) $(relaxation_ls_2d_DEPENDENCIES) $(EXTRA_relaxation_ls_2d_DEPENDENCIES) 
+	@rm -f relaxation_ls_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(relaxation_ls_2d_LINK) $(relaxation_ls_2d_OBJECTS) $(relaxation_ls_2d_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -526,6 +543,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/relaxation_ls_2d-relaxation_ls.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -584,6 +602,20 @@ fe_surface_distance_3d-fe_surface_distance.obj: fe_surface_distance.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fe_surface_distance.cpp' object='fe_surface_distance_3d-fe_surface_distance.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fe_surface_distance_3d_CXXFLAGS) $(CXXFLAGS) -c -o fe_surface_distance_3d-fe_surface_distance.obj `if test -f 'fe_surface_distance.cpp'; then $(CYGPATH_W) 'fe_surface_distance.cpp'; else $(CYGPATH_W) '$(srcdir)/fe_surface_distance.cpp'; fi`
+
+relaxation_ls_2d-relaxation_ls.o: relaxation_ls.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(relaxation_ls_2d_CXXFLAGS) $(CXXFLAGS) -MT relaxation_ls_2d-relaxation_ls.o -MD -MP -MF $(DEPDIR)/relaxation_ls_2d-relaxation_ls.Tpo -c -o relaxation_ls_2d-relaxation_ls.o `test -f 'relaxation_ls.cpp' || echo '$(srcdir)/'`relaxation_ls.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/relaxation_ls_2d-relaxation_ls.Tpo $(DEPDIR)/relaxation_ls_2d-relaxation_ls.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='relaxation_ls.cpp' object='relaxation_ls_2d-relaxation_ls.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(relaxation_ls_2d_CXXFLAGS) $(CXXFLAGS) -c -o relaxation_ls_2d-relaxation_ls.o `test -f 'relaxation_ls.cpp' || echo '$(srcdir)/'`relaxation_ls.cpp
+
+relaxation_ls_2d-relaxation_ls.obj: relaxation_ls.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(relaxation_ls_2d_CXXFLAGS) $(CXXFLAGS) -MT relaxation_ls_2d-relaxation_ls.obj -MD -MP -MF $(DEPDIR)/relaxation_ls_2d-relaxation_ls.Tpo -c -o relaxation_ls_2d-relaxation_ls.obj `if test -f 'relaxation_ls.cpp'; then $(CYGPATH_W) 'relaxation_ls.cpp'; else $(CYGPATH_W) '$(srcdir)/relaxation_ls.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/relaxation_ls_2d-relaxation_ls.Tpo $(DEPDIR)/relaxation_ls_2d-relaxation_ls.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='relaxation_ls.cpp' object='relaxation_ls_2d-relaxation_ls.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(relaxation_ls_2d_CXXFLAGS) $(CXXFLAGS) -c -o relaxation_ls_2d-relaxation_ls.obj `if test -f 'relaxation_ls.cpp'; then $(CYGPATH_W) 'relaxation_ls.cpp'; else $(CYGPATH_W) '$(srcdir)/relaxation_ls.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -718,6 +750,7 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po
 	-rm -f ./$(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po
+	-rm -f ./$(DEPDIR)/relaxation_ls_2d-relaxation_ls.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -765,6 +798,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/fe_surface_distance_2d-fe_surface_distance.Po
 	-rm -f ./$(DEPDIR)/fe_surface_distance_3d-fe_surface_distance.Po
+	-rm -f ./$(DEPDIR)/relaxation_ls_2d-relaxation_ls.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
