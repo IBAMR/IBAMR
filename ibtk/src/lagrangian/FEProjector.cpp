@@ -124,7 +124,7 @@ qrule_is_nodal(const FEType& fe_type, const QBase* const qrule)
     if (fe_type.family == LAGRANGE || fe_type.family == L2_LAGRANGE || fe_type.family == MONOMIAL)
     {
         nodal_cond = true;
-        if (fe_type.family == MONOMIAL && fe_order != CONSTANT) return false;
+        if (fe_type.family == MONOMIAL && !(fe_order == CONSTANT || fe_order == FIRST)) return false;
         if (fe_order == CONSTANT && qrule->type() != QGAUSS) return false;
         if (fe_order == FIRST && qrule->type() != QTRAP) return false;
         if (fe_order == SECOND && qrule->type() != QSIMPSON) return false;

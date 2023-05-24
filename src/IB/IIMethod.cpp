@@ -235,7 +235,7 @@ IIMethod::getFEDataManager(const unsigned int part) const
 } // getFEDataManager
 
 void
-IIMethod::registerDisconElemFamilyForJumps(const unsigned int part, 
+IIMethod::registerDisconElemFamilyForPressureJump(const unsigned int part, 
                                           libMesh::FEFamily fe_family,
                                           libMesh::Order fe_order)
 {
@@ -243,23 +243,52 @@ IIMethod::registerDisconElemFamilyForJumps(const unsigned int part,
     TBOX_ASSERT(part < d_num_parts);
     // Currently the jumps and traction use the same discontinuous FE representation.
     // The acceptable options are either FIRST order L2_LAGRANGE or CONSTANT MONOMIAL.
-    if ((fe_family == L2_LAGRANGE && fe_order == FIRST) || (fe_family == MONOMIAL && fe_order == CONSTANT))
+    if ((fe_family == L2_LAGRANGE && fe_order == FIRST) || (fe_family == MONOMIAL && fe_order == CONSTANT)
+			|| (fe_family == MONOMIAL && fe_order == CONSTANT))
     {
-        d_jumps_fe_family[part] = fe_family;
-        d_jumps_fe_order[part] = fe_order;
+        d_pressure_jump_fe_family[part] = fe_family;
+        d_pressure_jump_fe_order[part] = fe_order;
     }
     else if (fe_family == LAGRANGE)
     {
-        d_jumps_fe_family[part] = d_fe_family[part];
-        d_jumps_fe_order[part] = d_fe_order[part];
+        d_pressure_jump_fe_family[part] = d_fe_family[part];
+        d_pressure_jump_fe_order[part] = d_fe_order[part];
     }
     else
     {
         TBOX_ERROR("Unsupported FE family type: " << fe_family << " with FE order:" << fe_order <<
-	"for discontinuous jumps/traction \n");
+	"for discontinuous pressure jump \n");
     }  
     return;
-} // registerDisconElemFamilyForJumps
+} // registerDisconElemFamilyForPressureJump
+
+void
+IIMethod::registerDisconElemFamilyForViscousJump(const unsigned int part, 
+                                          libMesh::FEFamily fe_family,
+                                          libMesh::Order fe_order)
+{
+    TBOX_ASSERT(!d_fe_equation_systems_initialized);
+    TBOX_ASSERT(part < d_num_parts);
+    // Currently the jumps and traction use the same discontinuous FE representation.
+    // The acceptable options are either FIRST order L2_LAGRANGE or CONSTANT MONOMIAL.
+    if ((fe_family == L2_LAGRANGE && fe_order == FIRST) || (fe_family == MONOMIAL && fe_order == CONSTANT)
+			|| (fe_family == MONOMIAL && fe_order == CONSTANT))
+    {
+        d_viscous_jump_fe_family[part] = fe_family;
+        d_viscous_jump_fe_order[part] = fe_order;
+    }
+    else if (fe_family == LAGRANGE)
+    {
+        d_viscous_jump_fe_family[part] = d_fe_family[part];
+        d_viscous_jump_fe_order[part] = d_fe_order[part];
+    }
+    else
+    {
+        TBOX_ERROR("Unsupported FE family type: " << fe_family << " with FE order:" << fe_order <<
+	"for discontinuous viscous jumps \n");
+    }  
+    return;
+} // registerDisconElemFamilyForViscousJump
 
 void
 IIMethod::registerTangentialVelocityMotion(const unsigned int part)
@@ -3007,8 +3036,8 @@ IIMethod::initializeFEEquationSystems()
 
             if (d_use_velocity_jump_conditions)
             {
-                const auto jump_family = d_jumps_fe_family[part];
-                const auto jump_order = d_jumps_fe_order[part];
+                const auto jump_family = d_viscous_jump_fe_family[part];
+                const auto jump_order = d_viscous_jump_fe_order[part];
 
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
@@ -3061,9 +3090,9 @@ IIMethod::initializeFEEquationSystems()
                 System& P_jump_system = equation_systems->add_system<System>(PRESSURE_JUMP_SYSTEM_NAME);
                 System& P_in_system = equation_systems->add_system<System>(PRESSURE_IN_SYSTEM_NAME);
                 System& P_out_system = equation_systems->add_system<System>(PRESSURE_OUT_SYSTEM_NAME);
-                P_jump_system.add_variable("P_jump_", d_jumps_fe_order[part], d_jumps_fe_family[part]);
-                P_in_system.add_variable("P_in_", d_jumps_fe_order[part], d_jumps_fe_family[part]);
-                P_out_system.add_variable("P_out_", d_jumps_fe_order[part], d_jumps_fe_family[part]);
+                P_jump_system.add_variable("P_jump_", d_pressure_jump_fe_order[part], d_pressure_jump_fe_family[part]);
+                P_in_system.add_variable("P_in_", d_pressure_jump_fe_order[part], d_pressure_jump_fe_family[part]);
+                P_out_system.add_variable("P_out_", d_pressure_jump_fe_order[part], d_pressure_jump_fe_family[part]);
             }
         }
 
@@ -4174,8 +4203,10 @@ IIMethod::commonConstructor(const std::string& object_name,
 
     d_fe_family.resize(d_num_parts, INVALID_FE);
     d_fe_order.resize(d_num_parts, INVALID_ORDER);
-    d_jumps_fe_family.resize(d_num_parts, INVALID_FE);
-    d_jumps_fe_order.resize(d_num_parts, INVALID_ORDER);
+    d_pressure_jump_fe_family.resize(d_num_parts, INVALID_FE);
+    d_pressure_jump_fe_order.resize(d_num_parts, INVALID_ORDER);
+    d_viscous_jump_fe_family.resize(d_num_parts, INVALID_FE);
+    d_viscous_jump_fe_order.resize(d_num_parts, INVALID_ORDER);
     d_default_quad_type.resize(d_num_parts, INVALID_Q_RULE);
     d_default_quad_order.resize(d_num_parts, INVALID_ORDER);
 
@@ -4226,8 +4257,10 @@ IIMethod::commonConstructor(const std::string& object_name,
             d_fe_order[part] = SECOND;
             d_default_quad_order[part] = FIFTH;
         }
-        d_jumps_fe_family[part] = d_fe_family[part];
-        d_jumps_fe_order[part] = d_fe_order[part];
+        d_pressure_jump_fe_family[part] = d_fe_family[part];
+        d_pressure_jump_fe_order[part] = d_fe_order[part];
+        d_viscous_jump_fe_family[part] = d_fe_family[part];
+        d_viscous_jump_fe_order[part] = d_fe_order[part];
 
         // Report configuration.
         pout << "\n";

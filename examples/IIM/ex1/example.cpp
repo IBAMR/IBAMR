@@ -289,15 +289,19 @@ main(int argc, char* argv[])
         // We ask this before initializing the FE equation system
         if (jump_fe_family == "L2_LAGRANGE") 
         {
-			ibfe_ops->registerDisconElemFamilyForJumps(0, L2_LAGRANGE, FIRST);
+			ibfe_ops->registerDisconElemFamilyForPressureJump(0, L2_LAGRANGE, FIRST);
+			ibfe_ops->registerDisconElemFamilyForViscousJump(0, L2_LAGRANGE, FIRST);
 		}
 		else if (jump_fe_family == "MONOMIAL")
 		{
-			ibfe_ops->registerDisconElemFamilyForJumps(0, MONOMIAL, CONSTANT);
+			ibfe_ops->registerDisconElemFamilyForPressureJump(0, MONOMIAL, CONSTANT);
+			ibfe_ops->registerDisconElemFamilyForViscousJump(0, MONOMIAL, CONSTANT);
+			
 		}
 		else if (jump_fe_family == "LAGRANGE")
 		{
-			ibfe_ops->registerDisconElemFamilyForJumps(0, LAGRANGE, fe_order);
+			ibfe_ops->registerDisconElemFamilyForPressureJump(0, LAGRANGE, fe_order);
+			ibfe_ops->registerDisconElemFamilyForViscousJump(0, LAGRANGE, fe_order);
 		}
 		else
 		{
