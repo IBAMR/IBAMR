@@ -29,15 +29,15 @@ ELEM_TYPE = "TRI3"                             // type of element to use for str
 
 
 // solver parameters
-IB_DELTA_FUNCTION          = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-SPLIT_FORCES   = TRUE
+IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
+SPLIT_FORCES                 = TRUE
 USE_PRESSURE_JUMP_CONDITIONS = TRUE            // whether to impose pressure jumps at fluid-structure interfaces
 USE_VELOCITY_JUMP_CONDITIONS = TRUE            // whether to impose pressure jumps at fluid-structure interfaces
 TRACTION_ACTIVATION_TIME     = 0.0
 COMPUTE_FLUID_TRACTION       = TRUE
 CALCULATE_INTERIOR_SIDE      = FALSE
-WSS_CALC_WIDTH 			     = 1.05
-P_CALC_WIDTH 			     = 1.5
+WSS_CALC_WIDTH               = 1.05
+P_CALC_WIDTH                 = 1.5
 USE_CONSISTENT_MASS_MATRIX   = TRUE              // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY             = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                  = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
@@ -65,8 +65,8 @@ ENABLE_LOGGING               = TRUE
 
 NUM_CYCLES = 1
 
-KAPPA_S = 350 //1.5e5 //0.3/DX^2 //0.0125/DX^2 //0.1/DX^2 //0.125/DX^2 
-ETA_S = 0.0/DT //0.5 //0.025*DX/DT
+KAPPA_S = 350 
+ETA_S = 0
 
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
@@ -128,8 +128,8 @@ IIMethod {
    use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
    use_consistent_mass_matrix   = USE_CONSISTENT_MASS_MATRIX
    IB_point_density             = IB_POINT_DENSITY
-   p_calc_width				    = P_CALC_WIDTH
-   wss_calc_width			    = WSS_CALC_WIDTH
+   p_calc_width	                = P_CALC_WIDTH
+   wss_calc_width               = WSS_CALC_WIDTH
    compute_fluid_traction       = COMPUTE_FLUID_TRACTION
    calculate_interior_side      = CALCULATE_INTERIOR_SIDE
    traction_activation_time     = TRACTION_ACTIVATION_TIME
@@ -165,13 +165,13 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "IB2d_Ured_5_DT_2em3_k350.log"
+   log_file_name               = "II2d_SMred.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
-   viz_dump_interval           = 0 //int(1.0/DT)
-   viz_dump_dirname            = "viz_II_DT_2em3_k350"
+   viz_dump_interval           = int(1.0/DT)
+   viz_dump_dirname            = "viz_II2d_SMred"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
