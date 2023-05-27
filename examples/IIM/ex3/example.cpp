@@ -253,7 +253,7 @@ tether_force_function(VectorValue<double>& F,
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         F(d) =
-            kappa_s * (x_solid[d] - x_bndry(d)) + eta_s * (u_solid[d] - u_bndry[d]); // (u_solid_n - u_bndry_n) * n(d);
+            kappa_s * (x_solid[d] - x_bndry(d)) + eta_s * (u_solid[d] - u_bndry[d]);
     }
 
     return;
@@ -280,18 +280,21 @@ calculateFluidForceAndTorque(VectorValue<double>& F, // net force  acting on the
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
     std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
-    std::unique_ptr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
+    std::unique_ptr<FEBase> fe_tau(FEBase::build(dim, TAU_dof_map.variable_type(0)));
 
     NumericVector<double>* x_vec = x_system.solution.get();
     NumericVector<double>* x_ghost_vec = x_system.current_local_solution.get();
     x_vec->localize(*x_ghost_vec);
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
 
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
+    fe_tau->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<vector<double> >& phi = fe->get_phi();
+    const vector<vector<double> >& phi_tau = fe_tau->get_phi();
 
     boost::multi_array<double, 2> x_node, TAU_node;
     VectorValue<double> F_qp, x_qp, W_qp, TAU_qp, R_qp;
@@ -302,6 +305,7 @@ calculateFluidForceAndTorque(VectorValue<double>& F, // net force  acting on the
     {
         const Elem* elem = *el_it;
         fe->reinit(elem);
+        fe_tau->reinit(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dof_map.dof_indices(elem, dof_indices[d], d);
@@ -315,7 +319,7 @@ calculateFluidForceAndTorque(VectorValue<double>& F, // net force  acting on the
         for (unsigned int qp = 0; qp < n_qp; ++qp)
         {
             interpolate(x_qp, qp, x_node, phi);
-            interpolate(TAU_qp, qp, TAU_node, phi);
+            interpolate(TAU_qp, qp, TAU_node, phi_tau);
 
             R_qp = x_qp - x_com_current;
 
@@ -1006,7 +1010,7 @@ postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     TAU_vec->localize(*TAU_ghost_vec);
     DofMap& TAU_dof_map = TAU_system.get_dof_map();
     std::vector<std::vector<unsigned int> > TAU_dof_indices(NDIM);
-    std::unique_ptr<FEBase> fe(FEBase::build(dim, TAU_dof_map.variable_type(0)));
+    std::unique_ptr<FEBase> fe_tau(FEBase::build(dim, TAU_dof_map.variable_type(0)));
 
     NumericVector<double>& X0_vec = x_system.get_vector("INITIAL_COORDINATES");
 
@@ -1018,11 +1022,14 @@ postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     U_vec->localize(*U_ghost_vec);
     const DofMap& dof_map = x_system.get_dof_map();
     std::vector<std::vector<unsigned int> > dof_indices(NDIM);
+    std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
 
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());
+    fe_tau->attach_quadrature_rule(qrule.get());
     const vector<double>& JxW = fe->get_JxW();
     const vector<vector<double> >& phi = fe->get_phi();
+    const vector<vector<double> >& phi_tau = fe_tau->get_phi();
     const vector<vector<VectorValue<double> > >& dphi = fe->get_dphi();
 
     std::vector<double> U_qp_vec(NDIM);
@@ -1041,6 +1048,7 @@ postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     {
         Elem* const elem = *el_it;
         fe->reinit(elem);
+        fe_tau->reinit(elem);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             dof_map.dof_indices(elem, dof_indices[d], d);
@@ -1058,7 +1066,7 @@ postprocess_CL_CD(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
             interpolate(x_qp, qp, x_node, phi);
             jacobian(FF_qp, qp, x_node, dphi);
             interpolate(U_qp, qp, U_node, phi);
-            interpolate(TAU_qp, qp, TAU_node, phi);
+            interpolate(TAU_qp, qp, TAU_node, phi_tau);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 U_qp_vec[d] = U_qp(d);

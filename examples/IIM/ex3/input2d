@@ -31,7 +31,12 @@ DX0 = H/N                                        // mesh width on coarsest grid 
 DX  = H/NFINEST                                  // mesh width on finest   grid level
 MFAC = 2.0                                       // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "TRI3"                               // type of element to use for structure discretization
-jump_fe_family = "L2_LAGRANGE"                   // option to use discontinuous L2_Lagrange family for geometries with sharp features
+viscous_jump_fe_family  = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL or FIRST order L2_LAGRANGE for the viscous jump
+pressure_jump_fe_family = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL or FIRST order L2_LAGRANGE for the pressure jump
+traction_fe_family      = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL or FIRST order L2_LAGRANGE for the traction
+viscous_jump_fe_order   = "CONSTANT"           
+pressure_jump_fe_order  = "CONSTANT"             
+traction_fe_order 	    = "CONSTANT"                // Traction order needs to be equal or smaller than the viscous and pressure jumps
 
 
 // solver parameters
