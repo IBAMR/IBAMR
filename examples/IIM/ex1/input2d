@@ -16,7 +16,12 @@ DX  = L/NFINEST                                  // mesh width on finest   grid 
 MFAC = 2.0                                       // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "QUAD4"                              // type of element to use for structure discretization
 elem_order = "FIRST"
-jump_fe_family = "L2_LAGRANGE"                     // Either L2_Lagrange (FIRST order) or MONOMIAL (CONSTANT order) for jumps & tractoin
+viscous_jump_fe_family  = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL for the viscous jump or FIRST order L2_LAGRANGE 
+viscous_jump_fe_order   = "FIRST" 
+pressure_jump_fe_family = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL for the pressure jump or FIRST order L2_LAGRANGE 
+pressure_jump_fe_order  = "CONSTANT"  
+traction_fe_family      = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL for the traction or FIRST order L2_LAGRANGE 
+traction_fe_order       = "FIRST"                
 
 // solver parameters
 IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction

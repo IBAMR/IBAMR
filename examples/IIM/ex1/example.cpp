@@ -187,8 +187,12 @@ main(int argc, char* argv[])
         ds = mfac * dx;
         const double R_D = input_db->getDouble("R_D");
         string elem_type = input_db->getString("ELEM_TYPE");
-        const string jump_fe_family = input_db->getString("jump_fe_family");
-        const Order fe_order = (elem_type == "TRI3" || elem_type == "QUAD4") ? FIRST: SECOND;
+        const string visc_j_fe_family = input_db->getString("viscous_jump_fe_family");
+        const string visc_j_fe_order = input_db->getString("viscous_jump_fe_order");
+        const string p_j_fe_family = input_db->getString("pressure_jump_fe_family");
+        const string p_j_fe_order = input_db->getString("pressure_jump_fe_order");
+        const string traction_fe_family = input_db->getString("traction_fe_family");
+        const string traction_fe_order = input_db->getString("traction_fe_order");
         if (NDIM == 2)
         {
             MeshTools::Generation::build_square(solid_mesh,
@@ -220,9 +224,6 @@ main(int argc, char* argv[])
         BoundaryInfo& boundary_info = solid_mesh.get_boundary_info();
         boundary_info.sync(boundary_mesh);
         boundary_mesh.prepare_for_use();
-
-        compute_fluid_traction = input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false);
-
         Mesh& mesh = boundary_mesh;
 
         // Create major algorithm and data objects that comprise the
@@ -286,29 +287,11 @@ main(int argc, char* argv[])
         tbox::Pointer<IIMethod> ibfe_ops = ib_ops;
 
         // Whether to use discontinuous basis functions with element-local support for the jumps + traction
-        // We ask this before initializing the FE equation system
-        if (jump_fe_family == "L2_LAGRANGE") 
-        {
-			ibfe_ops->registerDisconElemFamilyForPressureJump(0, L2_LAGRANGE, FIRST);
-			ibfe_ops->registerDisconElemFamilyForViscousJump(0, L2_LAGRANGE, FIRST);
-		}
-		else if (jump_fe_family == "MONOMIAL")
-		{
-			ibfe_ops->registerDisconElemFamilyForPressureJump(0, MONOMIAL, CONSTANT);
-			ibfe_ops->registerDisconElemFamilyForViscousJump(0, MONOMIAL, CONSTANT);
-			
-		}
-		else if (jump_fe_family == "LAGRANGE")
-		{
-			ibfe_ops->registerDisconElemFamilyForPressureJump(0, LAGRANGE, fe_order);
-			ibfe_ops->registerDisconElemFamilyForViscousJump(0, LAGRANGE, fe_order);
-		}
-		else
-		{
-			TBOX_ERROR("Unsupported FE family type: " << jump_fe_family << "for discontinuous jumps/traction \n");
-		}
-		
-		
+        // We set this up before initializing the FE equation system
+        ibfe_ops->registerDisconElemFamilyForViscousJump(0, Utility::string_to_enum<FEFamily>(visc_j_fe_family), Utility::string_to_enum<Order>(visc_j_fe_order));
+        ibfe_ops->registerDisconElemFamilyForPressureJump(0, Utility::string_to_enum<FEFamily>(p_j_fe_family), Utility::string_to_enum<Order>(p_j_fe_order));
+        if (input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false))
+			ibfe_ops->registerDisconElemFamilyForTraction(0, Utility::string_to_enum<FEFamily>(traction_fe_family), Utility::string_to_enum<Order>(traction_fe_order));
 
         ibfe_ops->initializeFEEquationSystems();
         equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
@@ -419,6 +402,7 @@ main(int argc, char* argv[])
             U_L2_norm_stream.precision(10);
             U_max_norm_stream.precision(10);
         }
+
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();

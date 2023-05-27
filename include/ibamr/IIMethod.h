@@ -177,9 +177,9 @@ public:
      * The default value is set to regular LAGRANGE.
      */
     void registerDisconElemFamilyForPressureJump(unsigned int part, 
-										  libMesh::FEFamily fe_family,
-										  libMesh::Order fe_order);
-	/*!
+                                           libMesh::FEFamily fe_family,
+                                           libMesh::Order fe_order);
+     /*!
      * Register relevant part to use discontinuous element type family (either FIRST order L2_LAGRANGE or CONSTANT MONOMIAL)
      * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
      *
@@ -188,8 +188,19 @@ public:
      * The default value is set to regular LAGRANGE.
      */
     void registerDisconElemFamilyForViscousJump(unsigned int part, 
-										  libMesh::FEFamily fe_family,
-										  libMesh::Order fe_order);
+                                         libMesh::FEFamily fe_family,
+                                         libMesh::Order fe_order);
+    /*!
+     * Register relevant part to use discontinuous element type family (either FIRST order L2_LAGRANGE or CONSTANT MONOMIAL)
+     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
+     *
+     *
+     * \note The relveant FE family is provided while registering a part in the application code. 
+     * The default value is set to regular LAGRANGE.
+     */
+    void registerDisconElemFamilyForTraction(unsigned int part, 
+                                          libMesh::FEFamily fe_family,
+                                          libMesh::Order fe_order);
 
     /*!
      * Register relevant part to only use the tangential component of the Lagrangian velocity
@@ -659,9 +670,11 @@ protected:
     std::vector<libMesh::FEFamily> d_fe_family;
     std::vector<libMesh::FEFamily> d_viscous_jump_fe_family;
     std::vector<libMesh::FEFamily> d_pressure_jump_fe_family;
+    std::vector<libMesh::FEFamily> d_traction_fe_family;
     std::vector<libMesh::Order> d_fe_order;
     std::vector<libMesh::Order> d_viscous_jump_fe_order;
     std::vector<libMesh::Order> d_pressure_jump_fe_order;
+    std::vector<libMesh::Order> d_traction_fe_order;
     std::vector<libMesh::QuadratureType> d_default_quad_type;
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
