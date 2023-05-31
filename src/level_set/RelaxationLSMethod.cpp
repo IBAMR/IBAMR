@@ -549,7 +549,7 @@ RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
             }
         }
     }
-    else if (d_ls_ts == RK2_TS)
+    else if (d_ls_ts == TVD_RK2_TS)
     {
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 

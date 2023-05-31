@@ -46,7 +46,7 @@ LevelSet {
     enable_logging     = TRUE
     apply_subcell_fix  = TRUE
     apply_sign_fix     = FALSE
-    time_stepping_scheme = "RK2"
+    time_stepping_scheme = "TVD_RK2"
     apply_mass_constraint = TRUE
 }
 
