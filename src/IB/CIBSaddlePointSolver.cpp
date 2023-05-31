@@ -644,14 +644,14 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
 
     for (const auto& nul_vec : d_nul_vecs)
     {
-        if (nul_vec) nul_vec->freeVectorComponents();
+        if (nul_vec) free_vector_components(*nul_vec);
     }
     const int n_nul_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
     d_nul_vecs.resize(n_nul_vecs);
 
     for (const auto& U_nul_vec : d_U_nul_vecs)
     {
-        if (U_nul_vec) U_nul_vec->freeVectorComponents();
+        if (U_nul_vec) free_vector_components(*U_nul_vec);
     }
     const int n_U_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
     d_U_nul_vecs.resize(n_U_nul_vecs);
@@ -1038,7 +1038,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     // Destroy temporary vectors
     g_h->resetLevels(g_h->getCoarsestLevelNumber(),
                      std::min(g_h->getFinestLevelNumber(), g_h->getPatchHierarchy()->getFinestLevelNumber()));
-    g_h->freeVectorComponents();
+    free_vector_components(*g_h);
     g_h.setNull();
     VecDestroy(&U);
     if (free_comps)

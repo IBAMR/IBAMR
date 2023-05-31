@@ -1040,6 +1040,11 @@ protected:
     bool d_hierarchy_is_initialized = false;
 
     /*
+     * Indicates whether we need to reset the hierarchy configuration following a regridding operation.
+     */
+    bool d_may_need_to_reset_hierarchy_configuration = false;
+
+    /*
      * Collection of child integrator objects.
      */
     HierarchyIntegrator* d_parent_integrator = nullptr;
@@ -1249,4 +1254,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_HierarchyIntegrator
+#endif // #ifndef included_IBTK_HierarchyIntegrator

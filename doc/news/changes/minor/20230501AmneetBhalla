@@ -1,0 +1,2 @@
+<br> Fixed: Regridding issues with AdvDiffHierarchyIntegrator and other solvers when the number of patch levels changes. 
+(Amneet Bhalla and Boyce Griffith, 2023/05/01)
