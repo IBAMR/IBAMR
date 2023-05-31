@@ -2965,7 +2965,6 @@ IIMethod::spreadForce(const int f_data_idx,
                 DU_jump_vec[d]->localize(*DU_jump_ghost_vec[d]);
             }
         }
-	    
         if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
         {
             imposeJumpConditions(f_data_idx, *P_jump_ghost_vec, DU_jump_ghost_vec, *X_ghost_vec, data_time, part);
