@@ -1168,14 +1168,6 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   # PETSc:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${PETSC_LIBRARIES}")
   TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${PETSC_INCLUDE_DIRS}")
-  # we and our users will use these MPI functions so make the interface public:
-  TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_C)
-  # If openMPI is built with the old C++ bindings enabled then we need to link
-  # against them, since we don't consistently define OMPI_SKIP_MPICXX. We always
-  # need this with libMesh since libMesh is underlinked.
-  IF(${MPI_MPICXX_FOUND})
-    TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_CXX)
-  ENDIF()
   # Silo is underlinked and depends on HDF5, so do it first:
   IF(${IBAMR_HAVE_SILO})
     TARGET_LINK_LIBRARIES(${target_library} PRIVATE SILO)
@@ -1188,6 +1180,15 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   # HDF5:
   TARGET_LINK_LIBRARIES(${target_library} PUBLIC "${HDF5_LIBRARIES}")
   TARGET_INCLUDE_DIRECTORIES(${target_library} PUBLIC "${HDF5_INCLUDE_DIRS}")
+
+  # we and our users will use these MPI functions so make the interface public:
+  TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_C)
+  # If openMPI is built with the old C++ bindings enabled then we need to link
+  # against them, since we don't consistently define OMPI_SKIP_MPICXX. We always
+  # need this with libMesh since libMesh is underlinked.
+  IF(${MPI_MPICXX_FOUND})
+    TARGET_LINK_LIBRARIES(${target_library} PUBLIC MPI::MPI_CXX)
+  ENDIF()
 
   # Boost, Eigen3, and muParser have no dependencies nor are dependencies of any
   # other package
