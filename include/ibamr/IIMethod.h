@@ -169,8 +169,9 @@ public:
     };
 
     /*!
-     * Register relevant part to use discontinuous element type family (either FIRST order L2_LAGRANGE or CONSTANT MONOMIAL)
+     * Register relevant part to use discontinuous element type family
      * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
+     * The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
      *
      *
      * \note The relveant FE family is provided while registering a part in the application code. 
@@ -180,8 +181,9 @@ public:
                                            libMesh::FEFamily fe_family,
                                            libMesh::Order fe_order);
      /*!
-     * Register relevant part to use discontinuous element type family (either FIRST order L2_LAGRANGE or CONSTANT MONOMIAL)
+     * Register relevant part to use discontinuous element type family
      * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
+     * The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
      *
      *
      * \note The relveant FE family is provided while registering a part in the application code. 
@@ -191,8 +193,9 @@ public:
                                          libMesh::FEFamily fe_family,
                                          libMesh::Order fe_order);
     /*!
-     * Register relevant part to use discontinuous element type family (either FIRST order L2_LAGRANGE or CONSTANT MONOMIAL)
+     * Register relevant part to use discontinuous element type family
      * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
+     * The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
      *
      *
      * \note The relveant FE family is provided while registering a part in the application code. 

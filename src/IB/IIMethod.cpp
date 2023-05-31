@@ -241,13 +241,9 @@ IIMethod::registerDisconElemFamilyForTraction(const unsigned int part,
 {
     TBOX_ASSERT(!d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_num_parts);
-    // The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
-    // NOTE: For now if separate orders are used for viscous vs. pressure jumps, the traction order 
-    // need to be the the lowest of the two.
     if ((fe_family == L2_LAGRANGE && fe_order == FIRST) || (fe_family == MONOMIAL && fe_order == CONSTANT)
           || (fe_family == MONOMIAL && fe_order == FIRST))
     {
-		//if (fe_order == FIRST && (d_viscous_jump_fe_order[part] == CONSTANT || d_pressure_jump_fe_order[part] == CONSTANT))
         d_traction_fe_family[part] = fe_family;
         d_traction_fe_order[part] = fe_order;
     }
@@ -266,7 +262,6 @@ IIMethod::registerDisconElemFamilyForPressureJump(const unsigned int part,
 {
     TBOX_ASSERT(!d_fe_equation_systems_initialized);
     TBOX_ASSERT(part < d_num_parts);
-    // The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
     if ((fe_family == L2_LAGRANGE && fe_order == FIRST) || (fe_family == MONOMIAL && fe_order == CONSTANT)
 			|| (fe_family == MONOMIAL && fe_order == FIRST))
     {
