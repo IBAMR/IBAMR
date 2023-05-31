@@ -14,10 +14,15 @@
 include $(top_srcdir)/config/Make-rules
 
 # All programs in this subdirectory depend on libMesh.
-EXTRA_PROGRAMS =
+EXTRA_PROGRAMS = relaxation_ls_2d
+
+relaxation_ls_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+relaxation_ls_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+relaxation_ls_2d_SOURCES = relaxation_ls.cpp 
+
 
 if LIBMESH_ENABLED
-EXTRA_PROGRAMS += fe_surface_distance_2d fe_surface_distance_3d
+EXTRA_PROGRAMS += fe_surface_distance_2d fe_surface_distance_3d 
 
 fe_surface_distance_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 fe_surface_distance_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)

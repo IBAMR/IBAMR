@@ -381,10 +381,9 @@ RelaxationLSMethod::initializeLSData(int D_idx,
 
     while (diff_L2_norm > d_abs_tol && outer_iter < d_max_its)
     {
-        // Refill ghost data and relax
+        // Save a copy of previous iterate before modifying the level set function.
         hier_cc_data_ops.copyData(D_iter_idx, D_scratch_idx);
-        D_fill_op->fillData(time);
-        relax(hier_math_ops, D_scratch_idx, D_init_idx, outer_iter);
+        relax(D_fill_op, hier_math_ops, D_scratch_idx, D_init_idx, D_copy_idx, outer_iter, time);
         hier_cc_data_ops.linearSum(D_scratch_idx, d_alpha, D_scratch_idx, 1.0 - d_alpha, D_iter_idx);
 
         if (d_apply_volume_shift)
@@ -522,25 +521,59 @@ RelaxationLSMethod::setApplyVolumeShift(bool apply_volume_shift)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-RelaxationLSMethod::relax(Pointer<HierarchyMathOps> hier_math_ops,
+RelaxationLSMethod::relax(Pointer<HierarchyGhostCellInterpolation> D_fill_op,
+                          Pointer<HierarchyMathOps> hier_math_ops,
                           int dist_idx,
                           int dist_init_idx,
-                          const int iter) const
+                          int dist_copy_idx,
+                          const int iter,
+                          const double time) const
 {
     Pointer<PatchHierarchy<NDIM> > hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    if (d_ls_ts == GAUSS_SEIDEL_PSEUDO_TS || d_ls_ts == RK1_TS)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        // Fill the ghost cells of dist_idx
+        D_fill_op->fillData(time);
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
-            const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
-            relax(dist_data, dist_init_data, patch, iter);
+            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
+                const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
+                relax(dist_data, dist_init_data, patch, iter);
+            }
         }
+    }
+    else if (d_ls_ts == TVD_RK2_TS)
+    {
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+
+        for (int stage = 0; stage < 2; ++stage)
+        {
+            D_fill_op->fillData(time);
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<CellData<NDIM, double> > dist_data = patch->getPatchData(dist_idx);
+                    const Pointer<CellData<NDIM, double> > dist_init_data = patch->getPatchData(dist_init_idx);
+                    relax(dist_data, dist_init_data, patch, iter);
+                }
+            }
+            if (stage == 0) hier_cc_data_ops.copyData(dist_copy_idx, dist_idx);
+        }
+        hier_cc_data_ops.linearSum(dist_idx, 0.5, dist_idx, 0.5, dist_copy_idx);
+    }
+    else
+    {
+        TBOX_ERROR("Unknown time stepping scheme for the RelaxationLSMethod: " << enum_to_string(d_ls_ts) << std::endl);
     }
     return;
 
@@ -580,9 +613,31 @@ RelaxationLSMethod::relax(Pointer<CellData<NDIM, double> > dist_data,
     const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
+    // Here we are solving Hamilton-Jacobi equation of the type
+    //
+    //         d (phi)/dt + sign(phi_0)(|grad phi| - 1) = 0
+    //
+    // till steady state. We use an explicit time stepping scheme to solve the
+    // above equation, which reads as
+    //
+    //         phi_{ijk}^{n+1} =  phi_{ijk}^{n} - dt_{ijk} sign(phi_0)(|grad phi|^n - 1)
+    //
+    // Though the time stepping scheme is fictitious, but it can affect the
+    // spatial order of accuracy. The above update (till steady state) can also be
+    // viewed as Gauss-Seidel (GS) update at grid location (i,j,k). If we choose
+    // to use the GS scheme, we use a roster-scan algorithm to permute (i,j,k)
+    // indices at each iteration.
+
     // Get the direction of sweeping (alternates according to iteration number)
-    const int num_dirs = (NDIM < 3) ? 4 : 8;
-    const int dir = iter % num_dirs;
+    // For RK integrators the sweep direction does not matter so we select the
+    // the usual (i,j,k) direction at each iteration. For GS updates,
+    // we permute (i,j,k) with each iteration.
+    int dir = 0;
+    if (d_ls_ts == GAUSS_SEIDEL_PSEUDO_TS)
+    {
+        const int num_dirs = (NDIM < 3) ? 4 : 8;
+        dir = iter % num_dirs;
+    }
 
     if (d_ls_order == FIRST_ORDER_LS)
     {
@@ -994,6 +1049,10 @@ RelaxationLSMethod::getFromInput(Pointer<Database> input_db)
     std::string ls_order = "THIRD_ORDER_ENO";
     ls_order = input_db->getStringWithDefault("order", ls_order);
     d_ls_order = string_to_enum<LevelSetOrder>(ls_order);
+
+    std::string ls_ts = "GAUSS_SEIDEL";
+    ls_ts = input_db->getStringWithDefault("time_stepping_scheme", ls_ts);
+    d_ls_ts = string_to_enum<LevelSetTimeStepping>(ls_ts);
 
     d_max_its = input_db->getIntegerWithDefault("max_iterations", d_max_its);
     d_max_its = input_db->getIntegerWithDefault("max_its", d_max_its);

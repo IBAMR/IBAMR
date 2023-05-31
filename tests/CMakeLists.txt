@@ -135,6 +135,7 @@ IF(${IBAMR_HAVE_LIBMESH})
   SETUP_2D(level_set fe_surface_distance.cpp)
   SETUP_3D(level_set fe_surface_distance.cpp)
 ENDIF()
+SETUP_2D(level_set relaxation_ls.cpp)
 
 # multiphase_flow:
 SETUP(multiphase_flow free_falling_cyl_cib.cpp IBAMR2d)

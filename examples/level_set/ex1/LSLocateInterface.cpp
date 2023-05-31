@@ -58,7 +58,7 @@ circular_interface_neighborhood(int D_idx,
 #if (NDIM == 3)
                 const double z = coord[2];
 #endif
-                (*D_data)(ci) = 0.001 *
+                (*D_data)(ci) = 1.0 *
                                 (std::pow(x - 1.0, 2.0) + std::pow(y - 1.0, 2.0)
 #if (NDIM == 3)
                                  + std::pow(z - 1.0, 2.0)

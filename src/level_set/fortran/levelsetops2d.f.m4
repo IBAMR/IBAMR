@@ -405,6 +405,7 @@ c
       return
       end
 c
+
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Compute relaxation solution at a given grid cell
@@ -556,6 +557,7 @@ c
 
       return
       end
+
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
 c     Carry out single third order sweep using a second order ENO stencil
@@ -961,6 +963,7 @@ c
 
       return
       end
+
 
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c

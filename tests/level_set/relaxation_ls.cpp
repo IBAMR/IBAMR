@@ -41,8 +41,53 @@
 // Set up application namespace declarations
 #include <ibamr/app_namespaces.h>
 
-// Application specific includes.
-#include "LSLocateInterface.h"
+struct CircularInterface
+{
+    IBTK::Vector X0;
+    double R;
+};
+void
+circular_interface_neighborhood(int D_idx,
+                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                double /*time*/,
+                                bool /*initial_time*/,
+                                void* /*ctx*/)
+{
+    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(D_idx);
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                // Get physical coordinates
+                IBTK::Vector coord = IBTK::Vector::Zero();
+                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                const double* patch_X_lower = patch_geom->getXLower();
+                const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+                const double* const patch_dx = patch_geom->getDx();
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
+                }
+                const double x = coord[0];
+                const double y = coord[1];
+                (*D_data)(ci) = 1.0 * (std::pow(x - 1.0, 2.0) + std::pow(y - 1.0, 2.0) + 0.1) *
+                                (std::sqrt(std::pow(x, 2.0) + std::pow(y, 2.0)) - 1.0);
+            }
+        }
+    }
+    return;
+} // circular_interface_neighborhood
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -72,15 +117,7 @@ main(int argc, char* argv[])
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
-        const int viz_dump_interval = app_initializer->getVizDumpInterval();
         const bool uses_visit = dump_viz_data && app_initializer->getVisItDataWriter();
-
-        const bool dump_restart_data = app_initializer->dumpRestartData();
-        const int restart_dump_interval = app_initializer->getRestartDumpInterval();
-        const string restart_dump_dirname = app_initializer->getRestartDumpDirectory();
-
-        const bool dump_timer_data = app_initializer->dumpTimerData();
-        const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
         // Get solver configuration options.
         bool using_refined_timestepping = false;
@@ -187,7 +224,7 @@ main(int argc, char* argv[])
         if (uses_visit) hyp_patch_ops->registerVisItDataWriter(visit_data_writer);
 
         // Initialize hierarchy configuration and data on all patches.
-        double dt_now = time_integrator->initializeHierarchy();
+        time_integrator->initializeHierarchy();
 
         // Create inital level set
         CircularInterface circle;
@@ -266,11 +303,7 @@ main(int argc, char* argv[])
                             patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                     }
                     const double distance =
-                        std::sqrt(std::pow((coord[0] - circle.X0(0)), 2.0) + std::pow((coord[1] - circle.X0(1)), 2.0)
-#if (NDIM == 3)
-                                  + std::pow((coord[2] - circle.X0(2)), 2.0)
-#endif
-                        );
+                        std::sqrt(std::pow((coord[0] - circle.X0(0)), 2.0) + std::pow((coord[1] - circle.X0(1)), 2.0));
 
                     (*E_data)(ci) = distance - circle.R;
 
@@ -284,13 +317,11 @@ main(int argc, char* argv[])
         HierarchyCellDataOpsReal<NDIM, double> cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         cc_data_ops.subtract(E_idx, E_idx, Q_scratch_idx);
         const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
-        pout << "Error in Q after level set initialization:" << std::endl
-             << "L1-norm:  " << std::setprecision(10) << cc_data_ops.L1Norm(E_idx, wgt_cc_idx) << std::endl;
+        const double EQ_domain = cc_data_ops.L1Norm(E_idx, wgt_cc_idx);
 
         const double Numerical_volume = cc_data_ops.integral(H_idx, wgt_cc_idx);
         const double Exact_volume = M_PI * std::pow(circle.R, 2.0);
-        const double error = std::abs(Numerical_volume - Exact_volume) / Exact_volume;
-        pout << "Volume error of a circle:" << std::setprecision(10) << error << std::endl;
+        const double vol_error = std::abs(Numerical_volume - Exact_volume) / Exact_volume;
 
         double E_domain = 0.0;
         double E_interface = 0.0;
@@ -329,12 +360,21 @@ main(int argc, char* argv[])
         E_interface = IBTK_MPI::sumReduction(E_interface);
         E_domain = IBTK_MPI::sumReduction(E_domain);
 
-        pout << "Error in Q near interface after level set initialization:" << std::endl
-             << "L1-norm:  " << std::setprecision(10) << E_interface << std::endl;
-        pout << "Error in Q in entire domain (minus center) after level set initialization:" << std::endl
-             << "L1-norm:  " << std::setprecision(10) << E_domain << std::endl;
-        pout << "Number of points within the interface (used to compute interface error):" << std::endl
-             << num_interface_pts << std::endl;
+        if (IBTK_MPI::getRank() == 0)
+        {
+            std::ofstream out("output");
+
+            out << "Error in Q near interface after level set re-initialization:" << std::endl
+                << "L1-norm:  " << std::setprecision(10) << E_interface << std::endl;
+            out << "Number of points within the interface (used to compute interface error):" << std::endl
+                << num_interface_pts << std::endl;
+            out << "Error in Q in entire domain (minus center) after level set re-initialization:" << std::endl
+                << "L1-norm:  " << std::setprecision(10) << E_domain << std::endl;
+            out << "Error in Q in entire domain (including center) after level set re-initialization:" << std::endl
+                << "L1-norm:  " << std::setprecision(10) << EQ_domain << std::endl;
+            out << "Volume error for the re-initialized circle using the discontinuous Heaviside function: "
+                << std::setprecision(10) << vol_error << std::endl;
+        }
 
         // Register for plotting
         visit_data_writer->registerPlotQuantity("Error", "SCALAR", E_idx);
@@ -352,49 +392,6 @@ main(int argc, char* argv[])
         // Print the input database contents to the log file.
         plog << "Input database:\n";
         input_db->printClassData(plog);
-
-        // Main time step loop.
-        double loop_time_end = time_integrator->getEndTime();
-        while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
-        {
-            iteration_num = time_integrator->getIntegratorStep();
-            loop_time = time_integrator->getIntegratorTime();
-
-            pout << "\n";
-            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "At beginning of timestep # " << iteration_num << "\n";
-            pout << "Simulation time is " << loop_time << "\n";
-
-            double dt_new = time_integrator->advanceHierarchy(dt_now);
-            loop_time += dt_now;
-            dt_now = dt_new;
-
-            pout << "\n";
-            pout << "At end       of timestep # " << iteration_num << "\n";
-            pout << "Simulation time is " << loop_time << "\n";
-            pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
-            pout << "\n";
-
-            // At specified intervals, write visualization and restart files,
-            // and print out timer data.
-            iteration_num += 1;
-            const bool last_step = !time_integrator->stepsRemaining();
-            if (dump_viz_data && uses_visit && (iteration_num % viz_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting visualization files...\n\n";
-                visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-            }
-            if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting restart files...\n\nn";
-                RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
-            }
-            if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
-            {
-                pout << "\nWriting timer data...\n\n";
-                TimerManager::getManager()->print(plog);
-            }
-        }
 
         if (dump_viz_data && uses_visit)
         {

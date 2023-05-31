@@ -214,6 +214,38 @@ enum_to_string<LevelSetOrder>(LevelSetOrder val)
 } // enum_to_string
 
 /*!
+ * \brief Enumerated type for different level set time stepping schemes
+ */
+enum LevelSetTimeStepping
+{
+    GAUSS_SEIDEL_PSEUDO_TS = 1,
+    RK1_TS = 2,
+    TVD_RK2_TS = 3,
+    UNKNOWN_LEVEL_SET_TS = -1
+}; // LevelSetTimeStepping
+
+template <>
+inline LevelSetTimeStepping
+string_to_enum<LevelSetTimeStepping>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "GAUSS_SEIDEL") == 0) return GAUSS_SEIDEL_PSEUDO_TS;
+    if (strcasecmp(val.c_str(), "RK1") == 0) return RK1_TS;
+    if (strcasecmp(val.c_str(), "FORWARD_EULER") == 0) return RK1_TS;
+    if (strcasecmp(val.c_str(), "TVD_RK2") == 0) return TVD_RK2_TS;
+    return UNKNOWN_LEVEL_SET_TS;
+} // string_to_enum
+
+template <>
+inline std::string
+enum_to_string<LevelSetTimeStepping>(LevelSetTimeStepping val)
+{
+    if (val == GAUSS_SEIDEL_PSEUDO_TS) return "GAUSS_SEIDEL_PSEUDO";
+    if (val == RK1_TS) return "RK1";
+    if (val == TVD_RK2_TS) return "TVD_RK2";
+    return "UNKNOWN_LEVEL_SET_TIME_STEPPING";
+} // enum_to_string
+
+/*!
  * \brief Enumerated type for pressure formulations.
  */
 enum PressureProjectionType
