@@ -296,7 +296,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             d_hier_math_ops->interp_ghosted(d_mu_interp_idx,
                                             d_mu_interp_var,
                                             d_mu_scratch_idx,
-                                            d_mu_var,
+                                            Pointer<CellVariable<NDIM, double> >(d_mu_var),
                                             d_no_fill_op,
                                             current_time);
         }
@@ -305,7 +305,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(cons
             d_hier_math_ops->harmonic_interp_ghosted(d_mu_interp_idx,
                                                      d_mu_interp_var,
                                                      d_mu_scratch_idx,
-                                                     d_mu_var,
+                                                     Pointer<CellVariable<NDIM, double> >(d_mu_var),
                                                      d_no_fill_op,
                                                      current_time);
         }
@@ -588,7 +588,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             d_hier_math_ops->interp_ghosted(d_mu_interp_idx,
                                             d_mu_interp_var,
                                             d_mu_scratch_idx,
-                                            d_mu_var,
+                                            Pointer<CellVariable<NDIM, double> >(d_mu_var),
                                             d_no_fill_op,
                                             new_time);
         }
@@ -597,7 +597,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::integrateHierarchy(const double c
             d_hier_math_ops->harmonic_interp_ghosted(d_mu_interp_idx,
                                                      d_mu_interp_var,
                                                      d_mu_scratch_idx,
-                                                     d_mu_var,
+                                                     Pointer<CellVariable<NDIM, double> >(d_mu_var),
                                                      d_no_fill_op,
                                                      new_time);
         }

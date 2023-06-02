@@ -411,7 +411,7 @@ CartCellRobinPhysBdryOp::getRefineOpStencilWidth() const
 } // getRefineOpStencilWidth
 
 void
-CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(Patch<NDIM>& patch,
+CartCellRobinPhysBdryOp::accumulateFromPhysicalBoundaryData(const Patch<NDIM>& patch,
                                                             const double fill_time,
                                                             const IntVector<NDIM>& ghost_width_to_fill)
 {
@@ -479,7 +479,7 @@ CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
                                                    const Array<BoundaryBox<NDIM> >& physical_codim1_boxes,
                                                    const double fill_time,
                                                    const IntVector<NDIM>& ghost_width_to_fill,
-                                                   Patch<NDIM>& patch,
+                                                   const Patch<NDIM>& patch,
                                                    const bool adjoint_op)
 {
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();

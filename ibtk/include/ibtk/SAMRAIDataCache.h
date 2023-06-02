@@ -25,7 +25,6 @@
 #include "IntVector.h"
 #include "PatchHierarchy.h"
 #include "tbox/DescribedClass.h"
-#include "tbox/Pointer.h"
 
 #include <map>
 #include <memory>
@@ -59,7 +58,7 @@ public:
      *
      * @param[in]  hierarchy  The patch hierarchy
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(const SAMRAI::hier::PatchHierarchy<NDIM>* hierarchy);
 
     /**
      * @brief      Reset the range of patch levels over which operations occur.
@@ -175,7 +174,7 @@ private:
     SAMRAIDataCache& operator=(const SAMRAIDataCache& that) = delete;
 
     /// \brief The patch hierarchy under consideration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    const SAMRAI::hier::PatchHierarchy<NDIM>* d_hierarchy;
 
     /// Coarsest level of allocated patch data.
     int d_coarsest_ln = IBTK::invalid_level_number;

@@ -157,7 +157,7 @@ SAMRAIDataCache::~SAMRAIDataCache()
 }
 
 void
-SAMRAIDataCache::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+SAMRAIDataCache::setPatchHierarchy(const PatchHierarchy<NDIM>* const hierarchy)
 {
     if (hierarchy != d_hierarchy && d_hierarchy && (d_coarsest_ln != IBTK::invalid_level_number) &&
         (d_finest_ln != IBTK::invalid_level_number))

@@ -349,7 +349,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
             d_hier_math_ops->interp_ghosted(d_mu_interp_idx,
                                             d_mu_interp_var,
                                             d_mu_scratch_idx,
-                                            d_mu_var,
+                                            Pointer<CellVariable<NDIM, double> >(d_mu_var),
                                             d_no_fill_op,
                                             current_time);
         }
@@ -358,7 +358,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
             d_hier_math_ops->harmonic_interp_ghosted(d_mu_interp_idx,
                                                      d_mu_interp_var,
                                                      d_mu_scratch_idx,
-                                                     d_mu_var,
+                                                     Pointer<CellVariable<NDIM, double> >(d_mu_var),
                                                      d_no_fill_op,
                                                      current_time);
         }
@@ -704,7 +704,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
             d_hier_math_ops->interp_ghosted(d_mu_interp_idx,
                                             d_mu_interp_var,
                                             d_mu_scratch_idx,
-                                            d_mu_var,
+                                            Pointer<CellVariable<NDIM, double> >(d_mu_var),
                                             d_no_fill_op,
                                             new_time);
         }
@@ -713,7 +713,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
             d_hier_math_ops->harmonic_interp_ghosted(d_mu_interp_idx,
                                                      d_mu_interp_var,
                                                      d_mu_scratch_idx,
-                                                     d_mu_var,
+                                                     Pointer<CellVariable<NDIM, double> >(d_mu_var),
                                                      d_no_fill_op,
                                                      new_time);
         }
@@ -1646,14 +1646,14 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
                                   d_rho_interp_idx,
                                   /*interior_only*/ true);
         d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
-                                           rhs_vec->getComponentVariable(0),
+                                           Pointer<SideVariable<NDIM, double> >(rhs_vec->getComponentVariable(0)),
                                            d_temp_sc_idx,
                                            d_temp_sc_var,
                                            d_U_current_idx,
                                            d_U_var,
                                            1.0,
                                            rhs_vec->getComponentDescriptorIndex(0),
-                                           rhs_vec->getComponentVariable(0));
+                                           Pointer<SideVariable<NDIM, double> >(rhs_vec->getComponentVariable(0)));
     }
 
     // Account for body forcing terms.
@@ -1768,14 +1768,14 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::resetSolverVectors(
                                   d_rho_interp_idx,
                                   /*interior_only*/ true);
         d_hier_math_ops->pointwiseMultiply(rhs_vec->getComponentDescriptorIndex(0),
-                                           rhs_vec->getComponentVariable(0),
+                                           Pointer<SideVariable<NDIM, double> >(rhs_vec->getComponentVariable(0)),
                                            d_temp_sc_idx,
                                            d_temp_sc_var,
                                            d_U_current_idx,
                                            d_U_var,
                                            1.0,
                                            rhs_vec->getComponentDescriptorIndex(0),
-                                           rhs_vec->getComponentVariable(0));
+                                           Pointer<SideVariable<NDIM, double> >(rhs_vec->getComponentVariable(0)));
     }
 
     if (d_F_fcn)

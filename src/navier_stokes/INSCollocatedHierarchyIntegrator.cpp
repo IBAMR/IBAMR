@@ -1266,7 +1266,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
     // Project U(*) to compute U(n+1) and u_ADV(n+1).
     const double div_fac = (IBTK::abs_equal_eps(rho, 0.0) || IBTK::abs_equal_eps(dt, 0.0) ? 1.0 : rho / dt);
     d_hier_math_ops->div(d_Phi_rhs_vec->getComponentDescriptorIndex(0),
-                         d_Phi_rhs_vec->getComponentVariable(0),
+                         Pointer<CellVariable<NDIM, double> >(d_Phi_rhs_vec->getComponentVariable(0)),
                          -div_fac,
                          d_u_ADV_scratch_idx,
                          d_u_ADV_var,
