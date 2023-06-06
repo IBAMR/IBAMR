@@ -1,0 +1,6 @@
+New: Added the option to represent the jump fields plus the traction by 
+discontinuous MONOMIAL or L2_LAGRANGE family. They will be used for structures with sharp corners/edges
+and are tested for IIM/ex1 flow past a square block (2D and 3D), IIM/ex3 flow past a thin swimming airfoil, 
+IIM/ex6 the Turek-Hron benchmark, and IIM/ex9 flexible plate inside the flow phantom.
+<br>
+(Ebrahim (Amin) Kolahdouz, 2023/06/06)
