@@ -24,6 +24,8 @@
 
 #include <SAMRAIVectorReal.h>
 
+#include <vector>
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
