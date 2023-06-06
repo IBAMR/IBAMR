@@ -169,14 +169,41 @@ public:
     };
 
     /*!
-     * Register relevant part to use discontinuous element type family (L2_LAGRANGE or MONOMIAL)
-     * for the calculation of jump/traction quantities. This option should be used for geometries with
-     * sharp corners.
+     * Register relevant part to use discontinuous element type family
+     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
+     * The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
      *
      *
-     * \note The relveant FE family is provided via input file. The default value is set to regular LAGRANGE).
+     * \note The relveant FE family is provided while registering a part in the application code. 
+     * The default value is set to regular LAGRANGE.
      */
-    void registerDisconElemFamilyForJumps(unsigned int part = 0);
+    void registerDisconElemFamilyForPressureJump(unsigned int part, 
+                                           libMesh::FEFamily fe_family,
+                                           libMesh::Order fe_order);
+     /*!
+     * Register relevant part to use discontinuous element type family
+     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
+     * The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
+     *
+     *
+     * \note The relveant FE family is provided while registering a part in the application code. 
+     * The default value is set to regular LAGRANGE.
+     */
+    void registerDisconElemFamilyForViscousJump(unsigned int part, 
+                                         libMesh::FEFamily fe_family,
+                                         libMesh::Order fe_order);
+    /*!
+     * Register relevant part to use discontinuous element type family
+     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
+     * The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
+     *
+     *
+     * \note The relveant FE family is provided while registering a part in the application code. 
+     * The default value is set to regular LAGRANGE.
+     */
+    void registerDisconElemFamilyForTraction(unsigned int part, 
+                                          libMesh::FEFamily fe_family,
+                                          libMesh::Order fe_order);
 
     /*!
      * Register relevant part to only use the tangential component of the Lagrangian velocity
@@ -640,15 +667,17 @@ protected:
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_use_pressure_jump_conditions = false;
-    libMesh::FEFamily d_pressure_jump_fe_family = libMesh::LAGRANGE;
     bool d_use_velocity_jump_conditions = false;
-    libMesh::FEFamily d_velocity_jump_fe_family = libMesh::LAGRANGE;
     bool d_compute_fluid_traction = false;
-    libMesh::FEFamily d_wss_fe_family = libMesh::LAGRANGE;
-    libMesh::FEFamily d_tau_fe_family = libMesh::LAGRANGE;
     bool d_perturb_fe_mesh_nodes = true;
     std::vector<libMesh::FEFamily> d_fe_family;
+    std::vector<libMesh::FEFamily> d_viscous_jump_fe_family;
+    std::vector<libMesh::FEFamily> d_pressure_jump_fe_family;
+    std::vector<libMesh::FEFamily> d_traction_fe_family;
     std::vector<libMesh::Order> d_fe_order;
+    std::vector<libMesh::Order> d_viscous_jump_fe_order;
+    std::vector<libMesh::Order> d_pressure_jump_fe_order;
+    std::vector<libMesh::Order> d_traction_fe_order;
     std::vector<libMesh::QuadratureType> d_default_quad_type;
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;

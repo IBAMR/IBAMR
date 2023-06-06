@@ -575,7 +575,6 @@ postprocess_data(Pointer<Database> input_db,
 
         TAU_ghost_vec = TAU_system->current_local_solution.get();
     }
-
     std::unique_ptr<FEBase> fe(FEBase::build(dim, dof_map.variable_type(0)));
     std::unique_ptr<QBase> qrule = QBase::build(QGAUSS, dim, SEVENTH);
     fe->attach_quadrature_rule(qrule.get());

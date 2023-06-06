@@ -1,5 +1,5 @@
 // physical parameters
-Re = 200.0
+Re = 100.0
 RHO = 1.0
 R_D   = 1.0
 R_COM = 0.0, 0.0, 0.0
@@ -15,47 +15,50 @@ DX0 = L/N                                        // mesh width on coarsest grid 
 DX  = L/NFINEST                                  // mesh width on finest   grid level
 MFAC = 2.0                                       // ratio of Lagrangian mesh width to Cartesian mesh width
 ELEM_TYPE = "HEX8"                               // type of element to use for structure discretization
+elem_order = "FIRST"
+viscous_jump_fe_family  = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL for the viscous jump or FIRST order L2_LAGRANGE 
+viscous_jump_fe_order   = "FIRST" 
+pressure_jump_fe_family = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL for the pressure jump or FIRST order L2_LAGRANGE 
+pressure_jump_fe_order  = "CONSTANT"  
+traction_fe_family      = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL for the traction or FIRST order L2_LAGRANGE 
+traction_fe_order       = "FIRST"                
 
 // solver parameters
 IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-USE_PRESSURE_JUMP_CONDITIONS        = TRUE           // whether to impose pressure jumps at fluid-structure interfaces
-USE_VELOCITY_JUMP_CONDITIONS        = TRUE           // whether to impose velocity jumps at fluid-structure interfaces
-COMPUTE_FLUID_TRACTION   = TRUE
-TRACTION_ACTIVATION_TIME = 0.0
-WSS_CALC_WIDTH 			   = 1.05
-P_CALC_WIDTH 			   = 1.3
-USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or lumped mass matrix
-IB_POINT_DENSITY           = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
-SOLVER_TYPE                = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
-START_TIME                 = 0.0e0             // initial simulation time
-END_TIME                   = 100.0             // final simulation time
-GROW_DT                    = 2.0e0             // growth factor for timesteps
-CONVECTIVE_TS_TYPE         = "ADAMS_BASHFORTH" // convective time stepping type
-CONVECTIVE_OP_TYPE         = "STABILIZED_PPM"             // convective differencing discretization type
-CONVECTIVE_FORM            = "ADVECTIVE"       // how to compute the convective terms
-NORMALIZE_PRESSURE         = FALSE             // whether to explicitly force the pressure to have mean zero
-CFL_MAX                    = 0.2               // maximum CFL number
-DT                         = 0.25*CFL_MAX*DX   // maximum timestep size
-ERROR_ON_DT_CHANGE         = TRUE              // whether to emit an error message if the time step size changes
-VORTICITY_TAGGING          = TRUE              // whether to tag cells for refinement based on vorticity thresholds
-TAG_BUFFER                 = 4                 // size of tag buffer used by grid generation algorithm
-REGRID_CFL_INTERVAL        = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
-OUTPUT_U                   = TRUE
-OUTPUT_P                   = TRUE
-OUTPUT_F                   = TRUE
-OUTPUT_OMEGA               = TRUE
-OUTPUT_DIV_U               = TRUE
-ENABLE_LOGGING             = TRUE
+USE_PRESSURE_JUMP_CONDITIONS = TRUE              // whether to impose pressure jumps at fluid-structure interfaces
+USE_VELOCITY_JUMP_CONDITIONS = TRUE              // whether to impose velocity jumps at fluid-structure interfaces
+COMPUTE_FLUID_TRACTION       = TRUE
+TRACTION_ACTIVATION_TIME     = 0.0
+WSS_CALC_WIDTH               = 1.05
+P_CALC_WIDTH                 = 1.3
+USE_CONSISTENT_MASS_MATRIX   = TRUE              // whether to use a consistent or lumped mass matrix
+IB_POINT_DENSITY             = 4.0               // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
+SOLVER_TYPE                  = "STAGGERED"       // the fluid solver to use (STAGGERED or COLLOCATED)
+START_TIME                   = 0.0e0             // initial simulation time
+END_TIME                     = 100.0             // final simulation time
+GROW_DT                      = 2.0e0             // growth factor for timesteps
+CONVECTIVE_TS_TYPE           = "ADAMS_BASHFORTH" // convective time stepping type
+CONVECTIVE_OP_TYPE           = "STABILIZED_PPM"             // convective differencing discretization type
+CONVECTIVE_FORM              = "ADVECTIVE"       // how to compute the convective terms
+NORMALIZE_PRESSURE           = FALSE             // whether to explicitly force the pressure to have mean zero
+CFL_MAX                      = 0.2               // maximum CFL number
+DT                           = 0.25*CFL_MAX*DX   // maximum timestep size
+ERROR_ON_DT_CHANGE           = TRUE              // whether to emit an error message if the time step size changes
+VORTICITY_TAGGING            = TRUE              // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                   = 4                 // size of tag buffer used by grid generation algorithm
+REGRID_CFL_INTERVAL          = 0.5               // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
+OUTPUT_U                     = TRUE
+OUTPUT_P                     = TRUE
+OUTPUT_F                     = TRUE
+OUTPUT_OMEGA                 = TRUE
+OUTPUT_DIV_U                 = TRUE
+ENABLE_LOGGING               = TRUE
 
-
-// option to use discontinuous L2_Lagrange family for geometries with sharp features
-
-USE_DISCON_ELEMS = TRUE
 
 // model parameters
 
-KAPPA_S_SURFACE = 250.0
-ETA_S_SURFACE = 1.0
+KAPPA_S_SURFACE = 0.05*DX/DT^2
+ETA_S_SURFACE = 0.0
 
 
 
@@ -147,19 +150,15 @@ IBHierarchyIntegrator {
 
 IIMethod {
    IB_delta_fcn                 = IB_DELTA_FUNCTION
-   use_pressure_jump_conditions        = USE_PRESSURE_JUMP_CONDITIONS
+   use_pressure_jump_conditions = USE_PRESSURE_JUMP_CONDITIONS
    use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
-   compute_fluid_traction 		=  COMPUTE_FLUID_TRACTION
-   traction_activation_time = TRACTION_ACTIVATION_TIME
-   use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
-   IB_point_density           = IB_POINT_DENSITY
-   p_calc_width				   = P_CALC_WIDTH
-   wss_calc_width			  = WSS_CALC_WIDTH
-   min_ghost_cell_width = 6
-   pressure_jump_fe_family = "L2_LAGRANGE"
-   velocity_jump_fe_family = "L2_LAGRANGE"
-   wss_fe_family = "L2_LAGRANGE"
-   tau_fe_family = "L2_LAGRANGE"
+   compute_fluid_traction       =  COMPUTE_FLUID_TRACTION
+   traction_activation_time     = TRACTION_ACTIVATION_TIME
+   use_consistent_mass_matrix   = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density             = IB_POINT_DENSITY
+   p_calc_width                 = P_CALC_WIDTH
+   wss_calc_width               = WSS_CALC_WIDTH
+   min_ghost_cell_width         = 6
 }
 
 INSStaggeredHierarchyIntegrator {
@@ -189,22 +188,22 @@ Main {
    solver_type = SOLVER_TYPE
 
 // log file parameters
-   log_file_name               = "IIM_3D.log"
+   log_file_name               = "IIM3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","ExodusII"
    viz_dump_interval           = int(0.05/DT)
-   viz_dump_dirname            = "viz_IIM_3D"
+   viz_dump_dirname            = "viz_IIM3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_IIM_3d"
+   restart_dump_dirname        = "restart_IIM3d"
 
 // hierarchy data dump parameters
    data_dump_interval          = 1
-   data_dump_dirname           = "hier_data_IIM_3d"
+   data_dump_dirname           = "hier_data_IIM3d"
 
 // timer dump parameters
    timer_dump_interval         = 0
@@ -247,7 +246,7 @@ LoadBalancer {
 
 TimerManager{
    print_exclusive = FALSE
-   print_total = TRUE
+   print_total     = TRUE
    print_threshold = 0.1
-   timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }

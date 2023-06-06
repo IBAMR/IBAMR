@@ -514,7 +514,6 @@ main(int argc, char* argv[])
         p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
 
         compute_pressure_profile(patch_hierarchy, p_idx, loop_time, postproc_data_dump_dirname);
-
         compute_velocity_profile(patch_hierarchy, u_idx, loop_time, postproc_data_dump_dirname);
 
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);

@@ -7,9 +7,8 @@ U_MAX = 1.0                                      // approximate maximum velocity
 PI = 3.14159265359
 THETA = 0.0
 
-CYLINDER_MESH_FILENAME  = "/home/amin/mesh_data/CylindricalSurfaceTri_N_64_MFAC_2.e"
+CYLINDER_MESH_FILENAME  = "CylindricalSurfaceTri_N_64_MFAC_2.e"
 
-//CYLINDER_MESH_FILENAME  = "data/Ventricles_AllSideSet.e"
 // discretization parameters
 MAX_LEVELS = 1                                      // maximum number of levels in locally refined grid
 REF_RATIO  = 1                                      // refinement ratio between levels

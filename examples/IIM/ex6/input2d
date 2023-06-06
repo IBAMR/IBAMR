@@ -19,13 +19,19 @@ DX  = H/NFINEST                                    // mesh width on finest   gri
 MFAC = 2.0                                         // ratio of Lagrangian mesh width to Cartesian mesh width
 BLOCK_ELEM_TYPE = "QUAD4"                           // type of element to use for discretization of the circular block
 USE_BOUNDARY_MESH = FALSE
-BEAM_MESH_FILENAME = "beam-quad-mesh.e" //beam-uniform-QUAD-DX=0.006.e"
+BEAM_MESH_FILENAME = "beam-quad-mesh.e"
 BEAM_ELEM_TYPE  = "QUAD4"                          // type of element to use for discretization of the thin beam
 block_elem_order = "FIRST"                        // finite element order for cylinder block
 beam_elem_order = "FIRST"                         // finite element order for flexible beam
 SELECTIVE_REDUCED_INTEGRATION = TRUE
 PK1_DEV_QUAD_ORDER            = "THIRD"
-PK1_DIL_QUAD_ORDER			 = "FIRST"
+PK1_DIL_QUAD_ORDER            = "FIRST"
+viscous_jump_fe_family  = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL or FIRST order L2_LAGRANGE for the viscous jump
+pressure_jump_fe_family = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL or FIRST order L2_LAGRANGE for the pressure jump
+traction_fe_family      = "MONOMIAL"             // CONSTANT or FIRST order MONOMIAL or FIRST order L2_LAGRANGE for the traction
+viscous_jump_fe_order   = "CONSTANT"           
+pressure_jump_fe_order  = "CONSTANT"             
+traction_fe_order 	    = "CONSTANT"                // Traction order needs to be equal or smaller than the viscous and pressure jumps
 
 // solver parameters
 IB_DELTA_FUNCTION      = "IB_3"
@@ -33,8 +39,8 @@ BEAM_KERNEL_FUNCTION       = "BSPLINE_3"           // the type of smoothed delta
 USE_PRESSURE_JUMP_CONDITIONS        = TRUE           // whether to impose pressure jumps at fluid-structure interfaces
 USE_VELOCITY_JUMP_CONDITIONS        = TRUE           // whether to impose pressure jumps at fluid-structure interfaces
 COMPUTE_FLUID_TRACTION = TRUE
-WSS_CALC_WIDTH =1.05
-P_CALC_WIDTH=1.3
+WSS_CALC_WIDTH             = 1.05
+P_CALC_WIDTH               = 1.3
 USE_CONSISTENT_MASS_MATRIX = TRUE                  // whether to use a consistent or lumped mass matrix
 IB_POINT_DENSITY           = 3.0                   // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"           // the fluid solver to use (STAGGERED or COLLOCATED)
@@ -62,11 +68,6 @@ ENABLE_LOGGING             = TRUE
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
-
-
-
-
-USE_DISCON_ELEMS = TRUE
 USE_NORMALIZED_PRESSURE_JUMP = FALSE
 
 NCYCLE = 32
@@ -77,10 +78,7 @@ POISSON_RATIO = 0.499
 NU_S = POISSON_RATIO
 SHEAR_MOD = MU_S
 BULK_MOD = 2.0 * SHEAR_MOD * (1.0 + POISSON_RATIO) / (3.0 - 6.0 * POISSON_RATIO)
-
-
-
-LAMBDA_S = 2.67e6 //
+LAMBDA_S = 2.67e6 
 
 // penalty parameters
 C1_S = 5000
@@ -148,25 +146,15 @@ IBHierarchyIntegrator {
 }
 
 IIMethod{
-IB_delta_fcn = "IB_4"
-IB_kernel_fcn = "IB_4"
-interp_delta_fcn = "IB_4"
-interp_kernel_fcn = "IB_4"
-   use_pressure_jump_conditions        = USE_PRESSURE_JUMP_CONDITIONS
+   use_pressure_jump_conditions = USE_PRESSURE_JUMP_CONDITIONS
    use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
-   use_consistent_mass_matrix = USE_CONSISTENT_MASS_MATRIX
-   IB_point_density           = IB_POINT_DENSITY
-   min_ghost_cell_width = 6
-   wss_calc_width = WSS_CALC_WIDTH
-   p_calc_width = P_CALC_WIDTH
-   compute_fluid_traction = COMPUTE_FLUID_TRACTION
-         pressure_jump_fe_family      = "L2_LAGRANGE"          // input used
-      velocity_jump_fe_family      = "L2_LAGRANGE"          // input used
-      wss_fe_family                = "L2_LAGRANGE"          // input used
-      tau_fe_family                = "L2_LAGRANGE"          // input used
-   
-   exterior_calc_coef = 1.0
-   
+   use_consistent_mass_matrix   = USE_CONSISTENT_MASS_MATRIX
+   IB_point_density             = IB_POINT_DENSITY
+   min_ghost_cell_width         = 6
+   wss_calc_width               = WSS_CALC_WIDTH
+   p_calc_width                 = P_CALC_WIDTH
+   compute_fluid_traction       = COMPUTE_FLUID_TRACTION   
+   exterior_calc_coef           = 1.0
 }
 
 INSCollocatedHierarchyIntegrator {
