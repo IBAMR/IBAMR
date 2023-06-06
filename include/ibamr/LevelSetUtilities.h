@@ -77,7 +77,7 @@ public:
     };
 
     /*!
-     * \brief A lightweight structure that stores the current value of the Lagrange multiplier value
+     * \brief A lightweight structure that stores the current value of the Lagrange multiplier
      *  for the level set variable.
      */
     struct LevelSetMassLossFixer : public LevelSetContainer

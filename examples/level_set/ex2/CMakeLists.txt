@@ -11,6 +11,20 @@
 ##
 ## ---------------------------------------------------------------------
 
-FOREACH(_dir ex0 ex1 ex2)
-  ADD_SUBDIRECTORY(${_dir})
-ENDFOREACH()
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "level_set-ex2-2d"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/level_set/ex2"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-level_set
+  SOURCES
+    example.cpp LSLocateInterface.cpp
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+    input2d
+  )
+

@@ -269,6 +269,20 @@ smooth_heaviside(const double& phi, const double& alpha)
 }
 
 /*!
+ * Smooth delta function.
+ */
+inline double
+smooth_delta(const double& phi, const double& alpha)
+{
+    double delta = 0.0;
+    if (std::abs(phi) <= alpha)
+    {
+        delta = 0.5 / alpha + 1.0 / (2.0 * alpha) * std::cos(M_PI * phi / alpha);
+    }
+    return delta;
+}
+
+/*!
  * Discontinuous heaviside function.
  */
 inline double
