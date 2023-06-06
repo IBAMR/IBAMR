@@ -145,4 +145,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LSetDataFactory
+#endif // #ifndef included_IBTK_LSetDataFactory

@@ -110,4 +110,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LinearOperator
+#endif // #ifndef included_IBTK_LinearOperator

@@ -3768,7 +3768,8 @@ HierarchyMathOps::enforceHangingNodeConstraints(const int dst_idx, Pointer<NodeV
     if (NDIM == 1) return;
 
     // Convert a BoundaryBox (which is implicitly cell-centered) into a nodal box.
-    auto boundary_to_nodal = [](const BoundaryBox<NDIM>& bbox) {
+    auto boundary_to_nodal = [](const BoundaryBox<NDIM>& bbox)
+    {
         // lower faces are even, upper faces are odd
         const int location = bbox.getLocationIndex();
         const bool is_lower_face = location % 2 == 0;

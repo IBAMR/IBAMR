@@ -421,4 +421,4 @@ struct LNodeIndexLocalPETScIndexEqual
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LNodeIndex
+#endif // #ifndef included_IBTK_LNodeIndex

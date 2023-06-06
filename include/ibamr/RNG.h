@@ -45,4 +45,4 @@ private:
 };
 } // namespace IBAMR
 
-#endif //#ifndef included_IBAMR_RNG
+#endif // #ifndef included_IBAMR_RNG

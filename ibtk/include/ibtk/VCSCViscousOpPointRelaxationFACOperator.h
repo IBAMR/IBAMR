@@ -211,4 +211,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_VCSCViscousOpPointRelaxationFACOperator
+#endif // #ifndef included_IBTK_VCSCViscousOpPointRelaxationFACOperator

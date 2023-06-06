@@ -225,4 +225,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_PETScVecUtilities
+#endif // #ifndef included_IBTK_PETScVecUtilities

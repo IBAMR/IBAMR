@@ -101,4 +101,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LevelSetInitialConditionEgg
+#endif // #ifndef included_LevelSetInitialConditionEgg

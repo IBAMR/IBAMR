@@ -32,4 +32,4 @@ using LNodeIndexTransaction = LTransaction<LNodeIndex>;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LNodeIndexTransaction
+#endif // #ifndef included_IBTK_LNodeIndexTransaction

@@ -210,4 +210,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_PenaltyIBMethod
+#endif // #ifndef included_IBAMR_PenaltyIBMethod

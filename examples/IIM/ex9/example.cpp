@@ -543,12 +543,16 @@ main(int argc, char* argv[])
         const string p_j_fe_order = input_db->getString("pressure_jump_fe_order");
         const string traction_fe_family = input_db->getString("traction_fe_family");
         const string traction_fe_order = input_db->getString("traction_fe_order");
-        ib_method_ops->registerDisconElemFamilyForViscousJump(BEAM_PART, Utility::string_to_enum<FEFamily>(visc_j_fe_family), Utility::string_to_enum<Order>(visc_j_fe_order));
-        ib_method_ops->registerDisconElemFamilyForPressureJump(BEAM_PART, Utility::string_to_enum<FEFamily>(p_j_fe_family), Utility::string_to_enum<Order>(p_j_fe_order));
+        ib_method_ops->registerDisconElemFamilyForViscousJump(BEAM_PART,
+                                                              Utility::string_to_enum<FEFamily>(visc_j_fe_family),
+                                                              Utility::string_to_enum<Order>(visc_j_fe_order));
+        ib_method_ops->registerDisconElemFamilyForPressureJump(
+            BEAM_PART, Utility::string_to_enum<FEFamily>(p_j_fe_family), Utility::string_to_enum<Order>(p_j_fe_order));
         if (input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false))
-			ib_method_ops->registerDisconElemFamilyForTraction(BEAM_PART, Utility::string_to_enum<FEFamily>(traction_fe_family), Utility::string_to_enum<Order>(traction_fe_order));
+            ib_method_ops->registerDisconElemFamilyForTraction(BEAM_PART,
+                                                               Utility::string_to_enum<FEFamily>(traction_fe_family),
+                                                               Utility::string_to_enum<Order>(traction_fe_order));
 
-        
         if (USE_NORMALIZED_PRESSURE_JUMP) ib_method_ops->registerPressureJumpNormalization(BEAM_PART);
 
         ib_method_ops->initializeFEEquationSystems();

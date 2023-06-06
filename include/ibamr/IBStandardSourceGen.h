@@ -253,4 +253,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBStandardSourceGen
+#endif // #ifndef included_IBAMR_IBStandardSourceGen

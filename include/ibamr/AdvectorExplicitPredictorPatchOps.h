@@ -390,4 +390,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_AdvectorExplicitPredictorPatchOps
+#endif // #ifndef included_IBAMR_AdvectorExplicitPredictorPatchOps

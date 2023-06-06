@@ -170,40 +170,36 @@ public:
 
     /*!
      * Register relevant part to use discontinuous element type family
-     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
-     * The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
+     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp
+     * corners. The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
      *
      *
-     * \note The relveant FE family is provided while registering a part in the application code. 
+     * \note The relveant FE family is provided while registering a part in the application code.
      * The default value is set to regular LAGRANGE.
      */
-    void registerDisconElemFamilyForPressureJump(unsigned int part, 
-                                           libMesh::FEFamily fe_family,
-                                           libMesh::Order fe_order);
-     /*!
-     * Register relevant part to use discontinuous element type family
-     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
-     * The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
-     *
-     *
-     * \note The relveant FE family is provided while registering a part in the application code. 
-     * The default value is set to regular LAGRANGE.
-     */
-    void registerDisconElemFamilyForViscousJump(unsigned int part, 
-                                         libMesh::FEFamily fe_family,
-                                         libMesh::Order fe_order);
+    void
+    registerDisconElemFamilyForPressureJump(unsigned int part, libMesh::FEFamily fe_family, libMesh::Order fe_order);
     /*!
      * Register relevant part to use discontinuous element type family
-     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp corners.
-     * The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
+     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp
+     * corners. The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
      *
      *
-     * \note The relveant FE family is provided while registering a part in the application code. 
+     * \note The relveant FE family is provided while registering a part in the application code.
      * The default value is set to regular LAGRANGE.
      */
-    void registerDisconElemFamilyForTraction(unsigned int part, 
-                                          libMesh::FEFamily fe_family,
-                                          libMesh::Order fe_order);
+    void
+    registerDisconElemFamilyForViscousJump(unsigned int part, libMesh::FEFamily fe_family, libMesh::Order fe_order);
+    /*!
+     * Register relevant part to use discontinuous element type family
+     * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp
+     * corners. The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
+     *
+     *
+     * \note The relveant FE family is provided while registering a part in the application code.
+     * The default value is set to regular LAGRANGE.
+     */
+    void registerDisconElemFamilyForTraction(unsigned int part, libMesh::FEFamily fe_family, libMesh::Order fe_order);
 
     /*!
      * Register relevant part to only use the tangential component of the Lagrangian velocity
@@ -792,4 +788,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IIMethod
+#endif // #ifndef included_IBAMR_IIMethod

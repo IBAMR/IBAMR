@@ -262,4 +262,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_RelaxationLSMethod
+#endif // #ifndef included_IBAMR_RelaxationLSMethod

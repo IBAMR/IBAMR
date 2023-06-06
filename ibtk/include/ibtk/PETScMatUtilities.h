@@ -315,4 +315,4 @@ private:
 
 /////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_PETScMatUtilities
+#endif // #ifndef included_IBTK_PETScMatUtilities

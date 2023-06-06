@@ -191,4 +191,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSStaggeredUpwindConvectiveOperator
+#endif // #ifndef included_IBAMR_INSStaggeredUpwindConvectiveOperator

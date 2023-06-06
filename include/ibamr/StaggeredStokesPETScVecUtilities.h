@@ -204,4 +204,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_StaggeredStokesPETScVecUtilities
+#endif // #ifndef included_IBAMR_StaggeredStokesPETScVecUtilities

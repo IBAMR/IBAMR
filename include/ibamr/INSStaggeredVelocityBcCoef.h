@@ -283,4 +283,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSStaggeredVelocityBcCoef
+#endif // #ifndef included_IBAMR_INSStaggeredVelocityBcCoef

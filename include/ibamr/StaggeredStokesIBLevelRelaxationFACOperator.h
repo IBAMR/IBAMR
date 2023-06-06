@@ -348,4 +348,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_StaggeredStokesIBLevelRelaxationFACOperator
+#endif // #ifndef included_IBAMR_StaggeredStokesIBLevelRelaxationFACOperator

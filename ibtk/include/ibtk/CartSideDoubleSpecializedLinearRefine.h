@@ -141,4 +141,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CartSideDoubleSpecializedLinearRefine
+#endif // #ifndef included_IBTK_CartSideDoubleSpecializedLinearRefine

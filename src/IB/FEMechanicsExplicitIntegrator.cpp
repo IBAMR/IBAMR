@@ -834,9 +834,10 @@ FEMechanicsExplicitIntegrator::commonConstructor(const Pointer<Database>& input_
 {
     // Setup timers.
     auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
-    IBAMR_DO_ONCE(t_preprocess_integrate_data = set_timer("IBAMR::FEMechanicsExplicitIntegrator::preprocessIntegrateData()");
-                  t_postprocess_integrate_data = set_timer("IBAMR::FEMechanicsExplicitIntegrator::postprocessIntegrateData()");
-                  t_compute_lagrangian_force = set_timer("IBAMR::FEMechanicsExplicitIntegrator::computeLagrangianForce()"););
+    IBAMR_DO_ONCE(
+        t_preprocess_integrate_data = set_timer("IBAMR::FEMechanicsExplicitIntegrator::preprocessIntegrateData()");
+        t_postprocess_integrate_data = set_timer("IBAMR::FEMechanicsExplicitIntegrator::postprocessIntegrateData()");
+        t_compute_lagrangian_force = set_timer("IBAMR::FEMechanicsExplicitIntegrator::computeLagrangianForce()"););
     // Set some default values.
     d_rhos.resize(d_meshes.size(), 1.0);
     d_etas.resize(d_meshes.size(), 0.0);

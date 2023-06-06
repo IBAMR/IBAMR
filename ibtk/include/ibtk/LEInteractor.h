@@ -1332,4 +1332,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LEInteractor
+#endif // #ifndef included_IBTK_LEInteractor

@@ -219,4 +219,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBSourceSpec
+#endif // #ifndef included_IBAMR_IBSourceSpec

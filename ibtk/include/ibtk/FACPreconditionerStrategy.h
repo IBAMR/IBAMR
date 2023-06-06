@@ -284,4 +284,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_FACPreconditionerStrategy
+#endif // #ifndef included_IBTK_FACPreconditionerStrategy

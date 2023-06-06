@@ -166,4 +166,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CCLaplaceOperator
+#endif // #ifndef included_IBTK_CCLaplaceOperator

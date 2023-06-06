@@ -158,4 +158,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_ConvectiveOperator
+#endif // #ifndef included_IBAMR_ConvectiveOperator

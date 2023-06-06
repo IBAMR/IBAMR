@@ -167,4 +167,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_LSInitStrategy
+#endif // #ifndef included_IBAMR_LSInitStrategy

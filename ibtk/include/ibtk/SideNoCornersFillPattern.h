@@ -186,4 +186,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_SideNoCornersFillPattern
+#endif // #ifndef included_IBTK_SideNoCornersFillPattern

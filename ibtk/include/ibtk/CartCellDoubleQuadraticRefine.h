@@ -140,4 +140,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CartCellDoubleQuadraticRefine
+#endif // #ifndef included_IBTK_CartCellDoubleQuadraticRefine

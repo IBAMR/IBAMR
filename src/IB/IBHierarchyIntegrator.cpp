@@ -180,7 +180,8 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
             TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
                                      << "  attempting to perform " << d_current_num_cycles
                                      << " cycles of fixed point iteration.\n"
-                                     << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles << ".\n"
+                                     << "  number of cycles required by Navier-Stokes solver = " << ins_num_cycles
+                                     << ".\n"
                                      << "  current implementation requires either that both solvers "
                                         "use the same number of cycles,\n"
                                      << "  or that the IB solver use only a single cycle.\n");

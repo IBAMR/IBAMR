@@ -174,4 +174,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_SCLaplaceOperator
+#endif // #ifndef included_IBTK_SCLaplaceOperator

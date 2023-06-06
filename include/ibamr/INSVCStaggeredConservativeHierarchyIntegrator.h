@@ -298,4 +298,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeHierarchyIntegrator
+#endif // #ifndef included_IBAMR_INSVCStaggeredConservativeHierarchyIntegrator

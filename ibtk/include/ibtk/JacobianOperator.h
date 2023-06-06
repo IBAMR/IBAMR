@@ -112,4 +112,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_JacobianOperator
+#endif // #ifndef included_IBTK_JacobianOperator

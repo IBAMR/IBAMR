@@ -759,4 +759,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSVCStaggeredHierarchyIntegrator
+#endif // #ifndef included_IBAMR_INSVCStaggeredHierarchyIntegrator

@@ -35,12 +35,12 @@ namespace IBTK
 {
 namespace
 {
-static Timer *t_reinit;
-static Timer *t_collect_all_markers;
-static Timer *t_forward_euler_step;
-static Timer *t_midpoint_step;
-static Timer *t_trapezoidal_step;
-static Timer *t_prune_and_redistribute;
+static Timer* t_reinit;
+static Timer* t_collect_all_markers;
+static Timer* t_forward_euler_step;
+static Timer* t_midpoint_step;
+static Timer* t_trapezoidal_step;
+static Timer* t_prune_and_redistribute;
 
 std::vector<std::vector<hier::Box<NDIM> > >
 compute_nonoverlapping_patch_boxes(const Pointer<BasePatchLevel<NDIM> >& c_level,
@@ -308,8 +308,7 @@ MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
           d_hierarchy->getGridGeometry(),
           IntVector<NDIM>(1))
 {
-    auto set_timer = [&](const char *name)
-    { return TimerManager::getManager()->getTimer(name); };
+    auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
     t_reinit = set_timer("IBTK::MarkerPatchHierarchy::reinit()");
     t_collect_all_markers = set_timer("IBTK::MarkerPatchHierarchy::collectAllMarkers()");
     t_forward_euler_step = set_timer("IBTK::MarkerPatchHierarchy::forwardEulerStep()");

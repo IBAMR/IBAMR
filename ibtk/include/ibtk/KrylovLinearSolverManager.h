@@ -138,4 +138,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_KrylovLinearSolverManager
+#endif // #ifndef included_IBTK_KrylovLinearSolverManager

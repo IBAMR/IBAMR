@@ -50,4 +50,4 @@ LMesh::getGhostNodes() const
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LMesh_inl_h
+#endif // #ifndef included_IBTK_LMesh_inl_h

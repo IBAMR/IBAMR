@@ -172,4 +172,4 @@ private:
 }; // RigidBodyKinematics
 
 } // namespace IBAMR
-#endif //#ifndef included_RigidBodyKinematics
+#endif // #ifndef included_RigidBodyKinematics

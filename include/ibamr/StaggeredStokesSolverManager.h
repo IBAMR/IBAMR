@@ -182,4 +182,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_StaggeredStokesSolverManager
+#endif // #ifndef included_IBAMR_StaggeredStokesSolverManager

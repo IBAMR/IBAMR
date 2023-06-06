@@ -143,4 +143,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_KrylovLinearSolver
+#endif // #ifndef included_IBTK_KrylovLinearSolver

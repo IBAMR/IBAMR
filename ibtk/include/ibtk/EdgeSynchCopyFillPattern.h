@@ -141,4 +141,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_EdgeSynchCopyFillPattern
+#endif // #ifndef included_IBTK_EdgeSynchCopyFillPattern

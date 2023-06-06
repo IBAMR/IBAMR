@@ -368,4 +368,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBImplicitStaggeredHierarchyIntegrator
+#endif // #ifndef included_IBAMR_IBImplicitStaggeredHierarchyIntegrator

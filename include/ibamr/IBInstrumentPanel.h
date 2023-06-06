@@ -285,4 +285,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBInstrumentPanel
+#endif // #ifndef included_IBAMR_IBInstrumentPanel
