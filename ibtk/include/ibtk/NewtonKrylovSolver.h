@@ -218,4 +218,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_NewtonKrylovSolver
+#endif // #ifndef included_IBTK_NewtonKrylovSolver

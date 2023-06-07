@@ -296,4 +296,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBStandardForceGen
+#endif // #ifndef included_IBAMR_IBStandardForceGen

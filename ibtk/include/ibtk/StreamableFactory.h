@@ -119,4 +119,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_StreamableFactory
+#endif // #ifndef included_IBTK_StreamableFactory

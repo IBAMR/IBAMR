@@ -386,4 +386,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator
+#endif // #ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumIntegrator

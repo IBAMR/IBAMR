@@ -101,4 +101,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LevelSetInitialCondition
+#endif // #ifndef included_LevelSetInitialCondition

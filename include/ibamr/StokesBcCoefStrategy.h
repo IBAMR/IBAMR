@@ -140,4 +140,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_StokesBcCoefStrategy
+#endif // #ifndef included_IBAMR_StokesBcCoefStrategy

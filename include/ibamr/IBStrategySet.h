@@ -356,4 +356,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBStrategySet
+#endif // #ifndef included_IBAMR_IBStrategySet

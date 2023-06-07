@@ -158,4 +158,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_DebuggingUtilities
+#endif // #ifndef included_IBTK_DebuggingUtilities

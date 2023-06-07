@@ -274,4 +274,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_GeneralizedIBMethod
+#endif // #ifndef included_IBAMR_GeneralizedIBMethod

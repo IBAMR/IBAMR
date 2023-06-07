@@ -144,10 +144,11 @@ IBStrategy::getLagrangianStructureIsActivated(int /*structure_number*/, int /*le
 double
 IBStrategy::getMaxPointDisplacement() const
 {
-    TBOX_ERROR("IBStrategy::getMaxPointDisplacement(): This method, which permits regridding based on the maximum "
-               "displacement of the structure, is not yet implemented by the inheriting class. You must use regridding "
-               "based on the fluid CFL estimate instead. this is typically done by setting regrid_fluid_cfl_interval "
-               "and *not* setting regrid_structure_cfl_interval in the input database for IBHierarchyIntegrator.\n");
+    TBOX_ERROR(
+        "IBStrategy::getMaxPointDisplacement(): This method, which permits regridding based on the maximum "
+        "displacement of the structure, is not yet implemented by the inheriting class. You must use regridding "
+        "based on the fluid CFL estimate instead. this is typically done by setting regrid_fluid_cfl_interval "
+        "and *not* setting regrid_structure_cfl_interval in the input database for IBHierarchyIntegrator.\n");
     return std::numeric_limits<double>::max();
 } // getMaxPointDisplacement
 
@@ -269,15 +270,17 @@ IBStrategy::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, co
     return;
 } // addWorkloadEstimate
 
-void IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                         Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     // intentionally blank
     return;
 } // beginDataRedistribution
 
-void IBStrategy::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IBStrategy::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     // intentionally blank
     return;
@@ -317,7 +320,8 @@ IBStrategy::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy
     return;
 } // applyGradientDetector
 
-void IBStrategy::putToDatabase(Pointer<Database> /*db*/)
+void
+IBStrategy::putToDatabase(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;

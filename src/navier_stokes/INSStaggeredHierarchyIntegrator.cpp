@@ -2127,13 +2127,8 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         }
 
         // synch both the src and dst data:
-        d_hier_math_ops->interp(P_nc_idx,
-                                d_P_nc_var,
-                                synch_cf_interface,
-                                d_P_scratch_idx,
-                                d_P_var,
-                                d_no_fill_op,
-                                d_integrator_time);
+        d_hier_math_ops->interp(
+            P_nc_idx, d_P_nc_var, synch_cf_interface, d_P_scratch_idx, d_P_var, d_no_fill_op, d_integrator_time);
     }
     if (d_F_fcn && d_output_F)
     {

@@ -78,4 +78,4 @@ LSetData<T>::data_end()
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LSetData_inl_h
+#endif // #ifndef included_IBTK_LSetData_inl_h

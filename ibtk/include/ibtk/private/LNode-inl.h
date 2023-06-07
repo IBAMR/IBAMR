@@ -256,4 +256,4 @@ LNode::setupNodeDataTypeArray()
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LNode_inl_h
+#endif // #ifndef included_IBTK_LNode_inl_h

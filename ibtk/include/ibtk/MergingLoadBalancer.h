@@ -83,4 +83,4 @@ public:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_MergingLoadBalancer
+#endif // #ifndef included_IBTK_MergingLoadBalancer

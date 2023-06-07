@@ -184,4 +184,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LIndexSetData
+#endif // #ifndef included_IBTK_LIndexSetData

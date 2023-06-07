@@ -32,4 +32,4 @@ using LNodeIndexSet = LSet<LNodeIndex>;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LNodeIndexSet
+#endif // #ifndef included_IBTK_LNodeIndexSet

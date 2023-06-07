@@ -560,4 +560,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_AdvectorPredictorCorrectorHyperbolicPatchOps
+#endif // #ifndef included_IBAMR_AdvectorPredictorCorrectorHyperbolicPatchOps

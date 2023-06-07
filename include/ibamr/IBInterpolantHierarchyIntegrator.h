@@ -152,4 +152,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBInterpolantHierarchyIntegrator
+#endif // #ifndef included_IBInterpolantHierarchyIntegrator

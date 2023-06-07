@@ -57,7 +57,6 @@ LSetData<T>::LSetData(Box<NDIM> box, IntVector<NDIM> ghosts)
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-
 #include "ibtk/LNodeSet.h"
 
 template class SAMRAI::pdat::IndexData<NDIM, IBTK::LNodeSet, CellGeometry<NDIM> >;

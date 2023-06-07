@@ -87,7 +87,7 @@ tether_force_function(VectorValue<double>& F,
     const std::vector<double>& U = *var_data[0];
     double u_bndry_n = 0.0;
     for (unsigned int d = 0; d < NDIM; ++d) u_bndry_n += n(d) * U[d];
-    
+
     double dx_length = 0.0;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -211,9 +211,9 @@ main(int argc, char* argv[])
                                               static_cast<int>(ceil(R_D / ds)),
                                               static_cast<int>(ceil(R_D / ds)),
                                               -R_D / 2.0,
-                                               R_D / 2.0,
+                                              R_D / 2.0,
                                               -R_D / 2.0,
-                                               R_D / 2.0,
+                                              R_D / 2.0,
                                               -R_D / 2.0,
                                               R_D / 2.0,
                                               Utility::string_to_enum<ElemType>(elem_type));
@@ -288,10 +288,14 @@ main(int argc, char* argv[])
 
         // Whether to use discontinuous basis functions with element-local support for the jumps + traction
         // We set this up before initializing the FE equation system
-        ibfe_ops->registerDisconElemFamilyForViscousJump(0, Utility::string_to_enum<FEFamily>(visc_j_fe_family), Utility::string_to_enum<Order>(visc_j_fe_order));
-        ibfe_ops->registerDisconElemFamilyForPressureJump(0, Utility::string_to_enum<FEFamily>(p_j_fe_family), Utility::string_to_enum<Order>(p_j_fe_order));
+        ibfe_ops->registerDisconElemFamilyForViscousJump(
+            0, Utility::string_to_enum<FEFamily>(visc_j_fe_family), Utility::string_to_enum<Order>(visc_j_fe_order));
+        ibfe_ops->registerDisconElemFamilyForPressureJump(
+            0, Utility::string_to_enum<FEFamily>(p_j_fe_family), Utility::string_to_enum<Order>(p_j_fe_order));
         if (input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false))
-			ibfe_ops->registerDisconElemFamilyForTraction(0, Utility::string_to_enum<FEFamily>(traction_fe_family), Utility::string_to_enum<Order>(traction_fe_order));
+            ibfe_ops->registerDisconElemFamilyForTraction(0,
+                                                          Utility::string_to_enum<FEFamily>(traction_fe_family),
+                                                          Utility::string_to_enum<Order>(traction_fe_order));
 
         ibfe_ops->initializeFEEquationSystems();
         equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
@@ -402,7 +406,6 @@ main(int argc, char* argv[])
             U_L2_norm_stream.precision(10);
             U_max_norm_stream.precision(10);
         }
-
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -606,7 +609,6 @@ postprocess_data(tbox::Pointer<tbox::Database> input_db,
         lift_F_stream << loop_time << " " << -F_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
         drag_TAU_stream << loop_time << " " << T_integral[0] / (0.5 * rho * U_max * U_max * D) << endl;
         lift_TAU_stream << loop_time << " " << T_integral[1] / (0.5 * rho * U_max * U_max * D) << endl;
-
     }
     return;
 } // postprocess_data

@@ -146,4 +146,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CartSideDoubleRT0Coarsen
+#endif // #ifndef included_IBTK_CartSideDoubleRT0Coarsen

@@ -107,4 +107,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_ExtendedRobinBcCoefStrategy
+#endif // #ifndef included_IBTK_ExtendedRobinBcCoefStrategy

@@ -116,4 +116,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_ParallelEdgeMap
+#endif // #ifndef included_IBTK_ParallelEdgeMap

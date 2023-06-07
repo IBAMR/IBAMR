@@ -110,4 +110,4 @@ void copyToHypre(HYPRE_SStructVector& vector,
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_solver_utilities
+#endif // #ifndef included_IBTK_solver_utilities

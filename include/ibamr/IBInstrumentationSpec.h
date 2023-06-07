@@ -251,4 +251,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBInstrumentationSpec
+#endif // #ifndef included_IBAMR_IBInstrumentationSpec

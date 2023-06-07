@@ -230,4 +230,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LInitStrategy
+#endif // #ifndef included_IBTK_LInitStrategy

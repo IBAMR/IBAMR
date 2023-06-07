@@ -336,4 +336,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_GeneralOperator
+#endif // #ifndef included_IBTK_GeneralOperator

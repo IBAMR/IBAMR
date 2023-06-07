@@ -410,4 +410,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_CIBSaddlePointSolver
+#endif // #ifndef included_IBAMR_CIBSaddlePointSolver

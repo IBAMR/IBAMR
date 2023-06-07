@@ -121,4 +121,4 @@ default_spring_force_deriv(double /*R*/, const double* params, int /*lag_mastr_i
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBSpringForceFunctions
+#endif // #ifndef included_IBAMR_IBSpringForceFunctions

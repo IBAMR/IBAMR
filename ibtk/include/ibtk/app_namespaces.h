@@ -94,4 +94,4 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_app_namespaces
+#endif // #ifndef included_IBTK_app_namespaces

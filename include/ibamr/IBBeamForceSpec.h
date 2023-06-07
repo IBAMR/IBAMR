@@ -274,4 +274,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBBeamForceSpec
+#endif // #ifndef included_IBAMR_IBBeamForceSpec

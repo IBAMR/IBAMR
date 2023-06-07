@@ -210,4 +210,4 @@ private:
     IBTK::VectorNd d_uniform_u;
 };
 
-#endif //#ifndef included_UFunction
+#endif // #ifndef included_UFunction

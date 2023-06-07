@@ -32,4 +32,4 @@ using LNodeTransaction = LTransaction<LNode>;
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LNodeTransaction
+#endif // #ifndef included_IBTK_LNodeTransaction

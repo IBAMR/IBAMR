@@ -206,4 +206,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSCollocatedPPMConvectiveOperator
+#endif // #ifndef included_IBAMR_INSCollocatedPPMConvectiveOperator

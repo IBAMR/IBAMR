@@ -326,4 +326,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBFEDirectForcingKinematics
+#endif // #ifndef included_IBAMR_IBFEDirectForcingKinematics

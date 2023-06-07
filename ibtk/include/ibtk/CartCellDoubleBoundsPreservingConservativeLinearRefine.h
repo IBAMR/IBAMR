@@ -155,4 +155,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CartCellDoubleBoundsPreservingConservativeLinearRefine
+#endif // #ifndef included_IBTK_CartCellDoubleBoundsPreservingConservativeLinearRefine

@@ -170,4 +170,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_AdvDiffPredictorCorrectorHyperbolicPatchOps
+#endif // #ifndef included_IBAMR_AdvDiffPredictorCorrectorHyperbolicPatchOps

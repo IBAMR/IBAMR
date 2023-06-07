@@ -134,4 +134,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_StaggeredStokesOpenBoundaryStabilizer
+#endif // #ifndef included_IBAMR_StaggeredStokesOpenBoundaryStabilizer

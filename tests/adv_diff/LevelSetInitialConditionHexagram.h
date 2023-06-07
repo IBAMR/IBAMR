@@ -97,4 +97,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_LevelSetInitialConditionHexagram
+#endif // #ifndef included_LevelSetInitialConditionHexagram

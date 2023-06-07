@@ -195,4 +195,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSStaggeredPPMConvectiveOperator
+#endif // #ifndef included_IBAMR_INSStaggeredPPMConvectiveOperator

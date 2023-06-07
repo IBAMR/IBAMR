@@ -156,4 +156,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_VCSCViscousOperator
+#endif // #ifndef included_IBTK_VCSCViscousOperator

@@ -150,4 +150,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSCollocatedConvectiveOperatorManager
+#endif // #ifndef included_IBAMR_INSCollocatedConvectiveOperatorManager

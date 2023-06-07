@@ -252,4 +252,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBRodForceSpec
+#endif // #ifndef included_IBAMR_IBRodForceSpec

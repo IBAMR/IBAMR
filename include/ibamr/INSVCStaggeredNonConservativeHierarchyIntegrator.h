@@ -295,4 +295,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSVCStaggeredNonConservativeHierarchyIntegrator
+#endif // #ifndef included_IBAMR_INSVCStaggeredNonConservativeHierarchyIntegrator

@@ -362,4 +362,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_BrinkmanPenalizationRigidBodyDynamics
+#endif // #ifndef included_BrinkmanPenalizationRigidBodyDynamics

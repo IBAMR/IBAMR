@@ -520,10 +520,14 @@ main(int argc, char* argv[])
         const string traction_fe_order = input_db->getString("traction_fe_order");
         // Whether to use discontinuous basis functions with element-local support for the jumps + traction
         // We set this up before initializing the FE equation system
-        ibfe_bndry_ops->registerDisconElemFamilyForViscousJump(0, Utility::string_to_enum<FEFamily>(visc_j_fe_family), Utility::string_to_enum<Order>(visc_j_fe_order));
-        ibfe_bndry_ops->registerDisconElemFamilyForPressureJump(0, Utility::string_to_enum<FEFamily>(p_j_fe_family), Utility::string_to_enum<Order>(p_j_fe_order));
+        ibfe_bndry_ops->registerDisconElemFamilyForViscousJump(
+            0, Utility::string_to_enum<FEFamily>(visc_j_fe_family), Utility::string_to_enum<Order>(visc_j_fe_order));
+        ibfe_bndry_ops->registerDisconElemFamilyForPressureJump(
+            0, Utility::string_to_enum<FEFamily>(p_j_fe_family), Utility::string_to_enum<Order>(p_j_fe_order));
         if (input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false))
-            ibfe_bndry_ops->registerDisconElemFamilyForTraction(0, Utility::string_to_enum<FEFamily>(traction_fe_family), Utility::string_to_enum<Order>(traction_fe_order));
+            ibfe_bndry_ops->registerDisconElemFamilyForTraction(0,
+                                                                Utility::string_to_enum<FEFamily>(traction_fe_family),
+                                                                Utility::string_to_enum<Order>(traction_fe_order));
 
         if (USE_NORMALIZED_PRESSURE_JUMP) ibfe_bndry_ops->registerPressureJumpNormalization();
 

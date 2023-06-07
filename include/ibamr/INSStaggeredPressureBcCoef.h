@@ -273,4 +273,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSStaggeredPressureBcCoef
+#endif // #ifndef included_IBAMR_INSStaggeredPressureBcCoef

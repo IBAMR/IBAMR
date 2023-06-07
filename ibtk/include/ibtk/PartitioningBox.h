@@ -142,4 +142,4 @@ protected:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_ibtk_partitioningbox
+#endif // #ifndef included_IBTK_ibtk_partitioningbox

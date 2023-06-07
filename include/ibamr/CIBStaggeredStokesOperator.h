@@ -178,4 +178,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_CIBStaggeredStokesOperator
+#endif // #ifndef included_IBAMR_CIBStaggeredStokesOperator

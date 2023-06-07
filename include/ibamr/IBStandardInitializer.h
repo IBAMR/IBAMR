@@ -665,4 +665,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBStandardInitializer
+#endif // #ifndef included_IBAMR_IBStandardInitializer

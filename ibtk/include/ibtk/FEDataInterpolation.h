@@ -375,5 +375,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifdef IBTK_HAVE_LIBMESH
-#endif //#ifndef included_FEDataInterpolation
+#endif // #ifdef IBTK_HAVE_LIBMESH
+#endif // #ifndef included_FEDataInterpolation

@@ -205,4 +205,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_BrinkmanAdvDiffSemiImplicitHierarchyIntegrator
+#endif // #ifndef included_IBAMR_BrinkmanAdvDiffSemiImplicitHierarchyIntegrator

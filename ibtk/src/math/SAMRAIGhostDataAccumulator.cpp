@@ -60,9 +60,9 @@ namespace IBTK
 /////////////////////////////// STATIC ///////////////////////////////////////
 namespace
 {
-static Timer *t_constructor;
-static Timer *t_accumulate_ghost_data;
-static Timer *t_add_or_get;
+static Timer* t_constructor;
+static Timer* t_accumulate_ghost_data;
+static Timer* t_add_or_get;
 
 // The code leading to VecGetValues and VecSetValues is identical, so use one
 // function for both. Here the last argument is true if we set and false if we
@@ -139,8 +139,7 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
                                                        const int finest_ln)
     : d_hierarchy(patch_hierarchy), d_var(var), d_gcw(gcw), d_coarsest_ln(coarsest_ln), d_finest_ln(finest_ln)
 {
-    auto set_timer = [&](const char *name)
-    { return TimerManager::getManager()->getTimer(name); };
+    auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
     t_constructor = set_timer("IBTK::SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator()");
     t_accumulate_ghost_data = set_timer("IBTK::SAMRAIGhostDataAccumulator::accumulateGhostData()");
     t_add_or_get = set_timer("IBTK::SAMRAIGhostDataAccumulator::accumulateGhostData()[add_or_get]");

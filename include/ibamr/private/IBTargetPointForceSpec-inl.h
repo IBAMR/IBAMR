@@ -139,4 +139,4 @@ IBTargetPointForceSpec::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBTargetPointForceSpec_inl
+#endif // #ifndef included_IBAMR_IBTargetPointForceSpec_inl

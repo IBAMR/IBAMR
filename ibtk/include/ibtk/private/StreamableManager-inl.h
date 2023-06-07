@@ -107,4 +107,4 @@ StreamableManager::unpackStream(SAMRAI::tbox::AbstractStream& stream,
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_StreamableManager_inl_h
+#endif // #ifndef included_IBTK_StreamableManager_inl_h

@@ -158,4 +158,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBLagrangianSourceStrategy
+#endif // #ifndef included_IBAMR_IBLagrangianSourceStrategy

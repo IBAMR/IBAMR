@@ -185,4 +185,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBLagrangianForceStrategy
+#endif // #ifndef included_IBAMR_IBLagrangianForceStrategy

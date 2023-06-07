@@ -145,4 +145,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CartGridFunction
+#endif // #ifndef included_IBTK_CartGridFunction

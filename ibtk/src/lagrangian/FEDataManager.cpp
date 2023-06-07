@@ -2839,7 +2839,7 @@ FEDataManager::FEDataManager(std::string object_name,
       d_default_spread_spec(default_spread_spec),
       d_ghost_width(std::move(ghost_width))
 {
-IBTK_ENABLE_EXTRA_WARNINGS
+    IBTK_ENABLE_EXTRA_WARNINGS
     TBOX_ASSERT(!d_object_name.empty());
 
     // Validate the kernel choices.

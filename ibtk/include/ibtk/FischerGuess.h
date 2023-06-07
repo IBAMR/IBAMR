@@ -98,5 +98,5 @@ protected:
 };
 } // namespace IBTK
 
-#endif //#ifdef IBTK_HAVE_LIBMESH
+#endif // #ifdef IBTK_HAVE_LIBMESH
 #endif

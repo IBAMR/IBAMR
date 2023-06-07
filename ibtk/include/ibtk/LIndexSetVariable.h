@@ -95,4 +95,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_LIndexSetVariable
+#endif // #ifndef included_IBTK_LIndexSetVariable

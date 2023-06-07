@@ -94,4 +94,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_PETScKrylovStaggeredStokesSolver
+#endif // #ifndef included_IBAMR_PETScKrylovStaggeredStokesSolver

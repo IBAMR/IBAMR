@@ -164,4 +164,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_BrinkmanPenalizationStrategy
+#endif // #ifndef included_BrinkmanPenalizationStrategy

@@ -263,17 +263,23 @@ main(int argc, char* argv[])
         // We set this up before initializing the FE equation system
         if (input_db->getBoolWithDefault("USE_DISCON_ELEMS", false))
         {
-			const string visc_j_fe_family = input_db->getString("viscous_jump_fe_family");
-			const string visc_j_fe_order = input_db->getString("viscous_jump_fe_order");
-			const string p_j_fe_family = input_db->getString("pressure_jump_fe_family");
-			const string p_j_fe_order = input_db->getString("pressure_jump_fe_order");
-			const string traction_fe_family = input_db->getString("traction_fe_family");
-			const string traction_fe_order = input_db->getString("traction_fe_order");
-			ib_method_ops->registerDisconElemFamilyForViscousJump(0, Utility::string_to_enum<FEFamily>(visc_j_fe_family), Utility::string_to_enum<Order>(visc_j_fe_order));
-			ib_method_ops->registerDisconElemFamilyForPressureJump(0, Utility::string_to_enum<FEFamily>(p_j_fe_family), Utility::string_to_enum<Order>(p_j_fe_order));
-			if (input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false))
-				ib_method_ops->registerDisconElemFamilyForTraction(0, Utility::string_to_enum<FEFamily>(traction_fe_family), Utility::string_to_enum<Order>(traction_fe_order));
-		}
+            const string visc_j_fe_family = input_db->getString("viscous_jump_fe_family");
+            const string visc_j_fe_order = input_db->getString("viscous_jump_fe_order");
+            const string p_j_fe_family = input_db->getString("pressure_jump_fe_family");
+            const string p_j_fe_order = input_db->getString("pressure_jump_fe_order");
+            const string traction_fe_family = input_db->getString("traction_fe_family");
+            const string traction_fe_order = input_db->getString("traction_fe_order");
+            ib_method_ops->registerDisconElemFamilyForViscousJump(0,
+                                                                  Utility::string_to_enum<FEFamily>(visc_j_fe_family),
+                                                                  Utility::string_to_enum<Order>(visc_j_fe_order));
+            ib_method_ops->registerDisconElemFamilyForPressureJump(
+                0, Utility::string_to_enum<FEFamily>(p_j_fe_family), Utility::string_to_enum<Order>(p_j_fe_order));
+            if (input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false))
+                ib_method_ops->registerDisconElemFamilyForTraction(
+                    0,
+                    Utility::string_to_enum<FEFamily>(traction_fe_family),
+                    Utility::string_to_enum<Order>(traction_fe_order));
+        }
         // Configure the IBFE solver.
         ib_method_ops->initializeFEEquationSystems();
         std::vector<int> vars(NDIM);

@@ -671,4 +671,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_AdvDiffHierarchyIntegrator
+#endif // #ifndef included_IBAMR_AdvDiffHierarchyIntegrator

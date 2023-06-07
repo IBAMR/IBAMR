@@ -235,5 +235,5 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifdef IBAMR_HAVE_LIBMESH
+#endif // #ifdef IBAMR_HAVE_LIBMESH
 #endif // #ifndef included_FESurfaceDistanceEvaluator

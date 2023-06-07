@@ -1654,4 +1654,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_HierarchyMathOps
+#endif // #ifndef included_IBTK_HierarchyMathOps

@@ -147,4 +147,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_StokesSpecifications
+#endif // #ifndef included_IBAMR_StokesSpecifications

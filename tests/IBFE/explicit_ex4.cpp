@@ -554,7 +554,6 @@ main(int argc, char** argv)
                 positions.push_back(X_node);
             }
 
-
             time_integrator->setMarkers(positions);
         };
 
@@ -690,7 +689,8 @@ main(int argc, char** argv)
         }
 
         // Markers should still be in the same positions as nodes
-        if (input_db->getBoolWithDefault("test_markers", false) || (iteration_num > 90 && input_db->getBoolWithDefault("test_markers_90", false)))
+        if (input_db->getBoolWithDefault("test_markers", false) ||
+            (iteration_num > 90 && input_db->getBoolWithDefault("test_markers_90", false)))
         {
             System& X_system = equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
             NumericVector<double>& X_vec = *X_system.solution.get();

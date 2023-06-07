@@ -173,4 +173,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_SCPoissonSolverManager
+#endif // #ifndef included_IBTK_SCPoissonSolverManager

@@ -58,13 +58,13 @@ IBTK_ENABLE_EXTRA_WARNINGS
  * Define the deprecation macro when the compiler specifies it is available
  */
 #if defined(__has_cpp_attribute)
-#  if __has_cpp_attribute(deprecated)
-#    define IBTK_DEPRECATED(msg) [[deprecated(msg)]]
-#  else
-#    define IBTK_DEPRECATED(msg)
-#  endif
+#if __has_cpp_attribute(deprecated)
+#define IBTK_DEPRECATED(msg) [[deprecated(msg)]]
 #else
-#  define IBTK_DEPRECATED(msg)
+#define IBTK_DEPRECATED(msg)
+#endif
+#else
+#define IBTK_DEPRECATED(msg)
 #endif
 
 #define IBTK_DEPRECATED_CLASS1(deprecated_class_name)                                                                  \
@@ -74,12 +74,11 @@ IBTK_ENABLE_EXTRA_WARNINGS
     });
 
 #define IBTK_DEPRECATED_CLASS2(deprecated_class_name, new_class_name)                                                  \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                                           \
-                               << " is deprecated and may be removed in the future.\n"                                 \
-                               << "Please update your code to use class " << new_class_name << "." << std::endl;       \
-        });
+    IBTK_DO_ONCE({                                                                                                     \
+        SAMRAI::tbox::pout << "WARNING: class " << deprecated_class_name                                               \
+                           << " is deprecated and may be removed in the future.\n"                                     \
+                           << "Please update your code to use class " << new_class_name << "." << std::endl;           \
+    });
 
 #define IBTK_DEPRECATED_FUNCTION1(deprecated_function_name)                                                            \
     IBTK_DO_ONCE({                                                                                                     \
@@ -88,12 +87,11 @@ IBTK_ENABLE_EXTRA_WARNINGS
     });
 
 #define IBTK_DEPRECATED_FUNCTION2(deprecated_function_name, new_function_name)                                         \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                     \
-                               << " is deprecated and may be removed in the future.\n"                                 \
-                               << "Please update your code to use function " << new_function_name << "." << std::endl; \
-        });
+    IBTK_DO_ONCE({                                                                                                     \
+        SAMRAI::tbox::pout << "WARNING: function " << deprecated_function_name                                         \
+                           << " is deprecated and may be removed in the future.\n"                                     \
+                           << "Please update your code to use function " << new_function_name << "." << std::endl;     \
+    });
 
 #define IBTK_DEPRECATED_MEMBER_FUNCTION1(class_name, deprecated_method_name)                                           \
     IBTK_DO_ONCE({                                                                                                     \
@@ -102,13 +100,12 @@ IBTK_ENABLE_EXTRA_WARNINGS
     });
 
 #define IBTK_DEPRECATED_MEMBER_FUNCTION2(class_name, deprecated_method_name, new_method_name)                          \
-    IBTK_DO_ONCE(                                                                                                      \
-        {                                                                                                              \
-            SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name  \
-                               << " is deprecated and may be removed in the future.\n"                                 \
-                               << "Please update your code to use member function " << new_method_name << "."          \
-                               << std::endl;                                                                           \
-        });
+    IBTK_DO_ONCE({                                                                                                     \
+        SAMRAI::tbox::pout << "WARNING: member function " << deprecated_method_name << " of class " << class_name      \
+                           << " is deprecated and may be removed in the future.\n"                                     \
+                           << "Please update your code to use member function " << new_method_name << "."              \
+                           << std::endl;                                                                               \
+    });
 
 #define IBTK_DEPRECATED_FUNCTIONALITY(message)                                                                         \
     IBTK_DO_ONCE({ SAMRAI::tbox::pout << "WARNING: " << message << "." << std::endl; });

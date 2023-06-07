@@ -122,4 +122,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_CopyToRootSchedule
+#endif // #ifndef included_IBTK_CopyToRootSchedule
