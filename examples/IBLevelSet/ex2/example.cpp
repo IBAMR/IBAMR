@@ -262,7 +262,7 @@ main(int argc, char* argv[])
         LevelSetUtilities::SetLSProperties* ptr_setSetLSProperties =
             new LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_gas_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var_gas, &LevelSetUtilities::setLSDataHierarchy, static_cast<void*>(ptr_setSetLSProperties));
+            phi_var_gas, &LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_setSetLSProperties));
 
         // Solid level set initial conditions
         Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialCondition("solid_ls_init", circle);
@@ -274,7 +274,8 @@ main(int argc, char* argv[])
         adv_diff_integrator->setInitialConditions(phi_var_gas, phi_gas_init);
 
         // Lagrange multiplier to conserve mass of the phases.
-        LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(adv_diff_integrator, phi_var_gas, /*ncells*/ 1);
+        LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
+            "LSMassLossFixer", adv_diff_integrator, phi_var_gas, /*ncells*/ 1.0, /*restart*/ true);
         adv_diff_integrator->registerIntegrateHierarchyCallback(&LevelSetUtilities::fixLevelSetMassLoss,
                                                                 static_cast<void*>(&level_set_fixer));
 
@@ -502,25 +503,30 @@ main(int argc, char* argv[])
             }
         }
 
-        // Open streams to save position and velocity of the structure.
-        ofstream rbd_stream;
+        // Open streams to save position and velocity of the structure, as well
+        // as the volume of the two phase and the Lagrange multiplier.
+        ofstream rbd_stream, vol_stream;
         if (SAMRAI_MPI::getRank() == 0)
         {
             rbd_stream.open("rbd.curve", ios_base::out | ios_base::app);
-        }
 
-        // TODO need to save the state of initial volume for restarted runs
-        std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(0.0, 0.0, 0, &level_set_fixer);
-        level_set_fixer.d_vol_init = h1h2.second;
-
-        // Open stream to save the volume of the two phase and the Lagrange multiplier.
-        ofstream vol_stream;
-        if (SAMRAI_MPI::getRank() == 0)
-        {
-            vol_stream.open("vol.curve", ios_base::out);
+            vol_stream.open("vol.curve", ios_base::out | ios_base::app);
             vol_stream.precision(16);
             vol_stream.setf(ios::fixed, ios::floatfield);
-            vol_stream << 0.0 << "\t" << h1h2.first << "\t" << h1h2.second << "\t" << 0.0 << std::endl;
+        }
+
+        const bool is_from_restart = RestartManager::getManager()->isFromRestart();
+        if (!is_from_restart)
+        {
+            std::pair<double, double> h1h2 =
+                LevelSetUtilities::computeIntegralHeavisideFcns(0.0, 0.0, 0, &level_set_fixer);
+            level_set_fixer.setInitialVolume(h1h2.second);
+
+            // Save the initial volume of the two phase and the Lagrange multiplier in the stream.
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                vol_stream << 0.0 << "\t" << h1h2.first << "\t" << h1h2.second << "\t" << 0.0 << std::endl;
+            }
         }
 
         // Main time step loop.
@@ -553,8 +559,8 @@ main(int argc, char* argv[])
             {
                 vol_stream.precision(16);
                 vol_stream.setf(ios::fixed, ios::floatfield);
-                vol_stream << loop_time << "\t" << h1h2.first << "\t" << h1h2.second << "\t" << level_set_fixer.d_q
-                           << std::endl;
+                vol_stream << loop_time << "\t" << h1h2.first << "\t" << h1h2.second << "\t"
+                           << level_set_fixer.getLagrangeMultiplier() << std::endl;
             }
 
             // At specified intervals, write visualization and restart files,

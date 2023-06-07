@@ -21,12 +21,64 @@
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/ibtk_utilities.h"
 
+#include "tbox/Database.h"
+#include "tbox/RestartManager.h"
+
 #include "ibamr/app_namespaces.h"
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
 {
+
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+
+LevelSetUtilities::LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
+                                                                Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                                                                Pointer<CellVariable<NDIM, double> > ls_var,
+                                                                double ncells,
+                                                                bool register_for_restart)
+    : LevelSetContainer(adv_diff_integrator, ls_var, ncells),
+      d_object_name(std::move(object_name)),
+      d_registered_for_restart(register_for_restart)
+{
+    if (d_registered_for_restart)
+    {
+        RestartManager::getManager()->registerRestartItem(d_object_name, this);
+    }
+
+    bool is_from_restart = RestartManager::getManager()->isFromRestart();
+    if (is_from_restart)
+    {
+        getFromRestart();
+    }
+    return;
+} // LevelSetMassLossFixer
+
+LevelSetUtilities::LevelSetMassLossFixer::~LevelSetMassLossFixer()
+{
+    if (d_registered_for_restart)
+    {
+        RestartManager::getManager()->unregisterRestartItem(d_object_name);
+        d_registered_for_restart = false;
+    }
+    return;
+} // ~LevelSetMassLossFixer
+
+void
+LevelSetUtilities::LevelSetMassLossFixer::putToDatabase(Pointer<Database> db)
+{
+    db->putDouble("d_vol_init", d_vol_init);
+} // putToDatabase
+
+void
+LevelSetUtilities::LevelSetMassLossFixer::setInitialVolume(double v0)
+{
+    if (RestartManager::getManager()->isFromRestart()) return;
+
+    d_vol_init = v0;
+    return;
+} // setInitialVolume
 
 void
 LevelSetUtilities::SetLSProperties::setLSData(int ls_idx,
@@ -49,17 +101,22 @@ void
 LevelSetUtilities::fixLevelSetMassLoss(double /*current_time*/, double new_time, int /*cycle_num*/, void* ctx)
 {
     LevelSetMassLossFixer* mass_fixer = static_cast<LevelSetMassLossFixer*>(ctx);
-    const double& v0 = mass_fixer->d_vol_init;
-    const int& ncells = mass_fixer->d_ncells;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(mass_fixer);
+#endif
 
-    Pointer<PatchHierarchy<NDIM> > patch_hier = mass_fixer->d_adv_diff_integrator->getPatchHierarchy();
-    Pointer<HierarchyMathOps> hier_math_ops = mass_fixer->d_adv_diff_integrator->getHierarchyMathOps();
+    const double v0 = mass_fixer->getInitialVolume();
+    const double ncells = mass_fixer->getInterfaceHalfWidth();
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = mass_fixer->getAdvDiffHierarchyIntegrator();
+
+    Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
+    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     // NOTE: In practice the level set mass loss would be fixed after advection. Hence the application time
     // would be the new time and the variable context would be the new context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_idx =
-        var_db->mapVariableAndContextToIndex(mass_fixer->d_ls_var, mass_fixer->d_adv_diff_integrator->getNewContext());
+        var_db->mapVariableAndContextToIndex(mass_fixer->getLevelSetVariable(), adv_diff_integrator->getNewContext());
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
@@ -110,8 +167,8 @@ LevelSetUtilities::fixLevelSetMassLoss(double /*current_time*/, double new_time,
     hier_cc_ops.addScalar(ls_idx, ls_idx, q);
 
     // For logging purposes.
-    mass_fixer->d_q = q;
-    mass_fixer->d_time = new_time;
+    mass_fixer->setLagrangeMultiplier(q);
+    mass_fixer->setTime(new_time);
 
     return;
 } // fixLevelSetMassLoss
@@ -123,16 +180,20 @@ LevelSetUtilities::computeIntegralHeavisideFcns(double /*current_time*/,
                                                 void* ctx)
 {
     LevelSetContainer* lsc = static_cast<LevelSetContainer*>(ctx);
-    const int& ncells = lsc->d_ncells;
+#if !defined(NDEBUG)
+    TBOX_ASSERT(lsc);
+#endif
+    const double ncells = lsc->getInterfaceHalfWidth();
 
-    Pointer<PatchHierarchy<NDIM> > patch_hier = lsc->d_adv_diff_integrator->getPatchHierarchy();
-    Pointer<HierarchyMathOps> hier_math_ops = lsc->d_adv_diff_integrator->getHierarchyMathOps();
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc->getAdvDiffHierarchyIntegrator();
+    Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
+    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     // NOTE: In practice the level set mass is computed after integrating the hierarchy. Hence the application time
     // would be the new time and the variable context would be the current context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_idx =
-        var_db->mapVariableAndContextToIndex(lsc->d_ls_var, lsc->d_adv_diff_integrator->getCurrentContext());
+        var_db->mapVariableAndContextToIndex(lsc->getLevelSetVariable(), adv_diff_integrator->getCurrentContext());
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
@@ -180,19 +241,40 @@ LevelSetUtilities::computeIntegralHeavisideFcns(double /*current_time*/,
 } // computeIntegralHeavisideFcns
 
 void
-LevelSetUtilities::setLSDataHierarchy(int ls_idx,
-                                      Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                      const int integrator_step,
-                                      const double current_time,
-                                      const bool initial_time,
-                                      const bool regrid_time,
-                                      void* ctx)
+LevelSetUtilities::setLSDataPatchHierarchy(int ls_idx,
+                                           Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                           const int integrator_step,
+                                           const double current_time,
+                                           const bool initial_time,
+                                           const bool regrid_time,
+                                           void* ctx)
 {
     // Set the density from the level set information
-    static SetLSProperties* ptr_SetLSProperties = static_cast<SetLSProperties*>(ctx);
+    SetLSProperties* ptr_SetLSProperties = static_cast<SetLSProperties*>(ctx);
     ptr_SetLSProperties->setLSData(ls_idx, hier_math_ops, integrator_step, current_time, initial_time, regrid_time);
 
     return;
-} // setLSDataHierarchy
+} // setLSDataPatchHierarchy
+
+////////////////////////////// PROTECTED ///////////////////////////////////////
+
+void
+LevelSetUtilities::LevelSetMassLossFixer::getFromRestart()
+{
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
+                                 << " not found in restart file." << std::endl);
+    }
+
+    d_vol_init = db->getDouble("d_vol_init");
+    return;
+}
 
 } // namespace IBAMR

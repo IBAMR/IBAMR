@@ -20,7 +20,12 @@
 
 #include <ibamr/config.h>
 
+#include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
+#include "tbox/Serializable.h"
+
+#include <limits>
+#include <string>
 
 namespace SAMRAI
 {
@@ -29,6 +34,10 @@ namespace pdat
 template <int DIM, class TYPE>
 class CellVariable;
 } // namespace pdat
+namespace tbox
+{
+class Database;
+} // namespace tbox
 } // namespace SAMRAI
 
 namespace IBAMR
@@ -55,45 +64,115 @@ class LevelSetUtilities
 {
 public:
     /*!
-     * \brief A lightweight structure to hold the level set variable and the AdvDiffHierarchyIntegrator
+     * \brief A lightweight class to hold the level set variable and the associated hierarchy
+     * integrator (AdvDiffHierarchyIntegrator).
      */
-    struct LevelSetContainer
+    class LevelSetContainer : public virtual SAMRAI::tbox::DescribedClass
     {
+    public:
         /*!
          * \brief Constructor of the class.
+         *
+         * @param ncells The number of cells across either side of the interface to smear the Heaviside function.
          */
         LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
-                          int ncells = 1)
+                          double ncells = 1)
             : d_adv_diff_integrator(adv_diff_integrator), d_ls_var(ls_var), d_ncells(ncells)
         {
             // return;
         }
 
+        void setInterfaceHalfWidth(double ncells)
+        {
+            d_ncells = ncells;
+        } // setInterfaceHalfWidth
+
+        double getInterfaceHalfWidth()
+        {
+            return d_ncells;
+        } // getInterfaceHalfWidth
+
+        SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> getAdvDiffHierarchyIntegrator()
+        {
+            return d_adv_diff_integrator;
+        } // getAdvDiffHierarchyIntegrator
+
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLevelSetVariable()
+        {
+            return d_ls_var;
+        } // getLSVariable
+
+    protected:
         SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
-        int d_ncells;
-        double d_time;
+        double d_ncells;
     };
 
     /*!
-     * \brief A lightweight structure that stores the current value of the Lagrange multiplier
+     * \brief A lightweight class that stores the current value of the Lagrange multiplier
      *  for the level set variable.
      */
-    struct LevelSetMassLossFixer : public LevelSetContainer
+    class LevelSetMassLossFixer : public LevelSetContainer, public SAMRAI::tbox::Serializable
     {
+    public:
         /*!
          * \brief Constructor of the class.
          */
-        LevelSetMassLossFixer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+        LevelSetMassLossFixer(std::string object_name,
+                              SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
-                              int ncells = 1)
-            : LevelSetContainer(adv_diff_integrator, ls_var, ncells)
-        {
-            return;
-        } // LevelSetMassLossFixer
+                              double ncells = 1.0,
+                              bool register_for_restart = true);
 
-        double d_vol_init, d_q;
+        ~LevelSetMassLossFixer();
+
+        void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+        void setInitialVolume(double v0);
+
+        double getInitialVolume() const
+        {
+            return d_vol_init;
+        } // getInitialVolume
+
+        void setLagrangeMultiplier(double q)
+        {
+            d_q = q;
+        } // getLagrangeMultiplier
+
+        double getLagrangeMultiplier() const
+        {
+            return d_q;
+        } // getLagrangeMultiplier
+
+        void setTime(double time)
+        {
+            d_time = time;
+        } // setTime
+
+        double getTime() const
+        {
+            return d_time;
+        } // getTime
+
+    protected:
+        std::string d_object_name;
+        bool d_registered_for_restart;
+
+        /*
+         * Initial volume of the phase that is enforced by the Lagrange multiplier
+         */
+        double d_vol_init = std::numeric_limits<double>::quiet_NaN();
+
+        /*
+         * The Lagrange multiplier which enforces volume conservation.
+         */
+        double d_q = std::numeric_limits<double>::quiet_NaN();
+
+        double d_time = 0.0;
+
+        void getFromRestart();
     };
 
     /*!
@@ -102,14 +181,15 @@ public:
     static void fixLevelSetMassLoss(double current_time, double new_time, int cycle_num, void* ctx);
 
     /*!
-     * \return Integral of the smooth Heaviside function \f$ H(\phi)\f$ and its complement \f$ H(-phi) = 1- H(\phi)\f$
+     * \return Integrals of the smooth Heaviside function \f$ H(\phi)\f$ and its complement \f$ H(-phi) = 1- H(\phi)\f$
      * over the entire domain.
      */
     static std::pair<double, double>
     computeIntegralHeavisideFcns(double current_time, double new_time, int cycle_num, void* ctx);
 
     /*!
-     * \brief Class SetLSProperties is a utility class which sets level set values on the patch hierarchy
+     * \brief Class SetLSProperties is a utility class which sets (or resets after reinitialization)
+     * level set values on the patch hierarchy.
      */
     class SetLSProperties
     {
@@ -167,13 +247,13 @@ public:
     /*!
      * \brief A function that sets or resets the level set data on the patch hierarchy
      */
-    static void setLSDataHierarchy(int ls_idx,
-                                   SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                   const int integrator_step,
-                                   const double current_time,
-                                   const bool initial_time,
-                                   const bool regrid_time,
-                                   void* ctx);
+    static void setLSDataPatchHierarchy(int ls_idx,
+                                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                        const int integrator_step,
+                                        const double current_time,
+                                        const bool initial_time,
+                                        const bool regrid_time,
+                                        void* ctx);
 };
 
 } // namespace IBAMR

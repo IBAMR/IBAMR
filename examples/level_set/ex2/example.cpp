@@ -45,14 +45,15 @@ void
 fix_mass_loss_ls_callback_fcn(double /*current_time*/, double /*new_time*/, int /*cycle_num*/, void* ctx)
 {
     LevelSetUtilities::LevelSetMassLossFixer* mass_fixer = static_cast<LevelSetUtilities::LevelSetMassLossFixer*>(ctx);
-    const double& v0 = mass_fixer->d_vol_init;
+    const double v0 = mass_fixer->getInitialVolume();
 
-    Pointer<PatchHierarchy<NDIM> > patch_hier = mass_fixer->d_adv_diff_integrator->getPatchHierarchy();
-    Pointer<HierarchyMathOps> hier_math_ops = mass_fixer->d_adv_diff_integrator->getHierarchyMathOps();
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = mass_fixer->getAdvDiffHierarchyIntegrator();
+    Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
+    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_idx =
-        var_db->mapVariableAndContextToIndex(mass_fixer->d_ls_var, mass_fixer->d_adv_diff_integrator->getNewContext());
+        var_db->mapVariableAndContextToIndex(mass_fixer->getLevelSetVariable(), adv_diff_integrator->getNewContext());
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
@@ -262,11 +263,12 @@ main(int argc, char* argv[])
         LevelSetUtilities::SetLSProperties* ptr_setSetLSProperties =
             new LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_ops);
         time_integrator->registerResetFunction(
-            Q_var, &LevelSetUtilities::setLSDataHierarchy, static_cast<void*>(ptr_setSetLSProperties));
+            Q_var, &LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_setSetLSProperties));
 
         // Fix the volume loss due to advection
         NULL_USE(fix_mass_loss_ls_callback_fcn);
-        LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(time_integrator, Q_var, /*ncells*/ 1);
+        LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
+            "LSMassLossFixer", time_integrator, Q_var, /*ncells*/ 1.0, /*restart*/ true);
         time_integrator->registerIntegrateHierarchyCallback(&LevelSetUtilities::fixLevelSetMassLoss,
                                                             static_cast<void*>(&level_set_fixer));
 
@@ -299,7 +301,7 @@ main(int argc, char* argv[])
 
         std::pair<double, double> h1h2 =
             LevelSetUtilities::computeIntegralHeavisideFcns(loop_time, loop_time, 0, &level_set_fixer);
-        level_set_fixer.d_vol_init = h1h2.second;
+        level_set_fixer.setInitialVolume(h1h2.second);
 
         // Open stream to save the volume of the two phase and the Lagrange multiplier.
         ofstream vol_stream;
@@ -340,8 +342,8 @@ main(int argc, char* argv[])
             {
                 vol_stream.precision(16);
                 vol_stream.setf(ios::fixed, ios::floatfield);
-                vol_stream << loop_time << "\t" << h1h2.second << "\t" << h1h2.first << "\t" << level_set_fixer.d_q
-                           << std::endl;
+                vol_stream << loop_time << "\t" << h1h2.second << "\t" << h1h2.first << "\t"
+                           << level_set_fixer.getLagrangeMultiplier() << std::endl;
             }
 
             // At specified intervals, write visualization and restart files,
