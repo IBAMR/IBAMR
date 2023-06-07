@@ -29,6 +29,7 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 
@@ -47,7 +48,6 @@
 #include "LevelSetInitialCondition.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
-#include "SetLSProperties.h"
 #include "TagLSRefinementCells.h"
 
 CircularInterface circle;
@@ -259,9 +259,10 @@ main(int argc, char* argv[])
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
         // Register the reinitialization functions for the level set variables
-        SetLSProperties* ptr_setSetLSProperties = new SetLSProperties("SetLSProperties", level_set_gas_ops);
+        LevelSetUtilities::SetLSProperties* ptr_setSetLSProperties =
+            new LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_gas_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+            phi_var_gas, &LevelSetUtilities::setLSDataHierarchy, static_cast<void*>(ptr_setSetLSProperties));
 
         // Solid level set initial conditions
         Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialCondition("solid_ls_init", circle);
@@ -271,6 +272,11 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> phi_gas_init = new muParserCartGridFunction(
             "phi_gas_init", app_initializer->getComponentDatabase("GasLevelSetInitialCondition"), grid_geometry);
         adv_diff_integrator->setInitialConditions(phi_var_gas, phi_gas_init);
+
+        // Lagrange multiplier to conserve mass of the phases.
+        LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(adv_diff_integrator, phi_var_gas, /*ncells*/ 1);
+        adv_diff_integrator->registerIntegrateHierarchyCallback(&LevelSetUtilities::fixLevelSetMassLoss,
+                                                                static_cast<void*>(&level_set_fixer));
 
         // Reset solid geometry
         SolidLevelSetResetter solid_level_set_resetter;
@@ -503,6 +509,20 @@ main(int argc, char* argv[])
             rbd_stream.open("rbd.curve", ios_base::out | ios_base::app);
         }
 
+        // TODO need to save the state of initial volume for restarted runs
+        std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(0.0, 0.0, 0, &level_set_fixer);
+        level_set_fixer.d_vol_init = h1h2.second;
+
+        // Open stream to save the volume of the two phase and the Lagrange multiplier.
+        ofstream vol_stream;
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            vol_stream.open("vol.curve", ios_base::out);
+            vol_stream.precision(16);
+            vol_stream.setf(ios::fixed, ios::floatfield);
+            vol_stream << 0.0 << "\t" << h1h2.first << "\t" << h1h2.second << "\t" << 0.0 << std::endl;
+        }
+
         // Main time step loop.
         double loop_time_end = navier_stokes_integrator->getEndTime();
         double dt = 0.0;
@@ -526,6 +546,16 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
+
+            std::pair<double, double> h1h2 =
+                LevelSetUtilities::computeIntegralHeavisideFcns(loop_time - dt, loop_time, 0, &level_set_fixer);
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                vol_stream.precision(16);
+                vol_stream.setf(ios::fixed, ios::floatfield);
+                vol_stream << loop_time << "\t" << h1h2.first << "\t" << h1h2.second << "\t" << level_set_fixer.d_q
+                           << std::endl;
+            }
 
             // At specified intervals, write visualization and restart files,
             // and print out timer data.
@@ -562,6 +592,7 @@ main(int argc, char* argv[])
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
+            vol_stream.close();
             rbd_stream.close();
         }
 

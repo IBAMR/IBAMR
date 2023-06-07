@@ -301,7 +301,7 @@ main(int argc, char* argv[])
             LevelSetUtilities::computeIntegralHeavisideFcns(loop_time, loop_time, 0, &level_set_fixer);
         level_set_fixer.d_vol_init = h1h2.second;
 
-        // Open streams to save position and velocity of the structure.
+        // Open stream to save the volume of the two phase and the Lagrange multiplier.
         ofstream vol_stream;
         if (SAMRAI_MPI::getRank() == 0)
         {
@@ -364,6 +364,12 @@ main(int argc, char* argv[])
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
+        }
+
+        // Close the logging streams.
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            vol_stream.close();
         }
 
     } // cleanup dynamically allocated objects prior to shutdown

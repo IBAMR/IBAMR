@@ -28,7 +28,6 @@ IBAMR_ADD_EXAMPLE(
     LevelSetInitialCondition.cpp
     SetFluidGasSolidDensity.cpp
     SetFluidGasSolidViscosity.cpp
-    SetLSProperties.cpp
     TagLSRefinementCells.cpp
   LINK_TARGETS
     IBAMR2d

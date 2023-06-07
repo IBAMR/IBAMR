@@ -128,7 +128,6 @@ am__objects_1 = main2d-example.$(OBJEXT) \
 	main2d-SetFluidGasSolidViscosity.$(OBJEXT) \
 	main2d-LSLocateGasInterface.$(OBJEXT) \
 	main2d-TagLSRefinementCells.$(OBJEXT) \
-	main2d-SetLSProperties.$(OBJEXT) \
 	main2d-GravityForcing.$(OBJEXT) \
 	main2d-FlowGravityForcing.$(OBJEXT) \
 	main2d-LevelSetInitialCondition.$(OBJEXT)
@@ -163,7 +162,6 @@ am__depfiles_remade = ./$(DEPDIR)/main2d-FlowGravityForcing.Po \
 	./$(DEPDIR)/main2d-LevelSetInitialCondition.Po \
 	./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po \
 	./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po \
-	./$(DEPDIR)/main2d-SetLSProperties.Po \
 	./$(DEPDIR)/main2d-TagLSRefinementCells.Po \
 	./$(DEPDIR)/main2d-example.Po
 am__mv = mv -f
@@ -491,7 +489,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidDensity.h SetFluidGasSolidViscosity.cpp SetFluidGasSolidViscosity.h LSLocateGasInterface.cpp LSLocateGasInterface.h  TagLSRefinementCells.cpp TagLSRefinementCells.h SetLSProperties.cpp SetLSProperties.h GravityForcing.cpp GravityForcing.h FlowGravityForcing.cpp FlowGravityForcing.h LevelSetInitialCondition.h LevelSetInitialCondition.cpp
+EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidDensity.h SetFluidGasSolidViscosity.cpp SetFluidGasSolidViscosity.h LSLocateGasInterface.cpp LSLocateGasInterface.h  TagLSRefinementCells.cpp TagLSRefinementCells.h GravityForcing.cpp GravityForcing.h FlowGravityForcing.cpp FlowGravityForcing.h LevelSetInitialCondition.h LevelSetInitialCondition.cpp
 EXTRA_DIST = input2d 
 EXAMPLES = $(am__append_1)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -548,7 +546,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LevelSetInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetLSProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 
@@ -651,20 +648,6 @@ main2d-TagLSRefinementCells.obj: TagLSRefinementCells.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main2d-TagLSRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-
-main2d-SetLSProperties.o: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetLSProperties.o -MD -MP -MF $(DEPDIR)/main2d-SetLSProperties.Tpo -c -o main2d-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetLSProperties.Tpo $(DEPDIR)/main2d-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='main2d-SetLSProperties.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-
-main2d-SetLSProperties.obj: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetLSProperties.obj -MD -MP -MF $(DEPDIR)/main2d-SetLSProperties.Tpo -c -o main2d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetLSProperties.Tpo $(DEPDIR)/main2d-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='main2d-SetLSProperties.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
 
 main2d-GravityForcing.o: GravityForcing.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-GravityForcing.o -MD -MP -MF $(DEPDIR)/main2d-GravityForcing.Tpo -c -o main2d-GravityForcing.o `test -f 'GravityForcing.cpp' || echo '$(srcdir)/'`GravityForcing.cpp
@@ -845,7 +828,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
@@ -899,7 +881,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
