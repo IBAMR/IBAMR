@@ -81,7 +81,6 @@ private:
      */
     LMesh& operator=(const LMesh& that) = delete;
 
-    const std::string& d_object_name;
     const std::vector<LNode*> d_local_nodes;
     const std::vector<LNode*> d_ghost_nodes;
 };
