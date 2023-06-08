@@ -202,7 +202,12 @@ collect_subdomain_ids(const libMesh::MeshBase& mesh)
  * need the JxW values. Hence this little helper function lets one get the
  * correct JxW values from the correct mapping object based on the runtime
  * dimensionality of the mesh.
+ *
+ * We need to return a reference to a temporary from this function - this is OK
+ * (the temporary lives in a map) but the compiler doesn't know that, so silence
+ * the warning about temporaries.
  */
+IBTK_DISABLE_EXTRA_WARNINGS
 const std::vector<double>&
 get_JxW(quadrature_key_type key,
         const Elem* elem,
@@ -223,6 +228,7 @@ get_JxW(quadrature_key_type key,
         return mapping.getJxW();
     }
 }
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #if LIBMESH_VERSION_LESS_THAN(1, 6, 0)
 // libMesh's box intersection code is slow and not in a header (i.e., cannot be

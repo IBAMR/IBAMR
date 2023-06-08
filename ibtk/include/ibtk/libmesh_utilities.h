@@ -840,10 +840,10 @@ jacobian(libMesh::TypeTensor<double>& dX_ds,
     dX_ds.zero();
     for (int k = 0; k < n_nodes; ++k)
     {
-        const libMesh::VectorValue<double>& dphi_ds = dphi[k][qp];
+        const libMesh::VectorValue<double> dphi_ds = dphi[k][qp];
         for (int i = 0; i < dim; ++i)
         {
-            const double& X = X_node[k][i];
+            const double X = X_node[k][i];
             for (int j = 0; j < dim; ++j)
             {
                 dX_ds(i, j) += X * dphi_ds(j);
