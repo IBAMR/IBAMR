@@ -153,6 +153,13 @@ ENDIF()
 # ---------------------------------------------------------------------------- #
 
 #
+# We require at least C++11. Boost and libMesh may require higher C++ standards:
+# those parts of this CMake script will increment this variable to C++14 or 
+# newer as needed.
+#
+SET(IBAMR_CXX_STANDARD "11")
+
+#
 # We and our dependencies require MPI so set that up first:
 #
 MESSAGE(STATUS "")
@@ -274,7 +281,16 @@ IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
 
   # Verify that we can compile some basic Boost headers
-  SET(CMAKE_CXX_STANDARD "11")
+  #
+  # Boost.Math 1.82 will require C++14 so turn it on here if needed
+  IF(${Boost_VERSION} VERSION_GREATER_EQUAL 1.82.0)
+    SET(IBAMR_CXX_STANDARD "14")
+  ENDIF()
+  SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
+  # Do not use -Werror at this point, even if the user requested it for IBAMR
+  SET(_old_cxx_flags "${CMAKE_CXX_FLAGS}")
+  STRING(REPLACE "-Werror" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+
   SET(CMAKE_REQUIRED_INCLUDES ${Boost_INCLUDE_DIRS})
   CHECK_CXX_SOURCE_COMPILES(
     "
@@ -294,7 +310,8 @@ IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   int main() {}
   "
     BOOST_WITH_ROOTS)
-  IF(NOT ${BOOST_WITH_MULTI_ARRAY} OR NOT ${BOOST_WITH_ROUND} OR NOT ${BOOST_WITH_ROOTS})
+  SET(CMAKE_CXX_FLAGS ${_old_cxx_flags})
+  IF(NOT "${BOOST_WITH_MULTI_ARRAY}" OR NOT "${BOOST_WITH_ROUND}" OR NOT "${BOOST_WITH_ROOTS}")
     MESSAGE(FATAL_ERROR "The provided boost installation does not include at least one required boost header.")
   ENDIF()
 ELSE()
@@ -660,7 +677,8 @@ CMake.")
     SET(CMAKE_REQUIRED_INCLUDES ${LIBMESH_INCLUDE_DIRS})
 
     # figure out which version of C++ libMesh wants to use:
-    SET(LIBMESH_CXX_VERSION 11) # we require C++11 anyway so use it as the default
+    # We configure boost before libMesh, so set our own C++ standard to the one Boost requires
+    SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
     CHECK_CXX_SOURCE_COMPILES(
       "
       #include <libmesh/libmesh_config.h>
@@ -687,10 +705,14 @@ CMake.")
       LIBMESH_WITH_CXX17
       )
 
+    # Boost presently requires at most C++14, so setting the standard to 14 or
+    # higher will not conflict here.
     IF(${LIBMESH_WITH_CXX17})
-      SET(LIBMESH_CXX_VERSION 17)
+      SET(LIBMESH_CXX_STANDARD 17)
+      SET(IBAMR_CXX_STANDARD 17)
     ELSEIF(${LIBMESH_WITH_CXX14})
-      SET(LIBMESH_CXX_VERSION 14)
+      SET(LIBMESH_CXX_STANDARD 14)
+      SET(IBAMR_CXX_STANDARD 14)
     ENDIF()
 
     # We are not compatible with libMesh's bundled version of boost, so make
@@ -1149,13 +1171,10 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   TARGET_COMPILE_OPTIONS(${target_library} PUBLIC -DNDIM=${_d})
 
   IF(${IBAMR_HAVE_LIBMESH})
-    MESSAGE(STATUS "libMesh expects C++${LIBMESH_CXX_VERSION}, so ${target_library} will be built with C++${LIBMESH_CXX_VERSION} as a requirement.")
-    SET_PROPERTY(TARGET ${target_library} PROPERTY CXX_STANDARD ${LIBMESH_CXX_VERSION})
-    TARGET_COMPILE_FEATURES(${target_library} PUBLIC "cxx_std_${LIBMESH_CXX_VERSION}")
-  ELSE()
-    SET_PROPERTY(TARGET ${target_library} PROPERTY CXX_STANDARD 11)
-    TARGET_COMPILE_FEATURES(${target_library} PUBLIC "cxx_std_11")
+    MESSAGE(STATUS "libMesh expects C++${LIBMESH_CXX_STANDARD}, so ${target_library} will be built with C++${IBAMR_CXX_STANDARD} as a requirement.")
   ENDIF()
+  SET_PROPERTY(TARGET ${target_library} PROPERTY CXX_STANDARD ${IBAMR_CXX_STANDARD})
+  TARGET_COMPILE_FEATURES(${target_library} PUBLIC "cxx_std_${IBAMR_CXX_STANDARD}")
 
   # To manage staticly-linked dependencies, we put these in order so that if X
   # depends on Y we link against X first.
