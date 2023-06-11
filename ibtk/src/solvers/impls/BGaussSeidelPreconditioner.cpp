@@ -183,11 +183,7 @@ BGaussSeidelPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRA
 
     // Clone the right-hand-side vector to avoid modifying it during the
     // preconditioning operation.
-<<<<<<< HEAD
     SAMRAIScopedVectorCopy<double> f(b);
-=======
-    ScopedVectorCopy<double> f(b);
->>>>>>> 13653862b (Add proof-of-concept for ScopedVectorCopy.)
     auto f_comps = f.getComponentVectors();
 
     // Apply the component preconditioners.
