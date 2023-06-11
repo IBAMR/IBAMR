@@ -31,20 +31,84 @@
 namespace IBAMR
 {
 
+/////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
+std::vector<double>
+compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx, double ncells)
+{
+    const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
+    Pointer<PatchHierarchy<NDIM> > patch_hier = hier_math_ops->getPatchHierarchy();
+
+    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
+    double vol_phase1 = 0.0;
+    double vol_phase2 = 0.0;
+    double integral_delta = 0.0;
+    for (int ln = 0; ln <= hier_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+
+            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+            Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+
+            // Get grid spacing information
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            double cell_size = 1.0;
+            for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
+            cell_size = std::pow(cell_size, 1.0 / static_cast<double>(NDIM));
+            const double alpha = ncells * cell_size;
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                const double phi = (*phi_data)(ci);
+                const double dv = (*wgt_data)(ci);
+
+                // smoothed delta and Heaviside functions
+                const double h_phi = IBTK::smooth_heaviside(phi, alpha);
+                const double h_prime = IBTK::smooth_delta(phi, alpha);
+
+                vol_phase1 += (1.0 - h_phi) * dv;
+                vol_phase2 += h_phi * dv;
+                integral_delta += h_prime * dv;
+            }
+        }
+    }
+
+    std::vector<double> integrals{ vol_phase1, vol_phase2, integral_delta };
+    IBTK_MPI::sumReduction(&integrals[0], 3);
+
+    return integrals;
+} // compute_heaviside_integrals
+
+} // namespace
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LevelSetUtilities::LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
                                                                 Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
                                                                 Pointer<CellVariable<NDIM, double> > ls_var,
-                                                                double ncells,
+                                                                Pointer<Database> input_db,
                                                                 bool register_for_restart)
-    : LevelSetContainer(adv_diff_integrator, ls_var, ncells),
+    : LevelSetContainer(adv_diff_integrator, ls_var),
       d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart)
 {
     if (d_registered_for_restart)
     {
         RestartManager::getManager()->registerRestartItem(d_object_name, this);
+    }
+
+    if (input_db)
+    {
+        getFromInput(input_db);
     }
 
     bool is_from_restart = RestartManager::getManager()->isFromRestart();
@@ -69,6 +133,8 @@ void
 LevelSetUtilities::LevelSetMassLossFixer::putToDatabase(Pointer<Database> db)
 {
     db->putDouble("d_vol_init", d_vol_init);
+    db->putDouble("d_ncells", d_ncells);
+    db->putDouble("d_vol_target", d_vol_target);
 } // putToDatabase
 
 void
@@ -77,6 +143,10 @@ LevelSetUtilities::LevelSetMassLossFixer::setInitialVolume(double v0)
     if (RestartManager::getManager()->isFromRestart()) return;
 
     d_vol_init = v0;
+
+    // Set the default target volume as the initial
+    // phase volume.
+    d_vol_target = v0;
     return;
 } // setInitialVolume
 
@@ -95,76 +165,66 @@ LevelSetUtilities::SetLSProperties::setLSData(int ls_idx,
     return;
 } // setLSData
 
-/////////////////////////////// STATIC ///////////////////////////////////////
-
 void
-LevelSetUtilities::fixLevelSetMassLoss(double /*current_time*/, double new_time, int /*cycle_num*/, void* ctx)
+LevelSetUtilities::fixLevelSetMassLoss(double /*current_time*/,
+                                       double new_time,
+                                       bool /*skip_synchronize_new_state_data*/,
+                                       int /*num_cycles*/,
+                                       void* ctx)
 {
     LevelSetMassLossFixer* mass_fixer = static_cast<LevelSetMassLossFixer*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(mass_fixer);
 #endif
 
-    const double v0 = mass_fixer->getInitialVolume();
-    const double ncells = mass_fixer->getInterfaceHalfWidth();
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = mass_fixer->getAdvDiffHierarchyIntegrator();
+    const int integrator_step = adv_diff_integrator->getIntegratorStep();
+    const int mass_correction_interval = mass_fixer->getCorrectionInterval();
+
+    if (integrator_step % mass_correction_interval != 0) return;
 
     Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
     Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
+
+    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
+    const double vol_target = mass_fixer->getTargetVolume();
+    const double ncells = mass_fixer->getInterfaceHalfWidth();
 
     // NOTE: In practice the level set mass loss would be fixed after advection. Hence the application time
     // would be the new time and the variable context would be the new context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_idx =
         var_db->mapVariableAndContextToIndex(mass_fixer->getLevelSetVariable(), adv_diff_integrator->getNewContext());
-    const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
-    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
-    double vol_integral = 0.0;
-    double vol_interface_integral = 0.0;
-    for (int ln = 0; ln <= hier_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+    // Carry out the Newton iterations
+    double rel_error = 1.0e12;
+    int current_iter = 0;
 
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(ls_idx);
-            Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+    const double min_rel_error = mass_fixer->getErrorRelTolerance();
+    const int max_its = mass_fixer->getMaxIterations();
 
-            // Get grid spacing information
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            double cell_size = 1.0;
-            for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
-            cell_size = std::pow(cell_size, 1.0 / static_cast<double>(NDIM));
-            const double alpha = ncells * cell_size;
-
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-
-                const double phi = (*phi_data)(ci);
-                const double dv = (*wgt_data)(ci);
-
-                // smoothed delta and Heaviside functions
-                const double h_phi = IBTK::smooth_heaviside(phi, alpha);
-                const double h_prime = IBTK::smooth_delta(phi, alpha);
-
-                vol_integral += (1.0 - h_phi) * dv;
-                vol_interface_integral += h_prime * dv;
-            }
-        }
-    }
-    const double nmr = IBTK_MPI::sumReduction(vol_integral) - v0;
-    const double dnr = IBTK_MPI::sumReduction(vol_interface_integral);
-
-    // Compute the spatially constant Lagrange multiplier and adjust the level set function
-    const double q = nmr / dnr;
-
+    double q = 0.0;
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(patch_hier, 0, hier_finest_ln);
-    hier_cc_ops.addScalar(ls_idx, ls_idx, q);
+    while (rel_error > min_rel_error && current_iter < max_its)
+    {
+        std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, ls_idx, ncells);
+        const double& vol_phase1 = integrals[0];
+        const double& integral_delta = integrals[2];
+
+        rel_error = std::abs(vol_phase1 / vol_target - 1.0);
+
+        if (mass_fixer->enableLogging())
+        {
+            plog << "fixLevelSetMassLoss():: current iter = " << current_iter << " , rel error  = " << rel_error
+                 << std::endl;
+        }
+
+        const double delta_q = (vol_phase1 - vol_target) / integral_delta;
+        hier_cc_ops.addScalar(ls_idx, ls_idx, delta_q);
+
+        q += delta_q;
+        current_iter += 1;
+    }
 
     // For logging purposes.
     mass_fixer->setLagrangeMultiplier(q);
@@ -174,17 +234,9 @@ LevelSetUtilities::fixLevelSetMassLoss(double /*current_time*/, double new_time,
 } // fixLevelSetMassLoss
 
 std::pair<double, double>
-LevelSetUtilities::computeIntegralHeavisideFcns(double /*current_time*/,
-                                                double /*new_time*/,
-                                                int /*cycle_num*/,
-                                                void* ctx)
+LevelSetUtilities::computeIntegralHeavisideFcns(LevelSetContainer* lsc)
 {
-    LevelSetContainer* lsc = static_cast<LevelSetContainer*>(ctx);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(lsc);
-#endif
     const double ncells = lsc->getInterfaceHalfWidth();
-
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc->getAdvDiffHierarchyIntegrator();
     Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
     Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
@@ -194,49 +246,13 @@ LevelSetUtilities::computeIntegralHeavisideFcns(double /*current_time*/,
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_idx =
         var_db->mapVariableAndContextToIndex(lsc->getLevelSetVariable(), adv_diff_integrator->getCurrentContext());
-    const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
-    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
-    double vol_integral = 0.0;
-    double vol_integral_complement = 0.0;
-    for (int ln = 0; ln <= hier_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+    std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, ls_idx, ncells);
 
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(ls_idx);
-            Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+    const double& vol_phase1 = integrals[0];
+    const double& vol_phase2 = integrals[1];
 
-            // Get grid spacing information
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            double cell_size = 1.0;
-            for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
-            cell_size = std::pow(cell_size, 1.0 / static_cast<double>(NDIM));
-            const double alpha = ncells * cell_size;
-
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-
-                const double phi = (*phi_data)(ci);
-                const double dv = (*wgt_data)(ci);
-
-                // smoothed Heaviside function
-                const double h_phi = IBTK::smooth_heaviside(phi, alpha);
-
-                vol_integral += h_phi * dv;
-                vol_integral_complement += (1.0 - h_phi) * dv;
-            }
-        }
-    }
-    const double H1 = IBTK_MPI::sumReduction(vol_integral);
-    const double H2 = IBTK_MPI::sumReduction(vol_integral_complement);
-
-    return std::make_pair(H1, H2);
+    return std::make_pair(vol_phase1, vol_phase2);
 
 } // computeIntegralHeavisideFcns
 
@@ -259,6 +275,18 @@ LevelSetUtilities::setLSDataPatchHierarchy(int ls_idx,
 ////////////////////////////// PROTECTED ///////////////////////////////////////
 
 void
+LevelSetUtilities::LevelSetMassLossFixer::getFromInput(Pointer<Database> input_db)
+{
+    d_enable_logging = input_db->getBoolWithDefault("enable_logging", false);
+    d_interval = input_db->getIntegerWithDefault("correction_interval", 1);
+    d_max_its = input_db->getIntegerWithDefault("max_its", 4);
+    d_rel_tol = input_db->getDoubleWithDefault("rel_tol", 1e-12);
+    d_ncells = input_db->getDoubleWithDefault("half_width", 1.0);
+
+    return;
+} // getFromInput
+
+void
 LevelSetUtilities::LevelSetMassLossFixer::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
@@ -274,7 +302,10 @@ LevelSetUtilities::LevelSetMassLossFixer::getFromRestart()
     }
 
     d_vol_init = db->getDouble("d_vol_init");
+    d_vol_target = db->getDouble("d_vol_target");
+    d_ncells = db->getDouble("d_ncells");
+
     return;
-}
+} // getFromRestart
 
 } // namespace IBAMR

@@ -22,6 +22,15 @@ APPLY_MASS_CONSTRAINT = FALSE
 APPLY_VOLUME_REDISTRIBUTION = FALSE
 LS_TS                 = "TVD_RK2"
 
+LevelSetMassFixer {
+
+   half_width = 1.0            // width of the interface in each phase to compute Heaviside integrals 
+   max_its = 4                 // maximum no. of Newton's iterations
+   rel_tol = 1e-12             // error between current and target volume
+   correction_interval = 1     // frequency at which mass loss is corrected
+   enable_logging      = TRUE  // prints Netwon residuals
+}
+
 
 AdvDiffSemiImplicitHierarchyIntegrator {
    start_time           = 0.0e0  // initial simulation time

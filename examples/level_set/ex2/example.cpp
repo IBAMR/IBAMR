@@ -268,9 +268,13 @@ main(int argc, char* argv[])
         // Fix the volume loss due to advection
         NULL_USE(fix_mass_loss_ls_callback_fcn);
         LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
-            "LSMassLossFixer", time_integrator, Q_var, /*ncells*/ 1.0, /*restart*/ true);
-        time_integrator->registerIntegrateHierarchyCallback(&LevelSetUtilities::fixLevelSetMassLoss,
-                                                            static_cast<void*>(&level_set_fixer));
+            "LevelSetMassLossFixer",
+            time_integrator,
+            Q_var,
+            app_initializer->getComponentDatabase("LevelSetMassFixer"),
+            /*restart*/ true);
+        time_integrator->registerPostprocessIntegrateHierarchyCallback(&LevelSetUtilities::fixLevelSetMassLoss,
+                                                                       static_cast<void*>(&level_set_fixer));
 
         // Set up visualization plot file writer.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -299,9 +303,8 @@ main(int argc, char* argv[])
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
-        std::pair<double, double> h1h2 =
-            LevelSetUtilities::computeIntegralHeavisideFcns(loop_time, loop_time, 0, &level_set_fixer);
-        level_set_fixer.setInitialVolume(h1h2.second);
+        std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(&level_set_fixer);
+        level_set_fixer.setInitialVolume(h1h2.first);
 
         // Open stream to save the volume of the two phase and the Lagrange multiplier.
         ofstream vol_stream;
@@ -310,7 +313,7 @@ main(int argc, char* argv[])
             vol_stream.open("vol.curve", ios_base::out);
             vol_stream.precision(16);
             vol_stream.setf(ios::fixed, ios::floatfield);
-            vol_stream << 0.0 << "\t" << h1h2.second << "\t" << h1h2.first << "\t" << 0.0 << std::endl;
+            vol_stream << 0.0 << "\t" << h1h2.first << "\t" << h1h2.second << "\t" << 0.0 << std::endl;
         }
 
         // Main time step loop.
@@ -336,13 +339,12 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            std::pair<double, double> h1h2 =
-                LevelSetUtilities::computeIntegralHeavisideFcns(loop_time - dt, loop_time, 0, &level_set_fixer);
+            std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(&level_set_fixer);
             if (SAMRAI_MPI::getRank() == 0)
             {
                 vol_stream.precision(16);
                 vol_stream.setf(ios::fixed, ios::floatfield);
-                vol_stream << loop_time << "\t" << h1h2.second << "\t" << h1h2.first << "\t"
+                vol_stream << loop_time << "\t" << h1h2.first << "\t" << h1h2.second << "\t"
                            << level_set_fixer.getLagrangeMultiplier() << std::endl;
             }
 

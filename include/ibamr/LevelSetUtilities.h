@@ -72,13 +72,10 @@ public:
     public:
         /*!
          * \brief Constructor of the class.
-         *
-         * @param ncells The number of cells across either side of the interface to smear the Heaviside function.
          */
         LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
-                          double ncells = 1)
-            : d_adv_diff_integrator(adv_diff_integrator), d_ls_var(ls_var), d_ncells(ncells)
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var)
+            : d_adv_diff_integrator(adv_diff_integrator), d_ls_var(ls_var)
         {
             // return;
         }
@@ -106,7 +103,7 @@ public:
     protected:
         SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
-        double d_ncells;
+        double d_ncells = 1.0;
     };
 
     /*!
@@ -122,7 +119,8 @@ public:
         LevelSetMassLossFixer(std::string object_name,
                               SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
-                              double ncells = 1.0,
+                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db =
+                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(nullptr),
                               bool register_for_restart = true);
 
         ~LevelSetMassLossFixer();
@@ -136,9 +134,21 @@ public:
             return d_vol_init;
         } // getInitialVolume
 
+        void setTargetVolume(double v)
+        {
+            d_vol_target = v;
+            return;
+        } // setTargetVolume
+
+        double getTargetVolume() const
+        {
+            return d_vol_target;
+        } // setTargetVolume
+
         void setLagrangeMultiplier(double q)
         {
             d_q = q;
+            return;
         } // getLagrangeMultiplier
 
         double getLagrangeMultiplier() const
@@ -149,6 +159,7 @@ public:
         void setTime(double time)
         {
             d_time = time;
+            return;
         } // setTime
 
         double getTime() const
@@ -156,14 +167,39 @@ public:
             return d_time;
         } // getTime
 
+        int getCorrectionInterval() const
+        {
+            return d_interval;
+        } // getCorrectionInterval
+
+        double getErrorRelTolerance() const
+        {
+            return d_rel_tol;
+        } // getErrorRelTolerance
+
+        double getMaxIterations() const
+        {
+            return d_max_its;
+        } // getMaxIterations
+
+        bool enableLogging() const
+        {
+            return d_enable_logging;
+        } // enableLogging
+
     protected:
         std::string d_object_name;
-        bool d_registered_for_restart;
+        bool d_registered_for_restart, d_enable_logging = false;
 
         /*
          * Initial volume of the phase that is enforced by the Lagrange multiplier
          */
         double d_vol_init = std::numeric_limits<double>::quiet_NaN();
+
+        /*
+         * Target volume of the phase that is enforced by the Lagrange multiplier
+         */
+        double d_vol_target = std::numeric_limits<double>::quiet_NaN();
 
         /*
          * The Lagrange multiplier which enforces volume conservation.
@@ -172,20 +208,29 @@ public:
 
         double d_time = 0.0;
 
+        int d_interval = 1, d_max_its = 4;
+
+        double d_rel_tol = 1e-12;
+
         void getFromRestart();
+
+        void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
     };
 
     /*!
      * \brief Compute the value of the Lagrange multiplier and use that to adjust the level set variable.
      */
-    static void fixLevelSetMassLoss(double current_time, double new_time, int cycle_num, void* ctx);
+    static void fixLevelSetMassLoss(double current_time,
+                                    double new_time,
+                                    bool skip_synchronize_new_state_data,
+                                    int num_cycles,
+                                    void* ctx);
 
     /*!
-     * \return Integrals of the smooth Heaviside function \f$ H(\phi)\f$ and its complement \f$ H(-phi) = 1- H(\phi)\f$
-     * over the entire domain.
+     * \return Integrals of the smooth Heaviside complement \f$ H(-phi) = 1- H(\phi)\f$ and smooth Heaviside function
+     * \f$ H(\phi)\f$ over the entire domain.
      */
-    static std::pair<double, double>
-    computeIntegralHeavisideFcns(double current_time, double new_time, int cycle_num, void* ctx);
+    static std::pair<double, double> computeIntegralHeavisideFcns(LevelSetContainer* lsc);
 
     /*!
      * \brief Class SetLSProperties is a utility class which sets (or resets after reinitialization)

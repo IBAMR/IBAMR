@@ -63,6 +63,15 @@ APPLY_SIGN_FIX        = TRUE
 APPLY_SUBCELL_FIX     = TRUE
 APPLY_MASS_CONSTRAINT = FALSE
 
+LevelSetMassFixer {
+
+   half_width = 1.0            // width of the interface in each phase to compute Heaviside integrals 
+   max_its = 4                 // maximum no. of Newton's iterations
+   rel_tol = 1e-12             // error between current and target volume
+   correction_interval = 1     // frequency at which mass loss is corrected
+   enable_logging      = TRUE  // prints Netwon residuals
+}
+
 GasLevelSetInitialCondition {
    H = GAS_LS_INIT
    function = "H - X_1"

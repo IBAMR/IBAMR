@@ -275,9 +275,13 @@ main(int argc, char* argv[])
 
         // Lagrange multiplier to conserve mass of the phases.
         LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
-            "LSMassLossFixer", adv_diff_integrator, phi_var_gas, /*ncells*/ 1.0, /*restart*/ true);
-        adv_diff_integrator->registerIntegrateHierarchyCallback(&LevelSetUtilities::fixLevelSetMassLoss,
-                                                                static_cast<void*>(&level_set_fixer));
+            "LevelSetMassLossFixer",
+            adv_diff_integrator,
+            phi_var_gas,
+            app_initializer->getComponentDatabase("LevelSetMassFixer"),
+            /*restart*/ true);
+        adv_diff_integrator->registerPostprocessIntegrateHierarchyCallback(&LevelSetUtilities::fixLevelSetMassLoss,
+                                                                           static_cast<void*>(&level_set_fixer));
 
         // Reset solid geometry
         SolidLevelSetResetter solid_level_set_resetter;
@@ -518,9 +522,8 @@ main(int argc, char* argv[])
         const bool is_from_restart = RestartManager::getManager()->isFromRestart();
         if (!is_from_restart)
         {
-            std::pair<double, double> h1h2 =
-                LevelSetUtilities::computeIntegralHeavisideFcns(0.0, 0.0, 0, &level_set_fixer);
-            level_set_fixer.setInitialVolume(h1h2.second);
+            std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(&level_set_fixer);
+            level_set_fixer.setInitialVolume(h1h2.first);
 
             // Save the initial volume of the two phase and the Lagrange multiplier in the stream.
             if (SAMRAI_MPI::getRank() == 0)
@@ -553,8 +556,7 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            std::pair<double, double> h1h2 =
-                LevelSetUtilities::computeIntegralHeavisideFcns(loop_time - dt, loop_time, 0, &level_set_fixer);
+            std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(&level_set_fixer);
             if (SAMRAI_MPI::getRank() == 0)
             {
                 vol_stream.precision(16);
