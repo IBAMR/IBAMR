@@ -112,7 +112,6 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
         boxes.insert(new_box);
     }
 
-    int round_n = 0;
     while (true)
     {
         std::map<std::pair<hier::Index<NDIM>, hier::Index<NDIM> >,
@@ -226,7 +225,6 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
             TBOX_ASSERT(intersect_box.size() != 0);
             TBOX_ASSERT(box_1.size() + box_2.size() - intersect_box.size() == union_box.size());
         }
-        ++round_n;
     }
 
     // convert back to the usual box format by undoing the box expansion
