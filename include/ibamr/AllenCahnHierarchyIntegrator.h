@@ -29,6 +29,7 @@ class PoissonSolver;
 namespace IBAMR
 {
 class ConvectiveOperator;
+class CellConvectiveOperator;
 } // namespace IBAMR
 
 namespace SAMRAI
@@ -258,6 +259,9 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_u_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_H_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_flux_var;
 
     /*!
      * Cartgrid functions to be used to set the Allen-Cahn equation source term.
@@ -276,7 +280,7 @@ private:
     ConvectiveDifferencingType d_lf_convective_difference_form = d_default_convective_difference_form;
     std::string d_lf_convective_op_type = d_default_convective_op_type;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_convective_op_input_db = d_default_convective_op_input_db;
-    SAMRAI::tbox::Pointer<ConvectiveOperator> d_lf_convective_op = nullptr;
+    SAMRAI::tbox::Pointer<CellConvectiveOperator> d_lf_convective_op = nullptr;
     bool d_lf_convective_op_needs_init = false;
 
     /*!
@@ -311,6 +315,8 @@ private:
     int d_chemical_potential_idx = IBTK::invalid_index, d_grad_lf_idx = IBTK::invalid_index;
     int d_H_sc_idx = IBTK::invalid_index;
     int d_T_lf_N_scratch_idx = IBTK::invalid_index;
+    int d_lf_interp_idx = IBTK::invalid_index, d_H_interp_idx = IBTK::invalid_index,
+        d_lf_flux_idx = IBTK::invalid_index;
 
     /*!
      * Allen-Cahn equation parameters.

@@ -12,9 +12,11 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "ibamr/AdvDiffCUIConservativeConvectiveOperator.h"
+// #include "ibamr/AdvDiffCUIConservativeConvectiveOperator.h"
+#include "ibamr/AdvDiffCUIConvectiveOperator.h"
 #include "ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h"
 #include "ibamr/AllenCahnHierarchyIntegrator.h"
+#include "ibamr/CellConvectiveOperator.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
@@ -261,6 +263,15 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
     d_chemical_potential_var = new CellVariable<NDIM, double>("chemical_potential_var");
     registerVariable(d_chemical_potential_idx, d_chemical_potential_var, no_ghosts, getCurrentContext());
 
+    d_lf_interp_var = new FaceVariable<NDIM, double>(d_lf_var->getName() + "::interp");
+    d_lf_interp_idx = var_db->registerVariableAndContext(d_lf_interp_var, getCurrentContext(), no_ghosts);
+
+    d_H_interp_var = new FaceVariable<NDIM, double>(d_H_var->getName() + "::interp");
+    d_H_interp_idx = var_db->registerVariableAndContext(d_H_interp_var, getCurrentContext(), no_ghosts);
+
+    d_lf_flux_var = new FaceVariable<NDIM, double>(d_H_var->getName() + "::flux");
+    d_lf_flux_idx = var_db->registerVariableAndContext(d_lf_flux_var, getCurrentContext(), no_ghosts);
+
     if (d_visit_writer)
     {
         d_visit_writer->registerPlotQuantity("zeta", "SCALAR", d_chemical_potential_idx);
@@ -322,6 +333,9 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         if (!level->checkAllocated(d_q_firstder_idx)) level->allocatePatchData(d_q_firstder_idx, current_time);
         if (!level->checkAllocated(d_grad_lf_idx)) level->allocatePatchData(d_grad_lf_idx, current_time);
         if (!level->checkAllocated(d_H_sc_idx)) level->allocatePatchData(d_H_sc_idx, current_time);
+        if (!level->checkAllocated(d_lf_interp_idx)) level->allocatePatchData(d_lf_interp_idx, current_time);
+        if (!level->checkAllocated(d_H_interp_idx)) level->allocatePatchData(d_H_interp_idx, current_time);
+        if (!level->checkAllocated(d_lf_flux_idx)) level->allocatePatchData(d_lf_flux_idx, current_time);
     }
 
     if (d_u_adv_var)
@@ -440,8 +454,19 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         d_lf_convective_op->setSolutionTime(current_time);
         d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_current_idx);
         d_hier_cc_data_ops->copyData(H_scratch_idx, H_current_idx);
-        Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op = d_lf_convective_op;
-        lf_cui_conservative_convective_op->applyConvectiveOperator(lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
+
+        // Checking whether the CellConvectiveOperator can be used for div (H lf u)
+        d_lf_convective_op->interpolateToFaceOnHierarchy(
+            d_lf_interp_idx, lf_scratch_idx, u_current_idx, /*synch_cf_bdry*/ false);
+        d_lf_convective_op->interpolateToFaceOnHierarchy(
+            d_H_interp_idx, H_scratch_idx, u_current_idx, /*synch_cf_bdry*/ false);
+        d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_interp_idx, d_H_interp_idx);
+        d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_flux_idx, u_current_idx);
+        d_lf_convective_op->computeConservativeDerivativeOnHierarchy(
+            lf_N_scratch_idx, d_lf_flux_idx, /*synch_cf_bdry*/ true);
+
+        // Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op = d_lf_convective_op;
+        // lf_cui_conservative_convective_op->applyConvectiveOperator(lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
 
         const int lf_N_old_new_idx = var_db->mapVariableAndContextToIndex(d_lf_N_old_var, getNewContext());
         d_hier_cc_data_ops->copyData(lf_N_old_new_idx, lf_N_scratch_idx);
@@ -776,10 +801,21 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
                 // H_pre_idx is used to use the same flux used in the advection of H.
                 d_hier_cc_data_ops->linearSum(H_scratch_idx, 0.5, H_current_idx, 0.5, d_H_pre_idx);
                 d_lf_convective_op->setSolutionTime(half_time);
-                Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op =
-                    d_lf_convective_op;
-                lf_cui_conservative_convective_op->applyConvectiveOperator(
-                    lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
+
+                // Checking whether the CellConvectiveOperator can be used for div (H lf u)
+                d_lf_convective_op->interpolateToFaceOnHierarchy(
+                    d_lf_interp_idx, lf_scratch_idx, u_scratch_idx, /*synch_cf_bdry*/ false);
+                d_lf_convective_op->interpolateToFaceOnHierarchy(
+                    d_H_interp_idx, H_scratch_idx, u_scratch_idx, /*synch_cf_bdry*/ false);
+                d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_interp_idx, d_H_interp_idx);
+                d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_flux_idx, u_scratch_idx);
+                d_lf_convective_op->computeConservativeDerivativeOnHierarchy(
+                    lf_N_scratch_idx, d_lf_flux_idx, /*synch_cf_bdry*/ true);
+
+                // Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op =
+                //     d_lf_convective_op;
+                // lf_cui_conservative_convective_op->applyConvectiveOperator(
+                //     lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
@@ -789,10 +825,21 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
                 // H_pre_idx is used to use the same flux used in the advection of H.
                 d_hier_cc_data_ops->copyData(H_scratch_idx, d_H_pre_idx);
                 d_lf_convective_op->setSolutionTime(new_time);
-                Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op =
-                    d_lf_convective_op;
-                lf_cui_conservative_convective_op->applyConvectiveOperator(
-                    lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
+
+                // Checking whether the CellConvectiveOperator can be used for div (H lf u)
+                d_lf_convective_op->interpolateToFaceOnHierarchy(
+                    d_lf_interp_idx, lf_scratch_idx, u_new_idx, /*synch_cf_bdry*/ false);
+                d_lf_convective_op->interpolateToFaceOnHierarchy(
+                    d_H_interp_idx, H_scratch_idx, u_new_idx, /*synch_cf_bdry*/ false);
+                d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_interp_idx, d_H_interp_idx);
+                d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_flux_idx, u_new_idx);
+                d_lf_convective_op->computeConservativeDerivativeOnHierarchy(
+                    lf_N_scratch_idx, d_lf_flux_idx, /*synch_cf_bdry*/ true);
+
+                // Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op =
+                //     d_lf_convective_op;
+                // lf_cui_conservative_convective_op->applyConvectiveOperator(
+                //     lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
             }
         }
         if (convective_time_stepping_type == ADAMS_BASHFORTH)
@@ -1165,6 +1212,9 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
         level->deallocatePatchData(d_q_firstder_idx);
         level->deallocatePatchData(d_grad_lf_idx);
         level->deallocatePatchData(d_H_sc_idx);
+        level->deallocatePatchData(d_lf_interp_idx);
+        level->deallocatePatchData(d_H_interp_idx);
+        level->deallocatePatchData(d_lf_flux_idx);
     }
 
     PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -1271,12 +1321,11 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<Cel
 
         // Since the Allen-Cahn equation requires the convective derivative div(lf*H*u),
         // we use AdvDiffCUIConservativeConvectiveOperator class.
-        d_lf_convective_op = new AdvDiffCUIConservativeConvectiveOperator(d_object_name + "::lfConvectiveOperator",
-                                                                          lf_var,
-                                                                          H_var,
-                                                                          d_lf_convective_op_input_db,
-                                                                          lf_bc_coef,
-                                                                          H_bc_coef);
+        d_lf_convective_op = new AdvDiffCUIConvectiveOperator(d_object_name + "::lfConvectiveOperator",
+                                                              lf_var,
+                                                              d_lf_convective_op_input_db,
+                                                              d_lf_convective_difference_form,
+                                                              lf_bc_coef);
 
         d_lf_convective_op_needs_init = true;
     }
