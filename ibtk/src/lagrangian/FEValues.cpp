@@ -221,7 +221,7 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
             d_shape_gradients[i].resize(ref_shape_gradients.shape()[1]);
             for (unsigned int q = 0; q < d_shape_gradients[i].size(); ++q)
             {
-                const libMesh::VectorValue<double>& ref_shape_grad = ref_shape_gradients[i][q];
+                const libMesh::VectorValue<double> ref_shape_grad = ref_shape_gradients[i][q];
                 Eigen::Matrix<double, dim, 1> ref_shape_grad_;
                 for (unsigned int d = 0; d < dim; ++d)
                 {
