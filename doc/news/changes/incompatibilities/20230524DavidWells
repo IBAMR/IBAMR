@@ -1,6 +1,0 @@
-Changed: Several solver classes inheriting from GeneralSolver now store their
-scratch vectors with the new IBTK::SAMRAIScopedVectorCopy or
-IBTK::SAMRAIScopedVectorDuplicate classes instead of using SAMRAIVectorReal
-directly.
-<br>
-(David Wells, 2023/05/24)

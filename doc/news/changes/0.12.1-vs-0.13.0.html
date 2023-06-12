@@ -1,0 +1,102 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: The implementation of FORWARD_EULER provided by
+IBExplicitHierarchyIntegrator was misnamed as it was actually the same 'explicit
+backward Euler' (i.e., a forward Euler prediction followed by a backward Euler
+correction) predictor-corrector method as BACKWARD_EULER. FORWARD_EULER is now
+really the forward Euler method. The previous implementation is still available
+as BACKWARD_EULER.
+<br>
+(David Wells, 2023/05/02)
+</li>
+<li>
+Removed: IBTK::LMarker and related functions and files have been removed from
+the library. This marker class was never fully implemented and its
+fully-functional replacement is IBTK::MarkerPatchHierarchy.
+<br>
+(David Wells, 2023/05/06)
+</li>
+<li>
+Changed: Some functions in IBTK::HierarchyMathOps previously gained the ability
+to interpolate data from ghost regions into ghost regions. These functions have
+now been renamed as interp_ghosted() and harmonic_interp_ghosted() to
+distinguish them from the interpolation functions which update the destination
+coarse-fine interface.
+<br>
+(David Wells, 2023/05/09)
+</li>
+<li>
+Changed: Several solver classes inheriting from GeneralSolver now store their
+scratch vectors with the new IBTK::SAMRAIScopedVectorCopy or
+IBTK::SAMRAIScopedVectorDuplicate classes instead of using SAMRAIVectorReal
+directly.
+<br>
+(David Wells, 2023/05/24)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+New: Added a class MarkerPatchHierarchy for tracking marker points.
+<br>
+(David Wells, 2023/04/21)
+</li>
+<li>
+New: IBExplicitHierarchyIntegrator can now be set up to use markers to trace the
+evolution of the fluid. IBFE example 4 (and its input2d.markers input file)
+demonstrates how to do this.
+<br>
+(David Wells, 2023/05/01)
+</li>
+<li>
+New: Added an option to IIMethod to represent the jump fields plus the traction
+by discontinuous MONOMIAL or L2_LAGRANGE family. They will be used for
+structures with sharp corners/edges and are tested for IIM/ex1 flow past a
+square block (2D and 3D), IIM/ex3 flow past a thin swimming airfoil, IIM/ex6 the
+Turek-Hron benchmark, and IIM/ex9 flexible plate inside the flow phantom.
+<br>
+(Ebrahim (Amin) Kolahdouz, 2023/06/06)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+Removed: IBHierarchyIntegrator no longer does an additional data redistribution
+prior to the first timestep.
+<br>
+(David Wells, 2023/03/23)
+</li>
+<li>
+Improved: IBTK::SAMRAIGhostDataAccumulator now logs how much time it uses via tbox::TimerManager.
+<br>
+(David Wells, 2023/04/11)
+</li>
+<li>
+Fixed: Regridding issues with AdvDiffHierarchyIntegrator and other solvers when
+the number of patch levels changes.
+<br>
+(Amneet Bhalla and Boyce Griffith, 2023/05/01)
+</li>
+<li>
+New: added two new classes SAMRAIScopedVectorCopy and
+SAMRAIScopedVectorDuplicate to enable usage of SAMRAI vectors with RAII
+semantics.
+<br>
+(David Wells, 2023/05/04)
+</li>
+<li>
+Improved: The staggered Navier-Stokes integrator now saves pressure fields, for
+visualization, as node-centered data. This produces much nicer looking plots.
+<br>
+(David Wells, 2023/05/09)
+</li>
+<li>
+Added: RK1 and RK2 integrator schemes for the RelaxationLSMethod. Corresponding
+test added in tests/level_set.
+<br>
+(Amneet Bhalla, 2023/05/24)
+</li>
+</ol>

@@ -1,4 +1,0 @@
-Improved: The staggered Navier-Stokes integrator now saves pressure fields, for
-visualization, as node-centered data. This produces much nicer looking plots.
-<br>
-(David Wells, 2023/05/09)

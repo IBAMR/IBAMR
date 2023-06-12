@@ -1,3 +1,0 @@
-Added: RK1 and RK2 integrator schemes for the RelaxationLSMethod. Corresponding test added in tests/level_set.
-<br>
-(Amneet Bhalla, 2023/05/24)

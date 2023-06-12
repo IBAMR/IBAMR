@@ -1,7 +1,0 @@
-Changed: Some functions in IBTK::HierarchyMathOps previously gained the ability
-to interpolate data from ghost regions into ghost regions. These functions have
-now been renamed as interp_ghosted() and harmonic_interp_ghosted() to
-distinguish them from the interpolation functions which update the destination
-coarse-fine interface.
-<br>
-(David Wells, 2023/05/09)
