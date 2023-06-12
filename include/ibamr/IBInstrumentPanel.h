@@ -61,8 +61,6 @@ namespace IBAMR
 /*!
  * \brief Class IBInstrumentPanel provides support for flow meters and pressure
  * gauges.
- *
- * \note Use of class IBInstrumentPanel requires the Blitz++ array library.
  */
 class IBInstrumentPanel : public virtual SAMRAI::tbox::DescribedClass
 {
