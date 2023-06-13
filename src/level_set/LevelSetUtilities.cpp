@@ -92,6 +92,57 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+void
+LevelSetUtilities::TagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                              const int level_number,
+                              const double /*error_data_time*/,
+                              const int tag_index,
+                              const bool /*initial_time*/,
+                              const bool /*uses_richardson_extrapolation_too*/,
+                              void* ctx)
+{
+    TagLSRefinementCells* ls_tagger = static_cast<TagLSRefinementCells*>(ctx);
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(ls_tagger);
+    TBOX_ASSERT(hierarchy);
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
+#endif
+
+    // Get the level set information
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int ls_idx = var_db->mapVariableAndContextToIndex(
+        ls_tagger->getLevelSetVariable(), ls_tagger->getAdvDiffHierarchyIntegrator()->getCurrentContext());
+
+    // Get the tagging criterion
+    const double& tag_min_val = ls_tagger->getTagMinValue();
+    const double& tag_max_val = ls_tagger->getTagMaxValue();
+
+    // Tag cells based on the value of the level set variable
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_index);
+        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
+
+        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        {
+            const hier::Index<NDIM>& i = ic();
+            const double dist = (*ls_data)(i);
+
+            if (dist >= tag_min_val && dist <= tag_max_val)
+            {
+                (*tags_data)(i) = 1;
+            }
+        }
+    }
+
+    return;
+} // TagLSCells
+
 LevelSetUtilities::LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
                                                                 Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
                                                                 Pointer<CellVariable<NDIM, double> > ls_var,

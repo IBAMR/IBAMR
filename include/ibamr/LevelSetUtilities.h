@@ -107,6 +107,61 @@ public:
     };
 
     /*!
+     * \brief A lightweight class to tag grid cells containing the level set variable for grid refinement
+     */
+    class TagLSRefinementCells : public LevelSetContainer
+    {
+    public:
+        /*!
+         * \brief Constructor of the class.
+         */
+        TagLSRefinementCells(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                             double tag_min_value = 0.0,
+                             double tag_max_value = 0.0)
+            : LevelSetContainer(adv_diff_integrator, ls_var),
+              d_tag_min_value(tag_min_value),
+              d_tag_max_value(tag_max_value)
+        {
+            return;
+        } // TagLevelSetRefinementCells
+
+        void setTagMinValue(double tag_min)
+        {
+            d_tag_min_value = tag_min;
+            return;
+        } // setTagMinValue
+
+        double getTagMinValue() const
+        {
+            return d_tag_min_value;
+        } // getTagMinValue
+
+        void setTagMaxValue(double tag_max)
+        {
+            d_tag_max_value = tag_max;
+            return;
+        } // setTagMaxValue
+
+        double getTagMaxValue() const
+        {
+            return d_tag_max_value;
+        } // getTagMaxValue
+
+    private:
+        double d_tag_min_value = 0.0;
+        double d_tag_max_value = 0.0;
+    }; // TagLevelSetRefinementCells
+
+    static void TagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                           const int level_number,
+                           const double error_data_time,
+                           const int tag_index,
+                           const bool initial_time,
+                           const bool uses_richardson_extrapolation_too,
+                           void* ctx);
+
+    /*!
      * \brief A lightweight class that stores the current value of the Lagrange multiplier
      *  for the level set variable.
      */
@@ -127,6 +182,7 @@ public:
 
         void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
+        // Getter and setter functions
         void setInitialVolume(double v0);
 
         double getInitialVolume() const

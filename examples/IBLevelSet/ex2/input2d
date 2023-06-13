@@ -57,7 +57,6 @@ LS_ORDER              = "THIRD_ORDER_ENO"
 LS_ABS_TOL            = 1.0e-6
 LS_REINIT_INTERVAL    = 1
 MAX_ITERATIONS        = 50
-LS_TAG_VALUE          = 0.0
 LS_TAG_ABS_THRESH     = 2*H_COARSEST
 APPLY_SIGN_FIX        = TRUE
 APPLY_SUBCELL_FIX     = TRUE
@@ -321,7 +320,7 @@ LevelSet_Gas {
     order                 = LS_ORDER
     abs_tol               = LS_ABS_TOL
     max_iterations        = MAX_ITERATIONS
-    enable_logging        = TRUE
+    enable_logging        = FALSE
     reinit_interval       = LS_REINIT_INTERVAL
     apply_sign_fix        = APPLY_SIGN_FIX
     apply_subcell_fix     = APPLY_SUBCELL_FIX
@@ -410,5 +409,5 @@ TimerManager{
    print_total = TRUE
    print_threshold = 0.1
 
-   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+   //timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
 }

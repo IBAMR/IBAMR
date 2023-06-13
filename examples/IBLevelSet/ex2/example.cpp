@@ -48,7 +48,6 @@
 #include "LevelSetInitialCondition.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
-#include "TagLSRefinementCells.h"
 
 CircularInterface circle;
 
@@ -337,21 +336,15 @@ main(int argc, char* argv[])
                                                                  static_cast<void*>(ptr_setFluidGasSolidViscosity));
 
         // Register callback function for tagging refined cells for level set data
-        const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
-        TagLSRefinementCells ls_gas_tagger;
-        ls_gas_tagger.d_ls_var = phi_var_gas;
-        ls_gas_tagger.d_tag_value = tag_value;
-        ls_gas_tagger.d_tag_abs_thresh = tag_thresh;
-        ls_gas_tagger.d_adv_diff_solver = adv_diff_integrator;
-        TagLSRefinementCells ls_solid_tagger;
-        ls_solid_tagger.d_ls_var = phi_var_solid;
-        ls_solid_tagger.d_tag_value = tag_value;
-        ls_solid_tagger.d_tag_abs_thresh = tag_thresh;
-        ls_solid_tagger.d_adv_diff_solver = adv_diff_integrator;
-        navier_stokes_integrator->registerApplyGradientDetectorCallback(&callTagGasLSRefinementCellsCallbackFunction,
+
+        LevelSetUtilities::TagLSRefinementCells ls_gas_tagger(
+            adv_diff_integrator, phi_var_gas, -tag_thresh, tag_thresh);
+        LevelSetUtilities::TagLSRefinementCells ls_solid_tagger(
+            adv_diff_integrator, phi_var_solid, std::numeric_limits<double>::lowest(), tag_thresh);
+        navier_stokes_integrator->registerApplyGradientDetectorCallback(&LevelSetUtilities::TagLSCells,
                                                                         static_cast<void*>(&ls_gas_tagger));
-        navier_stokes_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
+        navier_stokes_integrator->registerApplyGradientDetectorCallback(&LevelSetUtilities::TagLSCells,
                                                                         static_cast<void*>(&ls_solid_tagger));
 
         // Create Eulerian initial condition specification objects.

@@ -268,7 +268,7 @@ main(int argc, char* argv[])
         // Fix the volume loss due to advection
         NULL_USE(fix_mass_loss_ls_callback_fcn);
         LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
-            "LevelSetMassLossFixer",
+            "LevelSet  MassLossFixer",
             time_integrator,
             Q_var,
             app_initializer->getComponentDatabase("LevelSetMassFixer"),
