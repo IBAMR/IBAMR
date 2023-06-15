@@ -29,6 +29,11 @@
 
 namespace SAMRAI
 {
+namespace hier
+{
+template <int DIM>
+class PatchHierarchy;
+}
 namespace pdat
 {
 template <int DIM, class TYPE>
@@ -287,6 +292,15 @@ public:
      * \f$ H(\phi)\f$ over the entire domain.
      */
     static std::pair<double, double> computeIntegralHeavisideFcns(LevelSetContainer* lsc);
+
+    /*!
+     * \return Integral of inflow \f$ -\vec{u} \cdot \vec{n}\f$ at a physical boundary.
+     *
+     * \param location_idx of the boundary at which the integral is evaluated
+     */
+    static double computeNetInflowPhysicalBoundary(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                   int u_idx,
+                                                   int bdry_loc_idx);
 
     /*!
      * \brief Class SetLSProperties is a utility class which sets (or resets after reinitialization)

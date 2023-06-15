@@ -558,6 +558,18 @@ main(int argc, char* argv[])
                            << level_set_fixer.getLagrangeMultiplier() << std::endl;
             }
 
+            // Update the target volume due to the inflow of gas through the specified boundary (= y_top)
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            const int u_idx = var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
+                                                                   navier_stokes_integrator->getCurrentContext());
+
+            const double vol_inflow = dt * LevelSetUtilities::computeNetInflowPhysicalBoundary(
+                                               navier_stokes_integrator->getHierarchyMathOps(),
+                                               u_idx,
+                                               /*location_idx*/ 3);
+            const double target_vol = level_set_fixer.getTargetVolume() + vol_inflow;
+            level_set_fixer.setTargetVolume(target_vol);
+
             // At specified intervals, write visualization and restart files,
             // and print out timer data.
             iteration_num += 1;
