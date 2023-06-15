@@ -18,6 +18,7 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
+#include "ibamr/CellConvectiveOperator.h"
 
 namespace IBTK
 {
@@ -28,7 +29,6 @@ class PoissonSolver;
 
 namespace IBAMR
 {
-class ConvectiveOperator;
 class CellConvectiveOperator;
 } // namespace IBAMR
 
@@ -153,7 +153,7 @@ public:
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.
      */
-    SAMRAI::tbox::Pointer<ConvectiveOperator>
+    SAMRAI::tbox::Pointer<CellConvectiveOperator>
     getAllenCahnEquationConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                                            SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var);
 
@@ -317,8 +317,8 @@ private:
     int d_T_lf_N_scratch_idx = IBTK::invalid_index;
     int d_lf_interp_idx = IBTK::invalid_index, d_H_interp_idx = IBTK::invalid_index,
         d_lf_flux_idx = IBTK::invalid_index;
-
-    /*!
+    
+/*!
      * Allen-Cahn equation parameters.
      * M_lf  - Mobility
      * lambda_lf - Mixing energy density

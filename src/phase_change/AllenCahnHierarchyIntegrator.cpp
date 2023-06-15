@@ -17,7 +17,6 @@
 #include "ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h"
 #include "ibamr/AllenCahnHierarchyIntegrator.h"
 #include "ibamr/CellConvectiveOperator.h"
-#include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
@@ -1307,7 +1306,7 @@ AllenCahnHierarchyIntegrator::getLiquidFractionPhysicalBcCoef()
     return d_lf_bc_coef;
 } // getLiquidFractionPhysicalBcCoef
 
-Pointer<ConvectiveOperator>
+Pointer<CellConvectiveOperator>
 AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<CellVariable<NDIM, double> > lf_var,
                                                                      Pointer<CellVariable<NDIM, double> > H_var)
 {
