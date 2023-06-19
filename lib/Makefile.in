@@ -1345,8 +1345,6 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/namespaces.h \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 	../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
-	../include/ibamr/AdvDiffCUIConservativeConvectiveOperator.h \
-	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 	../include/ibamr/AdvDiffHierarchyIntegrator.h \
 	../include/ibamr/AdvDiffPPMConvectiveOperator.h \
@@ -1780,8 +1778,6 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/namespaces.h $(am__append_3) \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 	../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
-	../include/ibamr/AdvDiffCUIConservativeConvectiveOperator.h \
-	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 	../include/ibamr/AdvDiffHierarchyIntegrator.h \
 	../include/ibamr/AdvDiffPPMConvectiveOperator.h \
