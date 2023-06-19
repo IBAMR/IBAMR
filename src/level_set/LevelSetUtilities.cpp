@@ -14,7 +14,6 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/LSInitStrategy.h"
 #include "ibamr/LevelSetUtilities.h"
 
 #include "ibtk/HierarchyMathOps.h"

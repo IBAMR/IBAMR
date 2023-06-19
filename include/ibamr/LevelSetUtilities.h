@@ -20,6 +20,8 @@
 
 #include <ibamr/config.h>
 
+#include "ibamr/LSInitStrategy.h"
+
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
@@ -48,7 +50,6 @@ class Database;
 namespace IBAMR
 {
 class AdvDiffHierarchyIntegrator;
-class LSInitStrategy;
 } // namespace IBAMR
 
 namespace IBTK
