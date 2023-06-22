@@ -176,6 +176,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+../src/utilities/CellConvectiveOperator.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
 ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
 ../src/wave_generation/FirstOrderStokesWaveGenerator.cpp \
@@ -230,6 +231,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/CIBStaggeredStokesOperator.h \
 ../include/ibamr/CIBStaggeredStokesSolver.h \
 ../include/ibamr/CIBStrategy.h \
+../include/ibamr/CellConvectiveOperator.h \
 ../include/ibamr/ConstraintIBKinematics.h \
 ../include/ibamr/ConstraintIBMethod.h \
 ../include/ibamr/ConvectiveOperator.h \

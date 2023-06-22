@@ -207,7 +207,10 @@ SET(CXX_SRC
   level_set/FastSweepingLSMethod.cpp
   level_set/RelaxationLSBcCoefs.cpp
   level_set/RelaxationLSMethod.cpp
+
+  # utilities
   utilities/RNG.cpp
+  utilities/CellConvectiveOperator.cpp
   utilities/ConvectiveOperator.cpp
   )
 
