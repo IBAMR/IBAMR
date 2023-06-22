@@ -321,6 +321,8 @@ private:
     std::vector<bool> d_build_vec_scatters;
     std::vector<std::map<int, Vec> > d_src_vec, d_dst_vec;
     std::vector<std::map<int, VecScatter> > d_vec_scatter;
+
+    bool d_summary_file_opened = false;
 };
 } // namespace IBTK
 
