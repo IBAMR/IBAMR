@@ -328,6 +328,7 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
                      "CONSERVATIVE_LINEAR_REFINE",
                      d_lf_init);
 
+    if(d_lf_gradient_var)
     registerVariable(d_lf_gradient_current_idx,
                      d_lf_gradient_new_idx,
                      d_lf_gradient_scratch_idx,
@@ -623,28 +624,31 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
         level->deallocatePatchData(d_lf_pre_idx);
     }
 
-    // Ghost cell filling for liquid fraction
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
-    const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
-    std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef =
-        getPhysicalBcCoefs(d_H_var); // Using H bc for now since I dont have lf_bc
-    // in this class.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    InterpolationTransactionComponent lf_bc_component(lf_scratch_idx,
-                                                      lf_new_idx,
-                                                      DATA_REFINE_TYPE,
-                                                      USE_CF_INTERPOLATION,
-                                                      DATA_COARSEN_TYPE,
-                                                      d_bdry_extrap_type, // TODO: update variable name
-                                                      CONSISTENT_TYPE_2_BDRY,
-                                                      H_bc_coef);
-    HierarchyGhostCellInterpolation lf_bdry_bc_fill_op;
-    lf_bdry_bc_fill_op.initializeOperatorState(lf_bc_component, d_hierarchy);
-    lf_bdry_bc_fill_op.fillData(new_time);
+    if (d_lf_gradient_var)
+    {    
+    	// Ghost cell filling for liquid fraction
+    	VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    	const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
+    	const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
+    	std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef =
+        	getPhysicalBcCoefs(d_H_var); // Using H bc for now since I dont have lf_bc
+    	// in this class.
+    	using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    	InterpolationTransactionComponent lf_bc_component(lf_scratch_idx,
+                                                      	lf_new_idx,
+                                                      	DATA_REFINE_TYPE,
+                                                      	USE_CF_INTERPOLATION,
+                                                      	DATA_COARSEN_TYPE,
+                                                      	d_bdry_extrap_type, // TODO: update variable name
+                                                      	CONSISTENT_TYPE_2_BDRY,
+                                                      	H_bc_coef);
+    	HierarchyGhostCellInterpolation lf_bdry_bc_fill_op;
+    	lf_bdry_bc_fill_op.initializeOperatorState(lf_bc_component, d_hierarchy);
+    	lf_bdry_bc_fill_op.fillData(new_time);
 
-    // Find gradient of liquid fraction.
-    d_hier_math_ops->grad(d_lf_gradient_new_idx, d_lf_gradient_var, 1.0, lf_scratch_idx, d_lf_var, nullptr, new_time);
+    	// Find gradient of liquid fraction.
+    	d_hier_math_ops->grad(d_lf_gradient_new_idx, d_lf_gradient_var, 1.0, lf_scratch_idx, d_lf_var, nullptr, new_time);
+    }	
 
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
