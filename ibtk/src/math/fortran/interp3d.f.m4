@@ -892,6 +892,74 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Compute the side centered normal vector field (u0,u1,u2) from the
+c     cell centered scalar field V using harmonic averaging.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine ctoscwiseharmonicinterp2nd3d(
+     &     u0,u1,u2,u_gcw,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2)
+c
+      implicit none
+c
+c     Function.
+c
+      REAL h_avg2
+c
+c     Input.
+c
+      INTEGER u_gcw,V_gcw
+
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+c
+c     Output.
+c
+      REAL u0(SIDE3d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE3d1(ilower,iupper,u_gcw))
+      REAL u2(SIDE3d2(ilower,iupper,u_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+c
+c     Compute the side centered vector field (u0,u1,u2) from the cell
+c     centered scalar field V.
+c
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0+1
+               u0(i0,i1,i2) = h_avg2(V(i0-1,i1,i2),V(i0,i1,i2))
+            enddo
+         enddo
+      enddo
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1+1
+            do i0 = ilower0,iupper0
+               u1(i0,i1,i2) = h_avg2(V(i0,i1-1,i2),V(i0,i1,i2))
+            enddo
+         enddo
+      enddo
+      do i2 = ilower2,iupper2+1
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               u2(i0,i1,i2) = h_avg2(V(i0,i1,i2-1),V(i0,i1,i2))
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Compute the edge centered vector field (u0,u1,u2) from the cell centered
 c     field V using harmonic averaging.
 c

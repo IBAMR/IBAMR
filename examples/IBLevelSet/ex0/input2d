@@ -187,7 +187,6 @@ MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 
 // Application
-CHI = RHO_S/DT_MAX
 PRECOND_REINIT_INTERVAL      = 1
 VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
@@ -245,10 +244,6 @@ IBInterpolantMethod {
 
 IBRedundantInitializer {
     max_levels      = MAX_LEVELS
-}
-
-BrinkmanPenalization {
-    chi = CHI
 }
 
 INSVCStaggeredConservativeHierarchyIntegrator {

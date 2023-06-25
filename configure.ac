@@ -269,6 +269,14 @@ AC_CONFIG_FILES([
   examples/navier_stokes/ex4/Makefile
   examples/navier_stokes/ex5/Makefile
   examples/navier_stokes/ex6/Makefile
+  examples/phase_change/Makefile
+  examples/phase_change/ex0/Makefile
+  examples/phase_change/ex1/Makefile
+  examples/phase_change/ex2/Makefile
+  examples/phase_change/ex3/Makefile
+  examples/phase_change/ex4/Makefile
+  examples/phase_change/ex5/Makefile
+  examples/phase_change/ex6/Makefile
   examples/vc_navier_stokes/Makefile
   examples/vc_navier_stokes/ex0/Makefile
   examples/vc_navier_stokes/ex1/Makefile
@@ -290,6 +298,7 @@ AC_CONFIG_FILES([
   src/level_set/fortran/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
+  src/phase_change/Makefile
   src/utilities/Makefile
   src/wave_generation/Makefile
   tests/attest.conf
@@ -310,6 +319,7 @@ AC_CONFIG_FILES([
   tests/level_set/Makefile
   tests/multiphase_flow/Makefile
   tests/navier_stokes/Makefile
+  tests/phase_change/Makefile
   tests/physical_boundary/Makefile
   tests/refine/Makefile
   tests/spread/Makefile

@@ -82,7 +82,6 @@ public:
                                   const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
                                   const SAMRAI::pdat::FaceData<NDIM, double>& u_data,
                                   const SAMRAI::hier::Patch<NDIM>& patch) override;
-
 private:
     /*!
      * \brief Default constructor.

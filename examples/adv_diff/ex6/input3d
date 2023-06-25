@@ -13,9 +13,6 @@ INDICATOR_FUNCTION_TYPE = "SMOOTH"
 ETA = 1e-8
 NUMBER_OF_INTERFACE_CELLS = 1.0
 NUMBER_OF_PROPAGATION_CELLS = 2
-BrinkmanPenalization {
-    chi = ETA
-}
 
 // exact solution function expressions
 q = "-cos(X_0)*cos(X_1)*cos(X_2)"
