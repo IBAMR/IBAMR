@@ -267,13 +267,14 @@ main(int argc, char* argv[])
 
         // Fix the volume loss due to advection
         NULL_USE(fix_mass_loss_ls_callback_fcn);
+        std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars{ Q_var };
         LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
             "LevelSet  MassLossFixer",
             time_integrator,
-            Q_var,
+            ls_vars,
             app_initializer->getComponentDatabase("LevelSetMassFixer"),
             /*restart*/ true);
-        time_integrator->registerPostprocessIntegrateHierarchyCallback(&LevelSetUtilities::fixLevelSetMassLoss,
+        time_integrator->registerPostprocessIntegrateHierarchyCallback(&LevelSetUtilities::fixMassLoss2PhaseFlows,
                                                                        static_cast<void*>(&level_set_fixer));
 
         // Set up visualization plot file writer.
@@ -303,8 +304,9 @@ main(int argc, char* argv[])
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
-        std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(&level_set_fixer);
-        level_set_fixer.setInitialVolume(h1h2.first);
+        // Set the target volume as the gas domain volume (where Q is negative)
+        std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(&level_set_fixer);
+        level_set_fixer.setInitialVolume(H_integrals[0]);
 
         // Open stream to save the volume of the two phase and the Lagrange multiplier.
         ofstream vol_stream;
@@ -313,7 +315,7 @@ main(int argc, char* argv[])
             vol_stream.open("vol.curve", ios_base::out);
             vol_stream.precision(16);
             vol_stream.setf(ios::fixed, ios::floatfield);
-            vol_stream << 0.0 << "\t" << h1h2.first << "\t" << h1h2.second << "\t" << 0.0 << std::endl;
+            vol_stream << 0.0 << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t" << 0.0 << std::endl;
         }
 
         // Main time step loop.
@@ -339,12 +341,12 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(&level_set_fixer);
+            std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(&level_set_fixer);
             if (SAMRAI_MPI::getRank() == 0)
             {
                 vol_stream.precision(16);
                 vol_stream.setf(ios::fixed, ios::floatfield);
-                vol_stream << loop_time << "\t" << h1h2.first << "\t" << h1h2.second << "\t"
+                vol_stream << loop_time << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t"
                            << level_set_fixer.getLagrangeMultiplier() << std::endl;
             }
 

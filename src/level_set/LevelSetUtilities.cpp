@@ -89,6 +89,64 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
     return integrals;
 } // compute_heaviside_integrals
 
+std::vector<double>
+compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx, int psi_idx, double ncells)
+{
+    const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
+    Pointer<PatchHierarchy<NDIM> > patch_hier = hier_math_ops->getPatchHierarchy();
+
+    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
+    double vol_phase1 = 0.0;
+    double vol_phase2 = 0.0;
+    double vol_phase3 = 0.0;
+    double integral_delta = 0.0;
+    for (int ln = 0; ln <= hier_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+
+            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+            Pointer<CellData<NDIM, double> > psi_data = patch->getPatchData(psi_idx);
+            Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+
+            // Get grid spacing information
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            double cell_size = 1.0;
+            for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
+            cell_size = std::pow(cell_size, 1.0 / static_cast<double>(NDIM));
+            const double alpha = ncells * cell_size;
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                const double phi = (*phi_data)(ci);
+                const double psi = (*psi_data)(ci);
+                const double dv = (*wgt_data)(ci);
+
+                // smoothed delta and Heaviside functions
+                const double h_phi = IBTK::smooth_heaviside(phi, alpha);
+                const double h_phi_prime = IBTK::smooth_delta(phi, alpha);
+                const double h_psi = IBTK::smooth_heaviside(psi, alpha);
+
+                vol_phase1 += (1.0 - h_phi) * h_psi * dv;
+                vol_phase2 += h_phi * h_psi * dv;
+                vol_phase3 += (1.0 - h_psi) * dv;
+                integral_delta += h_phi_prime * h_psi * dv;
+            }
+        }
+    }
+
+    std::vector<double> integrals{ vol_phase1, vol_phase2, vol_phase3, integral_delta };
+    IBTK_MPI::sumReduction(&integrals[0], 4);
+
+    return integrals;
+} // compute_heaviside_integrals
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -144,12 +202,13 @@ LevelSetUtilities::TagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     return;
 } // TagLSCells
 
-LevelSetUtilities::LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
-                                                                Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                                                                Pointer<CellVariable<NDIM, double> > ls_var,
-                                                                Pointer<Database> input_db,
-                                                                bool register_for_restart)
-    : LevelSetContainer(adv_diff_integrator, ls_var),
+LevelSetUtilities::LevelSetMassLossFixer::LevelSetMassLossFixer(
+    std::string object_name,
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+    std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars,
+    Pointer<Database> input_db,
+    bool register_for_restart)
+    : LevelSetContainer(adv_diff_integrator, ls_vars),
       d_object_name(std::move(object_name)),
       d_registered_for_restart(register_for_restart)
 {
@@ -218,11 +277,11 @@ LevelSetUtilities::SetLSProperties::setLSData(int ls_idx,
 } // setLSData
 
 void
-LevelSetUtilities::fixLevelSetMassLoss(double /*current_time*/,
-                                       double new_time,
-                                       bool /*skip_synchronize_new_state_data*/,
-                                       int /*num_cycles*/,
-                                       void* ctx)
+LevelSetUtilities::fixMassLoss2PhaseFlows(double /*current_time*/,
+                                          double new_time,
+                                          bool /*skip_synchronize_new_state_data*/,
+                                          int /*num_cycles*/,
+                                          void* ctx)
 {
     LevelSetMassLossFixer* mass_fixer = static_cast<LevelSetMassLossFixer*>(ctx);
 #if !defined(NDEBUG)
@@ -242,8 +301,8 @@ LevelSetUtilities::fixLevelSetMassLoss(double /*current_time*/,
     const double vol_target = mass_fixer->getTargetVolume();
     const double ncells = mass_fixer->getInterfaceHalfWidth();
 
-    // NOTE: In practice the level set mass loss would be fixed after advection. Hence the application time
-    // would be the new time and the variable context would be the new context.
+    // NOTE: In practice the level set mass loss would be fixed during the postprocess integrate hierarchy stage.
+    // Hence the application time would be the new time and the variable context would be the new context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_idx =
         var_db->mapVariableAndContextToIndex(mass_fixer->getLevelSetVariable(), adv_diff_integrator->getNewContext());
@@ -260,14 +319,14 @@ LevelSetUtilities::fixLevelSetMassLoss(double /*current_time*/,
     while (rel_error > min_rel_error && current_iter < max_its)
     {
         std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, ls_idx, ncells);
-        const double& vol_phase1 = integrals[0];
+        const double& vol_phase1 = integrals[0]; // Target the gas volume
         const double& integral_delta = integrals[2];
 
         rel_error = std::abs(vol_phase1 / vol_target - 1.0);
 
         if (mass_fixer->enableLogging())
         {
-            plog << "fixLevelSetMassLoss():: current iter = " << current_iter << " , rel error  = " << rel_error
+            plog << "fixMassLoss2PhaseFlows():: current iter = " << current_iter << " , rel error  = " << rel_error
                  << std::endl;
         }
 
@@ -283,10 +342,80 @@ LevelSetUtilities::fixLevelSetMassLoss(double /*current_time*/,
     mass_fixer->setTime(new_time);
 
     return;
-} // fixLevelSetMassLoss
+} // fixMassLoss2PhaseFlows
 
-std::pair<double, double>
-LevelSetUtilities::computeIntegralHeavisideFcns(LevelSetContainer* lsc)
+void
+LevelSetUtilities::fixMassLoss3PhaseFlows(double /*current_time*/,
+                                          double new_time,
+                                          bool /*skip_synchronize_new_state_data*/,
+                                          int /*num_cycles*/,
+                                          void* ctx)
+{
+    LevelSetMassLossFixer* mass_fixer = static_cast<LevelSetMassLossFixer*>(ctx);
+#if !defined(NDEBUG)
+    TBOX_ASSERT(mass_fixer);
+#endif
+
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = mass_fixer->getAdvDiffHierarchyIntegrator();
+    const int integrator_step = adv_diff_integrator->getIntegratorStep();
+    const int mass_correction_interval = mass_fixer->getCorrectionInterval();
+
+    if (integrator_step % mass_correction_interval != 0) return;
+
+    Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
+    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
+
+    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
+    const double vol_target = mass_fixer->getTargetVolume();
+    const double ncells = mass_fixer->getInterfaceHalfWidth();
+
+    // NOTE: In practice the level set mass loss would be fixed during the postprocess integrate hierarchy stage.
+    // Hence the application time would be the new time and the variable context would be the new context.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int fluid_ls_idx =
+        var_db->mapVariableAndContextToIndex(mass_fixer->getLevelSetVariable(0), adv_diff_integrator->getNewContext());
+    const int solid_ls_idx =
+        var_db->mapVariableAndContextToIndex(mass_fixer->getLevelSetVariable(1), adv_diff_integrator->getNewContext());
+
+    // Carry out the Newton iterations
+    double rel_error = 1.0e12;
+    int current_iter = 0;
+
+    const double min_rel_error = mass_fixer->getErrorRelTolerance();
+    const int max_its = mass_fixer->getMaxIterations();
+
+    double q = 0.0;
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(patch_hier, 0, hier_finest_ln);
+    while (rel_error > min_rel_error && current_iter < max_its)
+    {
+        std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, fluid_ls_idx, solid_ls_idx, ncells);
+        const double& vol_phase2 = integrals[1]; // Target the liquid volume
+        const double& integral_delta = integrals[3];
+
+        rel_error = std::abs(vol_phase2 / vol_target - 1.0);
+
+        if (mass_fixer->enableLogging())
+        {
+            plog << "fixMassLoss3PhaseFlows():: current iter = " << current_iter << " , rel error  = " << rel_error
+                 << std::endl;
+        }
+
+        const double delta_q = -(vol_phase2 - vol_target) / integral_delta;
+        hier_cc_ops.addScalar(fluid_ls_idx, fluid_ls_idx, delta_q);
+
+        q += delta_q;
+        current_iter += 1;
+    }
+
+    // For logging purposes.
+    mass_fixer->setLagrangeMultiplier(q);
+    mass_fixer->setTime(new_time);
+
+    return;
+} // fixMassLoss3PhaseFlows
+
+std::vector<double>
+LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(LevelSetContainer* lsc)
 {
     const double ncells = lsc->getInterfaceHalfWidth();
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc->getAdvDiffHierarchyIntegrator();
@@ -301,12 +430,30 @@ LevelSetUtilities::computeIntegralHeavisideFcns(LevelSetContainer* lsc)
 
     std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, ls_idx, ncells);
 
-    const double& vol_phase1 = integrals[0];
-    const double& vol_phase2 = integrals[1];
+    return integrals;
 
-    return std::make_pair(vol_phase1, vol_phase2);
+} // computeHeavisideIntegrals2PhaseFlows
 
-} // computeIntegralHeavisideFcns
+std::vector<double>
+LevelSetUtilities::computeHeavisideIntegrals3PhaseFlows(LevelSetContainer* lsc)
+{
+    const double ncells = lsc->getInterfaceHalfWidth();
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc->getAdvDiffHierarchyIntegrator();
+    Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
+    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
+
+    // NOTE: In practice the level set mass is computed after integrating the hierarchy. Hence the application time
+    // would be the new time and the variable context would be the current context.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int fluid_ls_idx =
+        var_db->mapVariableAndContextToIndex(lsc->getLevelSetVariable(0), adv_diff_integrator->getCurrentContext());
+    const int solid_ls_idx =
+        var_db->mapVariableAndContextToIndex(lsc->getLevelSetVariable(1), adv_diff_integrator->getCurrentContext());
+
+    std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, fluid_ls_idx, solid_ls_idx, ncells);
+
+    return integrals;
+} // computeHeavisideIntegrals3PhaseFlows
 
 double
 LevelSetUtilities::computeNetInflowPhysicalBoundary(Pointer<HierarchyMathOps> hier_math_ops,

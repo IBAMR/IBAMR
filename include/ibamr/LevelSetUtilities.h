@@ -81,10 +81,18 @@ public:
          */
         LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var)
-            : d_adv_diff_integrator(adv_diff_integrator), d_ls_var(ls_var)
+            : d_adv_diff_integrator(adv_diff_integrator)
+        {
+            d_ls_vars.emplace_back(ls_var);
+            return;
+        } // LevelSetContainer
+
+        LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                          std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > ls_vars)
+            : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(std::move(ls_vars))
         {
             // return;
-        }
+        } // LevelSetContainer
 
         void setInterfaceHalfWidth(double ncells)
         {
@@ -101,14 +109,14 @@ public:
             return d_adv_diff_integrator;
         } // getAdvDiffHierarchyIntegrator
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLevelSetVariable()
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLevelSetVariable(int idx = 0)
         {
-            return d_ls_var;
+            return d_ls_vars[idx];
         } // getLSVariable
 
     protected:
         SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
+        std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_ls_vars;
         double d_ncells = 1.0;
     };
 
@@ -179,7 +187,7 @@ public:
          */
         LevelSetMassLossFixer(std::string object_name,
                               SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                              std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > ls_vars,
                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db =
                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(nullptr),
                               bool register_for_restart = true);
@@ -211,7 +219,7 @@ public:
         {
             d_q = q;
             return;
-        } // getLagrangeMultiplier
+        } // setLagrangeMultiplier
 
         double getLagrangeMultiplier() const
         {
@@ -280,19 +288,52 @@ public:
     };
 
     /*!
-     * \brief Compute the value of the Lagrange multiplier and use that to adjust the level set variable.
+     * \brief Compute the value of the Lagrange multiplier and use that to adjust the flow level set variable.
      */
-    static void fixLevelSetMassLoss(double current_time,
-                                    double new_time,
-                                    bool skip_synchronize_new_state_data,
-                                    int num_cycles,
-                                    void* ctx);
+    static void fixMassLoss2PhaseFlows(double current_time,
+                                       double new_time,
+                                       bool skip_synchronize_new_state_data,
+                                       int num_cycles,
+                                       void* ctx);
 
     /*!
-     * \return Integrals of the smooth Heaviside complement \f$ H(-phi) = 1- H(\phi)\f$ and smooth Heaviside function
-     * \f$ H(\phi)\f$ over the entire domain.
+     * \brief Compute the value of the Lagrange multiplier and use that to adjust the flow level set when
+     * there is a solid phase in the domain.
      */
-    static std::pair<double, double> computeIntegralHeavisideFcns(LevelSetContainer* lsc);
+    static void fixMassLoss3PhaseFlows(double current_time,
+                                       double new_time,
+                                       bool skip_synchronize_new_state_data,
+                                       int num_cycles,
+                                       void* ctx);
+
+    /*!
+     * \return Integrals of \f$ 1- H(\phi)\f$, \f$ H(\phi)\f$, and \f$ \delta(\phi) \f$  over
+     * the entire domain.
+     *
+     * Here, \f$ H(\phi) \f$ is the Heaviside function demarcating liquid and gas domains.
+     *
+     * \f$ \phi \f$ is taken to be positive in the liquid domain and negative in the gas domain.
+     *
+     * Physically, these three integrals represent volume of the gas region, liquid region, and
+     * surface area of the interface, respectively.
+     */
+    static std::vector<double> computeHeavisideIntegrals2PhaseFlows(LevelSetContainer* lsc);
+
+    /*!
+     * \return Integrals of \f$ [1- H(\phi)] H(\Psi) \f$, \f$ H(\phi) H(\Psi)\f$, \f$ 1 - H(\Psi)\f$,
+     * and \f$ \delta(\phi)H(\Psi)\f$ over the entire domain.
+     *
+     * Here, \f$ H(\phi) \f$ is the Heaviside function demarcating liquid and gas domains,  and \f$ H(\Psi) \f$ is
+     * the Heaviside function demarcating solid and fluid (fluid = liquid and gas) domains.
+     *
+     * Physically, these four integrals represents volume of the gas region, liquid region, solid region, and
+     * surface area of the fluid interface, respectively.
+     *
+     * \f$ \phi \f$ is taken to be positive in the liquid domain and negative in the gas domain.
+     *
+     * \f$ \Psi \f$ is taken to be positive outside the solid and negative inside the solid.
+     */
+    static std::vector<double> computeHeavisideIntegrals3PhaseFlows(LevelSetContainer* lsc);
 
     /*!
      * \return Integral of inflow \f$ -\vec{u} \cdot \vec{n}\f$ at a physical boundary.

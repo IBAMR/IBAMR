@@ -273,13 +273,14 @@ main(int argc, char* argv[])
         adv_diff_integrator->setInitialConditions(phi_var_gas, phi_gas_init);
 
         // Lagrange multiplier to conserve mass of the phases.
+        std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars{ phi_var_gas, phi_var_solid };
         LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
             "LevelSetMassLossFixer",
             adv_diff_integrator,
-            phi_var_gas,
+            ls_vars,
             app_initializer->getComponentDatabase("LevelSetMassFixer"),
             /*restart*/ true);
-        adv_diff_integrator->registerPostprocessIntegrateHierarchyCallback(&LevelSetUtilities::fixLevelSetMassLoss,
+        adv_diff_integrator->registerPostprocessIntegrateHierarchyCallback(&LevelSetUtilities::fixMassLoss3PhaseFlows,
                                                                            static_cast<void*>(&level_set_fixer));
 
         // Reset solid geometry
@@ -515,13 +516,15 @@ main(int argc, char* argv[])
         const bool is_from_restart = RestartManager::getManager()->isFromRestart();
         if (!is_from_restart)
         {
-            std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(&level_set_fixer);
-            level_set_fixer.setInitialVolume(h1h2.first);
+            // Target the liquid volume in the Newton's iterations
+            std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals3PhaseFlows(&level_set_fixer);
+            level_set_fixer.setInitialVolume(H_integrals[1]);
 
-            // Save the initial volume of the two phase and the Lagrange multiplier in the stream.
+            // Save the initial volume of gas, liquid, and gas+solid phases, and the Lagrange multiplier in the stream.
             if (SAMRAI_MPI::getRank() == 0)
             {
-                vol_stream << 0.0 << "\t" << h1h2.first << "\t" << h1h2.second << "\t" << 0.0 << std::endl;
+                vol_stream << 0.0 << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t"
+                           << H_integrals[0] + H_integrals[2] << "\t" << 0.0 << std::endl;
             }
         }
 
@@ -549,16 +552,17 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            std::pair<double, double> h1h2 = LevelSetUtilities::computeIntegralHeavisideFcns(&level_set_fixer);
+            std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals3PhaseFlows(&level_set_fixer);
             if (SAMRAI_MPI::getRank() == 0)
             {
                 vol_stream.precision(16);
                 vol_stream.setf(ios::fixed, ios::floatfield);
-                vol_stream << loop_time << "\t" << h1h2.first << "\t" << h1h2.second << "\t"
-                           << level_set_fixer.getLagrangeMultiplier() << std::endl;
+                vol_stream << loop_time << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t"
+                           << H_integrals[0] + H_integrals[2] << "\t" << level_set_fixer.getLagrangeMultiplier()
+                           << std::endl;
             }
 
-            // Update the target volume due to the inflow of gas through the specified boundary (= y_top)
+            // Update the target volume due to the inflow of liquid through the specified boundary (= y_bottom)
             VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
             const int u_idx = var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
                                                                    navier_stokes_integrator->getCurrentContext());
@@ -566,7 +570,7 @@ main(int argc, char* argv[])
             const double vol_inflow = dt * LevelSetUtilities::computeNetInflowPhysicalBoundary(
                                                navier_stokes_integrator->getHierarchyMathOps(),
                                                u_idx,
-                                               /*location_idx*/ 3);
+                                               /*location_idx*/ 2);
             const double target_vol = level_set_fixer.getTargetVolume() + vol_inflow;
             level_set_fixer.setTargetVolume(target_vol);
 
