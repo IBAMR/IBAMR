@@ -291,7 +291,8 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 	../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
-	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
@@ -330,7 +331,8 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
-	../src/utilities/RNG.cpp ../src/IB/FEMechanicsBase.cpp \
+	../src/utilities/MassIntegrator.cpp ../src/utilities/RNG.cpp \
+	../src/IB/FEMechanicsBase.cpp \
 	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
@@ -478,7 +480,8 @@ am__objects_2 =  \
 	../src/navier_stokes/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.$(OBJEXT) \
-	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.$(OBJEXT) \
@@ -517,6 +520,7 @@ am__objects_2 =  \
 	../src/wave_generation/libIBAMR2d_a-StokesWaveGeneratorStrategy.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-WaveDampingFunctions.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-WaveGenerationFunctions.$(OBJEXT) \
+	../src/utilities/libIBAMR2d_a-MassIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-RNG.$(OBJEXT) $(am__objects_1)
 am_libIBAMR2d_a_OBJECTS = $(am__objects_2) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.$(OBJEXT) \
@@ -637,7 +641,8 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 	../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
-	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
@@ -676,7 +681,8 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
-	../src/utilities/RNG.cpp ../src/IB/FEMechanicsBase.cpp \
+	../src/utilities/MassIntegrator.cpp ../src/utilities/RNG.cpp \
+	../src/IB/FEMechanicsBase.cpp \
 	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
@@ -824,7 +830,8 @@ am__objects_4 =  \
 	../src/navier_stokes/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.$(OBJEXT) \
-	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.$(OBJEXT) \
@@ -863,6 +870,7 @@ am__objects_4 =  \
 	../src/wave_generation/libIBAMR3d_a-StokesWaveGeneratorStrategy.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-WaveDampingFunctions.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-WaveGenerationFunctions.$(OBJEXT) \
+	../src/utilities/libIBAMR3d_a-MassIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-RNG.$(OBJEXT) $(am__objects_3)
 am_libIBAMR3d_a_OBJECTS = $(am__objects_4) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.$(OBJEXT) \
@@ -1113,7 +1121,8 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po \
-	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po \
@@ -1161,7 +1170,8 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po \
-	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po \
@@ -1190,9 +1200,11 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po \
@@ -1362,7 +1374,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 	../include/ibamr/INSStaggeredVelocityBcCoef.h \
 	../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h \
+	../include/ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h \
+	../include/ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h \
 	../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
 	../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
 	../include/ibamr/INSVCStaggeredPressureBcCoef.h \
@@ -1373,6 +1386,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
 	../include/ibamr/LSInitStrategy.h \
+	../include/ibamr/MassIntegrator.h \
 	../include/ibamr/MobilityFunctions.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
@@ -1786,7 +1800,8 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 	../include/ibamr/INSStaggeredVelocityBcCoef.h \
 	../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h \
+	../include/ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h \
+	../include/ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h \
 	../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
 	../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
 	../include/ibamr/INSVCStaggeredPressureBcCoef.h \
@@ -1797,6 +1812,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
 	../include/ibamr/LSInitStrategy.h \
+	../include/ibamr/MassIntegrator.h \
 	../include/ibamr/MobilityFunctions.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
@@ -1928,7 +1944,8 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 	../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
-	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp \
+	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
@@ -1967,7 +1984,8 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
-	../src/utilities/RNG.cpp $(am__append_4)
+	../src/utilities/MassIntegrator.cpp ../src/utilities/RNG.cpp \
+	$(am__append_4)
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
@@ -2379,7 +2397,10 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.$(OBJEXT):  \
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT):  \
@@ -2508,6 +2529,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/wave_generation/libIBAMR2d_a-WaveGenerationFunctions.$(OBJEXT):  \
 	../src/wave_generation/$(am__dirstamp) \
 	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR2d_a-MassIntegrator.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBAMR2d_a-RNG.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2884,7 +2908,10 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.$(OBJEXT):  \
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT):  \
@@ -3001,6 +3028,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/wave_generation/libIBAMR3d_a-WaveGenerationFunctions.$(OBJEXT):  \
 	../src/wave_generation/$(am__dirstamp) \
 	../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR3d_a-MassIntegrator.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBAMR3d_a-RNG.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3331,7 +3361,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po@am__quote@ # am--include-marker
@@ -3379,7 +3410,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po@am__quote@ # am--include-marker
@@ -3408,9 +3440,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
@@ -4891,19 +4925,33 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; fi`
 
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o' libtool=no @AMDEPBACKSLASH@
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
 
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; fi`
+
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+
+../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.o: ../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
@@ -5436,6 +5484,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/WaveGenerationFunctions.cpp' object='../src/wave_generation/libIBAMR2d_a-WaveGenerationFunctions.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR2d_a-WaveGenerationFunctions.obj `if test -f '../src/wave_generation/WaveGenerationFunctions.cpp'; then $(CYGPATH_W) '../src/wave_generation/WaveGenerationFunctions.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/WaveGenerationFunctions.cpp'; fi`
+
+../src/utilities/libIBAMR2d_a-MassIntegrator.o: ../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-MassIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Tpo -c -o ../src/utilities/libIBAMR2d_a-MassIntegrator.o `test -f '../src/utilities/MassIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MassIntegrator.cpp' object='../src/utilities/libIBAMR2d_a-MassIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-MassIntegrator.o `test -f '../src/utilities/MassIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/MassIntegrator.cpp
+
+../src/utilities/libIBAMR2d_a-MassIntegrator.obj: ../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-MassIntegrator.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Tpo -c -o ../src/utilities/libIBAMR2d_a-MassIntegrator.obj `if test -f '../src/utilities/MassIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/MassIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MassIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MassIntegrator.cpp' object='../src/utilities/libIBAMR2d_a-MassIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-MassIntegrator.obj `if test -f '../src/utilities/MassIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/MassIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MassIntegrator.cpp'; fi`
 
 ../src/utilities/libIBAMR2d_a-RNG.o: ../src/utilities/RNG.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-RNG.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Tpo -c -o ../src/utilities/libIBAMR2d_a-RNG.o `test -f '../src/utilities/RNG.cpp' || echo '$(srcdir)/'`../src/utilities/RNG.cpp
@@ -7075,19 +7137,33 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp'; fi`
 
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o' libtool=no @AMDEPBACKSLASH@
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
 
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp'; fi`
+
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+
+../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj: ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp'; fi`
 
 ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.o: ../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.o `test -f '../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
@@ -7620,6 +7696,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/wave_generation/WaveGenerationFunctions.cpp' object='../src/wave_generation/libIBAMR3d_a-WaveGenerationFunctions.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/wave_generation/libIBAMR3d_a-WaveGenerationFunctions.obj `if test -f '../src/wave_generation/WaveGenerationFunctions.cpp'; then $(CYGPATH_W) '../src/wave_generation/WaveGenerationFunctions.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/wave_generation/WaveGenerationFunctions.cpp'; fi`
+
+../src/utilities/libIBAMR3d_a-MassIntegrator.o: ../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-MassIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Tpo -c -o ../src/utilities/libIBAMR3d_a-MassIntegrator.o `test -f '../src/utilities/MassIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MassIntegrator.cpp' object='../src/utilities/libIBAMR3d_a-MassIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-MassIntegrator.o `test -f '../src/utilities/MassIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/MassIntegrator.cpp
+
+../src/utilities/libIBAMR3d_a-MassIntegrator.obj: ../src/utilities/MassIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-MassIntegrator.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Tpo -c -o ../src/utilities/libIBAMR3d_a-MassIntegrator.obj `if test -f '../src/utilities/MassIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/MassIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MassIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/MassIntegrator.cpp' object='../src/utilities/libIBAMR3d_a-MassIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-MassIntegrator.obj `if test -f '../src/utilities/MassIntegrator.cpp'; then $(CYGPATH_W) '../src/utilities/MassIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/MassIntegrator.cpp'; fi`
 
 ../src/utilities/libIBAMR3d_a-RNG.o: ../src/utilities/RNG.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-RNG.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Tpo -c -o ../src/utilities/libIBAMR3d_a-RNG.o `test -f '../src/utilities/RNG.cpp' || echo '$(srcdir)/'`../src/utilities/RNG.cpp
@@ -8236,7 +8326,8 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po
@@ -8284,7 +8375,8 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po
@@ -8313,9 +8405,11 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po
@@ -8594,7 +8688,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSStaggeredWavePropConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po
@@ -8642,7 +8737,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSStaggeredWavePropConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumRKIntegrator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po
@@ -8671,9 +8767,11 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-MassIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-MassIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po
