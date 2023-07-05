@@ -167,7 +167,6 @@ MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 
 // Application
-CHI = RHO_S/DT_MAX
 PRECOND_REINIT_INTERVAL      = 1
 VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
@@ -183,29 +182,12 @@ ADV_DIFF_CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"
 ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"
 
-IBInterpolantHierarchyIntegrator {
-   start_time            = START_TIME
-   end_time              = END_TIME
-   grow_dt               = GROW_DT
-   max_integrator_steps  = MAX_INTEGRATOR_STEPS
-   regrid_interval       = 5
-
-   dt_max             = DT_MAX
-   num_cycles         = NUM_INS_CYCLES
-   enable_logging     = ENABLE_LOGGING
-   error_on_dt_change = ERROR_ON_DT_CHANGE
-}
-
-IBInterpolantMethod {
-    enable_logging = ENABLE_LOGGING
-}
-
-IBRedundantInitializer {
-    max_levels      = MAX_LEVELS
-}
-
 BrinkmanPenalization {
-    chi = CHI
+   penalty_factor      = 1.0                         // deafult 1.0                   
+   use_rho_scale       = TRUE                        // default true
+   use_mu_scale        = FALSE                       // default false
+   contour_level       = 0.0                         // default 0.0 
+   num_interface_cells = 2.0                         // default 2.0 
 }
 
 INSVCStaggeredConservativeHierarchyIntegrator {

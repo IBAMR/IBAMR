@@ -50,6 +50,7 @@
 #include "Eigen/src/Geometry/Quaternion.h"
 #include "Eigen/src/LU/FullPivLU.h"
 
+#include <algorithm>
 #include <cmath>
 #include <string>
 #include <utility>
@@ -287,6 +288,9 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
     // Get the interpolated density variable
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
+    // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
+    const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
+
     // Ghost fill the level set values.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
@@ -318,6 +322,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
         const Box<NDIM>& patch_box = patch->getBox();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
+        const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
@@ -325,6 +330,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
         Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
         Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+        Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_ins_idx);
         TBOX_ASSERT((ls_solid_data->getGhostCellWidth()).min() >= 1);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -342,7 +348,21 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                     const Eigen::Vector3d r = IBTK::IndexUtilities::getSideCenter<Eigen::Vector3d>(*patch, s_i);
                     const Eigen::Vector3d dr = r - d_center_of_mass_new;
                     const Eigen::Vector3d Wxdr = d_rot_vel_new.cross(dr);
-                    const double penalty = (*rho_data)(s_i) / dt;
+
+                    double penalty_rho_scale = 0.0, penalty_mu_scale = 0.0;
+                    if (d_use_rho_scale)
+                    {
+                        penalty_rho_scale = (*rho_data)(s_i) / dt;
+                    }
+                    if (d_use_mu_scale)
+                    {
+                        const double mu_lower = (*mu_data)(s_i.toCell(0));
+                        const double mu_upper = (*mu_data)(s_i.toCell(1));
+                        const double mu = 0.5 * (mu_lower + mu_upper);
+                        penalty_mu_scale = mu / (h_min * h_min);
+                    }
+                    const double penalty = d_penalty_factor * (penalty_rho_scale + penalty_mu_scale);
+
                     (*u_data)(s_i) = d_trans_vel_new(axis) + Wxdr(axis);
                     (*u_data)(s_i) *= (1.0 - Hphi) * penalty;
                 }
@@ -366,6 +386,9 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
 
     // Get the interpolated density variable
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
+
+    // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
+    const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
@@ -396,6 +419,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
         const Box<NDIM>& patch_box = patch->getBox();
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
+        const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
@@ -403,6 +427,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
         Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
         Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
         Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+        Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -416,7 +441,20 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
                 const double Hphi = IBTK::smooth_heaviside(phi, alpha);
                 if (phi <= alpha)
                 {
-                    const double penalty = (*rho_data)(s_i) / dt;
+                    double penalty_rho_scale = 0.0, penalty_mu_scale = 0.0;
+                    if (d_use_rho_scale)
+                    {
+                        penalty_rho_scale = (*rho_data)(s_i) / dt;
+                    }
+                    if (d_use_mu_scale)
+                    {
+                        const double mu_lower = (*mu_data)(s_i.toCell(0));
+                        const double mu_upper = (*mu_data)(s_i.toCell(1));
+                        const double mu = 0.5 * (mu_lower + mu_upper);
+                        penalty_mu_scale = mu / (h_min * h_min);
+                    }
+
+                    const double penalty = d_penalty_factor * (penalty_rho_scale + penalty_mu_scale);
                     (*u_data)(s_i) = (1.0 - Hphi) * penalty;
                 }
             }
@@ -458,8 +496,14 @@ BrinkmanPenalizationRigidBodyDynamics::putToDatabase(Pointer<Database> db)
     db->putDoubleArray(Q, &Q_coeffs[0], 4);
     db->putDouble(M, d_mass);
 
+    db->putDouble("d_num_interface_cells", d_num_interface_cells);
+    db->putDouble("d_contour_level", d_contour_level);
+    db->putDouble("d_penalty_factor", d_penalty_factor);
+    db->putBool("d_use_rho_scale", d_use_rho_scale);
+    db->putBool("d_use_mu_scale", d_use_mu_scale);
+
     return;
-} // postprocessComputeBrinkmanVelocity
+} // putToDatabase
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -479,20 +523,32 @@ BrinkmanPenalizationRigidBodyDynamics::getFromInput(Pointer<Database> input_db, 
         d_quaternion_current.normalize();
         d_quaternion_new = d_quaternion_current;
     }
-
-    if (input_db->keyExists("chi"))
+    if (!is_from_restart)
     {
-        d_chi = input_db->getDouble("chi");
-    }
+        if (input_db->keyExists("penalty_factor"))
+        {
+            d_penalty_factor = input_db->getDouble("penalty_factor");
+        }
 
-    if (input_db->keyExists("contour_level"))
-    {
-        d_contour_level = input_db->getDouble("contour_level");
-    }
+        if (input_db->keyExists("use_rho_scale"))
+        {
+            d_use_rho_scale = input_db->getBool("use_rho_scale");
+        }
 
-    if (input_db->keyExists("num_interface_cells"))
-    {
-        d_num_interface_cells = input_db->getDouble("num_interface_cells");
+        if (input_db->keyExists("use_mu_scale"))
+        {
+            d_use_mu_scale = input_db->getBool("use_mu_scale");
+        }
+
+        if (input_db->keyExists("contour_level"))
+        {
+            d_contour_level = input_db->getDouble("contour_level");
+        }
+
+        if (input_db->keyExists("num_interface_cells"))
+        {
+            d_num_interface_cells = input_db->getDouble("num_interface_cells");
+        }
     }
 
     return;
@@ -531,6 +587,12 @@ BrinkmanPenalizationRigidBodyDynamics::getFromRestart()
     d_quaternion_current.y() = Q_coeffs[2];
     d_quaternion_current.z() = Q_coeffs[3];
     d_quaternion_current.normalize();
+
+    d_num_interface_cells = db->getDouble("d_num_interface_cells");
+    d_contour_level = db->getDouble("d_contour_level");
+    d_penalty_factor = db->getDouble("d_penalty_factor");
+    d_use_rho_scale = db->getBool("d_use_rho_scale");
+    d_use_mu_scale = db->getBool("d_use_mu_scale");
 
     return;
 } // getFromRestart

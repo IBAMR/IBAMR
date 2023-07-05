@@ -16,9 +16,6 @@ NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on f
 INDICATOR_FUNCTION_TYPE = "SMOOTH"
 ETA = 1e-8
 NUMBER_OF_INTERFACE_CELLS = 1.0
-BrinkmanPenalization {
-    chi = ETA
-}
 
 // exact solution function expressions
 Q = "cos(4*(((X_0 - PI)^2 + (X_1 - PI)^2)^0.5)) + 3/4*PI*log((((X_0 - PI)^2 + (X_1 - PI)^2)^0.5)) - 3/32*PI*(9*log(3*PI/4) - log(PI/4) - 4)" // assumed alpha = 1.

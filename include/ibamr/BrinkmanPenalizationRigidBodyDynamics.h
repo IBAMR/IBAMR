@@ -62,15 +62,15 @@ namespace IBAMR
  * variable-coefficient INS solvers of INSVCStaggeredHierarchyIntegrator. This
  * is done in the BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone
  * method. Here \f$ \chi \f$ is the body indicator function and \f$\kappa \sim
- * \Delta t/ \rho \ll 1 \f$ is the vanishing permeability of the body. The
- * rigid body velocity \f$\bm{u}_b\f$ is computed through Newton's law of
+ * (\Delta t/ \rho + h^2/\mu) \ll 1 \f$ is the vanishing permeability of the body.
+ * The rigid body velocity \f$\bm{u}_b\f$ is computed through Newton's law of
  * motion by netting the hydrodynamic and external forces and torques on the
  * body in the BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity
  * method. A simple forward-Euler scheme is employed for the second-law of
  * motion.
  *
  * For further information on applications of this class see
- * https://arxiv.org/abs/1904.04078.
+ * https://www.sciencedirect.com/science/article/pii/S0141118719302779.
  */
 class BrinkmanPenalizationRigidBodyDynamics : public BrinkmanPenalizationStrategy
 {
