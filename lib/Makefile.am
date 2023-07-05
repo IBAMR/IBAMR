@@ -106,6 +106,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/WallForceEvaluator.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
+../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
 ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 ../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
 ../src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp \
@@ -213,7 +214,8 @@ endif
 
 pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
-../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
+../include/ibamr/AdvDiffCUIConvectiveOperator.h \
+../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
 ../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 ../include/ibamr/AdvDiffHierarchyIntegrator.h \
 ../include/ibamr/AdvDiffPPMConvectiveOperator.h \
