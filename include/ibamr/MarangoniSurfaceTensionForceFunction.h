@@ -191,7 +191,7 @@ private:
     /*!
      * Marangoni coefficient.
      */
-    double d_marangoni_coefficient = std::numeric_limits<double>::signaling_NaN();
+    double d_marangoni_coefficient = 0.0;
 
     /*!
      * Boundary condition object for temperature.
