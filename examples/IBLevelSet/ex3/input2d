@@ -155,7 +155,6 @@ MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 
 // Application
-CHI = RHO_F/DT_MAX
 PRECOND_REINIT_INTERVAL      = 1
 VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
@@ -209,7 +208,11 @@ IBFEMethod {
 }
 
 BrinkmanPenalization {
-    chi = CHI
+   penalty_factor      = 1.0                         // deafult 1.0                   
+   use_rho_scale       = TRUE                        // default true
+   use_mu_scale        = FALSE                       // default false
+   contour_level       = 0.0                         // default 0.0 
+   num_interface_cells = 2.0                         // default 2.0 
 }
 
 INSVCStaggeredConservativeHierarchyIntegrator {

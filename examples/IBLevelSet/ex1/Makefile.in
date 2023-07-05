@@ -88,8 +88,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = $(am__EXEEXT_3)
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__append_2 = $(EXAMPLES)
+@SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
+@SAMRAI2D_ENABLED_TRUE@am__append_2 = $(EXAMPLES)
 subdir = examples/IBLevelSet/ex1
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -120,11 +120,9 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 =  \
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	main2d$(EXEEXT)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
 am__EXEEXT_2 = $(am__EXEEXT_1)
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_3 =  \
-@LIBMESH_ENABLED_TRUE@@SAMRAI2D_ENABLED_TRUE@	$(am__EXEEXT_2)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_3 = $(am__EXEEXT_2)
 am__objects_1 = main2d-example.$(OBJEXT) \
 	main2d-SetFluidSolidDensity.$(OBJEXT) \
 	main2d-SetFluidSolidViscosity.$(OBJEXT) \
@@ -484,7 +482,6 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = example.cpp SetFluidSolidDensity.cpp SetFluidSolidDensity.h SetFluidSolidViscosity.cpp SetFluidSolidViscosity.h TagLSRefinementCells.cpp TagLSRefinementCells.h
-EXTRA_DIST = input2d
 EXAMPLES = $(am__append_1)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -851,13 +848,13 @@ uninstall-am:
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[2]d* $(PWD) ; \
+	  cp -f $(srcdir)/input[2]d*mesh $(PWD) ; \
 	fi ;
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[2]d ; \
+	  rm -f $(builddir)/input[2]d*mesh ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
