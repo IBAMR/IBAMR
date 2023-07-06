@@ -322,6 +322,7 @@ AC_CONFIG_FILES([
   tests/level_set/Makefile
   tests/multiphase_flow/Makefile
   tests/navier_stokes/Makefile
+  tests/phase_change/Makefile
   tests/physical_boundary/Makefile
   tests/refine/Makefile
   tests/spread/Makefile
