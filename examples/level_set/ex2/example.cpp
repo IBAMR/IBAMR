@@ -260,10 +260,10 @@ main(int argc, char* argv[])
                                                                 static_cast<void*>(ptr_LSLocateInterface));
         level_set_ops->registerPhysicalBoundaryCondition(Q_bc_coef);
 
-        LevelSetUtilities::SetLSProperties* ptr_setSetLSProperties =
+        LevelSetUtilities::SetLSProperties* ptr_SetLSProperties =
             new LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_ops);
         time_integrator->registerResetFunction(
-            Q_var, &LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_setSetLSProperties));
+            Q_var, &LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_SetLSProperties));
 
         // Fix the volume loss due to advection
         NULL_USE(fix_mass_loss_ls_callback_fcn);
@@ -377,6 +377,9 @@ main(int argc, char* argv[])
         {
             vol_stream.close();
         }
+
+        delete ptr_SetLSProperties;
+        delete ptr_LSLocateInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

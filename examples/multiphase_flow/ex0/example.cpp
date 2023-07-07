@@ -28,6 +28,7 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 
@@ -42,7 +43,6 @@
 // Application
 #include "LSLocateCircularInterface.h"
 #include "SetFluidProperties.h"
-#include "SetLSProperties.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -184,9 +184,11 @@ main(int argc, char* argv[])
             new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, phi_var, circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateCircularInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+
+        LevelSetUtilities::SetLSProperties* ptr_SetLSProperties =
+            new LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            phi_var, &LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_SetLSProperties));
 
         // LS initial conditions
         if (input_db->keyExists("LevelSetInitialConditions"))
@@ -304,6 +306,16 @@ main(int argc, char* argv[])
                                             phi_var);
         time_integrator->registerBodyForceFunction(surface_tension_force);
 
+        std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars{ phi_var };
+        LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
+            "LevelSet  MassLossFixer",
+            adv_diff_integrator,
+            ls_vars,
+            app_initializer->getComponentDatabase("LevelSetMassFixer"),
+            /*restart*/ true);
+        time_integrator->registerPostprocessIntegrateHierarchyCallback(&LevelSetUtilities::fixMassLoss2PhaseFlows,
+                                                                       static_cast<void*>(&level_set_fixer));
+
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
@@ -321,6 +333,10 @@ main(int argc, char* argv[])
         plog << "Input database:\n";
         input_db->printClassData(plog);
 
+        // Set the target volume as the gas domain volume (where phi is negative)
+        std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(&level_set_fixer);
+        level_set_fixer.setInitialVolume(H_integrals[0]);
+
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
@@ -332,13 +348,23 @@ main(int argc, char* argv[])
         }
 
         // File to write to for fluid mass data
-        ofstream mass_file, dP_file, dP_abs_file, dP_rel_file, Umax_file, UL1_file;
+        ofstream mass_file, dP_file, dP_abs_file, dP_rel_file, Umax_file, UL1_file, vol_file;
         mass_file.open("mass_fluid.txt");
         dP_file.open("dP.txt");
         dP_abs_file.open("dP_abs_err.txt");
         dP_rel_file.open("dP_rel_err.txt");
         Umax_file.open("Umax.txt");
         UL1_file.open("UL1.txt");
+        vol_file.open("vol.txt");
+        vol_file.precision(16);
+        vol_file.setf(ios::fixed, ios::floatfield);
+
+        // Open stream to save the volume of the two phase and the Lagrange multiplier.
+        if (IBTK_MPI::getRank() == 0)
+        {
+            vol_file << 0.0 << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t" << 0.0 << std::endl;
+        }
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -397,6 +423,9 @@ main(int argc, char* argv[])
             pout << std::setprecision(16) << "|U|_max = " << Umax << std::endl;
             pout << std::setprecision(16) << "|U|_L1 = " << UL1 << std::endl;
 
+            // Compute volume of the phases
+            std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(&level_set_fixer);
+
             // Write to file
             if (!IBTK_MPI::getRank())
             {
@@ -407,6 +436,9 @@ main(int argc, char* argv[])
                             << std::endl;
                 Umax_file << std::setprecision(16) << loop_time << "\t" << Umax << std::endl;
                 UL1_file << std::setprecision(16) << loop_time << "\t" << UL1 << std::endl;
+
+                vol_file << std::setprecision(16) << loop_time << "\t" << H_integrals[0] << "\t" << H_integrals[1]
+                         << "\t" << level_set_fixer.getLagrangeMultiplier() << std::endl;
             }
 
             // At specified intervals, write visualization and restart files,
@@ -443,6 +475,7 @@ main(int argc, char* argv[])
         dP_rel_file.close();
         Umax_file.close();
         UL1_file.close();
+        vol_file.close();
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).

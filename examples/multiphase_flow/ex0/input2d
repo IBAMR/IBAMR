@@ -8,8 +8,8 @@ R     = 0.25
 // surface tension parameters
 DELTA_FUNCTION = "IB_4"
 SIGMA = 73.0
-NUM_INTERFACE_CELLS = 2.0
-NUM_ST_INTERFACE_CELLS = 2.0
+NUM_INTERFACE_CELLS = 1.0
+NUM_ST_INTERFACE_CELLS = 1.0
 LA    = 12000
 RHO_O = 1.0
 RHO_I = 1.0e3
@@ -41,6 +41,14 @@ LevelSetInitialConditions {
   xcom = XCOM
   ycom = YCOM
   function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius" 
+}
+
+LevelSetMassFixer {
+   half_width = 1.0            // width of the interface in each phase to compute Heaviside integrals 
+   max_its = 4                 // maximum no. of Newton's iterations
+   rel_tol = 1e-12             // error between current and target volume
+   correction_interval = 1     // frequency at which mass loss is corrected
+   enable_logging      = TRUE  // prints Netwon residuals
 }
 
 PressureInitialConditions {
