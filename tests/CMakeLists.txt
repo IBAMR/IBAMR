@@ -144,6 +144,7 @@ SETUP(multiphase_flow free_falling_cyl_cib.cpp IBAMR2d)
 SETUP(multiphase_flow rotating_barge_cib.cpp IBAMR2d)
 SETUP(multiphase_flow check_hydro_force.cpp IBAMR2d)
 SETUP(multiphase_flow high_density_droplet.cpp IBAMR2d)
+SETUP(multiphase_flow static_bubble_with_surface_tension.cpp IBAMR2d)
 
 # navier_stokes:
 SETUP_2D(navier_stokes navier_stokes_01.cpp)
