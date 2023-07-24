@@ -198,7 +198,6 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
         d_evolve_type = string_to_enum<TensorEvolutionType>(input_db->getString("evolve_type"));
     if (input_db->keyExists("D")) d_adv_diff_integrator->setDiffusionCoefficient(d_W_cc_var, input_db->getDouble("D"));
     d_log_det = input_db->getBoolWithDefault("log_determinant", d_log_det);
-    d_convec_oper_type = input_db->getStringWithDefault("convective_operator_type", "CENTERED");
     d_fluid_model = input_db->getStringWithDefault("fluid_model", d_fluid_model);
     for (auto& c : d_fluid_model) c = std::toupper(c);
     d_error_on_spd = input_db->getBoolWithDefault("error_on_spd", d_error_on_spd);
@@ -257,8 +256,18 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
         }
         d_adv_diff_integrator->setPhysicalBcCoefs(d_W_cc_var, d_conc_bc_coefs_ptrs);
     }
-    d_convec_oper = new CFUpperConvectiveOperator(
-        "ComplexFluidConvectiveOperator", d_W_cc_var, input_db, d_convec_oper_type, d_conc_bc_coefs_ptrs, vel_bcs);
+
+    // Setup the convective operator
+    std::string convec_oper_type = input_db->getStringWithDefault("convective_operator_type", "CENTERED");
+    auto difference_form =
+        string_to_enum<ConvectiveDifferencingType>(input_db->getStringWithDefault("difference_form", "ADVECTIVE"));
+    d_convec_oper = new CFUpperConvectiveOperator("ComplexFluidConvectiveOperator",
+                                                  d_W_cc_var,
+                                                  input_db,
+                                                  convec_oper_type,
+                                                  difference_form,
+                                                  d_conc_bc_coefs_ptrs,
+                                                  vel_bcs);
     d_adv_diff_integrator->setConvectiveOperator(d_W_cc_var, d_convec_oper);
 
     // Register relaxation function
@@ -337,6 +346,10 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         }
     }
 
+    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
+        hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy, true);
+
     // Fill in boundary conditions for evolved quantity.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
@@ -353,9 +366,6 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
     ghost_fill_op.initializeOperatorState(ghost_cell_components, hierarchy);
     ghost_fill_op.fillData(data_time);
 
-    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
-        hier_data_ops_manager->getOperationsDouble(d_W_cc_var, hierarchy, true);
     // Convert evolved quantity including ghost cells to conformation tensor.
     switch (d_evolve_type)
     {
@@ -411,6 +421,13 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         d_min_det = IBTK_MPI::minReduction(d_min_det);
         plog << "Largest det:  " << d_max_det << "\n";
         plog << "Smallest det: " << d_min_det << "\n";
+    }
+
+    // We scale sigma if necessary. We assume here that d_sig_scale_fcn sets correct ghost cells.
+    if (d_C_adjust_fcn)
+    {
+        d_C_adjust_fcn->setDataOnPatchHierarchy(
+            d_W_scratch_idx, d_W_cc_var, hierarchy, data_time, initial_time, coarsest_ln, finest_ln);
     }
 
     // Compute Div W on each patch level

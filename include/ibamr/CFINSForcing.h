@@ -251,6 +251,20 @@ public:
         return d_adv_diff_integrator;
     }
 
+    /*!
+     * Register a function that acts on the conformation tensor prior to the divergence computation.
+     *
+     * This function will be provided with the conformation tensor, and the action of the operator should be provided
+     * inplace.
+     *
+     * This function must also provide correct ghost cell information to the provided patch index. The patch index
+     * provided to this function has ghost cells filled for the conformation tensor.
+     */
+    inline void setConformationTensorAdjustmentFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> fcn)
+    {
+        d_C_adjust_fcn = fcn;
+    }
+
 private:
     void commonConstructor(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                            SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_data_writer,
@@ -302,7 +316,6 @@ private:
     TensorEvolutionType d_evolve_type = STANDARD;
     SAMRAI::tbox::Pointer<AdvDiffSemiImplicitHierarchyIntegrator> d_adv_diff_integrator;
     SAMRAI::tbox::Pointer<CFUpperConvectiveOperator> d_convec_oper;
-    std::string d_convec_oper_type;
 
     /**
      * Boundary conditions.
@@ -329,6 +342,9 @@ private:
     // Velocity information
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_u_fcn;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_var;
+
+    // Divergence information
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_C_adjust_fcn;
 };
 } // Namespace IBAMR
 #endif

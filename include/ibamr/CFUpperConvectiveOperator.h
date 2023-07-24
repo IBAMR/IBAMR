@@ -89,7 +89,8 @@ public:
     CFUpperConvectiveOperator(const std::string& object_name,
                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                              const std::string& difference_form,
+                              const std::string& convective_op_type,
+                              ConvectiveDifferencingType difference_type,
                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
@@ -131,7 +132,6 @@ private:
     int d_s_idx = IBTK::invalid_index;
 
     // Convective Operator
-    std::string d_difference_form;
     SAMRAI::tbox::Pointer<IBAMR::ConvectiveOperator> d_convec_oper;
     int d_Q_convec_idx = IBTK::invalid_index;
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_Q_bc_coefs;
