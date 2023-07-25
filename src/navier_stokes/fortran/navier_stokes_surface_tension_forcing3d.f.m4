@@ -571,13 +571,26 @@ c
       INTEGER i0,i1,i2
       REAL gradC_mag
       REAL gradT_dot_gradphi
+      REAL norm_grad,eps
+      eps = 1.d-10
 
 c
       do i2 = ilower2, iupper2
         do i1 = ilower1, iupper1
           do i0 = ilower0, iupper0 + 1
-            gradC_mag = sqrt(gradC00(i0,i1,i2)**2+gradC01(i0,i1,i2)**2
-     &                  +gradC02(i0,i1,i2)**2)
+            norm_grad = sqrt(N00(i0,i1,i2)**2 + N01(i0,i1,i2)**2
+     &                  + N02(i0,i1,i2)**2)
+            if (norm_grad .gt. eps) then
+                norm_grad = 1.d0/norm_grad
+            else
+                norm_grad = 0.d0
+            endif
+            N00(i0,i1,i2) = N00(i0,i1,i2)*norm_grad
+            N01(i0,i1,i2) = N01(i0,i1,i2)*norm_grad
+            N02(i0,i1,i2) = N02(i0,i1,i2)*norm_grad
+
+            gradC_mag = sqrt(gradC00(i0,i1,i2)**2 + gradC01(i0,i1,i2)**2
+     &                  + gradC02(i0,i1,i2)**2)
             gradT_dot_gradphi = gradT00(i0,i1,i2)*N00(i0,i1,i2) +
      &                          gradT01(i0,i1,i2)*N01(i0,i1,i2) +
      &                          gradT02(i0,i1,i2)*N02(i0,i1,i2)
@@ -590,7 +603,18 @@ c
       do i2 = ilower2, iupper2
         do i1 = ilower1, iupper1+1
           do i0 = ilower0, iupper0
-            gradC_mag = sqrt(gradC10(i0,i1,i2)**2+gradC11(i0,i1,i2)**2
+            norm_grad = sqrt(N10(i0,i1,i2)**2 + N11(i0,i1,i2)**2
+     &                  + N12(i0,i1,i2)**2)
+            if (norm_grad .gt. eps) then
+                norm_grad = 1.d0/norm_grad
+            else
+                norm_grad = 0.d0
+            endif
+            N10(i0,i1,i2) = N10(i0,i1,i2)*norm_grad
+            N11(i0,i1,i2) = N11(i0,i1,i2)*norm_grad
+            N12(i0,i1,i2) = N12(i0,i1,i2)*norm_grad
+
+            gradC_mag = sqrt(gradC10(i0,i1,i2)**2 + gradC11(i0,i1,i2)**2
      &                + gradC12(i0,i1,i2)**2)
             gradT_dot_gradphi = gradT10(i0,i1,i2)*N10(i0,i1,i2) +
      &                          gradT11(i0,i1,i2)*N11(i0,i1,i2) +
@@ -604,7 +628,18 @@ c
       do i2 = ilower2, iupper2+1
         do i1 = ilower1, iupper1
           do i0 = ilower0, iupper0
-            gradC_mag = sqrt(gradC20(i0,i1,i2)**2+gradC21(i0,i1,i2)**2
+            norm_grad = sqrt(N20(i0,i1,i2)**2 + N21(i0,i1,i2)**2
+     &                  + N22(i0,i1,i2)**2)
+            if (norm_grad .gt. eps) then
+                norm_grad = 1.d0/norm_grad
+            else
+                norm_grad = 0.d0
+            endif
+            N20(i0,i1,i2) = N20(i0,i1,i2)*norm_grad
+            N21(i0,i1,i2) = N21(i0,i1,i2)*norm_grad
+            N22(i0,i1,i2) = N22(i0,i1,i2)*norm_grad
+
+            gradC_mag = sqrt(gradC20(i0,i1,i2)**2 + gradC21(i0,i1,i2)**2
      &                + gradC22(i0,i1,i2)**2)
             gradT_dot_gradphi = gradT20(i0,i1,i2)*N20(i0,i1,i2) +
      &                          gradT21(i0,i1,i2)*N21(i0,i1,i2) +
