@@ -71,13 +71,11 @@ class RobinBcCoefStrategy;
 #if (NDIM == 2)
 #define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_2d, SC_NORMAL_2D)
 #define SC_MARANGONI_FORCE_FC IBAMR_FC_FUNC(sc_marangoni_force_2d, SC_MARANGONI_FORCE_2D)
-#define CC_CURVATURE_FC IBAMR_FC_FUNC(cc_curvature_2d, CC_CURVATURE_2D)
 #endif
 
 #if (NDIM == 3)
 #define SC_NORMAL_FC IBAMR_FC_FUNC(sc_normal_3d, SC_NORMAL_3D)
 #define SC_MARANGONI_FORCE_FC IBAMR_FC_FUNC(sc_marangoni_force_3d, SC_MARANGONI_FORCE_3D)
-#define CC_CURVATURE_FC IBAMR_FC_FUNC(cc_curvature_3d, CC_CURVATURE_3D)
 #endif
 
 extern "C"
@@ -107,32 +105,6 @@ extern "C"
                       const int& iupper2,
 #endif
                       const double* dx);
-
-    void CC_CURVATURE_FC(double* K,
-                         const int& K_gcw,
-                         const double* N00,
-                         const double* N01,
-#if (NDIM == 3)
-                         const double* N02,
-#endif
-                         const double* N10,
-                         const double* N11,
-#if (NDIM == 3)
-                         const double* N12,
-                         const double* N20,
-                         const double* N21,
-                         const double* N22,
-#endif
-                         const int& N_gcw,
-                         const int& ilower0,
-                         const int& iupper0,
-                         const int& ilower1,
-                         const int& iupper1,
-#if (NDIM == 3)
-                         const int& ilower2,
-                         const int& iupper2,
-#endif
-                         const double* dx);
 
     void SC_MARANGONI_FORCE_FC(
 #if (NDIM == 2)
@@ -330,10 +302,6 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
                                                      const bool initial_time,
                                                      Pointer<PatchLevel<NDIM> > level)
 {
-    if (initial_time) return;
-
-    SurfaceTensionForceFunction::setDataOnPatch(data_idx, var, patch, data_time, initial_time, level);
-
     Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
@@ -343,6 +311,12 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
+    if (f_cc_data) f_cc_data->fillAll(0.0);
+    if (f_sc_data) f_sc_data->fillAll(0.0);
+
+    if (initial_time) return;
+
+    SurfaceTensionForceFunction::setDataOnPatch(data_idx, var, patch, data_time, initial_time, level);
 
     if (f_cc_data) setDataOnPatchCell(f_cc_data, patch, data_time, initial_time, level);
     if (f_sc_data)
