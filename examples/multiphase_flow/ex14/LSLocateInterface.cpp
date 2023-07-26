@@ -36,11 +36,8 @@ callLSLocateInterfaceCallbackFunction(int D_idx,
 LSLocateInterface::LSLocateInterface(const std::string& object_name,
                                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                      Pointer<CellVariable<NDIM, double> > ls_var,
-                                     const double initial_gas_pcm_interface_position)
-    : d_object_name(object_name),
-      d_adv_diff_solver(adv_diff_solver),
-      d_ls_var(ls_var),
-      d_initial_gas_pcm_interface_position(initial_gas_pcm_interface_position)
+                                     CircularInterface init_circle)
+    : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_init_circle(init_circle)
 {
     // intentionally left blank
     return;
@@ -77,6 +74,9 @@ LSLocateInterface::setLevelSetPatchData(int D_idx,
     }
 
     // Set the initial condition for locating the interface
+    const double& R = d_init_circle.R;
+    const IBTK::Vector& X0 = d_init_circle.X0;
+
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -100,7 +100,14 @@ LSLocateInterface::setLevelSetPatchData(int D_idx,
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
 
-                (*D_data)(ci) = d_initial_gas_pcm_interface_position - coord[1];
+                const double distance = std::sqrt(std::pow((coord[0] - X0(0)), 2.0) + std::pow((coord[1] - X0(1)), 2.0)
+#if (NDIM == 3)
+                                                  + std::pow((coord[2] - X0(2)), 2.0)
+#endif
+                );
+
+                // Initialize the locator data
+                (*D_data)(ci) = distance - R;
             }
         }
     }
