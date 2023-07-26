@@ -13,7 +13,7 @@
 
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = free_falling_cyl_cib rotating_barge_cib check_hydro_force high_density_droplet static_bubble_with_surface_tension
+EXTRA_PROGRAMS = free_falling_cyl_cib rotating_barge_cib check_hydro_force high_density_droplet static_bubble_with_surface_tension migration_of_bubble_with_zero_ma
 
 # this test needs some extra input files, so make SOURCE_DIR available:
 free_falling_cyl_cib_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
@@ -36,6 +36,11 @@ high_density_droplet_SOURCES = high_density_droplet.cpp
 static_bubble_with_surface_tension_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 static_bubble_with_surface_tension_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 static_bubble_with_surface_tension_SOURCES = static_bubble_with_surface_tension.cpp
+
+migration_of_bubble_with_zero_ma_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+migration_of_bubble_with_zero_ma_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+migration_of_bubble_with_zero_ma_SOURCES = migration_of_bubble_with_zero_ma.cpp
+
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
