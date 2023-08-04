@@ -1288,6 +1288,15 @@ LDataManager::mapPETScToLagrangian(std::vector<int>& inds, const int level_numbe
     return;
 } // mapPETScToLagrangian
 
+AO&
+LDataManager::getAO(int level_number)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
+#endif
+    return d_ao[level_number];
+}
+
 void
 LDataManager::scatterLagrangianToPETSc(Vec& lagrangian_vec, Vec& petsc_vec, const int level_number) const
 {

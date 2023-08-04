@@ -806,6 +806,11 @@ public:
     void mapPETScToLagrangian(std::vector<int>& inds, int level_number) const;
 
     /*!
+     * \brief Return the AO object that maps Lagrangian indices to PETSc indices.
+     */
+    AO& getAO(int level_number);
+
+    /*!
      * \brief Scatter data from the Lagrangian ordering to the global PETSc
      * ordering.
      *

@@ -1938,14 +1938,13 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
         DBClose(dbfile);
 
         // Create or update the dumps file on the root MPI process.
-        static bool summary_file_opened = false;
         std::string path = d_dump_directory_name + "/" + VISIT_DUMPS_FILENAME;
         std::snprintf(temp_buf, sizeof(temp_buf), "%06d", d_time_step_number);
         std::string file =
             current_dump_directory_name + "/" + SILO_SUMMARY_FILE_PREFIX + temp_buf + SILO_SUMMARY_FILE_POSTFIX;
-        if (!summary_file_opened)
+        if (!d_summary_file_opened)
         {
-            summary_file_opened = true;
+            d_summary_file_opened = true;
             std::ofstream sfile(path.c_str(), std::ios::out);
             sfile << file << std::endl;
             sfile.close();
