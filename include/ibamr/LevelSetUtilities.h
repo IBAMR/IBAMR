@@ -80,20 +80,27 @@ public:
          * \brief Constructor of the class.
          */
         LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var)
-            : d_adv_diff_integrator(adv_diff_integrator)
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                          double ncells = 1.0)
+            : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(ls_var), d_ncells(ncells)
         {
-            d_ls_vars.emplace_back(ls_var);
             return;
         } // LevelSetContainer
 
         LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                          std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > ls_vars)
-            : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(std::move(ls_vars))
+                          std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > ls_vars,
+                          double ncells = 1.0)
+            : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(std::move(ls_vars)), d_ncells(ncells)
         {
             // return;
         } // LevelSetContainer
 
+        /*!
+         * @param ncells are the number of cells representing the half-width of the
+         * interface. Depending upon the application, ncells is used to specify material
+         * properties like density or viscosity (via some mixture model) or to compute volume
+         * of the phase enclosed by the level set variable.
+         */
         void setInterfaceHalfWidth(double ncells)
         {
             d_ncells = ncells;
