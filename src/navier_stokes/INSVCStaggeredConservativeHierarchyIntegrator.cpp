@@ -133,18 +133,15 @@ INSVCStaggeredConservativeHierarchyIntegrator::INSVCStaggeredConservativeHierarc
     }
 
     // Initialize conservative mass and momentum integrator.
-    if (input_db->getDatabase("mass_momentum_integrator_db")->keyExists("density_time_stepping_type"))
-    {
-        if (input_db->getDatabase("mass_momentum_integrator_db")->getString("density_time_stepping_type") == "SSPRK3" ||
-            input_db->getDatabase("mass_momentum_integrator_db")->getString("density_time_stepping_type") == "SSPRK2")
-            d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(
-                "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumSSPRKIntegrator",
-                input_db->getDatabase("mass_momentum_integrator_db"));
-        else
-            d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumRKIntegrator(
-                "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumRKIntegrator",
-                input_db->getDatabase("mass_momentum_integrator_db"));
-    }
+    Pointer<Database> mass_momentum_db = input_db->getDatabase("mass_momentum_integrator_db");
+    if (mass_momentum_db->getString("density_time_stepping_type") == "SSPRK3" ||
+        mass_momentum_db->getString("density_time_stepping_type") == "SSPRK2")
+        d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(
+            "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumSSPRKIntegrator", mass_momentum_db);
+    else
+        d_rho_p_integrator = new INSVCStaggeredConservativeMassMomentumRKIntegrator(
+            "INSVCStaggeredConservativeHierarchyIntegrator::MassMomentumRKIntegrator", mass_momentum_db);
+
     d_convective_op_type = "NONE";
 
     // Side centered state variable for density and interpolated density variable

@@ -210,7 +210,6 @@ public:
 
     /*!
      * Add a CartGridFunction that computes \f$ \nabla \cdot \mathbf{u} \f$.
-     * This is used to solve the low Mach equation \f$ \nabla \cdot \mathbf{u} = \mathrm{R.H.S} \f$.
      *
      * @note If \param Q_fcn is not specified, then \f$ \nabla \cdot \mathbf{u}  = 0 \f$ is imposed.
      */
@@ -239,7 +238,7 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
 
     /*!
-     * Return a pointer to the velocity divergence variable.
+     * Return a pointer to the variable that specifies the divergence of the velocity.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVelocityDivergenceVariable() const;
 

@@ -210,7 +210,7 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_v_bdry_fill;
 
     // The limiter type for interpolation onto faces.
-    LimiterType d_velocity_convective_limiter = UPWIND;
+    LimiterType d_velocity_convective_limiter = CUI;
 
     // The required number of ghost cells for the chosen interpolation.
     int d_velocity_limiter_gcw = 1;

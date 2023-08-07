@@ -62,12 +62,40 @@ namespace IBAMR
  * \brief Class MassIntegrator is an abstract class which integrates
  * the density field
  *
- *  \f$ \frac{\partial \rho}{\partial t} + \nabla \cdot (\rho u) = S(x,t) \f$
+ *  \f$ \frac{\partial \rho}{\partial t} + \nabla \cdot (\rho \mathbf{u}) = S(x,t) \f$
  *
  * and computes the conservative form of the convective operator
- * \f$ \nabla \cdot (\rho u u)\f$ for momentum and \f$ \nabla \cdot (\rho u Q)\f$ for
- * energy equation where \f$ Q = C_\textrm{p} T\f$ or \f$ Q = h\f$ based on the form of the
- * energy equation.
+ * \f$ \nabla \cdot (\rho \mathbf{u} \otimes \mathbf{u})\f$ for the momentum and
+ * \f$ \nabla \cdot (\rho \mathbf{u} Q)\f$ for the energy equation where \f$ Q = C_\textrm{p} T\f$
+ * or \f$ Q = h\f$ based on the form of the energy equation.
+ *
+ * \note MassIntegrator is an intermediate or a lightweight integrator that is used within one time step to
+ * get a consistent mass flux \f$ m_\rho = \rho \mathbf{u} \f$ for advecting either momentum \f$ \mathbf{u} \f$
+ * through \f$ \nabla \cdot (\rho \mathbf{u} \otimes \mathbf{u})  = \nabla \cdot (m_\rho \otimes \mathbf{u} ) \f$
+ * or a scalar \f$ Q \f$ through  \f$ \nabla \cdot (\rho \mathbf{u} Q)  = \nabla \cdot (m_\rho  Q) \f$. It does
+ * not maintain any hierarchy data, child or parent integrator, as done by advection-diffusion hierarchy integrator.
+ *
+ * The core concept behind `MassIntegrator` is to obtain a consistent mass flux $\mathbf{m_\rho} = \rho \mathbf{u}$
+ * for stabilizing high density ratio flows. It also ensures a consistency condition that:
+ *
+ * 1. When there are no viscous, pressure forces or any other body forces in the domain, the momentum equation becomes
+ *    discretely equal to the mass equation.
+ * 2. Under isothermal/isenthalpic conditions, with no additional heat source, the energy/enthalpy equation reverts to
+ *    mass balance equation.
+ *
+ * To achieve these conditions, the time integrator scheme of MassIntegrator is tightly coupled to how
+ * INSVCStaggeredHierarchyIntegrator or PhaseChangeHierarchyIntegrator integrate their respective variables.
+ * Note that when flow is incompressible, one does not need to solve mass balance equation.
+ * Here, we are solving a redundant mass balance equation through MassIntegrator class in order to achieve consistency
+ * and stability.
+ *
+ * Reference
+ * Nangia et. al, <A HREF="https://www.sciencedirect.com/science/article/pii/S0021999119302256">
+ * A robust incompressible Navier-Stokes solver for high density ratio multiphase flows </A>
+ *
+ * Thirumalaisamy and Bhalla, <A HREF="https://arxiv.org/abs/2301.06256">
+ * A low Mach enthalpy method to model non-isothermal gas-liquid-solid flows with melting and solidification </A>
+ *
  */
 class MassIntegrator : public virtual SAMRAI::tbox::DescribedClass
 {
@@ -200,9 +228,6 @@ protected:
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
-
-    // Number of RK steps to take. Default is set for RK3.
-    int d_num_steps = 3;
 
     // Boundary condition object for velocity field.
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;

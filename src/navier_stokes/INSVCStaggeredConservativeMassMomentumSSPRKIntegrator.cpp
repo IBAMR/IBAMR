@@ -90,6 +90,23 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::INSVCStaggeredConservativ
     Pointer<Database> input_db)
     : INSVCStaggeredConservativeMassMomentumRKIntegrator(object_name, input_db)
 {
+    switch (d_density_time_stepping_type)
+    {
+    case SSPRK2:
+        d_num_steps = 2;
+        break;
+    case SSPRK3:
+        d_num_steps = 3;
+        break;
+    default:
+        TBOX_ERROR(
+            "MassIntegrator::"
+            "MassIntegrator():\n"
+            << "  unsupported density time stepping type: "
+            << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type) << " \n"
+            << "  valid choices are: SSPRK2 and SSPRK3\n");
+    }
+
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer(
                       "IBAMR::INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::"

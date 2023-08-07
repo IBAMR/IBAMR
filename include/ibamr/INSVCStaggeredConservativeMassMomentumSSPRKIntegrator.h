@@ -120,6 +120,9 @@ private:
      */
     INSVCStaggeredConservativeMassMomentumSSPRKIntegrator&
     operator=(const INSVCStaggeredConservativeMassMomentumSSPRKIntegrator& that) = delete;
+
+    // Number of SSP-RK steps to take. Default is set for SSP-RK3.
+    int d_num_steps = 3;
 };
 } // namespace IBAMR
 

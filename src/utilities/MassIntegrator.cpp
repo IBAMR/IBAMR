@@ -124,41 +124,6 @@ MassIntegrator::MassIntegrator(std::string object_name, Pointer<Database> input_
         }
     }
 
-    switch (d_density_convective_limiter)
-    {
-    case PPM:
-        d_density_limiter_gcw = GPPMG;
-        break;
-    case CUI:
-        d_density_limiter_gcw = GCUIG;
-        break;
-    default:
-        TBOX_ERROR(
-            "MassIntegrator::"
-            "MassIntegrator():\n"
-            << "  unsupported density convective limiter: "
-            << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter) << " \n"
-            << "  valid choices are: PPM, CUI\n");
-    }
-
-    switch (d_density_time_stepping_type)
-    {
-    case FORWARD_EULER:
-    case SSPRK2:
-        d_num_steps = 2;
-        break;
-    case SSPRK3:
-        d_num_steps = 3;
-        break;
-    default:
-        TBOX_ERROR(
-            "MassIntegrator::"
-            "MassIntegrator():\n"
-            << "  unsupported density time stepping type: "
-            << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type) << " \n"
-            << "  valid choices are: FORWARD_EULER, SSPRK2, SSPRK3\n");
-    }
-
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer("IBAMR::MassIntegrator::"
                                                                                      "applyConvectiveOperator()");

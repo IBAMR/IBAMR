@@ -1047,6 +1047,32 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::INSVCStaggeredConservativeMa
         }
     }
 
+    switch (d_density_convective_limiter)
+    {
+    case UPWIND:
+        d_density_limiter_gcw = GUPWINDG;
+        break;
+    case CUI:
+        d_density_limiter_gcw = GCUIG;
+        break;
+    case FBICS:
+        d_density_limiter_gcw = GFBICSG;
+        break;
+    case MGAMMA:
+        d_density_limiter_gcw = GMGAMMAG;
+        break;
+    case PPM:
+        d_density_limiter_gcw = GPPMG;
+        break;
+    default:
+        TBOX_ERROR(
+            "INSVCStaggeredConservativeMassMomentumRKIntegrator::"
+            "INSVCStaggeredConservativeMassMomentumRKIntegrator():\n"
+            << "  unsupported density convective limiter: "
+            << IBAMR::enum_to_string<LimiterType>(d_density_convective_limiter) << " \n"
+            << "  valid choices are: UPWIND, CUI, FBICS, MGAMMA, PPM\n");
+    }
+
     switch (d_velocity_convective_limiter)
     {
     case UPWIND:
