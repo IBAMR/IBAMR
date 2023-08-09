@@ -21,7 +21,7 @@
 #include <ibamr/config.h>
 
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/MassIntegrator.h"
+#include "ibamr/STSMassFluxIntegrator.h"
 
 #include <string>
 #include <vector>
@@ -292,7 +292,7 @@ private:
     /*
      * Conservative density and momentum integrator.
      */
-    SAMRAI::tbox::Pointer<IBAMR::MassIntegrator> d_rho_p_integrator;
+    SAMRAI::tbox::Pointer<IBAMR::STSMassFluxIntegrator> d_rho_p_integrator;
 };
 } // namespace IBAMR
 

@@ -921,7 +921,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetHierarchyConfigurationSpecia
     INSVCStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
         base_hierarchy, coarsest_level, finest_level);
     d_rho_p_integrator->setHierarchyMathOps(d_hier_math_ops);
-    d_rho_p_integrator->initializeTimeIntegrator(base_hierarchy);
+    d_rho_p_integrator->initializeSTSIntegrator(base_hierarchy);
     return;
 } // resetHierarchyConfigurationSpecialized
 
@@ -975,9 +975,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
     // Taking the divergence on both sides of the above equation, we get
     // Div U = Div U* - Div (1/rho * Grad Phi)
     //
-    //  ===>   - Div (1/rho * Grad Phi) =  Div U - Div U*
+    //  ===>   - Div (1/rho * Grad Phi) =  Div U - Div U* = Q - Div U*
     //
-    // Here, Div U is the externally supplied velocity divergence source
+    // Here, Q = Div U is the externally supplied velocity divergence source
     // and U* is velocity after the regridding operation.
 
     const int coarsest_ln = 0;

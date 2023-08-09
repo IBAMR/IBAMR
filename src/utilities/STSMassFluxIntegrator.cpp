@@ -12,7 +12,7 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "ibamr/MassIntegrator.h"
+#include "ibamr/STSMassFluxIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_utilities.h"
 
@@ -89,7 +89,7 @@ static Timer* t_deallocate_integrator;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-MassIntegrator::MassIntegrator(std::string object_name, Pointer<Database> input_db)
+STSMassFluxIntegrator::STSMassFluxIntegrator(std::string object_name, Pointer<Database> input_db)
     : d_object_name(std::move(object_name)), d_u_bc_coefs(NDIM), d_rho_bc_coefs(NDIM)
 {
     if (input_db)
@@ -104,13 +104,12 @@ MassIntegrator::MassIntegrator(std::string object_name, Pointer<Database> input_
         }
         if (input_db->keyExists("convective_limiter"))
         {
-            d_density_convective_limiter =
-                IBAMR::string_to_enum<LimiterType>(input_db->getString("convective_limiter"));
+            d_density_convective_limiter = string_to_enum<LimiterType>(input_db->getString("convective_limiter"));
         }
         if (input_db->keyExists("density_convective_limiter"))
         {
             d_density_convective_limiter =
-                IBAMR::string_to_enum<LimiterType>(input_db->getString("density_convective_limiter"));
+                string_to_enum<LimiterType>(input_db->getString("density_convective_limiter"));
         }
 
         if (input_db->keyExists("density_time_stepping_type"))
@@ -125,19 +124,19 @@ MassIntegrator::MassIntegrator(std::string object_name, Pointer<Database> input_
     }
 
     // Setup Timers.
-    IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer("IBAMR::MassIntegrator::"
+    IBAMR_DO_ONCE(t_apply_convective_operator = TimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::"
                                                                                      "applyConvectiveOperator()");
-                  t_integrate = TimerManager::getManager()->getTimer("IBAMR::MassIntegrator::integrate("
+                  t_integrate = TimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::integrate("
                                                                      ")");
-                  t_initialize_integrator = TimerManager::getManager()->getTimer("IBAMR::MassIntegrator::"
+                  t_initialize_integrator = TimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::"
                                                                                  "initializeTimeIntegrator()");
-                  t_deallocate_integrator = TimerManager::getManager()->getTimer("IBAMR::MassIntegrator::"
+                  t_deallocate_integrator = TimerManager::getManager()->getTimer("IBAMR::STSMassFluxIntegrator::"
                                                                                  "deallocateTimeIntegrator()"););
     return;
-} // MassIntegrator
+} // STSMassFluxIntegrator
 
 void
-MassIntegrator::setDensityPatchDataIndex(int rho_idx)
+STSMassFluxIntegrator::setDensityPatchDataIndex(int rho_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(rho_idx >= 0);
@@ -146,7 +145,7 @@ MassIntegrator::setDensityPatchDataIndex(int rho_idx)
 } // setDensityPatchDataIndex
 
 void
-MassIntegrator::setConvectiveDerivativePatchDataIndex(int N_idx)
+STSMassFluxIntegrator::setConvectiveDerivativePatchDataIndex(int N_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(N_idx >= 0);
@@ -155,7 +154,7 @@ MassIntegrator::setConvectiveDerivativePatchDataIndex(int N_idx)
 } // setConvectiveDerivativePatchDataIndex
 
 void
-MassIntegrator::setDensityBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_bc_coefs)
+STSMassFluxIntegrator::setDensityBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(rho_bc_coefs.size() == NDIM);
@@ -165,7 +164,7 @@ MassIntegrator::setDensityBoundaryConditions(const std::vector<RobinBcCoefStrate
 } // setSideCenteredDensityBoundaryConditions
 
 int
-MassIntegrator::getUpdatedDensityPatchDataIndex()
+STSMassFluxIntegrator::getUpdatedDensityPatchDataIndex()
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_rho_new_idx >= 0);
@@ -174,7 +173,7 @@ MassIntegrator::getUpdatedDensityPatchDataIndex()
 } // getUpdatedDensityPatchDataIndex
 
 void
-MassIntegrator::setFluidVelocityPatchDataIndices(int V_old_idx, int V_current_idx, int V_new_idx)
+STSMassFluxIntegrator::setFluidVelocityPatchDataIndices(int V_old_idx, int V_current_idx, int V_new_idx)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(V_current_idx >= 0);
@@ -206,7 +205,7 @@ MassIntegrator::setFluidVelocityPatchDataIndices(int V_old_idx, int V_current_id
 } // setFluidVelocityPatchDataIndices
 
 void
-MassIntegrator::setCycleNumber(int cycle_num)
+STSMassFluxIntegrator::setCycleNumber(int cycle_num)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(cycle_num >= 0);
@@ -216,13 +215,13 @@ MassIntegrator::setCycleNumber(int cycle_num)
 } // setCycleNumber
 
 void
-MassIntegrator::setSolutionTime(double solution_time)
+STSMassFluxIntegrator::setSolutionTime(double solution_time)
 {
     d_solution_time = solution_time;
 } // setSolutionTime
 
 void
-MassIntegrator::setTimeInterval(double current_time, double new_time)
+STSMassFluxIntegrator::setTimeInterval(double current_time, double new_time)
 {
     d_current_time = current_time;
     d_new_time = new_time;
@@ -230,19 +229,19 @@ MassIntegrator::setTimeInterval(double current_time, double new_time)
 } // setTimeInterval
 
 std::pair<double, double>
-MassIntegrator::getTimeInterval() const
+STSMassFluxIntegrator::getTimeInterval() const
 {
     return std::make_pair(d_current_time, d_new_time);
 } // getTimeInterval
 
 double
-MassIntegrator::getDt() const
+STSMassFluxIntegrator::getTimeStepSize() const
 {
     return d_new_time - d_current_time;
-} // getDt
+} // getTimeStepSize
 
 void
-MassIntegrator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+STSMassFluxIntegrator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
@@ -250,13 +249,13 @@ MassIntegrator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
 } // setHierarchyMathOps
 
 Pointer<HierarchyMathOps>
-MassIntegrator::getHierarchyMathOps() const
+STSMassFluxIntegrator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
 } // getHierarchyMathOps
 
 void
-MassIntegrator::setPreviousTimeStepSize(double dt_prev)
+STSMassFluxIntegrator::setPreviousTimeStepSize(double dt_prev)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(dt_prev > 0.0);

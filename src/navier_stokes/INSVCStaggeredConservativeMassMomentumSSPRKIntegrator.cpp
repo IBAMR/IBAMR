@@ -100,8 +100,8 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::INSVCStaggeredConservativ
         break;
     default:
         TBOX_ERROR(
-            "MassIntegrator::"
-            "MassIntegrator():\n"
+            "INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::"
+            "INSVCStaggeredConservativeMassMomentumSSPRKIntegrator():\n"
             << "  unsupported density time stepping type: "
             << IBAMR::enum_to_string<TimeSteppingType>(d_density_time_stepping_type) << " \n"
             << "  valid choices are: SSPRK2 and SSPRK3\n");
@@ -116,10 +116,10 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::INSVCStaggeredConservativ
                       ")");
                   t_initialize_integrator = TimerManager::getManager()->getTimer(
                       "IBAMR::INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::"
-                      "initializeTimeIntegrator()");
+                      "initializeSTSIntegrator()");
                   t_deallocate_integrator = TimerManager::getManager()->getTimer(
                       "IBAMR::INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::"
-                      "deallocateTimeIntegrator()"););
+                      "deallocateSTSIntegrator()"););
     return;
 } // INSVCStaggeredConservativeMassMomentumSSPRKIntegrator
 
@@ -147,7 +147,7 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
 #endif
 
 #if !defined(NDEBUG)
-    TBOX_ASSERT(MathUtilities<double>::equalEps(dt, getDt()));
+    TBOX_ASSERT(MathUtilities<double>::equalEps(dt, getTimeStepSize()));
 #endif
 
     if (d_V_old_idx == d_V_current_idx)
@@ -185,15 +185,14 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
 
     // Fill ghost cells for current density
-    std::vector<InterpolationTransactionComponent> rho_transaction_comps(1);
-    rho_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
-                                                                 d_rho_current_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 d_density_bdry_extrap_type,
-                                                                 false,
-                                                                 d_rho_bc_coefs);
+    std::vector<InterpolationTransactionComponent> rho_transaction_comps({ { d_rho_scratch_idx,
+                                                                             d_rho_current_idx,
+                                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                                             false,
+                                                                             "CONSERVATIVE_COARSEN",
+                                                                             d_density_bdry_extrap_type,
+                                                                             false,
+                                                                             d_rho_bc_coefs } });
     d_hier_rho_bdry_fill->resetTransactionComponents(rho_transaction_comps);
     d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_rho_bdry_fill->fillData(d_current_time);
@@ -205,15 +204,14 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
     d_hier_sc_data_ops->copyData(d_V_composite_idx,
                                  d_V_current_idx,
                                  /*interior_only*/ true);
-    std::vector<InterpolationTransactionComponent> v_transaction_comps(1);
-    v_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
-                                                               d_V_composite_idx,
-                                                               "CONSERVATIVE_LINEAR_REFINE",
-                                                               false,
-                                                               "CONSERVATIVE_COARSEN",
-                                                               d_velocity_bdry_extrap_type,
-                                                               false,
-                                                               d_u_bc_coefs);
+    std::vector<InterpolationTransactionComponent> v_transaction_comps({ { d_V_scratch_idx,
+                                                                           d_V_composite_idx,
+                                                                           "CONSERVATIVE_LINEAR_REFINE",
+                                                                           false,
+                                                                           "CONSERVATIVE_COARSEN",
+                                                                           d_velocity_bdry_extrap_type,
+                                                                           false,
+                                                                           d_u_bc_coefs } });
     d_hier_v_bdry_fill->resetTransactionComponents(v_transaction_comps);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
         d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
@@ -280,15 +278,14 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
         // Fill ghost cells for new density and velocity, if needed
         if (step > 0)
         {
-            std::vector<InterpolationTransactionComponent> update_transaction_comps(1);
-            update_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
-                                                                            d_rho_new_idx,
-                                                                            "CONSERVATIVE_LINEAR_REFINE",
-                                                                            false,
-                                                                            "CONSERVATIVE_COARSEN",
-                                                                            d_density_bdry_extrap_type,
-                                                                            false,
-                                                                            d_rho_bc_coefs);
+            std::vector<InterpolationTransactionComponent> update_transaction_comps({ { d_rho_scratch_idx,
+                                                                                        d_rho_new_idx,
+                                                                                        "CONSERVATIVE_LINEAR_REFINE",
+                                                                                        false,
+                                                                                        "CONSERVATIVE_COARSEN",
+                                                                                        d_density_bdry_extrap_type,
+                                                                                        false,
+                                                                                        d_rho_bc_coefs } });
             d_hier_rho_bdry_fill->resetTransactionComponents(update_transaction_comps);
             d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
             d_hier_rho_bdry_fill->fillData(eval_time);
@@ -300,15 +297,14 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
             d_hier_sc_data_ops->linearSum(
                 d_V_composite_idx, w0, d_V_old_idx, w1, d_V_current_idx, /*interior_only*/ true);
             d_hier_sc_data_ops->axpy(d_V_composite_idx, w2, d_V_new_idx, d_V_composite_idx, /*interior_only*/ true);
-            std::vector<InterpolationTransactionComponent> v_update_transaction_comps(1);
-            v_update_transaction_comps[0] = InterpolationTransactionComponent(d_V_scratch_idx,
-                                                                              d_V_composite_idx,
-                                                                              "CONSERVATIVE_LINEAR_REFINE",
-                                                                              false,
-                                                                              "CONSERVATIVE_COARSEN",
-                                                                              d_velocity_bdry_extrap_type,
-                                                                              false,
-                                                                              d_u_bc_coefs);
+            std::vector<InterpolationTransactionComponent> v_update_transaction_comps({ { d_V_scratch_idx,
+                                                                                          d_V_composite_idx,
+                                                                                          "CONSERVATIVE_LINEAR_REFINE",
+                                                                                          false,
+                                                                                          "CONSERVATIVE_COARSEN",
+                                                                                          d_velocity_bdry_extrap_type,
+                                                                                          false,
+                                                                                          d_u_bc_coefs } });
             d_hier_v_bdry_fill->resetTransactionComponents(v_update_transaction_comps);
             StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
                 d_u_bc_coefs, nullptr, d_V_scratch_idx, -1, homogeneous_bc);
@@ -477,21 +473,18 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
 
     // Refill boundary values of newest density
     const double new_time = d_current_time + dt;
-    std::vector<InterpolationTransactionComponent> new_transaction_comps(1);
-    new_transaction_comps[0] = InterpolationTransactionComponent(d_rho_scratch_idx,
-                                                                 d_rho_new_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 d_density_bdry_extrap_type,
-                                                                 false,
-                                                                 d_rho_bc_coefs);
+    std::vector<InterpolationTransactionComponent> new_transaction_comps({ { d_rho_scratch_idx,
+                                                                             d_rho_new_idx,
+                                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                                             false,
+                                                                             "CONSERVATIVE_COARSEN",
+                                                                             d_density_bdry_extrap_type,
+                                                                             false,
+                                                                             d_rho_bc_coefs } });
     d_hier_rho_bdry_fill->resetTransactionComponents(new_transaction_comps);
     d_hier_rho_bdry_fill->setHomogeneousBc(homogeneous_bc);
     d_hier_rho_bdry_fill->fillData(new_time);
     d_hier_rho_bdry_fill->resetTransactionComponents(d_rho_transaction_comps);
-
-    // d_rho_fcn->setDataOnPatchHierarchy(d_rho_sc_scratch_idx, d_rho_sc_var, d_hierarchy, d_new_time);
 
     d_hier_sc_data_ops->copyData(d_rho_new_idx,
                                  d_rho_scratch_idx,

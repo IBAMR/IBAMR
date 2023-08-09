@@ -17,7 +17,7 @@
 #define included_IBAMR_INSVCStaggeredConservativeMassMomentumRKIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "ibamr/MassIntegrator.h"
+#include "ibamr/STSMassFluxIntegrator.h"
 
 namespace SAMRAI
 {
@@ -71,7 +71,7 @@ namespace IBAMR
  *
  * \see INSVCStaggeredHierarchyIntegrator
  */
-class INSVCStaggeredConservativeMassMomentumRKIntegrator : public MassIntegrator
+class INSVCStaggeredConservativeMassMomentumRKIntegrator : public STSMassFluxIntegrator
 {
 public:
     /*!
@@ -99,18 +99,18 @@ public:
      * \brief Compute hierarchy dependent data required for time integrating variables.
      */
     virtual void
-    initializeTimeIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy) override;
+    initializeSTSIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
-     * initializeTimeIntegrator().
+     * initializeSTSIntegrator().
      *
-     * \note It is safe to call deallocateTimeIntegrator() when the time integrator
+     * \note It is safe to call deallocateSTSIntegrator() when the time integrator
      * is already deallocated.
      *
-     * \see initializeTimeIntegrator
+     * \see initializeSTSIntegrator
      */
-    virtual void deallocateTimeIntegrator() override;
+    virtual void deallocateSTSIntegrator() override;
 
     //\}
     /*
@@ -198,7 +198,6 @@ protected:
         const std::array<SAMRAI::hier::Box<NDIM>, NDIM>& side_boxes,
         const double& dt,
         const double* const dx);
-
     /*!
      * \brief Enforce divergence free condition at the coarse-fine interface to ensure conservation of mass.
      */

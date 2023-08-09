@@ -189,7 +189,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
 ../src/wave_generation/WaveDampingFunctions.cpp \
 ../src/wave_generation/WaveGenerationFunctions.cpp \
-../src/utilities/MassIntegrator.cpp \
+../src/utilities/STSMassFluxIntegrator.cpp \
 ../src/utilities/RNG.cpp
 
 if LIBMESH_ENABLED
@@ -303,7 +303,6 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
 ../include/ibamr/LSInitStrategy.h \
-../include/ibamr/MassIntegrator.h \
 ../include/ibamr/MobilityFunctions.h \
 ../include/ibamr/NonbondedForceEvaluator.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
@@ -311,6 +310,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/RelaxationLSBcCoefs.h \
 ../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
+../include/ibamr/STSMassFluxIntegrator.h \
 ../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 ../include/ibamr/StaggeredStokesBlockPreconditioner.h \
 ../include/ibamr/StaggeredStokesFACPreconditioner.h \

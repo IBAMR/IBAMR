@@ -977,10 +977,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
     // Taking the divergence on both sides of the above equation, we get
     // Div U = Div U* - Div (1/rho * Grad Phi)
     //
-    //  ===>   - Div (1/rho * Grad Phi) =  Div U - Div U*
+    //  ===>   - Div (1/rho * Grad Phi) =  Div U - Div U* = Q - Div U*
     //
-    // Here, Div U is the externally supplied velocity divergence source
-    // and U* is velocity after the regridding operation.
+    // Here, Q = Div U is the externally supplied velocity divergence source
+    // and U* is velocity after the regridding operation that is to be projected..
 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1657,7 +1657,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
 
-    // Account for source term of a Div U equation.
+    // Account for a prescribed value of Q = Div U..
     // Note that the VCStaggeredStokes operator has -div u in the operator.
     // We therefore subract the supplied div u from the RHS vector.
     if (d_Q_fcn)

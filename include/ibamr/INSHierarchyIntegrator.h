@@ -209,7 +209,7 @@ public:
     void registerFluidSourceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
 
     /*!
-     * Add a CartGridFunction that computes \f$ \nabla \cdot \mathbf{u} \f$.
+     * Supply a CartGridFunction that specifies \f$ \nabla \cdot \mathbf{u} \f$.
      *
      * @note If \param Q_fcn is not specified, then \f$ \nabla \cdot \mathbf{u}  = 0 \f$ is imposed.
      */

@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_MassIntegrator
-#define included_IBAMR_MassIntegrator
+#ifndef included_IBAMR_STSMassFluxIntegrator
+#define included_IBAMR_STSMassFluxIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
@@ -59,7 +59,7 @@ class BasePatchHierarchy;
 namespace IBAMR
 {
 /*!
- * \brief Class MassIntegrator is an abstract class which integrates
+ * \brief Class STSMassFluxIntegrator is an abstract class which integrates
  * the density field
  *
  *  \f$ \frac{\partial \rho}{\partial t} + \nabla \cdot (\rho \mathbf{u}) = S(x,t) \f$
@@ -69,13 +69,14 @@ namespace IBAMR
  * \f$ \nabla \cdot (\rho \mathbf{u} Q)\f$ for the energy equation where \f$ Q = C_\textrm{p} T\f$
  * or \f$ Q = h\f$ based on the form of the energy equation.
  *
- * \note MassIntegrator is an intermediate or a lightweight integrator that is used within one time step to
- * get a consistent mass flux \f$ m_\rho = \rho \mathbf{u} \f$ for advecting either momentum \f$ \mathbf{u} \f$
- * through \f$ \nabla \cdot (\rho \mathbf{u} \otimes \mathbf{u})  = \nabla \cdot (m_\rho \otimes \mathbf{u} ) \f$
- * or a scalar \f$ Q \f$ through  \f$ \nabla \cdot (\rho \mathbf{u} Q)  = \nabla \cdot (m_\rho  Q) \f$. It does
- * not maintain any hierarchy data, child or parent integrator, as done by advection-diffusion hierarchy integrator.
+ * \note STSMassFluxIntegrator is an intermediate or a lightweight integrator that is used within one or a single time
+ * step (STS) to get a consistent mass flux \f$ m_\rho = \rho \mathbf{u} \f$ for advecting either momentum \f$
+ * \mathbf{u} \f$ through \f$ \nabla \cdot (\rho \mathbf{u} \otimes \mathbf{u})  = \nabla \cdot (m_\rho \otimes
+ * \mathbf{u} ) \f$ or a scalar \f$ Q \f$ through  \f$ \nabla \cdot (\rho \mathbf{u} Q)  = \nabla \cdot (m_\rho  Q) \f$.
+ * It does not maintain any hierarchy data, child or parent integrator, as done in implementations of
+ * HierarchyIntegrator.
  *
- * The core concept behind `MassIntegrator` is to obtain a consistent mass flux $\mathbf{m_\rho} = \rho \mathbf{u}$
+ * The core concept behind STSMassFluxIntegrator is to obtain a consistent mass flux $\mathbf{m_\rho} = \rho \mathbf{u}$
  * for stabilizing high density ratio flows. It also ensures a consistency condition that:
  *
  * 1. When there are no viscous, pressure forces or any other body forces in the domain, the momentum equation becomes
@@ -83,11 +84,11 @@ namespace IBAMR
  * 2. Under isothermal/isenthalpic conditions, with no additional heat source, the energy/enthalpy equation reverts to
  *    mass balance equation.
  *
- * To achieve these conditions, the time integrator scheme of MassIntegrator is tightly coupled to how
+ * To achieve these conditions, the time integrator scheme of STSMassFluxIntegrator is tightly coupled to how
  * INSVCStaggeredHierarchyIntegrator or PhaseChangeHierarchyIntegrator integrate their respective variables.
  * Note that when flow is incompressible, one does not need to solve mass balance equation.
- * Here, we are solving a redundant mass balance equation through MassIntegrator class in order to achieve consistency
- * and stability.
+ * Here, we are solving a redundant mass balance equation through STSMassFluxIntegrator class in order to achieve
+ * consistency and stability.
  *
  * Reference
  * Nangia et. al, <A HREF="https://www.sciencedirect.com/science/article/pii/S0021999119302256">
@@ -95,20 +96,19 @@ namespace IBAMR
  *
  * Thirumalaisamy and Bhalla, <A HREF="https://arxiv.org/abs/2301.06256">
  * A low Mach enthalpy method to model non-isothermal gas-liquid-solid flows with melting and solidification </A>
- *
  */
-class MassIntegrator : public virtual SAMRAI::tbox::DescribedClass
+class STSMassFluxIntegrator : public virtual SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
      * \brief Class constructor.
      */
-    MassIntegrator(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    STSMassFluxIntegrator(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
      */
-    virtual ~MassIntegrator() = default;
+    virtual ~STSMassFluxIntegrator() = default;
 
     /*!
      * \brief Integrate density and compute the convective operator of the momentum and/or energy.
@@ -116,7 +116,7 @@ public:
     virtual void integrate(double dt) = 0;
 
     /*!
-     * \name General operator functionality.
+     * \name General time stepping functionality.
      */
     //\{
 
@@ -124,18 +124,18 @@ public:
      * \brief Compute hierarchy dependent data required for time integrating variables.
      */
     virtual void
-    initializeTimeIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy) = 0;
+    initializeSTSIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy) = 0;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
-     * initializeTimeIntegrator().
+     * initializeSTSIntegrator().
      *
-     * \note It is safe to call deallocateTimeIntegrator() when the time integrator
+     * \note It is safe to call deallocateSTSIntegrator() when the time integrator
      * is already deallocated.
      *
-     * \see initializeTimeIntegrator
+     * \see initializeSTSIntegrator
      */
-    virtual void deallocateTimeIntegrator() = 0;
+    virtual void deallocateSTSIntegrator() = 0;
 
     //\}
 
@@ -194,7 +194,7 @@ public:
     /*!
      * \brief Get the current time step size.
      */
-    double getDt() const;
+    double getTimeStepSize() const;
 
     /*!
      * \brief Set the previous time step value between times n - 1 (old) and n (current). This is used during velocity
@@ -297,7 +297,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    MassIntegrator() = delete;
+    STSMassFluxIntegrator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -306,7 +306,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    MassIntegrator(const MassIntegrator& from) = delete;
+    STSMassFluxIntegrator(const STSMassFluxIntegrator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -317,10 +317,10 @@ private:
      *
      * \return A reference to this object.
      */
-    MassIntegrator& operator=(const MassIntegrator& that) = delete;
+    STSMassFluxIntegrator& operator=(const STSMassFluxIntegrator& that) = delete;
 };
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_MassIntegrator
+#endif // #ifndef included_IBAMR_STSMassFluxIntegrator
