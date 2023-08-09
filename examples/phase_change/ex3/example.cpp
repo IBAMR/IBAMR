@@ -55,7 +55,7 @@ struct SynchronizeLevelSetCtx
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
     Pointer<CellVariable<NDIM, double> > ls_var;
     Pointer<CellVariable<NDIM, double> > H_var;
-    int num_interface_cells;
+    double num_interface_cells;
 };
 
 void
@@ -87,7 +87,7 @@ synchronize_levelset_with_heaviside_fcn(int H_current_idx,
             const double* patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            const int num_interface_cells = sync_ls_ctx->num_interface_cells;
+            const double num_interface_cells = sync_ls_ctx->num_interface_cells;
             const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_current_idx);
