@@ -13,10 +13,10 @@ KAPPA_G = 0.5*KAPPA_L
 CP_G    = 0.5*CP_L
 MU_G    = 0.5*MU_L
 
-OUTPUT_FILE_NAME = "normalized_rise_velocity"
+OUTPUT_FILE_NAME = "normalized_rise_velocity_2d"
 
 MELT_TEMPERATURE = 265.0
-NUMBER_OF_INTERFACE_CELLS  = 2
+NUMBER_OF_INTERFACE_CELLS  = 2.0
 GAS_LIQUID_FRACTION = 1.0
 
 LIQUIDUS_TEMPERATURE = 270.0
@@ -466,12 +466,11 @@ EnthalpyHierarchyIntegrator {
 // Surface tension parameters
 SIGMA                   = SIGMA_0 // Any arbitrary value can be set here since sigma is set using callback function.
 SMOOTHER                = "IB_4"
-NUM_INTERFACE_CELLS     = 2.0
 MARANGONI_COEFFICIENT   = DSIGMA_DT_0 // Any arbitrary value can be set here since marangoni coef is set using callback function.
 MarangoniSurfaceTensionForceFunction {
     smoother                     = SMOOTHER
     sigma                        = SIGMA
-    num_interface_cells          = NUM_INTERFACE_CELLS
+    num_interface_cells          = NUMBER_OF_INTERFACE_CELLS
     marangoni_coefficient        = MARANGONI_COEFFICIENT
 }
 
