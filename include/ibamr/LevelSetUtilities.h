@@ -82,8 +82,9 @@ public:
         LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
                           double ncells = 1.0)
-            : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(ls_var), d_ncells(ncells)
+            : d_adv_diff_integrator(adv_diff_integrator), d_ncells(ncells)
         {
+            d_ls_vars.emplace_back(ls_var);
             return;
         } // LevelSetContainer
 
