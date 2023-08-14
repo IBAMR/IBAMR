@@ -1,4 +1,3 @@
-PI = 3.14159265358979
 // physical parameters
 MU  = 1.0                              // fluid viscosity
 RHO = 1.0                                 // fluid density
@@ -8,7 +7,6 @@ L   = 1.0
 MAX_LEVELS = 4                            // maximum number of levels in locally refined grid
 REF_RATIO  = 2                            // refinement ratio between levels
 N = 64                                    // actual    number of grid cells on coarsest grid level
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
 End_L = L
 Start_L = 0.0
 
@@ -31,7 +29,7 @@ VISCOUS_TS_TYPE = "BACKWARD_EULER"
 CREEPING_STOKES = FALSE
 SOLVER_TYPE        = "STAGGERED"          // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME         = 0.0e0                // initial simulation time
-END_TIME           = 20                // final simulation time
+END_TIME           = 20                   // final simulation time
 GROW_DT            = 2.0e0                // growth factor for timesteps
 NUM_CYCLES         = 1                    // number of cycles of fixed-point iteration
 CONVECTIVE_TS_TYPE = "ADAMS_BASHFORTH"    // convective time stepping type
@@ -39,19 +37,18 @@ CONVECTIVE_OP_TYPE = "PPM"                // convective differencing discretizat
 CONVECTIVE_FORM    = "ADVECTIVE"          // how to compute the convective terms
 NORMALIZE_PRESSURE = FALSE                // whether to explicitly force the pressure to have mean zero
 CFL_MAX            = 0.3                  // maximum CFL number
-//DT_MAX             = 0.0625/NFINEST       // maximum timestep size
-DT_MAX = 0.01
+DT_MAX             = 0.01                 // maximum time step size
 VORTICITY_TAGGING  = FALSE                // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
-REGRID_INTERVAL    = 8             // effectively disable regridding
+REGRID_INTERVAL    = 8                    // regrid every 8 time steps
 OUTPUT_U           = TRUE
 OUTPUT_P           = TRUE
 OUTPUT_F           = TRUE
 OUTPUT_OMEGA       = TRUE
 OUTPUT_DIV_U       = TRUE
 ENABLE_LOGGING     = TRUE
-//Advection Diffusion solver parameters
-ADV_DIFF_SOLVER_TYPE = "SEMI_IMPLICIT"
+
+// Advection Diffusion solver parameters
 ADV_DIFF_NUM_CYCLES = 2
 ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"
 ADV_DIFF_CONVECTIVE_TS_TYPE = "TRAPEZOIDAL_RULE"
@@ -60,84 +57,79 @@ ADV_DIFF_CONVECTIVE_FORM = "ADVECTIVE"
 // collocated solver parameters
 PROJECTION_METHOD_TYPE = "PRESSURE_UPDATE"
 SECOND_ORDER_PRESSURE_UPDATE = TRUE
-P = "1.0"
 
 // Initial Conditions for Stress
 TT_XX = "1.0"
 TT_YY = "1.0"
 TT_XY = "0"
-// Velocity Initial Conditions
-// U = "1.0-2.0*cos(2*PI*(X_0-t))*sin(2*PI*(X_1-t))*exp(-8*PI*PI*mu*t)"
-// V = "1.0+2.0*sin(2*PI*(X_0-t))*cos(2*PI*(X_1-t))*exp(-8*PI*PI*mu*t)"
-U = "0.0"
-V = "0.0"
 
 ComplexFluid {
-InitialConditions{
- function_0 = TT_XX
- function_1 = TT_YY
- function_2 = TT_XY
-}
-ExtraStressBoundaryConditions_0 {
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
+   InitialConditions {
+      function_0 = TT_XX
+      function_1 = TT_YY
+      function_2 = TT_XY
+   }
+   ExtraStressBoundaryConditions_0 {
+      acoef_function_0 = "0.0"
+      acoef_function_1 = "0.0"
+      acoef_function_2 = "0.0"
+      acoef_function_3 = "0.0"
    
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"  
+      bcoef_function_0 = "1.0"
+      bcoef_function_1 = "1.0"
+      bcoef_function_2 = "1.0"
+      bcoef_function_3 = "1.0"  
    
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-}  
-ExtraStressBoundaryConditions_1 {
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
+      gcoef_function_0 = "0.0"
+      gcoef_function_1 = "0.0"
+      gcoef_function_2 = "0.0"
+      gcoef_function_3 = "0.0"
+   }  
+   ExtraStressBoundaryConditions_1 {
+      acoef_function_0 = "0.0"
+      acoef_function_1 = "0.0"
+      acoef_function_2 = "0.0"
+      acoef_function_3 = "0.0"
    
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"  
+      bcoef_function_0 = "1.0"
+      bcoef_function_1 = "1.0"
+      bcoef_function_2 = "1.0"
+      bcoef_function_3 = "1.0"  
    
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-}  
-ExtraStressBoundaryConditions_2 {
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
-   acoef_function_3 = "0.0"
+      gcoef_function_0 = "0.0"
+      gcoef_function_1 = "0.0"
+      gcoef_function_2 = "0.0"
+      gcoef_function_3 = "0.0"
+   }  
+   ExtraStressBoundaryConditions_2 {
+      acoef_function_0 = "0.0"
+      acoef_function_1 = "0.0"
+      acoef_function_2 = "0.0"
+      acoef_function_3 = "0.0"
 
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"
+      bcoef_function_0 = "1.0"
+      bcoef_function_1 = "1.0"
+      bcoef_function_2 = "1.0"
+      bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = "0.0"
-   gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-}
+      gcoef_function_0 = "0.0"
+      gcoef_function_1 = "0.0"
+      gcoef_function_2 = "0.0"
+      gcoef_function_3 = "0.0"
+   }
 
-relaxation_time = RELAXATION_TIME
-viscosity = VISCOSITY
-fluid_model         = FLUID_MODEL
-evolve_type         = EVOLVE_TYPE
-log_determinant     = LOG_DETERMINANT
-convective_operator_type     = CONVECTIVE_OPERATOR_TYPE
-output_stress_tensor = OUTPUT_STRESS_TENSOR
-output_conformation_tensor = OUTPUT_CONFORMATION_TENSOR
-output_divergence = DRAW_DIVERGENCE
-divergence_abs_tagging = ABS_DIV_TAG
-divergence_abs_thresh = 1.0,2.5,5.0
+   relaxation_time            = RELAXATION_TIME
+   viscosity                  = VISCOSITY
+   fluid_model                = FLUID_MODEL
+   evolve_type                = EVOLVE_TYPE
+   log_determinant            = LOG_DETERMINANT
+   log_divergence             = LOG_DIVERGENCE
+   convective_operator_type   = CONVECTIVE_OPERATOR_TYPE
+   output_stress_tensor       = OUTPUT_STRESS_TENSOR
+   output_conformation_tensor = OUTPUT_CONFORMATION_TENSOR
+   output_divergence          = DRAW_DIVERGENCE
+   divergence_abs_tagging     = ABS_DIV_TAG
+   divergence_abs_thresh      = 1.0,2.5,5.0
 }
 
 VelocityInitialConditions {
@@ -162,7 +154,7 @@ VelocityBcCoefs_0 {
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
-   gcoef_function_3 = "8*(1.0+tanh(t-0.5))*X_0*X_0*(1.0-X_0)*(1.0-X_0)" //"16*X_0*X_0*(1.0-X_0)*(1.0-X_0)"
+   gcoef_function_3 = "8*(1.0+tanh(t-0.5))*X_0*X_0*(1.0-X_0)*(1.0-X_0)"
 }
 
 VelocityBcCoefs_1 {
@@ -431,8 +423,6 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "GRADIENT_DETECTOR"
    RefineBoxes {
-//    level_0 = [((REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1)]
-//    level_0 = [(0,0),(N/2 - 1,N/2 - 1)]
       level_0 = [( N/4,N/4 ),( 3*N/4 - 1,N/2 - 1 )],[( N/4,N/2 ),( N/2 - 1,3*N/4 - 1 )]
    }
 }
@@ -442,22 +432,23 @@ LoadBalancer {
    max_workload_factor = 1
 }
 
-TimerManager{
+TimerManager {
    print_exclusive = FALSE
    print_total     = TRUE
    print_threshold = 0.1
    timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }
+
 AdvDiffSemiImplicitHierarchyIntegrator {
- start_time = START_TIME
- end_time = END_TIME
- grow_dt = GROW_DT
- num_cycles = ADV_DIFF_NUM_CYCLES
- convective_time_stepping_type = ADV_DIFF_CONVECTIVE_TS_TYPE
- convective_op_type = ADV_DIFF_CONVECTIVE_OP_TYPE
- convective_difference_form = ADV_DIFF_CONVECTIVE_FORM
- cfl = CFL_MAX
- dt_max = DT_MAX
- tag_buffer = TAG_BUFFER
- enable_logging = ENABLE_LOGGING
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = ADV_DIFF_NUM_CYCLES
+   convective_time_stepping_type = ADV_DIFF_CONVECTIVE_TS_TYPE
+   convective_op_type            = ADV_DIFF_CONVECTIVE_OP_TYPE
+   convective_difference_form    = ADV_DIFF_CONVECTIVE_FORM
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   tag_buffer                    = TAG_BUFFER
+   enable_logging                = ENABLE_LOGGING
 }

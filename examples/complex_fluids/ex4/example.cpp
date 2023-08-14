@@ -11,34 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
-
-// Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
-
-// Headers for basic libMesh objects
-#include "libmesh/face_tri3_subdivision.h"
-#include "libmesh/mesh_modification.h"
-#include "libmesh/mesh_refinement.h"
-#include "libmesh/mesh_subdivision_support.h"
-#include "libmesh/mesh_tools.h"
-#include <libmesh/boundary_info.h>
-#include <libmesh/boundary_mesh.h>
-#include <libmesh/equation_systems.h>
-#include <libmesh/exodusII_io.h>
-#include <libmesh/mesh.h>
-#include <libmesh/mesh_generation.h>
-#include <libmesh/mesh_triangle_interface.h>
-
-// Headers for application-specific algorithm/data structure objects
-#include "ibamr/CFINSForcing.h"
+#include <ibamr/CFINSForcing.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/IBFESurfaceMethod.h>
@@ -53,11 +26,28 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
+#include <libmesh/boundary_info.h>
+#include <libmesh/boundary_mesh.h>
+#include <libmesh/equation_systems.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_modification.h>
+#include <libmesh/mesh_tools.h>
+#include <libmesh/mesh_triangle_interface.h>
+
+#include <petscsys.h>
+
 #include <boost/multi_array.hpp>
 
-// Set up application namespace declarations
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
+
 #include <ibamr/app_namespaces.h>
 
+// Simple struct to specify geometry of each disk.
 struct DiskData
 {
 public:
@@ -116,18 +106,6 @@ tether_force_function(VectorValue<double>& F,
 } // tether_force_function
 } // namespace ModelData
 using namespace ModelData;
-
-// Function prototypes
-static ofstream drag_force_stream, sxx_component_stream;
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                      Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
-                      Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
-                      Pointer<CFINSForcing> polymericStressForcing,
-                      Mesh& mesh,
-                      EquationSystems* equation_systems,
-                      const int iteration_num,
-                      const double loop_time,
-                      const string& data_dump_dirname);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -255,10 +233,12 @@ main(int argc, char* argv[])
         BoundaryInfo& boundary_info = solid_mesh.get_boundary_info();
         boundary_info.sync(roller_tl);
 
+        // Copy the mesh to generate the other 3 rollers.
         BoundaryMesh roller_tr = roller_tl;
         BoundaryMesh roller_br = roller_tl;
         BoundaryMesh roller_bl = roller_tl;
 
+        // Translate the meshes to the correct initial position.
         MeshTools::Modification::translate(roller_tl, -B, B);
         MeshTools::Modification::translate(roller_tr, B, B);
         MeshTools::Modification::translate(roller_br, B, -B);
@@ -287,11 +267,6 @@ main(int argc, char* argv[])
         meshes.push_back(&roller_br);
         meshes.push_back(&roller_bl);
 
-        // MeshTools::Subdivision::prepare_subdivision_mesh (mesh, false);
-
-        // Print information about the subdivision mesh to the screen.
-        // mesh.print_info();
-
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
@@ -314,14 +289,16 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
+
+        // Create the advection diffusion integrator for the extra stress.
         Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator;
         adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
         Pointer<IBFESurfaceMethod> ib_method_ops =
-            new IBFESurfaceMethod("IBFEMethod",
-                                  app_initializer->getComponentDatabase("IBFEMethod"),
+            new IBFESurfaceMethod("IBFESurfaceMethod",
+                                  app_initializer->getComponentDatabase("IBFESurfaceMethod"),
                                   meshes,
                                   app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
@@ -423,6 +400,9 @@ main(int argc, char* argv[])
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
+
+        // Generate the extra stress component and set up necessary components. The constructor registers the extra
+        // stress with the advection diffusion integrator.
         if (input_db->keyExists("ComplexFluid"))
         {
             polymericStressForcing = new CFINSForcing("PolymericStressForcing",
@@ -472,16 +452,6 @@ main(int argc, char* argv[])
                 exodus_io_3->write_timestep(
                     exodus_filename_3, *equation_systems_3, iteration_num / viz_dump_interval + 1, loop_time);
             }
-        }
-
-        // Open streams to save lift and drag coefficients and the norms of the
-        // velocity.
-        if (IBTK_MPI::getRank() == 0)
-        {
-            drag_force_stream.open("CD_Force_integral.curve", ios_base::out | ios_base::trunc);
-            drag_force_stream.precision(10);
-            sxx_component_stream.open("Sxx_component.curve", ios_base::out | ios_base::trunc);
-            sxx_component_stream.precision(10);
         }
 
         // Main time step loop.
@@ -542,13 +512,6 @@ main(int argc, char* argv[])
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
-        }
-
-        // Close the logging streams.
-        if (IBTK_MPI::getRank() == 0)
-        {
-            drag_force_stream.close();
-            sxx_component_stream.close();
         }
 
         // Cleanup Eulerian boundary condition specification objects (when

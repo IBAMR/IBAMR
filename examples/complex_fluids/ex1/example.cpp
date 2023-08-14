@@ -11,21 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
-
-// Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
-
-// Headers for application-specific algorithm/data structure objects
-#include "ibamr/CFINSForcing.h"
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/CFINSForcing.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
@@ -36,10 +23,15 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include <fstream>
-#include <iostream>
+#include <petscsys.h>
+
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
 
 #include <ibamr/app_namespaces.h>
+
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> ins_integrator,
@@ -111,6 +103,8 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
+
+        // Create the advection diffusion integrator for the extra stress.
         Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator;
         adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
@@ -174,9 +168,9 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
+
         // Create body force function specification objects (when necessary).
         Pointer<CartGridFunctionSet> external_functions = new CartGridFunctionSet("ExternalFunctions");
-        Pointer<CFINSForcing> polymericStressForcing;
         Pointer<CartGridFunction> f_fcn;
         if (input_db->keyExists("ForcingFunction"))
         {
@@ -184,6 +178,10 @@ main(int argc, char* argv[])
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             external_functions->addFunction(f_fcn);
         }
+
+        // Generate the extra stress component and set up necessary components. The constructor registers the extra
+        // stress with the advection diffusion integrator.
+        Pointer<CFINSForcing> polymericStressForcing;
         if (input_db->keyExists("ComplexFluid"))
         {
             polymericStressForcing = new CFINSForcing("PolymericStressForcing",
@@ -196,6 +194,7 @@ main(int argc, char* argv[])
             external_functions->addFunction(polymericStressForcing);
         }
         time_integrator->registerBodyForceFunction(external_functions);
+
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 

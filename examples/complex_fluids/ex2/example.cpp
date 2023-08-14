@@ -11,34 +11,7 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
-
-// Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
-
-// Headers for basic libMesh objects
-#include "libmesh/face_tri3_subdivision.h"
-#include "libmesh/mesh_modification.h"
-#include "libmesh/mesh_refinement.h"
-#include "libmesh/mesh_subdivision_support.h"
-#include "libmesh/mesh_tools.h"
-#include <libmesh/boundary_info.h>
-#include <libmesh/boundary_mesh.h>
-#include <libmesh/equation_systems.h>
-#include <libmesh/exodusII_io.h>
-#include <libmesh/mesh.h>
-#include <libmesh/mesh_generation.h>
-#include <libmesh/mesh_triangle_interface.h>
-
-// Headers for application-specific algorithm/data structure objects
-#include "ibamr/CFINSForcing.h"
+#include <ibamr/CFINSForcing.h>
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/IBFESurfaceMethod.h>
@@ -53,12 +26,31 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include "InterpolationUtilities.h"
+#include <libmesh/boundary_info.h>
+#include <libmesh/boundary_mesh.h>
+#include <libmesh/equation_systems.h>
+#include <libmesh/exodusII_io.h>
+#include <libmesh/mesh.h>
+#include <libmesh/mesh_generation.h>
+#include <libmesh/mesh_modification.h>
+#include <libmesh/mesh_tools.h>
+#include <libmesh/mesh_triangle_interface.h>
+
+#include <petscsys.h>
 
 #include <boost/multi_array.hpp>
 
-// Set up application namespace declarations
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <StandardTagAndInitialize.h>
+
+#include <iostream>
+
 #include <ibamr/app_namespaces.h>
+
+// Local includes
+#include "InterpolationUtilities.h"
 
 // Elasticity model data.
 namespace ModelData
@@ -91,6 +83,7 @@ tether_force_function(VectorValue<double>& F,
     std::vector<double> d(NDIM);
     d[0] = std::abs(x(0) - X(0));
     d[1] = std::abs(X(1) - x(1));
+    // Quit the simulation if the structure has moved more than a quarter of the grid spacing.
     if (ERROR_ON_MOVE && ((d[0] > 0.25 * dx) || (d[1] > 0.25 * dx)))
     {
         TBOX_ERROR("Structure has moved too much.\n");
@@ -112,8 +105,6 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       const int iteration_num,
                       const double loop_time,
                       const string& data_dump_dirname);
-void
-setInsideOfCylinder(const int d_idx, Pointer<PatchHierarchy<NDIM> > patch_hierarchy, const double time, const double R);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -237,20 +228,11 @@ main(int argc, char* argv[])
 
         Mesh& mesh = boundary_mesh;
 
-        // MeshRefinement mesh_refinement (mesh);
-        // mesh_refinement.uniformly_refine (3);
-        // MeshTools::Modification::flatten (mesh);
-
         kappa_s = input_db->getDouble("KAPPA_S");
         eta_s = input_db->getDouble("ETA_S");
         rho = input_db->getDouble("RHO");
 
         mesh.print_info();
-
-        // MeshTools::Subdivision::prepare_subdivision_mesh (mesh, false);
-
-        // Print information about the subdivision mesh to the screen.
-        // mesh.print_info();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
@@ -274,14 +256,16 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
+
+        // Create the advection diffusion integrator for the extra stress.
         Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator;
         adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
         Pointer<IBFESurfaceMethod> ib_method_ops =
-            new IBFESurfaceMethod("IBFEMethod",
-                                  app_initializer->getComponentDatabase("IBFEMethod"),
+            new IBFESurfaceMethod("IBFESurfaceMethod",
+                                  app_initializer->getComponentDatabase("IBFESurfaceMethod"),
                                   &mesh,
                                   app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
         Pointer<IBHierarchyIntegrator> time_integrator =
@@ -366,13 +350,16 @@ main(int argc, char* argv[])
         }
 
         // Create Eulerian body force function specification objects.
-        Pointer<CFINSForcing> polymericStressForcing;
         if (input_db->keyExists("ForcingFunction"))
         {
             Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
+
+        // Generate the extra stress component and set up necessary components. The constructor registers the extra
+        // stress with the advection diffusion integrator.
+        Pointer<CFINSForcing> polymericStressForcing;
         if (input_db->keyExists("ComplexFluid"))
         {
             polymericStressForcing = new CFINSForcing("PolymericStressForcing",
@@ -531,7 +518,6 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
         {
             hier_data.setFlag(var_db->mapVariableAndContextToIndex(polymericStressForcing->getVariable(),
                                                                    adv_diff_integrator->getCurrentContext()));
-            pout << "current ctx " << adv_diff_integrator->getCurrentContext()->getName() << "\n";
         }
         hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
                                                                navier_stokes_integrator->getCurrentContext()));

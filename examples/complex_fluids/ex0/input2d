@@ -1,4 +1,3 @@
-PI = 3.14159265358979
 // physical parameters
 MU  = 0.5                              // fluid viscosity
 RHO = 1.0                                 // fluid density
@@ -7,7 +6,7 @@ RHO = 1.0                                 // fluid density
 MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
 REF_RATIO  = 4                            // refinement ratio between levels
 N = 32                                    // actual    number of grid cells on coarsest grid level
-NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest grid level
 
 // Complex Fluid parameters
 FLUID_MODEL = "OLDROYDB"
@@ -23,7 +22,7 @@ BDRY_INTERP_TYPE = "LINEAR"
 
 // solver parameters
 NORMALIZE_VELOCITY = FALSE
-VISCOUS_TS_TYPE = "TRAPEZOIDAL_RULE"
+VISCOUS_TS_TYPE    = "TRAPEZOIDAL_RULE"
 SOLVER_TYPE        = "STAGGERED"          // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME         = 0.0e0                // initial simulation time
 GROW_DT            = 2.0e0                // growth factor for timesteps
@@ -33,8 +32,8 @@ CONVECTIVE_OP_TYPE = "PPM"                // convective differencing discretizat
 CONVECTIVE_FORM    = "ADVECTIVE"          // how to compute the convective terms
 NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
 CFL_MAX            = 0.3                  // maximum CFL number
-DT_MAX = 0.1/N/0.1
-END_TIME = 4.0
+DT_MAX             = 0.01/NFINEST         // maximum time step size
+END_TIME           = 4.0                  // simulation final time
 VORTICITY_TAGGING  = FALSE                // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
 REGRID_INTERVAL    = 10000000             // effectively disable regridding
@@ -44,8 +43,8 @@ OUTPUT_F           = TRUE
 OUTPUT_OMEGA       = TRUE
 OUTPUT_DIV_U       = TRUE
 ENABLE_LOGGING     = TRUE
+
 //Advection Diffusion solver parameters
-ADV_DIFF_SOLVER_TYPE = "SEMI_IMPLICIT"
 ADV_DIFF_NUM_CYCLES = 2
 ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"
 ADV_DIFF_CONVECTIVE_TS_TYPE = "TRAPEZOIDAL_RULE"
@@ -57,7 +56,6 @@ SECOND_ORDER_PRESSURE_UPDATE = TRUE
 P = "1.0"
 
 U = "Pgrad/(mu+mu_p)/2*X_1*(1.0-X_1)"
-dUdy = "Pgrad/(mu+mu_p)/2*(1.0-2.0*X_1)"
 V = "0.0"
 
 TT_XX = "1.0+2.0*lambda*lambda*(Pgrad/(2.0*(mu+mu_p))*(1.0-2.0*X_1))*(Pgrad/(2.0*(mu+mu_p))*(1.0-2.0*X_1))"
@@ -65,116 +63,116 @@ TT_YY = "1.0"
 TT_XY = "lambda*Pgrad/(2.0*(mu+mu_p))*(1.0-2.0*X_1)"
 
 ComplexFluid {
-InitialConditions{
- t_half = 0.5
- tau = 0.125
- lambda = RELAXATION_TIME
- Pgrad = 1.0
- mu = MU
- mu_p = VISCOSITY
+   InitialConditions {
+      t_half = 0.5
+      tau = 0.125
+      lambda = RELAXATION_TIME
+      Pgrad = 1.0
+      mu = MU
+      mu_p = VISCOSITY
 
- function_0 = TT_XX
- function_1 = TT_YY
- function_2 = TT_XY
-}
-ExtraStressBoundaryConditions_0 {
- t_half= 0.5
- tau = 0.125
- lambda = RELAXATION_TIME
- Pgrad = 1.0
- mu = MU
- mu_p = VISCOSITY
+      function_0 = TT_XX
+      function_1 = TT_YY
+      function_2 = TT_XY
+   }
+   ExtraStressBoundaryConditions_0 {
+      t_half = 0.5
+      tau = 0.125
+      lambda = RELAXATION_TIME
+      Pgrad = 1.0
+      mu = MU
+      mu_p = VISCOSITY
 
- acoef_function_0 = "1.0"
- acoef_function_1 = "1.0"
- acoef_function_2 = "1.0"
- acoef_function_3 = "1.0"
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
 
- bcoef_function_0 = "0.0"
- bcoef_function_1 = "0.0"
- bcoef_function_2 = "0.0"
- bcoef_function_3 = "0.0"
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
 
- gcoef_function_0 = TT_XX
- gcoef_function_1 = TT_XX
- gcoef_function_2 = TT_XX
- gcoef_function_3 = TT_XX
-}
-ExtraStressBoundaryConditions_1 {
- t_half= 0.5
- tau = 0.125
- lambda = RELAXATION_TIME
- Pgrad = 1.0
- mu = MU
- mu_p = VISCOSITY
+      gcoef_function_0 = TT_XX
+      gcoef_function_1 = TT_XX
+      gcoef_function_2 = TT_XX
+      gcoef_function_3 = TT_XX
+   }
+   ExtraStressBoundaryConditions_1 {
+      t_half = 0.5
+      tau = 0.125
+      lambda = RELAXATION_TIME
+      Pgrad = 1.0
+      mu = MU
+      mu_p = VISCOSITY
 
- acoef_function_0 = "1.0"
- acoef_function_1 = "1.0"
- acoef_function_2 = "1.0"
- acoef_function_3 = "1.0"
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
 
- bcoef_function_0 = "0.0"
- bcoef_function_1 = "0.0"
- bcoef_function_2 = "0.0"
- bcoef_function_3 = "0.0"
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
 
- gcoef_function_0 = TT_YY
- gcoef_function_1 = TT_YY
- gcoef_function_2 = TT_YY
- gcoef_function_3 = TT_YY
-}
-ExtraStressBoundaryConditions_2 {
- t_half= 0.5
- tau = 0.125
- lambda = RELAXATION_TIME
- Pgrad = 1.0
- mu = MU
- mu_p = VISCOSITY
+      gcoef_function_0 = TT_YY
+      gcoef_function_1 = TT_YY
+      gcoef_function_2 = TT_YY
+      gcoef_function_3 = TT_YY
+   }
+   ExtraStressBoundaryConditions_2 {
+      t_half = 0.5
+      tau = 0.125
+      lambda = RELAXATION_TIME
+      Pgrad = 1.0
+      mu = MU
+      mu_p = VISCOSITY
 
- acoef_function_0 = "1.0"
- acoef_function_1 = "1.0"
- acoef_function_2 = "1.0"
- acoef_function_3 = "1.0"
+      acoef_function_0 = "1.0"
+      acoef_function_1 = "1.0"
+      acoef_function_2 = "1.0"
+      acoef_function_3 = "1.0"
 
- bcoef_function_0 = "0.0"
- bcoef_function_1 = "0.0"
- bcoef_function_2 = "0.0"
- bcoef_function_3 = "0.0"
+      bcoef_function_0 = "0.0"
+      bcoef_function_1 = "0.0"
+      bcoef_function_2 = "0.0"
+      bcoef_function_3 = "0.0"
 
- gcoef_function_0 = TT_XY
- gcoef_function_1 = TT_XY
- gcoef_function_2 = TT_XY
- gcoef_function_3 = TT_XY
-}
-relaxation_time = RELAXATION_TIME
-viscosity = VISCOSITY
-fluid_model         = FLUID_MODEL
-evolution_type = EVOLVE_TYPE
-log_determinant     = LOG_DETERMINANT
-convective_operator_type     = CONVECTIVE_OPERATOR_TYPE
-output_stress_tensor = OUTPUT_STRESS_TENSOR
-output_conformation_tensor = OUTPUT_CONFORMATION_TENSOR
-interp_type = BDRY_INTERP_TYPE
+      gcoef_function_0 = TT_XY
+      gcoef_function_1 = TT_XY
+      gcoef_function_2 = TT_XY
+      gcoef_function_3 = TT_XY
+   }
+   relaxation_time            = RELAXATION_TIME
+   viscosity                  = VISCOSITY
+   fluid_model                = FLUID_MODEL
+   evolution_type             = EVOLVE_TYPE
+   log_determinant            = LOG_DETERMINANT
+   convective_operator_type   = CONVECTIVE_OPERATOR_TYPE
+   output_stress_tensor       = OUTPUT_STRESS_TENSOR
+   output_conformation_tensor = OUTPUT_CONFORMATION_TENSOR
+   interp_type                = BDRY_INTERP_TYPE
 }
 
 VelocityInitialConditions {
- t_half= 0.5
- tau = 0.125
- mu = MU
- Pgrad = 1.0
- mu_p = VISCOSITY
+   t_half= 0.5
+   tau = 0.125
+   mu = MU
+   Pgrad = 1.0
+   mu_p = VISCOSITY
 
    function_0 = U
    function_1 = V
 }
 
 VelocityBcCoefs_0 {
- t_half= 0.5
- tau = 0.125
- nu = MU/RHO
- Pgrad = 1.0
- mu = MU
- mu_p = VISCOSITY
+   t_half = 0.5
+   tau = 0.125
+   nu = MU/RHO
+   Pgrad = 1.0
+   mu = MU
+   mu_p = VISCOSITY
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
@@ -193,12 +191,12 @@ VelocityBcCoefs_0 {
 }
 
 VelocityBcCoefs_1 {
- t_half= 0.5
- tau = 0.125
- nu = MU/RHO
- Pgrad = 1.0
- mu = MU
- mu_p = VISCOSITY
+   t_half = 0.5
+   tau = 0.125
+   nu = MU/RHO
+   Pgrad = 1.0
+   mu = MU
+   mu_p = VISCOSITY
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
@@ -217,7 +215,6 @@ VelocityBcCoefs_1 {
 }
 
 PressureInitialConditions {
-   nu = MU/RHO
    function = "0"
 }
 
@@ -462,8 +459,6 @@ GriddingAlgorithm {
 StandardTagAndInitialize {
    tagging_method = "REFINE_BOXES"
    RefineBoxes {
-//    level_0 = [((REF_RATIO^0)*N/4 + 0,(REF_RATIO^0)*N/4 + 0),(3*(REF_RATIO^0)*N/4 - 1,3*(REF_RATIO^0)*N/4 - 1)]
-//    level_0 = [(0,0),(N/2 - 1,N/2 - 1)]
       level_0 = [( N/4,N/4 ),( 3*N/4 - 1,N/2 - 1 )],[( N/4,N/2 ),( N/2 - 1,3*N/4 - 1 )]
    }
 }
@@ -473,22 +468,23 @@ LoadBalancer {
    max_workload_factor = 1
 }
 
-TimerManager{
+TimerManager {
    print_exclusive = FALSE
    print_total     = TRUE
    print_threshold = 0.1
    timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }
+
 AdvDiffSemiImplicitHierarchyIntegrator {
- start_time = START_TIME
- end_time = END_TIME
- grow_dt = GROW_DT
- num_cycles = ADV_DIFF_NUM_CYCLES
- convective_time_stepping_type = ADV_DIFF_CONVECTIVE_TS_TYPE
- convective_op_type = ADV_DIFF_CONVECTIVE_OP_TYPE
- convective_difference_form = ADV_DIFF_CONVECTIVE_FORM
- cfl = CFL_MAX
- dt_max = DT_MAX
- tag_buffer = TAG_BUFFER
- enable_logging = ENABLE_LOGGING
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = ADV_DIFF_NUM_CYCLES
+   convective_time_stepping_type = ADV_DIFF_CONVECTIVE_TS_TYPE
+   convective_op_type            = ADV_DIFF_CONVECTIVE_OP_TYPE
+   convective_difference_form    = ADV_DIFF_CONVECTIVE_FORM
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   tag_buffer                    = TAG_BUFFER
+   enable_logging                = ENABLE_LOGGING
 }
