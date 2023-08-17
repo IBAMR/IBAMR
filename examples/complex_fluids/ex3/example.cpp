@@ -11,21 +11,8 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
-#include <SAMRAI_config.h>
-
-// Headers for basic PETSc functions
-#include <petscsys.h>
-
-// Headers for basic SAMRAI objects
-#include <BergerRigoutsos.h>
-#include <CartesianGridGeometry.h>
-#include <LoadBalancer.h>
-#include <StandardTagAndInitialize.h>
-
-// Headers for application-specific algorithm/data structure objects
-#include "ibamr/CFINSForcing.h"
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/CFINSForcing.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
@@ -36,10 +23,16 @@
 #include <ibtk/muParserCartGridFunction.h>
 #include <ibtk/muParserRobinBcCoefs.h>
 
-#include <fstream>
-#include <iostream>
+#include <petscsys.h>
+
+#include <BergerRigoutsos.h>
+#include <CartesianGridGeometry.h>
+#include <LoadBalancer.h>
+#include <SAMRAI_config.h>
+#include <StandardTagAndInitialize.h>
 
 #include <ibamr/app_namespaces.h>
+
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> ins_integrator,
@@ -111,6 +104,8 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
+
+        // Create the advection diffusion integrator for the extra stress.
         Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator;
         adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
@@ -174,7 +169,9 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        // Create body force function specification objects (when necessary).
+
+        // Generate the extra stress component and set up necessary components. The constructor registers the extra
+        // stress with the advection diffusion integrator.
         Pointer<CFINSForcing> polymericStressForcing;
         if (input_db->keyExists("ComplexFluid"))
         {
@@ -187,11 +184,12 @@ main(int argc, char* argv[])
 
             time_integrator->registerBodyForceFunction(polymericStressForcing);
         }
+
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Deallocate initialization objects.
-        // app_initializer.setNull();
+        app_initializer.setNull();
 
         // Print the input database contents to the log file.
         plog << "Input database:\n";
