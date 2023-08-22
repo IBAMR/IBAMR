@@ -57,7 +57,6 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 namespace
 {
-static const int SIDEG = 1;
 static const int NOGHOSTS = 0;
 } // namespace
 /////////////////////////////// PUBLIC //////////////////////////////////////
@@ -68,7 +67,6 @@ BrinkmanAdvDiffBcHelper::BrinkmanAdvDiffBcHelper(std::string object_name,
     // Initialize variables
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const IntVector<NDIM> no_ghosts = NOGHOSTS;
-    const IntVector<NDIM> side_ghosts = SIDEG;
     d_B_var = new SideVariable<NDIM, double>(d_object_name + "::");
     d_B_scratch_idx =
         var_db->registerVariableAndContext(d_B_var, var_db->getContext(d_object_name + "B::SCRATCH"), no_ghosts);
