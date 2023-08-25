@@ -255,15 +255,15 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
         Pointer<FaceVariable<NDIM, double> > fc_var = d_var;
         Pointer<CellVariable<NDIM, double> > cc_var = d_var;
         if (sc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, sc_var, ghost_fill, time, false);
-        if (nc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, nc_var, ghost_fill, time);
-        if (ec_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, ec_var, ghost_fill, time);
+        if (nc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, nc_var, ghost_fill, time, false);
+        if (ec_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, ec_var, ghost_fill, time, false);
         if (fc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, fc_var, ghost_fill, time, false);
         if (cc_var) d_hier_data_ops->copyData(d_mean_idx, d_scratch_idx);
         // Determine our convergence criteria: ||1/(N + 1) * (u_avg - u)||
         d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
         if (sc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, sc_var, ghost_fill, time, false);
-        if (nc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, nc_var, ghost_fill, time);
-        if (ec_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, ec_var, ghost_fill, time);
+        if (nc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, nc_var, ghost_fill, time, false);
+        if (ec_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, ec_var, ghost_fill, time, false);
         if (fc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, fc_var, ghost_fill, time, false);
         if (cc_var) d_hier_data_ops->copyData(d_dev_idx, d_scratch_idx);
         d_visit_data_writer->writePlotData(hierarchy, d_visit_ts++, time);
