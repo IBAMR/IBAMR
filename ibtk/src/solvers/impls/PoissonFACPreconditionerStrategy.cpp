@@ -360,6 +360,19 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_coarsest_ln = solution.getCoarsestLevelNumber();
     d_finest_ln = solution.getFinestLevelNumber();
 
+#if !defined(NDEBUG)
+    // To prevent very obtuse errors later on, we check that the rhs index has the correct ghost cell width.
+    Pointer<PatchDescriptor<NDIM> > pd = VariableDatabase<NDIM>::getDatabase()->getPatchDescriptor();
+    const IntVector<NDIM>& gcw = pd->getPatchDataFactory(rhs_idx)->getGhostCellWidth();
+    if (gcw != d_gcw)
+    {
+        TBOX_ERROR(
+            d_object_name +
+                "::initializeOperatorState(): RHS index does not have the correct ghost width. RHS has ghost width of "
+            << gcw << ". Expecting a ghost cell width of " << d_gcw << ".\n");
+    }
+#endif
+
     // Perform implementation-specific initialization.
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
 #if !defined(NDEBUG)
