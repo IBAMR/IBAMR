@@ -86,6 +86,10 @@ namespace IBTK
  * FACPreconditionerStrategy implementing many of the operations required by
  * smoothers for the Poisson equation and related problems.
  *
+ * The parameter ghost_cell_width is the necessary ghost cell width for all operations required by this class and
+ derived classes. Such operations includes restricting, prolongation, computing residuals, and smoothing error. The
+ patch indices in the RHS vector must have ghost cell widths that are equal to this parameter.
+ *
  * Sample parameters for initialization from database (and their default
  * values): \verbatim
 
@@ -282,6 +286,9 @@ public:
      * - hierarchy configuration (hierarchy pointer and level range)
      * - number, type and alignment of vector component data
      * - ghost cell width of data in the solution (or solution-like) vector
+     *
+     * An unrecoverable error will occur if the rhs vector does not have consistent ghost cell width as that provided in
+     * the constructor.
      *
      * \param solution solution vector u
      * \param rhs right hand side vector f
