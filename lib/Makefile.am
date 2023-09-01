@@ -149,7 +149,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSStaggeredWavePropConvectiveOperator.cpp \
 ../src/navier_stokes/INSStaggeredVelocityBcCoef.cpp \
 ../src/navier_stokes/INSVCStaggeredConservativeHierarchyIntegrator.cpp \
-../src/navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp \
+../src/navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp \
+../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
@@ -188,6 +189,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/wave_generation/StokesWaveGeneratorStrategy.cpp \
 ../src/wave_generation/WaveDampingFunctions.cpp \
 ../src/wave_generation/WaveGenerationFunctions.cpp \
+../src/utilities/STSMassFluxIntegrator.cpp \
 ../src/utilities/RNG.cpp
 
 if LIBMESH_ENABLED
@@ -289,7 +291,8 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSStaggeredUpwindConvectiveOperator.h \
 ../include/ibamr/INSStaggeredVelocityBcCoef.h \
 ../include/ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h \
-../include/ibamr/INSVCStaggeredConservativeMassMomentumIntegrator.h \
+../include/ibamr/INSVCStaggeredConservativeMassMomentumRKIntegrator.h \
+../include/ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h \
 ../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
 ../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
 ../include/ibamr/INSVCStaggeredPressureBcCoef.h \
@@ -307,6 +310,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/RelaxationLSBcCoefs.h \
 ../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
+../include/ibamr/STSMassFluxIntegrator.h \
 ../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 ../include/ibamr/StaggeredStokesBlockPreconditioner.h \
 ../include/ibamr/StaggeredStokesFACPreconditioner.h \

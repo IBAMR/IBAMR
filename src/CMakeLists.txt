@@ -123,7 +123,8 @@ SET(CXX_SRC
   navier_stokes/INSVCStaggeredPressureBcCoef.cpp
   navier_stokes/StaggeredStokesProjectionPreconditioner.cpp
   navier_stokes/StaggeredStokesFACPreconditionerStrategy.cpp
-  navier_stokes/INSVCStaggeredConservativeMassMomentumIntegrator.cpp
+  navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
+  navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp
   navier_stokes/StaggeredStokesOpenBoundaryStabilizer.cpp
   navier_stokes/StaggeredStokesBlockPreconditioner.cpp
   navier_stokes/StaggeredStokesOperator.cpp
@@ -212,6 +213,7 @@ SET(CXX_SRC
   utilities/RNG.cpp
   utilities/CellConvectiveOperator.cpp
   utilities/ConvectiveOperator.cpp
+  utilities/STSMassFluxIntegrator.cpp
   )
 
 IF(${IBAMR_HAVE_LIBMESH})

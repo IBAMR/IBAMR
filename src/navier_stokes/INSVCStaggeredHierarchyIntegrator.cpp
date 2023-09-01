@@ -35,6 +35,7 @@
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/CartGridFunction.h"
+#include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/CartSideDoubleDivPreservingRefine.h"
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
@@ -918,7 +919,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     }
 
     // Register plot variables that are maintained by the
-    // INSCollocatedHierarchyIntegrator.
+    // INSVCStaggeredHierarchyIntegrator.
     registerVariable(d_U_cc_idx, d_U_cc_var, no_ghosts, getCurrentContext());
     if (d_F_fcn)
     {
@@ -939,14 +940,6 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     registerVariable(d_U_regrid_idx, d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_U_src_idx, d_U_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
-    if (d_Q_fcn)
-    {
-        registerVariable(d_F_div_idx, d_F_div_var, no_ghosts);
-    }
-    else
-    {
-        d_F_div_idx = invalid_index;
-    }
 
     // Register variables for plotting.
     if (d_visit_writer)
@@ -985,7 +978,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
 
         if (d_Q_fcn && d_output_Q)
         {
-            d_visit_writer->registerPlotQuantity("Q", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
+            d_visit_writer->registerPlotQuantity("Q::Div_U", "SCALAR", d_Q_current_idx, 0, d_Q_scale);
         }
 
         if (d_output_Omega)
@@ -1563,6 +1556,8 @@ void
 INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
                                                                                const bool initial_time)
 {
+    if (initial_time && d_Q_fcn) return;
+
     // Project the interpolated velocity if needed.
     if (initial_time || d_do_regrid_projection)
     {

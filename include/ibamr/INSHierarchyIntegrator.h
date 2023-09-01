@@ -203,8 +203,17 @@ public:
 
     /*!
      * Supply a fluid source/sink distribution.
+     *
+     * @deprecated Use registerVelocityDivergenceFunction() instead.
      */
     void registerFluidSourceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
+
+    /*!
+     * Supply a CartGridFunction that specifies \f$ \nabla \cdot \mathbf{u} \f$.
+     *
+     * @note If \param Q_fcn is not specified, then \f$ \nabla \cdot \mathbf{u}  = 0 \f$ is imposed.
+     */
+    void registerVelocityDivergenceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
 
     /*!
      * Return a pointer to the fluid velocity variable.
@@ -223,8 +232,15 @@ public:
 
     /*!
      * Return a pointer to the source strength variable.
+     *
+     * @deprecated Use getVelocityDivergenceVariable() instead.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
+
+    /*!
+     * Return a pointer to the variable that specifies the divergence of the velocity.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVelocityDivergenceVariable() const;
 
     /*!
      * Return a pointer to a fluid velocity variable that can be used to advect

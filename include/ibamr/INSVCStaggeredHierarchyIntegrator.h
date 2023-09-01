@@ -463,6 +463,20 @@ protected:
 
     /*!
      * Perform data initialization after the entire hierarchy has been constructed.
+     *
+     * \note If \f$ \nabla \cdot \mathbf{u} = Q \f$ is specified, then at the initial time
+     * the velocity projection step is omitted in this routine. This is because \f$ Q \f$ generally involves
+     * derivatives of transported variables, which are not known at the initial time. More concretely,
+     * imagine we are simulating a phase change or combustion process. The volume change effect
+     * \f$ \nabla \cdot \mathbf{u} \f$  that is captured by \f$ Q \f$ would be computed through
+     * gradients of temperature or species concentration. These gradients are not known at the
+     * initial time. These volume change causing processes gradually evolve during the simulation,
+     * which builds up \f$ Q \f$ over time. The best thing to do at \f$ t = 0 \f$, is not do anything.
+     * This tantamounts to assuming \f$ Q = 0 \f$ initially, which would almost certainly
+     * be the case in these types of simulations.   For example, one would not simulate a combustion process
+     * starting from a point where some stuff has already been combusted. If that were the case, then it is
+     * already known what species have been generated/consumed at an arbitrary time $t$. In other words,
+     * the whole solution is known for the problem.
      */
     void initializeCompositeHierarchyDataSpecialized(double init_data_time, bool initial_time) override;
 
@@ -570,7 +584,6 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_F_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_old_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_var;
@@ -581,6 +594,7 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_indicator_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_div_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_EE_var;
 
