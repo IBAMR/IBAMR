@@ -108,7 +108,8 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	nodal_interpolation_01_2d$(EXEEXT) \
 	nodal_interpolation_01_3d$(EXEEXT) curl_01_2d$(EXEEXT) \
 	curl_01_3d$(EXEEXT) marker_points_01_2d$(EXEEXT) \
-	marker_points_02_2d$(EXEEXT) $(am__EXEEXT_1)
+	marker_points_02_2d$(EXEEXT) pointwise_function_2d$(EXEEXT) \
+	pointwise_function_3d$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -473,6 +474,22 @@ phys_boundary_ops_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(phys_boundary_ops_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_pointwise_function_2d_OBJECTS =  \
+	pointwise_function_2d-pointwise_function.$(OBJEXT)
+pointwise_function_2d_OBJECTS = $(am_pointwise_function_2d_OBJECTS)
+pointwise_function_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+pointwise_function_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(pointwise_function_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_pointwise_function_3d_OBJECTS =  \
+	pointwise_function_3d-pointwise_function.$(OBJEXT)
+pointwise_function_3d_OBJECTS = $(am_pointwise_function_3d_OBJECTS)
+pointwise_function_3d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+pointwise_function_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(pointwise_function_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_poisson_01_2d_OBJECTS = poisson_01_2d-poisson_01.$(OBJEXT)
 poisson_01_2d_OBJECTS = $(am_poisson_01_2d_OBJECTS)
 poisson_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -626,6 +643,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po \
 	./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po \
 	./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po \
+	./$(DEPDIR)/pointwise_function_2d-pointwise_function.Po \
+	./$(DEPDIR)/pointwise_function_3d-pointwise_function.Po \
 	./$(DEPDIR)/poisson_01_2d-poisson_01.Po \
 	./$(DEPDIR)/poisson_01_3d-poisson_01.Po \
 	./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po \
@@ -680,7 +699,9 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(nodal_interpolation_01_2d_SOURCES) \
 	$(nodal_interpolation_01_3d_SOURCES) \
 	$(phys_boundary_ops_2d_SOURCES) \
-	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
+	$(phys_boundary_ops_3d_SOURCES) \
+	$(pointwise_function_2d_SOURCES) \
+	$(pointwise_function_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
 	$(samraidatacache_01_2d_SOURCES) \
@@ -716,7 +737,9 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(nodal_interpolation_01_2d_SOURCES) \
 	$(nodal_interpolation_01_3d_SOURCES) \
 	$(phys_boundary_ops_2d_SOURCES) \
-	$(phys_boundary_ops_3d_SOURCES) $(poisson_01_2d_SOURCES) \
+	$(phys_boundary_ops_3d_SOURCES) \
+	$(pointwise_function_2d_SOURCES) \
+	$(pointwise_function_3d_SOURCES) $(poisson_01_2d_SOURCES) \
 	$(poisson_01_3d_SOURCES) $(prolongation_mat_2d_SOURCES) \
 	$(prolongation_mat_3d_SOURCES) \
 	$(samraidatacache_01_2d_SOURCES) \
@@ -1171,6 +1194,12 @@ version_macros_SOURCES = version_macros.cpp
 snapshot_cache_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 snapshot_cache_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 snapshot_cache_01_2d_SOURCES = snapshot_cache_01.cpp
+pointwise_function_2d_CXXFLAGS = $(AM_CXX_FLAGS) -DNDIM=2
+pointwise_function_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+pointwise_function_2d_SOURCES = pointwise_function.cpp
+pointwise_function_3d_CXXFLAGS = $(AM_CXX_FLAGS) -DNDIM=3
+pointwise_function_3d_LDADD = $(IBAMR_LD_FLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+pointwise_function_3d_SOURCES = pointwise_function.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1366,6 +1395,14 @@ phys_boundary_ops_3d$(EXEEXT): $(phys_boundary_ops_3d_OBJECTS) $(phys_boundary_o
 	@rm -f phys_boundary_ops_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(phys_boundary_ops_3d_LINK) $(phys_boundary_ops_3d_OBJECTS) $(phys_boundary_ops_3d_LDADD) $(LIBS)
 
+pointwise_function_2d$(EXEEXT): $(pointwise_function_2d_OBJECTS) $(pointwise_function_2d_DEPENDENCIES) $(EXTRA_pointwise_function_2d_DEPENDENCIES) 
+	@rm -f pointwise_function_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(pointwise_function_2d_LINK) $(pointwise_function_2d_OBJECTS) $(pointwise_function_2d_LDADD) $(LIBS)
+
+pointwise_function_3d$(EXEEXT): $(pointwise_function_3d_OBJECTS) $(pointwise_function_3d_DEPENDENCIES) $(EXTRA_pointwise_function_3d_DEPENDENCIES) 
+	@rm -f pointwise_function_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(pointwise_function_3d_LINK) $(pointwise_function_3d_OBJECTS) $(pointwise_function_3d_LDADD) $(LIBS)
+
 poisson_01_2d$(EXEEXT): $(poisson_01_2d_OBJECTS) $(poisson_01_2d_DEPENDENCIES) $(EXTRA_poisson_01_2d_DEPENDENCIES) 
 	@rm -f poisson_01_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(poisson_01_2d_LINK) $(poisson_01_2d_OBJECTS) $(poisson_01_2d_LDADD) $(LIBS)
@@ -1460,6 +1497,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pointwise_function_2d-pointwise_function.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pointwise_function_3d-pointwise_function.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poisson_01_2d-poisson_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poisson_01_3d-poisson_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po@am__quote@ # am--include-marker
@@ -2063,6 +2102,34 @@ phys_boundary_ops_3d-phys_boundary_ops.obj: phys_boundary_ops.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(phys_boundary_ops_3d_CXXFLAGS) $(CXXFLAGS) -c -o phys_boundary_ops_3d-phys_boundary_ops.obj `if test -f 'phys_boundary_ops.cpp'; then $(CYGPATH_W) 'phys_boundary_ops.cpp'; else $(CYGPATH_W) '$(srcdir)/phys_boundary_ops.cpp'; fi`
 
+pointwise_function_2d-pointwise_function.o: pointwise_function.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pointwise_function_2d_CXXFLAGS) $(CXXFLAGS) -MT pointwise_function_2d-pointwise_function.o -MD -MP -MF $(DEPDIR)/pointwise_function_2d-pointwise_function.Tpo -c -o pointwise_function_2d-pointwise_function.o `test -f 'pointwise_function.cpp' || echo '$(srcdir)/'`pointwise_function.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/pointwise_function_2d-pointwise_function.Tpo $(DEPDIR)/pointwise_function_2d-pointwise_function.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='pointwise_function.cpp' object='pointwise_function_2d-pointwise_function.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pointwise_function_2d_CXXFLAGS) $(CXXFLAGS) -c -o pointwise_function_2d-pointwise_function.o `test -f 'pointwise_function.cpp' || echo '$(srcdir)/'`pointwise_function.cpp
+
+pointwise_function_2d-pointwise_function.obj: pointwise_function.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pointwise_function_2d_CXXFLAGS) $(CXXFLAGS) -MT pointwise_function_2d-pointwise_function.obj -MD -MP -MF $(DEPDIR)/pointwise_function_2d-pointwise_function.Tpo -c -o pointwise_function_2d-pointwise_function.obj `if test -f 'pointwise_function.cpp'; then $(CYGPATH_W) 'pointwise_function.cpp'; else $(CYGPATH_W) '$(srcdir)/pointwise_function.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/pointwise_function_2d-pointwise_function.Tpo $(DEPDIR)/pointwise_function_2d-pointwise_function.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='pointwise_function.cpp' object='pointwise_function_2d-pointwise_function.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pointwise_function_2d_CXXFLAGS) $(CXXFLAGS) -c -o pointwise_function_2d-pointwise_function.obj `if test -f 'pointwise_function.cpp'; then $(CYGPATH_W) 'pointwise_function.cpp'; else $(CYGPATH_W) '$(srcdir)/pointwise_function.cpp'; fi`
+
+pointwise_function_3d-pointwise_function.o: pointwise_function.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pointwise_function_3d_CXXFLAGS) $(CXXFLAGS) -MT pointwise_function_3d-pointwise_function.o -MD -MP -MF $(DEPDIR)/pointwise_function_3d-pointwise_function.Tpo -c -o pointwise_function_3d-pointwise_function.o `test -f 'pointwise_function.cpp' || echo '$(srcdir)/'`pointwise_function.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/pointwise_function_3d-pointwise_function.Tpo $(DEPDIR)/pointwise_function_3d-pointwise_function.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='pointwise_function.cpp' object='pointwise_function_3d-pointwise_function.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pointwise_function_3d_CXXFLAGS) $(CXXFLAGS) -c -o pointwise_function_3d-pointwise_function.o `test -f 'pointwise_function.cpp' || echo '$(srcdir)/'`pointwise_function.cpp
+
+pointwise_function_3d-pointwise_function.obj: pointwise_function.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pointwise_function_3d_CXXFLAGS) $(CXXFLAGS) -MT pointwise_function_3d-pointwise_function.obj -MD -MP -MF $(DEPDIR)/pointwise_function_3d-pointwise_function.Tpo -c -o pointwise_function_3d-pointwise_function.obj `if test -f 'pointwise_function.cpp'; then $(CYGPATH_W) 'pointwise_function.cpp'; else $(CYGPATH_W) '$(srcdir)/pointwise_function.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/pointwise_function_3d-pointwise_function.Tpo $(DEPDIR)/pointwise_function_3d-pointwise_function.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='pointwise_function.cpp' object='pointwise_function_3d-pointwise_function.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(pointwise_function_3d_CXXFLAGS) $(CXXFLAGS) -c -o pointwise_function_3d-pointwise_function.obj `if test -f 'pointwise_function.cpp'; then $(CYGPATH_W) 'pointwise_function.cpp'; else $(CYGPATH_W) '$(srcdir)/pointwise_function.cpp'; fi`
+
 poisson_01_2d-poisson_01.o: poisson_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poisson_01_2d_CXXFLAGS) $(CXXFLAGS) -MT poisson_01_2d-poisson_01.o -MD -MP -MF $(DEPDIR)/poisson_01_2d-poisson_01.Tpo -c -o poisson_01_2d-poisson_01.o `test -f 'poisson_01.cpp' || echo '$(srcdir)/'`poisson_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/poisson_01_2d-poisson_01.Tpo $(DEPDIR)/poisson_01_2d-poisson_01.Po
@@ -2402,6 +2469,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po
 	-rm -f ./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po
 	-rm -f ./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po
+	-rm -f ./$(DEPDIR)/pointwise_function_2d-pointwise_function.Po
+	-rm -f ./$(DEPDIR)/pointwise_function_3d-pointwise_function.Po
 	-rm -f ./$(DEPDIR)/poisson_01_2d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po
@@ -2499,6 +2568,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/nodal_interpolation_01_3d-nodal_interpolation_01.Po
 	-rm -f ./$(DEPDIR)/phys_boundary_ops_2d-phys_boundary_ops.Po
 	-rm -f ./$(DEPDIR)/phys_boundary_ops_3d-phys_boundary_ops.Po
+	-rm -f ./$(DEPDIR)/pointwise_function_2d-pointwise_function.Po
+	-rm -f ./$(DEPDIR)/pointwise_function_3d-pointwise_function.Po
 	-rm -f ./$(DEPDIR)/poisson_01_2d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/poisson_01_3d-poisson_01.Po
 	-rm -f ./$(DEPDIR)/prolongation_mat_2d-prolongation_mat.Po

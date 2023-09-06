@@ -1,0 +1,71 @@
+// grid spacing parameters
+MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
+N = 8                                    // coarsest grid spacing
+
+Main {
+
+// log file parameters
+   log_file_name               = "output"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt", "ExodusII"
+   viz_dump_interval           = 1
+   viz_dump_dirname            = "viz"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_adv_diff2d"
+
+   data_dump_interval          = 0
+   data_dump_dirname           = "hier_data_IB2d"
+
+   timer_dump_interval = 0
+}
+
+FCN = "X_0 + X_1 + t"
+
+ScalarFcn {
+   function = FCN
+}
+
+VectorFcn {
+   function_0 = FCN
+   function_1 = FCN
+   function_2 = FCN
+}
+
+OtherFcn {
+   function_0 = FCN
+   function_1 = FCN
+   function_2 = FCN
+   function_3 = FCN
+   function_4 = FCN
+   function_5 = FCN
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0,0),(N - 1,N - 1,N - 1) ]
+   x_lo = -1.0,-1.0,-1.0
+   x_up = 1.0,1.0,1.0
+   periodic_dimension = 1,1,1
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   largest_patch_size {
+      level_0 = 512,512,512  // all finer levels will use same values as level_0
+   }
+   smallest_patch_size {
+      level_0 =   4,  4,  4  // all finer levels will use same values as level_0
+   }
+}
+
+StandardTagAndInitialize {
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
