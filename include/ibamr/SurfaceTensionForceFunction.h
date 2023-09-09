@@ -168,7 +168,54 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
+    /*!
+     * \brief Function to Mask surface tension force to act only on the liquid-gas interface.
+     */
+    using MaskSurfaceTensionForcePtr = void (*)(int F_idx,
+                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                int cycle_num,
+                                                double time,
+                                                double current_time,
+                                                double new_time,
+                                                void* ctx);
+
+    /*!
+     * \brief Register function to limit the surface tension force.
+     */
+    void registerSurfaceTensionForceMasking(MaskSurfaceTensionForcePtr callback, void* ctx);
+
+    /*!
+     * \brief Function to compute the variable surface tension coefficient.
+     */
+    using ComputeSurfaceTensionCoefficientPtr = void (*)(int F_idx,
+                                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                         int cycle_num,
+                                                         double time,
+                                                         double current_time,
+                                                         double new_time,
+                                                         void* ctx);
+
+    /*!
+     * \brief Register function to compute the variable surface tension coefficient.
+     */
+    void registerSurfaceTensionCoefficientFunction(ComputeSurfaceTensionCoefficientPtr callback, void* ctx);
+
     //\}
+protected:
+    /*!
+     * Get the ghost cell width of scratch data.
+     */
+    int getMinimumGhostWidth(const std::string& kernel_fcn);
+
+    const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
+    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_ls_var;
+    TimeSteppingType d_ts_type;
+    int d_C_idx = IBTK::invalid_index, d_phi_idx = IBTK::invalid_index;
+    std::string d_kernel_fcn;
+    double d_sigma = std::numeric_limits<double>::signaling_NaN(),
+           d_num_interface_cells = std::numeric_limits<double>::signaling_NaN();
+    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
 
 private:
     /*!
@@ -239,17 +286,11 @@ private:
      */
     int getStencilSize(const std::string& kernel_fcn);
 
-    /*!
-     * Get the ghost cell width of scratch data.
-     */
-    int getMinimumGhostWidth(const std::string& kernel_fcn);
+    MaskSurfaceTensionForcePtr d_mask_surface_tension_force = nullptr;
+    void* d_mask_surface_tension_force_ctx = nullptr;
 
-    const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
-    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_ls_var;
-    TimeSteppingType d_ts_type;
-    int d_C_idx, d_phi_idx;
-    std::string d_kernel_fcn;
-    double d_sigma, d_num_interface_cells;
+    ComputeSurfaceTensionCoefficientPtr d_compute_surface_tension_coef = nullptr;
+    void* d_compute_surface_tension_coef_ctx = nullptr;
 };
 } // namespace IBAMR
 

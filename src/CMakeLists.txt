@@ -104,6 +104,7 @@ SET(CXX_SRC
   navier_stokes/INSStaggeredHierarchyIntegrator.cpp
   navier_stokes/INSProjectionBcCoef.cpp
   navier_stokes/INSHierarchyIntegrator.cpp
+  navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
   navier_stokes/StaggeredStokesPETScLevelSolver.cpp
   navier_stokes/StaggeredStokesBlockFactorizationPreconditioner.cpp
   navier_stokes/StaggeredStokesBoxRelaxationFACOperator.cpp
