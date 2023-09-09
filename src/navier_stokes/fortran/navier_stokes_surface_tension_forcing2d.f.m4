@@ -283,7 +283,8 @@ c     Compute surface tension forcing
 c
 c           F = K * grad(f)
 c
-c     sigma will be multiplied later with F as F = sigma*F.
+c     It is the caller's responsibility to multiply F by the (possibly
+c     spatially-dependent) sigma coefficient.
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine sc_surface_tension_force_2d(
@@ -349,8 +350,8 @@ c     Compute Marangoni force
 c
 c     F = grad T |grad C| - (grad T dot grad \phi)grad C
 c
-c     Marangoni coefficient will be multiplied later with F as
-c     F = marangoni_coef * F.
+c     It is the caller's responsibility to multiply F by the (possibly
+c     spatially-dependent) Marangoni coefficient.
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
       subroutine sc_marangoni_force_2d(

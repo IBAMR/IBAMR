@@ -210,9 +210,10 @@ protected:
     const AdvDiffHierarchyIntegrator* const d_adv_diff_solver;
     const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_ls_var;
     TimeSteppingType d_ts_type;
-    int d_C_idx, d_phi_idx;
+    int d_C_idx = IBTK::invalid_index, d_phi_idx = IBTK::invalid_index;
     std::string d_kernel_fcn;
-    double d_sigma = std::numeric_limits<double>::signaling_NaN(), d_num_interface_cells;
+    double d_sigma = std::numeric_limits<double>::signaling_NaN(),
+           d_num_interface_cells = std::numeric_limits<double>::signaling_NaN();
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
 
