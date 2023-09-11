@@ -1,0 +1,1 @@
+An example to test the mass conservation property of the level set method. Here, a circular interface is subject to a vortical flow (introduced by Rider and Kothe) and the simulation runs over a long period of time (t = 10s).

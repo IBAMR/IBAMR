@@ -57,11 +57,19 @@ LS_ORDER              = "THIRD_ORDER_ENO"
 LS_ABS_TOL            = 1.0e-6
 LS_REINIT_INTERVAL    = 1
 MAX_ITERATIONS        = 50
-LS_TAG_VALUE          = 0.0
 LS_TAG_ABS_THRESH     = 2*H_COARSEST
 APPLY_SIGN_FIX        = TRUE
 APPLY_SUBCELL_FIX     = TRUE
 APPLY_MASS_CONSTRAINT = FALSE
+
+LevelSetMassFixer {
+
+   half_width = 1.0            // width of the interface in each phase to compute Heaviside integrals 
+   max_its = 4                 // maximum no. of Newton's iterations
+   rel_tol = 1e-12             // error between current and target volume
+   correction_interval = 1     // frequency at which mass loss is corrected
+   enable_logging      = TRUE  // prints Netwon residuals
+}
 
 GasLevelSetInitialCondition {
    H = GAS_LS_INIT
@@ -312,7 +320,7 @@ LevelSet_Gas {
     order                 = LS_ORDER
     abs_tol               = LS_ABS_TOL
     max_iterations        = MAX_ITERATIONS
-    enable_logging        = TRUE
+    enable_logging        = FALSE
     reinit_interval       = LS_REINIT_INTERVAL
     apply_sign_fix        = APPLY_SIGN_FIX
     apply_subcell_fix     = APPLY_SUBCELL_FIX
@@ -401,5 +409,5 @@ TimerManager{
    print_total = TRUE
    print_threshold = 0.1
 
-   timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
+   //timer_list = "IBAMR::*::*" , "IBTK::*::*" , "*::*::*"
 }

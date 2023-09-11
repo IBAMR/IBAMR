@@ -205,6 +205,7 @@ SET(CXX_SRC
   advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp
 
   # level set
+  level_set/LevelSetUtilities.cpp
   level_set/LSInitStrategy.cpp
   level_set/FastSweepingLSMethod.cpp
   level_set/RelaxationLSBcCoefs.cpp

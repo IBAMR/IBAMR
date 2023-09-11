@@ -29,6 +29,7 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 
@@ -47,8 +48,6 @@
 #include "LevelSetInitialCondition.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
-#include "SetLSProperties.h"
-#include "TagLSRefinementCells.h"
 
 CircularInterface circle;
 
@@ -259,9 +258,10 @@ main(int argc, char* argv[])
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
         // Register the reinitialization functions for the level set variables
-        SetLSProperties* ptr_setSetLSProperties = new SetLSProperties("SetLSProperties", level_set_gas_ops);
+        LevelSetUtilities::SetLSProperties* ptr_setSetLSProperties =
+            new LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_gas_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+            phi_var_gas, &LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_setSetLSProperties));
 
         // Solid level set initial conditions
         Pointer<CartGridFunction> phi_solid_init = new LevelSetInitialCondition("solid_ls_init", circle);
@@ -271,6 +271,17 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> phi_gas_init = new muParserCartGridFunction(
             "phi_gas_init", app_initializer->getComponentDatabase("GasLevelSetInitialCondition"), grid_geometry);
         adv_diff_integrator->setInitialConditions(phi_var_gas, phi_gas_init);
+
+        // Lagrange multiplier to conserve mass of the phases.
+        std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars{ phi_var_gas, phi_var_solid };
+        LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
+            "LevelSetMassLossFixer",
+            adv_diff_integrator,
+            ls_vars,
+            app_initializer->getComponentDatabase("LevelSetMassFixer"),
+            /*restart*/ true);
+        adv_diff_integrator->registerPostprocessIntegrateHierarchyCallback(&LevelSetUtilities::fixMassLoss3PhaseFlows,
+                                                                           static_cast<void*>(&level_set_fixer));
 
         // Reset solid geometry
         SolidLevelSetResetter solid_level_set_resetter;
@@ -326,21 +337,15 @@ main(int argc, char* argv[])
                                                                  static_cast<void*>(ptr_setFluidGasSolidViscosity));
 
         // Register callback function for tagging refined cells for level set data
-        const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
-        TagLSRefinementCells ls_gas_tagger;
-        ls_gas_tagger.d_ls_var = phi_var_gas;
-        ls_gas_tagger.d_tag_value = tag_value;
-        ls_gas_tagger.d_tag_abs_thresh = tag_thresh;
-        ls_gas_tagger.d_adv_diff_solver = adv_diff_integrator;
-        TagLSRefinementCells ls_solid_tagger;
-        ls_solid_tagger.d_ls_var = phi_var_solid;
-        ls_solid_tagger.d_tag_value = tag_value;
-        ls_solid_tagger.d_tag_abs_thresh = tag_thresh;
-        ls_solid_tagger.d_adv_diff_solver = adv_diff_integrator;
-        navier_stokes_integrator->registerApplyGradientDetectorCallback(&callTagGasLSRefinementCellsCallbackFunction,
+
+        LevelSetUtilities::TagLSRefinementCells ls_gas_tagger(
+            adv_diff_integrator, phi_var_gas, -tag_thresh, tag_thresh);
+        LevelSetUtilities::TagLSRefinementCells ls_solid_tagger(
+            adv_diff_integrator, phi_var_solid, std::numeric_limits<double>::lowest(), tag_thresh);
+        navier_stokes_integrator->registerApplyGradientDetectorCallback(&LevelSetUtilities::TagLSCells,
                                                                         static_cast<void*>(&ls_gas_tagger));
-        navier_stokes_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
+        navier_stokes_integrator->registerApplyGradientDetectorCallback(&LevelSetUtilities::TagLSCells,
                                                                         static_cast<void*>(&ls_solid_tagger));
 
         // Create Eulerian initial condition specification objects.
@@ -496,11 +501,31 @@ main(int argc, char* argv[])
             }
         }
 
-        // Open streams to save position and velocity of the structure.
-        ofstream rbd_stream;
+        // Open streams to save position and velocity of the structure, as well
+        // as the volume of the two phase and the Lagrange multiplier.
+        ofstream rbd_stream, vol_stream;
         if (SAMRAI_MPI::getRank() == 0)
         {
             rbd_stream.open("rbd.curve", ios_base::out | ios_base::app);
+
+            vol_stream.open("vol.curve", ios_base::out | ios_base::app);
+            vol_stream.precision(16);
+            vol_stream.setf(ios::fixed, ios::floatfield);
+        }
+
+        const bool is_from_restart = RestartManager::getManager()->isFromRestart();
+        if (!is_from_restart)
+        {
+            // Target the liquid volume in the Newton's iterations
+            std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals3PhaseFlows(&level_set_fixer);
+            level_set_fixer.setInitialVolume(H_integrals[1]);
+
+            // Save the initial volume of gas, liquid, and gas+solid phases, and the Lagrange multiplier in the stream.
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                vol_stream << 0.0 << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t"
+                           << H_integrals[0] + H_integrals[2] << "\t" << 0.0 << std::endl;
+            }
         }
 
         // Main time step loop.
@@ -526,6 +551,28 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
+
+            std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals3PhaseFlows(&level_set_fixer);
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                vol_stream.precision(16);
+                vol_stream.setf(ios::fixed, ios::floatfield);
+                vol_stream << loop_time << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t"
+                           << H_integrals[0] + H_integrals[2] << "\t" << level_set_fixer.getLagrangeMultiplier()
+                           << std::endl;
+            }
+
+            // Update the target volume due to the inflow of liquid through the specified boundary (= y_bottom)
+            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            const int u_idx = var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
+                                                                   navier_stokes_integrator->getCurrentContext());
+
+            const double vol_inflow = dt * LevelSetUtilities::computeNetInflowPhysicalBoundary(
+                                               navier_stokes_integrator->getHierarchyMathOps(),
+                                               u_idx,
+                                               /*location_idx*/ 2);
+            const double target_vol = level_set_fixer.getTargetVolume() + vol_inflow;
+            level_set_fixer.setTargetVolume(target_vol);
 
             // At specified intervals, write visualization and restart files,
             // and print out timer data.
@@ -562,6 +609,7 @@ main(int argc, char* argv[])
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
+            vol_stream.close();
             rbd_stream.close();
         }
 

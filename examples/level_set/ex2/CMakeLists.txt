@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2021 - 2021 by the IBAMR developers
+## Copyright (c) 2020 - 2020 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -13,19 +13,18 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "IBLevelSet-ex1"
+    "level_set-ex2-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/IBLevelSet/ex1"
+    "${CMAKE_BINARY_DIR}/examples/level_set/ex2"
   OUTPUT_NAME
     main2d
   EXAMPLE_GROUP
-    examples-IBLevelSet
+    examples-level_set
   SOURCES
-    example.cpp
-    SetFluidSolidDensity.cpp
-    SetFluidSolidViscosity.cpp
+    example.cpp LSLocateInterface.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
-    input2d_dynamic_mesh input2d_static_mesh
-    )
+    input2d
+  )
+

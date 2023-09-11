@@ -15,18 +15,15 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp SetFluidProperties.h LSLocateCircularInterface.cpp LSLocateCircularInterface.h 
-EXTRA_DIST     = input2d
-EXTRA_DIST    += input3d 
+EXAMPLE_DRIVER = example.cpp LSLocateInterface.cpp LSLocateInterface.h 
 
-EXAMPLES =
+EXTRA_DIST = README input2d 
+
+
 EXTRA_PROGRAMS =
+EXAMPLES =
 if SAMRAI2D_ENABLED
 EXAMPLES += main2d
-EXTRA_PROGRAMS += $(EXAMPLES)
-endif
-if SAMRAI3D_ENABLED
-EXAMPLES += main3d
 EXTRA_PROGRAMS += $(EXAMPLES)
 endif
 
@@ -34,20 +31,15 @@ main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(EXAMPLE_DRIVER)
 
-main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-main3d_SOURCES = $(EXAMPLE_DRIVER)
-
-
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
+	  cp -f $(srcdir)/{README,input[2]d*} $(PWD) ; \
 	fi ;
 
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[23]d ; \
+	  rm -f $(builddir)/{README,input[23]d*} ; \
 	fi ;
