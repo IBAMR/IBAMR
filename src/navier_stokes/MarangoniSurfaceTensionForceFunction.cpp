@@ -192,7 +192,8 @@ MarangoniSurfaceTensionForceFunction::MarangoniSurfaceTensionForceFunction(const
 {
     d_T_var = T_var;
     d_T_bc_coef = T_bc_coef;
-    d_marangoni_coefficient = input_db->getDoubleWithDefault("marangoni_coefficient", 0.0);
+    if (input_db->keyExists("marangoni_coefficient"))
+        d_marangoni_coefficient = input_db->getDouble("marangoni_coefficient");
 
     return;
 } // SurfaceTensionForceFunction
