@@ -192,7 +192,8 @@ MarangoniSurfaceTensionForceFunction::MarangoniSurfaceTensionForceFunction(const
 {
     d_T_var = T_var;
     d_T_bc_coef = T_bc_coef;
-    d_marangoni_coefficient = input_db->getDoubleWithDefault("marangoni_coefficient", 0.0);
+    if (input_db->keyExists("marangoni_coefficient"))
+        d_marangoni_coefficient = input_db->getDouble("marangoni_coefficient");
 
     return;
 } // SurfaceTensionForceFunction
@@ -270,7 +271,6 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
     }
 
     // Fill ghost cells
-    //    RobinBcCoefStrategy<NDIM>* T_bc_coef = iep_hier_integrator->getPhysicalBcCoefTemperatureEquation();
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent T_transaction(
         d_T_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_T_bc_coef);

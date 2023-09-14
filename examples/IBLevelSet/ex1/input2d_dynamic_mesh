@@ -25,7 +25,7 @@ HEIGHT = 8.0
 Nx = 62                                  // coarsest grid spacing
 Ny = 31
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx // finest   grid spacing
-H_COARSEST       = LENGTH/Nx
+H_COARSEST = LENGTH/Nx
 
 NUM_SOLID_INTERFACE_CELLS = 2.0
 
@@ -157,7 +157,6 @@ MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 
 // Application
-CHI = RHO_S/DT_MAX
 PRECOND_REINIT_INTERVAL      = 1
 VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
@@ -174,7 +173,11 @@ ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"
 
 BrinkmanPenalization {
-    chi = CHI
+   penalty_factor      = 1.0                         // deafult 1.0                   
+   use_rho_scale       = TRUE                        // default true
+   use_mu_scale        = FALSE                       // default false
+   contour_level       = 0.0                         // default 0.0 
+   num_interface_cells = NUM_SOLID_INTERFACE_CELLS   // default 2.0 
 }
 
 INSVCStaggeredConservativeHierarchyIntegrator {

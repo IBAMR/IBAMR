@@ -54,7 +54,7 @@ ALPHA = 3.5
 // Surface tension parameters
 SIGMA               = 0.0
 SMOOTHER            = "IB_4"
-NUM_INTERFACE_CELLS = 2.5
+NUM_INTERFACE_CELLS_SURFACE_TENSION = 2.5
 
 
 // grid spacing parameters
@@ -203,7 +203,6 @@ PhiBcCoefs {
 
 
 // Simulation Parameters
-DELTA_FUNCTION                      = "IB_6"
 SOLVER_TYPE                         = "STAGGERED"
 DISCRETIZATION_FORM                 = "CONSERVATIVE"
 START_TIME                          =  0.0e0     // initial simulation time
@@ -233,7 +232,6 @@ MU_IS_CONST                         = FALSE
 ERROR_ON_DT_CHANGE                  = FALSE
 
 // Application
-CHI = 1.0
 PRECOND_REINIT_INTERVAL      = 1
 VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
@@ -243,18 +241,6 @@ OPERATOR_SCALE_FACTORS       =   1.0
 EXPLICITLY_REMOVE_NULLSPACE  = FALSE
 ENABLE_LOGGING               = TRUE
 
-// IBFEMethod parameters
-DX                         = Hy
-MFAC                       = 1.0
-ELEM_TYPE                  = "TRI3"
-SPLIT_FORCES               = FALSE
-USE_JUMP_CONDITIONS        = FALSE
-USE_CONSISTENT_MASS_MATRIX = TRUE
-IB_POINT_DENSITY           = 1.0
-USE_BOUNDARY_MESH          = TRUE      // whether to use boundary mesh extracted from solid mesh
-//GMSH_FILENAME              = "CircleMesh.msh"
-
-
 // AdvDiff solver parameters
 ADV_DIFF_SOLVER_TYPE        = "SEMI_IMPLICIT"   // the advection-diffusion solver to use
 ADV_DIFF_NUM_CYCLES         = 2                 // number of cycles of fixed-point iteration
@@ -262,39 +248,13 @@ ADV_DIFF_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // convective time stepping type
 ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"             // convective differencing discretization type
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 
-IBInterpolantHierarchyIntegrator {
-   start_time            = START_TIME
-   end_time              = END_TIME
-   grow_dt               = GROW_DT
-   max_integrator_steps  = MAX_INTEGRATOR_STEPS
-   regrid_cfl_interval   = REGRID_CFL_INTERVAL
-
-   dt_max             = DT_MAX
-   num_cycles         = NUM_INS_CYCLES
-   delta_fcn          = DELTA_FUNCTION
-   enable_logging     = ENABLE_LOGGING
-   error_on_dt_change = ERROR_ON_DT_CHANGE
-}
-
-IBFEMethod {
-    IB_delta_fcn                = DELTA_FUNCTION
-    split_forces                = SPLIT_FORCES
-    use_jump_conditions         = USE_JUMP_CONDITIONS
-    use_consistent_mass_matrix  = USE_CONSISTENT_MASS_MATRIX
-    IB_point_density            = IB_POINT_DENSITY
-}
-
-IBInterpolantMethod {
-    delta_fcn      = DELTA_FUNCTION
-    enable_logging = ENABLE_LOGGING
-}
-
-IBRedundantInitializer {
-    max_levels      = MAX_LEVELS
-}
 
 BrinkmanPenalization {
-    chi = CHI
+    penalty_factor      = 1.0                         // deafult 1.0                   
+    use_rho_scale       = TRUE                        // default true
+    use_mu_scale        = FALSE                       // default false
+    contour_level       = 0.0                         // default 0.0 
+    num_interface_cells = NUM_SOLID_INTERFACE_CELLS   // default 2.0 
 }
 
 INSVCStaggeredConservativeHierarchyIntegrator {
@@ -528,7 +488,7 @@ LevelSet_Gas {
 SurfaceTensionForceFunction {
     smoother            = SMOOTHER
     sigma               = SIGMA
-    num_interface_cells = NUM_INTERFACE_CELLS
+    num_interface_cells = NUM_INTERFACE_CELLS_SURFACE_TENSION
 }
 
 Main {

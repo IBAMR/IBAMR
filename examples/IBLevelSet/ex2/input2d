@@ -30,7 +30,7 @@ YCOM        = GAS_LS_INIT+5.05*D // 4.55D to bottom of cyl and 0.5D for up to CO
 // Surface tension parameters
 SIGMA               = 0.0
 SMOOTHER            = "IB_4"
-NUM_INTERFACE_CELLS = 2.5
+NUM_INTERFACE_CELLS_SURFACE_TENSION = 2.5
 
 
 // grid spacing parameters
@@ -190,7 +190,6 @@ MU_IS_CONST          = FALSE
 ERROR_ON_DT_CHANGE   = FALSE
 
 // Application
-CHI = RHO_S/DT_MAX
 PRECOND_REINIT_INTERVAL      = 1
 VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
 DENSITY_CONVECTIVE_LIMITER   = "CUI"
@@ -208,7 +207,11 @@ ADV_DIFF_CONVECTIVE_OP_TYPE = "PPM"
 ADV_DIFF_CONVECTIVE_FORM    = "CONSERVATIVE"
 
 BrinkmanPenalization {
-    chi = CHI
+    penalty_factor      = 1.0                         // deafult 1.0                   
+    use_rho_scale       = TRUE                        // default true
+    use_mu_scale        = FALSE                       // default false
+    contour_level       = 0.0                         // default 0.0 
+    num_interface_cells = NUM_SOLID_INTERFACE_CELLS   // default 2.0 
 }
 
 INSVCStaggeredConservativeHierarchyIntegrator {
@@ -322,7 +325,7 @@ LevelSet_Gas {
 SurfaceTensionForceFunction {
     smoother            = SMOOTHER
     sigma               = SIGMA
-    num_interface_cells = NUM_INTERFACE_CELLS
+    num_interface_cells = NUM_INTERFACE_CELLS_SURFACE_TENSION
 }
 
 Main {

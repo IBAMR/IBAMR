@@ -16,15 +16,12 @@ include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
 EXAMPLE_DRIVER = example.cpp SetFluidSolidDensity.cpp SetFluidSolidDensity.h SetFluidSolidViscosity.cpp SetFluidSolidViscosity.h TagLSRefinementCells.cpp TagLSRefinementCells.h
-EXTRA_DIST     = input2d
 
 EXAMPLES =
 EXTRA_PROGRAMS =
-if LIBMESH_ENABLED
 if SAMRAI2D_ENABLED
 EXAMPLES += main2d
 EXTRA_PROGRAMS += $(EXAMPLES)
-endif
 endif
 
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -34,12 +31,12 @@ main2d_SOURCES = $(EXAMPLE_DRIVER)
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[2]d* $(PWD) ; \
+	  cp -f $(srcdir)/input[2]d*mesh $(PWD) ; \
 	fi ;
 
 
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[2]d ; \
+	  rm -f $(builddir)/input[2]d*mesh ; \
 	fi ;
