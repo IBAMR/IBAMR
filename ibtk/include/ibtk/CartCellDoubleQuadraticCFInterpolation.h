@@ -56,6 +56,42 @@ namespace IBTK
  * values for cell-centered double precision patch data via quadratic
  * interpolation in the normal and tangential directions at coarse-fine
  * interfaces.
+ *
+ * The postprocessRefine() function performs quadratic interpolation in the tangential direction using the values from O
+ * to fill in an approximation to A. The function computeNormalExtension() must be called to fill in a value at location
+ * G, which computes a quadratic interpolation using interior values x and the approximation at A.
+ *
+ * *******************************
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *     O     *******************
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *******************************
+ * *     |     *     *     *     *
+ * *     A  G  *  x  *  x  *  x  *
+ * *     |     *     *     *     *
+ * *     O-----*******************
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *******************************
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *     O     *******************
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *           *     *     *     *
+ * *******************************
+ *
+ * Note: If this class is used in conjunction with RefineAlgorithm, to correctly fill in ghost cells,
+ * computeNormalExtension() must be called after RefineAlgorithm::refine() is completed.
+ *
+ * Note: This class is specialized for the case of a single ghost cell width. Additional ghost cells are not guaranteed
+ * to be filled correctly.
  */
 class CartCellDoubleQuadraticCFInterpolation : public CoarseFineBoundaryRefinePatchStrategy
 {
@@ -86,9 +122,8 @@ public:
      *
      * \param patch                Patch on which to fill boundary data.
      * \param fill_time            Double simulation time for boundary filling.
-     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
-     *all
-     *registered scratch components.
+     * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over all registered scratch
+     * components.
      */
     void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
                                        double fill_time,
@@ -116,9 +151,7 @@ public:
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and
-     *fine
-     *patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
     void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                           const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -135,12 +168,13 @@ public:
      * components are specified in calls to the registerRefine() function in the
      * SAMRAI::xfer::RefineAlgorithm class.
      *
+     * This function computes a quadratic approximation in the tangential direction. To complete the approximation of
+     * ghost cells, computeNormalExtension() must be called after postprocessRefine().
+     *
      * \param fine      Fine patch containing destination data.
      * \param coarse    Coarse patch containing source data.
      * \param fine_box  Box region on fine patch into which data is refined.
-     * \param ratio     Integer vector containing ratio relating index space between coarse and
-     *fine
-     *patches.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
      */
     void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
                            const SAMRAI::hier::Patch<NDIM>& coarse,
@@ -189,7 +223,10 @@ public:
     void clearPatchHierarchy() override;
 
     /*!
-     * Compute the normal extension of fine data at coarse-fine interfaces.
+     * Compute the normal extension of fine data at coarse-fine interfaces. Performs quadratic interpolation in the
+     * normal direction to fill in ghost cells.
+     *
+     * This function assumes that the first ghost cell is filled with a reasonable value, see the class description.
      */
     void computeNormalExtension(SAMRAI::hier::Patch<NDIM>& patch,
                                 const SAMRAI::hier::IntVector<NDIM>& ratio,
