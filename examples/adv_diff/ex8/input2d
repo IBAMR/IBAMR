@@ -138,8 +138,8 @@ PhiBcCoefs {
 }
 
 // solver parameters
-SOLVER_TYPE          = "STAGGERED"
-DISCRETIZATION_FORM  = "CONSERVATIVE"
+// SOLVER_TYPE          = "STAGGERED"
+// DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   10.0e0     // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
@@ -303,8 +303,8 @@ BrinkmanPenalization {
 
 
 Main {
-   solver_type = SOLVER_TYPE
-   discretization_form = DISCRETIZATION_FORM
+   // solver_type = SOLVER_TYPE
+   // discretization_form = DISCRETIZATION_FORM
 
 // log file parameters
    log_file_name               = "bp_free_convection_2d.log"

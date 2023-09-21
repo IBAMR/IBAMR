@@ -11,9 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
-#include <SAMRAI_config.h>
-
 // Headers for basic PETSc functions
 #include <petscsys.h>
 
@@ -29,11 +26,6 @@
 #include <ibamr/BrinkmanAdvDiffBcHelper.h>
 #include <ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/BrinkmanPenalizationRigidBodyDynamics.h>
-#include <ibamr/IBFEMethod.h>
-#include <ibamr/IBInterpolantHierarchyIntegrator.h>
-#include <ibamr/IBInterpolantMethod.h>
-#include <ibamr/IBLevelSetMethod.h>
-#include <ibamr/IBRedundantInitializer.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
@@ -66,7 +58,7 @@ struct BrinkmanPenalizationCtx
     int grad_phi_sc_idx;
     int grad_phi_cc_idx;
     int g_cc_scratch_idx;
-    int interface_cell_patch_idx;
+    int interface_cell_idx;
     int num_prop_cells;
     int prop_counter_idx;
 };
@@ -80,7 +72,26 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
 {
     BrinkmanPenalizationCtx* bp_ctx = static_cast<BrinkmanPenalizationCtx*>(ctx);
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+
+    int g_cc_scratch_idx = bp_ctx->g_cc_scratch_idx;
+    int grad_phi_sc_idx = bp_ctx->grad_phi_sc_idx;
+    int grad_phi_cc_idx = bp_ctx->grad_phi_cc_idx;
+    int beta_scratch_idx = bp_ctx->beta_scratch_idx;
+    int interface_cell_idx = bp_ctx->interface_cell_idx;
+    int prop_counter_idx = bp_ctx->prop_counter_idx;
+
+    const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(g_cc_scratch_idx)) level->allocatePatchData(g_cc_scratch_idx, time);
+        if (!level->checkAllocated(grad_phi_sc_idx)) level->allocatePatchData(grad_phi_sc_idx, time);
+        if (!level->checkAllocated(grad_phi_cc_idx)) level->allocatePatchData(grad_phi_cc_idx, time);
+        if (!level->checkAllocated(beta_scratch_idx)) level->allocatePatchData(beta_scratch_idx, time);
+        if (!level->checkAllocated(interface_cell_idx)) level->allocatePatchData(interface_cell_idx, time);
+        if (!level->checkAllocated(prop_counter_idx)) level->allocatePatchData(prop_counter_idx, time);
+    }
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int phi_idx =
@@ -105,18 +116,12 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
     hier_bdry_fill->fillData(time);
 
     // Computing the gradient of signed distance at cell center.
-    int grad_phi_cc_idx = bp_ctx->grad_phi_cc_idx;
     Pointer<CellVariable<NDIM, double> > grad_phi_cc_var = bp_ctx->grad_phi_cc_var;
     hier_math_ops->grad(grad_phi_cc_idx, grad_phi_cc_var, -1.0, phi_scratch_idx, ls_solid_var, nullptr, time);
 
     // computing the gradient of signed distance at side center.
-    int grad_phi_sc_idx = bp_ctx->grad_phi_sc_idx;
     Pointer<SideVariable<NDIM, double> > grad_phi_sc_var = bp_ctx->grad_phi_sc_var;
     hier_math_ops->grad(grad_phi_sc_idx, grad_phi_sc_var, true, -1.0, phi_scratch_idx, ls_solid_var, nullptr, time);
-
-    int g_cc_scratch_idx = bp_ctx->g_cc_scratch_idx;
-    int interface_cell_patch_idx = bp_ctx->interface_cell_patch_idx;
-    int prop_counter_idx = bp_ctx->prop_counter_idx;
 
     Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
     IntVector<NDIM> ratio = finest_level->getRatio();
@@ -137,7 +142,7 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
         Pointer<CellData<NDIM, double> > grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
         Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(phi_scratch_idx);
         Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
-        Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_patch_idx);
+        Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_idx);
         for (Box<NDIM>::Iterator it(patch_box); it; it++)
         {
             CellIndex<NDIM> ci(it());
@@ -201,13 +206,8 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
     gn_transaction_comps[1] = InterpolationTransactionComponent(
         grad_phi_cc_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, ls_bc_coefs);
 
-    gn_transaction_comps[2] = InterpolationTransactionComponent(interface_cell_patch_idx,
-                                                                "CONSERVATIVE_LINEAR_REFINE",
-                                                                false,
-                                                                "CONSERVATIVE_COARSEN",
-                                                                "LINEAR",
-                                                                false,
-                                                                ls_bc_coef);
+    gn_transaction_comps[2] = InterpolationTransactionComponent(
+        interface_cell_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, ls_bc_coef);
 
     Pointer<HierarchyGhostCellInterpolation> g_hier_bdry_fill = new HierarchyGhostCellInterpolation();
     g_hier_bdry_fill->initializeOperatorState(gn_transaction_comps, patch_hierarchy);
@@ -222,7 +222,7 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
         const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         Pointer<CellData<NDIM, double> > g_cc_data = patch->getPatchData(g_cc_scratch_idx);
-        Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_patch_idx);
+        Pointer<CellData<NDIM, double> > interface_cell_data = patch->getPatchData(interface_cell_idx);
         Pointer<CellData<NDIM, double> > prop_counter_data = patch->getPatchData(prop_counter_idx);
         Pointer<CellData<NDIM, double> > grad_phi_cc_data = patch->getPatchData(grad_phi_cc_idx);
         const Box<NDIM>& ghost_box = g_cc_data->getGhostBox();
@@ -320,7 +320,7 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
             }
         }
     }
-    hier_math_ops->interp(bp_ctx->beta_scratch_idx, bp_ctx->beta_var, B_idx, grad_phi_sc_var, nullptr, time, true);
+    hier_math_ops->interp(beta_scratch_idx, bp_ctx->beta_var, B_idx, grad_phi_sc_var, nullptr, time, true);
 }
 
 void
@@ -417,32 +417,12 @@ main(int argc, char* argv[])
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         //
-        Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator;
-        const string discretization_form =
-            app_initializer->getComponentDatabase("Main")->getString("discretization_form");
-        const bool conservative_form = (discretization_form == "CONSERVATIVE");
-        if (conservative_form)
-        {
-            time_integrator = new INSVCStaggeredConservativeHierarchyIntegrator(
-                "INSVCStaggeredConservativeHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
-        }
-        else if (!conservative_form)
-        {
-            time_integrator = new INSVCStaggeredNonConservativeHierarchyIntegrator(
-                "INSVCStaggeredNonConservativeHierarchyIntegrator",
-                app_initializer->getComponentDatabase("INSVCStaggeredNonConservativeHierarchyIntegrator"));
-        }
-        else
-        {
-            TBOX_ERROR("Unsupported solver type: " << discretization_form << "\n"
-                                                   << "Valid options are: CONSERVATIVE, NON_CONSERVATIVE");
-        }
+        Pointer<INSVCStaggeredHierarchyIntegrator> time_integrator = new INSVCStaggeredConservativeHierarchyIntegrator(
+            "INSVCStaggeredConservativeHierarchyIntegrator",
+            app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
+        ;
 
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
-        const string solver_type =
-            app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "SEMI_IMPLICIT");
-        adv_diff_integrator = new BrinkmanAdvDiffSemiImplicitHierarchyIntegrator(
+        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = new BrinkmanAdvDiffSemiImplicitHierarchyIntegrator(
             "BrinkmanAdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("BrinkmanAdvDiffSemiImplicitHierarchyIntegrator"));
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
@@ -515,16 +495,13 @@ main(int argc, char* argv[])
         adv_diff_integrator->setPhysicalBcCoef(T_var, T_bc_coef);
         adv_diff_integrator->setAdvectionVelocity(T_var, time_integrator->getAdvectionVelocityVariable());
 
+        // set priority.
+        adv_diff_integrator->setResetPriority(phi_inner_solid_var, 0);
+        adv_diff_integrator->setResetPriority(phi_outer_solid_var, 1);
+        adv_diff_integrator->setResetPriority(T_var, 2);
+
         // Setup the INS maintained material properties.
-        Pointer<SAMRAI::hier::Variable<NDIM> > rho_var;
-        if (conservative_form)
-        {
-            rho_var = new SideVariable<NDIM, double>("rho");
-        }
-        else
-        {
-            rho_var = new CellVariable<NDIM, double>("rho");
-        }
+        Pointer<SAMRAI::hier::Variable<NDIM> > rho_var = new SideVariable<NDIM, double>("rho");
         time_integrator->registerMassDensityVariable(rho_var);
 
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
@@ -626,7 +603,7 @@ main(int argc, char* argv[])
         brinkman_ctx.beta_var = beta_var;
         brinkman_ctx.g_cc_var = g_cc_var;
         brinkman_ctx.g_cc_scratch_idx = g_cc_scratch_idx;
-        brinkman_ctx.interface_cell_patch_idx = interface_cell_idx;
+        brinkman_ctx.interface_cell_idx = interface_cell_idx;
         brinkman_ctx.num_prop_cells = num_prop_cells;
         brinkman_ctx.prop_counter_idx = prop_counter_idx;
 

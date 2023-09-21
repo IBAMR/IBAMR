@@ -14,7 +14,6 @@
 #include "LevelSetInitialCondition.h"
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include <SAMRAI_config.h>
 
 // SAMRAI INCLUDES
 #include <HierarchyDataOpsManager.h>

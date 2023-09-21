@@ -4,6 +4,11 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+// This file is used to read the MPI binary files written in the folder "temperature_profile"
+// and output it in ascii format. The input data is column vector in which first element is
+// angle and the second element is corresponding temperature. The output data is a ascii file
+// in which first column is angle and the second column is the corresponding temperature
+// on the cylinder.
 int
 main(int argc, char** argv)
 {
