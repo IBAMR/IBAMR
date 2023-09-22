@@ -201,6 +201,10 @@ main(int argc, char* argv[])
         Pointer<EnthalpyHierarchyIntegrator> enthalpy_hier_integrator = adv_diff_integrator;
         enthalpy_hier_integrator->registerLiquidFractionVariable(lf_var, true);
 
+        // register liquid fraction gradient
+        Pointer<CellVariable<NDIM, double> > lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient_var", NDIM);
+        enthalpy_hier_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
+
         // register Heaviside
         Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("heaviside_var");
         adv_diff_integrator->registerTransportedQuantity(H_var, true);
@@ -284,7 +288,7 @@ main(int argc, char* argv[])
         // Tag cells for refinement
         const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
         const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
-        TagInterfaceRefinementCells tagger(enthalpy_hier_integrator, lf_var, min_tag_val, max_tag_val);
+        TagInterfaceRefinementCells tagger(enthalpy_hier_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
         enthalpy_hier_integrator->registerApplyGradientDetectorCallback(
             &callTagInterfaceRefinementCellsCallbackFunction, static_cast<void*>(&tagger));
 
