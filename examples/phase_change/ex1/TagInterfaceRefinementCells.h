@@ -51,11 +51,13 @@ void callTagInterfaceRefinementCellsCallbackFunction(
 struct TagInterfaceRefinementCells
 {
     TagInterfaceRefinementCells(SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > scalar_var,
+                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_gradient_var,
                                 double tag_min_val,
                                 double tag_max_val);
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_scalar_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_gradient_var;
     double d_tag_min_val;
     double d_tag_max_val;
 };
