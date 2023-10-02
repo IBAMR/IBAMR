@@ -17,6 +17,8 @@
 #define included_IBAMR_AdvDiffConservativeMassScalarTransportRKIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include <ibamr/config.h>
+
 #include "ibamr/STSMassFluxIntegrator.h"
 
 namespace SAMRAI
@@ -53,9 +55,8 @@ namespace IBAMR
  * This class implements the Forward Euler (RK-1) for single cycle and midpoint rule (RK-2) for
  * multiple cycles as the time-stepping schemes.
  *
- * Class AdvDiffConservativeMassScalarTransportRKIntegrator computes the convective
- * derivative of a cell-centered transport quantity using various bounded-limiters
- * described by Patel and Natarajan.
+ * This class computes the convective derivative of a cell-centered transport quantity using
+ * various bounded-limiters described by Patel and Natarajan.
  *
  * References
  * Patel, JK. and Natarajan, G., <A HREF="https://www.sciencedirect.com/science/article/pii/S0045793014004009">
@@ -256,9 +257,9 @@ private:
     // Book keeping
     std::string d_object_name;
 
-    // Cached communications operators.
     std::string d_transport_quantity_bdry_extrap_type = "CONSTANT", d_material_property_bdry_extrap_type = "CONSTANT";
 
+    // Cached communications operators.
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_Q_transaction_comps,
         d_gamma_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_Q_bdry_fill, d_hier_gamma_bdry_fill;
