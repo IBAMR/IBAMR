@@ -248,6 +248,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/WallForceEvaluator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
+	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp \
@@ -438,6 +439,7 @@ am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-WallForceEvaluator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
+	../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffPredictorCorrectorHierarchyIntegrator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
@@ -600,6 +602,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/WallForceEvaluator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
+	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp \
@@ -790,6 +793,7 @@ am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
+	../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffPredictorCorrectorHierarchyIntegrator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
@@ -1056,6 +1060,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po \
+	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po \
@@ -1068,6 +1073,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po \
+	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po \
@@ -1302,7 +1308,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
-	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
+	../include/ibamr/AdvDiffCUIConvectiveOperator.h \
+	../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
 	../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 	../include/ibamr/AdvDiffHierarchyIntegrator.h \
 	../include/ibamr/AdvDiffPPMConvectiveOperator.h \
@@ -1729,7 +1736,8 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h $(am__append_3) \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
-	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
+	../include/ibamr/AdvDiffCUIConvectiveOperator.h \
+	../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
 	../include/ibamr/AdvDiffConvectiveOperatorManager.h \
 	../include/ibamr/AdvDiffHierarchyIntegrator.h \
 	../include/ibamr/AdvDiffPPMConvectiveOperator.h \
@@ -1909,6 +1917,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/WallForceEvaluator.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
+	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
 	../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHierarchyIntegrator.cpp \
 	../src/adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp \
@@ -2251,6 +2260,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT):  \
+	../src/adv_diff/$(am__dirstamp) \
+	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
+../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT):  \
@@ -2791,6 +2803,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
+../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT):  \
+	../src/adv_diff/$(am__dirstamp) \
+	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
@@ -3307,6 +3322,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po@am__quote@ # am--include-marker
@@ -3319,6 +3335,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po@am__quote@ # am--include-marker
@@ -4339,6 +4356,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp'; fi`
+
+../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o: ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o `test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o `test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+
+../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj: ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj `if test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' object='../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj `if test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; fi`
 
 ../src/adv_diff/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.o: ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.o `test -f '../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp
@@ -6566,6 +6597,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.obj `if test -f '../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp'; fi`
 
+../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o: ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o `test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' object='../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.o `test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+
+../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj: ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj `if test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp' object='../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.obj `if test -f '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; then $(CYGPATH_W) '../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp'; fi`
+
 ../src/adv_diff/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.o: ../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.o `test -f '../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffConvectiveOperatorManager.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po
@@ -8302,6 +8347,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po
@@ -8314,6 +8360,7 @@ distclean: distclean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po
@@ -8666,6 +8713,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConvectiveOperatorManager.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffPPMConvectiveOperator.Po
@@ -8678,6 +8726,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
+	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffConvectiveOperatorManager.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffHierarchyIntegrator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffPPMConvectiveOperator.Po
