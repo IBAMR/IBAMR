@@ -471,6 +471,14 @@ RelaxationLSMethod {
     apply_volume_shift = APPLY_VOLUME_SHIFT
 }
 
+LevelSetMassFixer {
+   half_width = NUMBER_OF_INTERFACE_CELLS  // width of the interface in each phase to compute Heaviside integrals
+   max_its = 4                 // maximum no. of Newton's iterations
+   rel_tol = 1e-12             // error between current and target volume
+   correction_interval = 1     // frequency at which mass loss is corrected
+   enable_logging      = TRUE  // prints Netwon residuals
+}
+
 Main {
    solver_type = SOLVER_TYPE
    adv_diff_solver_type = ADV_DIFF_SOLVER_TYPE

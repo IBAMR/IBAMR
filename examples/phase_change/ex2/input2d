@@ -31,6 +31,10 @@ LIQUIDUS_TEMPERATURE = 2.1
 SOLIDUS_TEMPERATURE = 1.9
 REFERENCE_TEMPERATURE = 2.0
 
+// Liquid fraction parameters for tagging
+MIN_TAG_VAL = 0.3
+MAX_TAG_VAL = 0.8
+
 FILE_NAME = "total_enthalpy"
 
 // grid spacing parameters
@@ -466,6 +470,15 @@ RelaxationLSMethod {
     apply_mass_constraint = APPLY_MASS_CONSTRAINT
     apply_volume_shift = APPLY_VOLUME_SHIFT
 }
+
+LevelSetMassFixer {
+   half_width = NUMBER_OF_INTERFACE_CELLS  // width of the interface in each phase to compute Heaviside integrals
+   max_its = 4                 // maximum no. of Newton's iterations
+   rel_tol = 1e-12             // error between current and target volume
+   correction_interval = 1     // frequency at which mass loss is corrected
+   enable_logging      = TRUE  // prints Netwon residuals
+}
+
 
 Main {
    solver_type = SOLVER_TYPE

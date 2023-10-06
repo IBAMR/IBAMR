@@ -499,35 +499,38 @@ main(int argc, char* argv[])
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
-        // Tracking the total enthalpy and the pcm mass.
+        // Tracking the total enthalpy and the bubble volume.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int rho_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, adv_diff_integrator->getCurrentContext());
         const int h_idx = var_db->mapVariableAndContextToIndex(h_var, adv_diff_integrator->getCurrentContext());
         const int ls_idx = var_db->mapVariableAndContextToIndex(ls_var, adv_diff_integrator->getCurrentContext());
         const int H_idx = var_db->mapVariableAndContextToIndex(H_var, adv_diff_integrator->getCurrentContext());
         const int lf_idx = var_db->mapVariableAndContextToIndex(lf_var, adv_diff_integrator->getCurrentContext());
-        const int vol_idx = var_db->registerClonedPatchDataIndex(H_var, H_idx);
         const int total_enthalpy_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
+        // Pointer<CellVariable<NDIM, double> > total_enthalpy_var = new CellVariable<NDIM,
+        // double>("total_enthalpy_var"); Pointer<VariableContext> main_ctx = var_db->getContext("Main"); const
+        // IntVector<NDIM> no_width = 0; const int total_enthalpy_idx =
+        // var_db->registerVariableAndContext(total_enthalpy_var, main_ctx, no_width);
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(vol_idx, loop_time);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(total_enthalpy_idx, loop_time);
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            if (!level->checkAllocated(total_enthalpy_idx))
+            {
+                pout << "level_number \t" << ln << "\n";
+                patch_hierarchy->getPatchLevel(ln)->allocatePatchData(total_enthalpy_idx, loop_time);
+            }
         }
         Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
             new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
 
-        std::ofstream pcm_mass_file, vol_stream;
+        std::ofstream vol_stream;
         if (SAMRAI_MPI::getRank() == 0)
         {
             std::string FILE_NAME = input_db->getString("FILE_NAME");
-            pcm_mass_file.open(FILE_NAME);
-            pcm_mass_file.precision(16);
-            pcm_mass_file.setf(ios::fixed, ios::floatfield);
-
-            vol_stream.open(FILE_NAME + "ls_fix", ios_base::out | ios_base::app);
+            vol_stream.open(FILE_NAME, ios_base::out | ios_base::app);
             vol_stream.precision(16);
             vol_stream.setf(ios::fixed, ios::floatfield);
         }
@@ -542,7 +545,8 @@ main(int argc, char* argv[])
             // Save the initial volume of gas, liquid, and gas+solid phases, and the Lagrange multiplier in the stream.
             if (SAMRAI_MPI::getRank() == 0)
             {
-                vol_stream << 0.0 << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t" << 0.0 << std::endl;
+                vol_stream << 0.0 << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t" << 0.0 << "\t" << 0.0
+                           << std::endl;
             }
         }
 
@@ -572,74 +576,16 @@ main(int argc, char* argv[])
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-            Pointer<PatchHierarchy<NDIM> > patch_hier = hier_math_ops.getPatchHierarchy();
-            const int hier_finest_ln = patch_hier->getFinestLevelNumber();
-            double vol_phase1 = 0.0;
-            double vol_phase2 = 0.0;
-            for (int ln = 0; ln <= hier_finest_ln; ++ln)
-            {
-                Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-                {
-                    Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-                    const Box<NDIM>& patch_box = patch->getBox();
-
-                    Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
-                    Pointer<CellData<NDIM, double> > vol_data = patch->getPatchData(vol_idx);
-                    Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
-                    Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
-
-                    // Get grid spacing information
-                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                    const double* const patch_dx = patch_geom->getDx();
-                    double cell_size = 1.0;
-                    const double ncells = sync_ls_ctx.num_interface_cells;
-                    for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
-                    cell_size = std::pow(cell_size, 1.0 / static_cast<double>(NDIM));
-                    const double alpha = ncells * cell_size;
-
-                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
-                    {
-                        CellIndex<NDIM> ci(it());
-                        const double phi = (*ls_data)(ci);
-                        const double H = (*H_data)(ci);
-                        const double dv = (*wgt_data)(ci);
-
-                        const double h_phi = IBTK::smooth_heaviside(phi, alpha);
-                        (*vol_data)(ci) = h_phi;
-                        vol_phase1 += (1.0 - h_phi) * dv;
-                        vol_phase2 += h_phi * dv;
-                        // (*vol_data)(ci) =  H;
-                        // vol_phase1 += (1.0 - H) * dv;
-                        // vol_phase2 += H * dv;
-                    }
-                }
-            }
-
-            std::vector<double> H_manual_integrals{ vol_phase1, vol_phase2 };
-            IBTK_MPI::sumReduction(&H_manual_integrals[0], 2);
-
             std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(&level_set_fixer);
+            hier_cc_data_ops->multiply(h_idx, rho_idx, h_idx);
+            const double total_enthalpy = hier_cc_data_ops->integral(h_idx, wgt_cc_idx);
+            hier_cc_data_ops->divide(h_idx, h_idx, rho_idx);
             if (SAMRAI_MPI::getRank() == 0)
             {
                 vol_stream.precision(16);
                 vol_stream.setf(ios::fixed, ios::floatfield);
                 vol_stream << loop_time << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t"
-                           << level_set_fixer.getLagrangeMultiplier() << "\t" << std::endl;
-            }
-
-            hier_cc_data_ops->multiply(total_enthalpy_idx, rho_idx, h_idx);
-            // hier_cc_data_ops->multiply(vol_idx, lf_idx, H_idx);
-            hier_cc_data_ops->multiply(vol_idx, lf_idx, vol_idx);
-            const double total_enthalpy = hier_cc_data_ops->integral(total_enthalpy_idx, wgt_cc_idx);
-            const double bubble_volume = hier_cc_data_ops->integral(vol_idx, wgt_cc_idx);
-            if (SAMRAI_MPI::getRank() == 0)
-            {
-                pcm_mass_file.precision(16);
-                pcm_mass_file.setf(ios::fixed, ios::floatfield);
-                pcm_mass_file << loop_time << "\t" << total_enthalpy << "\t" << bubble_volume << "\t"
-                              << H_manual_integrals[0] << "\t" << H_manual_integrals[1] << "\t"
-                              << "\n";
+                           << level_set_fixer.getLagrangeMultiplier() << "\t" << total_enthalpy << std::endl;
             }
 
             // At specified intervals, write visualization and restart files,
@@ -665,6 +611,13 @@ main(int argc, char* argv[])
             }
         }
 
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(total_enthalpy_idx);
+        }
+
+        var_db->removePatchDataIndex(total_enthalpy_idx);
+
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         delete ptr_SetFluidProperties;
@@ -672,7 +625,6 @@ main(int argc, char* argv[])
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            pcm_mass_file.close();
             vol_stream.close();
         }
 
