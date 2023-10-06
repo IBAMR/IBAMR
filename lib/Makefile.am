@@ -184,6 +184,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/phase_change/CarmanKozenyDragForce.cpp \
 ../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
 ../src/phase_change/HeavisideForcingFunction.cpp \
+../src/phase_change/LaserBeamForceFunction.cpp \
 ../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
 ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 ../src/utilities/CellConvectiveOperator.cpp \
@@ -316,6 +317,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
+../include/ibamr/LaserBeamForceFunction.h \
 ../include/ibamr/LevelSetUtilities.h \
 ../include/ibamr/LSInitStrategy.h \
 ../include/ibamr/MarangoniSurfaceTensionForceFunction.h \

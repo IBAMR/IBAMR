@@ -132,7 +132,6 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
     const IntVector<NDIM> no_ghosts = NOGHOSTS;
 
     // Register specific enthalpy.
-    d_h_var = new CellVariable<NDIM, double>(d_object_name + "::enthalpy");
     registerVariable(d_h_current_idx,
                      d_h_new_idx,
                      d_h_scratch_idx,
@@ -140,7 +139,7 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
                      cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
-    if (d_visit_writer) d_visit_writer->registerPlotQuantity("enthalpy", "SCALAR", d_h_current_idx);
+    if (d_visit_writer && d_output_h) d_visit_writer->registerPlotQuantity("enthalpy", "SCALAR", d_h_current_idx);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_T_pre_var = new CellVariable<NDIM, double>(d_object_name + "::T_pre_var");
@@ -651,6 +650,16 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
 } // postprocessIntegrateHierarchy
 
 void
+EnthalpyHierarchyIntegrator::registerSpecificEnthalpyVariable(Pointer<CellVariable<NDIM, double> > h_var,
+                                                              const bool output_h_var)
+{
+    d_h_var = h_var;
+    d_output_h = output_h_var;
+
+    return;
+} // registerLiquidFractionVariable
+
+void
 EnthalpyHierarchyIntegrator::setEnthalpyBcCoef(RobinBcCoefStrategy<NDIM>* h_bc_coef)
 {
     d_h_bc_coef = h_bc_coef;
@@ -822,26 +831,29 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
             {
                 CellIndex<NDIM> ci(it());
 
-                if ((*H_data)(ci) >= H_LIM)
-                {
-                    if ((*T_data)(ci) < d_solidus_temperature)
-                    {
-                        (*h_data)(ci) = d_Cp_solid * ((*T_data)(ci)-d_reference_temperature);
-                    }
-                    else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
-                    {
-                        (*h_data)(ci) = d_Cp_mushy * ((*T_data)(ci)-d_solidus_temperature) + h_s +
-                                        (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
-                    }
-                    else
-                    {
-                        (*h_data)(ci) = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
-                    }
-                }
-                else
-                {
-                    (*h_data)(ci) = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
-                }
+                /* if ((*H_data)(ci) >= H_LIM)
+                 {
+                     if ((*T_data)(ci) < d_solidus_temperature)
+                     {
+                         (*h_data)(ci) = d_Cp_solid * ((*T_data)(ci)-d_reference_temperature);
+                     }
+                     else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+                     {
+                         (*h_data)(ci) = d_Cp_mushy * ((*T_data)(ci)-d_solidus_temperature) + h_s +
+                                         (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
+                     }
+                     else
+                     {
+                         (*h_data)(ci) = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
+                     }
+                 }
+                 else
+                 {
+                     (*h_data)(ci) = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
+                 }*/
+                const double h_liquid = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
+                const double h_gas = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
+                (*h_data)(ci) = h_liquid * (*H_data)(ci) + (1.0 - (*H_data)(ci)) * h_gas;
             }
         }
     }

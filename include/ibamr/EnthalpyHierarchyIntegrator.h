@@ -123,6 +123,13 @@ public:
     void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) override;
 
     /*!
+     * \brief Register specific enthalpy variable \f$ h \f$.
+     */
+    virtual void
+    registerSpecificEnthalpyVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > h_var,
+                                     const bool output_h_var = true);
+
+    /*!
      * Set boundary conditions for \f$ h \f$ variable.
      */
     void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* h_bc_coef);
@@ -224,6 +231,11 @@ private:
     int d_grad_T_idx = IBTK::invalid_index;
     int d_T_pre_idx = IBTK::invalid_index;
     int d_dh_dT_scratch_idx = IBTK::invalid_index;
+
+    /*!
+     * Boolean to output the enthalpy in visit.
+     */
+    bool d_output_h = false;
 
     /*!
      * Energy equation parameters.

@@ -28,6 +28,7 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/RelaxationLSMethod.h>
 
@@ -45,6 +46,8 @@
 #include "LevelSetInitialCondition.h"
 #include "SetFluidProperties.h"
 #include "SetLSProperties.h"
+#include "TagInterfaceRefinementCells.h"
+#include "TagLSRefinementCells.h"
 
 struct SynchronizeLevelSetCtx
 {
@@ -189,14 +192,39 @@ main(int argc, char* argv[])
             new LSLocateInterface("LSLocateInterface", adv_diff_integrator, ls_var, bubble_radius);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+        /*SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            ls_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            ls_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));*/
+
+        // Register the reinitialization functions for the level set variables
+        LevelSetUtilities::SetLSProperties* ptr_setSetLSProperties =
+            new LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_ops);
+        adv_diff_integrator->registerResetFunction(
+            ls_var, &LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_setSetLSProperties));
+
+        // Lagrange multiplier to conserve mass of the phases.
+        std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars{ ls_var };
+        LevelSetUtilities::LevelSetMassLossFixer level_set_fixer(
+            "LevelSetMassLossFixer",
+            adv_diff_integrator,
+            ls_vars,
+            app_initializer->getComponentDatabase("LevelSetMassFixer"),
+            /*restart*/ true);
+        time_integrator->registerPostprocessIntegrateHierarchyCallback(&LevelSetUtilities::fixMassLoss2PhaseFlows,
+                                                                       static_cast<void*>(&level_set_fixer));
 
         // register liquid fraction
         Pointer<CellVariable<NDIM, double> > lf_var = new CellVariable<NDIM, double>("lf_var");
         Pointer<EnthalpyHierarchyIntegrator> enthalpy_hier_integrator = adv_diff_integrator;
         enthalpy_hier_integrator->registerLiquidFractionVariable(lf_var, true);
+
+        // register liquid fraction gradient
+        Pointer<CellVariable<NDIM, double> > lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient_var", NDIM);
+        enthalpy_hier_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
+
+        // register specific enthalpy
+        Pointer<CellVariable<NDIM, double> > h_var = new CellVariable<NDIM, double>("h_var");
+        enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
         // register Heaviside
         Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("heaviside_var");
@@ -260,6 +288,7 @@ main(int argc, char* argv[])
         sync_ls_ctx.ls_var = ls_var;
         sync_ls_ctx.H_var = H_var;
         sync_ls_ctx.num_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
+        ;
 
         adv_diff_integrator->registerResetFunction(
             H_var, &synchronize_levelset_with_heaviside_fcn, static_cast<void*>(&sync_ls_ctx));
@@ -276,6 +305,20 @@ main(int argc, char* argv[])
 
         Pointer<CellVariable<NDIM, double> > Cp_var = new CellVariable<NDIM, double>("Cp");
         enthalpy_hier_integrator->registerSpecificHeatVariable(Cp_var, true);
+
+        // Tag cells for refinement based on level set data
+        const double tag_value = input_db->getDouble("LS_TAG_VALUE");
+        const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
+        TagLSRefinementCells ls_tagger(adv_diff_integrator, ls_var, tag_value, tag_thresh);
+        time_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
+                                                               static_cast<void*>(&ls_tagger));
+
+        // Tag cells for refinement based on liquid fraction data
+        const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
+        const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
+        TagInterfaceRefinementCells tagger(enthalpy_hier_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
+        enthalpy_hier_integrator->registerApplyGradientDetectorCallback(
+            &callTagInterfaceRefinementCellsCallbackFunction, static_cast<void*>(&tagger));
 
         // Create Eulerian boundary condition specification objects (when
         // necessary).
@@ -456,6 +499,53 @@ main(int argc, char* argv[])
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
+        // Tracking the total enthalpy and the pcm mass.
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int rho_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, adv_diff_integrator->getCurrentContext());
+        const int h_idx = var_db->mapVariableAndContextToIndex(h_var, adv_diff_integrator->getCurrentContext());
+        const int ls_idx = var_db->mapVariableAndContextToIndex(ls_var, adv_diff_integrator->getCurrentContext());
+        const int H_idx = var_db->mapVariableAndContextToIndex(H_var, adv_diff_integrator->getCurrentContext());
+        const int lf_idx = var_db->mapVariableAndContextToIndex(lf_var, adv_diff_integrator->getCurrentContext());
+        const int vol_idx = var_db->registerClonedPatchDataIndex(H_var, H_idx);
+        const int total_enthalpy_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(vol_idx, loop_time);
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(total_enthalpy_idx, loop_time);
+        }
+        Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
+            new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
+
+        std::ofstream pcm_mass_file, vol_stream;
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            std::string FILE_NAME = input_db->getString("FILE_NAME");
+            pcm_mass_file.open(FILE_NAME);
+            pcm_mass_file.precision(16);
+            pcm_mass_file.setf(ios::fixed, ios::floatfield);
+
+            vol_stream.open(FILE_NAME + "ls_fix", ios_base::out | ios_base::app);
+            vol_stream.precision(16);
+            vol_stream.setf(ios::fixed, ios::floatfield);
+        }
+
+        const bool is_from_restart = RestartManager::getManager()->isFromRestart();
+        if (!is_from_restart)
+        {
+            // Target the gas volume in the Newton's iterations
+            std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(&level_set_fixer);
+            level_set_fixer.setInitialVolume(H_integrals[0]);
+
+            // Save the initial volume of gas, liquid, and gas+solid phases, and the Lagrange multiplier in the stream.
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                vol_stream << 0.0 << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t" << 0.0 << std::endl;
+            }
+        }
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -478,6 +568,79 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
+
+            HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
+            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
+
+            Pointer<PatchHierarchy<NDIM> > patch_hier = hier_math_ops.getPatchHierarchy();
+            const int hier_finest_ln = patch_hier->getFinestLevelNumber();
+            double vol_phase1 = 0.0;
+            double vol_phase2 = 0.0;
+            for (int ln = 0; ln <= hier_finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+                    const Box<NDIM>& patch_box = patch->getBox();
+
+                    Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+                    Pointer<CellData<NDIM, double> > vol_data = patch->getPatchData(vol_idx);
+                    Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
+                    Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+
+                    // Get grid spacing information
+                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    const double* const patch_dx = patch_geom->getDx();
+                    double cell_size = 1.0;
+                    const double ncells = sync_ls_ctx.num_interface_cells;
+                    for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
+                    cell_size = std::pow(cell_size, 1.0 / static_cast<double>(NDIM));
+                    const double alpha = ncells * cell_size;
+
+                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                    {
+                        CellIndex<NDIM> ci(it());
+                        const double phi = (*ls_data)(ci);
+                        const double H = (*H_data)(ci);
+                        const double dv = (*wgt_data)(ci);
+
+                        const double h_phi = IBTK::smooth_heaviside(phi, alpha);
+                        (*vol_data)(ci) = h_phi;
+                        vol_phase1 += (1.0 - h_phi) * dv;
+                        vol_phase2 += h_phi * dv;
+                        // (*vol_data)(ci) =  H;
+                        // vol_phase1 += (1.0 - H) * dv;
+                        // vol_phase2 += H * dv;
+                    }
+                }
+            }
+
+            std::vector<double> H_manual_integrals{ vol_phase1, vol_phase2 };
+            IBTK_MPI::sumReduction(&H_manual_integrals[0], 2);
+
+            std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(&level_set_fixer);
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                vol_stream.precision(16);
+                vol_stream.setf(ios::fixed, ios::floatfield);
+                vol_stream << loop_time << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t"
+                           << level_set_fixer.getLagrangeMultiplier() << "\t" << std::endl;
+            }
+
+            hier_cc_data_ops->multiply(total_enthalpy_idx, rho_idx, h_idx);
+            // hier_cc_data_ops->multiply(vol_idx, lf_idx, H_idx);
+            hier_cc_data_ops->multiply(vol_idx, lf_idx, vol_idx);
+            const double total_enthalpy = hier_cc_data_ops->integral(total_enthalpy_idx, wgt_cc_idx);
+            const double bubble_volume = hier_cc_data_ops->integral(vol_idx, wgt_cc_idx);
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                pcm_mass_file.precision(16);
+                pcm_mass_file.setf(ios::fixed, ios::floatfield);
+                pcm_mass_file << loop_time << "\t" << total_enthalpy << "\t" << bubble_volume << "\t"
+                              << H_manual_integrals[0] << "\t" << H_manual_integrals[1] << "\t"
+                              << "\n";
+            }
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -505,6 +668,13 @@ main(int argc, char* argv[])
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         delete ptr_SetFluidProperties;
+
+        // Close the logging streams.
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            pcm_mass_file.close();
+            vol_stream.close();
+        }
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

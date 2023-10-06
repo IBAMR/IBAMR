@@ -31,17 +31,21 @@ LIQUIDUS_TEMPERATURE = 2.1
 SOLIDUS_TEMPERATURE = 1.9
 REFERENCE_TEMPERATURE = 2.0
 
+// Liquid fraction parameters for tagging
+MIN_TAG_VAL = 0.3
+MAX_TAG_VAL = 0.8
+
 FILE_NAME = "total_enthalpy"
 
 // grid spacing parameters
 L          = 1.0
 H          = 1.0
-MAX_LEVELS = 1        // maximum number of levels in locally refined grid
+MAX_LEVELS = 2        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-Nx = 128
-Ny = 128                                // coarsest grid spacing
+Nx = 64
+Ny = 64                                // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
 
@@ -237,7 +241,7 @@ START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   1.0e0   // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
-REGRID_INTERVAL      =   50000000
+REGRID_INTERVAL      =   1
 CFL_MAX              =   0.5
 NUM_INS_CYCLES       =   2
 CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
@@ -245,7 +249,7 @@ INIT_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"
 CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"    // convective time stepping type
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 NORMALIZE_PRESSURE   = TRUE
-VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
+VORTICITY_TAGGING    = FALSE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL  = 0.2
 DT_MAX               = 1e-3
@@ -473,13 +477,13 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "high_density_ratio_bubble_advection.log"
+   log_file_name               = "high_density_ratio_bubble_advection_amr.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 100
-   viz_dump_dirname            = "viz_high_density_ratio_bubble_advection_2d"
+   viz_dump_dirname            = "viz_high_density_ratio_bubble_advection_amr_2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
@@ -526,7 +530,7 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-   tagging_method = "REFINE_BOXES"
+   tagging_method = "GRADIENT_DETECTOR"
    RefineBoxes {
       level_0 = [( 0 , 0 ),( Nx - 1 , Ny - 1 )]
       level_1 = [( 0 , 0 ),( 2*Nx - 1 , 2*Ny - 1 )]
