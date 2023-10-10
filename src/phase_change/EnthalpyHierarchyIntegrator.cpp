@@ -831,29 +831,29 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
             {
                 CellIndex<NDIM> ci(it());
 
-                /* if ((*H_data)(ci) >= H_LIM)
-                 {
-                     if ((*T_data)(ci) < d_solidus_temperature)
-                     {
-                         (*h_data)(ci) = d_Cp_solid * ((*T_data)(ci)-d_reference_temperature);
-                     }
-                     else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
-                     {
-                         (*h_data)(ci) = d_Cp_mushy * ((*T_data)(ci)-d_solidus_temperature) + h_s +
-                                         (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
-                     }
-                     else
-                     {
-                         (*h_data)(ci) = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
-                     }
-                 }
+                if ((*H_data)(ci) >= H_LIM)
+                {
+                    if ((*T_data)(ci) < d_solidus_temperature)
+                    {
+                        (*h_data)(ci) = d_Cp_solid * ((*T_data)(ci)-d_reference_temperature);
+                    }
+                    else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
+                    {
+                        (*h_data)(ci) = d_Cp_mushy * ((*T_data)(ci)-d_solidus_temperature) + h_s +
+                                        (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
+                    }
+                    else
+                    {
+                        (*h_data)(ci) = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
+                    }
+                }
                  else
                  {
                      (*h_data)(ci) = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
-                 }*/
-                const double h_liquid = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
-                const double h_gas = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
-                (*h_data)(ci) = h_liquid * (*H_data)(ci) + (1.0 - (*H_data)(ci)) * h_gas;
+                 }
+                 // const double h_liquid = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
+                 // const double h_gas = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
+                 // (*h_data)(ci) = h_liquid * (*H_data)(ci) + (1.0 - (*H_data)(ci)) * h_gas;
             }
         }
     }

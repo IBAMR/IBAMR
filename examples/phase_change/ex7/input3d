@@ -14,6 +14,7 @@ CP_G    = 0.5*CP_L
 MU_G    = 0.5*MU_L
 
 OUTPUT_FILE_NAME = "normalized_rise_velocity_3d"
+FILE_NAME = "bubble_volume_3d"
 
 MELT_TEMPERATURE = 265.0
 NUMBER_OF_INTERFACE_CELLS  = 2.0
@@ -32,6 +33,10 @@ TEMPERATURE_GRADIENT = 200.0
 RHO_S =  RHO_L
 CP_S  = CP_L
 LATENT_HEAT = 0.0
+
+// Liquid fraction parameters for tagging
+MIN_TAG_VAL = 0.3
+MAX_TAG_VAL = 0.8
 
 // grid spacing parameters
 L          = 5.76e-3
@@ -572,6 +577,14 @@ RelaxationLSMethod {
     apply_subcell_fix  = APPLY_SUBCELL_FIX
     apply_mass_constraint = APPLY_MASS_CONSTRAINT
     apply_volume_shift = APPLY_VOLUME_SHIFT
+}
+
+LevelSetMassFixer {
+   half_width = NUMBER_OF_INTERFACE_CELLS  // width of the interface in each phase to compute Heaviside integrals
+   max_its = 4                 // maximum no. of Newton's iterations
+   rel_tol = 1e-12             // error between current and target volume
+   correction_interval = 1     // frequency at which mass loss is corrected
+   enable_logging      = TRUE  // prints Netwon residuals
 }
 
 Main {

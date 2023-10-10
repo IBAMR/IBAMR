@@ -13,8 +13,8 @@ KAPPA_G = 0.5*KAPPA_L
 CP_G    = 0.5*CP_L
 MU_G    = 0.5*MU_L
 
-OUTPUT_FILE_NAME = "normalized_rise_velocity_2d"
-FILE_NAME = "bubble_volume_2d"
+OUTPUT_FILE_NAME = "normalized_rise_velocity_amr_3d"
+FILE_NAME = "bubble_volume_amr_3d"
 
 MELT_TEMPERATURE = 265.0
 NUMBER_OF_INTERFACE_CELLS  = 2.0
@@ -41,25 +41,29 @@ MAX_TAG_VAL = 0.8
 // grid spacing parameters
 L          = 5.76e-3
 H          = 5.76e-3
-MAX_LEVELS = 1        // maximum number of levels in locally refined grid
+D          = 5.76e-3
+MAX_LEVELS = 2        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-Nx = 128
-Ny = 128                                // coarsest grid spacing
+Nx = 16
+Ny = 16                               // coarsest grid spacing
+Nz = 16
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
 
 // droplet parameters
 XCOM  = L/2.0
 YCOM  = L/2.0
+ZCOM  = L/2.0
 R     = 1.44e-3
 
 LevelSetInitialConditions{
   radius = R
   xcom = XCOM
   ycom = YCOM
-  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius"
+  zcom = ZCOM
+  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2 + (X_2 - zcom)^2) - radius"
 }
 
 LiquidFractionInitialConditions{
@@ -74,6 +78,7 @@ TemperatureInitialConditions {
 VelocityInitialConditions{
   function_0 = "0.0"
   function_1 = "0.0"
+  function_2 = "0.0"
 }
 
 VelocityBcCoefs_0 {
@@ -81,16 +86,22 @@ VelocityBcCoefs_0 {
    acoef_function_1 = "0.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "1.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 VelocityBcCoefs_1 {
@@ -98,16 +109,45 @@ VelocityBcCoefs_1 {
    acoef_function_1 = "0.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "1.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
+}
+
+VelocityBcCoefs_2 { 
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
+   
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
+  
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 TemperatureBcCoefs {
@@ -115,16 +155,22 @@ TemperatureBcCoefs {
    acoef_function_1 = "0.0"
    acoef_function_2 = "1.0"
    acoef_function_3 = "1.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "1.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "289.424"
    gcoef_function_3 = "290.576"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 LiquidFractionBcCoefs {
@@ -132,16 +178,22 @@ LiquidFractionBcCoefs {
   acoef_function_1 = "0.0"
   acoef_function_2 = "0.0"
   acoef_function_3 = "0.0"
+  acoef_function_4 = "0.0"
+  acoef_function_5 = "0.0"
 
   bcoef_function_0 = "1.0"
   bcoef_function_1 = "1.0"
   bcoef_function_2 = "1.0"
   bcoef_function_3 = "1.0"
+  bcoef_function_4 = "1.0"
+  bcoef_function_5 = "1.0"
 
   gcoef_function_0 = "0.0"
   gcoef_function_1 = "0.0"
   gcoef_function_2 = "0.0"
   gcoef_function_3 = "0.0"
+  gcoef_function_4 = "0.0"
+  gcoef_function_5 = "0.0"
 }
 
 EnthalpyBcCoefs {
@@ -149,16 +201,22 @@ EnthalpyBcCoefs {
   acoef_function_1 = "0.0"
   acoef_function_2 = "0.0"
   acoef_function_3 = "0.0"
+  acoef_function_4 = "0.0"
+  acoef_function_5 = "0.0"
 
   bcoef_function_0 = "1.0"
   bcoef_function_1 = "1.0"
   bcoef_function_2 = "1.0"
   bcoef_function_3 = "1.0"
+  bcoef_function_4 = "1.0"
+  bcoef_function_5 = "1.0"
 
   gcoef_function_0 = "0.0"
   gcoef_function_1 = "0.0"
   gcoef_function_2 = "0.0"
   gcoef_function_3 = "0.0"
+  gcoef_function_4 = "0.0"
+  gcoef_function_5 = "0.0"
 }
 
 LevelSetBcCoefs {
@@ -166,16 +224,22 @@ LevelSetBcCoefs {
   acoef_function_1 = "0.0"
   acoef_function_2 = "0.0"
   acoef_function_3 = "0.0"
+  acoef_function_4 = "0.0"
+  acoef_function_5 = "0.0"
 
   bcoef_function_0 = "1.0"
   bcoef_function_1 = "1.0"
   bcoef_function_2 = "1.0"
   bcoef_function_3 = "1.0"
+  bcoef_function_4 = "1.0"
+  bcoef_function_5 = "1.0"
 
   gcoef_function_0 = "0.0"
   gcoef_function_1 = "0.0"
   gcoef_function_2 = "0.0"
   gcoef_function_3 = "0.0"
+  gcoef_function_4 = "0.0"
+  gcoef_function_5 = "0.0"
 }
 
 HeavisideBcCoefs {
@@ -183,16 +247,22 @@ HeavisideBcCoefs {
   acoef_function_1 = "0.0"
   acoef_function_2 = "0.0"
   acoef_function_3 = "0.0"
+  acoef_function_4 = "0.0"
+  acoef_function_5 = "0.0"
 
   bcoef_function_0 = "1.0"
   bcoef_function_1 = "1.0"
   bcoef_function_2 = "1.0"
   bcoef_function_3 = "1.0"
+  bcoef_function_4 = "1.0"
+  bcoef_function_5 = "1.0"
 
   gcoef_function_0 = "0.0"
   gcoef_function_1 = "0.0"
   gcoef_function_2 = "0.0"
   gcoef_function_3 = "0.0"
+  gcoef_function_4 = "0.0"
+  gcoef_function_5 = "0.0"
 }
 
 DensityBcCoefs {
@@ -200,16 +270,22 @@ DensityBcCoefs {
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "1.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 ViscosityBcCoefs {
@@ -217,16 +293,22 @@ ViscosityBcCoefs {
    acoef_function_1 = "0.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
+   acoef_function_4 = "0.0"
+   acoef_function_5 = "0.0"
 
    bcoef_function_0 = "1.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
+   bcoef_function_4 = "1.0"
+   bcoef_function_5 = "1.0"
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
+   gcoef_function_4 = "0.0"
+   gcoef_function_5 = "0.0"
 }
 
 ThermalConductivityBcCoefs {
@@ -234,16 +316,22 @@ ThermalConductivityBcCoefs {
   acoef_function_1 = "0.0"
   acoef_function_2 = "0.0"
   acoef_function_3 = "0.0"
+  acoef_function_4 = "0.0"
+  acoef_function_5 = "0.0"
 
   bcoef_function_0 = "1.0"
   bcoef_function_1 = "1.0"
   bcoef_function_2 = "1.0"
   bcoef_function_3 = "1.0"
+  bcoef_function_4 = "1.0"
+  bcoef_function_5 = "1.0"
 
   gcoef_function_0 = "0.0"
   gcoef_function_1 = "0.0"
   gcoef_function_2 = "0.0"
   gcoef_function_3 = "0.0"
+  gcoef_function_4 = "0.0"
+  gcoef_function_5 = "0.0"
 }
 
 // Simulation Parameters
@@ -253,7 +341,7 @@ START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   0.12   // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
-REGRID_INTERVAL      =   50000000
+REGRID_INTERVAL      =   1
 CFL_MAX              =   0.5
 NUM_INS_CYCLES       =   2
 CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
@@ -261,7 +349,7 @@ INIT_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"
 CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"    // convective time stepping type
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 NORMALIZE_PRESSURE   = TRUE
-VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
+VORTICITY_TAGGING    = FALSE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL  = 0.2
 DT_MAX               = 1e-4
@@ -505,28 +593,28 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "thermocapillary_advection_2d.log"
+   log_file_name               = "thermocapillary_advection_amr_3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 100
-   viz_dump_dirname            = "viz_thermocapillary_advection_2d"
+   viz_dump_dirname            = "viz_thermocapillary_advection_amr_3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_thermocapillary_advection_2d"
+   restart_dump_dirname        = "restart_thermocapillary_advection_amr_3d"
 
 // timer dump parameters
    timer_dump_interval         = 0
 }
 
 CartesianGeometry {
-   domain_boxes = [ (0,0) , ( Nx - 1, Ny - 1) ]
-   x_lo         =   0,   0           // lower end of computational domain.
-   x_up         =   L,   H         // upper end of computational domain.
-   periodic_dimension = 0,0
+   domain_boxes = [ (0,0,0) , ( Nx - 1, Ny - 1, Nz - 1) ]
+   x_lo         =   0,   0, 0           // lower end of computational domain.
+   x_up         =   L,   H, D         // upper end of computational domain.
+   periodic_dimension = 0,0,0
 }
 
 GriddingAlgorithm {
@@ -542,12 +630,12 @@ GriddingAlgorithm {
    }
 
    largest_patch_size {
-      level_0 = 2048, 2048 // largest patch allowed in hierarchy
+      level_0 = 2048, 2048, 2048 // largest patch allowed in hierarchy
                           // all finer levels will use same values as level_0...
    }
 
    smallest_patch_size {
-      level_0 =  4, 4 // smallest patch allowed in hierarchy
+      level_0 =  4, 4, 4 // smallest patch allowed in hierarchy
                             // all finer levels will use same values as level_0...
    }
 
@@ -558,18 +646,18 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-   tagging_method = "REFINE_BOXES"
+   tagging_method = "GRADIENT_DETECTOR"
    RefineBoxes {
-      level_0 = [( 0 , 0 ),( Nx - 1 , Ny - 1 )]
-      level_1 = [( 0 , 0 ),( 2*Nx - 1 , 2*Ny - 1 )]
-      level_2 = [( 0 , 0 ),( 4*Nx - 1 , 4*Ny - 1 )]
-      level_3 = [( 0 , 0 ),( 8*Nx - 1 , 8*Ny - 1 )]
-      level_4 = [( 0 , 0 ),( 16*Nx - 1 , 16*Ny - 1 )]
-      level_5 = [( 0 , 0 ),( 32*Nx - 1 , 32*Ny - 1 )]
-      level_6 = [( 0 , 0 ),( 64*Nx - 1 , 64*Ny - 1 )]
-      level_7 = [( 0 , 0 ),( 128*Nx - 1 , 128*Ny - 1 )]
-      level_8 = [( 0 , 0 ),( 256*Nx - 1 , 256*Ny - 1 )]
-      level_9 = [( 0 , 0 ),( 512*Nx - 1 , 512*Ny - 1 )]
+      level_0 = [( 0 , 0 , 0 ),( Nx - 1 , Ny - 1 , Nz - 1 )]
+      level_1 = [( 0 , 0 , 0 ),( 2*Nx - 1 , 2*Ny - 1 , 2*Nz - 1 )]
+      level_2 = [( 0 , 0 , 0 ),( 4*Nx - 1 , 4*Ny - 1 , 4*Nz - 1 )]
+      level_3 = [( 0 , 0 , 0 ),( 8*Nx - 1 , 8*Ny - 1 , 8*Nz - 1 )]
+      level_4 = [( 0 , 0 , 0 ),( 16*Nx - 1 , 16*Ny - 1 , 16*Nz - 1 )]
+      level_5 = [( 0 , 0 , 0 ),( 32*Nx - 1 , 32*Ny - 1 , 32*Nz - 1 )]
+      level_6 = [( 0 , 0 , 0 ),( 64*Nx - 1 , 64*Ny - 1 , 64*Nz - 1 )]
+      level_7 = [( 0 , 0 , 0 ),( 128*Nx - 1 , 128*Ny - 1 , 128*Nz - 1 )]
+      level_8 = [( 0 , 0 , 0 ),( 256*Nx - 1 , 256*Ny - 1 , 256*Nz - 1 )]
+      level_9 = [( 0 , 0 , 0 ),( 512*Nx - 1 , 512*Ny - 1 , 512*Nz - 1 )]
    }
 }
 

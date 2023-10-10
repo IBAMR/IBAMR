@@ -130,7 +130,9 @@ am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
 am__objects_1 = main2d-example.$(OBJEXT) \
 	main2d-SetFluidProperties.$(OBJEXT) \
 	main2d-LSLocateInterface.$(OBJEXT) \
-	main2d-SetLSProperties.$(OBJEXT)
+	main2d-SetLSProperties.$(OBJEXT) \
+	main2d-TagInterfaceRefinementCells.$(OBJEXT) \
+	main2d-TagLSRefinementCells.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -144,7 +146,9 @@ main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 am__objects_2 = main3d-example.$(OBJEXT) \
 	main3d-SetFluidProperties.$(OBJEXT) \
 	main3d-LSLocateInterface.$(OBJEXT) \
-	main3d-SetLSProperties.$(OBJEXT)
+	main3d-SetLSProperties.$(OBJEXT) \
+	main3d-TagInterfaceRefinementCells.$(OBJEXT) \
+	main3d-TagLSRefinementCells.$(OBJEXT)
 am_main3d_OBJECTS = $(am__objects_2)
 main3d_OBJECTS = $(am_main3d_OBJECTS)
 main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
@@ -169,10 +173,14 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-LSLocateInterface.Po \
 	./$(DEPDIR)/main2d-SetFluidProperties.Po \
 	./$(DEPDIR)/main2d-SetLSProperties.Po \
+	./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po \
+	./$(DEPDIR)/main2d-TagLSRefinementCells.Po \
 	./$(DEPDIR)/main2d-example.Po \
 	./$(DEPDIR)/main3d-LSLocateInterface.Po \
 	./$(DEPDIR)/main3d-SetFluidProperties.Po \
 	./$(DEPDIR)/main3d-SetLSProperties.Po \
+	./$(DEPDIR)/main3d-TagInterfaceRefinementCells.Po \
+	./$(DEPDIR)/main3d-TagLSRefinementCells.Po \
 	./$(DEPDIR)/main3d-example.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -499,8 +507,8 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp SetFluidProperties.h LSLocateInterface.cpp LSLocateInterface.h SetLSProperties.cpp SetLSProperties.h
-EXTRA_DIST = input2d input3d
+EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp SetFluidProperties.h LSLocateInterface.cpp LSLocateInterface.h SetLSProperties.cpp SetLSProperties.h TagInterfaceRefinementCells.cpp TagInterfaceRefinementCells.h TagLSRefinementCells.cpp TagLSRefinementCells.h
+EXTRA_DIST = input2d input2d.amr input3d input3d.amr
 EXAMPLES = $(am__append_1) $(am__append_3)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -560,10 +568,14 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetLSProperties.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LSLocateInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetLSProperties.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-TagInterfaceRefinementCells.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-example.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -652,6 +664,34 @@ main2d-SetLSProperties.obj: SetLSProperties.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
 
+main2d-TagInterfaceRefinementCells.o: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagInterfaceRefinementCells.o -MD -MP -MF $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo -c -o main2d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='main2d-TagInterfaceRefinementCells.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+
+main2d-TagInterfaceRefinementCells.obj: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagInterfaceRefinementCells.obj -MD -MP -MF $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo -c -o main2d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='main2d-TagInterfaceRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
+
+main2d-TagLSRefinementCells.o: TagLSRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagLSRefinementCells.o -MD -MP -MF $(DEPDIR)/main2d-TagLSRefinementCells.Tpo -c -o main2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagLSRefinementCells.Tpo $(DEPDIR)/main2d-TagLSRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main2d-TagLSRefinementCells.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
+
+main2d-TagLSRefinementCells.obj: TagLSRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagLSRefinementCells.obj -MD -MP -MF $(DEPDIR)/main2d-TagLSRefinementCells.Tpo -c -o main2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagLSRefinementCells.Tpo $(DEPDIR)/main2d-TagLSRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main2d-TagLSRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
+
 main3d-example.o: example.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-example.o -MD -MP -MF $(DEPDIR)/main3d-example.Tpo -c -o main3d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-example.Tpo $(DEPDIR)/main3d-example.Po
@@ -707,6 +747,34 @@ main3d-SetLSProperties.obj: SetLSProperties.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='main3d-SetLSProperties.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
+
+main3d-TagInterfaceRefinementCells.o: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-TagInterfaceRefinementCells.o -MD -MP -MF $(DEPDIR)/main3d-TagInterfaceRefinementCells.Tpo -c -o main3d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/main3d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='main3d-TagInterfaceRefinementCells.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-TagInterfaceRefinementCells.o `test -f 'TagInterfaceRefinementCells.cpp' || echo '$(srcdir)/'`TagInterfaceRefinementCells.cpp
+
+main3d-TagInterfaceRefinementCells.obj: TagInterfaceRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-TagInterfaceRefinementCells.obj -MD -MP -MF $(DEPDIR)/main3d-TagInterfaceRefinementCells.Tpo -c -o main3d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-TagInterfaceRefinementCells.Tpo $(DEPDIR)/main3d-TagInterfaceRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagInterfaceRefinementCells.cpp' object='main3d-TagInterfaceRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-TagInterfaceRefinementCells.obj `if test -f 'TagInterfaceRefinementCells.cpp'; then $(CYGPATH_W) 'TagInterfaceRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagInterfaceRefinementCells.cpp'; fi`
+
+main3d-TagLSRefinementCells.o: TagLSRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-TagLSRefinementCells.o -MD -MP -MF $(DEPDIR)/main3d-TagLSRefinementCells.Tpo -c -o main3d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-TagLSRefinementCells.Tpo $(DEPDIR)/main3d-TagLSRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main3d-TagLSRefinementCells.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
+
+main3d-TagLSRefinementCells.obj: TagLSRefinementCells.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-TagLSRefinementCells.obj -MD -MP -MF $(DEPDIR)/main3d-TagLSRefinementCells.Tpo -c -o main3d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-TagLSRefinementCells.Tpo $(DEPDIR)/main3d-TagLSRefinementCells.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main3d-TagLSRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -842,10 +910,14 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-LSLocateInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
+	-rm -f ./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
+	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateInterface.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-SetLSProperties.Po
+	-rm -f ./$(DEPDIR)/main3d-TagInterfaceRefinementCells.Po
+	-rm -f ./$(DEPDIR)/main3d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -895,10 +967,14 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-LSLocateInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
+	-rm -f ./$(DEPDIR)/main2d-TagInterfaceRefinementCells.Po
+	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateInterface.Po
 	-rm -f ./$(DEPDIR)/main3d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-SetLSProperties.Po
+	-rm -f ./$(DEPDIR)/main3d-TagInterfaceRefinementCells.Po
+	-rm -f ./$(DEPDIR)/main3d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
@@ -948,7 +1024,7 @@ examples: $(EXAMPLES)
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[23]d ; \
+	  rm -f $(builddir)/input[23]d* ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
