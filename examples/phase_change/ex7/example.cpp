@@ -644,6 +644,11 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(ls_var, ls_bc_coef);
         }
 
+        // LS reinit boundary conditions, which is set to be the same as the BCs
+        // for advection
+        RobinBcCoefStrategy<NDIM>* ls_reinit_bcs = ls_bc_coef;
+        level_set_ops->registerPhysicalBoundaryCondition(ls_reinit_bcs);
+
         // thermophysical properties and parameters.
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
         const double kappa_gas = input_db->getDouble("KAPPA_G");
@@ -794,9 +799,10 @@ main(int argc, char* argv[])
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(H_cloned_idx, loop_time);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(U_cc_idx, loop_time);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(v_idx, loop_time);
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(H_cloned_idx, loop_time);
+            level->allocatePatchData(U_cc_idx, loop_time);
+            level->allocatePatchData(v_idx, loop_time);
         }
 
         // File to write to for fluid mass data
@@ -855,7 +861,15 @@ main(int argc, char* argv[])
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
 
-            hier_math_ops.interp(U_cc_idx, U_cc_var, U_sc_idx, U_sc_var, nullptr, loop_time, true);
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(H_cloned_idx)) level->allocatePatchData(H_cloned_idx, loop_time);
+                if (!level->checkAllocated(U_cc_idx)) level->allocatePatchData(U_cc_idx, loop_time);
+                if (!level->checkAllocated(v_idx)) level->allocatePatchData(v_idx, loop_time);
+            }
+
+            hier_math_ops.interp(U_cc_idx, U_cc_var, U_sc_idx, U_sc_var, nullptr, loop_time, false);
 
             const double U_ref = std::abs(dsigma_dT_0) * temperature_gradient * circle.R / mu_liquid;
             const double t_ref = circle.R / U_ref;

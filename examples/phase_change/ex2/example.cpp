@@ -507,10 +507,6 @@ main(int argc, char* argv[])
         const int H_idx = var_db->mapVariableAndContextToIndex(H_var, adv_diff_integrator->getCurrentContext());
         const int lf_idx = var_db->mapVariableAndContextToIndex(lf_var, adv_diff_integrator->getCurrentContext());
         const int total_enthalpy_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
-        // Pointer<CellVariable<NDIM, double> > total_enthalpy_var = new CellVariable<NDIM,
-        // double>("total_enthalpy_var"); Pointer<VariableContext> main_ctx = var_db->getContext("Main"); const
-        // IntVector<NDIM> no_width = 0; const int total_enthalpy_idx =
-        // var_db->registerVariableAndContext(total_enthalpy_var, main_ctx, no_width);
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -519,7 +515,6 @@ main(int argc, char* argv[])
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             if (!level->checkAllocated(total_enthalpy_idx))
             {
-                pout << "level_number \t" << ln << "\n";
                 patch_hierarchy->getPatchLevel(ln)->allocatePatchData(total_enthalpy_idx, loop_time);
             }
         }
@@ -577,9 +572,18 @@ main(int argc, char* argv[])
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
             std::vector<double> H_integrals = LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(&level_set_fixer);
-            hier_cc_data_ops->multiply(h_idx, rho_idx, h_idx);
-            const double total_enthalpy = hier_cc_data_ops->integral(h_idx, wgt_cc_idx);
-            hier_cc_data_ops->divide(h_idx, h_idx, rho_idx);
+
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(total_enthalpy_idx))
+                {
+                    patch_hierarchy->getPatchLevel(ln)->allocatePatchData(total_enthalpy_idx, loop_time);
+                }
+            }
+
+            hier_cc_data_ops->multiply(total_enthalpy_idx, rho_idx, h_idx);
+            const double total_enthalpy = hier_cc_data_ops->integral(total_enthalpy_idx, wgt_cc_idx);
             if (SAMRAI_MPI::getRank() == 0)
             {
                 vol_stream.precision(16);
