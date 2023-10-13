@@ -151,7 +151,7 @@ mask_surface_tension_force(int F_idx,
                                                                 mask_surface_tension_force_ctx->lf_bc_coef);
 
     Pointer<HierarchyGhostCellInterpolation> lf_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    lf_hier_bdry_fill->initializeOperatorState(lf_transaction_comps, patch_hierarchy);
+    lf_hier_bdry_fill->initializeOperatorState(lf_transaction_comps, patch_hierarchy, coarsest_ln, finest_ln);
     lf_hier_bdry_fill->fillData(time);
 
     int rho_idx = mask_surface_tension_force_ctx->ins_hier_integrator->getLinearOperatorRhoPatchDataIndex();
@@ -235,14 +235,14 @@ compute_surface_tension_coef_function(int F_idx,
         T_scratch_idx,
         T_new_idx,
         "CONSERVATIVE_LINEAR_REFINE",
-        false,
+        true,
         "CONSERVATIVE_COARSEN",
         "LINEAR",
         false,
         compute_variable_surface_tension_coef_ctx->phase_change_hier_integrator->getTemperaturePhysicalBcCoef());
 
     Pointer<HierarchyGhostCellInterpolation> T_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    T_hier_bdry_fill->initializeOperatorState(T_transaction_comps, patch_hierarchy);
+    T_hier_bdry_fill->initializeOperatorState(T_transaction_comps, patch_hierarchy, coarsest_ln, finest_ln);
     T_hier_bdry_fill->fillData(time);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
