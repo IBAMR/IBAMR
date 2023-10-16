@@ -3592,7 +3592,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             const double x_s =
                                 x_lower[d] + dx[d] * (static_cast<double>(i_s - patch_lower[d]) + 0.5 * shift);
-                            const double tol = 1.0e-4 * dx[d];
+                            const double tol = d_mesh_perturb_tol * dx[d];
                             if (x(d) <= x_s) x(d) = std::min(x_s - tol, x(d));
                             if (x(d) >= x_s) x(d) = std::max(x_s + tol, x(d));
                         }
@@ -4066,7 +4066,7 @@ IIMethod::checkDoubleCountingIntersection(const int axis,
         const libMesh::Point& xi_prime = *xi_prime_it;
         const libMesh::Point& n_prime = *n_prime_it;
         // TODO: Do not use a hard-coded magic number?
-        if (x.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
+        if (x.absolute_fuzzy_equals(x_prime, d_fuzzy_tol * dx[axis]))
         {
             // WARNING: This check is ONLY
             // guaranteed to work at edges (where
@@ -4441,7 +4441,11 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
     {
         if (db->isBool("perturb_fe_mesh_nodes")) d_perturb_fe_mesh_nodes = db->getBool("perturb_fe_mesh_nodes");
+        if (db->isDouble("mesh_perturb_tol")) d_mesh_perturb_tol = db->getDouble("mesh_perturb_tol");
+        if (db->isDouble("fuzzy_tol")) d_fuzzy_tol = db->getDouble("fuzzy_tol");
     }
+    
+    
     if (db->isBool("compute_fluid_traction")) d_compute_fluid_traction = db->getBool("compute_fluid_traction");
     if (d_compute_fluid_traction)
     {
