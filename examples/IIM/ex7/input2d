@@ -34,7 +34,6 @@ SAFETY         = 0.5
 
 // solver parameters
 IB_DELTA_FUNCTION            = "IB_3"                 // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-SPLIT_FORCES                 = FALSE                  // whether to split interior and boundary forces
 USE_PRESSURE_JUMP_CONDITIONS = TRUE                   // whether to impose pressure jumps at fluid-structure interfaces
 USE_VELOCITY_JUMP_CONDITIONS = TRUE                   // whether to impose pressure jumps at fluid-structure interfaces
 COMPUTE_FLUID_TRACTION       = TRUE
