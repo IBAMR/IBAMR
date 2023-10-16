@@ -1082,7 +1082,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     fe_DU_jump->reinit(elem);
                 }
                 const unsigned int n_nodes = elem->n_nodes();
-                const unsigned int n_nodes_jump = DU_jump_dof_indices[0][0].size();
+                const unsigned int n_nodes_jump = d_use_velocity_jump_conditions ? DU_jump_dof_indices[0][0].size() : 0.0;
                 const unsigned int n_qpoints = qrule->n_points();
 
                 // Zero out the values prior to accumulation.
