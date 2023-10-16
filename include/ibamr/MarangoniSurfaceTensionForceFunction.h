@@ -183,10 +183,10 @@ private:
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level);
 
     /*!
-     * Temperature variable and its patch data index.
+     * Temperature varaible and its patch data index.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
-    int d_T_idx = IBTK::invalid_index, d_F_cloned_idx = IBTK::invalid_index;
+    int d_T_scratch_idx = IBTK::invalid_index, d_F_cloned_idx = IBTK::invalid_index;
 
     /*!
      * Marangoni coefficient.

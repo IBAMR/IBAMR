@@ -223,26 +223,26 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
 #endif
     const int T_new_idx = var_db->mapVariableAndContextToIndex(T_var, d_adv_diff_solver->getNewContext());
     const int T_current_idx = var_db->mapVariableAndContextToIndex(T_var, d_adv_diff_solver->getCurrentContext());
+    d_T_scratch_idx = var_db->mapVariableAndContextToIndex(T_var, d_adv_diff_solver->getScratchContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(T_new_idx >= 0);
     TBOX_ASSERT(T_current_idx >= 0);
 #endif
-
-    IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
-    d_T_idx = var_db->registerVariableAndContext(T_var, var_db->getContext(d_object_name + "::T"), cell_ghosts);
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(d_F_cloned_idx, data_time);
-        hierarchy->getPatchLevel(ln)->allocatePatchData(d_T_idx, data_time);
     }
+    // This needs to be checked. By default we use MIDPOINT_RULE. But to use T^n+1 in callback functions
+    // I set to BACKWARD_EULER for now.
+    d_ts_type = BACKWARD_EULER;
 
     HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
     if (d_ts_type == MIDPOINT_RULE)
     {
-        hier_cc_data_ops.linearSum(d_T_idx,
+        hier_cc_data_ops.linearSum(d_T_scratch_idx,
                                    0.5,
                                    T_new_idx,
                                    0.5,
@@ -251,13 +251,13 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
     }
     else if (d_ts_type == BACKWARD_EULER)
     {
-        hier_cc_data_ops.copyData(d_T_idx,
+        hier_cc_data_ops.copyData(d_T_scratch_idx,
                                   T_new_idx,
                                   /*interior_only*/ true);
     }
     else if (d_ts_type == FORWARD_EULER)
     {
-        hier_cc_data_ops.copyData(d_T_idx,
+        hier_cc_data_ops.copyData(d_T_scratch_idx,
                                   T_current_idx,
                                   /*interior_only*/ true);
     }
@@ -272,7 +272,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
     // Fill ghost cells
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent T_transaction(
-        d_T_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_T_bc_coef);
+        d_T_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_T_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> T_fill_op = new HierarchyGhostCellInterpolation();
     T_fill_op->initializeOperatorState(T_transaction, hierarchy, coarsest_ln, finest_ln);
 
@@ -285,11 +285,8 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         hierarchy->getPatchLevel(ln)->deallocatePatchData(d_F_cloned_idx);
-        hierarchy->getPatchLevel(ln)->deallocatePatchData(d_T_idx);
     }
     var_db->removePatchDataIndex(d_F_cloned_idx);
-    var_db->removePatchDataIndex(d_T_idx);
-
     return;
 } // setDataOnPatchHierarchy
 
@@ -419,7 +416,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
 
     // Find the gradient of T at the side-center.
     SideData<NDIM, double> grad_T(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
-    Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_idx);
+    Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_scratch_idx);
     SC_NORMAL_FC(grad_T.getPointer(0, 0),
                  grad_T.getPointer(0, 1),
 #if (NDIM == 3)

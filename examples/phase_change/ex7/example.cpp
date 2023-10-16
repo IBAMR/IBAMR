@@ -221,29 +221,9 @@ compute_surface_tension_coef_function(int F_idx,
     const double T_ref = compute_variable_surface_tension_coef_ctx->T_ref;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int T_new_idx = var_db->mapVariableAndContextToIndex(
-        compute_variable_surface_tension_coef_ctx->T_var,
-        compute_variable_surface_tension_coef_ctx->phase_change_hier_integrator->getNewContext());
     const int T_scratch_idx = var_db->mapVariableAndContextToIndex(
         compute_variable_surface_tension_coef_ctx->T_var,
         compute_variable_surface_tension_coef_ctx->phase_change_hier_integrator->getScratchContext());
-
-    // ghost cell filling for liquid fraction variable.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> T_transaction_comps(1);
-    T_transaction_comps[0] = InterpolationTransactionComponent(
-        T_scratch_idx,
-        T_new_idx,
-        "CONSERVATIVE_LINEAR_REFINE",
-        true,
-        "CONSERVATIVE_COARSEN",
-        "LINEAR",
-        false,
-        compute_variable_surface_tension_coef_ctx->phase_change_hier_integrator->getTemperaturePhysicalBcCoef());
-
-    Pointer<HierarchyGhostCellInterpolation> T_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    T_hier_bdry_fill->initializeOperatorState(T_transaction_comps, patch_hierarchy, coarsest_ln, finest_ln);
-    T_hier_bdry_fill->fillData(time);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
