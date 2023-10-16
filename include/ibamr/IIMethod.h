@@ -664,6 +664,7 @@ protected:
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_use_pressure_jump_conditions = false;
     bool d_use_velocity_jump_conditions = false;
+    bool d_use_u_interp_correction = false;
     bool d_compute_fluid_traction = false;
     bool d_perturb_fe_mesh_nodes = true;
     std::vector<libMesh::FEFamily> d_fe_family;
