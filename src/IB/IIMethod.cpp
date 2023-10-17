@@ -3290,16 +3290,6 @@ IIMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // initializePatchHierarchy
 
 void
-IIMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
-{
-    TBOX_ASSERT(load_balancer);
-    d_load_balancer = load_balancer;
-    d_workload_idx = workload_data_idx;
-
-    return;
-} // registerLoadBalancer
-
-void
 IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
     IBAMR_TIMER_START(t_add_workload_estimate);
