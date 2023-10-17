@@ -438,7 +438,9 @@ class IBFEDirectForcingKinematics;
 class IBFEMethod : public FEMechanicsBase, public IBStrategy
 {
 public:
-    IBTK_DEPRECATED("Use IBFEMethod::getSourceSystemName() to access the source system name.")
+    IBTK_DEPRECATED(
+        "Use IBFEMethod::getSourceSystemName() to access the "
+        "source system name.")
     static const std::string SOURCE_SYSTEM_NAME;
 
     /*!
@@ -756,6 +758,9 @@ public:
      * @deprecated This method is no longer necessary with the current
      * workload estimation scheme.
      */
+    IBTK_DEPRECATED(
+        "This method is no longer necessary with the current workload "
+        "estimation scheme.")
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx) override;
 

@@ -327,11 +327,13 @@ IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy
 void
 IBStrategySet::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
-    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBStrategySet", "registerLoadBalancer");
+    // Allow this function to call the other deprecated functions
+    IBTK_DISABLE_EXTRA_WARNINGS
     for (const auto& strategy : d_strategy_set)
     {
         strategy->registerLoadBalancer(load_balancer, workload_data_idx);
     }
+    IBTK_ENABLE_EXTRA_WARNINGS
     return;
 } // registerLoadBalancer
 

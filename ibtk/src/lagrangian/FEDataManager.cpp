@@ -438,7 +438,10 @@ FEDataManager::freeAllManagers()
 void
 FEDataManager::setEquationSystems(EquationSystems* const equation_systems, const int level_number)
 {
+    // Let this function call other deprecated functions
+    IBTK_DISABLE_EXTRA_WARNINGS
     d_fe_data->setEquationSystems(equation_systems, level_number);
+    IBTK_ENABLE_EXTRA_WARNINGS
     return;
 } // setEquationSystems
 
@@ -767,7 +770,10 @@ FEDataManager::getCoordsVector() const
 NumericVector<double>*
 FEDataManager::buildGhostedCoordsVector(const bool localize_data)
 {
+    // Let this function call other deprecated functions
+    IBTK_DISABLE_EXTRA_WARNINGS
     return buildGhostedSolutionVector(getCurrentCoordinatesSystemName(), localize_data);
+    IBTK_ENABLE_EXTRA_WARNINGS
 } // buildGhostedCoordsVector
 
 std::shared_ptr<FEData>&
@@ -2498,8 +2504,11 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
     {
         FEData::SystemDofMapCache& X_dof_map_cache = *getDofMapCache(getCurrentCoordinatesSystemName());
 
+        // Disable warnings so we can call a deprecated function
+        IBTK_DISABLE_EXTRA_WARNINGS
         // Extract the underlying solution data.
         NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
+        IBTK_ENABLE_EXTRA_WARNINGS
         auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
         const double* const X_local_soln = X_petsc_vec->get_array_read();
 
@@ -2950,8 +2959,11 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
     using quad_key_type = quadrature_key_type;
     FECache X_fe_cache(dim, fe_type, FEUpdateFlags::update_phi);
 
+    // Disable warnings so we can call a deprecated function
+    IBTK_DISABLE_EXTRA_WARNINGS
     // Extract the underlying solution data.
     NumericVector<double>* X_ghost_vec = buildGhostedCoordsVector();
+    IBTK_ENABLE_EXTRA_WARNINGS
     auto X_petsc_vec = static_cast<PetscVector<double>*>(X_ghost_vec);
     const double* const X_local_soln = X_petsc_vec->get_array_read();
 

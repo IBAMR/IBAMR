@@ -950,13 +950,16 @@ IMPMethod::registerPK1StressTensorFunction(PK1StressFcnPtr PK1_stress_fcn, void*
 void
 IMPMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
 {
-    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IMPMethod", "registerLoadBalancer");
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif
     d_load_balancer = load_balancer;
     d_workload_idx = workload_data_idx;
+
+    // Let this function call other deprecated functions
+    IBTK_DISABLE_EXTRA_WARNINGS
     d_l_data_manager->registerLoadBalancer(load_balancer, workload_data_idx);
+    IBTK_ENABLE_EXTRA_WARNINGS
     return;
 } // registerLoadBalancer
 
