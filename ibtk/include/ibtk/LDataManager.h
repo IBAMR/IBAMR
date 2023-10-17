@@ -577,6 +577,10 @@ public:
      * handling non-uniform load balancing does not require that this object
      * store a pointer to the load balancer.
      */
+    IBTK_DEPRECATED(
+        "This method is deprecated since the current strategy for handling "
+        "non-uniform load balancing does not require that this object store a "
+        "pointer to the load balancer.")
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx);
 
@@ -657,6 +661,10 @@ public:
      * IBAMR, this value will no longer be stored and will only be available
      * via the parent hierarchy integrator.
      */
+    IBTK_DEPRECATED(
+        "This method is deprecated since, in future versions of IBAMR, "
+        "this value will no longer be stored and will only be available "
+        "via the parent hierarchy integrator.")
     int getWorkloadPatchDescriptorIndex() const;
 
     /*!

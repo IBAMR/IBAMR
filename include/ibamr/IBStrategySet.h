@@ -261,6 +261,9 @@ public:
      * @deprecated This method is no longer necessary with the current
      * workload estimation scheme.
      */
+    IBTK_DEPRECATED(
+        "This method is no longer necessary with the current workload "
+        "estimation scheme.")
     void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
                               int workload_data_idx) override;
 
