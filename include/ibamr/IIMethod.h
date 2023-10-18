@@ -683,7 +683,7 @@ protected:
     double d_wss_calc_width = 1.05;
     double d_p_calc_width = 1.3;
     double d_fuzzy_tol = 1e-5;
-    double d_mesh_perturb_tol = 1e-8;
+    double d_mesh_perturb_tol = 1e-4;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.
