@@ -199,6 +199,7 @@ main(int argc, char* argv[])
 #if (NDIM == 3)
         circle.X0[2] = input_db->getDouble("ZCOM");
 #endif
+        circle.reset_ls_analytically = true;
         const double fluid_height = input_db->getDouble("GAS_LS_INIT");
 
         const string& ls_name_solid = "level_set_solid";

@@ -36,6 +36,7 @@ struct CircularInterface
 {
     IBTK::Vector3d X0;
     double R;
+    bool reset_ls_analytically = false;
 };
 
 /*!
@@ -63,7 +64,7 @@ public:
     void setLevelSetPatchData(int D_idx,
                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                               const double /*time*/,
-                              const bool /*initial_time*/)
+                              const bool initial_time)
     {
         // In this version of this class, the initial level set location is set to be
         // exact since we always know the radius of the ball
@@ -71,6 +72,20 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+
+        // If not the intial time, set the level set to the current value maintained by the integrator
+        if (!initial_time && !d_circle->reset_ls_analytically)
+        {
+            SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+            const int ls_current_idx =
+                var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
+            SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+                patch_hierarchy, coarsest_ln, finest_ln);
+
+            hier_cc_data_ops.copyData(D_idx, ls_current_idx);
+
+            return;
+        }
 
         // Set the initial condition for locating the interface
         const double& R = d_circle->R;
