@@ -122,7 +122,7 @@ public:
      * multiply it with the F_data as F_data = marangoni_coef*F_data.
      */
     using ComputeMarangoniCoefPtr = void (*)(int F_idx,
-                                             SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                              int cycle_num,
                                              double time,
                                              double current_time,

@@ -111,7 +111,7 @@ struct ComputeVariableSurfaceTensionCoefCtx
 
 void
 compute_surface_tension_coef_function(int F_idx,
-                                      Pointer<HierarchyMathOps> hier_math_ops,
+                                      Pointer<Patch<NDIM> > patch,
                                       int /*integrator_step*/,
                                       double time,
                                       double /*current_time*/,
@@ -121,65 +121,32 @@ compute_surface_tension_coef_function(int F_idx,
     ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
         static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
     // parameters
     const double sigma_0 = compute_variable_surface_tension_coef_ctx->sigma0;
     const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
     const double T_ref = compute_variable_surface_tension_coef_ctx->T_ref;
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int T_new_idx = var_db->mapVariableAndContextToIndex(
-        compute_variable_surface_tension_coef_ctx->T_var,
-        compute_variable_surface_tension_coef_ctx->adv_diff_hier_integrator->getNewContext());
     const int T_scratch_idx = var_db->mapVariableAndContextToIndex(
         compute_variable_surface_tension_coef_ctx->T_var,
         compute_variable_surface_tension_coef_ctx->adv_diff_hier_integrator->getScratchContext());
 
-    // ghost cell filling for liquid fraction variable.
-    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> T_transaction_comps(1);
-    T_transaction_comps[0] = InterpolationTransactionComponent(
-        T_scratch_idx,
-        T_new_idx,
-        "CONSERVATIVE_LINEAR_REFINE",
-        false,
-        "CONSERVATIVE_COARSEN",
-        "LINEAR",
-        false,
-        compute_variable_surface_tension_coef_ctx->adv_diff_hier_integrator->getPhysicalBcCoefs(
-            compute_variable_surface_tension_coef_ctx->T_var));
+    const Box<NDIM>& patch_box = patch->getBox();
 
-    Pointer<HierarchyGhostCellInterpolation> T_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    T_hier_bdry_fill->initializeOperatorState(T_transaction_comps, patch_hierarchy);
-    T_hier_bdry_fill->fillData(time);
+    Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_scratch_idx);
+    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (unsigned int axis = 0; axis < NDIM; axis++)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_scratch_idx);
-            Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
+            const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
 
-            for (unsigned int axis = 0; axis < NDIM; axis++)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+            const double sigma = sigma_0 + dsigma_dT0 * (T_sc - T_ref);
 
-                    const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
-
-                    const double sigma = sigma_0 + dsigma_dT0 * (T_sc - T_ref);
-
-                    (*F_data)(si) *= sigma;
-                }
-            }
+            (*F_data)(si) *= sigma;
         }
     }
     return;
@@ -187,7 +154,7 @@ compute_surface_tension_coef_function(int F_idx,
 
 void
 compute_marangoni_coef_function(int F_idx,
-                                Pointer<HierarchyMathOps> hier_math_ops,
+                                Pointer<Patch<NDIM> > patch,
                                 int /*integrator_step*/,
                                 double /*time*/,
                                 double /*current_time*/,
@@ -197,35 +164,23 @@ compute_marangoni_coef_function(int F_idx,
     ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
         static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
     // parameters
     const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
 
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    const Box<NDIM>& patch_box = patch->getBox();
+
+    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
+
+    for (unsigned int axis = 0; axis < NDIM; axis++)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
-            Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
-
-            for (unsigned int axis = 0; axis < NDIM; axis++)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-                    const double marangoni_coef = dsigma_dT0;
-                    (*F_data)(si) *= marangoni_coef; // marangoni_coef is constant for this example. So it can be set
-                                                     // through input file as well instead of
-                                                     // using this callback function.
-                }
-            }
+            const double marangoni_coef = dsigma_dT0;
+            (*F_data)(si) *= marangoni_coef; // marangoni_coef is constant for this example. So it can be set
+                                             // through input file as well instead of
+                                             // using this callback function.
         }
     }
     return;
