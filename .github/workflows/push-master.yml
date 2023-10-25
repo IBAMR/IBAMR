@@ -1,0 +1,48 @@
+## ---------------------------------------------------------------------
+##
+## Copyright (c) 2023 - 2023 by the IBAMR developers
+## All rights reserved.
+##
+## This file is part of IBAMR.
+##
+## IBAMR is free software and is distributed under the 3-clause BSD
+## license. The full text of the license can be found in the file
+## COPYRIGHT at the top level directory of IBAMR.
+##
+## ---------------------------------------------------------------------
+
+name: push
+on:
+  # things to do when we push to master
+  push:
+    branches:
+      - documentation-test-branch
+
+jobs:
+  deploy_documentation:
+    runs-on: ubuntu-latest
+    name: Build IBAMR and run tests
+    env:
+      # TODO: this is a copy-and-paste of the Travis version. Once this is
+      # working we should clean it up.
+      TRAVIS_BUILD_NUMBER: ${{ github.run_number }}
+      TRAVIS_COMMIT: ${{ github.sha }}
+      DOXYFILE: ${{ github.workspace }}/doc/Doxyfile
+      GH_REPO_NAME: IBAMR
+      GH_REPO_REF: github.com/IBAMR/IBAMR.git
+      DOCS_REPO_REF: github.com/IBAMR/IBAMR-Docs
+      GH_REPO_TOKEN: ${{ github.token }}
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+        id: git
+      - name: Install dependencies
+        id: dependencies
+        run: |
+          sudo apt update && sudo apt install doxygen doxygen-gui doxygen-doc doxygen-latex graphviz
+          doxygen --version
+      - name: Run doxygen
+        id: doxygen
+        run: |
+          chmod +x generateDocumentationAndDeploy.sh
+          ./generateDocumentationAndDeploy.sh
