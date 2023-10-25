@@ -16,7 +16,7 @@ on:
   # things to do when we push to master
   push:
     branches:
-      - master
+      - documentation-test-branch
 
 jobs:
   deploy_documentation:
