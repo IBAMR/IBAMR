@@ -3,7 +3,7 @@ IBAMR
 
 An adaptive and distributed-memory parallel implementation of the immersed boundary (IB) method
 
-What Is %IBAMR?
+What Is IBAMR?
 --------------
 
 %IBAMR is a distributed-memory parallel implementation of the immersed boundary (IB) method with support for Cartesian grid adaptive mesh refinement (AMR).  Support for distributed-memory parallelism is via <a href="http://www.mcs.anl.gov/research/projects/mpi" target="_blank">MPI</a>, the Message Passing Interface.
