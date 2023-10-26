@@ -286,6 +286,10 @@ main(int argc, char* argv[])
         Pointer<EnthalpyHierarchyIntegrator> enthalpy_hier_integrator = adv_diff_integrator;
         enthalpy_hier_integrator->registerLiquidFractionVariable(lf_var, true);
 
+        // register specific enthalpy
+        Pointer<CellVariable<NDIM, double> > h_var = new CellVariable<NDIM, double>("h_var");
+        enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
+
         // register Heaviside
         Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("heaviside_var");
         adv_diff_integrator->registerTransportedQuantity(H_var, true);

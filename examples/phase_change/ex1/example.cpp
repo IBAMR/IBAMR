@@ -205,6 +205,10 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient_var", NDIM);
         enthalpy_hier_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
 
+        // register specific enthalpy
+        Pointer<CellVariable<NDIM, double> > h_var = new CellVariable<NDIM, double>("h_var");
+        enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
+
         // register Heaviside
         Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("heaviside_var");
         adv_diff_integrator->registerTransportedQuantity(H_var, true);
