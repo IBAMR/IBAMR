@@ -209,8 +209,6 @@ INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fc
 void
 INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_fcn)
 {
-    IBTK_DEPRECATED_MEMBER_FUNCTION2(
-        "INSHierarchyIntegrator", "registerFluidSourceFunction", "registerVelocityDivergenceFunction");
     registerVelocityDivergenceFunction(Q_fcn);
     return;
 } // registerFluidSourceFunction
@@ -264,8 +262,6 @@ INSHierarchyIntegrator::getBodyForceVariable() const
 Pointer<Variable<NDIM> >
 INSHierarchyIntegrator::getFluidSourceVariable() const
 {
-    IBTK_DEPRECATED_MEMBER_FUNCTION2(
-        "INSHierarchyIntegrator", "getFluidSourceVariable", "getVelocityDivergenceVariable");
     return d_Q_var;
 } // getFluidSourceVariable
 

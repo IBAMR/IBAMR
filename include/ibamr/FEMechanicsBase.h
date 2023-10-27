@@ -572,6 +572,7 @@ protected:
      *
      * @deprecated use IBTK::setup_system_vectors instead.
      */
+    IBTK_DEPRECATED("Use IBTK::setup_system_vectors() instead.")
     static void setup_system_vectors(libMesh::EquationSystems* equation_systems,
                                      const std::vector<std::string>& system_names,
                                      const std::vector<std::string>& vector_names);
@@ -582,6 +583,7 @@ protected:
      *
      * @deprecated use IBTK::setup_system_vector instead.
      */
+    IBTK_DEPRECATED("Use IBTK::setup_system_vectors() instead.")
     static void setup_system_vector(libMesh::System& system, const std::string& vector_name);
 
     /*!

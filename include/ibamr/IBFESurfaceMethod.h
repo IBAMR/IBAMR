@@ -405,16 +405,6 @@ public:
         bool initial_time) override;
 
     /*!
-     * Register a load balancer and work load patch data index with the IB
-     * strategy object.
-     *
-     * @deprecated This method is no longer necessary with the current
-     * workload estimation scheme.
-     */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
-                              int workload_data_idx) override;
-
-    /*!
      * Add the estimated computational work from the current object (i.e., the
      * work required by the owned Lagrangian objects) per cell into the
      * specified <code>workload_data_idx</code>.
@@ -688,12 +678,6 @@ protected:
     std::vector<LagSurfacePressureFcnData> d_lag_surface_pressure_fcn_data;
     std::vector<LagSurfaceForceFcnData> d_lag_surface_force_fcn_data;
     std::vector<libMesh::VectorValue<double> > d_lag_surface_force_integral;
-
-    /*
-     * Nonuniform load balancing data structures.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-    int d_workload_idx = IBTK::invalid_index;
 
     /*
      * The object name is used as a handle to databases stored in restart files

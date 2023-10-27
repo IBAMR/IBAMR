@@ -1470,7 +1470,6 @@ FEMechanicsBase::setup_system_vectors(EquationSystems* equation_systems,
                                       const std::vector<std::string>& system_names,
                                       const std::vector<std::string>& vector_names)
 {
-    IBAMR_DEPRECATED_MEMBER_FUNCTION1("FEMechanicsBase", "setup_system_vectors");
     IBTK::setup_system_vectors(
         equation_systems, system_names, vector_names, RestartManager::getManager()->isFromRestart());
 }
@@ -1478,7 +1477,6 @@ FEMechanicsBase::setup_system_vectors(EquationSystems* equation_systems,
 void
 FEMechanicsBase::setup_system_vector(System& system, const std::string& vector_name)
 {
-    IBAMR_DEPRECATED_MEMBER_FUNCTION1("FEMechanicsBase", "setup_system_vector");
     IBTK::setup_system_vector(system, vector_name, RestartManager::getManager()->isFromRestart());
 }
 
