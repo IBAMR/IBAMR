@@ -242,7 +242,7 @@ LaserBeamForceFunction::setDataOnPatchHierarchy(const int data_idx,
     H_fill_op->fillData(data_time);
 
     // Mollify .
-    // mollifyData(d_H_scratch_idx, coarsest_ln, finest_ln, data_time, hierarchy, H_fill_op);
+    mollifyData(d_H_scratch_idx, coarsest_ln, finest_ln, data_time, hierarchy, H_fill_op);
 
     // Find |grad H|
     HierarchyMathOps* hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
