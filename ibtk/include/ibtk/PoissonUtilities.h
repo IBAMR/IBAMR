@@ -117,6 +117,20 @@ public:
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
+     * \brief Compute the matrix coefficients corresponding to a side-centered
+     * discretization of the divergence of viscous and dilatational stress.
+     */
+    static void computeVCSCViscousDilatationalOpMatrixCoefficients(
+        SAMRAI::pdat::SideData<NDIM, double>& matrix_coefficients,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        int mu_idx,
+        int lambda_idx,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a cell-centered discretization of the
      * Laplacian.
