@@ -664,6 +664,7 @@ protected:
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
     bool d_use_pressure_jump_conditions = false;
     bool d_use_velocity_jump_conditions = false;
+    bool d_use_u_interp_correction = false;
     bool d_compute_fluid_traction = false;
     bool d_perturb_fe_mesh_nodes = true;
     std::vector<libMesh::FEFamily> d_fe_family;
@@ -681,6 +682,8 @@ protected:
     double d_exterior_calc_coef = 1.0;
     double d_wss_calc_width = 1.05;
     double d_p_calc_width = 1.3;
+    double d_fuzzy_tol = 1e-5;
+    double d_mesh_perturb_tol = 1e-4;
 
     /*
      * Functions used to compute the initial coordinates of the Lagrangian mesh.

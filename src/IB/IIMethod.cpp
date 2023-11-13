@@ -534,19 +534,22 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
                     dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
                         VELOCITY_JUMP_SYSTEM_NAME[d], /*localize_data*/ false));
             }
-            d_WSS_in_systems[part] = &d_equation_systems[part]->get_system(WSS_IN_SYSTEM_NAME);
-            d_WSS_in_half_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_WSS_in_systems[part]->current_local_solution.get());
-            d_WSS_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_IN_SYSTEM_NAME, /*localize_data*/ false));
-
-            d_WSS_out_systems[part] = &d_equation_systems[part]->get_system(WSS_OUT_SYSTEM_NAME);
-            d_WSS_out_half_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_WSS_out_systems[part]->current_local_solution.get());
-            d_WSS_out_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_OUT_SYSTEM_NAME, /*localize_data*/ false));
+            if (d_use_u_interp_correction)
+            {
+               d_WSS_in_systems[part] = &d_equation_systems[part]->get_system(WSS_IN_SYSTEM_NAME);
+               d_WSS_in_half_vecs[part] =
+                  dynamic_cast<PetscVector<double>*>(d_WSS_in_systems[part]->current_local_solution.get());
+               d_WSS_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                   d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_IN_SYSTEM_NAME, /*localize_data*/ false));
+                   
+               d_WSS_out_systems[part] = &d_equation_systems[part]->get_system(WSS_OUT_SYSTEM_NAME);
+               d_WSS_out_half_vecs[part] =
+                  dynamic_cast<PetscVector<double>*>(d_WSS_out_systems[part]->current_local_solution.get());
+               d_WSS_out_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                   d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_OUT_SYSTEM_NAME, /*localize_data*/ false));
+            }
         }
-        if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
+        if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions && d_use_u_interp_correction)
         {
             d_TAU_in_systems[part] = &d_equation_systems[part]->get_system(TAU_IN_SYSTEM_NAME);
             d_TAU_in_half_vecs[part] =
@@ -594,11 +597,13 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
             {
                 *d_DU_jump_half_vecs[part][d] = *d_DU_jump_systems[part][d]->solution;
             }
-
-            *d_WSS_in_half_vecs[part] = *d_WSS_in_systems[part]->solution;
-            *d_WSS_out_half_vecs[part] = *d_WSS_out_systems[part]->solution;
+            if (d_use_u_interp_correction)
+            {
+              *d_WSS_in_half_vecs[part] = *d_WSS_in_systems[part]->solution;
+              *d_WSS_out_half_vecs[part] = *d_WSS_out_systems[part]->solution;
+            }
         }
-        if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions)
+        if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions && d_use_u_interp_correction)
         {
             *d_TAU_in_half_vecs[part] = *d_TAU_in_systems[part]->solution;
             *d_TAU_out_half_vecs[part] = *d_TAU_out_systems[part]->solution;
@@ -622,7 +627,7 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
         vec_collection_update.push_back(d_P_in_half_vecs);
         vec_collection_update.push_back(d_P_out_half_vecs);
     }
-    if (d_use_velocity_jump_conditions)
+    if (d_use_velocity_jump_conditions && d_use_u_interp_correction)
     {
         vec_collection_update.push_back(d_WSS_in_half_vecs);
         vec_collection_update.push_back(d_WSS_out_half_vecs);
@@ -687,12 +692,15 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
                 *d_DU_jump_systems[part][d]->solution = *d_DU_jump_half_vecs[part][d];
                 *d_DU_jump_systems[part][d]->current_local_solution = *d_DU_jump_half_vecs[part][d];
             }
-            *d_WSS_in_systems[part]->solution = *d_WSS_in_half_vecs[part];
-            *d_WSS_in_systems[part]->current_local_solution = *d_WSS_in_half_vecs[part];
-            *d_WSS_out_systems[part]->solution = *d_WSS_out_half_vecs[part];
-            *d_WSS_out_systems[part]->current_local_solution = *d_WSS_out_half_vecs[part];
+            if (d_use_u_interp_correction)
+            {
+              *d_WSS_in_systems[part]->solution = *d_WSS_in_half_vecs[part];
+              *d_WSS_in_systems[part]->current_local_solution = *d_WSS_in_half_vecs[part];
+              *d_WSS_out_systems[part]->solution = *d_WSS_out_half_vecs[part];
+              *d_WSS_out_systems[part]->current_local_solution = *d_WSS_out_half_vecs[part];
+            }
         }
-        if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
+        if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions && d_use_u_interp_correction)
         {
             *d_TAU_in_systems[part]->solution = *d_TAU_in_half_vecs[part];
             *d_TAU_in_systems[part]->current_local_solution = *d_TAU_in_half_vecs[part];
@@ -775,6 +783,9 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
                               const double data_time)
 {
+    if (!d_use_velocity_jump_conditions && d_use_u_interp_correction)
+      TBOX_ERROR(" use_velocity_jump_conditions must be also true "
+                   "whenever use_u_interp_correction = true...\n");
     IBAMR_TIMER_START(t_interpolate_velocity);
     const double mu = getINSHierarchyIntegrator()->getStokesSpecifications()->getMu();
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -817,7 +828,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         vec_collection_update.push_back(d_U_t_new_vecs);
     }
 
-    if (d_use_velocity_jump_conditions)
+    if (d_use_u_interp_correction)
     {
         for (unsigned part = 0; part < d_num_parts; ++part)
         {
@@ -837,10 +848,10 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         NumericVector<double>* X_vec = nullptr;
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         const std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec = {
-            d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][0] : nullptr,
-            d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][1] : nullptr,
+            d_use_u_interp_correction ? d_DU_jump_IB_ghost_vecs[part][0] : nullptr,
+            d_use_u_interp_correction ? d_DU_jump_IB_ghost_vecs[part][1] : nullptr,
 #if (NDIM == 3)
-            d_use_velocity_jump_conditions ? d_DU_jump_IB_ghost_vecs[part][2] : nullptr,
+            d_use_u_interp_correction ? d_DU_jump_IB_ghost_vecs[part][2] : nullptr,
 #endif
         };
         if (MathUtilities<double>::equalEps(data_time, d_current_time))
@@ -866,8 +877,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         }
         copy_and_synch(*X_vec, *X_ghost_vec);
 
-        NumericVector<double>* WSS_in_vec = d_use_velocity_jump_conditions ? d_WSS_in_half_vecs[part] : nullptr;
-        NumericVector<double>* WSS_out_vec = d_use_velocity_jump_conditions ? d_WSS_out_half_vecs[part] : nullptr;
+        NumericVector<double>* WSS_in_vec = d_use_u_interp_correction ? d_WSS_in_half_vecs[part] : nullptr;
+        NumericVector<double>* WSS_out_vec = d_use_u_interp_correction ? d_WSS_out_half_vecs[part] : nullptr;
 
         // Extract the mesh.
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
@@ -907,7 +918,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         const DofMap* WSS_in_dof_map = NULL;
         FEDataManager::SystemDofMapCache* WSS_in_dof_map_cache = NULL;
 
-        if (d_use_velocity_jump_conditions)
+        if (d_use_u_interp_correction)
         {
             for (unsigned int i = 0; i < NDIM; ++i)
             {
@@ -966,11 +977,11 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         std::vector<DenseVector<double> > U_t_rhs_e(NDIM);
 
         std::unique_ptr<NumericVector<double> > WSS_out_rhs_vec =
-            (d_use_velocity_jump_conditions ? WSS_out_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+            (d_use_u_interp_correction ? WSS_out_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
         DenseVector<double> WSS_out_rhs_e[NDIM];
 
         std::unique_ptr<NumericVector<double> > WSS_in_rhs_vec =
-            (d_use_velocity_jump_conditions ? WSS_in_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
+            (d_use_u_interp_correction ? WSS_in_vec->zero_clone() : std::unique_ptr<NumericVector<double> >());
         DenseVector<double> WSS_in_rhs_e[NDIM];
 
         boost::multi_array<double, 2> x_node;
@@ -1060,7 +1071,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
                 }
                 get_values_for_interpolation(x_node, *X_ghost_vec, X_dof_indices);
-                if (d_use_velocity_jump_conditions)
+                if (d_use_u_interp_correction)
                 {
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
@@ -1076,13 +1087,13 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     FEDataManager::updateInterpQuadratureRule(qrule, d_default_interp_spec, elem, x_node, patch_dx_min);
                 if (qrule_changed) fe_X->attach_quadrature_rule(qrule.get());
                 fe_X->reinit(elem);
-                if (d_use_velocity_jump_conditions)
+                if (d_use_u_interp_correction)
                 {
                     if (qrule_changed) fe_DU_jump->attach_quadrature_rule(qrule.get());
                     fe_DU_jump->reinit(elem);
                 }
                 const unsigned int n_nodes = elem->n_nodes();
-                const unsigned int n_nodes_jump = DU_jump_dof_indices[0][0].size();
+                const unsigned int n_nodes_jump = d_use_u_interp_correction ? DU_jump_dof_indices[0][0].size() : 0.0;
                 const unsigned int n_qpoints = qrule->n_points();
 
                 // Zero out the values prior to accumulation.
@@ -1116,7 +1127,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                             x_qp[NDIM * (qp_offset + qp) + d] += x_node[k][d] * p;
                         }
                     }
-                    if (d_use_velocity_jump_conditions)
+                    if (d_use_u_interp_correction)
                     {
                         for (unsigned int axis = 0; axis < NDIM; ++axis)
                         {
@@ -1168,12 +1179,12 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
             Pointer<SideData<NDIM, double> > u_sc_data = u_data;
-            if (u_sc_data && !d_use_velocity_jump_conditions)
+            if (u_sc_data && !d_use_u_interp_correction)
             {
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_sc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
-            else if (u_sc_data && d_use_velocity_jump_conditions)
+            else if (u_sc_data && d_use_u_interp_correction)
             {
                 LEInteractor::interpolate(
                     U_in_qp, NDIM, x_in_qp, NDIM, u_sc_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
@@ -1346,7 +1357,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                                 w[0][ic[0] - ic_lower[0]] * w[1][ic[1] - ic_lower[1]] * u_sc_data_array[ic[0]][ic[1]];
                             const double nproj = n_qp[s * NDIM + 0] * wr[0][ic_upper[0] - ic[0]] +
                                                  n_qp[s * NDIM + 1] * wr[1][ic_upper[1] - ic[1]];
-                            if (d_use_velocity_jump_conditions)
+                            if (d_use_u_interp_correction)
                             {
                                 const double CC = (nproj > 0.0) ? Ujump[ic[0]][ic[1]][axis] : 0.0;
                                 U_axis[s] -= CC / mu;
@@ -1359,7 +1370,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                             const double nproj = n_qp[s * NDIM + 0] * wr[0][ic_upper[0] - ic[0]] +
                                                  n_qp[s * NDIM + 1] * wr[1][ic_upper[1] - ic[1]] +
                                                  n_qp[s * NDIM + 2] * wr[2][ic_upper[2] - ic[2]];
-                            if (d_use_velocity_jump_conditions)
+                            if (d_use_u_interp_correction)
                             {
                                 const double CC = (nproj > 0.0) ? Ujump[ic[0]][ic[1]][ic[2]][axis] : 0.0;
                                 U_axis[s] -= CC / mu;
@@ -1367,7 +1378,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 #endif
                         }
                     }
-                    if (d_use_velocity_jump_conditions)
+                    if (d_use_u_interp_correction)
                     {
                         for (unsigned int k = 0; k < local_indices.size(); ++k)
                         {
@@ -1413,7 +1424,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     U_n_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
                     U_t_rhs_e[d].resize(static_cast<int>(U_dof_indices[d].size()));
                     X_dof_map_cache.dof_indices(elem, X_dof_indices[d], d);
-                    if (d_use_velocity_jump_conditions)
+                    if (d_use_u_interp_correction)
                     {
                         WSS_out_dof_map_cache->dof_indices(elem, WSS_out_dof_indices[d], d);
                         WSS_out_rhs_e[d].resize(static_cast<int>(WSS_out_dof_indices[d].size()));
@@ -1428,7 +1439,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 if (qrule_changed) fe_X->attach_quadrature_rule(qrule.get());
 
                 fe_X->reinit(elem);
-                if (d_use_velocity_jump_conditions)
+                if (d_use_u_interp_correction)
                 {
                     if (qrule_changed)
                     {
@@ -1454,7 +1465,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
                         U(d) = U_qp[NDIM * (qp_offset + qp) + d];
-                        if (d_use_velocity_jump_conditions)
+                        if (d_use_u_interp_correction)
                         {
                             WSS_in(d) = WSS_in_qp[NDIM * (qp_offset + qp) + d];
                             WSS_out(d) = WSS_out_qp[NDIM * (qp_offset + qp) + d];
@@ -1472,7 +1483,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                             U_t_rhs_e[d](k) += U_t(d) * p_JxW;
                         }
                     }
-                    if (d_use_velocity_jump_conditions)
+                    if (d_use_u_interp_correction)
                     {
                         for (unsigned int k = 0; k < n_basis_jump; ++k)
                         {
@@ -1493,7 +1504,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     U_rhs_vec->add_vector(U_rhs_e[d], U_dof_indices[d]);
                     U_n_rhs_vec->add_vector(U_n_rhs_e[d], U_dof_indices[d]);
                     U_t_rhs_vec->add_vector(U_t_rhs_e[d], U_dof_indices[d]);
-                    if (d_use_velocity_jump_conditions)
+                    if (d_use_u_interp_correction)
                     {
                         WSS_out_dof_map->constrain_element_vector(WSS_out_rhs_e[d], WSS_out_dof_indices[d]);
                         WSS_out_rhs_vec->add_vector(WSS_out_rhs_e[d], WSS_out_dof_indices[d]);
@@ -1508,7 +1519,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         U_n_rhs_vec->close();
         U_t_rhs_vec->close();
 
-        if (d_use_velocity_jump_conditions)
+        if (d_use_u_interp_correction)
         {
             WSS_in_rhs_vec->close();
             d_fe_data_managers[part]->computeL2Projection(
@@ -1531,7 +1542,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         d_fe_data_managers[part]->computeL2Projection(
             *U_t_vec, *U_t_rhs_vec, VELOCITY_SYSTEM_NAME, d_default_interp_spec.use_consistent_mass_matrix);
         U_t_vec->close();
-        if (d_use_velocity_jump_conditions)
+        if (d_use_u_interp_correction)
         {
             for (unsigned int d = 0; d < NDIM; ++d) d_DU_jump_IB_ghost_vecs[part][d]->close();
         }
@@ -2388,9 +2399,9 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 void
 IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time)
 {
-    if (d_compute_fluid_traction && (!d_use_pressure_jump_conditions || !d_use_velocity_jump_conditions))
+    if (d_compute_fluid_traction && (!d_use_pressure_jump_conditions || !d_use_velocity_jump_conditions || !d_use_u_interp_correction))
     {
-        TBOX_ERROR(d_object_name << ": To compute the traction both velocity and pressure jumps need to be turned on!"
+        TBOX_ERROR(d_object_name << ": To compute the traction all jump corrections need to be turned on!"
                                  << std::endl);
     }
 
@@ -3072,18 +3083,19 @@ IIMethod::initializeFEEquationSystems()
                     vector_fe_family.push_back(d_viscous_jump_fe_family[part]);
                     vector_fe_order.push_back(d_viscous_jump_fe_order[part]);
                 }
+               if (d_use_u_interp_correction)
+               {
+                    vector_system_names.push_back(WSS_IN_SYSTEM_NAME);
+                    vector_variable_prefixes.push_back("WSS_in");
+                    vector_fe_family.push_back(d_viscous_jump_fe_family[part]);
+                    vector_fe_order.push_back(d_viscous_jump_fe_order[part]);
 
-                vector_system_names.push_back(WSS_IN_SYSTEM_NAME);
-                vector_variable_prefixes.push_back("WSS_in");
-                vector_fe_family.push_back(d_viscous_jump_fe_family[part]);
-                vector_fe_order.push_back(d_viscous_jump_fe_order[part]);
-
-                vector_system_names.push_back(WSS_OUT_SYSTEM_NAME);
-                vector_variable_prefixes.push_back("WSS_out");
-                vector_fe_family.push_back(d_viscous_jump_fe_family[part]);
-                vector_fe_order.push_back(d_viscous_jump_fe_order[part]);
-
-                if (d_use_pressure_jump_conditions)
+                    vector_system_names.push_back(WSS_OUT_SYSTEM_NAME);
+                    vector_variable_prefixes.push_back("WSS_out");
+                    vector_fe_family.push_back(d_viscous_jump_fe_family[part]);
+                    vector_fe_order.push_back(d_viscous_jump_fe_order[part]);
+				}
+                if (d_use_pressure_jump_conditions && d_use_u_interp_correction)
                 {
                     vector_system_names.push_back(TAU_IN_SYSTEM_NAME);
                     vector_variable_prefixes.push_back("TAU_IN");
@@ -3202,16 +3214,19 @@ IIMethod::initializeFEData()
                 DU_jump_system[d]->assemble_before_solve = false;
                 DU_jump_system[d]->assemble();
             }
-            System& WSS_in_system = equation_systems->get_system<System>(WSS_IN_SYSTEM_NAME);
-            WSS_in_system.assemble_before_solve = false;
-            WSS_in_system.assemble();
+            if (d_use_u_interp_correction)
+            {
+              System& WSS_in_system = equation_systems->get_system<System>(WSS_IN_SYSTEM_NAME);
+              WSS_in_system.assemble_before_solve = false;
+              WSS_in_system.assemble();
 
-            System& WSS_out_system = equation_systems->get_system<System>(WSS_OUT_SYSTEM_NAME);
-            WSS_out_system.assemble_before_solve = false;
-            WSS_out_system.assemble();
+              System& WSS_out_system = equation_systems->get_system<System>(WSS_OUT_SYSTEM_NAME);
+              WSS_out_system.assemble_before_solve = false;
+              WSS_out_system.assemble();
+            }
         }
 
-        if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
+        if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions && d_use_u_interp_correction)
         {
             System& TAU_in_system = equation_systems->get_system<System>(TAU_IN_SYSTEM_NAME);
             TAU_in_system.assemble_before_solve = false;
@@ -3577,7 +3592,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             const double x_s =
                                 x_lower[d] + dx[d] * (static_cast<double>(i_s - patch_lower[d]) + 0.5 * shift);
-                            const double tol = 1.0e-4 * dx[d];
+                            const double tol = d_mesh_perturb_tol * dx[d];
                             if (x(d) <= x_s) x(d) = std::min(x_s - tol, x(d));
                             if (x(d) >= x_s) x(d) = std::max(x_s + tol, x(d));
                         }
@@ -4051,7 +4066,7 @@ IIMethod::checkDoubleCountingIntersection(const int axis,
         const libMesh::Point& xi_prime = *xi_prime_it;
         const libMesh::Point& n_prime = *n_prime_it;
         // TODO: Do not use a hard-coded magic number?
-        if (x.absolute_fuzzy_equals(x_prime, 1.0e-5 * dx[axis]))
+        if (x.absolute_fuzzy_equals(x_prime, d_fuzzy_tol * dx[axis]))
         {
             // WARNING: This check is ONLY
             // guaranteed to work at edges (where
@@ -4409,19 +4424,28 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_use_pressure_jump_conditions = db->getBool("use_pressure_jump_conditions");
 
     if (db->isBool("use_velocity_jump_conditions"))
+    {
         d_use_velocity_jump_conditions = db->getBool("use_velocity_jump_conditions");
-    if (d_use_velocity_jump_conditions)
+        d_use_u_interp_correction = true;
+	}
+    if (db->isBool("use_u_interp_correction"))
+        d_use_u_interp_correction = db->getBool("use_u_interp_correction");
+    if (d_use_velocity_jump_conditions && d_use_u_interp_correction)
     {
         if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
     }
-    if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions)
+    if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions && d_use_u_interp_correction)
     {
         if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
     }
     if (d_use_pressure_jump_conditions || d_use_velocity_jump_conditions)
     {
         if (db->isBool("perturb_fe_mesh_nodes")) d_perturb_fe_mesh_nodes = db->getBool("perturb_fe_mesh_nodes");
+        if (db->isDouble("mesh_perturb_tol")) d_mesh_perturb_tol = db->getDouble("mesh_perturb_tol");
+        if (db->isDouble("fuzzy_tol")) d_fuzzy_tol = db->getDouble("fuzzy_tol");
     }
+    
+    
     if (db->isBool("compute_fluid_traction")) d_compute_fluid_traction = db->getBool("compute_fluid_traction");
     if (d_compute_fluid_traction)
     {

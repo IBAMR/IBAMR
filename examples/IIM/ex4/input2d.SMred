@@ -30,7 +30,6 @@ ELEM_TYPE = "TRI3"                             // type of element to use for str
 
 // solver parameters
 IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
-SPLIT_FORCES                 = TRUE
 USE_PRESSURE_JUMP_CONDITIONS = TRUE            // whether to impose pressure jumps at fluid-structure interfaces
 USE_VELOCITY_JUMP_CONDITIONS = TRUE            // whether to impose pressure jumps at fluid-structure interfaces
 TRACTION_ACTIVATION_TIME     = 0.0
@@ -123,7 +122,6 @@ IBHierarchyIntegrator {
 
 IIMethod {
    IB_delta_fcn                 = IB_DELTA_FUNCTION
-   split_forces                 = SPLIT_FORCES
    use_pressure_jump_conditions = USE_PRESSURE_JUMP_CONDITIONS
    use_velocity_jump_conditions = USE_VELOCITY_JUMP_CONDITIONS
    use_consistent_mass_matrix   = USE_CONSISTENT_MASS_MATRIX
