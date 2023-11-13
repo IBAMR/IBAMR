@@ -150,6 +150,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/utilities/AppInitializer.cpp \
 ../src/utilities/CartGridFunction.cpp \
 ../src/utilities/CartGridFunctionSet.cpp \
+../src/utilities/CartGridPointwiseFunction.cpp \
 ../src/utilities/CellNoCornersFillPattern.cpp \
 ../src/utilities/CoarsenPatchStrategySet.cpp \
 ../src/utilities/CopyToRootSchedule.cpp \

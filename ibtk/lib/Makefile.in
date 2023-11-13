@@ -306,6 +306,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/AppInitializer.cpp \
 	../src/utilities/CartGridFunction.cpp \
 	../src/utilities/CartGridFunctionSet.cpp \
+	../src/utilities/CartGridPointwiseFunction.cpp \
 	../src/utilities/CellNoCornersFillPattern.cpp \
 	../src/utilities/CoarsenPatchStrategySet.cpp \
 	../src/utilities/CopyToRootSchedule.cpp \
@@ -486,6 +487,7 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-AppInitializer.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-CartGridFunction.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-CartGridFunctionSet.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-CellNoCornersFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-CoarsenPatchStrategySet.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-CopyToRootSchedule.$(OBJEXT) \
@@ -636,6 +638,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/AppInitializer.cpp \
 	../src/utilities/CartGridFunction.cpp \
 	../src/utilities/CartGridFunctionSet.cpp \
+	../src/utilities/CartGridPointwiseFunction.cpp \
 	../src/utilities/CellNoCornersFillPattern.cpp \
 	../src/utilities/CoarsenPatchStrategySet.cpp \
 	../src/utilities/CopyToRootSchedule.cpp \
@@ -814,6 +817,7 @@ am__objects_6 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-AppInitializer.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-CartGridFunction.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-CartGridFunctionSet.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-CellNoCornersFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-CoarsenPatchStrategySet.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-CopyToRootSchedule.$(OBJEXT) \
@@ -1092,6 +1096,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunctionSet.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-CellNoCornersFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-CoarsenPatchStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po \
@@ -1135,6 +1140,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunction.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunctionSet.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-CoarsenPatchStrategySet.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po \
@@ -1757,6 +1763,7 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/utilities/AppInitializer.cpp \
 	../src/utilities/CartGridFunction.cpp \
 	../src/utilities/CartGridFunctionSet.cpp \
+	../src/utilities/CartGridPointwiseFunction.cpp \
 	../src/utilities/CellNoCornersFillPattern.cpp \
 	../src/utilities/CoarsenPatchStrategySet.cpp \
 	../src/utilities/CopyToRootSchedule.cpp \
@@ -2301,6 +2308,9 @@ $(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT):  \
 ../src/utilities/libIBTK2d_a-CartGridFunctionSet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-CellNoCornersFillPattern.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2819,6 +2829,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-CartGridFunctionSet.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-CellNoCornersFillPattern.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3257,6 +3270,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunctionSet.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-CellNoCornersFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-CoarsenPatchStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po@am__quote@ # am--include-marker
@@ -3300,6 +3314,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunctionSet.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-CoarsenPatchStrategySet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po@am__quote@ # am--include-marker
@@ -4630,6 +4645,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/CartGridFunctionSet.cpp' object='../src/utilities/libIBTK2d_a-CartGridFunctionSet.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-CartGridFunctionSet.obj `if test -f '../src/utilities/CartGridFunctionSet.cpp'; then $(CYGPATH_W) '../src/utilities/CartGridFunctionSet.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/CartGridFunctionSet.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.o: ../src/utilities/CartGridPointwiseFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Tpo -c -o ../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.o `test -f '../src/utilities/CartGridPointwiseFunction.cpp' || echo '$(srcdir)/'`../src/utilities/CartGridPointwiseFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/CartGridPointwiseFunction.cpp' object='../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.o `test -f '../src/utilities/CartGridPointwiseFunction.cpp' || echo '$(srcdir)/'`../src/utilities/CartGridPointwiseFunction.cpp
+
+../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.obj: ../src/utilities/CartGridPointwiseFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Tpo -c -o ../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.obj `if test -f '../src/utilities/CartGridPointwiseFunction.cpp'; then $(CYGPATH_W) '../src/utilities/CartGridPointwiseFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/CartGridPointwiseFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/CartGridPointwiseFunction.cpp' object='../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-CartGridPointwiseFunction.obj `if test -f '../src/utilities/CartGridPointwiseFunction.cpp'; then $(CYGPATH_W) '../src/utilities/CartGridPointwiseFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/CartGridPointwiseFunction.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-CellNoCornersFillPattern.o: ../src/utilities/CellNoCornersFillPattern.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-CellNoCornersFillPattern.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-CellNoCornersFillPattern.Tpo -c -o ../src/utilities/libIBTK2d_a-CellNoCornersFillPattern.o `test -f '../src/utilities/CellNoCornersFillPattern.cpp' || echo '$(srcdir)/'`../src/utilities/CellNoCornersFillPattern.cpp
@@ -6563,6 +6592,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-CartGridFunctionSet.obj `if test -f '../src/utilities/CartGridFunctionSet.cpp'; then $(CYGPATH_W) '../src/utilities/CartGridFunctionSet.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/CartGridFunctionSet.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.o: ../src/utilities/CartGridPointwiseFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Tpo -c -o ../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.o `test -f '../src/utilities/CartGridPointwiseFunction.cpp' || echo '$(srcdir)/'`../src/utilities/CartGridPointwiseFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/CartGridPointwiseFunction.cpp' object='../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.o `test -f '../src/utilities/CartGridPointwiseFunction.cpp' || echo '$(srcdir)/'`../src/utilities/CartGridPointwiseFunction.cpp
+
+../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.obj: ../src/utilities/CartGridPointwiseFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Tpo -c -o ../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.obj `if test -f '../src/utilities/CartGridPointwiseFunction.cpp'; then $(CYGPATH_W) '../src/utilities/CartGridPointwiseFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/CartGridPointwiseFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/CartGridPointwiseFunction.cpp' object='../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-CartGridPointwiseFunction.obj `if test -f '../src/utilities/CartGridPointwiseFunction.cpp'; then $(CYGPATH_W) '../src/utilities/CartGridPointwiseFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/CartGridPointwiseFunction.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-CellNoCornersFillPattern.o: ../src/utilities/CellNoCornersFillPattern.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-CellNoCornersFillPattern.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Tpo -c -o ../src/utilities/libIBTK3d_a-CellNoCornersFillPattern.o `test -f '../src/utilities/CellNoCornersFillPattern.cpp' || echo '$(srcdir)/'`../src/utilities/CellNoCornersFillPattern.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Po
@@ -7647,6 +7690,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunctionSet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CellNoCornersFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CoarsenPatchStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po
@@ -7690,6 +7734,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunctionSet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CoarsenPatchStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po
@@ -7978,6 +8023,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridFunctionSet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CartGridPointwiseFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CellNoCornersFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CoarsenPatchStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-CopyToRootSchedule.Po
@@ -8021,6 +8067,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-AppInitializer.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridFunctionSet.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CartGridPointwiseFunction.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CellNoCornersFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CoarsenPatchStrategySet.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-CopyToRootSchedule.Po
