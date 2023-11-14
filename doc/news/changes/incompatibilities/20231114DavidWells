@@ -1,0 +1,7 @@
+Changed: IBAMR::INSHierarchyIntegrator now computes the current CFL number via
+IBAMR::INSHierarchyIntegrator::updateCurrentCFLNumber() and makes it available
+via IBAMR::INSHierarchyIntegrator::getCurrentCFLNumber(). Classes which inherit
+from INSHierarchyIntegrator need to implement updateCurrentCFLNumber() in a
+compatible way.
+<br>
+(David Wells, 2023/11/14)
