@@ -676,7 +676,6 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
 
                     if (requires_callback) continue;
 #if !defined(NDEBUG)
-                    TBOX_ASSERT(bc_type == DIRICHLET);
                     TBOX_ASSERT(!requires_callback);
 #endif
                     const int phi_idx =
@@ -694,7 +693,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
                     // Note: assumes that chi is positive when phi is negative.
                     const double chi = (1.0 - Hphi);
 
-                    // Homogeneous Neumann BCs have no contribution to the forcing term.
+                    // Homogeneous Neumann and Robin BCs have no contribution to the forcing term.
                     if (bc_type == DIRICHLET)
                     {
                         brinkman_forcing += (chi / eta) * bc_val;
@@ -771,6 +770,8 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
         }
         else
         {
+            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            hier_sc_data_ops.setToScalar(d_B_scratch_idx, 0.0);
             bp_fcn(d_B_scratch_idx, ls_solid_var, hier_math_ops, d_current_time, bp_ctx);
 
             // Compute chi*B throughout the hierarchy
@@ -855,7 +856,6 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
                 }
             }
             // Compute F += div(chi * B) - chi * div(B) throughout the hierarchy.
-            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_math_ops->div(
                 d_div_B_chi_scratch_idx, d_div_var, 1.0, d_B_chi_scratch_idx, d_B_var, NULL, d_current_time, false);
             hier_math_ops->div(

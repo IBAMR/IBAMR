@@ -14,9 +14,9 @@ L = 2.56
 H = 2.56
 
 // grid spacing parameters
-MAX_LEVELS = 1                            // maximum number of levels in locally refined grid
+MAX_LEVELS = 2                            // maximum number of levels in locally refined grid
 REF_RATIO  = 2                            // refinement ratio between levels
-N = 256                                   // actual number of grid cells on coarsest grid level
+N = 128                                   // actual number of grid cells on coarsest grid level
 Nx = N
 Ny = N
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
@@ -144,7 +144,7 @@ START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   10.0e0     // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
-REGRID_INTERVAL      =   50000000
+REGRID_INTERVAL      =   5
 CFL_MAX              =   0.5
 NUM_INS_CYCLES       =   2
 CONVECTIVE_FORM      = "CONSERVATIVE"                // how to compute the convective terms
@@ -152,7 +152,7 @@ INIT_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"
 CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"    // convective time stepping type
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 NORMALIZE_PRESSURE   = FALSE
-VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
+VORTICITY_TAGGING    = FALSE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
 DT_MAX               = 5e-5                     // /(REF_RATIO^(MAX_LEVELS - 1))
 REGRID_CFL_INTERVAL  = 0.2
@@ -309,22 +309,22 @@ Main {
    // discretization_form = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "bp_free_convection_2d.log"
+   log_file_name               = "bp_free_convection_amr_2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt","Silo"
    viz_dump_interval           = 100
-   viz_dump_dirname            = "viz_bp_free_convection_2d"
+   viz_dump_dirname            = "viz_bp_free_convection_amr_2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_bp_free_convection_2d"
+   restart_dump_dirname        = "restart_bp_free_convection_amr_2d"
 
 // post-processing data output parameters
    data_dump_interval         = 1000
-   data_dump_dirname          = "temperature_profile_2d"
+   data_dump_dirname          = "temperature_profile_amr_2d"
 
 // timer dump parameters
    timer_dump_interval         = 0
@@ -355,7 +355,7 @@ GriddingAlgorithm {
 }
 
 StandardTagAndInitialize {
-   tagging_method = "REFINE_BOXES"
+   tagging_method = "GRADIENT_DETECTOR"
    RefineBoxes {
       level_0 = [( 0 , 0 ),( Nx - 1 , Ny - 1 )]
       level_1 = [( 0 , 0 ),( 2*Nx - 1 , 2*Ny - 1 )]

@@ -28,7 +28,7 @@ main(int argc, char** argv)
     MPI_File_read(fh, &a[0], size, MPI_DOUBLE, &status);
     if (rank == 0)
     {
-        std::string ascii_filename = "temperature_profile";
+        std::string ascii_filename = "temperature_distribution";
         std::ofstream fout(ascii_filename.c_str(), std::ios::out);
         fout.precision(7);
         for (int i = 0; i < size;)

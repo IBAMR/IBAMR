@@ -45,6 +45,7 @@
 #include "BoussinesqForcing.h"
 #include "LevelSetInitialCondition.h"
 #include "SetFluidProperties.h"
+#include "TagLSRefinementCells.h"
 
 // Struct to specify the variables required for inhomogeneous Neumann conditions for Brinkman penalization
 struct BrinkmanPenalizationCtx
@@ -92,6 +93,12 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
         if (!level->checkAllocated(interface_cell_idx)) level->allocatePatchData(interface_cell_idx, time);
         if (!level->checkAllocated(prop_counter_idx)) level->allocatePatchData(prop_counter_idx, time);
     }
+
+    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+    hier_cc_data_ops.setToScalar(g_cc_scratch_idx, 0.0, false /*interior_only*/);
+    hier_cc_data_ops.setToScalar(interface_cell_idx, 0.0, false /*interior_only*/);
+    hier_cc_data_ops.setToScalar(prop_counter_idx, 0.0, false /*interior_only*/);
+    hier_cc_data_ops.setToScalar(beta_scratch_idx, 0.0, true /*interior_only*/);
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int phi_idx =
@@ -518,6 +525,17 @@ main(int argc, char* argv[])
         time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
                                                         static_cast<void*>(ptr_SetFluidProperties));
 
+        // Tag cells for refinement based on level set data
+        const double tag_value = input_db->getDouble("LS_TAG_VALUE");
+        const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
+        TagLSRefinementCells phi_inner_solid_tagger(adv_diff_integrator, phi_inner_solid_var, tag_value, tag_thresh);
+        time_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
+                                                               static_cast<void*>(&phi_inner_solid_tagger));
+
+        TagLSRefinementCells phi_outer_solid_tagger(adv_diff_integrator, phi_outer_solid_var, tag_value, tag_thresh);
+        time_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
+                                                               static_cast<void*>(&phi_outer_solid_tagger));
+
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
@@ -727,6 +745,7 @@ main(int argc, char* argv[])
         hier_cc_data_ops.setToScalar(g_cc_scratch_idx, 0.0, false /*interior_only*/);
         hier_cc_data_ops.setToScalar(interface_cell_idx, 0.0, false /*interior_only*/);
         hier_cc_data_ops.setToScalar(prop_counter_idx, 0.0, false /*interior_only*/);
+        hier_cc_data_ops.setToScalar(beta_scratch_idx, 0.0, true /*interior_only*/);
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
