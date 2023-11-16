@@ -21,6 +21,7 @@
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PhysicalBoundaryUtilities.h"
+#include "ibtk/PoissonUtilities.h"
 #include "ibtk/SideSynchCopyFillPattern.h"
 #include "ibtk/compiler_hints.h"
 #include "ibtk/ibtk_utilities.h"
@@ -40,7 +41,6 @@
 #include "Patch.h"
 #include "PatchGeometry.h"
 #include "PatchLevel.h"
-#include "PoissonSpecifications.h"
 #include "ProcessorMapping.h"
 #include "RefineAlgorithm.h"
 #include "RefineOperator.h"
@@ -62,11 +62,10 @@
 #include <petsclog.h>
 
 #include <algorithm>
-#include <array>
+#include <map>
 #include <memory>
 #include <numeric>
 #include <ostream>
-#include <set>
 #include <vector>
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
@@ -99,11 +98,11 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 void
 compute_grad_p_matrix_coefficients(SideData<NDIM, double>& matrix_coefs,
                                    Pointer<Patch<NDIM> > patch,
-                                   const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                   const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
                                    double data_time)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(bc_coefs.size() == NDIM);
+    TBOX_ASSERT(u_bc_coefs.size() == NDIM);
 #endif
     const int stencil_sz = 2;
 
@@ -133,9 +132,6 @@ compute_grad_p_matrix_coefficients(SideData<NDIM, double>& matrix_coefs,
     const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const double* const patch_x_lower = pgeom->getXLower();
-    const double* const patch_x_upper = pgeom->getXUpper();
-    const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
     Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
@@ -157,7 +153,6 @@ compute_grad_p_matrix_coefficients(SideData<NDIM, double>& matrix_coefs,
             const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
             const unsigned int location_index = bdry_box.getLocationIndex();
             const unsigned int bdry_normal_axis = location_index / 2;
-            const bool is_lower = location_index % 2 == 0;
 
             if (bdry_normal_axis != axis) continue;
 
@@ -190,7 +185,6 @@ compute_grad_p_matrix_coefficients(SideData<NDIM, double>& matrix_coefs,
                 const hier::Index<NDIM>& i = bc();
                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
                 const double& a = (*acoef_data)(i, 0);
-                const double& b = (*bcoef_data)(i, 0);
                 const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
 #if !defined(NDEBUG)
                 TBOX_ASSERT(velocity_bc);
@@ -228,7 +222,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
     int u_dof_index_idx,
     int p_dof_index_idx,
     Pointer<PatchLevel<NDIM> > patch_level,
-    VCInterpType mu_interp_type)
+    IBTK::VCInterpType mu_interp_type)
 {
     int ierr;
     if (mat)
@@ -548,6 +542,9 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
         const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const double* const dx = pgeom->getDx();
+
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         Pointer<SideData<NDIM, int> > rho_data = patch->getPatchData(rho_idx);
@@ -569,9 +566,15 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
         compute_grad_p_matrix_coefficients(upr_matrix_coefs, patch, u_bc_coefs[REAL], data_time);
         compute_grad_p_matrix_coefficients(upi_matrix_coefs, patch, u_bc_coefs[IMAG], data_time);
 
-        // Set matrix coefficients.
+// Set matrix coefficients for velocity DOFs.
+#if (NDIM == 2)
+        StencilMapType& stencil_map = stencil_map_vec[0];
+#endif
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
+#if (NDIM == 3)
+            StencilMapType& stencil_map = stencil_map_vec[axis];
+#endif
             for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
             {
                 const CellIndex<NDIM>& ic = b();
@@ -673,6 +676,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
             }
         }
 
+        // Set matrix coefficients for pressure DOFs.
         for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
         {
             const CellIndex<NDIM>& ic = b();

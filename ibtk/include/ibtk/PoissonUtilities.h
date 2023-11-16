@@ -185,6 +185,22 @@ public:
                                              VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 
     /*!
+     * Modify the right-hand side entries to account for physical boundary
+     * conditions corresponding to a side-centered discretization of the
+     * variable-coefficient viscous and dilatational stress tensor.
+     */
+    static void adjustVCSCViscousDilatationalOpRHSAtPhysicalBoundary(
+        SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+        const int rhs_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        int mu_idx,
+        int lambda_idx,
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+        double data_time,
+        bool homogeneous_bc,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
      * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
      * cell-centered discretization of the Laplacian.
      *
@@ -231,6 +247,24 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
         double alpha,
+        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry,
+        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+
+    /*!
+     * Modify the right-hand side entries to account for coarse-fine interface boundary conditions corresponding to a
+     * side-centered discretization of the variable coefficient viscous and dilatational stress tensor.
+     *
+     * \note This function simply uses ghost cell values in sol_data to provide Dirichlet boundary values at coarse-fine
+     * interfaces.  A more complete implementation would employ the interpolation stencil used at coarse-fine interfaces
+     * to modify both the matrix coefficients and RHS values at coarse-fine interfaces.
+     */
+    static void adjustVCSCViscousDilatationalOpRHSAtCoarseFineBoundary(
+        SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
+        const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
+        const int data_depth,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+        const int mu_idx,
+        const int lambda_idx,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 

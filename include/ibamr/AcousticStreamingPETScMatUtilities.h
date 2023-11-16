@@ -20,14 +20,14 @@
 
 #include <ibamr/config.h>
 
+#include "ibtk/ibtk_enums.h"
+
 #include "IntVector.h"
-#include "PoissonSpecifications.h"
 #include "tbox/Pointer.h"
 
-#include "petscao.h"
 #include "petscmat.h"
 
-#include <set>
+#include <array>
 #include <string>
 #include <vector>
 
@@ -85,7 +85,7 @@ public:
         int u_dof_index_idx,
         int p_dof_index_idx,
         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-        VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
+        IBTK::VCInterpType mu_interp_type = IBTK::VC_HARMONIC_INTERP);
 
     //\}
 
