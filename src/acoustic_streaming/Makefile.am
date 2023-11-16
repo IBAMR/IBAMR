@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2006 - 2020 by the IBAMR developers
+## Copyright (c) 2006 - 2019 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -13,4 +13,4 @@
 
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
-SUBDIRS = IB fortran acoustic_streaming adv_diff advect complex_fluids level_set navier_stokes utilities wave_generation .
+SUBDIRS = .

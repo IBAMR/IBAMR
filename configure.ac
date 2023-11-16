@@ -280,6 +280,7 @@ AC_CONFIG_FILES([
   src/Makefile
   src/fortran/Makefile
   src/IB/Makefile
+  src/acoustic_streaming/Makefile
   src/adv_diff/Makefile
   src/adv_diff/fortran/Makefile
   src/advect/Makefile

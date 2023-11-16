@@ -104,6 +104,9 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/NonbondedForceEvaluator.cpp \
 ../src/IB/Wall.cpp \
 ../src/IB/WallForceEvaluator.cpp \
+../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
+../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
+../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -213,6 +216,8 @@ if LIBMESH_ENABLED
 endif
 
 pkg_include_HEADERS += \
+../include/ibamr/AcousticStreamingPETScMatUtilities.h \
+../include/ibamr/AcousticStreamingPETScVecUtilities.h \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 ../include/ibamr/AdvDiffCUIConvectiveOperator.h \
 ../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
@@ -242,6 +247,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
+../include/ibamr/FOAcousticStreamingPETScLevelSolver.h \
 ../include/ibamr/FastSweepingLSMethod.h \
 ../include/ibamr/FifthOrderStokesWaveGenerator.h \
 ../include/ibamr/FirstOrderStokesWaveGenerator.h \

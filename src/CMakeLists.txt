@@ -54,6 +54,11 @@ ENDFOREACH()
 # set up C++:
 #
 SET(CXX_SRC
+  # acoustic_streaming
+  acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+  acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+  acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp 
+
   # adv diff
   adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp
   adv_diff/AdvDiffConvectiveOperatorManager.cpp
