@@ -170,6 +170,10 @@ ENDIF()
 SETUP_2D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 
+# acoustic_streaming:
+SETUP_2D(fo_acoustic_streaming fo_acoustic_streaming_solver.cpp)
+SETUP_3D(fo_acoustic_streaming fo_acoustic_streaming_solver.cpp)
+
 # wave_tank:
 IF(${IBAMR_HAVE_LIBMESH})
   SETUP(wave_tank nwt_cylinder.cpp IBAMR2d)

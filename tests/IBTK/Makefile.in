@@ -108,7 +108,9 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	nodal_interpolation_01_2d$(EXEEXT) \
 	nodal_interpolation_01_3d$(EXEEXT) curl_01_2d$(EXEEXT) \
 	curl_01_3d$(EXEEXT) marker_points_01_2d$(EXEEXT) \
-	marker_points_02_2d$(EXEEXT) $(am__EXEEXT_1)
+	marker_points_02_2d$(EXEEXT) \
+	fo_acoustic_streaming_solver_2d$(EXEEXT) \
+	fo_acoustic_streaming_solver_3d$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -265,6 +267,24 @@ fischer_guess_01_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(fischer_guess_01_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_fo_acoustic_streaming_solver_2d_OBJECTS = fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.$(OBJEXT)
+fo_acoustic_streaming_solver_2d_OBJECTS =  \
+	$(am_fo_acoustic_streaming_solver_2d_OBJECTS)
+fo_acoustic_streaming_solver_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+fo_acoustic_streaming_solver_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(fo_acoustic_streaming_solver_2d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_fo_acoustic_streaming_solver_3d_OBJECTS = fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.$(OBJEXT)
+fo_acoustic_streaming_solver_3d_OBJECTS =  \
+	$(am_fo_acoustic_streaming_solver_3d_OBJECTS)
+fo_acoustic_streaming_solver_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+	$(IBAMR_LIBS)
+fo_acoustic_streaming_solver_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(fo_acoustic_streaming_solver_3d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_ghost_accumulation_01_2d_OBJECTS =  \
 	ghost_accumulation_01_2d-ghost_accumulation_01.$(OBJEXT)
 ghost_accumulation_01_2d_OBJECTS =  \
@@ -599,6 +619,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/fe_values_01-fe_values_01.Po \
 	./$(DEPDIR)/fe_values_02-fe_values_02.Po \
 	./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po \
+	./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po \
+	./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po \
 	./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po \
 	./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po \
@@ -664,6 +686,8 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(elem_hmax_01_SOURCES) $(elem_hmax_02_SOURCES) \
 	$(equal_eps_SOURCES) $(fe_values_01_SOURCES) \
 	$(fe_values_02_SOURCES) $(fischer_guess_01_SOURCES) \
+	$(fo_acoustic_streaming_solver_2d_SOURCES) \
+	$(fo_acoustic_streaming_solver_3d_SOURCES) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
@@ -699,6 +723,8 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(am__fe_values_01_SOURCES_DIST) \
 	$(am__fe_values_02_SOURCES_DIST) \
 	$(am__fischer_guess_01_SOURCES_DIST) \
+	$(fo_acoustic_streaming_solver_2d_SOURCES) \
+	$(fo_acoustic_streaming_solver_3d_SOURCES) \
 	$(ghost_accumulation_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
@@ -1171,6 +1197,12 @@ version_macros_SOURCES = version_macros.cpp
 snapshot_cache_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 snapshot_cache_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 snapshot_cache_01_2d_SOURCES = snapshot_cache_01.cpp
+fo_acoustic_streaming_solver_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+fo_acoustic_streaming_solver_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+fo_acoustic_streaming_solver_2d_SOURCES = fo_acoustic_streaming_solver.cpp
+fo_acoustic_streaming_solver_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+fo_acoustic_streaming_solver_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+fo_acoustic_streaming_solver_3d_SOURCES = fo_acoustic_streaming_solver.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1257,6 +1289,14 @@ fe_values_02$(EXEEXT): $(fe_values_02_OBJECTS) $(fe_values_02_DEPENDENCIES) $(EX
 fischer_guess_01$(EXEEXT): $(fischer_guess_01_OBJECTS) $(fischer_guess_01_DEPENDENCIES) $(EXTRA_fischer_guess_01_DEPENDENCIES) 
 	@rm -f fischer_guess_01$(EXEEXT)
 	$(AM_V_CXXLD)$(fischer_guess_01_LINK) $(fischer_guess_01_OBJECTS) $(fischer_guess_01_LDADD) $(LIBS)
+
+fo_acoustic_streaming_solver_2d$(EXEEXT): $(fo_acoustic_streaming_solver_2d_OBJECTS) $(fo_acoustic_streaming_solver_2d_DEPENDENCIES) $(EXTRA_fo_acoustic_streaming_solver_2d_DEPENDENCIES) 
+	@rm -f fo_acoustic_streaming_solver_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(fo_acoustic_streaming_solver_2d_LINK) $(fo_acoustic_streaming_solver_2d_OBJECTS) $(fo_acoustic_streaming_solver_2d_LDADD) $(LIBS)
+
+fo_acoustic_streaming_solver_3d$(EXEEXT): $(fo_acoustic_streaming_solver_3d_OBJECTS) $(fo_acoustic_streaming_solver_3d_DEPENDENCIES) $(EXTRA_fo_acoustic_streaming_solver_3d_DEPENDENCIES) 
+	@rm -f fo_acoustic_streaming_solver_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(fo_acoustic_streaming_solver_3d_LINK) $(fo_acoustic_streaming_solver_3d_OBJECTS) $(fo_acoustic_streaming_solver_3d_LDADD) $(LIBS)
 
 ghost_accumulation_01_2d$(EXEEXT): $(ghost_accumulation_01_2d_OBJECTS) $(ghost_accumulation_01_2d_DEPENDENCIES) $(EXTRA_ghost_accumulation_01_2d_DEPENDENCIES) 
 	@rm -f ghost_accumulation_01_2d$(EXEEXT)
@@ -1433,6 +1473,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_values_01-fe_values_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fe_values_02-fe_values_02.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po@am__quote@ # am--include-marker
@@ -1684,6 +1726,34 @@ fischer_guess_01-fischer_guess_01.obj: fischer_guess_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fischer_guess_01.cpp' object='fischer_guess_01-fischer_guess_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fischer_guess_01_CXXFLAGS) $(CXXFLAGS) -c -o fischer_guess_01-fischer_guess_01.obj `if test -f 'fischer_guess_01.cpp'; then $(CYGPATH_W) 'fischer_guess_01.cpp'; else $(CYGPATH_W) '$(srcdir)/fischer_guess_01.cpp'; fi`
+
+fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.o: fo_acoustic_streaming_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fo_acoustic_streaming_solver_2d_CXXFLAGS) $(CXXFLAGS) -MT fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.o -MD -MP -MF $(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Tpo -c -o fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.o `test -f 'fo_acoustic_streaming_solver.cpp' || echo '$(srcdir)/'`fo_acoustic_streaming_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Tpo $(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fo_acoustic_streaming_solver.cpp' object='fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fo_acoustic_streaming_solver_2d_CXXFLAGS) $(CXXFLAGS) -c -o fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.o `test -f 'fo_acoustic_streaming_solver.cpp' || echo '$(srcdir)/'`fo_acoustic_streaming_solver.cpp
+
+fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.obj: fo_acoustic_streaming_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fo_acoustic_streaming_solver_2d_CXXFLAGS) $(CXXFLAGS) -MT fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.obj -MD -MP -MF $(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Tpo -c -o fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.obj `if test -f 'fo_acoustic_streaming_solver.cpp'; then $(CYGPATH_W) 'fo_acoustic_streaming_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/fo_acoustic_streaming_solver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Tpo $(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fo_acoustic_streaming_solver.cpp' object='fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fo_acoustic_streaming_solver_2d_CXXFLAGS) $(CXXFLAGS) -c -o fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.obj `if test -f 'fo_acoustic_streaming_solver.cpp'; then $(CYGPATH_W) 'fo_acoustic_streaming_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/fo_acoustic_streaming_solver.cpp'; fi`
+
+fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.o: fo_acoustic_streaming_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fo_acoustic_streaming_solver_3d_CXXFLAGS) $(CXXFLAGS) -MT fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.o -MD -MP -MF $(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Tpo -c -o fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.o `test -f 'fo_acoustic_streaming_solver.cpp' || echo '$(srcdir)/'`fo_acoustic_streaming_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Tpo $(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fo_acoustic_streaming_solver.cpp' object='fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fo_acoustic_streaming_solver_3d_CXXFLAGS) $(CXXFLAGS) -c -o fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.o `test -f 'fo_acoustic_streaming_solver.cpp' || echo '$(srcdir)/'`fo_acoustic_streaming_solver.cpp
+
+fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.obj: fo_acoustic_streaming_solver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fo_acoustic_streaming_solver_3d_CXXFLAGS) $(CXXFLAGS) -MT fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.obj -MD -MP -MF $(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Tpo -c -o fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.obj `if test -f 'fo_acoustic_streaming_solver.cpp'; then $(CYGPATH_W) 'fo_acoustic_streaming_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/fo_acoustic_streaming_solver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Tpo $(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fo_acoustic_streaming_solver.cpp' object='fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fo_acoustic_streaming_solver_3d_CXXFLAGS) $(CXXFLAGS) -c -o fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.obj `if test -f 'fo_acoustic_streaming_solver.cpp'; then $(CYGPATH_W) 'fo_acoustic_streaming_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/fo_acoustic_streaming_solver.cpp'; fi`
 
 ghost_accumulation_01_2d-ghost_accumulation_01.o: ghost_accumulation_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ghost_accumulation_01_2d_CXXFLAGS) $(CXXFLAGS) -MT ghost_accumulation_01_2d-ghost_accumulation_01.o -MD -MP -MF $(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Tpo -c -o ghost_accumulation_01_2d-ghost_accumulation_01.o `test -f 'ghost_accumulation_01.cpp' || echo '$(srcdir)/'`ghost_accumulation_01.cpp
@@ -2375,6 +2445,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/fe_values_01-fe_values_01.Po
 	-rm -f ./$(DEPDIR)/fe_values_02-fe_values_02.Po
 	-rm -f ./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po
+	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po
+	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
@@ -2472,6 +2544,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/fe_values_01-fe_values_01.Po
 	-rm -f ./$(DEPDIR)/fe_values_02-fe_values_02.Po
 	-rm -f ./$(DEPDIR)/fischer_guess_01-fischer_guess_01.Po
+	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po
+	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_2d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_accumulation_01_3d-ghost_accumulation_01.Po
 	-rm -f ./$(DEPDIR)/ghost_indices_01_2d-ghost_indices_01.Po
