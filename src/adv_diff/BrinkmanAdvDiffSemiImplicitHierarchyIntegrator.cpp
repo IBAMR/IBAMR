@@ -94,7 +94,6 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 // Number of ghosts cells used for each variable quantity.
-static const int CELLG = 1;
 static const int SIDEG = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -133,7 +132,6 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
         hier_ops_manager->getOperationsDouble(new FaceVariable<NDIM, double>("fc_var"), hierarchy, true);
 
     // Register additional variables required for present time stepping algorithm.
-    const IntVector<NDIM> cell_ghosts = CELLG;
     const IntVector<NDIM> side_ghosts = SIDEG;
     const IntVector<NDIM> no_ghosts = 0;
     for (const auto& Q_var : d_Q_var)

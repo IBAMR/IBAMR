@@ -2201,7 +2201,6 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                     }
                     else
                     {
-                        const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
                         const SideIndex<NDIM> se(i, comp, SideIndex<NDIM>::Lower);
                         const SideIndex<NDIM> ne(i, comp, SideIndex<NDIM>::Upper);
 

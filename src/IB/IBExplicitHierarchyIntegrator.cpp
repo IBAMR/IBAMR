@@ -500,7 +500,6 @@ IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>&
     // Ensure that whichever patch data indices we need to exist are present.
     if (d_u_half_idx == IBTK::invalid_index)
     {
-        const IntVector<NDIM> ib_ghosts = LEInteractor::getMinimumGhostWidth(d_marker_kernel);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         d_u_half_idx = var_db->registerClonedPatchDataIndex(getVelocityVariable(), d_u_idx);
         d_ib_data.setFlag(d_u_half_idx);

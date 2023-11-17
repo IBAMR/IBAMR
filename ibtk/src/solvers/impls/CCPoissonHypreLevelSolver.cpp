@@ -1012,8 +1012,6 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
-    const IntVector<NDIM> ghosts = 1;
-    const IntVector<NDIM> no_ghosts = 0;
     for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
