@@ -1,6 +1,8 @@
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
 DummyAdvDiff: initializeLevelDataSpecialized()
 DummyAdvDiff2: initializeLevelDataSpecialized()
+DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
+DummyAdvDiff2: getMaximumTimeStepSizeSpecialized()
 DummyAdvDiff: resetHierarchyConfigurationSpecialized()
 DummyAdvDiff2: resetHierarchyConfigurationSpecialized()
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():

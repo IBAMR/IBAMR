@@ -1,5 +1,6 @@
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 0
 DummyAdvDiff: initializeLevelDataSpecialized()
+DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
 DummyAdvDiff: resetHierarchyConfigurationSpecialized()
 INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyData():
   projecting the interpolated velocity field

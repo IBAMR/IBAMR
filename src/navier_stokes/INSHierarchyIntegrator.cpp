@@ -65,7 +65,7 @@ namespace IBAMR
 namespace
 {
 // Version of INSHierarchyIntegrator restart file data.
-static const int INS_HIERARCHY_INTEGRATOR_VERSION = 2;
+static const int INS_HIERARCHY_INTEGRATOR_VERSION = 3;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -415,6 +415,33 @@ INSHierarchyIntegrator::getNumberOfCycles() const
     return num_cycles;
 } // getNumberOfCycles
 
+double
+INSHierarchyIntegrator::getCurrentCFLNumber() const
+{
+    return d_cfl_current;
+} // getCurrentCFLNumber
+
+void
+INSHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
+                                                      const double new_time,
+                                                      const bool skip_synchronize_new_state_data,
+                                                      const int num_cycles)
+{
+    // The child class has the data indices so we have to look them up manually at this point
+    auto* var_db = VariableDatabase<NDIM>::getDatabase();
+    updateCurrentCFLNumber(var_db->mapVariableAndContextToIndex(getVelocityVariable(), getNewContext()),
+                           new_time - current_time);
+
+    if (!d_parent_integrator && d_enable_logging)
+    {
+        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << d_cfl_current << "\n";
+    }
+
+    HierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    return;
+} // postprocessIntegrateHierarchy
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
@@ -505,6 +532,37 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
     return;
 } // INSHierarchyIntegrator
 
+void
+INSHierarchyIntegrator::updateCurrentCFLNumber(const int data_idx, const double dt)
+{
+    double cfl_max = 0.0;
+    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
+    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double dx_min = *(std::min_element(dx, dx + NDIM));
+            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(data_idx);
+            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(data_idx);
+#ifndef NDEBUG
+            TBOX_ASSERT(u_cc_new_data || u_sc_new_data);
+#endif
+            double u_max = 0.0;
+            if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
+            if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
+            cfl_max = std::max(cfl_max, u_max * dt / dx_min);
+        }
+    }
+
+    d_cfl_current = IBTK_MPI::maxReduction(cfl_max);
+} // updateCurrentCFLNumber
+
 double
 INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
@@ -541,6 +599,7 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("d_rho", d_problem_coefs.getRho());
     db->putDouble("d_mu", d_problem_coefs.getMu());
     db->putDouble("d_lambda", d_problem_coefs.getLambda());
+    db->putDouble("d_cfl_current", d_cfl_current);
     db->putDouble("d_cfl_max", d_cfl_max);
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     if (d_Omega_rel_thresh.size() > 0) db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
@@ -801,6 +860,7 @@ INSHierarchyIntegrator::getFromRestart()
     d_problem_coefs.setMu(db->getDouble("d_mu"));
     d_problem_coefs.setLambda(db->getDouble("d_lambda"));
     d_num_cycles = db->getInteger("d_num_cycles");
+    d_cfl_current = db->getDouble("d_cfl_current");
     d_cfl_max = db->getDouble("d_cfl_max");
     d_using_vorticity_tagging = db->getBool("d_using_vorticity_tagging");
     if (db->keyExists("d_Omega_rel_thresh"))

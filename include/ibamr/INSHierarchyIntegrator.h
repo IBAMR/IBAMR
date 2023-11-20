@@ -371,6 +371,21 @@ public:
      */
     int getNumberOfCycles() const override;
 
+    /*!
+     * Finish postprocessing the hierarchy by computing the current CFL number.
+     */
+    virtual void postprocessIntegrateHierarchy(double current_time,
+                                               double new_time,
+                                               bool skip_synchronize_new_state_data,
+                                               int num_cycles = 1) override;
+
+    /*!
+     * Return the current CFL number (i.e., the CFL number computed from the
+     * current velocity field). This is typically computed at the end of each
+     * time step.
+     */
+    virtual double getCurrentCFLNumber() const;
+
 protected:
     /*!
      * The constructor for class INSHierarchyIntegrator sets some default
@@ -421,6 +436,14 @@ protected:
      * Pure virtual method to project the velocity field following a regridding operation.
      */
     virtual void regridProjection() = 0;
+
+    /*!
+     * Update the current CFL number (i.e., at the end of a timestep).
+     *
+     * @note this method can handle both cell-centered and side-centered
+     * velocities.
+     */
+    virtual void updateCurrentCFLNumber(const int data_idx, const double dt);
 
     /*!
      * Return the maximum stable time step size.
@@ -476,6 +499,11 @@ protected:
      */
     std::vector<SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> > d_adv_diff_hier_integrators;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_adv_diff_var;
+
+    /*!
+     * Current CFL number.
+     */
+    double d_cfl_current = std::numeric_limits<double>::quiet_NaN();
 
     /*!
      * The maximum CFL number.

@@ -243,35 +243,7 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
         level->deallocatePatchData(d_ib_data);
     }
 
-    // Determine the CFL number.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
-                                                               d_ins_hier_integrator->getNewContext());
-    const double dt = new_time - current_time;
-    double cfl_max = 0.0;
-    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
-    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const double* const dx = pgeom->getDx();
-            const double dx_min = *(std::min_element(dx, dx + NDIM));
-            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(u_new_idx);
-            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(u_new_idx);
-            double u_max = 0.0;
-            if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
-            if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
-            cfl_max = std::max(cfl_max, u_max * dt / dx_min);
-        }
-    }
-
-    cfl_max = IBTK_MPI::maxReduction(cfl_max);
-    d_regrid_fluid_cfl_estimate += cfl_max;
+    d_regrid_fluid_cfl_estimate += d_ins_hier_integrator->getCurrentCFLNumber();
 
     // Not all IBStrategy objects implement this so make it optional (-1.0 is
     // the default value)
@@ -280,7 +252,9 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
 
     if (d_enable_logging)
     {
-        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+        plog << d_object_name
+             << "::postprocessIntegrateHierarchy(): CFL number = " << d_ins_hier_integrator->getCurrentCFLNumber()
+             << "\n";
         plog << d_object_name
              << "::postprocessIntegrateHierarchy(): Eulerian estimate of "
                 "upper bound on IB point displacement since last regrid = "
