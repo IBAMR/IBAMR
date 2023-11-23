@@ -292,8 +292,8 @@ AcousticStreamingPETScVecUtilities::constructPatchLevelDOFIndices(std::vector<in
     if (u_dof_index_sc_var && p_dof_index_cc_var)
     {
 #if !defined(NDEBUG)
-        Pointer<SideDataFactory<NDIM, double> > sc_factory = u_dof_index_sc_var->getPatchDataFactory();
-        Pointer<CellDataFactory<NDIM, double> > cc_factory = p_dof_index_cc_var->getPatchDataFactory();
+        Pointer<SideDataFactory<NDIM, int> > sc_factory = u_dof_index_sc_var->getPatchDataFactory();
+        Pointer<CellDataFactory<NDIM, int> > cc_factory = p_dof_index_cc_var->getPatchDataFactory();
         TBOX_ASSERT(sc_factory->getDefaultDepth() == 2);
         TBOX_ASSERT(cc_factory->getDefaultDepth() == 2);
 #endif

@@ -547,7 +547,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
 
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
-        Pointer<SideData<NDIM, int> > rho_data = patch->getPatchData(rho_idx);
+        Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
 
         const IntVector<NDIM> no_ghosts(0);
         SideData<NDIM, double> uur_matrix_coefs(patch_box, uu_stencil_sz, no_ghosts);

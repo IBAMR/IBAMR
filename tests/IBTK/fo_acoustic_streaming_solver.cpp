@@ -58,7 +58,7 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "fo_acoustic_streaming.log");
+        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "fo_acoustic_streaming_solver.log");
         Pointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
@@ -83,9 +83,12 @@ main(int argc, char* argv[])
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
         Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc", /*depth*/ 2);
-        Pointer<SideVariable<NDIM, double> > f_sc_var = new SideVariable<NDIM, double>("f_sc", /*depth*/ 2);
-        Pointer<SideVariable<NDIM, double> > e_sc_var = new SideVariable<NDIM, double>("e_sc", /*depth*/ 2);
-        Pointer<SideVariable<NDIM, double> > r_sc_var = new SideVariable<NDIM, double>("r_sc", /*depth*/ 2);
+        Pointer<CellVariable<NDIM, double> > p_cc_var = new CellVariable<NDIM, double>("p_cc", /*depth*/ 2);
+        Pointer<SideVariable<NDIM, double> > fu_sc_var = new SideVariable<NDIM, double>("fu_sc", /*depth*/ 2);
+        Pointer<CellVariable<NDIM, double> > fp_cc_var = new CellVariable<NDIM, double>("fp_cc", /*depth*/ 2);
+        Pointer<SideVariable<NDIM, double> > eu_sc_var = new SideVariable<NDIM, double>("eu_sc", /*depth*/ 2);
+        Pointer<CellVariable<NDIM, double> > ep_cc_var = new CellVariable<NDIM, double>("ep_cc", /*depth*/ 2);
+
 #if (NDIM == 2)
         Pointer<NodeVariable<NDIM, double> > mu_nc_var = new NodeVariable<NDIM, double>("mu_node");
         const int mu_nc_idx = var_db->registerVariableAndContext(mu_nc_var, ctx, IntVector<NDIM>(1));
@@ -103,50 +106,62 @@ main(int argc, char* argv[])
         const int lambda_cc_idx = var_db->registerVariableAndContext(lambda_cc_var, ctx, IntVector<NDIM>(1));
 
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(1));
-        const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVector<NDIM>(1));
-        const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVector<NDIM>(1));
-        const int r_sc_idx = var_db->registerVariableAndContext(r_sc_var, ctx, IntVector<NDIM>(1));
+        const int p_cc_idx = var_db->registerVariableAndContext(p_cc_var, ctx, IntVector<NDIM>(1));
+        const int fu_sc_idx = var_db->registerVariableAndContext(fu_sc_var, ctx, IntVector<NDIM>(1));
+        const int fp_cc_idx = var_db->registerVariableAndContext(fp_cc_var, ctx, IntVector<NDIM>(1));
+        const int eu_sc_idx = var_db->registerVariableAndContext(eu_sc_var, ctx, IntVector<NDIM>(1));
+        const int ep_cc_idx = var_db->registerVariableAndContext(ep_cc_var, ctx, IntVector<NDIM>(1));
 
+        // Plotting variables
         Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc", 2 * NDIM);
-        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc", 2 * NDIM);
-        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc", 2 * NDIM);
-        Pointer<CellVariable<NDIM, double> > r_cc_var = new CellVariable<NDIM, double>("r_cc", 2 * NDIM);
+        Pointer<CellVariable<NDIM, double> > fu_cc_var = new CellVariable<NDIM, double>("fu_cc", 2 * NDIM);
+        Pointer<CellVariable<NDIM, double> > eu_cc_var = new CellVariable<NDIM, double>("eu_cc", 2 * NDIM);
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(0));
-        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(0));
-        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(0));
-        const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector<NDIM>(0));
+        const int fu_cc_idx = var_db->registerVariableAndContext(fu_cc_var, ctx, IntVector<NDIM>(0));
+        const int eu_cc_idx = var_db->registerVariableAndContext(eu_cc_var, ctx, IntVector<NDIM>(0));
 
         // Register variables for plotting.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
-        visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
+        // visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             visit_data_writer->registerPlotQuantity("u_cc_real_" + std::to_string(d), "SCALAR", u_cc_idx, d);
             visit_data_writer->registerPlotQuantity("u_cc_imag_" + std::to_string(d), "SCALAR", u_cc_idx, NDIM + d);
         }
 
-        visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "VECTOR", f_cc_idx);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        // visit_data_writer->registerPlotQuantity(p_cc_var->getName(), "VECTOR", p_cc_idx);
         {
-            visit_data_writer->registerPlotQuantity("f_cc_real_" + std::to_string(d), "SCALAR", f_cc_idx, d);
-            visit_data_writer->registerPlotQuantity("f_cc_imag_" + std::to_string(d), "SCALAR", f_cc_idx, NDIM + d);
+            visit_data_writer->registerPlotQuantity("p_cc_real", "SCALAR", p_cc_idx, 0);
+            visit_data_writer->registerPlotQuantity("p_cc_imag", "SCALAR", p_cc_idx, 1);
         }
 
-        visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "VECTOR", e_cc_idx);
+        // visit_data_writer->registerPlotQuantity(fu_cc_var->getName(), "VECTOR", fu_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            visit_data_writer->registerPlotQuantity("e_cc_real_" + std::to_string(d), "SCALAR", e_cc_idx, d);
-            visit_data_writer->registerPlotQuantity("e_cc_imag_" + std::to_string(d), "SCALAR", e_cc_idx, NDIM + d);
+            visit_data_writer->registerPlotQuantity("fu_cc_real_" + std::to_string(d), "SCALAR", fu_cc_idx, d);
+            visit_data_writer->registerPlotQuantity("fu_cc_imag_" + std::to_string(d), "SCALAR", fu_cc_idx, NDIM + d);
         }
 
-        visit_data_writer->registerPlotQuantity(r_cc_var->getName(), "VECTOR", r_cc_idx);
+        // visit_data_writer->registerPlotQuantity(fp_cc_var->getName(), "VECTOR", fp_cc_idx);
+        {
+            visit_data_writer->registerPlotQuantity("fp_cc_real", "SCALAR", fp_cc_idx, 0);
+            visit_data_writer->registerPlotQuantity("fp_cc_imag", "SCALAR", fp_cc_idx, 1);
+        }
+
+        // visit_data_writer->registerPlotQuantity(eu_cc_var->getName(), "VECTOR", eu_cc_idx);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            visit_data_writer->registerPlotQuantity("r_cc_real_" + std::to_string(d), "SCALAR", r_cc_idx, d);
-            visit_data_writer->registerPlotQuantity("r_cc_imag_" + std::to_string(d), "SCALAR", r_cc_idx, NDIM + d);
+            visit_data_writer->registerPlotQuantity("eu_cc_real_" + std::to_string(d), "SCALAR", eu_cc_idx, d);
+            visit_data_writer->registerPlotQuantity("eu_cc_imag_" + std::to_string(d), "SCALAR", eu_cc_idx, NDIM + d);
+        }
+
+        // visit_data_writer->registerPlotQuantity(ep_cc_var->getName(), "VECTOR", ep_cc_idx);
+        {
+            visit_data_writer->registerPlotQuantity("ep_cc_real", "SCALAR", ep_cc_idx, 0);
+            visit_data_writer->registerPlotQuantity("ep_cc_imag", "SCALAR", ep_cc_idx, 1);
         }
 
 #if (NDIM == 2)
@@ -172,9 +187,11 @@ main(int argc, char* argv[])
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_sc_idx, 0.0);
-            level->allocatePatchData(f_sc_idx, 0.0);
-            level->allocatePatchData(e_sc_idx, 0.0);
-            level->allocatePatchData(r_sc_idx, 0.0);
+            level->allocatePatchData(p_cc_idx, 0.0);
+            level->allocatePatchData(fu_sc_idx, 0.0);
+            level->allocatePatchData(fp_cc_idx, 0.0);
+            level->allocatePatchData(eu_sc_idx, 0.0);
+            level->allocatePatchData(ep_cc_idx, 0.0);
 #if (NDIM == 2)
             level->allocatePatchData(mu_nc_idx, 0.0);
 #elif (NDIM == 3)
@@ -185,29 +202,29 @@ main(int argc, char* argv[])
             level->allocatePatchData(lambda_cc_idx, 0.0);
 
             level->allocatePatchData(u_cc_idx, 0.0);
-            level->allocatePatchData(f_cc_idx, 0.0);
-            level->allocatePatchData(e_cc_idx, 0.0);
-            level->allocatePatchData(r_cc_idx, 0.0);
+            level->allocatePatchData(fu_cc_idx, 0.0);
+            level->allocatePatchData(eu_cc_idx, 0.0);
         }
 
         // Setup vector objects.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int h_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
+        const int h_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM, double> x_vec("up", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM, double> f_vec("f_up", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorReal<NDIM, double> e_vec("e_up", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
-        u_vec.addComponent(u_sc_var, u_sc_idx, h_sc_idx);
-        f_vec.addComponent(f_sc_var, f_sc_idx, h_sc_idx);
-        e_vec.addComponent(e_sc_var, e_sc_idx, h_sc_idx);
-        r_vec.addComponent(r_sc_var, r_sc_idx, h_sc_idx);
+        x_vec.addComponent(u_sc_var, u_sc_idx, h_sc_idx);
+        x_vec.addComponent(p_cc_var, p_cc_idx, h_cc_idx);
+        f_vec.addComponent(fu_sc_var, fu_sc_idx, h_sc_idx);
+        f_vec.addComponent(fp_cc_var, fp_cc_idx, h_cc_idx);
+        e_vec.addComponent(eu_sc_var, eu_sc_idx, h_sc_idx);
+        e_vec.addComponent(ep_cc_var, ep_cc_idx, h_cc_idx);
 
-        u_vec.setToScalar(0.0);
+        x_vec.setToScalar(0.0);
         f_vec.setToScalar(0.0);
         e_vec.setToScalar(0.0);
-        r_vec.setToScalar(0.0);
 
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -255,11 +272,16 @@ main(int argc, char* argv[])
             }
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = nullptr;
-        if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
+        std::vector<RobinBcCoefStrategy<NDIM>*> rho_bc_coefs(NDIM, nullptr);
+        if (!(periodic_shift.min() > 0))
         {
-            rho_bc_coef = new muParserRobinBcCoefs(
-                "rho_bc_coef", app_initializer->getComponentDatabase("DensityBcCoefs"), grid_geometry);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                rho_bc_coefs[d] = new muParserRobinBcCoefs(
+                    "rho_bc_coef",
+                    app_initializer->getComponentDatabase("DensityBcCoefs_" + std::to_string(d)),
+                    grid_geometry);
+            }
         }
 
         RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
@@ -278,16 +300,25 @@ main(int argc, char* argv[])
 
         // Setup exact solutions.
         muParserCartGridFunction u_fcn("u", app_initializer->getComponentDatabase("u"), grid_geometry);
-        muParserCartGridFunction f_fcn("f", app_initializer->getComponentDatabase("f"), grid_geometry);
+        muParserCartGridFunction p_fcn("p", app_initializer->getComponentDatabase("p"), grid_geometry);
+        muParserCartGridFunction fu_fcn("fu", app_initializer->getComponentDatabase("fu"), grid_geometry);
+        muParserCartGridFunction fp_fcn("fp", app_initializer->getComponentDatabase("fp"), grid_geometry);
         muParserCartGridFunction mu_fcn("mu", app_initializer->getComponentDatabase("mu"), grid_geometry);
+        muParserCartGridFunction rho_fcn("rho", app_initializer->getComponentDatabase("rho"), grid_geometry);
+        muParserCartGridFunction lambda_fcn("lambda", app_initializer->getComponentDatabase("lambda"), grid_geometry);
 
-        u_fcn.setDataOnPatchHierarchy(e_sc_idx, e_sc_var, patch_hierarchy, 0.0);
-        f_fcn.setDataOnPatchHierarchy(f_sc_idx, f_sc_var, patch_hierarchy, 0.0);
+        u_fcn.setDataOnPatchHierarchy(eu_sc_idx, eu_sc_var, patch_hierarchy, 0.0);
+        p_fcn.setDataOnPatchHierarchy(ep_cc_idx, ep_cc_var, patch_hierarchy, 0.0);
+        fu_fcn.setDataOnPatchHierarchy(fu_sc_idx, fu_sc_var, patch_hierarchy, 0.0);
+        fp_fcn.setDataOnPatchHierarchy(fp_cc_idx, fp_cc_var, patch_hierarchy, 0.0);
 #if (NDIM == 2)
         mu_fcn.setDataOnPatchHierarchy(mu_nc_idx, mu_nc_var, patch_hierarchy, 0.0);
 #elif (NDIM == 3)
         mu_fcn.setDataOnPatchHierarchy(mu_ec_idx, mu_ec_var, patch_hierarchy, 0.0);
 #endif
+        rho_fcn.setDataOnPatchHierarchy(rho_sc_idx, rho_sc_var, patch_hierarchy, 0.0);
+        lambda_fcn.setDataOnPatchHierarchy(lambda_cc_idx, lambda_cc_var, patch_hierarchy, 0.0);
+
         // Fill ghost cells of viscosity.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> transaction_comp(3);
@@ -317,7 +348,7 @@ main(int argc, char* argv[])
                                                                 /*DATA_COARSEN_TYPE*/ "CONSERVATIVE_COARSEN",
                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                rho_bc_coef,
+                                                                rho_bc_coefs,
                                                                 Pointer<VariableFillPattern<NDIM> >(NULL));
 
         transaction_comp[2] = InterpolationTransactionComponent(lambda_cc_idx,
@@ -349,12 +380,12 @@ main(int argc, char* argv[])
         petsc_solver.setShearViscosityPatchDataIndex(mu_ec_idx);
 #endif
         petsc_solver.setBulkViscosityPatchDataIndex(lambda_cc_idx);
-        petsc_solver.initializeSolverState(u_vec, f_vec);
-        petsc_solver.solveSystem(u_vec, f_vec);
+        petsc_solver.initializeSolverState(x_vec, f_vec);
+        petsc_solver.solveSystem(x_vec, f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&u_vec, false));
+        // e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
+        //                Pointer<SAMRAIVectorReal<NDIM, double> >(&x_vec, false));
         const double e_max_norm = e_vec.maxNorm();
         const double e_l2_norm = e_vec.L2Norm();
         const double e_l1_norm = e_vec.L1Norm();
@@ -365,9 +396,8 @@ main(int argc, char* argv[])
         // Interpolate the side-centered data to cell centers for output.
         static const bool synch_cf_interface = true;
         hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(r_cc_idx, r_cc_var, r_sc_idx, r_sc_var, NULL, 0.0, synch_cf_interface);
+        hier_math_ops.interp(fu_cc_idx, fu_cc_var, fu_sc_idx, fu_sc_var, NULL, 0.0, synch_cf_interface);
+        hier_math_ops.interp(eu_cc_idx, eu_cc_var, eu_sc_idx, eu_sc_var, NULL, 0.0, synch_cf_interface);
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.
@@ -382,16 +412,16 @@ main(int argc, char* argv[])
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > e_cc_data = patch->getPatchData(e_cc_idx);
-                Pointer<CellData<NDIM, double> > r_cc_data = patch->getPatchData(r_cc_idx);
+                Pointer<CellData<NDIM, double> > eu_cc_data = patch->getPatchData(eu_cc_idx);
+                Pointer<CellData<NDIM, double> > ep_cc_data = patch->getPatchData(ep_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const Box<NDIM> refined_box = refined_region_boxes[i];
                     const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
                     if (!intersection.empty())
                     {
-                        e_cc_data->fillAll(0.0, intersection);
-                        r_cc_data->fillAll(0.0, intersection);
+                        eu_cc_data->fillAll(0.0, intersection);
+                        ep_cc_data->fillAll(0.0, intersection);
                     }
                 }
             }
@@ -399,6 +429,18 @@ main(int argc, char* argv[])
 
         // Output data for plotting.
         visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
+
+        // Cleanup dumb pointers
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            delete u_bc_coefs[0][d];
+            delete u_bc_coefs[1][d];
+
+            delete rho_bc_coefs[d];
+        }
+
+        delete mu_bc_coef;
+        delete lambda_bc_coef;
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // run_example
