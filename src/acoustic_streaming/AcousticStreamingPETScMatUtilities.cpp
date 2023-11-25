@@ -121,11 +121,8 @@ compute_grad_p_matrix_coefficients(SideData<NDIM, double>& matrix_coefs,
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         // grad p
-        for (int d = 0; d < NDIM; ++d)
-        {
-            matrix_coefs.getArrayData(d).fill(-1.0 / dx[d], /*side*/ 0);
-            matrix_coefs.getArrayData(d).fill(+1.0 / dx[d], /*side*/ 1);
-        }
+        matrix_coefs.getArrayData(axis).fill(-1.0 / dx[axis], /*side*/ 0);
+        matrix_coefs.getArrayData(axis).fill(+1.0 / dx[axis], /*side*/ 1);
     }
 
     // Data structures required to set physical boundary conditions.
@@ -563,8 +560,9 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
             uui_matrix_coefs, patch, stencil_map_vec, u_bc_coefs[IMAG], data_time, mu_idx, lambda_idx, mu_interp_type);
 
         // Compute matrix coefficients corresponding to the gradient of both components of pressure.
-        compute_grad_p_matrix_coefficients(upr_matrix_coefs, patch, u_bc_coefs[REAL], data_time);
-        compute_grad_p_matrix_coefficients(upi_matrix_coefs, patch, u_bc_coefs[IMAG], data_time);
+        // Note: here we give BCs of the other component of velocity to modify the pressure gradient.
+        compute_grad_p_matrix_coefficients(upr_matrix_coefs, patch, u_bc_coefs[IMAG], data_time);
+        compute_grad_p_matrix_coefficients(upi_matrix_coefs, patch, u_bc_coefs[REAL], data_time);
 
 // Set matrix coefficients for velocity DOFs.
 #if (NDIM == 2)
