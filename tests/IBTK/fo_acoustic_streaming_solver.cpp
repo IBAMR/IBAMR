@@ -26,6 +26,8 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/AcousticStreamingPETScMatUtilities.h>
+#include <ibamr/AcousticStreamingPETScVecUtilities.h>
 #include <ibamr/FOAcousticStreamingPETScLevelSolver.h>
 
 #include <ibtk/AppInitializer.h>
@@ -125,50 +127,54 @@ main(int argc, char* argv[])
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
-        // visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
+        // Register velocity solution with VisIt
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             visit_data_writer->registerPlotQuantity("u_cc_real_" + std::to_string(d), "SCALAR", u_cc_idx, d);
             visit_data_writer->registerPlotQuantity("u_cc_imag_" + std::to_string(d), "SCALAR", u_cc_idx, NDIM + d);
         }
 
-        // visit_data_writer->registerPlotQuantity(p_cc_var->getName(), "VECTOR", p_cc_idx);
+        // Register pressure solution with VisIt
         {
             visit_data_writer->registerPlotQuantity("p_cc_real", "SCALAR", p_cc_idx, 0);
             visit_data_writer->registerPlotQuantity("p_cc_imag", "SCALAR", p_cc_idx, 1);
         }
 
-        // visit_data_writer->registerPlotQuantity(fu_cc_var->getName(), "VECTOR", fu_cc_idx);
+        // Register velocity forcing terms with VisIt
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             visit_data_writer->registerPlotQuantity("fu_cc_real_" + std::to_string(d), "SCALAR", fu_cc_idx, d);
             visit_data_writer->registerPlotQuantity("fu_cc_imag_" + std::to_string(d), "SCALAR", fu_cc_idx, NDIM + d);
         }
 
-        // visit_data_writer->registerPlotQuantity(fp_cc_var->getName(), "VECTOR", fp_cc_idx);
+        // Register pressure forcing terms with VisIt
         {
             visit_data_writer->registerPlotQuantity("fp_cc_real", "SCALAR", fp_cc_idx, 0);
             visit_data_writer->registerPlotQuantity("fp_cc_imag", "SCALAR", fp_cc_idx, 1);
         }
 
-        // visit_data_writer->registerPlotQuantity(eu_cc_var->getName(), "VECTOR", eu_cc_idx);
+        // Register velocity error with VisIt
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             visit_data_writer->registerPlotQuantity("eu_cc_real_" + std::to_string(d), "SCALAR", eu_cc_idx, d);
             visit_data_writer->registerPlotQuantity("eu_cc_imag_" + std::to_string(d), "SCALAR", eu_cc_idx, NDIM + d);
         }
 
-        // visit_data_writer->registerPlotQuantity(ep_cc_var->getName(), "VECTOR", ep_cc_idx);
+        // Register pressure error with VisIt
         {
             visit_data_writer->registerPlotQuantity("ep_cc_real", "SCALAR", ep_cc_idx, 0);
             visit_data_writer->registerPlotQuantity("ep_cc_imag", "SCALAR", ep_cc_idx, 1);
         }
 
+        // Register shear viscosity with VisIt
 #if (NDIM == 2)
         visit_data_writer->registerPlotQuantity(mu_nc_var->getName(), "SCALAR", mu_nc_idx);
 #elif (NDIM == 3)
         visit_data_writer->registerPlotQuantity(mu_cc_var->getName(), "SCALAR", mu_cc_idx);
 #endif
+
+        // Register bulk viscosity with VisIt
+        visit_data_writer->registerPlotQuantity(lambda_cc_var->getName(), "SCALAR", lambda_cc_idx);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -319,6 +325,17 @@ main(int argc, char* argv[])
         rho_fcn.setDataOnPatchHierarchy(rho_sc_idx, rho_sc_var, patch_hierarchy, 0.0);
         lambda_fcn.setDataOnPatchHierarchy(lambda_cc_idx, lambda_cc_var, patch_hierarchy, 0.0);
 
+        // Negate the shear and bulk viscosity values as we need to move the viscous operator to the left hand side
+#if (NDIM == 2)
+        HierarchyNodeDataOpsReal<NDIM, double> hier_nc_ops(patch_hierarchy, /*coarsest_level*/ -1, /*finest_level*/ -1);
+        hier_nc_ops.scale(mu_nc_idx, -1.0, mu_nc_idx);
+#elif (NDIM == 3)
+        HierarchyEdgeDataOpsReal<NDIM, double> hier_ec_ops(patch_hierarchy, /*coarsest_level*/ -1, /*finest_level*/ -1);
+        hier_ec_ops.scale(mu_ec_idx, -1.0, mu_ec_idx);
+#endif
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_ops(patch_hierarchy, /*coarsest_level*/ -1, /*finest_level*/ -1);
+        hier_cc_ops.scale(lambda_cc_idx, -1.0, lambda_cc_idx);
+
         // Fill ghost cells of viscosity.
         typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> transaction_comp(3);
@@ -384,8 +401,8 @@ main(int argc, char* argv[])
         petsc_solver.solveSystem(x_vec, f_vec);
 
         // Compute error and print error norms.
-        // e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
-        //                Pointer<SAMRAIVectorReal<NDIM, double> >(&x_vec, false));
+        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
+                       Pointer<SAMRAIVectorReal<NDIM, double> >(&x_vec, false));
         const double e_max_norm = e_vec.maxNorm();
         const double e_l2_norm = e_vec.L2Norm();
         const double e_l1_norm = e_vec.L1Norm();
@@ -444,3 +461,70 @@ main(int argc, char* argv[])
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // run_example
+
+// Some debugging code:
+
+// FOAcousticStreamingPETScLevelSolver.h
+
+// void getDOFPatchDataIndices(int& u_dof_idx, int& p_dof_idx)
+// {
+//     u_dof_idx = d_u_dof_index_idx;
+//     p_dof_idx = d_p_dof_index_idx;
+//     return;
+// }
+
+// Vec& getPETScVecx()
+// {
+//     return d_petsc_x;
+// }
+
+// Vec& getPETScVecb()
+// {
+//     return d_petsc_b;
+// }
+
+// Mat& getPETScMat()
+// {
+//     return d_petsc_mat;
+// }
+
+// Vector copying check
+
+// int u_dof_idx = -1, p_dof_idx = -1;
+// petsc_solver.getDOFPatchDataIndices(u_dof_idx, p_dof_idx);
+// Vec& petsc_vec = petsc_solver.getPETScVecx();
+// VecSet(petsc_vec, -200.0);
+// Pointer<PatchLevel<NDIM> > patch_level = patch_hierarchy->getPatchLevel(0);
+// AcousticStreamingPETScVecUtilities::copyToPatchLevelVec(petsc_vec, fu_sc_idx, u_dof_idx, fp_cc_idx, p_dof_idx,
+// patch_level); x_vec.setToScalar(-100.0); Pointer<RefineSchedule<NDIM> > data_synch_sched =
+// AcousticStreamingPETScVecUtilities::constructDataSynchSchedule(u_sc_idx, p_cc_idx, patch_level);
+// Pointer<RefineSchedule<NDIM> > ghost_fill_sched =
+// AcousticStreamingPETScVecUtilities::constructGhostFillSchedule(u_sc_idx, p_cc_idx, patch_level);
+// AcousticStreamingPETScVecUtilities::copyFromPatchLevelVec(petsc_vec, u_sc_idx, u_dof_idx, p_cc_idx, p_dof_idx,
+// patch_level, data_synch_sched, ghost_fill_sched);
+
+// Residual check
+
+// Vec& petsc_x = petsc_solver.getPETScVecx();
+// Vec& petsc_b = petsc_solver.getPETScVecb();
+// Mat& petsc_mat = petsc_solver.getPETScMat();
+
+// int u_dof_idx = -1, p_dof_idx = -1;
+// petsc_solver.getDOFPatchDataIndices(u_dof_idx, p_dof_idx);
+// Pointer<PatchLevel<NDIM> > patch_level = patch_hierarchy->getPatchLevel(0);
+// AcousticStreamingPETScVecUtilities::copyToPatchLevelVec(petsc_x, eu_sc_idx, u_dof_idx, ep_cc_idx, p_dof_idx,
+// patch_level); MatMult(petsc_mat, petsc_x, petsc_b); Pointer<RefineSchedule<NDIM> > data_synch_sched =
+// AcousticStreamingPETScVecUtilities::constructDataSynchSchedule(u_sc_idx, p_cc_idx, patch_level);
+// Pointer<RefineSchedule<NDIM> > ghost_fill_sched =
+// AcousticStreamingPETScVecUtilities::constructGhostFillSchedule(u_sc_idx, p_cc_idx, patch_level);
+// AcousticStreamingPETScVecUtilities::copyFromPatchLevelVec(petsc_b, u_sc_idx, u_dof_idx, p_cc_idx, p_dof_idx,
+// patch_level, data_synch_sched, ghost_fill_sched);
+
+// f_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
+//                 Pointer<SAMRAIVectorReal<NDIM, double> >(&x_vec, false));
+// const double f_max_norm = f_vec.maxNorm();
+// const double f_l2_norm = f_vec.L2Norm();
+// const double f_l1_norm = f_vec.L1Norm();
+// pout << "|f|_oo = " << f_max_norm << "\n";
+// pout << "|f|_2  = " << f_l2_norm << "\n";
+// pout << "|f|_1  = " << f_l1_norm << "\n";

@@ -69,6 +69,9 @@ namespace
 static const int CELLG = 1;
 static const int SIDEG = 1;
 static const int NOGHOST = 0;
+
+static const int REAL = 0;
+static const int IMAG = 1;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -222,20 +225,22 @@ FOAcousticStreamingPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)
         {
-            for (int depth = 0; depth < 2; ++depth)
+            for (int comp = 0; comp < 2; ++comp)
             {
+                const int other_comp = (comp == REAL ? IMAG : REAL);
+
                 PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtPhysicalBoundary(*f_adj_data,
-                                                                                       depth,
+                                                                                       comp,
                                                                                        patch,
                                                                                        d_mu_idx,
                                                                                        d_lambda_idx,
-                                                                                       d_U_bc_coefs[depth],
+                                                                                       d_U_bc_coefs[other_comp],
                                                                                        d_solution_time,
                                                                                        d_homogeneous_bc,
                                                                                        d_mu_interp_type);
 
                 enforceNormalVelocityBoundaryConditions(
-                    f_adj_idx, depth, patch, d_U_bc_coefs[depth], d_solution_time, d_homogeneous_bc);
+                    f_adj_idx, comp, patch, d_U_bc_coefs[comp], d_solution_time, d_homogeneous_bc);
             }
         }
         const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
@@ -244,10 +249,10 @@ FOAcousticStreamingPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)
         {
-            for (int depth = 0; depth < 2; ++depth)
+            for (int comp = 0; comp < 2; ++comp)
             {
                 PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtCoarseFineBoundary(
-                    *f_adj_data, *u_data, depth, patch, d_mu_idx, d_lambda_idx, type_1_cf_bdry, d_mu_interp_type);
+                    *f_adj_data, *u_data, comp, patch, d_mu_idx, d_lambda_idx, type_1_cf_bdry, d_mu_interp_type);
             }
         }
     }
