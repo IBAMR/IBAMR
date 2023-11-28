@@ -541,6 +541,9 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
+        const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+            PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+        const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
@@ -723,6 +726,80 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
     IBTK_CHKERRQ(ierr);
     ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
     IBTK_CHKERRQ(ierr);
+
+    // Modify the matrix coefficients for Dirichlet BCs for the normal component of the velocity
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+            PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+        const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+
+        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            for (int n = 0; n < n_physical_codim1_boxes; ++n)
+            {
+                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const unsigned int location_index = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index / 2;
+                const bool is_lower = location_index % 2 == 0;
+
+                if (bdry_normal_axis != axis) continue;
+
+                const Box<NDIM> bc_fill_box =
+                    pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+                const BoundaryBox<NDIM> trimmed_bdry_box =
+                    PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+                const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+
+                // Set the boundary condition coefficients.
+                static const bool homogeneous_bc = true;
+                for (int comp = 0; comp < 2; ++comp)
+                {
+                    auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[comp][axis]);
+                    if (extended_bc_coef)
+                    {
+                        extended_bc_coef->clearTargetPatchDataIndex();
+                        extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+                    }
+                    u_bc_coefs[comp][axis]->setBcCoefs(
+                        acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
+                    if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+
+                    // Modify the matrix coefficients to account for homogeneous
+                    // boundary conditions.
+                    //
+                    // If b == 0 we enforce Dirichlet condition directly.
+                    for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+                    {
+                        const hier::Index<NDIM>& i = bc();
+                        const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+
+                        const int u_dof_index = (*u_dof_index_data)(i_s, comp);
+                        if (UNLIKELY(proc_lower > u_dof_index || u_dof_index >= proc_upper)) continue;
+
+                        const double& a = (*acoef_data)(i, 0);
+                        const double& b = (*bcoef_data)(i, 0);
+                        if (IBTK::abs_equal_eps(b, 0.0))
+                        {
+                            const double diag_value = a;
+                            ierr = MatZeroRows(mat, 1, &u_dof_index, diag_value, NULL, NULL);
+                            IBTK_CHKERRQ(ierr);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return;
 } // constructPatchLevelFOAcousticStreamingOp
 

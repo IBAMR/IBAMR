@@ -513,7 +513,9 @@ main(int argc, char* argv[])
 // petsc_solver.getDOFPatchDataIndices(u_dof_idx, p_dof_idx);
 // Pointer<PatchLevel<NDIM> > patch_level = patch_hierarchy->getPatchLevel(0);
 // AcousticStreamingPETScVecUtilities::copyToPatchLevelVec(petsc_x, eu_sc_idx, u_dof_idx, ep_cc_idx, p_dof_idx,
-// patch_level); MatMult(petsc_mat, petsc_x, petsc_b); Pointer<RefineSchedule<NDIM> > data_synch_sched =
+// patch_level);
+// MatMult(petsc_mat, petsc_x, petsc_b);
+// Pointer<RefineSchedule<NDIM> > data_synch_sched =
 // AcousticStreamingPETScVecUtilities::constructDataSynchSchedule(u_sc_idx, p_cc_idx, patch_level);
 // Pointer<RefineSchedule<NDIM> > ghost_fill_sched =
 // AcousticStreamingPETScVecUtilities::constructGhostFillSchedule(u_sc_idx, p_cc_idx, patch_level);
