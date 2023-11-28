@@ -224,6 +224,22 @@ PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
     IBTK_CHKERRQ(ierr);
     copyFromPETScVec(d_petsc_x, x);
 
+    PetscViewer petsc_viewer;
+
+    PetscViewerBinaryOpen(PETSC_COMM_WORLD, "PETScMatrix", FILE_MODE_WRITE, &petsc_viewer);
+    PetscViewerSetFormat(petsc_viewer, PETSC_VIEWER_NATIVE);
+    MatView(d_petsc_mat, petsc_viewer);
+
+    PetscViewerBinaryOpen(PETSC_COMM_WORLD, "PETScVecX", FILE_MODE_WRITE, &petsc_viewer);
+    PetscViewerSetFormat(petsc_viewer, PETSC_VIEWER_NATIVE);
+    VecView(d_petsc_x, petsc_viewer);
+
+    PetscViewerBinaryOpen(PETSC_COMM_WORLD, "PETScVecB", FILE_MODE_WRITE, &petsc_viewer);
+    PetscViewerSetFormat(petsc_viewer, PETSC_VIEWER_NATIVE);
+    VecView(d_petsc_b, petsc_viewer);
+
+    PetscViewerDestroy(&petsc_viewer);
+
     // Log solver info.
     KSPConvergedReason reason;
     ierr = KSPGetConvergedReason(d_petsc_ksp, &reason);
