@@ -728,6 +728,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
     IBTK_CHKERRQ(ierr);
 
     // Modify the matrix coefficients for Dirichlet BCs for the normal component of the velocity
+    std::vector<int> dirichlet_rows;
     for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
     {
         Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
@@ -786,13 +787,14 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
                         const int u_dof_index = (*u_dof_index_data)(i_s, comp);
                         if (UNLIKELY(proc_lower > u_dof_index || u_dof_index >= proc_upper)) continue;
 
-                        const double& a = (*acoef_data)(i, 0);
                         const double& b = (*bcoef_data)(i, 0);
                         if (IBTK::abs_equal_eps(b, 0.0))
                         {
-                            const double diag_value = a;
-                            ierr = MatZeroRows(mat, 1, &u_dof_index, diag_value, NULL, NULL);
-                            IBTK_CHKERRQ(ierr);
+#if !defined(NDEBUG)
+                            const double& a = (*acoef_data)(i, 0);
+                            TBOX_ASSERT(IBTK::rel_equal_eps(a, 1.0));
+#endif
+                            dirichlet_rows.push_back(u_dof_index);
                         }
                     }
                 }
@@ -800,6 +802,10 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
         }
     }
 
+    // Send-in the (local) Dirichlet row information to PETSc Mat
+    const int num_dirichlet_rows = dirichlet_rows.size();
+    ierr = MatZeroRows(mat, num_dirichlet_rows, &dirichlet_rows[0], /*diag_value*/ 1.0, NULL, NULL);
+    IBTK_CHKERRQ(ierr);
     return;
 } // constructPatchLevelFOAcousticStreamingOp
 
