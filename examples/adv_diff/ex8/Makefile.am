@@ -15,9 +15,9 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp  BoussinesqForcing.cpp BoussinesqForcing.h LevelSetInitialCondition.cpp LevelSetInitialCondition.h SetFluidProperties.cpp SetFluidProperties.h
+EXAMPLE_DRIVER = example.cpp  BoussinesqForcing.cpp BoussinesqForcing.h LevelSetInitialCondition.cpp LevelSetInitialCondition.h SetFluidProperties.cpp SetFluidProperties.h TagLSRefinementCells.cpp TagLSRefinementCells.h
 
-EXTRA_DIST = input2d
+EXTRA_DIST = input2d input2d.amr
 EXTRA_DIST += write_ascii.cpp
 
 EXAMPLES =
@@ -37,7 +37,7 @@ write_ascii_SOURCES = write_ascii.cpp
 
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  cp -f $(srcdir)/input[23]d $(PWD) ; \
+	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
 	fi ;
 
 

@@ -21,11 +21,11 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-adv_diff
   SOURCES
-    example.cpp LevelSetInitialCondition.cpp SetFluidProperties.cpp BoussinesqForcing.cpp
+    example.cpp LevelSetInitialCondition.cpp SetFluidProperties.cpp BoussinesqForcing.cpp TagLSRefinementCells.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
-    input2d
+    input2d input2d.amr
     )
 
 IBAMR_ADD_EXAMPLE(
