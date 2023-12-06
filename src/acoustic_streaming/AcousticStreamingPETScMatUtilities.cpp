@@ -557,10 +557,26 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
         CellData<NDIM, double> pu_matrix_coefs(patch_box, pu_stencil_sz, no_ghosts);
 
         // Compute matrix coefficients corresponding to viscous and dilatational stress for both velocity components.
-        PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(
-            uur_matrix_coefs, patch, stencil_map_vec, u_bc_coefs[REAL], data_time, mu_idx, lambda_idx, mu_interp_type);
-        PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(
-            uui_matrix_coefs, patch, stencil_map_vec, u_bc_coefs[IMAG], data_time, mu_idx, lambda_idx, mu_interp_type);
+        // Do not consider Dirichlet BCs in the matrix coefficients yet, as we will consider them after the matrix
+        // assembly.
+        PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(uur_matrix_coefs,
+                                                                             patch,
+                                                                             stencil_map_vec,
+                                                                             u_bc_coefs[REAL],
+                                                                             data_time,
+                                                                             mu_idx,
+                                                                             lambda_idx,
+                                                                             mu_interp_type,
+                                                                             /*consider_dirichlet_bcs*/ false);
+        PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(uui_matrix_coefs,
+                                                                             patch,
+                                                                             stencil_map_vec,
+                                                                             u_bc_coefs[IMAG],
+                                                                             data_time,
+                                                                             mu_idx,
+                                                                             lambda_idx,
+                                                                             mu_interp_type,
+                                                                             /*consider_dirichlet_bcs*/ false);
 
         // Compute matrix coefficients corresponding to the gradient of both components of pressure.
         // Note: here we give BCs of the other component of velocity to modify the pressure gradient.

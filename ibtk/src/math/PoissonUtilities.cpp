@@ -723,7 +723,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     double beta,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     double data_time,
-    VCInterpType mu_interp_type)
+    VCInterpType mu_interp_type,
+    bool impose_physical_bcs_normal_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -986,6 +987,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
         }
     }
 
+    if (!impose_physical_bcs_normal_comp) return;
+
     // Modify matrix coefficients to account for physical boundary
     // conditions for other components of velocity along boundaries which ARE
     // aligned with the data axis.
@@ -1239,7 +1242,8 @@ PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(
     double data_time,
     int mu_idx,
     int lambda_idx,
-    VCInterpType mu_interp_type)
+    VCInterpType mu_interp_type,
+    bool impose_physical_bcs_normal_comp)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -1498,6 +1502,8 @@ PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(
         }
     }
 
+    if (!impose_physical_bcs_normal_comp) return;
+
     // Modify matrix coefficients to account for physical boundary
     // conditions for other components of velocity along boundaries which ARE
     // aligned with the data axis.
@@ -1638,109 +1644,107 @@ PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(
     // in the physical domain.  In particular, since Dirichlet boundary
     // conditions for values located on the physical boundary override all other
     // boundary conditions, we set those values last.
-    //     for (unsigned int axis = 0; axis < NDIM; ++axis)
-    //     {
-    // #if (NDIM == 3)
-    //         StencilMapType stencil_map = stencil_map_vec[axis];
-    // #endif
-    //         for (int n = 0; n < n_physical_codim1_boxes; ++n)
-    //         {
-    //             const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-    //             const unsigned int location_index = bdry_box.getLocationIndex();
-    //             const unsigned int bdry_normal_axis = location_index / 2;
-    //             const bool is_lower = location_index % 2 == 0;
+    for (unsigned int axis = 0; axis < NDIM; ++axis)
+    {
+#if (NDIM == 3)
+        StencilMapType stencil_map = stencil_map_vec[axis];
+#endif
+        for (int n = 0; n < n_physical_codim1_boxes; ++n)
+        {
+            const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const unsigned int bdry_normal_axis = location_index / 2;
+            const bool is_lower = location_index % 2 == 0;
 
-    //             if (bdry_normal_axis != axis) continue;
+            if (bdry_normal_axis != axis) continue;
 
-    //             const Box<NDIM> bc_fill_box =
-    //                 pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-    //             const BoundaryBox<NDIM> trimmed_bdry_box =
-    //                 PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-    //             const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+            const Box<NDIM> bc_fill_box =
+                pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+            const BoundaryBox<NDIM> trimmed_bdry_box =
+                PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+            const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-    //             Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-    //             Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-    //             Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+            Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
 
-    //             // Set the boundary condition coefficients.
-    //             static const bool homogeneous_bc = true;
-    //             auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
-    //             if (extended_bc_coef)
-    //             {
-    //                 extended_bc_coef->clearTargetPatchDataIndex();
-    //                 extended_bc_coef->setHomogeneousBc(homogeneous_bc);
-    //             }
-    //             bc_coefs[axis]->setBcCoefs(
-    //                 acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
-    //             if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+            // Set the boundary condition coefficients.
+            static const bool homogeneous_bc = true;
+            auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+            if (extended_bc_coef)
+            {
+                extended_bc_coef->clearTargetPatchDataIndex();
+                extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+            }
+            bc_coefs[axis]->setBcCoefs(
+                acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
+            if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
 
-    //             // Modify the matrix coefficients to account for homogeneous
-    //             // boundary conditions.
-    //             //
-    //             // With u_i denoting the interior cell, u_o denoting the ghost cell,
-    //             // and u_b and u_n denoting the value and normal derivative of u at
-    //             // the boundary,
-    //             //
-    //             //     u_n = (u_o - u_i)/(2*h)
-    //             //
-    //             // Now, if
-    //             //
-    //             //     a*u_b + b*u_n = 0
-    //             //
-    //             // then if b != 0,
-    //             //
-    //             //     u_o = u_i - 2*h*(a/b)*u_b
-    //             //
-    //             // and
-    //             //
-    //             //     -(D/h^2)*u_o = (D*2*(a/b)/h)*u_b - (D/h^2)*u_i
-    //             //
-    //             // If b == 0, then u_b = 0, which we enforce directly.
-    //             for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
-    //             {
-    //                 const hier::Index<NDIM>& i = bc();
-    //                 const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-    //                 const double& a = (*acoef_data)(i, 0);
-    //                 const double& b = (*bcoef_data)(i, 0);
-    //                 if (IBTK::abs_equal_eps(b, 0.0))
-    //                 {
-    //                     for (int k = 0; k < stencil_sz; ++k)
-    //                     {
-    //                         matrix_coefficients(i_s, k) = 0.0;
-    //                     }
-    //                     matrix_coefficients(i_s, stencil_map[ORIGIN]) = 1.0;
-    //                 }
-    //                 else
-    //                 {
-    // #if !defined(NDEBUG)
-    //                     TBOX_ASSERT(!IBTK::abs_equal_eps(b, 0.0));
-    // #endif
-    //                     if (is_lower)
-    //                     {
-    //                         const hier::Index<NDIM> shift_outer = get_shift(bdry_normal_axis, -1);
-    //                         const hier::Index<NDIM> shift_inner = get_shift(bdry_normal_axis, 1);
-    //                         matrix_coefficients(i_s, stencil_map[ORIGIN]) -=
-    //                             matrix_coefficients(i_s, stencil_map[shift_outer]) * 2 * dx[bdry_normal_axis] * a /
-    //                             b;
-    //                         matrix_coefficients(i_s, stencil_map[shift_inner]) +=
-    //                             matrix_coefficients(i_s, stencil_map[shift_outer]);
-    //                         matrix_coefficients(i_s, stencil_map[shift_outer]) = 0.0;
-    //                     }
-    //                     else
-    //                     {
-    //                         const hier::Index<NDIM> shift_outer = get_shift(bdry_normal_axis, 1);
-    //                         const hier::Index<NDIM> shift_inner = get_shift(bdry_normal_axis, -1);
-    //                         matrix_coefficients(i_s, stencil_map[ORIGIN]) -=
-    //                             matrix_coefficients(i_s, stencil_map[shift_outer]) * 2 * dx[bdry_normal_axis] * a /
-    //                             b;
-    //                         matrix_coefficients(i_s, stencil_map[shift_inner]) +=
-    //                             matrix_coefficients(i_s, stencil_map[shift_outer]);
-    //                         matrix_coefficients(i_s, stencil_map[shift_outer]) = 0.0;
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //     }
+            // Modify the matrix coefficients to account for homogeneous
+            // boundary conditions.
+            //
+            // With u_i denoting the interior cell, u_o denoting the ghost cell,
+            // and u_b and u_n denoting the value and normal derivative of u at
+            // the boundary,
+            //
+            //     u_n = (u_o - u_i)/(2*h)
+            //
+            // Now, if
+            //
+            //     a*u_b + b*u_n = 0
+            //
+            // then if b != 0,
+            //
+            //     u_o = u_i - 2*h*(a/b)*u_b
+            //
+            // and
+            //
+            //     -(D/h^2)*u_o = (D*2*(a/b)/h)*u_b - (D/h^2)*u_i
+            //
+            // If b == 0, then u_b = 0, which we enforce directly.
+            for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+            {
+                const hier::Index<NDIM>& i = bc();
+                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                const double& a = (*acoef_data)(i, 0);
+                const double& b = (*bcoef_data)(i, 0);
+                if (IBTK::abs_equal_eps(b, 0.0))
+                {
+                    for (int k = 0; k < stencil_sz; ++k)
+                    {
+                        matrix_coefficients(i_s, k) = 0.0;
+                    }
+                    matrix_coefficients(i_s, stencil_map[ORIGIN]) = 1.0;
+                }
+                else
+                {
+#if !defined(NDEBUG)
+                    TBOX_ASSERT(!IBTK::abs_equal_eps(b, 0.0));
+#endif
+                    if (is_lower)
+                    {
+                        const hier::Index<NDIM> shift_outer = get_shift(bdry_normal_axis, -1);
+                        const hier::Index<NDIM> shift_inner = get_shift(bdry_normal_axis, 1);
+                        matrix_coefficients(i_s, stencil_map[ORIGIN]) -=
+                            matrix_coefficients(i_s, stencil_map[shift_outer]) * 2 * dx[bdry_normal_axis] * a / b;
+                        matrix_coefficients(i_s, stencil_map[shift_inner]) +=
+                            matrix_coefficients(i_s, stencil_map[shift_outer]);
+                        matrix_coefficients(i_s, stencil_map[shift_outer]) = 0.0;
+                    }
+                    else
+                    {
+                        const hier::Index<NDIM> shift_outer = get_shift(bdry_normal_axis, 1);
+                        const hier::Index<NDIM> shift_inner = get_shift(bdry_normal_axis, -1);
+                        matrix_coefficients(i_s, stencil_map[ORIGIN]) -=
+                            matrix_coefficients(i_s, stencil_map[shift_outer]) * 2 * dx[bdry_normal_axis] * a / b;
+                        matrix_coefficients(i_s, stencil_map[shift_inner]) +=
+                            matrix_coefficients(i_s, stencil_map[shift_outer]);
+                        matrix_coefficients(i_s, stencil_map[shift_outer]) = 0.0;
+                    }
+                }
+            }
+        }
+    }
     return;
 } // computeVCSCViscousDilatationalOpMatrixCoefficients
 
