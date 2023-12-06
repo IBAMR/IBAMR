@@ -85,7 +85,6 @@ TAG_BUFFER           = 1                    // sized of tag buffer used by grid 
 REGRID_INTERVAL      = 10000000             // effectively disable regridding
 ENABLE_LOGGING       = TRUE
 MAX_INTEGRATOR_STEPS = 1                  // maximum number of integrator steps
-BRINKMAN_TIME_INDEPENDENT     = TRUE              // to zero out the temporal contribution
 
 BrinkmanAdvDiffSemiImplicitHierarchyIntegrator {
    start_time                    = START_TIME
@@ -101,7 +100,6 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator {
    tag_buffer                    = TAG_BUFFER
    enable_logging                = ENABLE_LOGGING
    max_integrator_steps          = MAX_INTEGRATOR_STEPS
-   brinkman_time_independent     = BRINKMAN_TIME_INDEPENDENT
    solver_type = "PETSC_KRYLOV_SOLVER"
    solver_db
    {

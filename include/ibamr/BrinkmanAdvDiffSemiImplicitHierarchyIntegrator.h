@@ -150,6 +150,23 @@ public:
         return d_brinkman_penalization;
     } // getBrinkmanPenalization
 
+    /*!
+     * \brief Set the boolean to be TRUE for the time independent Brinkman problems.
+     * Default option is false.
+     */
+    void setBrinkmanTimeIndepedent(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                   bool brinkman_time_independent);
+
+    /*!
+     * Register a cell-centered quantity to be advected and diffused by the
+     * hierarchy integrator. Can optionally turn off outputting the quantity.
+     *
+     * Data management for the registered quantity will be handled by the
+     * hierarchy integrator.
+     */
+    virtual void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                             const bool output_Q = true);
+
 protected:
     /*!
      * Additional variables required for Brinkman penalization
@@ -165,7 +182,7 @@ protected:
      * Flag to zero out the temporal term contribution when the Brinkman approach
      * is used.
      */
-    bool d_brinkman_time_independent = false;
+    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_brinkman_time_independent;
 
     /*!
      * Brinkman penalization object registred with this integrator.

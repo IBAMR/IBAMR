@@ -104,14 +104,6 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::BrinkmanAdvDiffSemiImplicitHiera
     bool register_for_restart)
     : AdvDiffSemiImplicitHierarchyIntegrator(object_name, input_db, register_for_restart)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(!object_name.empty());
-    TBOX_ASSERT(input_db);
-#endif
-
-    if (input_db->keyExists("brinkman_time_independent"))
-        d_brinkman_time_independent = input_db->getBool("brinkman_time_independent");
-
     return;
 } // BrinkmanAdvDiffSemiImplicitHierarchyIntegrator
 
@@ -281,6 +273,26 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
             {
                 plog << d_object_name << ": "
                      << "Applying Brinkman penalization for variable number " << l << "\n";
+            }
+
+            if (d_brinkman_time_independent[Q_var])
+            {
+                if (diffusion_time_stepping_type != BACKWARD_EULER)
+                {
+                    TBOX_ERROR(d_object_name
+                               << "::preprocessIntegrateHierarchy():\n"
+                               << "  unsupported diffusion time stepping type for Brinkman time independent problems:"
+                               << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                               << "  valid choice is BACKWARD_EULER.\n");
+                }
+
+                Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
+                if (u_var)
+                {
+                    TBOX_ERROR("Advection velocity for "
+                               << Q_var->getName()
+                               << " should not be registered when brinkman_time_independent flag is on\n");
+                }
             }
         }
         else
@@ -521,7 +533,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double 
             d_hier_cc_data_ops->scale(Cb_scratch_idx, K, Cb_current_idx);
 
             // In the case of Poisson applications zero out the temporal contribution.
-            if (d_brinkman_time_independent)
+            if (d_brinkman_time_independent[Q_var])
             {
                 solver_spec.setCPatchDataId(Cb_scratch_idx);
                 // solver_spec.setCConstant(0.0);
@@ -535,7 +547,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double 
             // set 1.0/dt - (1.0-K)*Cb in rhs_op_spec, which is applied to Q later
             d_hier_cc_data_ops->scale(Cb_rhs_scratch_idx, -(1.0 - K), Cb_current_idx);
             // In the case of Poisson applications zero out the temporal contribution.
-            if (d_brinkman_time_independent)
+            if (d_brinkman_time_independent[Q_var])
             {
                 // rhs_op_spec.setCConstant(0.0);
                 rhs_op_spec.setCPatchDataId(Cb_rhs_scratch_idx);
@@ -855,6 +867,28 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::registerBrinkmanAdvDiffBcHelper(
     d_brinkman_penalization = brinkman_penalization;
     return;
 } // registerBrinkmanAdvDiffBcHelper
+
+void
+BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::setBrinkmanTimeIndepedent(Pointer<CellVariable<NDIM, double> > Q_var,
+                                                                          bool brinkman_time_independent)
+{
+    d_brinkman_time_independent[Q_var] = brinkman_time_independent;
+    return;
+} // setBrinkmanTimeIndepedent
+
+void
+BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDIM, double> > Q_var,
+                                                                            bool output_Q)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(Q_var);
+    TBOX_ASSERT(std::find(d_Q_var.begin(), d_Q_var.end(), Q_var) == d_Q_var.end());
+#endif
+    AdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Q_var, output_Q);
+    d_brinkman_time_independent[Q_var] = false;
+    return;
+
+} // registerTransportedQuantity
 
 //////////////////////////////////////////////////////////////////////////////
 
