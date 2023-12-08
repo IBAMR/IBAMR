@@ -238,7 +238,7 @@ main(int argc, char* argv[])
         
         if(app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_lo") && 
                 app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_up"))
-	{
+	    {
             app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_lo",x_lo,NDIM);
             app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_up",x_up,NDIM);
         }
@@ -282,7 +282,6 @@ main(int argc, char* argv[])
             for(int structure_idx = 0; structure_idx < structure_COM.size(); structure_idx++){
                 if( (structure_COM[structure_idx][1]-radius) < x_lo[1]){ // changes based on where "open boundaries" are present
                         ib_method_ops->getLDataManager()->inactivateLagrangianStructures(std::vector<int>{structure_idx}, finest_ln);
-                 std::cout << "structure moving out" << std::endl;     
 		}
             }
 
