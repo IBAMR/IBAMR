@@ -231,6 +231,17 @@ main(int argc, char* argv[])
 
         // associate volume element with force projector.
         ptr_gravityforce->associateVolumeElement(ib_method_ops->getVolumeElement()[0]);
+        
+
+        double x_lo[NDIM];//={0.0, 0.0, 0.0};
+        double x_up[NDIM];//={input_db->getDouble("Lx"), input_db->getDouble("Ly"), input_db->getDouble("Lz")};
+        
+        if(app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_lo") && 
+                app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_up"))
+	{
+            app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_lo",x_lo,NDIM);
+            app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_up",x_up,NDIM);
+        }
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
@@ -264,6 +275,16 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
+            
+            const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+            std::vector<std::vector<double>> structure_COM = ib_method_ops->getCurrentStructureCOM();
+            double radius = input_db -> getDouble("R");
+            for(int structure_idx = 0; structure_idx < structure_COM.size(); structure_idx++){
+                if( (structure_COM[structure_idx][1]-radius) < x_lo[1]){ // changes based on where "open boundaries" are present
+                        ib_method_ops->getLDataManager()->inactivateLagrangianStructures(std::vector<int>{structure_idx}, finest_ln);
+                 std::cout << "structure moving out" << std::endl;     
+		}
+            }
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);

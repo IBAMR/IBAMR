@@ -15,7 +15,7 @@ DX_FINEST = L/NFINEST
 DELTA_FUNCTION       = "IB_4"
 SOLVER_TYPE          = "STAGGERED"                // the fluid solver to use (STAGGERED or COLLOCATED)
 START_TIME           = 0.0e0                      // initial simulation time
-END_TIME             = 50.0                       // final simulation time
+END_TIME             = 100.0                       // final simulation time
 MAX_INTEGRATOR_STEPS = 10000000000000             // Max no of steps.
 GROW_DT              = 2.0e0                      // growth factor for timesteps
 NUM_CYCLES           = 1                          // number of cycles of fixed-point iteration
@@ -23,7 +23,7 @@ CONVECTIVE_OP_TYPE   = "PPM"                      // convective differencing dis
 CONVECTIVE_FORM      = "ADVECTIVE"                // how to compute the convective terms
 NORMALIZE_PRESSURE   = FALSE                      // whether to explicitly force the pressure to have mean zero
 CFL_MAX              = 0.1                        // maximum CFL number
-DT_MAX               = 0.0001                     // maximum timestep size
+DT_MAX               = 0.001                     // maximum timestep size
 VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL  = 0.3                        // regrid whenever any material point could have moved 0.5 meshwidths since previous regrid
@@ -65,15 +65,15 @@ VelocityBcCoefs_0 {
 VelocityBcCoefs_1 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
    acoef_function_4 = "1.0"
    acoef_function_5 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
    bcoef_function_4 = "0.0"
    bcoef_function_5 = "0.0"
 
