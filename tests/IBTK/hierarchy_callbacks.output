@@ -9,10 +9,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): regridding prior to 
 Executing gradient detector callback
 Executing regrid hierarchy callback
 AdvDiffSemiImplicitHierarchyIntegrator: Initializing Helmholtz RHS operator for variable number 0
-AdvDiffSemiImplicitHierarchyIntegrator: Initializing Helmholtz solvers for variable number 0
 Executing preprocess callback
 AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 AdvDiffSemiImplicitHierarchyIntegrator::advanceHierarchy(): executing cycle 1 of 2
+AdvDiffSemiImplicitHierarchyIntegrator: Initializing Helmholtz solvers for variable number 0
 AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve number of iterations = 0
 AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(): diffusion solve residual norm        = 0
 Executing integrate hierarchy callback

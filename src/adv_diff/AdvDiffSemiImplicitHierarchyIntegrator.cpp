@@ -530,7 +530,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
         const int D_current_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
-        const int D_scratch_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
         const int D_rhs_scratch_idx =
             (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) : -1);
 
@@ -554,15 +553,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
                                      << "  valid choices are: BACKWARD_EULER, "
                                         "FORWARD_EULER, TRAPEZOIDAL_RULE\n");
         }
-        PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
         PoissonSpecifications rhs_op_spec(d_object_name + "::rhs_op_spec::" + Q_var->getName());
-        solver_spec.setCConstant(1.0 / dt + K * lambda);
         rhs_op_spec.setCConstant(1.0 / dt - (1.0 - K) * lambda);
         if (isDiffusionCoefficientVariable(Q_var))
         {
-            // set -K*kappa in solver_spec
-            d_hier_sc_data_ops->scale(D_scratch_idx, -K, D_current_idx);
-            solver_spec.setDPatchDataId(D_scratch_idx);
             // set (1.0-K)*kappa in rhs_op_spec
             d_hier_sc_data_ops->scale(D_rhs_scratch_idx, (1.0 - K), D_current_idx);
             rhs_op_spec.setDPatchDataId(D_rhs_scratch_idx);
@@ -570,7 +564,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         else
         {
             const double kappa = d_Q_diffusion_coef[Q_var];
-            solver_spec.setDConstant(-K * kappa);
             rhs_op_spec.setDConstant(+(1.0 - K) * kappa);
         }
 
@@ -593,24 +586,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         }
         d_hier_cc_data_ops->copyData(Q_scratch_idx, Q_current_idx, false);
         helmholtz_rhs_op->apply(*d_sol_vecs[l], *d_rhs_vecs[l]);
-
-        // Initialize the linear solver.
-        Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
-        helmholtz_solver->setPoissonSpecifications(solver_spec);
-        helmholtz_solver->setPhysicalBcCoefs(Q_bc_coef);
-        helmholtz_solver->setHomogeneousBc(false);
-        helmholtz_solver->setSolutionTime(new_time);
-        helmholtz_solver->setTimeInterval(current_time, new_time);
-        if (d_helmholtz_solvers_need_init[l])
-        {
-            if (d_enable_logging)
-            {
-                plog << d_object_name << ": "
-                     << "Initializing Helmholtz solvers for variable number " << l << "\n";
-            }
-            helmholtz_solver->initializeSolverState(*d_sol_vecs[l], *d_rhs_vecs[l]);
-            d_helmholtz_solvers_need_init[l] = false;
-        }
 
         // Account for the convective difference term.
         Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
@@ -687,6 +662,33 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
         });
     }
 
+    // Update the advection velocity.
+    if (cycle_num > 0)
+    {
+        for (const auto& u_var : d_u_var)
+        {
+            const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
+            const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
+            const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
+            if (d_u_fcn[u_var])
+            {
+                d_u_fcn[u_var]->setDataOnPatchHierarchy(u_new_idx, u_var, d_hierarchy, new_time);
+            }
+            d_hier_fc_data_ops->linearSum(u_scratch_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+        }
+    }
+
+    // Update the diffusion coefficient.
+    for (const auto& D_var : d_diffusion_coef_var)
+    {
+        Pointer<CartGridFunction> D_fcn = d_diffusion_coef_fcn[D_var];
+        if (D_fcn)
+        {
+            const int D_new_idx = var_db->mapVariableAndContextToIndex(D_var, getNewContext());
+            D_fcn->setDataOnPatchHierarchy(D_new_idx, D_var, d_hierarchy, new_time);
+        }
+    }
+
     // Perform a single step of fixed point iteration.
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
@@ -694,6 +696,10 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
         Pointer<CellVariable<NDIM, double> > Q_var = *cit;
         Pointer<CellVariable<NDIM, double> > F_var = d_Q_F_map[Q_var];
         Pointer<CellVariable<NDIM, double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        Pointer<SideVariable<NDIM, double> > D_var = d_Q_diffusion_coef_variable[Q_var];
+        TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
+        const double lambda = d_Q_damping_coef[Q_var];
+        const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
@@ -701,21 +707,59 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
             d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getScratchContext()) : -1;
         const int F_new_idx = d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getNewContext()) : -1;
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
+        const int D_scratch_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
+        const int D_new_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getNewContext()) : -1);
 
-        // Update the advection velocity.
-        if (cycle_num > 0)
+        // Setup the problem coefficients for the linear solve for Q(n+1).
+        double K = 0.0;
+        switch (diffusion_time_stepping_type)
         {
-            for (const auto& u_var : d_u_var)
+        case BACKWARD_EULER:
+            K = 1.0;
+            break;
+        case FORWARD_EULER:
+            K = 0.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K = 0.5;
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                     << "  unsupported diffusion time stepping type: "
+                                     << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                                     << "  valid choices are: BACKWARD_EULER, "
+                                        "FORWARD_EULER, TRAPEZOIDAL_RULE\n");
+        }
+        PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
+        solver_spec.setCConstant(1.0 / dt + K * lambda);
+        if (isDiffusionCoefficientVariable(Q_var))
+        {
+            // set -K*kappa in solver_spec
+            d_hier_sc_data_ops->scale(D_scratch_idx, -K, D_new_idx);
+            solver_spec.setDPatchDataId(D_scratch_idx);
+        }
+        else
+        {
+            const double kappa = d_Q_diffusion_coef[Q_var];
+            solver_spec.setDConstant(-K * kappa);
+        }
+
+        // Initialize the linear solver.
+        Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
+        helmholtz_solver->setPoissonSpecifications(solver_spec);
+        helmholtz_solver->setPhysicalBcCoefs(Q_bc_coef);
+        helmholtz_solver->setHomogeneousBc(false);
+        helmholtz_solver->setSolutionTime(new_time);
+        helmholtz_solver->setTimeInterval(current_time, new_time);
+        if (d_helmholtz_solvers_need_init[l])
+        {
+            if (d_enable_logging)
             {
-                const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, getCurrentContext());
-                const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, getScratchContext());
-                const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
-                if (d_u_fcn[u_var])
-                {
-                    d_u_fcn[u_var]->setDataOnPatchHierarchy(u_new_idx, u_var, d_hierarchy, new_time);
-                }
-                d_hier_fc_data_ops->linearSum(u_scratch_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+                plog << d_object_name << ": "
+                     << "Initializing Helmholtz solvers for variable number " << l << "\n";
             }
+            helmholtz_solver->initializeSolverState(*d_sol_vecs[l], *d_rhs_vecs[l]);
+            d_helmholtz_solvers_need_init[l] = false;
         }
 
         // Account for the convective difference term.
