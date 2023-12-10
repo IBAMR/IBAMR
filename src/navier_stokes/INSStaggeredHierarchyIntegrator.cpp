@@ -1409,45 +1409,49 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
     // Account for the convective acceleration term.
     if (!d_creeping_flow)
     {
+        const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         const TimeSteppingType convective_time_stepping_type = getConvectiveTimeSteppingType(cycle_num);
-        if (cycle_num > 0)
+        if (cycle_num == 0 && convective_time_stepping_type == ADAMS_BASHFORTH)
+        {
+            TBOX_ASSERT(cycle_num == 0);
+            const double omega = dt / d_dt_previous[0];
+            d_hier_sc_data_ops->linearSum(N_idx, 1.0 + 0.5 * omega, N_idx, -0.5 * omega, d_N_old_current_idx);
+        }
+        else if (cycle_num > 0)
         {
             const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
             double apply_time = std::numeric_limits<double>::quiet_NaN();
+            bool update_convective_term = false;
             if (convective_time_stepping_type == MIDPOINT_RULE)
             {
+                update_convective_term = true;
                 d_hier_sc_data_ops->linearSum(U_adv_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
                 apply_time = half_time;
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
+                update_convective_term = true;
                 d_hier_sc_data_ops->copyData(U_adv_idx, d_U_new_idx);
                 apply_time = new_time;
             }
-            for (int ln = finest_ln; ln > coarsest_ln; --ln)
+            if (update_convective_term)
             {
-                Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-                Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-                Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                    grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
-                coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
-                coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-                getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
-                getCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP")
-                    ->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
+                for (int ln = finest_ln; ln > coarsest_ln; --ln)
+                {
+                    Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
+                    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+                    Pointer<CoarsenOperator<NDIM> > coarsen_op =
+                        grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
+                    coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
+                    coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
+                    getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
+                    getCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP")
+                        ->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
+                }
+                d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
+                d_convective_op->setSolutionTime(apply_time);
+                d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
             }
-            d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
-            d_convective_op->setSolutionTime(apply_time);
-            d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
-        }
-        const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        if (convective_time_stepping_type == ADAMS_BASHFORTH)
-        {
-#if !defined(NDEBUG)
-            TBOX_ASSERT(cycle_num == 0);
-#endif
-            const double omega = dt / d_dt_previous[0];
-            d_hier_sc_data_ops->linearSum(N_idx, 1.0 + 0.5 * omega, N_idx, -0.5 * omega, d_N_old_current_idx);
         }
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
@@ -2765,31 +2769,15 @@ INSStaggeredHierarchyIntegrator::computeDivSourceTerm(const int F_idx, const int
 } // computeDivSourceTerm
 
 TimeSteppingType
-INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_num)
+INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(const int /*cycle_num*/)
 {
     TimeSteppingType convective_time_stepping_type = d_convective_time_stepping_type;
     if (is_multistep_time_stepping_type(convective_time_stepping_type))
     {
-#if !defined(NDEBUG)
         TBOX_ASSERT(convective_time_stepping_type == ADAMS_BASHFORTH);
-#endif
         if (getIntegratorStep() == 0)
         {
             convective_time_stepping_type = d_init_convective_time_stepping_type;
-        }
-        else if (cycle_num > 0)
-        {
-            convective_time_stepping_type = MIDPOINT_RULE;
-            IBAMR_DO_ONCE({
-                pout << "INSStaggeredHierarchyIntegrator::integrateHierarchy():\n"
-                     << "  WARNING: convective_time_stepping_type = "
-                     << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                     << " but num_cycles = " << d_current_num_cycles << " > 1.\n"
-                     << "           using " << enum_to_string<TimeSteppingType>(d_convective_time_stepping_type)
-                     << " only for the first cycle in each time step;\n"
-                     << "           using " << enum_to_string<TimeSteppingType>(convective_time_stepping_type)
-                     << " for subsequent cycles.\n";
-            });
         }
     }
     return convective_time_stepping_type;
