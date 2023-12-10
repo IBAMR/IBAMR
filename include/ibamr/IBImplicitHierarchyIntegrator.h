@@ -34,6 +34,7 @@
 #include "petscsys.h"
 #include "petscvec.h"
 
+#include <limits>
 #include <string>
 
 namespace IBAMR
@@ -141,6 +142,12 @@ protected:
     // Whether to use "frozen" LE operators.
     bool d_use_fixed_LE_operators = false;
 
+    // Whether to solve for the position.
+    bool d_solve_for_position = false;
+
+    // Penalty factor used in direct forcing.
+    double d_eta = std::numeric_limits<double>::quiet_NaN();
+
 private:
     /*!
      * \brief Copy constructor.
@@ -175,13 +182,12 @@ private:
     /*!
      * Iterate the solution (e.g. for fixed-point iteration).
      */
-    void iterateSolution(Vec X_new);
+    void iterateSolution(Vec Y, Vec R, bool update_IB_state_vars, bool update_IB_residual);
 
     /*!
      * Static function for implicit formulation.
      */
-    static PetscErrorCode IBFunction_SAMRAI(SNES snes, Vec X, Vec R, void* ctx);
-    PetscErrorCode IBFunction(SNES snes, Vec X, Vec R);
+    static PetscErrorCode IBFunction(SNES snes, Vec Y, Vec R, void* ctx);
 };
 } // namespace IBAMR
 

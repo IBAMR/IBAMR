@@ -694,12 +694,12 @@ public:
     /*!
      * Create solution and rhs data.
      */
-    void createSolverVecs(Vec* X_vec, Vec* F_vec) override;
+    void createSolverVecs(Vec* X_vec, Vec* F_vec, Vec* R_vec) override;
 
     /*!
      * Setup solution and rhs data.
      */
-    void setupSolverVecs(Vec& X_vec, Vec& F_vec) override;
+    void setupSolverVecs(Vec& X_vec, Vec& F_vec, Vec& R_vec) override;
 
     /*!
      * Set the value of the updated position vector.
@@ -707,9 +707,24 @@ public:
     void setUpdatedPosition(Vec& X_new_vec) override;
 
     /*!
+     * Set the value of the updated force vector.
+     */
+    void setUpdatedForce(Vec& F_new_vec) override;
+
+    /*!
      * Get the value of the updated position vector.
      */
     void getUpdatedPosition(Vec& X_new_vec) override;
+
+    /*!
+     * Get the value of the updated velocity vector.
+     */
+    void getUpdatedVelocity(Vec& U_new_vec) override;
+
+    /*!
+     * Get the value of the updated force vector.
+     */
+    void getUpdatedForce(Vec& F_new_vec) override;
 
     /*!
      * Compute the nonlinear residual for backward Euler time stepping.
@@ -1157,7 +1172,8 @@ private:
     /**
      * Cached data for implicit solver.
      */
-    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_implicit_X_vecs, d_implicit_R_vecs;
+    std::vector<std::unique_ptr<libMesh::PetscVector<double> > > d_implicit_X_vecs, d_implicit_F_vecs,
+        d_implicit_R_vecs;
 };
 } // namespace IBAMR
 

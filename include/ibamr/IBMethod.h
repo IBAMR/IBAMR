@@ -196,13 +196,13 @@ public:
      * Create solution and rhs data on the specified level of the patch
      * hierarchy.
      */
-    void createSolverVecs(Vec* X_vec, Vec* F_vec) override;
+    void createSolverVecs(Vec* X_vec, Vec* F_vec, Vec* R_vec) override;
 
     /*!
      * Setup solution and rhs data on the specified level of the patch
      * hierarchy.
      */
-    void setupSolverVecs(Vec& X_vec, Vec& F_vec) override;
+    void setupSolverVecs(Vec& X_vec, Vec& F_vec, Vec& R_vec) override;
 
     /*!
      * Set the value of the updated position vector.
@@ -210,9 +210,24 @@ public:
     void setUpdatedPosition(Vec& X_new_vec) override;
 
     /*!
+     * Set the value of the updated force vector.
+     */
+    void setUpdatedForce(Vec& F_new_vec) override;
+
+    /*!
      * Get the value of the updated position vector.
      */
     void getUpdatedPosition(Vec& X_new_vec) override;
+
+    /*!
+     * Get the value of the updated velocity vector.
+     */
+    void getUpdatedVelocity(Vec& U_new_vec) override;
+
+    /*!
+     * Get the value of the updated force vector.
+     */
+    void getUpdatedForce(Vec& F_new_vec) override;
 
     /*!
      * Compute the nonlinear residual for backward Euler time stepping.

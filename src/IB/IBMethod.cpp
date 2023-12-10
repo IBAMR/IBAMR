@@ -483,7 +483,7 @@ IBMethod::createSolutionVec(Vec* X_vec)
 } // createSolutionVec
 
 void
-IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec)
+IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec, Vec* R_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
@@ -494,14 +494,19 @@ IBMethod::createSolverVecs(Vec* X_vec, Vec* F_vec)
     }
     if (F_vec != nullptr)
     {
-        ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), F_vec);
+        ierr = VecDuplicate(d_F_current_data[level_num]->getVec(), F_vec);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (R_vec != nullptr)
+    {
+        ierr = VecDuplicate(d_X_current_data[level_num]->getVec(), R_vec);
         IBTK_CHKERRQ(ierr);
     }
     return;
 } // createSolverVecs
 
 void
-IBMethod::setupSolverVecs(Vec& X_vec, Vec& F_vec)
+IBMethod::setupSolverVecs(Vec& X_vec, Vec& F_vec, Vec& R_vec)
 {
     PetscErrorCode ierr;
     const int level_num = d_hierarchy->getFinestLevelNumber();
@@ -512,7 +517,12 @@ IBMethod::setupSolverVecs(Vec& X_vec, Vec& F_vec)
     }
     if (F_vec != nullptr)
     {
-        ierr = VecSet(F_vec, 0.0);
+        ierr = VecCopy(d_F_current_data[level_num]->getVec(), F_vec);
+        IBTK_CHKERRQ(ierr);
+    }
+    if (R_vec != nullptr)
+    {
+        ierr = VecZeroEntries(R_vec);
         IBTK_CHKERRQ(ierr);
     }
     return;
@@ -538,6 +548,25 @@ IBMethod::setUpdatedPosition(Vec& X_new_vec)
 } // setUpdatedPosition
 
 void
+IBMethod::setUpdatedForce(Vec& F_new_vec)
+{
+    PetscErrorCode ierr;
+    const int level_num = d_hierarchy->getFinestLevelNumber();
+    ierr = VecCopy(F_new_vec, d_F_new_data[level_num]->getVec());
+    IBTK_CHKERRQ(ierr);
+    d_F_new_needs_ghost_fill = true;
+
+    std::vector<Pointer<LData> >* F_half_data;
+    bool* F_half_needs_ghost_fill = nullptr;
+    getForceData(&F_half_data, &F_half_needs_ghost_fill, d_half_time);
+    reinitMidpointData(d_F_current_data, d_F_new_data, *F_half_data);
+    TBOX_ASSERT(F_half_needs_ghost_fill);
+    *F_half_needs_ghost_fill = true;
+
+    return;
+} // setUpdatedForce
+
+void
 IBMethod::getUpdatedPosition(Vec& X_new_vec)
 {
     PetscErrorCode ierr;
@@ -546,6 +575,26 @@ IBMethod::getUpdatedPosition(Vec& X_new_vec)
     IBTK_CHKERRQ(ierr);
     return;
 } // getUpdatedPosition
+
+void
+IBMethod::getUpdatedVelocity(Vec& U_new_vec)
+{
+    PetscErrorCode ierr;
+    const int level_num = d_hierarchy->getFinestLevelNumber();
+    ierr = VecCopy(d_U_new_data[level_num]->getVec(), U_new_vec);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // getUpdatedVelocity
+
+void
+IBMethod::getUpdatedForce(Vec& F_new_vec)
+{
+    PetscErrorCode ierr;
+    const int level_num = d_hierarchy->getFinestLevelNumber();
+    ierr = VecCopy(d_F_new_data[level_num]->getVec(), F_new_vec);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // getUpdatedVelocity
 
 void
 IBMethod::computeResidualBackwardEuler(Vec& R_vec)
@@ -771,7 +820,7 @@ IBMethod::computeLagrangianForce(const double data_time)
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        ierr = VecSet((*F_data)[ln]->getVec(), 0.0);
+        ierr = VecZeroEntries((*F_data)[ln]->getVec());
         IBTK_CHKERRQ(ierr);
         if (d_ib_force_fcn)
         {
