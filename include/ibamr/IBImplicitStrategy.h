@@ -76,12 +76,12 @@ public:
     /*!
      * Create solution and rhs data.
      */
-    virtual void createSolverVecs(Vec* X_vec, Vec* F_vec) = 0;
+    virtual void createSolverVecs(Vec* X_vec, Vec* F_vec, Vec* R_vec) = 0;
 
     /*!
      * Setup solution and rhs data.
      */
-    virtual void setupSolverVecs(Vec& X_vec, Vec& F_vec) = 0;
+    virtual void setupSolverVecs(Vec& X_vec, Vec& F_vec, Vec& R_vec) = 0;
 
     /*!
      * Set the value of the updated position vector.
@@ -89,9 +89,24 @@ public:
     virtual void setUpdatedPosition(Vec& X_new_vec) = 0;
 
     /*!
+     * Set the value of the updated position vector.
+     */
+    virtual void setUpdatedForce(Vec& F_new_vec) = 0;
+
+    /*!
      * Get the value of the updated position vector.
      */
     virtual void getUpdatedPosition(Vec& X_new_vec) = 0;
+
+    /*!
+     * Get the value of the updated velocity vector.
+     */
+    virtual void getUpdatedVelocity(Vec& U_new_vec) = 0;
+
+    /*!
+     * Get the value of the updated force vector.
+     */
+    virtual void getUpdatedForce(Vec& F_new_vec) = 0;
 
     /*!
      * Compute the nonlinear residual for backward Euler time stepping.
