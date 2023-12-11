@@ -150,7 +150,7 @@ SET(CXX_SRC
   IB/CIBStaggeredStokesSolver.cpp
   IB/IBKirchhoffRodForceGen.cpp
   IB/IBAnchorPointSpec.cpp
-  IB/IBImplicitStaggeredHierarchyIntegrator.cpp
+  IB/IBImplicitHierarchyIntegrator.cpp
   IB/IBRedundantInitializer.cpp
   IB/IBAnchorPointSpecFactory.cpp
   IB/CIBStrategy.cpp
