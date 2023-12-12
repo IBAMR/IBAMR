@@ -37,7 +37,7 @@ IBTK_MPI::minReduction(T* x, const int n, int* rank_of_min)
     if (n == 0) return;
     if (rank_of_min == nullptr)
     {
-        MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(x[0]), MPI_MIN, IBTK_MPI::getCommunicator());
+        MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_MIN, IBTK_MPI::getCommunicator());
     }
     else
     {
@@ -60,7 +60,7 @@ IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max)
     if (n == 0) return;
     if (rank_of_max == nullptr)
     {
-        MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(x[0]), MPI_MAX, IBTK_MPI::getCommunicator());
+        MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_MAX, IBTK_MPI::getCommunicator());
     }
     else
     {
@@ -86,7 +86,7 @@ inline void
 IBTK_MPI::sumReduction(T* x, const int n)
 {
     if (n == 0 || getNodes() < 2) return;
-    MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(x[0]), MPI_SUM, IBTK_MPI::getCommunicator());
+    MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_SUM, IBTK_MPI::getCommunicator());
 } // sumReduction
 
 template <typename T>
@@ -105,7 +105,7 @@ IBTK_MPI::bcast(T* x, int& length, const int root)
 {
     if (getNodes() > 1)
     {
-        MPI_Bcast(x, length, mpi_type_id(x[0]), root, IBTK_MPI::getCommunicator());
+        MPI_Bcast(x, length, mpi_type_id(T{}), root, IBTK_MPI::getCommunicator());
     }
 } // bcast
 
@@ -144,11 +144,11 @@ IBTK_MPI::allGather(const T* x_in, int size_in, T* x_out, int size_out)
 
     MPI_Allgatherv(x_in,
                    size_in,
-                   mpi_type_id(x_in[0]),
+                   mpi_type_id(T{}),
                    x_out,
                    rcounts.data(),
                    disps.data(),
-                   mpi_type_id(x_in[0]),
+                   mpi_type_id(T{}),
                    IBTK_MPI::getCommunicator());
 } // allGather
 
@@ -156,7 +156,7 @@ template <typename T>
 inline void
 IBTK_MPI::allGather(T x_in, T* x_out)
 {
-    MPI_Allgather(&x_in, 1, mpi_type_id(x_in), x_out, 1, mpi_type_id(x_in), IBTK_MPI::getCommunicator());
+    MPI_Allgather(&x_in, 1, mpi_type_id(T{}), x_out, 1, mpi_type_id(T{}), IBTK_MPI::getCommunicator());
 } // allGather
 
 //////////////////////////////////////  PRIVATE  ///////////////////////////////////////////////////
@@ -171,7 +171,7 @@ IBTK_MPI::minMaxReduction(T* x, const int n, int* rank, MPI_Op op)
         send[i].first = x[i];
         send[i].second = getRank();
     }
-    MPI_Allreduce(send.data(), recv.data(), n, mpi_type_id(recv[0]), op, IBTK_MPI::getCommunicator());
+    MPI_Allreduce(send.data(), recv.data(), n, mpi_type_id(T{}), op, IBTK_MPI::getCommunicator());
     for (int i = 0; i < n; ++i)
     {
         x[i] = recv[i].first;
