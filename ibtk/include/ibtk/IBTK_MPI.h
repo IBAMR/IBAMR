@@ -255,7 +255,7 @@ struct IBTK_MPI
      * tag is 0.
      */
     template <typename T>
-    static void recv(T* buf, int& length, const int sending_proc_number, const bool get_length = true, int tag = -1);
+    static void recv(T* buf, int& length, const int sending_proc_number, const bool get_length = true, int tag = 0);
 
     //@{
     /**

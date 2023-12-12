@@ -107,11 +107,10 @@ template <typename T>
 inline void
 IBTK_MPI::send(const T* buf, const int length, const int receiving_proc_number, const bool send_length, int tag)
 {
-    tag = (tag >= 0) ? tag : 0;
-    int size = length;
+    TBOX_ASSERT(tag >= 0);
     if (send_length)
     {
-        MPI_Send(&size, 1, MPI_INT, receiving_proc_number, tag, IBTK_MPI::getCommunicator());
+        MPI_Send(&length, 1, MPI_INT, receiving_proc_number, tag, IBTK_MPI::getCommunicator());
     }
     MPI_Send(buf, length, mpi_type_id(buf[0]), receiving_proc_number, tag, IBTK_MPI::getCommunicator());
 } // send
@@ -120,8 +119,8 @@ template <typename T>
 inline void
 IBTK_MPI::recv(T* buf, int& length, const int sending_proc_number, const bool get_length, int tag)
 {
+    TBOX_ASSERT(tag >= 0);
     MPI_Status status;
-    tag = (tag >= 0) ? tag : 0;
     if (get_length)
     {
         MPI_Recv(&length, 1, MPI_INT, sending_proc_number, tag, IBTK_MPI::getCommunicator(), &status);
