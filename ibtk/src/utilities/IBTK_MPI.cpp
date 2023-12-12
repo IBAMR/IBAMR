@@ -16,6 +16,7 @@
 #include <ibtk/IBTK_MPI.h>
 
 #include <tbox/SAMRAI_MPI.h>
+#include <tbox/Utilities.h>
 
 #include <ostream>
 #include <string>
@@ -51,7 +52,8 @@ int
 IBTK_MPI::getNodes()
 {
     int nodes = 1;
-    MPI_Comm_size(IBTK_MPI::getCommunicator(), &nodes);
+    const int ierr = MPI_Comm_size(IBTK_MPI::getCommunicator(), &nodes);
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
     return nodes;
 } // getNodes
 
@@ -59,14 +61,16 @@ int
 IBTK_MPI::getRank()
 {
     int node = 0;
-    MPI_Comm_rank(IBTK_MPI::getCommunicator(), &node);
+    const int ierr = MPI_Comm_rank(IBTK_MPI::getCommunicator(), &node);
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
     return node;
 } // getRank
 
 void
 IBTK_MPI::barrier()
 {
-    (void)MPI_Barrier(IBTK_MPI::getCommunicator());
+    const int ierr = MPI_Barrier(IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
 } // barrier
 
 void
@@ -75,16 +79,24 @@ IBTK_MPI::allToOneSumReduction(int* x, const int n, const int root)
     if (getNodes() > 1)
     {
         if (IBTK_MPI::getRank() == root)
-            MPI_Reduce(MPI_IN_PLACE, x, n, MPI_INT, MPI_SUM, root, IBTK_MPI::getCommunicator());
+        {
+            const int ierr = MPI_Reduce(MPI_IN_PLACE, x, n, MPI_INT, MPI_SUM, root, IBTK_MPI::getCommunicator());
+            TBOX_ASSERT(ierr == MPI_SUCCESS);
+        }
         else
-            MPI_Reduce(x, x, n, MPI_INT, MPI_SUM, root, IBTK_MPI::getCommunicator());
+        {
+            const int ierr = MPI_Reduce(x, x, n, MPI_INT, MPI_SUM, root, IBTK_MPI::getCommunicator());
+            TBOX_ASSERT(ierr == MPI_SUCCESS);
+        }
     }
 } // allToOneSumReduction
 
 void
 IBTK_MPI::sendBytes(const void* buf, const int number_bytes, const int receiving_proc_number)
 {
-    MPI_Send((void*)buf, number_bytes, MPI_BYTE, receiving_proc_number, 0, IBTK_MPI::getCommunicator());
+    const int ierr =
+        MPI_Send((void*)buf, number_bytes, MPI_BYTE, receiving_proc_number, 0, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
 } // sendBytes
 
 int
@@ -92,7 +104,9 @@ IBTK_MPI::recvBytes(void* buf, int number_bytes)
 {
     int rval = 0;
     MPI_Status status;
-    MPI_Recv(buf, number_bytes, MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, IBTK_MPI::getCommunicator(), &status);
+    const int ierr =
+        MPI_Recv(buf, number_bytes, MPI_BYTE, MPI_ANY_SOURCE, MPI_ANY_TAG, IBTK_MPI::getCommunicator(), &status);
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
 
     rval = status.MPI_SOURCE;
     return rval;

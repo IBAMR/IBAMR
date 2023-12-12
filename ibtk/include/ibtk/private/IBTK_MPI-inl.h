@@ -20,6 +20,8 @@
 
 #include <ibtk/IBTK_MPI.h>
 
+#include <tbox/Utilities.h>
+
 namespace IBTK
 {
 template <typename T>
@@ -36,7 +38,8 @@ IBTK_MPI::minReduction(T* x, const int n, int* rank_of_min)
 {
     if (rank_of_min == nullptr)
     {
-        MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_MIN, IBTK_MPI::getCommunicator());
+        const int ierr = MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_MIN, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == MPI_SUCCESS);
     }
     else
     {
@@ -58,7 +61,8 @@ IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max)
 {
     if (rank_of_max == nullptr)
     {
-        MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_MAX, IBTK_MPI::getCommunicator());
+        const int ierr = MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_MAX, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == MPI_SUCCESS);
     }
     else
     {
@@ -83,7 +87,8 @@ template <typename T>
 inline void
 IBTK_MPI::sumReduction(T* x, const int n)
 {
-    MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_SUM, IBTK_MPI::getCommunicator());
+    const int ierr = MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_SUM, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
 } // sumReduction
 
 template <typename T>
@@ -100,7 +105,8 @@ template <typename T>
 inline void
 IBTK_MPI::bcast(T* x, int& length, const int root)
 {
-    MPI_Bcast(x, length, mpi_type_id(T{}), root, IBTK_MPI::getCommunicator());
+    const int ierr = MPI_Bcast(x, length, mpi_type_id(T{}), root, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
 } // bcast
 
 template <typename T>
@@ -110,9 +116,12 @@ IBTK_MPI::send(const T* buf, const int length, const int receiving_proc_number, 
     TBOX_ASSERT(tag >= 0);
     if (send_length)
     {
-        MPI_Send(&length, 1, MPI_INT, receiving_proc_number, tag, IBTK_MPI::getCommunicator());
+        const int ierr = MPI_Send(&length, 1, MPI_INT, receiving_proc_number, tag, IBTK_MPI::getCommunicator());
+        TBOX_ASSERT(ierr == MPI_SUCCESS);
     }
-    MPI_Send(buf, length, mpi_type_id(buf[0]), receiving_proc_number, tag, IBTK_MPI::getCommunicator());
+    const int ierr =
+        MPI_Send(buf, length, mpi_type_id(buf[0]), receiving_proc_number, tag, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
 } // send
 
 template <typename T>
@@ -123,9 +132,12 @@ IBTK_MPI::recv(T* buf, int& length, const int sending_proc_number, const bool ge
     MPI_Status status;
     if (get_length)
     {
-        MPI_Recv(&length, 1, MPI_INT, sending_proc_number, tag, IBTK_MPI::getCommunicator(), &status);
+        const int ierr = MPI_Recv(&length, 1, MPI_INT, sending_proc_number, tag, IBTK_MPI::getCommunicator(), &status);
+        TBOX_ASSERT(ierr == MPI_SUCCESS);
     }
-    MPI_Recv(buf, length, mpi_type_id(buf[0]), sending_proc_number, tag, IBTK_MPI::getCommunicator(), &status);
+    const int ierr =
+        MPI_Recv(buf, length, mpi_type_id(buf[0]), sending_proc_number, tag, IBTK_MPI::getCommunicator(), &status);
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
 } // recv
 
 template <typename T>
@@ -135,21 +147,23 @@ IBTK_MPI::allGather(const T* x_in, int size_in, T* x_out, int size_out)
     std::vector<int> rcounts, disps;
     allGatherSetup(size_in, size_out, rcounts, disps);
 
-    MPI_Allgatherv(x_in,
-                   size_in,
-                   mpi_type_id(T{}),
-                   x_out,
-                   rcounts.data(),
-                   disps.data(),
-                   mpi_type_id(T{}),
-                   IBTK_MPI::getCommunicator());
+    const int ierr = MPI_Allgatherv(x_in,
+                                    size_in,
+                                    mpi_type_id(T{}),
+                                    x_out,
+                                    rcounts.data(),
+                                    disps.data(),
+                                    mpi_type_id(T{}),
+                                    IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
 } // allGather
 
 template <typename T>
 inline void
 IBTK_MPI::allGather(T x_in, T* x_out)
 {
-    MPI_Allgather(&x_in, 1, mpi_type_id(T{}), x_out, 1, mpi_type_id(T{}), IBTK_MPI::getCommunicator());
+    const int ierr = MPI_Allgather(&x_in, 1, mpi_type_id(T{}), x_out, 1, mpi_type_id(T{}), IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
 } // allGather
 
 //////////////////////////////////////  PRIVATE  ///////////////////////////////////////////////////
@@ -164,7 +178,9 @@ IBTK_MPI::minMaxReduction(T* x, const int n, int* rank, MPI_Op op)
         send[i].first = x[i];
         send[i].second = getRank();
     }
-    MPI_Allreduce(send.data(), recv.data(), n, mpi_type_id(T{}), op, IBTK_MPI::getCommunicator());
+    const int ierr =
+        MPI_Allreduce(send.data(), recv.data(), n, mpi_type_id(std::pair<T, int>{}), op, IBTK_MPI::getCommunicator());
+    TBOX_ASSERT(ierr == MPI_SUCCESS);
     for (int i = 0; i < n; ++i)
     {
         x[i] = recv[i].first;
