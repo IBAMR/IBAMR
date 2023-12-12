@@ -98,7 +98,6 @@ mpi_type_id(const T&)
  * attempt to instantiate a class of type IBTK_MPI; simply call the functions
  * as static functions using the IBTK_MPI::function(...) syntax.
  */
-
 struct IBTK_MPI
 {
     /**
