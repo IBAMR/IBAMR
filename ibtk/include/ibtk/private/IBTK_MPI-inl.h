@@ -34,7 +34,6 @@ template <typename T>
 inline void
 IBTK_MPI::minReduction(T* x, const int n, int* rank_of_min)
 {
-    if (n == 0) return;
     if (rank_of_min == nullptr)
     {
         MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_MIN, IBTK_MPI::getCommunicator());
@@ -57,7 +56,6 @@ template <typename T>
 inline void
 IBTK_MPI::maxReduction(T* x, const int n, int* rank_of_max)
 {
-    if (n == 0) return;
     if (rank_of_max == nullptr)
     {
         MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_MAX, IBTK_MPI::getCommunicator());
@@ -85,7 +83,6 @@ template <typename T>
 inline void
 IBTK_MPI::sumReduction(T* x, const int n)
 {
-    if (n == 0 || getNodes() < 2) return;
     MPI_Allreduce(MPI_IN_PLACE, x, n, mpi_type_id(T{}), MPI_SUM, IBTK_MPI::getCommunicator());
 } // sumReduction
 
@@ -103,10 +100,7 @@ template <typename T>
 inline void
 IBTK_MPI::bcast(T* x, int& length, const int root)
 {
-    if (getNodes() > 1)
-    {
-        MPI_Bcast(x, length, mpi_type_id(T{}), root, IBTK_MPI::getCommunicator());
-    }
+    MPI_Bcast(x, length, mpi_type_id(T{}), root, IBTK_MPI::getCommunicator());
 } // bcast
 
 template <typename T>
