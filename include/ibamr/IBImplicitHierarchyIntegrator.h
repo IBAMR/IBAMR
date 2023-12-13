@@ -180,9 +180,9 @@ private:
     double d_current_time, d_new_time;
 
     /*!
-     * Iterate the solution (e.g. for fixed-point iteration).
+     * Update the solution (e.g. for fixed-point iteration) based on the current value of Y.
      */
-    void iterateSolution(Vec Y, Vec R, bool update_IB_state_vars, bool update_IB_residual);
+    void updateSolution(Vec Y, Vec R, bool update_IB_state_vars, bool update_IB_residual);
 
     /*!
      * Static function for implicit formulation.
