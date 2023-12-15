@@ -196,6 +196,7 @@ IBImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
         if (d_enable_logging)
             plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
         d_ib_implicit_ops->forwardEulerStep(current_time, new_time);
+        if (!d_solve_for_position) d_ib_method_ops->computeLagrangianForce(new_time);
     }
 
     // Execute any registered callbacks.
@@ -243,7 +244,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     IBTK_CHKERRQ(ierr);
 
     // Ensure that the state variables are consistent with the solution.
-    updateSolution(Y, R, /*update_IB_state_vars*/ d_solve_for_position, /*update_IB_residual*/ false);
+    //updateSolution(Y, R);
 
     // Deallocate temporary data.
     ierr = VecDestroy(&X);
@@ -424,9 +425,7 @@ IBImplicitHierarchyIntegrator::getFromRestart()
 
 void
 IBImplicitHierarchyIntegrator::updateSolution(Vec Y,
-                                              Vec R,
-                                              const bool update_IB_state_vars,
-                                              const bool update_IB_residual)
+                                              Vec R)
 {
     Vec X = d_solve_for_position ? Y : nullptr;
     Vec F = d_solve_for_position ? nullptr : Y;
@@ -451,6 +450,7 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y,
     {
         // Set the current position data.
         d_ib_implicit_ops->setUpdatedForce(F);
+        d_ib_implicit_ops->getUpdatedPosition(R);
     }
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
@@ -568,36 +568,33 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y,
                           << "  supported time stepping types are: BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
-    // Update the IB variables and residuals.
-    if (update_IB_state_vars)
+    // Update the IB variables.
+    switch (d_time_stepping_type)
     {
-        switch (d_time_stepping_type)
-        {
-        case BACKWARD_EULER:
-        {
-            d_ib_implicit_ops->backwardEulerStep(current_time, new_time);
-            break;
-        }
-        case MIDPOINT_RULE:
-        {
-            d_ib_implicit_ops->midpointStep(current_time, new_time);
-            break;
-        }
-        case TRAPEZOIDAL_RULE:
-        {
-            d_ib_implicit_ops->trapezoidalStep(current_time, new_time);
-            break;
-        }
-        default:
-            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                                     << "  unsupported time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                                     << "  supported time stepping types are: BACKWARD_EULER, "
-                                        "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
-        }
+    case BACKWARD_EULER:
+    {
+        d_ib_implicit_ops->backwardEulerStep(current_time, new_time);
+        break;
+    }
+    case MIDPOINT_RULE:
+    {
+        d_ib_implicit_ops->midpointStep(current_time, new_time);
+        break;
+    }
+    case TRAPEZOIDAL_RULE:
+    {
+        d_ib_implicit_ops->trapezoidalStep(current_time, new_time);
+        break;
+    }
+    default:
+        TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                 << "  unsupported time stepping type: "
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << "  supported time stepping types are: BACKWARD_EULER, "
+                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
-    if (update_IB_residual)
+    if (R != nullptr)
     {
         if (d_solve_for_position)
         {
@@ -611,15 +608,23 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y,
             {
             case BACKWARD_EULER:
             {
-                d_ib_implicit_ops->getUpdatedVelocity(R);
-                PetscErrorCode ierr = VecAYPX(R, d_eta, F);
+                d_ib_method_ops->computeLagrangianForce(new_time);
+                d_ib_implicit_ops->getUpdatedForce(R);
+                PetscErrorCode ierr = VecAXPY(R, -1.0, F);
                 IBTK_CHKERRQ(ierr);
                 break;
             }
             case MIDPOINT_RULE:
-            case TRAPEZOIDAL_RULE:
             {
                 TBOX_ERROR("unimplemented!");
+                break;
+            }
+            case TRAPEZOIDAL_RULE:
+            {
+                d_ib_method_ops->computeLagrangianForce(new_time);
+                d_ib_implicit_ops->getUpdatedForce(R);
+                PetscErrorCode ierr = VecAXPY(R, -1.0, F);
+                IBTK_CHKERRQ(ierr);
                 break;
             }
             default:
@@ -638,7 +643,7 @@ PetscErrorCode
 IBImplicitHierarchyIntegrator::IBFunction(SNES /*snes*/, Vec Y, Vec R, void* ctx)
 {
     auto integrator = static_cast<IBImplicitHierarchyIntegrator*>(ctx);
-    integrator->updateSolution(Y, R, /*update_IB_state_vars*/ true, /*update_IB_residual*/ true);
+    integrator->updateSolution(Y, R);
     return 0;
 }
 

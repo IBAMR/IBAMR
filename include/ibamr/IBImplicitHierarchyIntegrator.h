@@ -180,9 +180,9 @@ private:
     double d_current_time, d_new_time;
 
     /*!
-     * Update the solution (e.g. for fixed-point iteration) based on the current value of Y.
+     * Update the solution (e.g. for fixed-point iteration) based on the current value of Y and compute the residual.
      */
-    void updateSolution(Vec Y, Vec R, bool update_IB_state_vars, bool update_IB_residual);
+    void updateSolution(Vec Y, Vec R);
 
     /*!
      * Static function for implicit formulation.
