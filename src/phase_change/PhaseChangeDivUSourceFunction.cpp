@@ -25,9 +25,9 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PhaseChangeDivUSourceFunction::PhaseChangeDivUSourceFunction(
-    const std::string& object_name,
+    const std::string& /*object_name*/,
     const Pointer<PhaseChangeHierarchyIntegrator> pc_hier_integrator)
-    : d_object_name(object_name), d_pc_hier_integrator(pc_hier_integrator)
+    : d_pc_hier_integrator(pc_hier_integrator)
 {
     // intentionally blank
     return;

@@ -137,8 +137,9 @@ public:
     /*!
      * Register the specific heat \f$ C_p \f$ variable.
      */
-    void registerSpecificHeatVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Cp_var,
-                                      const bool output_Cp = false);
+    void
+    registerSpecificHeatVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > specific_heat_var,
+                                 const bool output_Cp = false);
 
     /*!
      * Register the density \f$ \rho \f$ variable.
@@ -266,7 +267,7 @@ public:
      */
     inline int getUpdatedSpecificHeatIndex() const
     {
-        return d_Cp_new_idx;
+        return d_specific_heat_new_idx;
     }
 
     /*!
@@ -294,7 +295,7 @@ public:
     /*!
      * \brief Register boundary conditions for the cell-centered specific heat variable.
      */
-    void registerSpecificHeatBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& Cp_bc_coefs);
+    void registerSpecificHeatBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& specific_heat_bc_coefs);
 
     /*!
      * \brief Register boundary conditions for the cell-centered thermal conductivity variable.
@@ -359,7 +360,7 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_rhs_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_N_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_C_var, d_T_temp_rhs_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Cp_var, d_rho_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_specific_heat_var, d_rho_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_var, d_rho_vec_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var, d_H_pre_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_D_cc_var;
@@ -417,15 +418,15 @@ protected:
     /*!
      * Functions to reset \f$ \rho \f$, \f$ C_p \f$ and \f$ k \f$.
      */
-    std::vector<ResetPhasePropertiesFcnPtr> d_reset_rho_fcns, d_reset_Cp_fcns, d_reset_kappa_fcns;
-    std::vector<void*> d_reset_rho_fcns_ctx, d_reset_Cp_fcns_ctx, d_reset_kappa_fcns_ctx;
+    std::vector<ResetPhasePropertiesFcnPtr> d_reset_rho_fcns, d_reset_specific_heat_fcns, d_reset_kappa_fcns;
+    std::vector<void*> d_reset_rho_fcns_ctx, d_reset_specific_heat_fcns_ctx, d_reset_kappa_fcns_ctx;
 
     /*!
      * Boundary conditions object for \f$ \rho \f$, \f$ C_p \f$, \f$ k \f$ and \f$ T \f$.
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_rho_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_k_bc_coef = nullptr;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Cp_bc_coef = nullptr;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_specific_heat_bc_coef = nullptr;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_T_bc_coef = nullptr;
 
     /*!
@@ -456,14 +457,22 @@ protected:
     int d_T_scratch_idx = IBTK::invalid_index, d_T_current_idx = IBTK::invalid_index, d_T_new_idx = IBTK::invalid_index;
     int d_rho_scratch_idx = IBTK::invalid_index, d_rho_current_idx = IBTK::invalid_index,
         d_rho_new_idx = IBTK::invalid_index;
-    int d_Cp_scratch_idx = IBTK::invalid_index, d_Cp_current_idx = IBTK::invalid_index,
-        d_Cp_new_idx = IBTK::invalid_index;
+    int d_specific_heat_scratch_idx = IBTK::invalid_index, d_specific_heat_current_idx = IBTK::invalid_index,
+        d_specific_heat_new_idx = IBTK::invalid_index;
     int d_C_scratch_idx = IBTK::invalid_index, d_C_current_idx = IBTK::invalid_index, d_C_new_idx = IBTK::invalid_index;
     int d_H_scratch_idx = IBTK::invalid_index, d_H_current_idx = IBTK::invalid_index, d_H_new_idx = IBTK::invalid_index;
     int d_U_old_current_idx = IBTK::invalid_index, d_U_old_new_idx = IBTK::invalid_index,
         d_U_old_scratch_idx = IBTK::invalid_index;
     int d_D_cc_scratch_idx = IBTK::invalid_index, d_D_cc_current_idx = IBTK::invalid_index,
         d_D_cc_new_idx = IBTK::invalid_index;
+    int d_T_diffusion_coef_current_idx = IBTK::invalid_index, d_T_diffusion_coef_new_idx = IBTK::invalid_index,
+        d_T_diffusion_coef_scratch_idx = IBTK::invalid_index;
+    int d_T_diffusion_coef_cc_current_idx = IBTK::invalid_index, d_T_diffusion_coef_cc_new_idx = IBTK::invalid_index,
+        d_T_diffusion_coef_cc_scratch_idx = IBTK::invalid_index;
+    int d_u_adv_current_idx = IBTK::invalid_index, d_u_adv_new_idx = IBTK::invalid_index,
+        d_u_adv_scratch_idx = IBTK::invalid_index;
+    int d_T_F_current_idx = IBTK::invalid_index, d_T_F_new_idx = IBTK::invalid_index,
+        d_T_F_scratch_idx = IBTK::invalid_index;
 
     /*!
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -476,6 +485,9 @@ protected:
     int d_C_rhs_scratch_idx = IBTK::invalid_index;
     int d_updated_rho_idx = IBTK::invalid_index;
     int d_Div_U_F_idx = IBTK::invalid_index;
+    int d_T_diffusion_coef_rhs_scratch_idx = IBTK::invalid_index;
+    int d_T_rhs_scratch_idx = IBTK::invalid_index;
+    int d_T_N_scratch_idx = IBTK::invalid_index;
 
     /*!
      * Phase change parameters.

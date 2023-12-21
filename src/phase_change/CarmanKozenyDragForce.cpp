@@ -183,7 +183,8 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
 
                 const double solid_velocity = 0.0;
 
-                (*u_data)(s_i) = solid_velocity * penalty * alpha_s * alpha_s / (std::pow(1.0 - alpha_s, 3.0) + d_ed);
+                (*u_data)(s_i) = solid_velocity * penalty * alpha_s * alpha_s /
+                                 (std::pow(1.0 - alpha_s, 3.0) + d_avoid_division_by_zero_factor);
             }
         }
     }
@@ -288,7 +289,8 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
                     penalty_mu_scale = mu / (h_min * h_min);
                 }
                 const double penalty = d_penalty_factor * (penalty_rho_scale + penalty_mu_scale);
-                (*u_data)(s_i) = penalty * alpha_s * alpha_s / (std::pow(1.0 - alpha_s, 3.0) + d_ed);
+                (*u_data)(s_i) =
+                    penalty * alpha_s * alpha_s / (std::pow(1.0 - alpha_s, 3.0) + d_avoid_division_by_zero_factor);
             }
         }
     }
@@ -307,10 +309,10 @@ CarmanKozenyDragForce::postprocessComputeBrinkmanPenalization(double current_tim
 void
 CarmanKozenyDragForce::putToDatabase(Pointer<Database> db)
 {
-    db->putDouble("d_penalty_factor", d_penalty_factor);
-    db->putBool("d_use_rho_scale", d_use_rho_scale);
-    db->putBool("d_use_mu_scale", d_use_mu_scale);
-    db->putDouble("d_ed", d_ed);
+    db->putDouble("penalty_factor", d_penalty_factor);
+    db->putBool("use_rho_scale", d_use_rho_scale);
+    db->putBool("use_mu_scale", d_use_mu_scale);
+    db->putDouble("avoid_division_by_zero_factor", d_avoid_division_by_zero_factor);
     return;
 } // putToDatabase
 
@@ -338,7 +340,7 @@ CarmanKozenyDragForce::getFromInput(Pointer<Database> input_db, bool is_from_res
 
         if (input_db->keyExists("avoid_division_by_zero_factor"))
         {
-            d_ed = input_db->getDouble("avoid_division_by_zero_factor");
+            d_avoid_division_by_zero_factor = input_db->getDouble("avoid_division_by_zero_factor");
         }
     }
     return;
@@ -358,10 +360,10 @@ CarmanKozenyDragForce::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
                                  << " not found in restart file." << std::endl);
     }
-    d_penalty_factor = db->getDouble("d_penalty_factor");
-    d_use_rho_scale = db->getBool("d_use_rho_scale");
-    d_use_mu_scale = db->getBool("d_use_mu_scale");
-    d_ed = db->getDouble("d_ed");
+    d_penalty_factor = db->getDouble("penalty_factor");
+    d_use_rho_scale = db->getBool("use_rho_scale");
+    d_use_mu_scale = db->getBool("use_mu_scale");
+    d_avoid_division_by_zero_factor = db->getDouble("avoid_division_by_zero_factor");
     return;
 } // getFromRestart
 

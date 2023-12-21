@@ -12,7 +12,6 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-// #include "ibamr/AdvDiffCUIConservativeConvectiveOperator.h"
 #include "ibamr/AdvDiffCUIConvectiveOperator.h"
 #include "ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h"
 #include "ibamr/AllenCahnHierarchyIntegrator.h"
@@ -190,39 +189,34 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
     const IntVector<NDIM> face_ghosts = FACEG;
     const IntVector<NDIM> no_ghosts = NOGHOSTS;
 
-    int lf_F_current_idx, lf_F_scratch_idx, lf_F_new_idx;
-    registerVariable(lf_F_current_idx,
-                     lf_F_new_idx,
-                     lf_F_scratch_idx,
+    registerVariable(d_lf_F_current_idx,
+                     d_lf_F_new_idx,
+                     d_lf_F_scratch_idx,
                      d_lf_F_var,
                      cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
-    int lf_diff_coef_current_idx, lf_diff_coef_scratch_idx, lf_diff_coef_new_idx;
     if (d_lf_diffusion_coef_var)
-        registerVariable(lf_diff_coef_current_idx,
-                         lf_diff_coef_new_idx,
-                         lf_diff_coef_scratch_idx,
+        registerVariable(d_lf_diff_coef_current_idx,
+                         d_lf_diff_coef_new_idx,
+                         d_lf_diff_coef_scratch_idx,
                          d_lf_diffusion_coef_var,
                          side_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
 
-    int lf_diffusion_coef_rhs_scratch_idx;
     d_lf_diffusion_coef_rhs_var = new SideVariable<NDIM, double>(d_lf_var->getName() + "::Diff");
-    registerVariable(lf_diffusion_coef_rhs_scratch_idx, d_lf_diffusion_coef_rhs_var, cell_ghosts, getScratchContext());
+    registerVariable(
+        d_lf_diffusion_coef_rhs_scratch_idx, d_lf_diffusion_coef_rhs_var, cell_ghosts, getScratchContext());
 
-    int lf_rhs_scratch_idx;
-    registerVariable(lf_rhs_scratch_idx, d_lf_rhs_var, cell_ghosts, getScratchContext());
+    registerVariable(d_lf_rhs_scratch_idx, d_lf_rhs_var, cell_ghosts, getScratchContext());
 
-    int lf_H_scratch_idx;
     d_lf_H_var = new CellVariable<NDIM, double>(d_object_name + "::lf_H");
-    registerVariable(lf_H_scratch_idx, d_lf_H_var, cell_ghosts, getScratchContext());
+    registerVariable(d_lf_H_scratch_idx, d_lf_H_var, cell_ghosts, getScratchContext());
 
-    int Div_u_scratch_idx;
     d_Div_u_var = new CellVariable<NDIM, double>(d_object_name + "::Div_u");
-    registerVariable(Div_u_scratch_idx, d_Div_u_var, no_ghosts, getScratchContext());
+    registerVariable(d_Div_u_scratch_idx, d_Div_u_var, no_ghosts, getScratchContext());
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     d_lf_C_var = new CellVariable<NDIM, double>(d_lf_var->getName() + "::C");
@@ -232,17 +226,15 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
     d_lf_temp_rhs_idx = var_db->registerVariableAndContext(d_lf_temp_rhs_var, getCurrentContext(), no_ghosts);
 
     d_lf_N_var = new CellVariable<NDIM, double>(d_lf_var->getName() + "::N");
-    int lf_N_scratch_idx;
-    registerVariable(lf_N_scratch_idx, d_lf_N_var, cell_ghosts, getScratchContext());
+    registerVariable(d_lf_N_scratch_idx, d_lf_N_var, cell_ghosts, getScratchContext());
 
     d_T_lf_N_var = new CellVariable<NDIM, double>(d_T_var->getName() + "::lf_N");
     registerVariable(d_T_lf_N_scratch_idx, d_T_lf_N_var, cell_ghosts, getScratchContext());
 
     d_lf_N_old_var = new CellVariable<NDIM, double>(d_lf_var->getName() + "::lf_N_old");
-    int lf_N_old_current_idx, lf_N_old_new_idx, lf_N_old_scratch_idx;
-    registerVariable(lf_N_old_current_idx,
-                     lf_N_old_new_idx,
-                     lf_N_old_scratch_idx,
+    registerVariable(d_lf_N_old_current_idx,
+                     d_lf_N_old_new_idx,
+                     d_lf_N_old_scratch_idx,
                      d_lf_N_old_var,
                      cell_ghosts,
                      "CONSERVATIVE_COARSEN",
@@ -289,8 +281,8 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
     {
         // Set various objects with conservative time integrator.
         Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
-        rho_p_cc_integrator->setMaterialPropertyVariable(d_Cp_var);
-        rho_p_cc_integrator->setCellCenteredMaterialPropertyBoundaryConditions(d_Cp_bc_coef);
+        rho_p_cc_integrator->setMaterialPropertyVariable(d_specific_heat_var);
+        rho_p_cc_integrator->setCellCenteredMaterialPropertyBoundaryConditions(d_specific_heat_bc_coef);
         rho_p_cc_integrator->setCellCenteredTransportQuantityBoundaryConditions(d_T_bc_coef);
     }
 
@@ -309,17 +301,13 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
-    const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    // Indicate that all solvers need to be reinitialized if the current
-    // timestep size is different from the previous one.
-    const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
-    if (dt_change)
-    {
-        d_lf_solver_needs_init = true;
-        d_lf_rhs_op_needs_init = true;
-    }
+    // All solvers are reinitialized when the time step size or the diffusion coefficient changes.
+    // By default the phase change codes treat the diffusion coefficient as a variable, therefore
+    // the solvers are initialized every time step.
+    d_lf_solver_needs_init = true;
+    d_lf_rhs_op_needs_init = true;
 
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -340,30 +328,18 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
     if (d_u_adv_var)
     {
         // Update the advection velocity.
-        const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
-        const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getScratchContext());
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getNewContext());
-
         if (d_u_fcn[d_u_adv_var])
         {
-            d_u_fcn[d_u_adv_var]->setDataOnPatchHierarchy(u_current_idx, d_u_adv_var, d_hierarchy, current_time);
-            d_u_fcn[d_u_adv_var]->setDataOnPatchHierarchy(u_new_idx, d_u_adv_var, d_hierarchy, new_time);
+            d_u_fcn[d_u_adv_var]->setDataOnPatchHierarchy(d_u_adv_current_idx, d_u_adv_var, d_hierarchy, current_time);
+            d_u_fcn[d_u_adv_var]->setDataOnPatchHierarchy(d_u_adv_new_idx, d_u_adv_var, d_hierarchy, new_time);
         }
         else
         {
-            d_hier_fc_data_ops->copyData(u_new_idx, u_current_idx);
+            d_hier_fc_data_ops->copyData(d_u_adv_new_idx, d_u_adv_current_idx);
         }
-        d_hier_fc_data_ops->linearSum(u_scratch_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+        d_hier_fc_data_ops->linearSum(d_u_adv_scratch_idx, 0.5, d_u_adv_current_idx, 0.5, d_u_adv_new_idx);
     }
     // Setup the operators and solvers and compute the right-hand-side terms.
-    const int lf_current_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getCurrentContext());
-    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
-    const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
-    const int lf_diff_coef_current_idx =
-        var_db->mapVariableAndContextToIndex(d_lf_diffusion_coef_var, getCurrentContext());
-    const int lf_diff_coef_rhs_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_lf_diffusion_coef_rhs_var, getScratchContext());
-    const int lf_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_N_var, getScratchContext());
     const int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
     const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, getScratchContext());
@@ -390,7 +366,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
     PoissonSpecifications lf_rhs_op_spec(d_object_name + "::rhs_op_spec::" + d_lf_var->getName());
 
     // set C coefficients.
-    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_current_idx);
+    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_current_idx);
 
     d_hier_cc_data_ops->scale(d_lf_temp_rhs_idx, 1.0 / dt, H_current_idx);
     lf_rhs_op_spec.setCPatchDataId(d_lf_temp_rhs_idx);
@@ -399,14 +375,15 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
     d_hier_cc_data_ops->copyData(H_scratch_idx, H_current_idx);
     d_H_bdry_bc_fill_op->fillData(current_time);
 
-    interpolateCCToSCSimpleAveraging(lf_diff_coef_current_idx, H_scratch_idx);
+    interpolateCCToSCSimpleAveraging(d_lf_diff_coef_current_idx, H_scratch_idx);
 
     // Add numerical diffusion to smoothly extend the liquid fraction.
-    d_hier_sc_data_ops->addScalar(lf_diff_coef_current_idx, lf_diff_coef_current_idx, d_num_diffusion);
-    d_hier_sc_data_ops->scale(lf_diff_coef_current_idx, d_M_lf * d_lambda_lf, lf_diff_coef_current_idx);
+    d_hier_sc_data_ops->addScalar(d_lf_diff_coef_current_idx, d_lf_diff_coef_current_idx, d_numerical_diffusion);
+    d_hier_sc_data_ops->scale(
+        d_lf_diff_coef_current_idx, d_mobility_lf * d_mixing_energy_density_lf, d_lf_diff_coef_current_idx);
 
-    d_hier_sc_data_ops->scale(lf_diff_coef_rhs_scratch_idx, (1.0 - alpha), lf_diff_coef_current_idx);
-    lf_rhs_op_spec.setDPatchDataId(lf_diff_coef_rhs_scratch_idx);
+    d_hier_sc_data_ops->scale(d_lf_diffusion_coef_rhs_scratch_idx, (1.0 - alpha), d_lf_diff_coef_current_idx);
+    lf_rhs_op_spec.setDPatchDataId(d_lf_diffusion_coef_rhs_scratch_idx);
 
     // Initialize the RHS operator and compute the RHS vector for lf equation.
     Pointer<LaplaceOperator> lf_rhs_op = d_lf_rhs_op;
@@ -425,7 +402,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         lf_rhs_op->initializeOperatorState(*d_lf_sol, *d_lf_rhs);
         d_lf_rhs_op_needs_init = false;
     }
-    d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_current_idx, false);
+    d_hier_cc_data_ops->copyData(d_lf_scratch_idx, d_lf_current_idx, false);
     lf_rhs_op->apply(*d_lf_sol, *d_lf_rhs);
 
     if (d_u_adv_var)
@@ -448,85 +425,61 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
             d_lf_convective_op->initializeOperatorState(*d_lf_sol, *d_lf_rhs);
             d_lf_convective_op_needs_init = false;
         }
-        const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
-        d_lf_convective_op->setAdvectionVelocity(u_current_idx);
+        d_lf_convective_op->setAdvectionVelocity(d_u_adv_current_idx);
         d_lf_convective_op->setSolutionTime(current_time);
-        d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_current_idx);
+        d_hier_cc_data_ops->copyData(d_lf_scratch_idx, d_lf_current_idx);
         d_hier_cc_data_ops->copyData(H_scratch_idx, H_current_idx);
 
         // Checking whether the CellConvectiveOperator can be used for div (H lf u)
         d_lf_convective_op->interpolateToFaceOnHierarchy(
-            d_lf_interp_idx, lf_scratch_idx, u_current_idx, /*synch_cf_bdry*/ false);
+            d_lf_interp_idx, d_lf_scratch_idx, d_u_adv_current_idx, /*synch_cf_bdry*/ false);
         d_lf_convective_op->interpolateToFaceOnHierarchy(
-            d_H_interp_idx, H_scratch_idx, u_current_idx, /*synch_cf_bdry*/ false);
+            d_H_interp_idx, H_scratch_idx, d_u_adv_current_idx, /*synch_cf_bdry*/ false);
         d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_interp_idx, d_H_interp_idx);
-        d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_flux_idx, u_current_idx);
+        d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_flux_idx, d_u_adv_current_idx);
         d_lf_convective_op->computeConservativeDerivativeOnHierarchy(
-            lf_N_scratch_idx, d_lf_flux_idx, /*synch_cf_bdry*/ true);
-
-        // Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op = d_lf_convective_op;
-        // lf_cui_conservative_convective_op->applyConvectiveOperator(lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
-
-        const int lf_N_old_new_idx = var_db->mapVariableAndContextToIndex(d_lf_N_old_var, getNewContext());
-        d_hier_cc_data_ops->copyData(lf_N_old_new_idx, lf_N_scratch_idx);
-
-        const int lf_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_rhs_var, getScratchContext());
+            d_lf_N_scratch_idx, d_lf_flux_idx, /*synch_cf_bdry*/ true);
+        d_hier_cc_data_ops->copyData(d_lf_N_old_new_idx, d_lf_N_scratch_idx);
 
         if (d_lf_convective_time_stepping_type == FORWARD_EULER)
         {
-            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -1.0, lf_N_scratch_idx, lf_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(d_lf_rhs_scratch_idx, -1.0, d_lf_N_scratch_idx, d_lf_rhs_scratch_idx);
         }
         else if (d_lf_convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
-            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -0.5, lf_N_scratch_idx, lf_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(d_lf_rhs_scratch_idx, -0.5, d_lf_N_scratch_idx, d_lf_rhs_scratch_idx);
         }
     }
 
     // Set the initial guess for liquid fraction and heaviside.
-    d_hier_cc_data_ops->copyData(lf_new_idx, lf_current_idx);
+    d_hier_cc_data_ops->copyData(d_lf_new_idx, d_lf_current_idx);
     d_hier_cc_data_ops->copyData(H_new_idx, H_current_idx);
     d_hier_cc_data_ops->copyData(d_H_pre_idx, H_current_idx);
 
     if (d_solve_energy)
     {
-        const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
-        const int Cp_current_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getCurrentContext());
-        const int T_current_idx = var_db->mapVariableAndContextToIndex(d_T_var, getCurrentContext());
-        const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
-        const int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
-        const int T_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_rhs_var, getScratchContext());
-        const int T_diff_coef_current_idx =
-            var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getCurrentContext());
-        const int T_diff_coef_rhs_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_rhs_var, getScratchContext());
-        const int T_diff_coef_cc_current_idx =
-            var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getCurrentContext());
-        const int T_diff_coef_cc_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getScratchContext());
-
         if (d_solve_mass_conservation)
         {
             Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
-            const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
             // Set the velocities used to update the density and the previous time step
             // size
             if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ -1, /*current*/ u_current_idx, /*new*/ -1);
+                    /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ -1);
                 rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
-                    /*current*/ Cp_current_idx, /*new*/ -1);
+                    /*current*/ d_specific_heat_current_idx, /*new*/ -1);
                 rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                    /*current*/ T_current_idx, /*new*/ -1);
+                    /*current*/ d_T_current_idx, /*new*/ -1);
             }
             else
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ d_U_old_current_idx, /*current*/ u_current_idx, /*new*/ -1);
+                    /*old*/ d_U_old_current_idx, /*current*/ d_u_adv_current_idx, /*new*/ -1);
                 rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
-                    /*current*/ Cp_current_idx, /*new*/ -1);
+                    /*current*/ d_specific_heat_current_idx, /*new*/ -1);
                 rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                    /*current*/ T_current_idx, /*new*/ -1);
+                    /*current*/ d_T_current_idx, /*new*/ -1);
                 d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
             }
 
@@ -555,7 +508,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         PoissonSpecifications T_rhs_op_spec(d_object_name + "::rhs_op_spec::" + d_T_var->getName());
 
         // set rho*Cp/dt
-        d_hier_cc_data_ops->multiply(d_C_current_idx, rho_current_idx, Cp_current_idx);
+        d_hier_cc_data_ops->multiply(d_C_current_idx, d_rho_current_idx, d_specific_heat_current_idx);
         d_hier_cc_data_ops->scale(d_C_current_idx, 1.0 / dt, d_C_current_idx);
 
         d_hier_cc_data_ops->copyData(d_T_temp_rhs_idx, d_C_current_idx);
@@ -564,7 +517,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         const double apply_time = current_time;
         for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
         {
-            d_reset_kappa_fcns[k](T_diff_coef_cc_current_idx,
+            d_reset_kappa_fcns[k](d_T_diffusion_coef_cc_current_idx,
                                   d_T_diffusion_coef_cc_var,
                                   d_hier_math_ops,
                                   -1 /*cycle_num*/,
@@ -575,16 +528,16 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         }
 
         // Interpolate the cell-centered diffusion coef to side-centered.
-        d_hier_cc_data_ops->copyData(T_diff_coef_cc_scratch_idx, T_diff_coef_cc_current_idx);
+        d_hier_cc_data_ops->copyData(d_T_diffusion_coef_cc_scratch_idx, d_T_diffusion_coef_cc_current_idx);
         d_k_bdry_bc_fill_op->fillData(current_time);
 
         if (d_k_vc_interp_type == VC_AVERAGE_INTERP)
         {
-            interpolateCCToSCSimpleAveraging(T_diff_coef_current_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCSimpleAveraging(d_T_diffusion_coef_current_idx, d_T_diffusion_coef_cc_scratch_idx);
         }
         else if (d_k_vc_interp_type == VC_HARMONIC_INTERP)
         {
-            interpolateCCToSCHarmonicAveraging(T_diff_coef_current_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCHarmonicAveraging(d_T_diffusion_coef_current_idx, d_T_diffusion_coef_cc_scratch_idx);
         }
         else
         {
@@ -595,14 +548,14 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         static const bool synch_cf_interface = true;
         d_hier_math_ops->interp(d_D_cc_new_idx,
                                 d_D_cc_var,
-                                T_diff_coef_current_idx,
+                                d_T_diffusion_coef_current_idx,
                                 d_T_diffusion_coef_var,
                                 d_no_fill_op,
                                 d_integrator_time,
                                 synch_cf_interface);
 
-        d_hier_sc_data_ops->scale(T_diff_coef_rhs_scratch_idx, (1.0 - alpha), T_diff_coef_current_idx);
-        T_rhs_op_spec.setDPatchDataId(T_diff_coef_rhs_scratch_idx);
+        d_hier_sc_data_ops->scale(d_T_diffusion_coef_rhs_scratch_idx, (1.0 - alpha), d_T_diffusion_coef_current_idx);
+        T_rhs_op_spec.setDPatchDataId(d_T_diffusion_coef_rhs_scratch_idx);
 
         // Initialize the RHS operator and compute the RHS vector for temperature equation.
         Pointer<LaplaceOperator> T_rhs_op = d_T_rhs_op;
@@ -621,22 +574,22 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
             T_rhs_op->initializeOperatorState(*d_T_sol, *d_T_rhs);
             d_T_rhs_op_needs_init = false;
         }
-        d_hier_cc_data_ops->copyData(T_scratch_idx, T_current_idx, false);
+        d_hier_cc_data_ops->copyData(d_T_scratch_idx, d_T_current_idx, false);
         T_rhs_op->apply(*d_T_sol, *d_T_rhs);
 
-        d_hier_cc_data_ops->copyData(T_new_idx, T_current_idx);
+        d_hier_cc_data_ops->copyData(d_T_new_idx, d_T_current_idx);
 
         if (d_u_adv_var)
         {
             // Add div (u H lf).
-            d_hier_cc_data_ops->scale(d_T_lf_N_scratch_idx, d_rho_liquid * d_latent_heat, lf_N_scratch_idx);
+            d_hier_cc_data_ops->scale(d_T_lf_N_scratch_idx, d_rho_liquid * d_latent_heat, d_lf_N_scratch_idx);
             if (d_lf_convective_time_stepping_type == FORWARD_EULER)
             {
-                d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, d_T_lf_N_scratch_idx, T_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -1.0, d_T_lf_N_scratch_idx, d_T_rhs_scratch_idx);
             }
             else if (d_lf_convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -0.5, d_T_lf_N_scratch_idx, T_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -0.5, d_T_lf_N_scratch_idx, d_T_rhs_scratch_idx);
             }
         }
     }
@@ -646,9 +599,11 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
 } // preprocessIntegrateHierarchy
 
 void
-AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                            const double new_time,
+                                                            const int cycle_num)
 {
-    PhaseChangeHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    PhaseChangeHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -665,25 +620,20 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
     }
 
     // Perform a single step of fixed point iteration.
-    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
-    const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
-    const int lf_current_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getCurrentContext());
-    const int lf_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_rhs_var, getScratchContext());
-    const int lf_diff_coef_new_idx = (var_db->mapVariableAndContextToIndex(d_lf_diffusion_coef_var, getNewContext()));
-    const int lf_diff_coef_scratch_idx =
-        (var_db->mapVariableAndContextToIndex(d_lf_diffusion_coef_var, getScratchContext()));
-    const int lf_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_N_var, getScratchContext());
     const int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
     const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, getScratchContext());
 
     // update C coefficients.
-    if (cycle_num > 0) computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_new_idx);
+    if (cycle_num > 0) computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_new_idx);
 
-    // Add H/dt + M lambda / eps^2 H g''. Double well potential term is linearized and added in both LHS and RHS.
+    // Add H/dt + mobility*mixing_energy_density / interface_thickness^2 H g''. Double well potential term is linearized
+    // and added in both LHS and RHS.
     d_hier_cc_data_ops->scale(d_lf_C_idx, 1.0 / dt, H_new_idx);
     d_hier_cc_data_ops->multiply(d_C_scratch_idx, d_g_secondder_idx, H_new_idx);
-    d_hier_cc_data_ops->scale(d_C_scratch_idx, d_M_lf * d_lambda_lf / std::pow(d_eps_lf, 2.0), d_C_scratch_idx);
+    d_hier_cc_data_ops->scale(d_C_scratch_idx,
+                              d_mobility_lf * d_mixing_energy_density_lf / std::pow(d_interface_thickness_lf, 2.0),
+                              d_C_scratch_idx);
     d_hier_cc_data_ops->add(d_lf_C_idx, d_C_scratch_idx, d_lf_C_idx);
 
     PoissonSpecifications lf_solver_spec(d_object_name + "::solver_spec::" + d_lf_var->getName());
@@ -714,15 +664,16 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
     d_hier_cc_data_ops->copyData(H_scratch_idx, H_new_idx);
     d_H_bdry_bc_fill_op->fillData(new_time);
 
-    interpolateCCToSCSimpleAveraging(lf_diff_coef_new_idx, H_scratch_idx);
+    interpolateCCToSCSimpleAveraging(d_lf_diff_coef_new_idx, H_scratch_idx);
 
     // Add numerical diffusion to smoothly extend the liquid fraction.
-    d_hier_sc_data_ops->addScalar(lf_diff_coef_new_idx, lf_diff_coef_new_idx, d_num_diffusion);
-    d_hier_sc_data_ops->copyData(d_H_sc_idx, lf_diff_coef_new_idx);
-    d_hier_sc_data_ops->scale(lf_diff_coef_new_idx, d_M_lf * d_lambda_lf, lf_diff_coef_new_idx);
+    d_hier_sc_data_ops->addScalar(d_lf_diff_coef_new_idx, d_lf_diff_coef_new_idx, d_numerical_diffusion);
+    d_hier_sc_data_ops->copyData(d_H_sc_idx, d_lf_diff_coef_new_idx);
+    d_hier_sc_data_ops->scale(
+        d_lf_diff_coef_new_idx, d_mobility_lf * d_mixing_energy_density_lf, d_lf_diff_coef_new_idx);
 
-    d_hier_sc_data_ops->scale(lf_diff_coef_scratch_idx, -alpha, lf_diff_coef_new_idx);
-    lf_solver_spec.setDPatchDataId(lf_diff_coef_scratch_idx);
+    d_hier_sc_data_ops->scale(d_lf_diff_coef_scratch_idx, -alpha, d_lf_diff_coef_new_idx);
+    lf_solver_spec.setDPatchDataId(d_lf_diff_coef_scratch_idx);
 
     // Initialize the linear solver for lf equation.
     Pointer<PoissonSolver> lf_solver = d_lf_solver;
@@ -744,21 +695,17 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
     {
         if (cycle_num > 0)
         {
-            // Update the advection velocity for lf.
-            const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
-            const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getScratchContext());
-            const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getNewContext());
+            // Update the advection velocity.
             Pointer<IBTK::CartGridFunction> u_fcn = d_u_fcn[d_u_adv_var];
             if (u_fcn)
             {
-                u_fcn->setDataOnPatchHierarchy(u_new_idx, d_u_adv_var, d_hierarchy, new_time);
+                u_fcn->setDataOnPatchHierarchy(d_u_adv_new_idx, d_u_adv_var, d_hierarchy, new_time);
             }
-            d_hier_fc_data_ops->linearSum(u_scratch_idx, 0.5, u_current_idx, 0.5, u_new_idx);
+            d_hier_fc_data_ops->linearSum(d_u_adv_scratch_idx, 0.5, d_u_adv_current_idx, 0.5, d_u_adv_new_idx);
         }
     }
 
     // Account for the convective difference term.
-    const int lf_H_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_H_var, getScratchContext());
     TimeSteppingType convective_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
     if (d_u_adv_var)
     {
@@ -794,51 +741,39 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
         {
             if (convective_time_stepping_type == MIDPOINT_RULE)
             {
-                const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getScratchContext());
-                d_lf_convective_op->setAdvectionVelocity(u_scratch_idx);
-                d_hier_cc_data_ops->linearSum(lf_scratch_idx, 0.5, lf_current_idx, 0.5, lf_new_idx);
+                d_lf_convective_op->setAdvectionVelocity(d_u_adv_scratch_idx);
+                d_hier_cc_data_ops->linearSum(d_lf_scratch_idx, 0.5, d_lf_current_idx, 0.5, d_lf_new_idx);
                 // H_pre_idx is used to use the same flux used in the advection of H.
                 d_hier_cc_data_ops->linearSum(H_scratch_idx, 0.5, H_current_idx, 0.5, d_H_pre_idx);
                 d_lf_convective_op->setSolutionTime(half_time);
 
                 // Checking whether the CellConvectiveOperator can be used for div (H lf u)
                 d_lf_convective_op->interpolateToFaceOnHierarchy(
-                    d_lf_interp_idx, lf_scratch_idx, u_scratch_idx, /*synch_cf_bdry*/ false);
+                    d_lf_interp_idx, d_lf_scratch_idx, d_u_adv_scratch_idx, /*synch_cf_bdry*/ false);
                 d_lf_convective_op->interpolateToFaceOnHierarchy(
-                    d_H_interp_idx, H_scratch_idx, u_scratch_idx, /*synch_cf_bdry*/ false);
+                    d_H_interp_idx, H_scratch_idx, d_u_adv_scratch_idx, /*synch_cf_bdry*/ false);
                 d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_interp_idx, d_H_interp_idx);
-                d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_flux_idx, u_scratch_idx);
+                d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_flux_idx, d_u_adv_scratch_idx);
                 d_lf_convective_op->computeConservativeDerivativeOnHierarchy(
-                    lf_N_scratch_idx, d_lf_flux_idx, /*synch_cf_bdry*/ true);
-
-                // Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op =
-                //     d_lf_convective_op;
-                // lf_cui_conservative_convective_op->applyConvectiveOperator(
-                //     lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
+                    d_lf_N_scratch_idx, d_lf_flux_idx, /*synch_cf_bdry*/ true);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getNewContext());
-                d_lf_convective_op->setAdvectionVelocity(u_new_idx);
-                d_hier_cc_data_ops->copyData(lf_scratch_idx, lf_new_idx);
+                d_lf_convective_op->setAdvectionVelocity(d_u_adv_new_idx);
+                d_hier_cc_data_ops->copyData(d_lf_scratch_idx, d_lf_new_idx);
                 // H_pre_idx is used to use the same flux used in the advection of H.
                 d_hier_cc_data_ops->copyData(H_scratch_idx, d_H_pre_idx);
                 d_lf_convective_op->setSolutionTime(new_time);
 
                 // Checking whether the CellConvectiveOperator can be used for div (H lf u)
                 d_lf_convective_op->interpolateToFaceOnHierarchy(
-                    d_lf_interp_idx, lf_scratch_idx, u_new_idx, /*synch_cf_bdry*/ false);
+                    d_lf_interp_idx, d_lf_scratch_idx, d_u_adv_new_idx, /*synch_cf_bdry*/ false);
                 d_lf_convective_op->interpolateToFaceOnHierarchy(
-                    d_H_interp_idx, H_scratch_idx, u_new_idx, /*synch_cf_bdry*/ false);
+                    d_H_interp_idx, H_scratch_idx, d_u_adv_new_idx, /*synch_cf_bdry*/ false);
                 d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_interp_idx, d_H_interp_idx);
-                d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_flux_idx, u_new_idx);
+                d_hier_fc_data_ops->multiply(d_lf_flux_idx, d_lf_flux_idx, d_u_adv_new_idx);
                 d_lf_convective_op->computeConservativeDerivativeOnHierarchy(
-                    lf_N_scratch_idx, d_lf_flux_idx, /*synch_cf_bdry*/ true);
-
-                // Pointer<AdvDiffCUIConservativeConvectiveOperator> lf_cui_conservative_convective_op =
-                //     d_lf_convective_op;
-                // lf_cui_conservative_convective_op->applyConvectiveOperator(
-                //     lf_scratch_idx, H_scratch_idx, lf_N_scratch_idx);
+                    d_lf_N_scratch_idx, d_lf_flux_idx, /*synch_cf_bdry*/ true);
             }
         }
         if (convective_time_stepping_type == ADAMS_BASHFORTH)
@@ -846,55 +781,49 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
 #if !defined(NDEBUG)
             TBOX_ASSERT(cycle_num == 0);
 #endif
-            const int lf_N_old_current_idx = var_db->mapVariableAndContextToIndex(d_lf_N_old_var, getCurrentContext());
             const double omega = dt / d_dt_previous[0];
             d_hier_cc_data_ops->linearSum(
-                lf_N_scratch_idx, 1.0 + 0.5 * omega, lf_N_scratch_idx, -0.5 * omega, lf_N_old_current_idx);
+                d_lf_N_scratch_idx, 1.0 + 0.5 * omega, d_lf_N_scratch_idx, -0.5 * omega, d_lf_N_old_current_idx);
         }
 
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
-            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -1.0, lf_N_scratch_idx, lf_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(d_lf_rhs_scratch_idx, -1.0, d_lf_N_scratch_idx, d_lf_rhs_scratch_idx);
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
-            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -0.5, lf_N_scratch_idx, lf_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(d_lf_rhs_scratch_idx, -0.5, d_lf_N_scratch_idx, d_lf_rhs_scratch_idx);
         }
     }
 
     // Account for forcing terms.
-    const int lf_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getScratchContext());
-    const int lf_F_new_idx = var_db->mapVariableAndContextToIndex(d_lf_F_var, getNewContext());
-
-    computeInterpolationFunction(d_q_firstder_idx, lf_new_idx, d_T_new_idx);
-    computeLiquidFractionSourceTerm(lf_F_scratch_idx);
+    computeInterpolationFunction(d_q_firstder_idx, d_lf_new_idx, d_T_new_idx);
+    computeLiquidFractionSourceTerm(d_lf_F_scratch_idx);
 
     if (d_u_adv_var)
     {
         // compute H \varphi Div u.
-        int Div_u_scratch_idx = var_db->mapVariableAndContextToIndex(d_Div_u_var, getScratchContext());
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getNewContext());
-        d_hier_math_ops->div(Div_u_scratch_idx,
+        d_hier_math_ops->div(d_Div_u_scratch_idx,
                              d_Div_u_var,
                              1.0,
-                             u_new_idx,
+                             d_u_adv_new_idx,
                              d_u_adv_var,
                              d_no_fill_op,
                              d_integrator_time,
                              /*synch_cf_bdry*/ false);
 
-        d_hier_cc_data_ops->multiply(lf_H_scratch_idx, lf_new_idx, H_new_idx);
-        d_hier_cc_data_ops->multiply(Div_u_scratch_idx, lf_H_scratch_idx, Div_u_scratch_idx);
-        d_hier_cc_data_ops->axpy(lf_F_scratch_idx, +1.0, Div_u_scratch_idx, lf_F_scratch_idx);
+        d_hier_cc_data_ops->multiply(d_lf_H_scratch_idx, d_lf_new_idx, H_new_idx);
+        d_hier_cc_data_ops->multiply(d_Div_u_scratch_idx, d_lf_H_scratch_idx, d_Div_u_scratch_idx);
+        d_hier_cc_data_ops->axpy(d_lf_F_scratch_idx, +1.0, d_Div_u_scratch_idx, d_lf_F_scratch_idx);
     }
-    d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +1.0, lf_F_scratch_idx, lf_rhs_scratch_idx);
+    d_hier_cc_data_ops->axpy(d_lf_rhs_scratch_idx, +1.0, d_lf_F_scratch_idx, d_lf_rhs_scratch_idx);
 
     // This will be used while computing chemical potential.
-    d_hier_cc_data_ops->copyData(d_lf_pre_idx, lf_new_idx);
+    d_hier_cc_data_ops->copyData(d_lf_pre_idx, d_lf_new_idx);
 
     // Solve for lf(n+1).
     lf_solver->solveSystem(*d_lf_sol, *d_lf_rhs);
-    d_hier_cc_data_ops->copyData(lf_new_idx, lf_scratch_idx);
+    d_hier_cc_data_ops->copyData(d_lf_new_idx, d_lf_scratch_idx);
     if (d_enable_logging && d_enable_logging_solver_iterations)
         plog << d_object_name << ":" << d_lf_var->getName()
              << "::integrateHierarchy():diffusion solve number of iterations = " << lf_solver->getNumIterations()
@@ -914,65 +843,45 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
     {
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
-            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +1.0, lf_N_scratch_idx, lf_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(d_lf_rhs_scratch_idx, +1.0, d_lf_N_scratch_idx, d_lf_rhs_scratch_idx);
         }
         else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
         {
-            d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, +0.5, lf_N_scratch_idx, lf_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(d_lf_rhs_scratch_idx, +0.5, d_lf_N_scratch_idx, d_lf_rhs_scratch_idx);
         }
     }
 
     if (d_lf_F_var)
     {
-        d_hier_cc_data_ops->axpy(lf_rhs_scratch_idx, -1.0, lf_F_scratch_idx, lf_rhs_scratch_idx);
-        d_hier_cc_data_ops->copyData(lf_F_new_idx, lf_F_scratch_idx);
+        d_hier_cc_data_ops->axpy(d_lf_rhs_scratch_idx, -1.0, d_lf_F_scratch_idx, d_lf_rhs_scratch_idx);
+        d_hier_cc_data_ops->copyData(d_lf_F_new_idx, d_lf_F_scratch_idx);
     }
 
     // To use same H used in advection of H in the convective term.
     d_hier_cc_data_ops->copyData(d_H_pre_idx, H_new_idx);
 
     // Bound the updated liquid fraction.
-    boundLiquidFraction(lf_new_idx);
+    boundLiquidFraction(d_lf_new_idx);
 
     if (d_solve_energy)
     {
-        const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
-        const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
-
-        const int Cp_new_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getNewContext());
-        const int Cp_current_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getCurrentContext());
-
-        const int T_current_idx = var_db->mapVariableAndContextToIndex(d_T_var, getCurrentContext());
-        const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
-        const int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
-        const int T_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_rhs_var, getScratchContext());
-        const int T_diff_coef_new_idx = (var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getNewContext()));
-        const int T_diff_coef_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getScratchContext());
-        const int T_diff_coef_cc_new_idx =
-            var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getNewContext());
-        const int T_diff_coef_cc_scratch_idx =
-            var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getScratchContext());
-
         // update specific heat.
         double apply_time = new_time;
-        for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
+        for (unsigned k = 0; k < d_reset_specific_heat_fcns.size(); ++k)
         {
-            d_reset_Cp_fcns[k](Cp_new_idx,
-                               d_Cp_var,
-                               d_hier_math_ops,
-                               -1 /*cycle_num*/,
-                               apply_time,
-                               current_time,
-                               new_time,
-                               d_reset_Cp_fcns_ctx[k]);
+            d_reset_specific_heat_fcns[k](d_specific_heat_new_idx,
+                                          d_specific_heat_var,
+                                          d_hier_math_ops,
+                                          -1 /*cycle_num*/,
+                                          apply_time,
+                                          current_time,
+                                          new_time,
+                                          d_reset_specific_heat_fcns_ctx[k]);
         }
 
         // In the special case of a conservative discretization form, the updated
         // density is calculated by application of the mass and convective
         // momentum integrator.
-        const int T_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_N_var, getScratchContext());
-
         Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         // Update N_idx if necessary
         if (cycle_num > 0 && d_solve_mass_conservation)
@@ -985,36 +894,33 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
             d_rho_p_integrator->setCycleNumber(cycle_num);
 
             // Set the patch data index for convective derivative.
-            d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(T_N_scratch_idx);
+            d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(d_T_N_scratch_idx);
 
             // Always set to current because we want to update rho^{n} to rho^{n+1}
-            d_rho_p_integrator->setDensityPatchDataIndex(rho_current_idx);
-
-            const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
-            const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getNewContext());
+            d_rho_p_integrator->setDensityPatchDataIndex(d_rho_current_idx);
 
             // Set the velocities used to update the density
             if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                    /*old*/ -1, /*current*/ u_current_idx, /*new*/ u_new_idx);
+                    /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ d_u_adv_new_idx);
                 rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
-                    /*current*/ Cp_current_idx, /*new*/ Cp_new_idx);
+                    /*current*/ d_specific_heat_current_idx, /*new*/ d_specific_heat_new_idx);
                 rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                    /*current*/ T_current_idx, /*new*/ T_new_idx);
+                    /*current*/ d_T_current_idx, /*new*/ d_T_new_idx);
             }
             else
             {
                 d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                     /*old*/ d_U_old_current_idx,
-                    /*current*/ u_current_idx,
-                    /*new*/ u_new_idx);
+                    /*current*/ d_u_adv_current_idx,
+                    /*new*/ d_u_adv_new_idx);
                 rho_p_cc_integrator->setMaterialPropertyPatchDataIndices(
-                    /*current*/ Cp_current_idx,
-                    /*new*/ Cp_new_idx);
+                    /*current*/ d_specific_heat_current_idx,
+                    /*new*/ d_specific_heat_new_idx);
                 rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                    /*current*/ T_current_idx,
-                    /*new*/ T_new_idx);
+                    /*current*/ d_T_current_idx,
+                    /*new*/ d_T_new_idx);
 
                 d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
             }
@@ -1022,14 +928,14 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
             d_rho_p_integrator->integrate(dt);
         }
 
-        d_updated_rho_idx = d_rho_p_integrator ? d_rho_p_integrator->getUpdatedDensityPatchDataIndex() : rho_new_idx;
-        d_hier_cc_data_ops->copyData(rho_new_idx,
+        d_updated_rho_idx = d_rho_p_integrator ? d_rho_p_integrator->getUpdatedDensityPatchDataIndex() : d_rho_new_idx;
+        d_hier_cc_data_ops->copyData(d_rho_new_idx,
                                      d_updated_rho_idx,
                                      /*interior_only*/ true);
 
         PoissonSpecifications T_solver_spec(d_object_name + "::solver_spec::" + d_T_var->getName());
         // set rho*Cp/dt
-        d_hier_cc_data_ops->multiply(d_C_new_idx, rho_new_idx, Cp_new_idx);
+        d_hier_cc_data_ops->multiply(d_C_new_idx, d_rho_new_idx, d_specific_heat_new_idx);
         d_hier_cc_data_ops->scale(d_C_new_idx, 1.0 / dt, d_C_new_idx);
         d_hier_cc_data_ops->copyData(d_T_C_idx, d_C_new_idx);
         T_solver_spec.setCPatchDataId(d_T_C_idx);
@@ -1057,7 +963,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
         apply_time = new_time;
         for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
         {
-            d_reset_kappa_fcns[k](T_diff_coef_cc_new_idx,
+            d_reset_kappa_fcns[k](d_T_diffusion_coef_cc_new_idx,
                                   d_T_diffusion_coef_cc_var,
                                   d_hier_math_ops,
                                   -1 /*cycle_num*/,
@@ -1068,16 +974,16 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
         }
 
         // Interpolate the cell-centered diffusion coef to side-centered.
-        d_hier_cc_data_ops->copyData(T_diff_coef_cc_scratch_idx, T_diff_coef_cc_new_idx);
+        d_hier_cc_data_ops->copyData(d_T_diffusion_coef_cc_scratch_idx, d_T_diffusion_coef_cc_new_idx);
         d_k_bdry_bc_fill_op->fillData(new_time);
 
         if (d_k_vc_interp_type == VC_AVERAGE_INTERP)
         {
-            interpolateCCToSCSimpleAveraging(T_diff_coef_new_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCSimpleAveraging(d_T_diffusion_coef_new_idx, d_T_diffusion_coef_cc_scratch_idx);
         }
         else if (d_k_vc_interp_type == VC_HARMONIC_INTERP)
         {
-            interpolateCCToSCHarmonicAveraging(T_diff_coef_new_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCHarmonicAveraging(d_T_diffusion_coef_new_idx, d_T_diffusion_coef_cc_scratch_idx);
         }
         else
         {
@@ -1088,14 +994,14 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
         static const bool synch_cf_interface = true;
         d_hier_math_ops->interp(d_D_cc_new_idx,
                                 d_D_cc_var,
-                                T_diff_coef_new_idx,
+                                d_T_diffusion_coef_new_idx,
                                 d_T_diffusion_coef_var,
                                 d_no_fill_op,
                                 d_integrator_time,
                                 synch_cf_interface);
 
-        d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
-        T_solver_spec.setDPatchDataId(T_diff_coef_scratch_idx);
+        d_hier_sc_data_ops->scale(d_T_diffusion_coef_scratch_idx, -alpha, d_T_diffusion_coef_new_idx);
+        T_solver_spec.setDPatchDataId(d_T_diffusion_coef_scratch_idx);
 
         // Initialize the linear solver for temperature equation.
         Pointer<PoissonSolver> T_solver = d_T_solver;
@@ -1116,37 +1022,35 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
         if (d_u_adv_var)
         {
             // Account for the convective term computed from STSMassFluxIntegrator class.
-            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -1.0, d_T_N_scratch_idx, d_T_rhs_scratch_idx);
 
             // Add div (u H lf).
-            d_hier_cc_data_ops->scale(d_T_lf_N_scratch_idx, d_rho_liquid * d_latent_heat, lf_N_scratch_idx);
+            d_hier_cc_data_ops->scale(d_T_lf_N_scratch_idx, d_rho_liquid * d_latent_heat, d_lf_N_scratch_idx);
             if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
             {
-                d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, d_T_lf_N_scratch_idx, T_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -1.0, d_T_lf_N_scratch_idx, d_T_rhs_scratch_idx);
             }
             else if (convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -0.5, d_T_lf_N_scratch_idx, T_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -0.5, d_T_lf_N_scratch_idx, d_T_rhs_scratch_idx);
             }
         }
 
         // Account for forcing terms.
-        const int T_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_F_var, getScratchContext());
-        const int T_F_new_idx = var_db->mapVariableAndContextToIndex(d_T_F_var, getNewContext());
         if (d_T_F_fcn)
         {
-            d_T_F_fcn->setDataOnPatchHierarchy(T_F_scratch_idx, d_T_F_var, d_hierarchy, half_time);
+            d_T_F_fcn->setDataOnPatchHierarchy(d_T_F_scratch_idx, d_T_F_var, d_hierarchy, half_time);
         }
         else
-            d_hier_cc_data_ops->setToScalar(T_F_scratch_idx, 0.0);
+            d_hier_cc_data_ops->setToScalar(d_T_F_scratch_idx, 0.0);
 
         // Add Allen-Cahn temporal term.
-        addTemporalAndLinearTermstoRHSOfEnergyEquation(T_F_scratch_idx, dt);
-        d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_F_scratch_idx, T_rhs_scratch_idx);
+        addTemporalAndLinearTermstoRHSOfEnergyEquation(d_T_F_scratch_idx, dt);
+        d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +1.0, d_T_F_scratch_idx, d_T_rhs_scratch_idx);
 
         // Solve for T(n+1).
         T_solver->solveSystem(*d_T_sol, *d_T_rhs);
-        d_hier_cc_data_ops->copyData(T_new_idx, T_scratch_idx);
+        d_hier_cc_data_ops->copyData(d_T_new_idx, d_T_scratch_idx);
         if (d_enable_logging && d_enable_logging_solver_iterations)
             plog << d_object_name << ":" << d_T_var->getName()
                  << "::integrateHierarchy():diffusion solve number of iterations = " << T_solver->getNumIterations()
@@ -1167,27 +1071,26 @@ AllenCahnHierarchyIntegrator::integrateHierarchy(const double current_time, cons
         // Reset the right-hand side vector.
         if (d_u_adv_var)
         {
-            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_N_scratch_idx, T_rhs_scratch_idx);
+            d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +1.0, d_T_N_scratch_idx, d_T_rhs_scratch_idx);
 
             if (d_lf_convective_time_stepping_type == ADAMS_BASHFORTH ||
                 d_lf_convective_time_stepping_type == MIDPOINT_RULE)
             {
-                d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, d_T_lf_N_scratch_idx, T_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +1.0, d_T_lf_N_scratch_idx, d_T_rhs_scratch_idx);
             }
             else if (d_lf_convective_time_stepping_type == TRAPEZOIDAL_RULE)
             {
-                d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +0.5, d_T_lf_N_scratch_idx, T_rhs_scratch_idx);
+                d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +0.5, d_T_lf_N_scratch_idx, d_T_rhs_scratch_idx);
             }
         }
 
         if (d_T_F_var)
         {
-            d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_F_scratch_idx, T_rhs_scratch_idx);
-            d_hier_cc_data_ops->copyData(T_F_new_idx, T_F_scratch_idx);
+            d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -1.0, d_T_F_scratch_idx, d_T_rhs_scratch_idx);
+            d_hier_cc_data_ops->copyData(d_T_F_new_idx, d_T_F_scratch_idx);
         }
     }
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
+
     return;
 } // integrateHierarchy
 
@@ -1334,23 +1237,23 @@ void
 AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     db->putInteger("IEP_HIERARCHY_INTEGRATOR_VERSION", IEP_HIERARCHY_INTEGRATOR_VERSION);
-    db->putString("d_lf_diffusion_time_stepping_type",
+    db->putString("lf_diffusion_time_stepping_type",
                   enum_to_string<TimeSteppingType>(d_lf_diffusion_time_stepping_type));
-    db->putString("d_lf_convective_time_stepping_type",
+    db->putString("lf_convective_time_stepping_type",
                   enum_to_string<TimeSteppingType>(d_lf_convective_time_stepping_type));
-    db->putString("d_lf_init_convective_time_stepping_type",
+    db->putString("lf_init_convective_time_stepping_type",
                   enum_to_string<TimeSteppingType>(d_lf_init_convective_time_stepping_type));
-    db->putString("d_lf_convective_difference_form",
+    db->putString("lf_convective_difference_form",
                   enum_to_string<ConvectiveDifferencingType>(d_lf_convective_difference_form));
-    db->putString("d_lf_convective_op_type", d_lf_convective_op_type);
-    d_lf_convective_op_input_db = db->putDatabase("d_lf_convective_op_db");
+    db->putString("lf_convective_op_type", d_lf_convective_op_type);
+    d_lf_convective_op_input_db = db->putDatabase("lf_convective_op_input_db");
 
-    db->putDouble("d_M_lf", d_M_lf);
-    db->putDouble("d_lambda_lf", d_lambda_lf);
-    db->putDouble("d_eps_lf", d_eps_lf);
-    db->putBool("d_solve_energy", d_solve_energy);
-    db->putDouble("d_num_diffusion", d_num_diffusion);
-    db->putString("d_interpolation_function_profile", d_interpolation_function_profile);
+    db->putDouble("mobility_lf", d_mobility_lf);
+    db->putDouble("mixing_energy_density_lf", d_mixing_energy_density_lf);
+    db->putDouble("interface_thickness_lf", d_interface_thickness_lf);
+    db->putBool("solve_energy", d_solve_energy);
+    db->putDouble("numerical_diffusion", d_numerical_diffusion);
+    db->putString("interpolation_function_profile", d_interpolation_function_profile);
 
     AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
@@ -1398,17 +1301,13 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
-    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
-    const int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
-    const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
 
     // Filling ghost cells for liquid fraction.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> lf_transaction_comps(1);
-    lf_transaction_comps[0] = InterpolationTransactionComponent(lf_scratch_idx,
-                                                                lf_new_idx,
+    lf_transaction_comps[0] = InterpolationTransactionComponent(d_lf_scratch_idx,
+                                                                d_lf_new_idx,
                                                                 "CONSERVATIVE_LINEAR_REFINE",
                                                                 false,
                                                                 "CONSERVATIVE_COARSEN",
@@ -1420,7 +1319,7 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
     hier_bdry_fill->fillData(new_time);
 
     // perform gradient of liquid fraction.
-    d_hier_math_ops->grad(d_grad_lf_idx, d_grad_lf_var, true, 1.0, lf_scratch_idx, d_lf_var, nullptr, new_time);
+    d_hier_math_ops->grad(d_grad_lf_idx, d_grad_lf_var, true, 1.0, d_lf_scratch_idx, d_lf_var, nullptr, new_time);
 
     // compute H*grad_lf.
     d_hier_sc_data_ops->multiply(d_grad_lf_idx, d_grad_lf_idx, d_H_sc_idx);
@@ -1436,8 +1335,8 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
                          false);
 
     // update q' and g'.
-    computeInterpolationFunction(d_q_firstder_idx, lf_new_idx, T_new_idx);
-    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, lf_new_idx);
+    computeInterpolationFunction(d_q_firstder_idx, d_lf_new_idx, d_T_new_idx);
+    computeDoubleWellPotential(d_g_firstder_idx, d_g_secondder_idx, d_lf_new_idx);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1446,10 +1345,10 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_new_idx);
+            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_new_idx);
             Pointer<CellData<NDIM, double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
-            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_new_idx);
+            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_new_idx);
             Pointer<CellData<NDIM, double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
             Pointer<CellData<NDIM, double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
             Pointer<CellData<NDIM, double> > chemical_potential_data = patch->getPatchData(d_chemical_potential_idx);
@@ -1464,13 +1363,14 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
 
                 // g' is linearized while solving AC eqn. But for Div U eqn, it is computed based on
                 // varphi^n+1,m+1.
-                (*chemical_potential_data)(ci) =
-                    -d_lambda_lf * (*chemical_potential_data)(ci) +
-                    (d_lambda_lf * (*H_data)(ci) / std::pow(d_eps_lf, 2.0) * (*g_firstder_data)(ci)) + F;
+                (*chemical_potential_data)(ci) = -d_mixing_energy_density_lf * (*chemical_potential_data)(ci) +
+                                                 (d_mixing_energy_density_lf * (*H_data)(ci) /
+                                                  std::pow(d_interface_thickness_lf, 2.0) * (*g_firstder_data)(ci)) +
+                                                 F;
 
-                // Div_U_F = M_lf * zeta_lf * (rho_liquid - rho_solid) / rho
+                // Div_U_F = mobility_lf * zeta_lf * (rho_liquid - rho_solid) / rho
                 (*Div_U_F_data)(ci) =
-                    d_M_lf * (*chemical_potential_data)(ci) * (d_rho_liquid - d_rho_solid) / (*rho_data)(ci);
+                    d_mobility_lf * (*chemical_potential_data)(ci) * (d_rho_liquid - d_rho_solid) / (*rho_data)(ci);
             }
         }
     }
@@ -1500,7 +1400,6 @@ AllenCahnHierarchyIntegrator::regridHierarchyEndSpecialized()
 {
     PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
 
     // Setup the patch boundary filling objects.
@@ -1509,15 +1408,13 @@ AllenCahnHierarchyIntegrator::regridHierarchyEndSpecialized()
     // Reset the solution and rhs vectors.
     const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
 
-    const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
     d_lf_sol = new SAMRAIVectorReal<NDIM, double>(
         d_object_name + "::sol_vec::" + d_lf_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_lf_sol->addComponent(d_lf_var, lf_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+    d_lf_sol->addComponent(d_lf_var, d_lf_scratch_idx, wgt_idx, d_hier_cc_data_ops);
 
-    const int lf_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_rhs_var, getScratchContext());
     d_lf_rhs = new SAMRAIVectorReal<NDIM, double>(
         d_object_name + "::rhs_vec::" + d_lf_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_lf_rhs->addComponent(d_lf_rhs_var, lf_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+    d_lf_rhs->addComponent(d_lf_rhs_var, d_lf_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
 
     d_lf_solver_needs_init = true;
     d_lf_rhs_op_needs_init = true;
@@ -1686,9 +1583,7 @@ AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx)
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
     int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
-    int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1698,8 +1593,8 @@ AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx)
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(lf_new_idx);
-            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_new_idx);
+            Pointer<CellData<NDIM, double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
+            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_new_idx);
             Pointer<CellData<NDIM, double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
             Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
@@ -1710,9 +1605,10 @@ AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx)
             {
                 CellIndex<NDIM> ci(it());
 
-                double F = -d_M_lf * d_rho_liquid * d_latent_heat * (*H_data)(ci) * (*q_firstder_data)(ci) *
+                double F = -d_mobility_lf * d_rho_liquid * d_latent_heat * (*H_data)(ci) * (*q_firstder_data)(ci) *
                            (d_T_melt - (*T_data)(ci)) / d_T_melt;
-                (*F_data)(ci) = F - (d_M_lf * d_lambda_lf * (*H_data)(ci) / std::pow(d_eps_lf, 2.0) *
+                (*F_data)(ci) = F - (d_mobility_lf * d_mixing_energy_density_lf * (*H_data)(ci) /
+                                     std::pow(d_interface_thickness_lf, 2.0) *
                                      ((*g_firstder_data)(ci) - ((*g_secondder_data)(ci) * (*lf_new_data)(ci))));
             }
         }
@@ -1729,9 +1625,9 @@ AllenCahnHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_f
     // Read in data members from input database.
     if (!is_from_restart)
     {
-        d_M_lf = input_db->getDouble("M_lf");
-        d_lambda_lf = input_db->getDouble("lambda_lf");
-        d_eps_lf = input_db->getDouble("eps_lf");
+        d_mobility_lf = input_db->getDouble("mobility_lf");
+        d_mixing_energy_density_lf = input_db->getDouble("mixing_energy_density_lf");
+        d_interface_thickness_lf = input_db->getDouble("interface_thickness_lf");
 
         if (input_db->keyExists("solve_energy")) d_solve_energy = input_db->getBool("solve_energy");
         if (input_db->keyExists("lf_diffusion_time_stepping_type"))
@@ -1771,7 +1667,8 @@ AllenCahnHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_f
             d_T_convective_time_stepping_type =
                 string_to_enum<TimeSteppingType>(input_db->getString("T_convective_time_stepping_type"));
 
-        if (input_db->keyExists("num_diffusion")) d_num_diffusion = input_db->getDouble("num_diffusion");
+        if (input_db->keyExists("numerical_diffusion"))
+            d_numerical_diffusion = input_db->getDouble("numerical_diffusion");
         if (input_db->keyExists("interpolation_function_profile"))
             d_interpolation_function_profile = input_db->getString("interpolation_function_profile");
     }
@@ -1798,23 +1695,23 @@ AllenCahnHierarchyIntegrator::getFromRestart()
     }
 
     d_lf_diffusion_time_stepping_type =
-        string_to_enum<TimeSteppingType>(db->getString("d_lf_diffusion_time_stepping_type"));
+        string_to_enum<TimeSteppingType>(db->getString("lf_diffusion_time_stepping_type"));
     d_lf_convective_time_stepping_type =
-        string_to_enum<TimeSteppingType>(db->getString("d_lf_convective_time_stepping_type"));
+        string_to_enum<TimeSteppingType>(db->getString("lf_convective_time_stepping_type"));
     d_lf_init_convective_time_stepping_type =
-        string_to_enum<TimeSteppingType>(db->getString("d_lf_init_convective_time_stepping_type"));
+        string_to_enum<TimeSteppingType>(db->getString("lf_init_convective_time_stepping_type"));
     d_lf_convective_difference_form =
-        string_to_enum<ConvectiveDifferencingType>(db->getString("d_lf_convective_difference_form"));
-    d_lf_convective_op_type = db->getString("d_lf_convective_op_type");
-    d_lf_convective_op_input_db = db->getDatabase("d_lf_convective_op_db");
+        string_to_enum<ConvectiveDifferencingType>(db->getString("lf_convective_difference_form"));
+    d_lf_convective_op_type = db->getString("lf_convective_op_type");
+    d_lf_convective_op_input_db = db->getDatabase("lf_convective_op_db");
 
-    d_M_lf = db->getDouble("d_M_lf");
-    d_lambda_lf = db->getDouble("d_lambda_lf");
-    d_eps_lf = db->getDouble("d_eps_lf");
-    d_solve_energy = db->getBool("d_solve_energy");
+    d_mobility_lf = db->getDouble("mobility_lf");
+    d_mixing_energy_density_lf = db->getDouble("mixing_energy_density_lf");
+    d_interface_thickness_lf = db->getDouble("interface_thickness_lf");
+    d_solve_energy = db->getBool("solve_energy");
 
-    d_num_diffusion = db->getDouble("d_num_diffusion");
-    d_interpolation_function_profile = db->getString("d_interpolation_function_profile");
+    d_numerical_diffusion = db->getDouble("numerical_diffusion");
+    d_interpolation_function_profile = db->getString("interpolation_function_profile");
 }
 
 //////////////////////////////////////////////////////////////////////////////

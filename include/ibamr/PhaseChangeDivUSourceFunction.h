@@ -97,8 +97,6 @@ public:
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
-    //\}
-
 private:
     /*!
      * Deleted default constructor.
@@ -114,11 +112,6 @@ private:
      * Deleted assignment operator.
      */
     PhaseChangeDivUSourceFunction& operator=(const PhaseChangeDivUSourceFunction& that) = delete;
-
-    /*!
-     * Name of this object.
-     */
-    std::string d_object_name;
 
     /*!
      * Name of this object.

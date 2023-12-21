@@ -64,7 +64,7 @@ public:
                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                           SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                           SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> fluid_solver,
-                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
+                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                           bool register_for_restart = true);
 
     /*
@@ -155,7 +155,7 @@ private:
      * Constant needed to avoid division by zero. This constant also controls the strength
      * of the penalty factor.
      */
-    double d_ed = 1e-3;
+    double d_avoid_division_by_zero_factor = 1e-3;
 };
 
 } // namespace IBAMR

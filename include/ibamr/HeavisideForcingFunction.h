@@ -95,11 +95,6 @@ private:
     HeavisideForcingFunction& operator=(const HeavisideForcingFunction& that) = delete;
 
     /*!
-     * Name of this object.
-     */
-    std::string d_object_name;
-
-    /*!
      * Pointer to advection-diffusion solver.
      */
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;

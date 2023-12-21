@@ -99,12 +99,6 @@ public:
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
-     * Synchronously advance each level in the hierarchy over the given time
-     * increment.
-     */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override;
-
-    /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
     void postprocessIntegrateHierarchy(double current_time,
@@ -131,6 +125,13 @@ public:
      * Write out specialized object state to the given database.
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+protected:
+    /*!
+     * Synchronously advance each level in the hierarchy over the given time
+     * increment.
+     */
+    void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
 
 private:
     /*!
@@ -228,8 +229,8 @@ private:
     /*!
      * Energy equation parameters.
      */
-    double d_liquidus_temperature, d_solidus_temperature, d_reference_temperature, d_Cp_liquid, d_Cp_solid, d_Cp_gas,
-        d_Cp_mushy;
+    double d_liquidus_temperature, d_solidus_temperature, d_reference_temperature, d_specific_heat_liquid,
+        d_specific_heat_solid, d_specific_heat_gas, d_specific_heat_mushy;
 
     /*!
      * Liquid fraction value in the gas. Default is set to be zero.

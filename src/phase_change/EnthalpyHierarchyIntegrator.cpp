@@ -111,8 +111,8 @@ EnthalpyHierarchyIntegrator::EnthalpyHierarchyIntegrator(const std::string& obje
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
 
-    if (from_restart) getFromRestart();
     getFromInput(input_db, from_restart);
+    if (from_restart) getFromRestart();
 
     return;
 } // EnthalpyHierarchyIntegrator
@@ -187,52 +187,32 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
         if (!level->checkAllocated(d_grad_T_idx)) level->allocatePatchData(d_grad_T_idx, current_time);
     }
 
-    const int h_current_idx = var_db->mapVariableAndContextToIndex(d_h_var, getCurrentContext());
-    const int h_new_idx = var_db->mapVariableAndContextToIndex(d_h_var, getNewContext());
-
-    const int T_current_idx = var_db->mapVariableAndContextToIndex(d_T_var, getCurrentContext());
-    const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
-    const int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
-    const int T_diff_coef_current_idx =
-        var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getCurrentContext());
-    const int T_diff_coef_cc_new_idx = var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getNewContext());
-    const int T_diff_coef_cc_current_idx =
-        var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getCurrentContext());
-    const int T_diff_coef_cc_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getScratchContext());
-    const int T_diff_coef_rhs_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_rhs_var, getScratchContext());
-
     const int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
-    const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
-    const int lf_current_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getCurrentContext());
-
-    const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
 
     // Initialize enthalpy h only at the start of the simulation.
     if (initial_time)
-        computeEnthalpyBasedOnTemperature(h_current_idx, T_current_idx, rho_current_idx, lf_current_idx, H_current_idx);
+        computeEnthalpyBasedOnTemperature(
+            d_h_current_idx, d_T_current_idx, d_rho_current_idx, d_lf_current_idx, H_current_idx);
 
     if (d_solve_mass_conservation)
     {
         Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
-        const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
 
         // Set the velocities used to update the density and the previous time step
         // size
         if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
         {
             d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                /*old*/ -1, /*current*/ u_current_idx, /*new*/ -1);
+                /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ -1);
             rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                /*current*/ h_current_idx, /*new*/ -1);
+                /*current*/ d_h_current_idx, /*new*/ -1);
         }
         else
         {
             d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                /*old*/ d_U_old_current_idx, /*current*/ u_current_idx, /*new*/ -1);
+                /*old*/ d_U_old_current_idx, /*current*/ d_u_adv_current_idx, /*new*/ -1);
             rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                /*current*/ h_current_idx, /*new*/ -1);
+                /*current*/ d_h_current_idx, /*new*/ -1);
             d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
         }
 
@@ -268,7 +248,7 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     const double apply_time = current_time;
     for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
     {
-        d_reset_kappa_fcns[k](T_diff_coef_cc_current_idx,
+        d_reset_kappa_fcns[k](d_T_diffusion_coef_cc_current_idx,
                               d_T_diffusion_coef_cc_var,
                               d_hier_math_ops,
                               -1 /*cycle_num*/,
@@ -279,16 +259,16 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     }
 
     // Interpolate the cell-centered diffusion coef to side-centered.
-    d_hier_cc_data_ops->copyData(T_diff_coef_cc_scratch_idx, T_diff_coef_cc_current_idx);
+    d_hier_cc_data_ops->copyData(d_T_diffusion_coef_cc_scratch_idx, d_T_diffusion_coef_cc_current_idx);
     d_k_bdry_bc_fill_op->fillData(current_time);
 
     if (d_k_vc_interp_type == VC_AVERAGE_INTERP)
     {
-        interpolateCCToSCSimpleAveraging(T_diff_coef_current_idx, T_diff_coef_cc_scratch_idx);
+        interpolateCCToSCSimpleAveraging(d_T_diffusion_coef_current_idx, d_T_diffusion_coef_cc_scratch_idx);
     }
     else if (d_k_vc_interp_type == VC_HARMONIC_INTERP)
     {
-        interpolateCCToSCHarmonicAveraging(T_diff_coef_current_idx, T_diff_coef_cc_scratch_idx);
+        interpolateCCToSCHarmonicAveraging(d_T_diffusion_coef_current_idx, d_T_diffusion_coef_cc_scratch_idx);
     }
     else
     {
@@ -299,14 +279,14 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     static const bool synch_cf_interface = true;
     d_hier_math_ops->interp(d_D_cc_new_idx,
                             d_D_cc_var,
-                            T_diff_coef_current_idx,
+                            d_T_diffusion_coef_current_idx,
                             d_T_diffusion_coef_var,
                             d_no_fill_op,
                             d_integrator_time,
                             synch_cf_interface);
 
-    d_hier_sc_data_ops->scale(T_diff_coef_rhs_scratch_idx, (1.0 - alpha), T_diff_coef_current_idx);
-    T_rhs_op_spec.setDPatchDataId(T_diff_coef_rhs_scratch_idx);
+    d_hier_sc_data_ops->scale(d_T_diffusion_coef_rhs_scratch_idx, (1.0 - alpha), d_T_diffusion_coef_current_idx);
+    T_rhs_op_spec.setDPatchDataId(d_T_diffusion_coef_rhs_scratch_idx);
 
     // Initialize the RHS operator and compute the RHS vector for the temperature equation.
     Pointer<LaplaceOperator> T_rhs_op = d_T_rhs_op;
@@ -325,13 +305,13 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
         T_rhs_op->initializeOperatorState(*d_T_sol, *d_T_rhs);
         d_T_rhs_op_needs_init = false;
     }
-    d_hier_cc_data_ops->copyData(T_scratch_idx, T_current_idx, false);
+    d_hier_cc_data_ops->copyData(d_T_scratch_idx, d_T_current_idx, false);
     T_rhs_op->apply(*d_T_sol, *d_T_rhs);
 
-    d_hier_cc_data_ops->copyData(h_new_idx, h_current_idx);
-    d_hier_cc_data_ops->copyData(T_new_idx, T_current_idx);
-    d_hier_cc_data_ops->copyData(T_diff_coef_cc_new_idx, T_diff_coef_cc_current_idx);
-    d_hier_cc_data_ops->copyData(lf_new_idx, lf_current_idx);
+    d_hier_cc_data_ops->copyData(d_h_new_idx, d_h_current_idx);
+    d_hier_cc_data_ops->copyData(d_T_new_idx, d_T_current_idx);
+    d_hier_cc_data_ops->copyData(d_T_diffusion_coef_cc_new_idx, d_T_diffusion_coef_cc_current_idx);
+    d_hier_cc_data_ops->copyData(d_lf_new_idx, d_lf_current_idx);
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
@@ -339,9 +319,11 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 } // preprocessIntegrateHierarchy
 
 void
-EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                           const double new_time,
+                                                           const int cycle_num)
 {
-    AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -358,31 +340,10 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
     }
 
     // Perform a single step of fixed point iteration.
-    const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
-
-    const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
-    const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
-
-    const int Cp_new_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getNewContext());
-
-    const int h_new_idx = var_db->mapVariableAndContextToIndex(d_h_var, getNewContext());
-    const int h_current_idx = var_db->mapVariableAndContextToIndex(d_h_var, getCurrentContext());
-
-    const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
-    const int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
-    const int T_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_rhs_var, getScratchContext());
-    const int T_diff_coef_new_idx = var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getNewContext());
-    const int T_diff_coef_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getScratchContext());
-    const int T_diff_coef_cc_new_idx = var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getNewContext());
-    const int T_diff_coef_cc_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getScratchContext());
 
     // In the special case of conservative discretization, the updated
     // density is calculated by the mass and convective integrator.
-    const int T_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_N_var, getScratchContext());
-
     Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
     // Update N_idx if necessary
     if (cycle_num > 0 && d_solve_mass_conservation)
@@ -395,31 +356,28 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         d_rho_p_integrator->setCycleNumber(cycle_num);
 
         // Set the patch data index for convective derivative.
-        d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(T_N_scratch_idx);
+        d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(d_T_N_scratch_idx);
 
         // Always set to current because we want to update rho^{n} to rho^{n+1}
-        d_rho_p_integrator->setDensityPatchDataIndex(rho_current_idx);
-
-        const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
-        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getNewContext());
+        d_rho_p_integrator->setDensityPatchDataIndex(d_rho_current_idx);
 
         // Set the velocities used to update the density
         if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
         {
             d_rho_p_integrator->setFluidVelocityPatchDataIndices(
-                /*old*/ -1, /*current*/ u_current_idx, /*new*/ u_new_idx);
+                /*old*/ -1, /*current*/ d_u_adv_current_idx, /*new*/ d_u_adv_new_idx);
             rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                /*current*/ h_current_idx, /*new*/ h_new_idx);
+                /*current*/ d_h_current_idx, /*new*/ d_h_new_idx);
         }
         else
         {
             d_rho_p_integrator->setFluidVelocityPatchDataIndices(
                 /*old*/ d_U_old_current_idx,
-                /*current*/ u_current_idx,
-                /*new*/ u_new_idx);
+                /*current*/ d_u_adv_current_idx,
+                /*new*/ d_u_adv_new_idx);
             rho_p_cc_integrator->setTransportQuantityPatchDataIndices(
-                /*current*/ h_current_idx,
-                /*new*/ h_new_idx);
+                /*current*/ d_h_current_idx,
+                /*new*/ d_h_new_idx);
 
             d_rho_p_integrator->setPreviousTimeStepSize(d_dt_previous[0]);
         }
@@ -427,13 +385,13 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         d_rho_p_integrator->integrate(dt);
     }
 
-    d_updated_rho_idx = d_rho_p_integrator ? d_rho_p_integrator->getUpdatedDensityPatchDataIndex() : rho_new_idx;
-    d_hier_cc_data_ops->copyData(rho_new_idx,
+    d_updated_rho_idx = d_rho_p_integrator ? d_rho_p_integrator->getUpdatedDensityPatchDataIndex() : d_rho_new_idx;
+    d_hier_cc_data_ops->copyData(d_rho_new_idx,
                                  d_updated_rho_idx,
                                  /*interior_only*/ true);
 
     // Account for the convective acceleration term N_full.
-    if (d_u_adv_var) d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
+    if (d_u_adv_var) d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -1.0, d_T_N_scratch_idx, d_T_rhs_scratch_idx);
 
     PoissonSpecifications T_solver_spec(d_object_name + "::solver_spec::" + d_T_var->getName());
 
@@ -465,16 +423,16 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         }
 
         // Interpolate the cell-centered diffusion coef to side-centered.
-        d_hier_cc_data_ops->copyData(T_diff_coef_cc_scratch_idx, T_diff_coef_cc_new_idx);
+        d_hier_cc_data_ops->copyData(d_T_diffusion_coef_cc_scratch_idx, d_T_diffusion_coef_cc_new_idx);
         d_k_bdry_bc_fill_op->fillData(new_time);
 
         if (d_k_vc_interp_type == VC_AVERAGE_INTERP)
         {
-            interpolateCCToSCSimpleAveraging(T_diff_coef_new_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCSimpleAveraging(d_T_diffusion_coef_new_idx, d_T_diffusion_coef_cc_scratch_idx);
         }
         else if (d_k_vc_interp_type == VC_HARMONIC_INTERP)
         {
-            interpolateCCToSCHarmonicAveraging(T_diff_coef_new_idx, T_diff_coef_cc_scratch_idx);
+            interpolateCCToSCHarmonicAveraging(d_T_diffusion_coef_new_idx, d_T_diffusion_coef_cc_scratch_idx);
         }
         else
         {
@@ -485,19 +443,19 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         static const bool synch_cf_interface = true;
         d_hier_math_ops->interp(d_D_cc_new_idx,
                                 d_D_cc_var,
-                                T_diff_coef_new_idx,
+                                d_T_diffusion_coef_new_idx,
                                 d_T_diffusion_coef_var,
                                 d_no_fill_op,
                                 d_integrator_time,
                                 synch_cf_interface);
 
-        d_hier_sc_data_ops->scale(T_diff_coef_scratch_idx, -alpha, T_diff_coef_new_idx);
-        T_solver_spec.setDPatchDataId(T_diff_coef_scratch_idx);
+        d_hier_sc_data_ops->scale(d_T_diffusion_coef_scratch_idx, -alpha, d_T_diffusion_coef_new_idx);
+        T_solver_spec.setDPatchDataId(d_T_diffusion_coef_scratch_idx);
 
-        computeEnthalpyDerivative(d_dh_dT_scratch_idx, T_new_idx, H_new_idx);
+        computeEnthalpyDerivative(d_dh_dT_scratch_idx, d_T_new_idx, H_new_idx);
 
         // Set rho*Cp/dt.
-        d_hier_cc_data_ops->multiply(d_C_new_idx, rho_new_idx, d_dh_dT_scratch_idx);
+        d_hier_cc_data_ops->multiply(d_C_new_idx, d_rho_new_idx, d_dh_dT_scratch_idx);
         d_hier_cc_data_ops->copyData(d_T_C_idx, d_C_new_idx);
         d_hier_cc_data_ops->scale(d_T_C_idx, 1.0 / dt, d_T_C_idx);
         T_solver_spec.setCPatchDataId(d_T_C_idx);
@@ -518,25 +476,23 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         T_solver->initializeSolverState(*d_T_sol, *d_T_rhs);
 
         // Account for forcing terms.
-        const int T_F_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_F_var, getScratchContext());
-        const int T_F_new_idx = var_db->mapVariableAndContextToIndex(d_T_F_var, getNewContext());
         if (d_T_F_fcn)
         {
-            d_T_F_fcn->setDataOnPatchHierarchy(T_F_scratch_idx, d_T_F_var, d_hierarchy, half_time);
+            d_T_F_fcn->setDataOnPatchHierarchy(d_T_F_scratch_idx, d_T_F_var, d_hierarchy, half_time);
         }
         else
-            d_hier_cc_data_ops->setToScalar(T_F_scratch_idx, 0.0);
+            d_hier_cc_data_ops->setToScalar(d_T_F_scratch_idx, 0.0);
 
         // Compute and add temporal and linearized terms to the RHS of the energy equation.
-        addTemporalAndLinearTermstoRHSOfEnergyEquation(T_F_scratch_idx, dt);
-        d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_F_scratch_idx, T_rhs_scratch_idx);
+        addTemporalAndLinearTermstoRHSOfEnergyEquation(d_T_F_scratch_idx, dt);
+        d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +1.0, d_T_F_scratch_idx, d_T_rhs_scratch_idx);
 
         // Storing T^n+1,m.
-        d_hier_cc_data_ops->copyData(d_T_pre_idx, T_new_idx);
+        d_hier_cc_data_ops->copyData(d_T_pre_idx, d_T_new_idx);
 
         // Solve for T(n+1, m+1).
         T_solver->solveSystem(*d_T_sol, *d_T_rhs);
-        d_hier_cc_data_ops->copyData(T_new_idx, T_scratch_idx);
+        d_hier_cc_data_ops->copyData(d_T_new_idx, d_T_scratch_idx);
 
         if (d_enable_logging && d_enable_logging_solver_iterations)
             plog << d_object_name << ":" << d_T_var->getName()
@@ -553,33 +509,33 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         }
 
         // Find h^n+1, m+1.
-        updateEnthalpy(h_new_idx, T_new_idx, d_T_pre_idx);
+        updateEnthalpy(d_h_new_idx, d_T_new_idx, d_T_pre_idx);
 
         // Find T^n+1,m+1 based on h^n+1, m+1.
-        computeTemperatureBasedOnEnthalpy(T_new_idx, h_new_idx, H_new_idx);
+        computeTemperatureBasedOnEnthalpy(d_T_new_idx, d_h_new_idx, H_new_idx);
 
         // Find lf^n+1, m+1 based on h^n+1, m+1.
-        d_hier_cc_data_ops->copyData(d_lf_pre_idx, lf_new_idx);
-        computeLiquidFraction(lf_new_idx, h_new_idx, H_new_idx);
+        d_hier_cc_data_ops->copyData(d_lf_pre_idx, d_lf_new_idx);
+        computeLiquidFraction(d_lf_new_idx, d_h_new_idx, H_new_idx);
 
         // Update specific heat
         const double apply_time = new_time;
-        for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
+        for (unsigned k = 0; k < d_reset_specific_heat_fcns.size(); ++k)
         {
-            d_reset_Cp_fcns[k](Cp_new_idx,
-                               d_Cp_var,
-                               d_hier_math_ops,
-                               -1 /*cycle_num*/,
-                               apply_time,
-                               current_time,
-                               new_time,
-                               d_reset_Cp_fcns_ctx[k]);
+            d_reset_specific_heat_fcns[k](d_specific_heat_new_idx,
+                                          d_specific_heat_var,
+                                          d_hier_math_ops,
+                                          -1 /*cycle_num*/,
+                                          apply_time,
+                                          current_time,
+                                          new_time,
+                                          d_reset_specific_heat_fcns_ctx[k]);
         }
 
         // Update conductivity
         for (unsigned k = 0; k < d_reset_kappa_fcns.size(); ++k)
         {
-            d_reset_kappa_fcns[k](T_diff_coef_cc_new_idx,
+            d_reset_kappa_fcns[k](d_T_diffusion_coef_cc_new_idx,
                                   d_T_diffusion_coef_cc_var,
                                   d_hier_math_ops,
                                   -1 /*cycle_num*/,
@@ -594,7 +550,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         lf_relative_iteration_error = d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx);
 
         // Finding lf^m - lf^m-1.
-        d_hier_cc_data_ops->subtract(d_lf_pre_idx, lf_new_idx, d_lf_pre_idx);
+        d_hier_cc_data_ops->subtract(d_lf_pre_idx, d_lf_new_idx, d_lf_pre_idx);
 
         plog << "liquid fraction relative error norms at Newton iteration: " << inner_iterations << "\n"
              << "L1 : " << d_hier_cc_data_ops->L1Norm(d_lf_pre_idx, wgt_cc_idx) / (1.0 + lf_relative_iteration_error)
@@ -608,18 +564,16 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
             d_hier_cc_data_ops->L2Norm(d_lf_pre_idx, wgt_cc_idx) / (1.0 + lf_relative_iteration_error);
         inner_iterations++;
 
-        d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_F_scratch_idx, T_rhs_scratch_idx);
-        d_hier_cc_data_ops->copyData(T_F_new_idx, T_F_scratch_idx);
+        d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, -1.0, d_T_F_scratch_idx, d_T_rhs_scratch_idx);
+        d_hier_cc_data_ops->copyData(d_T_F_new_idx, d_T_F_scratch_idx);
     }
 
     // Reset the right-hand side vector.
-    if (d_u_adv_var) d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, +1.0, T_N_scratch_idx, T_rhs_scratch_idx);
+    if (d_u_adv_var) d_hier_cc_data_ops->axpy(d_T_rhs_scratch_idx, +1.0, d_T_N_scratch_idx, d_T_rhs_scratch_idx);
 
     // Compute the source term for Div U equation.
     computeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 
@@ -661,16 +615,16 @@ void
 EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     db->putInteger("ENTHALPY_PC_HIERARCHY_INTEGRATOR_VERSION", ENTHALPY_PC_HIERARCHY_INTEGRATOR_VERSION);
-    db->putDouble("d_Cp_liquid", d_Cp_liquid);
-    db->putDouble("d_Cp_solid", d_Cp_solid);
-    db->putDouble("d_Cp_gas", d_Cp_gas);
-    db->putDouble("d_liquidus_temperature", d_liquidus_temperature);
-    db->putDouble("d_solidus_temperature", d_solidus_temperature);
-    db->putDouble("d_reference_temperature", d_reference_temperature);
-    db->putDouble("d_Cp_mushy", d_Cp_mushy);
-    db->putDouble("d_gas_liquid_fraction", d_gas_liquid_fraction);
-    db->putInteger("d_max_inner_iterations", d_max_inner_iterations);
-    db->putDouble("d_lf_iteration_error_tolerance", d_lf_iteration_error_tolerance);
+    db->putDouble("specific_heat_liquid", d_specific_heat_liquid);
+    db->putDouble("specific_heat_solid", d_specific_heat_solid);
+    db->putDouble("specific_heat_gas", d_specific_heat_gas);
+    db->putDouble("liquidus_temperature", d_liquidus_temperature);
+    db->putDouble("solidus_temperature", d_solidus_temperature);
+    db->putDouble("reference_temperature", d_reference_temperature);
+    db->putDouble("specific_heat_mushy", d_specific_heat_mushy);
+    db->putDouble("gas_liquid_fraction", d_gas_liquid_fraction);
+    db->putInteger("max_inner_iterations", d_max_inner_iterations);
+    db->putDouble("lf_iteration_error_tolerance", d_lf_iteration_error_tolerance);
 
     AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
@@ -683,13 +637,6 @@ EnthalpyHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int 
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int h_new_idx = var_db->mapVariableAndContextToIndex(d_h_var, getNewContext());
-    int h_current_idx = var_db->mapVariableAndContextToIndex(d_h_var, getCurrentContext());
-    int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
-    int dh_dT_scratch_idx = var_db->mapVariableAndContextToIndex(d_dh_dT_var, getCurrentContext());
-    int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
-    int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -697,12 +644,12 @@ EnthalpyHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int 
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(T_new_idx);
-            Pointer<CellData<NDIM, double> > h_new_data = patch->getPatchData(h_new_idx);
-            Pointer<CellData<NDIM, double> > h_current_data = patch->getPatchData(h_current_idx);
-            Pointer<CellData<NDIM, double> > rho_new_data = patch->getPatchData(rho_new_idx);
-            Pointer<CellData<NDIM, double> > rho_current_data = patch->getPatchData(rho_current_idx);
-            Pointer<CellData<NDIM, double> > dh_dT_data = patch->getPatchData(dh_dT_scratch_idx);
+            Pointer<CellData<NDIM, double> > T_new_data = patch->getPatchData(d_T_new_idx);
+            Pointer<CellData<NDIM, double> > h_new_data = patch->getPatchData(d_h_new_idx);
+            Pointer<CellData<NDIM, double> > h_current_data = patch->getPatchData(d_h_current_idx);
+            Pointer<CellData<NDIM, double> > rho_new_data = patch->getPatchData(d_rho_new_idx);
+            Pointer<CellData<NDIM, double> > rho_current_data = patch->getPatchData(d_rho_current_idx);
+            Pointer<CellData<NDIM, double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
             Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_scratch_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
@@ -725,18 +672,13 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, getNewContext());
-    const int h_new_idx = var_db->mapVariableAndContextToIndex(d_h_var, getNewContext());
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
-    const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
-    const int T_diff_coef_new_idx = var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_var, getNewContext());
-    const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
 
     // Filling ghost cells for temperature.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> T_transaction_comps(1);
-    T_transaction_comps[0] = InterpolationTransactionComponent(T_scratch_idx,
-                                                               T_new_idx,
+    T_transaction_comps[0] = InterpolationTransactionComponent(d_T_scratch_idx,
+                                                               d_T_new_idx,
                                                                "CONSERVATIVE_LINEAR_REFINE",
                                                                false,
                                                                "CONSERVATIVE_COARSEN",
@@ -748,16 +690,16 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
     hier_bdry_fill->fillData(new_time);
 
     // Compute gradient of temperature.
-    d_hier_math_ops->grad(d_grad_T_idx, d_grad_T_var, true, 1.0, T_scratch_idx, d_T_var, nullptr, new_time);
+    d_hier_math_ops->grad(d_grad_T_idx, d_grad_T_var, true, 1.0, d_T_scratch_idx, d_T_var, nullptr, new_time);
 
     // Compute k*grad_T.
-    d_hier_sc_data_ops->multiply(d_grad_T_idx, d_grad_T_idx, T_diff_coef_new_idx);
+    d_hier_sc_data_ops->multiply(d_grad_T_idx, d_grad_T_idx, d_T_diffusion_coef_new_idx);
 
     // Compute div(k*grad_T).
     d_hier_math_ops->div(Div_U_F_idx, d_Div_U_F_var, 1.0, d_grad_T_idx, d_grad_T_var, nullptr, new_time, false);
 
-    const double h_s = d_Cp_solid * (d_solidus_temperature - d_reference_temperature);
-    const double h_l = d_Cp_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
+    const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
+    const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -765,8 +707,8 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(h_new_idx);
-            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_new_idx);
+            Pointer<CellData<NDIM, double> > h_data = patch->getPatchData(d_h_new_idx);
+            Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(d_rho_new_idx);
             Pointer<CellData<NDIM, double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_new_idx);
 
@@ -803,8 +745,8 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    const double h_s = d_Cp_solid * (d_solidus_temperature - d_reference_temperature);
-    const double h_l = d_Cp_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
+    const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
+    const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -826,21 +768,21 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
                 {
                     if ((*T_data)(ci) < d_solidus_temperature)
                     {
-                        (*h_data)(ci) = d_Cp_solid * ((*T_data)(ci)-d_reference_temperature);
+                        (*h_data)(ci) = d_specific_heat_solid * ((*T_data)(ci)-d_reference_temperature);
                     }
                     else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
                     {
-                        (*h_data)(ci) = d_Cp_mushy * ((*T_data)(ci)-d_solidus_temperature) + h_s +
+                        (*h_data)(ci) = d_specific_heat_mushy * ((*T_data)(ci)-d_solidus_temperature) + h_s +
                                         (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
                     }
                     else
                     {
-                        (*h_data)(ci) = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
+                        (*h_data)(ci) = d_specific_heat_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
                     }
                 }
                 else
                 {
-                    (*h_data)(ci) = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
+                    (*h_data)(ci) = d_specific_heat_gas * ((*T_data)(ci)-d_reference_temperature);
                 }
             }
         }
@@ -854,8 +796,8 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    const double h_s = d_Cp_solid * (d_solidus_temperature - d_reference_temperature);
-    const double h_l = d_Cp_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
+    const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
+    const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -875,7 +817,7 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
                 {
                     if ((*h_data)(ci) < h_s)
                     {
-                        (*T_data)(ci) = (*h_data)(ci) / d_Cp_solid + d_reference_temperature;
+                        (*T_data)(ci) = (*h_data)(ci) / d_specific_heat_solid + d_reference_temperature;
                     }
                     else if ((*h_data)(ci) >= h_s && (*h_data)(ci) <= h_l)
                     {
@@ -884,12 +826,12 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
                     }
                     else
                     {
-                        (*T_data)(ci) = d_liquidus_temperature + ((*h_data)(ci)-h_l) / d_Cp_liquid;
+                        (*T_data)(ci) = d_liquidus_temperature + ((*h_data)(ci)-h_l) / d_specific_heat_liquid;
                     }
                 }
                 else
                 {
-                    (*T_data)(ci) = (*h_data)(ci) / d_Cp_gas + d_reference_temperature;
+                    (*T_data)(ci) = (*h_data)(ci) / d_specific_heat_gas + d_reference_temperature;
                 }
             }
         }
@@ -951,21 +893,21 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
                 {
                     if ((*T_data)(ci) < d_solidus_temperature)
                     {
-                        (*dh_dT_data)(ci) = d_Cp_solid;
+                        (*dh_dT_data)(ci) = d_specific_heat_solid;
                     }
                     else if ((*T_data)(ci) >= d_solidus_temperature && (*T_data)(ci) <= d_liquidus_temperature)
                     {
                         (*dh_dT_data)(ci) =
-                            d_Cp_mushy + d_latent_heat / (d_liquidus_temperature - d_solidus_temperature);
+                            d_specific_heat_mushy + d_latent_heat / (d_liquidus_temperature - d_solidus_temperature);
                     }
                     else
                     {
-                        (*dh_dT_data)(ci) = d_Cp_liquid;
+                        (*dh_dT_data)(ci) = d_specific_heat_liquid;
                     }
                 }
                 else
                 {
-                    (*dh_dT_data)(ci) = d_Cp_gas;
+                    (*dh_dT_data)(ci) = d_specific_heat_gas;
                 }
             }
         }
@@ -979,8 +921,8 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    const double h_s = d_Cp_solid * (d_solidus_temperature - d_reference_temperature);
-    const double h_l = d_Cp_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
+    const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
+    const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1032,17 +974,17 @@ EnthalpyHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_fr
     // Read in data members from input database.
     if (!is_from_restart)
     {
-        d_Cp_liquid = input_db->getDouble("Cp_liquid");
-        d_Cp_solid = input_db->getDouble("Cp_solid");
-        d_Cp_gas = input_db->getDouble("Cp_gas");
+        d_specific_heat_liquid = input_db->getDouble("specific_heat_liquid");
+        d_specific_heat_solid = input_db->getDouble("specific_heat_solid");
+        d_specific_heat_gas = input_db->getDouble("specific_heat_gas");
         d_liquidus_temperature = input_db->getDouble("liquidus_temperature");
         d_solidus_temperature = input_db->getDouble("solidus_temperature");
         d_reference_temperature = input_db->getDouble("solidus_temperature");
 
-        if (input_db->keyExists("Cp_mushy"))
-            d_Cp_mushy = input_db->getDouble("Cp_mushy");
+        if (input_db->keyExists("specific_heat_mushy"))
+            d_specific_heat_mushy = input_db->getDouble("specific_heat_mushy");
         else
-            d_Cp_mushy = 0.5 * (d_Cp_liquid + d_Cp_solid);
+            d_specific_heat_mushy = 0.5 * (d_specific_heat_liquid + d_specific_heat_solid);
         if (input_db->keyExists("gas_liquid_fraction"))
             d_gas_liquid_fraction = input_db->getDouble("gas_liquid_fraction");
         if (input_db->keyExists("max_inner_iterations"))
@@ -1073,16 +1015,16 @@ EnthalpyHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
 
-    d_Cp_liquid = db->getDouble("d_Cp_liquid");
-    d_Cp_solid = db->getDouble("d_Cp_solid");
-    d_Cp_gas = db->getDouble("d_Cp_gas");
-    d_liquidus_temperature = db->getDouble("d_liquidus_temperature");
-    d_solidus_temperature = db->getDouble("d_solidus_temperature");
-    d_reference_temperature = db->getDouble("d_reference_temperature");
-    d_Cp_mushy = db->getDouble("d_Cp_mushy");
-    d_gas_liquid_fraction = db->getDouble("d_gas_liquid_fraction");
-    d_max_inner_iterations = db->getInteger("d_max_inner_iterations");
-    d_lf_iteration_error_tolerance = db->getDouble("d_lf_iteration_error_tolerance");
+    d_specific_heat_liquid = db->getDouble("specific_heat_liquid");
+    d_specific_heat_solid = db->getDouble("specific_heat_solid");
+    d_specific_heat_gas = db->getDouble("specific_heat_gas");
+    d_liquidus_temperature = db->getDouble("liquidus_temperature");
+    d_solidus_temperature = db->getDouble("solidus_temperature");
+    d_reference_temperature = db->getDouble("reference_temperature");
+    d_specific_heat_mushy = db->getDouble("specific_heat_mushy");
+    d_gas_liquid_fraction = db->getDouble("gas_liquid_fraction");
+    d_max_inner_iterations = db->getInteger("max_inner_iterations");
+    d_lf_iteration_error_tolerance = db->getDouble("lf_iteration_error_tolerance");
 
     return;
 } // getFromRestart

@@ -237,10 +237,10 @@ PhaseChangeHierarchyIntegrator::PhaseChangeHierarchyIntegrator(const std::string
 } // PhaseChangeHierarchyIntegrator
 
 void
-PhaseChangeHierarchyIntegrator::registerSpecificHeatVariable(Pointer<CellVariable<NDIM, double> > Cp_var,
+PhaseChangeHierarchyIntegrator::registerSpecificHeatVariable(Pointer<CellVariable<NDIM, double> > specific_heat_var,
                                                              const bool output_Cp)
 {
-    d_Cp_var = Cp_var;
+    d_specific_heat_var = specific_heat_var;
     d_output_Cp = output_Cp;
 
     return;
@@ -267,8 +267,8 @@ PhaseChangeHierarchyIntegrator::registerResetDensityFcn(ResetPhasePropertiesFcnP
 void
 PhaseChangeHierarchyIntegrator::registerResetSpecificHeatFcn(ResetPhasePropertiesFcnPtr callback, void* ctx)
 {
-    d_reset_Cp_fcns.push_back(callback);
-    d_reset_Cp_fcns_ctx.push_back(ctx);
+    d_reset_specific_heat_fcns.push_back(callback);
+    d_reset_specific_heat_fcns_ctx.push_back(ctx);
     return;
 } // registerResetSpecificHeatFcn
 
@@ -347,50 +347,44 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
                      d_T_init);
 
     // T_F contains forcing term of the temperature equation
-    int T_F_current_idx, T_F_scratch_idx, T_F_new_idx;
-    registerVariable(T_F_current_idx,
-                     T_F_new_idx,
-                     T_F_scratch_idx,
+    registerVariable(d_T_F_current_idx,
+                     d_T_F_new_idx,
+                     d_T_F_scratch_idx,
                      d_T_F_var,
                      cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
     // T_diff contains the diffusion coefficient of the temperature equation
-    int T_diff_coef_current_idx, T_diff_coef_new_idx, T_diff_coef_scratch_idx;
-    registerVariable(T_diff_coef_current_idx,
-                     T_diff_coef_new_idx,
-                     T_diff_coef_scratch_idx,
+    registerVariable(d_T_diffusion_coef_current_idx,
+                     d_T_diffusion_coef_new_idx,
+                     d_T_diffusion_coef_scratch_idx,
                      d_T_diffusion_coef_var,
                      face_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
-    int T_diff_coef_cc_current_idx, T_diff_coef_cc_new_idx, T_diff_coef_cc_scratch_idx;
-    registerVariable(T_diff_coef_cc_current_idx,
-                     T_diff_coef_cc_new_idx,
-                     T_diff_coef_cc_scratch_idx,
+    registerVariable(d_T_diffusion_coef_cc_current_idx,
+                     d_T_diffusion_coef_cc_new_idx,
+                     d_T_diffusion_coef_cc_scratch_idx,
                      d_T_diffusion_coef_cc_var,
                      cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
 
-    int u_current_idx, u_scratch_idx, u_new_idx;
     if (d_u_adv_var)
-        registerVariable(u_current_idx,
-                         u_new_idx,
-                         u_scratch_idx,
+        registerVariable(d_u_adv_current_idx,
+                         d_u_adv_new_idx,
+                         d_u_adv_scratch_idx,
                          d_u_adv_var,
                          face_ghosts,
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
 
-    int T_diffusion_coef_rhs_scratch_idx;
     d_T_diffusion_coef_rhs_var = new SideVariable<NDIM, double>(d_T_var->getName() + "::Diff");
-    registerVariable(T_diffusion_coef_rhs_scratch_idx, d_T_diffusion_coef_rhs_var, cell_ghosts, getScratchContext());
+    registerVariable(d_T_diffusion_coef_rhs_scratch_idx, d_T_diffusion_coef_rhs_var, cell_ghosts, getScratchContext());
 
-    int T_rhs_scratch_idx;
-    registerVariable(T_rhs_scratch_idx, d_T_rhs_var, cell_ghosts, getScratchContext());
+    registerVariable(d_T_rhs_scratch_idx, d_T_rhs_var, cell_ghosts, getScratchContext());
 
     // T_C contains the C coefficient of the temperature equation
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -407,8 +401,7 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     d_T_temp_rhs_idx = var_db->registerVariableAndContext(d_T_temp_rhs_var, getCurrentContext(), no_ghosts);
 
     d_T_N_var = new CellVariable<NDIM, double>(d_T_var->getName() + "::N");
-    int T_N_scratch_idx;
-    registerVariable(T_N_scratch_idx, d_T_N_var, cell_ghosts, getScratchContext());
+    registerVariable(d_T_N_scratch_idx, d_T_N_var, cell_ghosts, getScratchContext());
 
     registerVariable(d_rho_current_idx,
                      d_rho_new_idx,
@@ -419,10 +412,10 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
                      "CONSERVATIVE_LINEAR_REFINE",
                      d_rho_init);
 
-    registerVariable(d_Cp_current_idx,
-                     d_Cp_new_idx,
-                     d_Cp_scratch_idx,
-                     d_Cp_var,
+    registerVariable(d_specific_heat_current_idx,
+                     d_specific_heat_new_idx,
+                     d_specific_heat_scratch_idx,
+                     d_specific_heat_var,
                      cell_ghosts,
                      "CONSERVATIVE_COARSEN",
                      "CONSERVATIVE_LINEAR_REFINE");
@@ -485,7 +478,8 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
 
         if (d_output_rho) d_visit_writer->registerPlotQuantity("rho_cc", "SCALAR", d_rho_current_idx, 0);
 
-        if (d_output_Cp) d_visit_writer->registerPlotQuantity("specific_heat", "SCALAR", d_Cp_current_idx, 0);
+        if (d_output_Cp)
+            d_visit_writer->registerPlotQuantity("specific_heat", "SCALAR", d_specific_heat_current_idx, 0);
 
         if (d_output_Div_U_F) d_visit_writer->registerPlotQuantity("div_U_F", "SCALAR", d_Div_U_F_idx, 0);
     }
@@ -512,18 +506,21 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
     const bool initial_time = MathUtilities<double>::equalEps(d_integrator_time, d_start_time);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
     // Indicate that all solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
     const bool dt_change = initial_time || !MathUtilities<double>::equalEps(dt, d_dt_previous[0]);
     if (dt_change)
     {
-        d_T_solver_needs_init = true;
-        d_T_rhs_op_needs_init = true;
         d_coarsest_reset_ln = 0;
         d_finest_reset_ln = finest_ln;
     }
+
+    // All solvers are reinitialized when the time step size or the diffusion coefficient changes.
+    // By default the phase change codes treat the diffusion coefficient as a variable, therefore
+    // the solvers are initialized every time step.
+    d_T_solver_needs_init = true;
+    d_T_rhs_op_needs_init = true;
 
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -535,15 +532,13 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
         if (!level->checkAllocated(d_H_pre_idx)) level->allocatePatchData(d_H_pre_idx, current_time);
         if (!level->checkAllocated(d_lf_pre_idx)) level->allocatePatchData(d_lf_pre_idx, current_time);
     }
-    const int rho_current_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getCurrentContext());
-    const int rho_new_idx = var_db->mapVariableAndContextToIndex(d_rho_var, getNewContext());
 
     // Note that we always reset current context of state variables here, if
     // necessary.
     const double apply_time = current_time;
     for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
     {
-        d_reset_rho_fcns[k](rho_current_idx,
+        d_reset_rho_fcns[k](d_rho_current_idx,
                             d_rho_var,
                             d_hier_math_ops,
                             -1 /*cycle_num*/,
@@ -553,28 +548,22 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
                             d_reset_rho_fcns_ctx[k]);
     }
 
-    const int Cp_current_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getCurrentContext());
-    const int Cp_new_idx = var_db->mapVariableAndContextToIndex(d_Cp_var, getNewContext());
-    // std::cout << "L2 norm of Cp_current_idx at cycle 0\t" << d_hier_cc_data_ops->L2Norm(Cp_current_idx) <<
-    // std::endl;
-    for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
+    for (unsigned k = 0; k < d_reset_specific_heat_fcns.size(); ++k)
     {
-        d_reset_Cp_fcns[k](Cp_current_idx,
-                           d_Cp_var,
-                           d_hier_math_ops,
-                           -1 /*cycle_num*/,
-                           apply_time,
-                           current_time,
-                           new_time,
-                           d_reset_Cp_fcns_ctx[k]);
+        d_reset_specific_heat_fcns[k](d_specific_heat_current_idx,
+                                      d_specific_heat_var,
+                                      d_hier_math_ops,
+                                      -1 /*cycle_num*/,
+                                      apply_time,
+                                      current_time,
+                                      new_time,
+                                      d_reset_specific_heat_fcns_ctx[k]);
     }
 
     if (d_solve_mass_conservation)
     {
-        const int u_current_idx = var_db->mapVariableAndContextToIndex(d_u_adv_var, getCurrentContext());
-
         // Keep track of the time-lagged velocity.
-        d_hier_fc_data_ops->copyData(d_U_old_new_idx, u_current_idx);
+        d_hier_fc_data_ops->copyData(d_U_old_new_idx, d_u_adv_current_idx);
 
         d_rho_p_integrator->setSolutionTime(current_time);
         d_rho_p_integrator->setTimeInterval(current_time, new_time);
@@ -585,19 +574,18 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
 
         // Set the rho^{n} density
         Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
-        d_rho_p_integrator->setDensityPatchDataIndex(rho_current_idx);
+        d_rho_p_integrator->setDensityPatchDataIndex(d_rho_current_idx);
 
         // Set the convective derivative patch data index.
-        const int T_N_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_N_var, getScratchContext());
-        d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(T_N_scratch_idx);
+        d_rho_p_integrator->setConvectiveDerivativePatchDataIndex(d_T_N_scratch_idx);
 
         // Data for the conservative time integrator is for cycle 0
         const int cycle_num = 0;
         d_rho_p_integrator->setCycleNumber(cycle_num);
     }
 
-    d_hier_cc_data_ops->copyData(rho_new_idx, rho_current_idx);
-    d_hier_cc_data_ops->copyData(Cp_new_idx, Cp_current_idx);
+    d_hier_cc_data_ops->copyData(d_rho_new_idx, d_rho_current_idx);
+    d_hier_cc_data_ops->copyData(d_specific_heat_new_idx, d_specific_heat_current_idx);
 
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
@@ -627,15 +615,12 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
     if (d_lf_gradient_var)
     {
         // Ghost cell filling for liquid fraction
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getScratchContext());
-        const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, getNewContext());
         std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef =
             getPhysicalBcCoefs(d_H_var); // Using H bc for now since I dont have lf_bc
         // in this class.
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        InterpolationTransactionComponent lf_bc_component(lf_scratch_idx,
-                                                          lf_new_idx,
+        InterpolationTransactionComponent lf_bc_component(d_lf_scratch_idx,
+                                                          d_lf_new_idx,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
                                                           DATA_COARSEN_TYPE,
@@ -648,7 +633,7 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
 
         // Find gradient of liquid fraction.
         d_hier_math_ops->grad(
-            d_lf_gradient_new_idx, d_lf_gradient_var, 1.0, lf_scratch_idx, d_lf_var, nullptr, new_time);
+            d_lf_gradient_new_idx, d_lf_gradient_var, 1.0, d_lf_scratch_idx, d_lf_var, nullptr, new_time);
     }
 
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -702,17 +687,17 @@ PhaseChangeHierarchyIntegrator::registerTemperatureVariable(Pointer<CellVariable
     Pointer<CellVariable<NDIM, double> > T_rhs_var =
         new CellVariable<NDIM, double>(T_var->getName() + "::T_rhs", T_depth);
     Pointer<CellVariable<NDIM, double> > T_F_var = new CellVariable<NDIM, double>(T_var->getName() + "::F", T_depth);
-    Pointer<SideVariable<NDIM, double> > T_diff_coef_var =
+    Pointer<SideVariable<NDIM, double> > T_diffusion_coef_var =
         new SideVariable<NDIM, double>(T_var->getName() + "::diff_coef", T_depth);
-    Pointer<CellVariable<NDIM, double> > T_diff_coef_cc_var =
+    Pointer<CellVariable<NDIM, double> > T_diffusion_coef_cc_var =
         new CellVariable<NDIM, double>(T_var->getName() + "::diff_coef_cc", T_depth);
 
     // Set default values.
     d_u_adv_var = nullptr;
     d_T_F_var = T_F_var;
     d_T_rhs_var = T_rhs_var;
-    d_T_diffusion_coef_var = T_diff_coef_var;
-    d_T_diffusion_coef_cc_var = T_diff_coef_cc_var;
+    d_T_diffusion_coef_var = T_diffusion_coef_var;
+    d_T_diffusion_coef_cc_var = T_diffusion_coef_cc_var;
     d_T_init = nullptr;
     d_T_F_fcn = nullptr;
     d_T_bc_coef = nullptr;
@@ -813,12 +798,13 @@ PhaseChangeHierarchyIntegrator::registerMassDensitySourceTerm(Pointer<CartGridFu
 } // registerMassDensitySourceTerm
 
 void
-PhaseChangeHierarchyIntegrator::registerSpecificHeatBoundaryConditions(RobinBcCoefStrategy<NDIM>*& Cp_bc_coef)
+PhaseChangeHierarchyIntegrator::registerSpecificHeatBoundaryConditions(
+    RobinBcCoefStrategy<NDIM>*& specific_heat_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
-    d_Cp_bc_coef = Cp_bc_coef;
+    d_specific_heat_bc_coef = specific_heat_bc_coef;
     return;
 } // registerSpecificHeatBoundaryConditions
 
@@ -844,24 +830,23 @@ void
 PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     db->putInteger("PC_HIERARCHY_INTEGRATOR_VERSION", PC_HIERARCHY_INTEGRATOR_VERSION);
-    db->putString("d_T_diffusion_time_stepping_type",
-                  enum_to_string<TimeSteppingType>(d_T_diffusion_time_stepping_type));
-    db->putString("d_T_convective_time_stepping_type",
+    db->putString("T_diffusion_time_stepping_type", enum_to_string<TimeSteppingType>(d_T_diffusion_time_stepping_type));
+    db->putString("T_convective_time_stepping_type",
                   enum_to_string<TimeSteppingType>(d_T_convective_time_stepping_type));
-    db->putString("d_T_init_convective_time_stepping_type",
+    db->putString("T_init_convective_time_stepping_type",
                   enum_to_string<TimeSteppingType>(d_T_init_convective_time_stepping_type));
-    db->putString("d_T_convective_difference_form",
+    db->putString("T_convective_difference_form",
                   enum_to_string<ConvectiveDifferencingType>(d_T_convective_difference_form));
-    db->putString("d_T_convective_op_type", d_T_convective_op_type);
-    d_T_convective_op_input_db = db->putDatabase("d_T_convective_op_db");
+    db->putString("T_convective_op_type", d_T_convective_op_type);
+    d_T_convective_op_input_db = db->putDatabase("T_convective_op_db");
 
-    db->putDouble("d_latent_heat", d_latent_heat);
-    db->putDouble("d_rho_liquid", d_rho_liquid);
-    db->putDouble("d_rho_solid", d_rho_solid);
-    db->putDouble("d_T_melt", d_T_melt);
-    db->putBool("d_solve_mass_conservation", d_solve_mass_conservation);
-    db->putBool("d_output_Div_U_F", d_output_Div_U_F);
-    db->putBool("d_output_temp_k", d_output_temp_k);
+    db->putDouble("latent_heat", d_latent_heat);
+    db->putDouble("rho_liquid", d_rho_liquid);
+    db->putDouble("rho_solid", d_rho_solid);
+    db->putDouble("T_melt", d_T_melt);
+    db->putBool("solve_mass_conservation", d_solve_mass_conservation);
+    db->putBool("output_Div_U_F", d_output_Div_U_F);
+    db->putBool("output_temp_k", d_output_temp_k);
 
     AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
@@ -910,9 +895,7 @@ PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
     d_H_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_H_bdry_bc_fill_op->initializeOperatorState(H_bc_component, d_hierarchy);
 
-    int T_diff_coef_cc_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_T_diffusion_coef_cc_var, getScratchContext());
-    InterpolationTransactionComponent k_bc_component(T_diff_coef_cc_scratch_idx,
+    InterpolationTransactionComponent k_bc_component(d_T_diffusion_coef_cc_scratch_idx,
                                                      DATA_REFINE_TYPE,
                                                      USE_CF_INTERPOLATION,
                                                      DATA_COARSEN_TYPE,
@@ -924,15 +907,13 @@ PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
 
     // Reset the solution and rhs vectors.
     const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-    const int T_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_var, getScratchContext());
     d_T_sol = new SAMRAIVectorReal<NDIM, double>(
         d_object_name + "::sol_vec::" + d_T_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_T_sol->addComponent(d_T_var, T_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+    d_T_sol->addComponent(d_T_var, d_T_scratch_idx, wgt_idx, d_hier_cc_data_ops);
 
-    const int T_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(d_T_rhs_var, getScratchContext());
     d_T_rhs = new SAMRAIVectorReal<NDIM, double>(
         d_object_name + "::rhs_vec::" + d_T_var->getName(), d_hierarchy, 0, finest_hier_level);
-    d_T_rhs->addComponent(d_T_rhs_var, T_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+    d_T_rhs->addComponent(d_T_rhs_var, d_T_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
 
     d_T_solver_needs_init = true;
     d_T_rhs_op_needs_init = true;
@@ -1175,23 +1156,23 @@ PhaseChangeHierarchyIntegrator::getFromRestart()
     }
 
     d_T_diffusion_time_stepping_type =
-        string_to_enum<TimeSteppingType>(db->getString("d_T_diffusion_time_stepping_type"));
+        string_to_enum<TimeSteppingType>(db->getString("T_diffusion_time_stepping_type"));
     d_T_convective_time_stepping_type =
-        string_to_enum<TimeSteppingType>(db->getString("d_T_convective_time_stepping_type"));
+        string_to_enum<TimeSteppingType>(db->getString("T_convective_time_stepping_type"));
     d_T_init_convective_time_stepping_type =
-        string_to_enum<TimeSteppingType>(db->getString("d_T_init_convective_time_stepping_type"));
+        string_to_enum<TimeSteppingType>(db->getString("T_init_convective_time_stepping_type"));
     d_T_convective_difference_form =
-        string_to_enum<ConvectiveDifferencingType>(db->getString("d_T_convective_difference_form"));
-    d_T_convective_op_type = db->getString("d_T_convective_op_type");
-    d_T_convective_op_input_db = db->getDatabase("d_T_convective_op_db");
+        string_to_enum<ConvectiveDifferencingType>(db->getString("T_convective_difference_form"));
+    d_T_convective_op_type = db->getString("T_convective_op_type");
+    d_T_convective_op_input_db = db->getDatabase("T_convective_op_db");
 
-    d_latent_heat = db->getDouble("d_latent_heat");
-    d_rho_liquid = db->getDouble("d_rho_liquid");
-    d_rho_solid = db->getDouble("d_rho_solid");
-    d_T_melt = db->getDouble("d_T_melt");
-    d_solve_mass_conservation = db->getBool("d_solve_mass_conservation");
-    d_output_Div_U_F = db->getBool("d_output_Div_U_F");
-    d_output_temp_k = db->getBool("d_output_temp_k");
+    d_latent_heat = db->getDouble("latent_heat");
+    d_rho_liquid = db->getDouble("rho_liquid");
+    d_rho_solid = db->getDouble("rho_solid");
+    d_T_melt = db->getDouble("T_melt");
+    d_solve_mass_conservation = db->getBool("solve_mass_conservation");
+    d_output_Div_U_F = db->getBool("output_Div_U_F");
+    d_output_temp_k = db->getBool("output_temp_k");
 }
 
 //////////////////////////////////////////////////////////////////////////////
