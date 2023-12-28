@@ -18,50 +18,8 @@
 
 #include "ibamr/IBHierarchyIntegrator.h"
 #include "ibamr/IBImplicitStrategy.h"
-#include "ibamr/StaggeredStokesFACPreconditioner.h"
-#include "ibamr/StaggeredStokesIBLevelRelaxationFACOperator.h"
-#include "ibamr/StaggeredStokesOperator.h"
-#include "ibamr/StaggeredStokesSolver.h"
 
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/Pointer.h"
-
-#include "petscksp.h"
-#include "petscmat.h"
-#include "petscpc.h"
 #include "petscsnes.h"
-#include "petscsys.h"
-#include "petscvec.h"
-
-#include <limits>
-#include <string>
-
-namespace IBAMR
-{
-class INSStaggeredHierarchyIntegrator;
-} // namespace IBAMR
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class PatchHierarchy;
-} // namespace hier
-namespace mesh
-{
-template <int DIM>
-class GriddingAlgorithm;
-} // namespace mesh
-namespace solv
-{
-class PoissonSpecifications;
-} // namespace solv
-namespace tbox
-{
-class Database;
-} // namespace tbox
-} // namespace SAMRAI
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
@@ -84,7 +42,7 @@ public:
     IBImplicitHierarchyIntegrator(const std::string& object_name,
                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                   SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
-                                  SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+                                  SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
                                   bool register_for_restart = true);
 
     /*!
@@ -133,6 +91,11 @@ public:
 
 protected:
     /*!
+     * Determine the maximum time step size.
+     */
+    double getMaximumTimeStepSizeSpecialized() override;
+
+    /*!
      * Write out specialized object state to the given database.
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
@@ -177,7 +140,8 @@ private:
 
     /// Solver state data.
     int d_cycle_num, d_ins_cycle_num;
-    double d_current_time, d_new_time;
+    int d_snes_f_evals, d_snes_f_evals_previous, d_snes_f_evals_target_min = 5, d_snes_f_evals_target_max = 10;
+    double d_current_time, d_new_time, d_cfl_max_tol = 1.1;
 
     /*!
      * Update the solution (e.g. for fixed-point iteration) based on the current value of Y and compute the residual.
@@ -193,4 +157,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_IBImplicitHierarchyIntegrator
+#endif // #ifndef included_IBAMR_IBImplicitHierarchyIntegrator

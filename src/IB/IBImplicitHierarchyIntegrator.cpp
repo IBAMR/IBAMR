@@ -15,71 +15,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/IBHierarchyIntegrator.h"
-#include "ibamr/IBImplicitStrategy.h"
-#include "ibamr/IBStrategy.h"
-#include "ibamr/INSHierarchyIntegrator.h"
-#include "ibamr/INSStaggeredHierarchyIntegrator.h"
-#include "ibamr/StaggeredStokesOperator.h"
-#include "ibamr/StaggeredStokesPETScVecUtilities.h"
-#include "ibamr/StaggeredStokesSolver.h"
-#include "ibamr/ibamr_enums.h"
-
-#include "ibtk/HierarchyMathOps.h"
-#include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
-#include "ibtk/KrylovLinearSolver.h"
-#include "ibtk/PETScSAMRAIVectorReal.h"
-#include "ibtk/RobinPhysBdryPatchStrategy.h"
-#include "ibtk/ibtk_enums.h"
-
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "GriddingAlgorithm.h"
-#include "HierarchyDataOpsReal.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchCellDataOpsReal.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "PatchSideDataOpsReal.h"
-#include "PoissonSpecifications.h"
-#include "SAMRAIVectorReal.h"
-#include "SideData.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Database.h"
-#include "tbox/PIO.h"
-#include "tbox/Pointer.h"
-#include "tbox/RestartManager.h"
-#include "tbox/SAMRAI_MPI.h"
-#include "tbox/Utilities.h"
-
-#include "petscsnes.h"
-#include "petscvec.h"
-
-#include <algorithm>
-#include <limits>
-#include <ostream>
-#include <string>
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
-
-namespace IBAMR
-{
-} // namespace IBAMR
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class Box;
-} // namespace hier
-namespace xfer
-{
-} // namespace xfer
-} // namespace SAMRAI
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -90,17 +28,16 @@ namespace IBAMR
 namespace
 {
 // Version of IBImplicitHierarchyIntegrator restart file data.
-static const int IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
+static const int IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION = 1;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
-    const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<IBImplicitStrategy> ib_implicit_ops,
-    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
-    bool register_for_restart)
+IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(const std::string& object_name,
+                                                             Pointer<Database> input_db,
+                                                             Pointer<IBImplicitStrategy> ib_implicit_ops,
+                                                             Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                                             bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_implicit_ops, ins_hier_integrator, register_for_restart),
       d_ib_implicit_ops(ib_implicit_ops)
 {
@@ -119,6 +56,10 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(
             d_use_fixed_LE_operators = input_db->getBool("use_fixed_LE_operators");
         if (input_db->keyExists("solve_for_position")) d_solve_for_position = input_db->getBool("solve_for_position");
         if (input_db->keyExists("eta")) d_eta = input_db->getDouble("eta");
+        if (input_db->keyExists("f_evals_target_min"))
+            d_snes_f_evals_target_min = input_db->getInteger("f_evals_target_min");
+        if (input_db->keyExists("f_evals_target_max"))
+            d_snes_f_evals_target_max = input_db->getInteger("f_evals_target_max");
     }
     d_ib_implicit_ops->setUseFixedLEOperators(d_use_fixed_LE_operators);
 
@@ -199,6 +140,9 @@ IBImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
         if (!d_solve_for_position) d_ib_method_ops->computeLagrangianForce(new_time);
     }
 
+    // Zero out the function evaluation counter.
+    d_snes_f_evals = 0;
+
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
@@ -240,11 +184,30 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
 
     ierr = SNESSolve(snes, R, Y);
     IBTK_CHKERRQ(ierr);
+    SNESConvergedReason converged_reason;
+    ierr = SNESGetConvergedReason(snes, &converged_reason);
+    IBTK_CHKERRQ(ierr);
+    const bool snes_diverged = converged_reason <= 0;
+    int f_evals;
+    ierr = SNESGetNumberFunctionEvals(snes, &f_evals);
+    d_snes_f_evals += f_evals;
+    IBTK_CHKERRQ(ierr);
     ierr = SNESDestroy(&snes);
     IBTK_CHKERRQ(ierr);
 
+    // Check to see if we need to re-do this time step.
+    auto* var_db = VariableDatabase<NDIM>::getDatabase();
+    const auto u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
+                                                                d_ins_hier_integrator->getNewContext());
+    const double dt = new_time - current_time;
+    const auto cfl = INSHierarchyIntegrator::compute_CFL_number(u_new_idx, dt, d_hierarchy);
+    const auto cfl_max = d_ins_hier_integrator->getMaximumCFLNumber();
+    const bool exceeded_cfl_number = cfl > d_cfl_max_tol * cfl_max;
+
+    d_redo_time_step = snes_diverged || exceeded_cfl_number;
+
     // Ensure that the state variables are consistent with the solution.
-    //updateSolution(Y, R);
+    if (!d_redo_time_step) updateSolution(Y, nullptr);
 
     // Deallocate temporary data.
     ierr = VecDestroy(&X);
@@ -256,7 +219,6 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     ierr = VecDestroy(&R_work);
     IBTK_CHKERRQ(ierr);
 
-    // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
 } // integrateHierarchy
 
@@ -306,30 +268,8 @@ IBImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
     // Determine the CFL number.
-    double cfl_max = 0.0;
-    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
-    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const double* const dx = pgeom->getDx();
-            const double dx_min = *(std::min_element(dx, dx + NDIM));
-            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(u_new_idx);
-            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(u_new_idx);
-            double u_max = 0.0;
-            if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
-            if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
-            cfl_max = std::max(cfl_max, u_max * dt / dx_min);
-        }
-    }
-
-    cfl_max = IBTK_MPI::maxReduction(cfl_max);
-    d_regrid_fluid_cfl_estimate += cfl_max;
+    const auto cfl = INSHierarchyIntegrator::compute_CFL_number(u_new_idx, dt, d_hierarchy);
+    d_regrid_fluid_cfl_estimate += cfl;
 
     // Not all IBStrategy objects implement this so make it optional (-1.0 is
     // the default value)
@@ -338,7 +278,7 @@ IBImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
 
     if (d_enable_logging)
     {
-        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+        plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl << "\n";
         plog << d_object_name
              << "::postprocessIntegrateHierarchy(): Eulerian estimate of "
                 "upper bound on IB point displacement since last regrid = "
@@ -352,6 +292,9 @@ IBImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
                  << d_regrid_structure_cfl_estimate << "\n";
         }
     }
+
+    // Keep track of the number of function evaluations.
+    d_snes_f_evals_previous = d_snes_f_evals;
 
     // Deallocate Eulerian scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -390,12 +333,30 @@ IBImplicitHierarchyIntegrator::getNumberOfCycles() const
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
+double
+IBImplicitHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
+{
+    auto dt_max = IBHierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
+    const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
+    if (initial_time) return dt_max;
+    if (d_snes_f_evals_previous < d_snes_f_evals_target_min)
+    {
+        pout << "BELOW TARGET!!!\n";
+        dt_max = std::min(dt_max, std::max(1.0, d_dt_growth_factor) * d_dt_previous[0]);
+    }
+    if (d_snes_f_evals_previous > d_snes_f_evals_target_max)
+    {
+        pout << "ABOVE TARGET!!!\n";
+        dt_max = std::min(dt_max, std::min(1.0, d_dt_shrink_factor) * d_dt_previous[0]);
+    }
+    return dt_max;
+} // getMaximumTimeStepSizeSpecialized
+
 void
 IBImplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
-    db->putInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
-                   IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
+    db->putInteger("IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION", IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION);
     return;
 } // putToDatabaseSpecialized
 
@@ -415,8 +376,8 @@ IBImplicitHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
                                  << " not found in restart file." << std::endl);
     }
-    int ver = db->getInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION");
-    if (ver != IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
+    int ver = db->getInteger("IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != IB_IMPLICIT_HIERARCHY_INTEGRATOR_VERSION)
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
@@ -424,8 +385,7 @@ IBImplicitHierarchyIntegrator::getFromRestart()
 } // getFromRestart
 
 void
-IBImplicitHierarchyIntegrator::updateSolution(Vec Y,
-                                              Vec R)
+IBImplicitHierarchyIntegrator::updateSolution(Vec Y, Vec R)
 {
     Vec X = d_solve_for_position ? Y : nullptr;
     Vec F = d_solve_for_position ? nullptr : Y;
@@ -448,9 +408,8 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y,
     }
     else
     {
-        // Set the current position data.
+        // Set the current force data.
         d_ib_implicit_ops->setUpdatedForce(F);
-        d_ib_implicit_ops->getUpdatedPosition(R);
     }
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
@@ -522,6 +481,7 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y,
     switch (d_time_stepping_type)
     {
     case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
         d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
         if (d_enable_logging)
             plog << d_object_name
@@ -547,25 +507,43 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y,
                                              getGhostfillRefineSchedules(d_object_name + "::u"),
                                              half_time);
         break;
-    case TRAPEZOIDAL_RULE:
-        d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-        if (d_enable_logging)
-            plog << d_object_name
-                 << "::integrateHierarchy(): interpolating Eulerian velocity to "
-                    "the Lagrangian mesh\n";
-        d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-        d_u_phys_bdry_op->setHomogeneousBc(false);
-        d_ib_method_ops->interpolateVelocity(d_u_idx,
-                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                             getGhostfillRefineSchedules(d_object_name + "::u"),
-                                             new_time);
-        break;
     default:
         TBOX_ERROR(
             d_object_name << "::integrateHierarchy():\n"
                           << "  unsupported time stepping type: "
                           << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
                           << "  supported time stepping types are: BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+    }
+
+    // Compute the time stepping-based residual before updating the IB variables.
+    //
+    // (Once the IB variables are updated, we can no longer get the residual from the IB ops object.)
+    if (R != nullptr && d_solve_for_position)
+    {
+        switch (d_time_stepping_type)
+        {
+        case BACKWARD_EULER:
+        {
+            d_ib_implicit_ops->computeResidualBackwardEuler(R);
+            break;
+        }
+        case MIDPOINT_RULE:
+        {
+            d_ib_implicit_ops->computeResidualMidpointRule(R);
+            break;
+        }
+        case TRAPEZOIDAL_RULE:
+        {
+            d_ib_implicit_ops->computeResidualTrapezoidalRule(R);
+            break;
+        }
+        default:
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                     << "  unsupported time stepping type: "
+                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                     << "  supported time stepping types are: BACKWARD_EULER, "
+                                        "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+        }
     }
 
     // Update the IB variables.
@@ -594,46 +572,31 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y,
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
-    if (R != nullptr)
+    // Compute the force-based residual after updating the IB state variables.
+    if (R != nullptr && !d_solve_for_position)
     {
-        if (d_solve_for_position)
+        switch (d_time_stepping_type)
         {
-            d_ib_implicit_ops->getUpdatedPosition(R);
-            PetscErrorCode ierr = VecAXPY(R, -1.0, X);
+        case BACKWARD_EULER:
+        case TRAPEZOIDAL_RULE:
+        {
+            d_ib_method_ops->computeLagrangianForce(new_time);
+            d_ib_implicit_ops->getUpdatedForce(R);
+            PetscErrorCode ierr = VecAXPBY(R, 1.0, -1.0, F);
             IBTK_CHKERRQ(ierr);
+            break;
         }
-        else
+        case MIDPOINT_RULE:
         {
-            switch (d_time_stepping_type)
-            {
-            case BACKWARD_EULER:
-            {
-                d_ib_method_ops->computeLagrangianForce(new_time);
-                d_ib_implicit_ops->getUpdatedForce(R);
-                PetscErrorCode ierr = VecAXPY(R, -1.0, F);
-                IBTK_CHKERRQ(ierr);
-                break;
-            }
-            case MIDPOINT_RULE:
-            {
-                TBOX_ERROR("unimplemented!");
-                break;
-            }
-            case TRAPEZOIDAL_RULE:
-            {
-                d_ib_method_ops->computeLagrangianForce(new_time);
-                d_ib_implicit_ops->getUpdatedForce(R);
-                PetscErrorCode ierr = VecAXPY(R, -1.0, F);
-                IBTK_CHKERRQ(ierr);
-                break;
-            }
-            default:
-                TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                                         << "  unsupported time stepping type: "
-                                         << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                                         << "  supported time stepping types are: BACKWARD_EULER, "
-                                            "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
-            }
+            TBOX_ERROR("unimplemented!");
+            break;
+        }
+        default:
+            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                     << "  unsupported time stepping type: "
+                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                     << "  supported time stepping types are: BACKWARD_EULER, "
+                                        "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
         }
     }
     return;
