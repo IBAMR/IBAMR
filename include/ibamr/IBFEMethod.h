@@ -742,6 +742,12 @@ public:
     void computeResidualTrapezoidalRule(Vec& R_vec) override;
 
     /*!
+     * Update the positions used for the "fixed" interpolation and spreading
+     * operators.
+     */
+    void updateFixedLEOperators() override;
+
+    /*!
      * Get the default interpolation spec object used by the class.
      */
     IBTK::FEDataManager::InterpSpec getDefaultInterpSpec() const;

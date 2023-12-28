@@ -689,10 +689,16 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
 
     std::vector<PetscVector<double>*> U_vecs = d_U_vecs->get(data_time_str);
-    std::vector<PetscVector<double>*> X_vecs = d_X_vecs->get(data_time_str);
     std::vector<PetscVector<double>*> U_rhs_vecs = d_U_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
-    batch_vec_copy(X_vecs, X_IB_ghost_vecs);
+    if (d_use_fixed_coupling_ops)
+    {
+        batch_vec_copy(d_X_IB_vecs->get(data_time_str), X_IB_ghost_vecs);
+    }
+    else
+    {
+        batch_vec_copy(d_X_vecs->get(data_time_str), X_IB_ghost_vecs);
+    }
     batch_vec_ghost_update(X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // Build the right-hand-sides to compute the interpolated data.
@@ -945,8 +951,16 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // Communicate ghost data.
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> F_IB_ghost_vecs = d_F_IB_vecs->getIBGhosted("tmp");
-    batch_vec_copy({ d_X_vecs->get(data_time_str), d_F_vecs->get(data_time_str) },
-                   { X_IB_ghost_vecs, F_IB_ghost_vecs });
+    if (d_use_fixed_coupling_ops)
+    {
+        batch_vec_copy({ d_X_IB_vecs->get(data_time_str), d_F_vecs->get(data_time_str) },
+                       { X_IB_ghost_vecs, F_IB_ghost_vecs });
+    }
+    else
+    {
+        batch_vec_copy({ d_X_vecs->get(data_time_str), d_F_vecs->get(data_time_str) },
+                       { X_IB_ghost_vecs, F_IB_ghost_vecs });
+    }
     batch_vec_ghost_update({ X_IB_ghost_vecs, F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // set up a new data index for computing forces on the active hierarchy.
@@ -1200,7 +1214,14 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> Q_IB_ghost_vecs = d_Q_IB_vecs->getIBGhosted("tmp");
     TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
-    batch_vec_copy({ d_X_vecs->get("half"), d_Q_vecs->get("half") }, { X_IB_ghost_vecs, Q_IB_ghost_vecs });
+    if (d_use_fixed_coupling_ops)
+    {
+        batch_vec_copy({ d_X_IB_vecs->get("half"), d_Q_vecs->get("half") }, { X_IB_ghost_vecs, Q_IB_ghost_vecs });
+    }
+    else
+    {
+        batch_vec_copy({ d_X_vecs->get("half"), d_Q_vecs->get("half") }, { X_IB_ghost_vecs, Q_IB_ghost_vecs });
+    }
     batch_vec_ghost_update({ X_IB_ghost_vecs, Q_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     if (d_use_scratch_hierarchy)
@@ -1471,6 +1492,15 @@ IBFEMethod::computeResidualTrapezoidalRule(Vec& R_vec)
     }
     return;
 } // computeResidualTrapezoidalRule
+
+void
+IBFEMethod::updateFixedLEOperators()
+{
+    if (!d_use_fixed_coupling_ops) return;
+    batch_vec_copy({ d_X_vecs->get("current"), d_X_vecs->get("half"), d_X_vecs->get("new") },
+                   { d_X_IB_vecs->get("current"), d_X_IB_vecs->get("half"), d_X_IB_vecs->get("new") });
+    return;
+}
 
 FEDataManager::InterpSpec
 IBFEMethod::getDefaultInterpSpec() const
