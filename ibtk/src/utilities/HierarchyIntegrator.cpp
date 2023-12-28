@@ -230,7 +230,7 @@ HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hie
     return;
 } // initializePatchHierarchy
 
-void
+double
 HierarchyIntegrator::advanceHierarchy(double dt)
 {
     IBTK_TIMER_START(t_advance_hierarchy);
@@ -284,7 +284,8 @@ HierarchyIntegrator::advanceHierarchy(double dt)
 
     // Determine the number of cycles and the time step size.
     d_current_num_cycles = getNumberOfCycles();
-    d_current_dt = new_time - current_time;
+    auto dt_actual = new_time - current_time;
+    d_current_dt = dt_actual;
 
     // Execute the preprocessing method of the parent integrator, and
     // recursively execute all preprocessing callbacks registered with the
@@ -302,7 +303,16 @@ HierarchyIntegrator::advanceHierarchy(double dt)
             plog << d_object_name << "::advanceHierarchy(): executing cycle " << cycle_num + 1 << " of "
                  << d_current_num_cycles << "\n";
         }
+        d_redo_time_step = false;
         integrateHierarchy(current_time, new_time, cycle_num);
+        if (d_redo_time_step)
+        {
+            const auto dt = d_current_dt;
+            const auto dt_reduced = d_dt_shrink_factor * dt;
+            resetIntegratorToPreadvanceState();
+            pout << "redoing time step at reduced time step size: " << dt_reduced << "\n";
+            return advanceHierarchy(dt_reduced);
+        }
     }
 
     // Execute the postprocessing method of the parent integrator, and
@@ -336,7 +346,7 @@ HierarchyIntegrator::advanceHierarchy(double dt)
     // Reset the regrid indicator.
     d_at_regrid_time_step = false;
     IBTK_TIMER_STOP(t_advance_hierarchy);
-    return;
+    return dt_actual;
 } // advanceHierarchy
 
 double
@@ -1207,6 +1217,7 @@ HierarchyIntegrator::putToDatabase(Pointer<Database> db)
     db->putDouble("d_dt_min", d_dt_min);
     db->putDouble("d_dt_max", d_dt_max);
     db->putDouble("d_dt_growth_factor", d_dt_growth_factor);
+    db->putDouble("d_dt_shrink_factor", d_dt_shrink_factor);
     db->putInteger("d_integrator_step", d_integrator_step);
     db->putInteger("d_max_integrator_steps", d_max_integrator_steps);
     db->putInteger("d_num_cycles", d_num_cycles);
