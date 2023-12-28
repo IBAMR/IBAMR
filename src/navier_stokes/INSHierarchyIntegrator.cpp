@@ -68,6 +68,36 @@ namespace
 static const int INS_HIERARCHY_INTEGRATOR_VERSION = 3;
 } // namespace
 
+double
+INSHierarchyIntegrator::compute_CFL_number(const int data_idx, const double dt, const PatchHierarchy<NDIM>* patch_hierarchy)
+{
+    double cfl_max = 0.0;
+    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
+    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
+    for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+            const double dx_min = *(std::min_element(dx, dx + NDIM));
+            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(data_idx);
+            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(data_idx);
+#ifndef NDEBUG
+            TBOX_ASSERT(u_cc_new_data || u_sc_new_data);
+#endif
+            double u_max = 0.0;
+            if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
+            if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
+            cfl_max = std::max(cfl_max, u_max * dt / dx_min);
+        }
+    }
+    return IBTK_MPI::maxReduction(cfl_max);
+}
+
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSHierarchyIntegrator::~INSHierarchyIntegrator()
@@ -536,32 +566,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
 void
 INSHierarchyIntegrator::updateCurrentCFLNumber(const int data_idx, const double dt)
 {
-    double cfl_max = 0.0;
-    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
-    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
-    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            const double* const dx = pgeom->getDx();
-            const double dx_min = *(std::min_element(dx, dx + NDIM));
-            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(data_idx);
-            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(data_idx);
-#ifndef NDEBUG
-            TBOX_ASSERT(u_cc_new_data || u_sc_new_data);
-#endif
-            double u_max = 0.0;
-            if (u_cc_new_data) u_max = patch_cc_ops.maxNorm(u_cc_new_data, patch_box);
-            if (u_sc_new_data) u_max = patch_sc_ops.maxNorm(u_sc_new_data, patch_box);
-            cfl_max = std::max(cfl_max, u_max * dt / dx_min);
-        }
-    }
-
-    d_cfl_current = IBTK_MPI::maxReduction(cfl_max);
+    d_cfl_current = compute_CFL_number(data_idx, dt, d_hierarchy);
 } // updateCurrentCFLNumber
 
 double
