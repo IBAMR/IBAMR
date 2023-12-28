@@ -71,6 +71,7 @@ coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*
 static double c1_s = 0.05;
 static double p0_s = 0.0;
 static double beta_s = 0.0;
+
 void
 PK1_dev_stress_function(TensorValue<double>& PP,
                         const TensorValue<double>& FF,
@@ -82,7 +83,10 @@ PK1_dev_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = 2.0 * c1_s * FF;
+    const auto CC = FF.transpose() * FF;
+    const auto I1 = CC.tr();
+    const auto dI1_bar_dFF = pow(FF.det(), -2.0 / 3.0) * (FF - I1 / 3.0 * tensor_inverse_transpose(FF, NDIM));
+    PP = 2.0 * c1_s * dI1_bar_dFF;
     return;
 } // PK1_dev_stress_function
 
@@ -97,7 +101,9 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
+    const auto FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
+    const auto J = FF.det();
+    PP = beta_s * J * log(J) * FF_inv_trans;
     return;
 } // PK1_dil_stress_function
 } // namespace ModelData
@@ -510,8 +516,8 @@ main(int argc, char* argv[])
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
 
-            dt = time_integrator->getMaximumTimeStepSize();
-            time_integrator->advanceHierarchy(dt);
+            const auto dt_max = time_integrator->getMaximumTimeStepSize();
+            dt = time_integrator->advanceHierarchy(dt_max);
             loop_time += dt;
 
             pout << "\n";
