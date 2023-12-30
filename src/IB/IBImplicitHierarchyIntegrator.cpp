@@ -341,13 +341,15 @@ IBImplicitHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     if (initial_time) return dt_max;
     if (d_snes_f_evals_previous < d_snes_f_evals_target_min)
     {
-        pout << "BELOW TARGET!!!\n";
         dt_max = std::min(dt_max, std::max(1.0, d_dt_growth_factor) * d_dt_previous[0]);
     }
-    if (d_snes_f_evals_previous > d_snes_f_evals_target_max)
+    else if (d_snes_f_evals_previous > d_snes_f_evals_target_max)
     {
-        pout << "ABOVE TARGET!!!\n";
         dt_max = std::min(dt_max, std::min(1.0, d_dt_shrink_factor) * d_dt_previous[0]);
+    }
+    else
+    {
+        dt_max = std::min(dt_max, d_dt_previous[0]);
     }
     return dt_max;
 } // getMaximumTimeStepSizeSpecialized

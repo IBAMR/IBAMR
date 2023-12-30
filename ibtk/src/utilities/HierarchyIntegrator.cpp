@@ -1686,6 +1686,8 @@ HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
     if (db->keyExists("dt_max")) d_dt_max = db->getDouble("dt_max");
     if (db->keyExists("grow_dt"))
         d_dt_growth_factor = db->getDouble("grow_dt");
+    if (db->keyExists("shrink_dt"))
+        d_dt_shrink_factor = db->getDouble("shrink_dt");
     else if (db->keyExists("dt_growth_factor"))
         d_dt_growth_factor = db->getDouble("dt_growth_factor");
     if (db->keyExists("max_integrator_steps")) d_max_integrator_steps = db->getInteger("max_integrator_steps");
