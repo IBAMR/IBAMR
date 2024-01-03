@@ -1,0 +1,4 @@
+Enhanced: Now BrinkmanAdvDiffSemiImplicitHierarchyIntegrator class supports time-independent problems such as Poisson problems also in addition to the time-dependent advection-diffusion problems.
+
+<br>
+(Ramakrishnan Thirumalaisamy, 2024/01/03)
