@@ -583,7 +583,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         helmholtz_rhs_op->setSolutionTime(current_time);
         helmholtz_rhs_op->setTimeInterval(current_time, new_time);
 
-        // Reinitializing the RHS operator every time step when the time step size or diffusion coefficient changes.
         if (d_helmholtz_rhs_ops_need_init[l])
         {
             if (d_enable_logging)
@@ -765,7 +764,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
         helmholtz_solver->setSolutionTime(new_time);
         helmholtz_solver->setTimeInterval(current_time, new_time);
 
-        // Reinitializing the solver every time step when the time step size or diffusion coefficient changes.
         if (d_helmholtz_solvers_need_init[l])
         {
             if (d_enable_logging)

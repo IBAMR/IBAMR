@@ -104,6 +104,10 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::BrinkmanAdvDiffSemiImplicitHiera
     bool register_for_restart)
     : AdvDiffSemiImplicitHierarchyIntegrator(object_name, input_db, register_for_restart)
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(!object_name.empty());
+    TBOX_ASSERT(input_db);
+#endif
     return;
 } // BrinkmanAdvDiffSemiImplicitHierarchyIntegrator
 

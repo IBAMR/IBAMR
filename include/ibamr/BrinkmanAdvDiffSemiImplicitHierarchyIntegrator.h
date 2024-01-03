@@ -151,11 +151,11 @@ public:
     } // getBrinkmanPenalization
 
     /*!
-     * \brief Set the boolean to be TRUE for the time independent Brinkman problems.
-     * Default option is false.
+     * \brief Indicate if are solving a time independent problem for the transport variable Q.
+     * Default option is false, which means Q is assumed to vary with time.
      */
     void setTransportQuantityTimeIndependent(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                             bool brinkman_time_independent);
+                                             bool Q_time_independent);
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the

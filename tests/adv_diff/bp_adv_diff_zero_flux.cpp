@@ -196,7 +196,7 @@ main(int argc, char* argv[])
         Pointer<BrinkmanAdvDiffSemiImplicitHierarchyIntegrator> bp_adv_diff_hier_integrator = time_integrator;
         bp_adv_diff_hier_integrator->registerBrinkmanAdvDiffBcHelper(brinkman_adv_diff);
 
-        bp_adv_diff_hier_integrator->setTransportQuantityTimeIndependent(q_var, true /* brinkman_time_independent */);
+        bp_adv_diff_hier_integrator->setTransportQuantityTimeIndependent(q_var, true /* Q_time_independent */);
 
         if (input_db->keyExists("TransportedQuantityForcingFunction"))
         {
