@@ -529,9 +529,17 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
-        const int D_current_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : -1);
+        const int D_current_idx =
+            (D_var ? var_db->mapVariableAndContextToIndex(D_var, getCurrentContext()) : IBTK::invalid_index);
         const int D_rhs_scratch_idx =
-            (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) : -1);
+            (D_rhs_var ? var_db->mapVariableAndContextToIndex(D_rhs_var, getScratchContext()) : IBTK::invalid_index);
+
+        // Making sure that the solvers are initialized every timestep when the diffusion coefficient changes.
+        if (D_var)
+        {
+            d_helmholtz_solvers_need_init[l] = true;
+            d_helmholtz_rhs_ops_need_init[l] = true;
+        }
 
         // Setup the problem coefficients for the linear solve for Q(n+1).
         double K = 0.0;
@@ -574,6 +582,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
         helmholtz_rhs_op->setHomogeneousBc(false);
         helmholtz_rhs_op->setSolutionTime(current_time);
         helmholtz_rhs_op->setTimeInterval(current_time, new_time);
+
         if (d_helmholtz_rhs_ops_need_init[l])
         {
             if (d_enable_logging)
@@ -704,11 +713,14 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
         const int F_scratch_idx =
-            d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getScratchContext()) : -1;
-        const int F_new_idx = d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getNewContext()) : -1;
+            d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getScratchContext()) : IBTK::invalid_index;
+        const int F_new_idx =
+            d_F_fcn[F_var] ? var_db->mapVariableAndContextToIndex(F_var, getNewContext()) : IBTK::invalid_index;
         const int Q_rhs_scratch_idx = var_db->mapVariableAndContextToIndex(Q_rhs_var, getScratchContext());
-        const int D_scratch_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : -1);
-        const int D_new_idx = (D_var ? var_db->mapVariableAndContextToIndex(D_var, getNewContext()) : -1);
+        const int D_scratch_idx =
+            (D_var ? var_db->mapVariableAndContextToIndex(D_var, getScratchContext()) : IBTK::invalid_index);
+        const int D_new_idx =
+            (D_var ? var_db->mapVariableAndContextToIndex(D_var, getNewContext()) : IBTK::invalid_index);
 
         // Setup the problem coefficients for the linear solve for Q(n+1).
         double K = 0.0;
@@ -751,6 +763,7 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
         helmholtz_solver->setHomogeneousBc(false);
         helmholtz_solver->setSolutionTime(new_time);
         helmholtz_solver->setTimeInterval(current_time, new_time);
+
         if (d_helmholtz_solvers_need_init[l])
         {
             if (d_enable_logging)
