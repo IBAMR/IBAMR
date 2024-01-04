@@ -687,11 +687,19 @@ main(int argc, char** argv)
             {
                 add_markers();
             }
+
+            // fourth test for markers: make sure that things are set up
+            // correctly after we restart and regrid
+            if (iteration_num == 75 && input_db->getBoolWithDefault("test_restart_markers", false))
+            {
+                time_integrator->setMarkers({});
+            }
         }
 
         // Markers should still be in the same positions as nodes
-        if (input_db->getBoolWithDefault("test_markers", false) ||
-            (iteration_num > 90 && input_db->getBoolWithDefault("test_markers_90", false)))
+        if ((input_db->getBoolWithDefault("test_markers", false) ||
+             (iteration_num > 90 && input_db->getBoolWithDefault("test_markers_90", false))) &&
+            time_integrator->getNumberOfMarkers() > 0)
         {
             System& X_system = equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
             NumericVector<double>& X_vec = *X_system.solution.get();
