@@ -498,7 +498,7 @@ IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>&
     if (d_marker_kernel.size() == 0)
     {
         TBOX_ERROR(d_object_name << "::setMarkers():\n To use marker points the IB kernel must be specified in "
-                                    "the input database via IB_kernel_fcn.");
+                                    "the input database via IB_delta_fcn.");
     }
     if (!d_hierarchy)
     {
