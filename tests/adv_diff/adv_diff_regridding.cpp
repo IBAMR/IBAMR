@@ -109,15 +109,15 @@ main(int argc, char* argv[])
 
         // Create boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coefs(1);
+        std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coefs;
         if (periodic_shift.min() > 0)
         {
-            Q_bc_coefs[1] = nullptr;
+            Q_bc_coefs.push_back(nullptr);
         }
         else
         {
-            Q_bc_coefs[1] = new muParserRobinBcCoefs(
-                "Q_bc_coefs", app_initializer->getComponentDatabase("Q_bc_coefs"), grid_geometry);
+            Q_bc_coefs.push_back(new muParserRobinBcCoefs(
+                "Q_bc_coefs", app_initializer->getComponentDatabase("Q_bc_coefs"), grid_geometry));
         }
 
         // Set up the advected and diffused quantity.
