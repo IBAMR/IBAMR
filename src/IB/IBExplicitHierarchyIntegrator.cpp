@@ -483,6 +483,15 @@ IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierar
     return;
 } // initializeHierarchyIntegrator
 
+std::size_t
+IBExplicitHierarchyIntegrator::getNumberOfMarkers() const
+{
+    if (d_markers)
+        return d_markers->getNumberOfMarkers();
+    else
+        return 0u;
+}
+
 void
 IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>& markers)
 {

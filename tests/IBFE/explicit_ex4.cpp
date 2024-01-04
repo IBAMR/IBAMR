@@ -557,8 +557,9 @@ main(int argc, char** argv)
             time_integrator->setMarkers(positions);
         };
 
-        // First test for markers: add them at the start
-        if (input_db->getBoolWithDefault("test_markers", false))
+        // First test for markers: add them at the start (but don't clobber
+        // restart marker data)
+        if (input_db->getBoolWithDefault("test_markers", false) && time_integrator->getNumberOfMarkers() == 0)
         {
             add_markers();
         }
