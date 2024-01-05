@@ -1022,8 +1022,6 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 x_lower_gh[d] = patch_x_lower[d] - (static_cast<double>(u_ghost_num)) * patch_dx[d];
                 x_upper_gh[d] = patch_x_upper[d] + (static_cast<double>(u_ghost_num)) * patch_dx[d];
             }
-            double* x_upper_ghost = &x_upper_gh[0];
-            double* x_lower_ghost = &x_lower_gh[0];
 
             // Setup vectors to store the values of U, DU_j, x, and n at the
             // quadrature points.
@@ -1203,15 +1201,6 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     const double* const x = &x_qp[NDIM * k];
                     const hier::Index<NDIM> i = IndexUtilities::getCellIndex(x, patch_geom, patch_box);
                     if (interp_box.contains(i)) local_indices.push_back(k);
-
-                    const double* const x_in = &x_in_qp[NDIM * k];
-                    const hier::Index<NDIM> in = IndexUtilities::getCellIndex(
-                        x_in, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
-
-                    const double* const x_out = &x_out_qp[NDIM * k];
-                    const hier::Index<NDIM> out = IndexUtilities::getCellIndex(
-                        x_out, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
-
                     // Some kind of assertation can be applied here using the indices of the cells away from the
                     // interfce
                 }
