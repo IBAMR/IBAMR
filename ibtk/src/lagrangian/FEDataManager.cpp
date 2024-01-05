@@ -2591,7 +2591,6 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         // Determine the active elements associated with the prescribed patch
         // level.
         std::vector<std::vector<Elem*> > active_level_elem_map;
-        const IntVector<NDIM> ghost_width = 1;
         collectActivePatchElements(active_level_elem_map, level_number, level_number + 1, d_max_level_number);
         std::vector<unsigned int> X_ghost_dofs;
         std::vector<Elem*> active_level_elems;
