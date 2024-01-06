@@ -299,11 +299,9 @@ main(int argc, char* argv[])
                 for(int d = 0; d < NDIM; ++d){
                     if( open_boundaries[2*d] && (structure_COM[structure_idx][d]-radius) < x_lo[d]){
                             ib_method_ops->getLDataManager()->inactivateLagrangianStructures(std::vector<int>{structure_idx}, finest_ln);
-                        std::cout << "hi..............." << 2*d << std::endl;
                     }
                     if( open_boundaries[2*d + 1] && (structure_COM[structure_idx][d]+radius) > x_up[1]){
                             ib_method_ops->getLDataManager()->inactivateLagrangianStructures(std::vector<int>{structure_idx}, finest_ln);
-                            std::cout << "hi..............." << 2*d + 1 << std::endl;
                     }
                 }
             }
