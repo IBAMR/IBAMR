@@ -157,6 +157,9 @@ main(int argc, char* argv[])
         // Create Eulerian boundary condition specification objects (when necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        std::array<bool, 2*NDIM> open_boundaries;
+        open_boundaries.fill(false);
+
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -174,6 +177,13 @@ main(int argc, char* argv[])
 
                 u_bc_coefs[d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
+
+                // see if there are any open boundaries (by examining velocity BC normal to the boundary)
+                // in each direction there are 2 boundaries. 2*d and 2*d + 1
+                std::string keyName1 = "bcoef_function_" + std::to_string(2*d);
+                std::string keyName2 = "bcoef_function_" + std::to_string(2*d + 1);
+                open_boundaries[2*d]     = !(app_initializer->getComponentDatabase(bc_coefs_db_name)->getString(keyName1) == "0.0");
+                open_boundaries[2*d + 1] = !(app_initializer->getComponentDatabase(bc_coefs_db_name)->getString(keyName2) == "0.0");
             }
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
@@ -233,15 +243,19 @@ main(int argc, char* argv[])
         ptr_gravityforce->associateVolumeElement(ib_method_ops->getVolumeElement()[0]);
         
 
-        double x_lo[NDIM];//={0.0, 0.0, 0.0};
-        double x_up[NDIM];//={input_db->getDouble("Lx"), input_db->getDouble("Ly"), input_db->getDouble("Lz")};
+        // double x_lo[NDIM];//={0.0, 0.0, 0.0};
+        // double x_up[NDIM];//={input_db->getDouble("Lx"), input_db->getDouble("Ly"), input_db->getDouble("Lz")};
         
-        if(app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_lo") && 
-                app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_up"))
-	    {
-            app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_lo",x_lo,NDIM);
-            app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_up",x_up,NDIM);
-        }
+        // if(app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_lo") && 
+        //         app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_up"))
+	    // {
+        //     app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_lo",x_lo,NDIM);
+        //     app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_up",x_up,NDIM);
+        // }
+
+        std::array<double, NDIM> x_lo{}, x_up{};
+        std::copy_n(grid_geometry->getXLower(), NDIM, x_lo.data());
+        std::copy_n(grid_geometry->getXUpper(), NDIM, x_up.data());
 
         // Deallocate initialization objects.
         ib_method_ops->freeLInitStrategy();
@@ -279,10 +293,19 @@ main(int argc, char* argv[])
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
             std::vector<std::vector<double>> structure_COM = ib_method_ops->getCurrentStructureCOM();
             double radius = input_db -> getDouble("R");
+            
             for(int structure_idx = 0; structure_idx < structure_COM.size(); structure_idx++){
-                if( (structure_COM[structure_idx][1]-radius) < x_lo[1]){ // changes based on where "open boundaries" are present
-                        ib_method_ops->getLDataManager()->inactivateLagrangianStructures(std::vector<int>{structure_idx}, finest_ln);
-		}
+                // in each direction there are 2 boundaries. 2*d and 2*d + 1
+                for(int d = 0; d < NDIM; ++d){
+                    if( open_boundaries[2*d] && (structure_COM[structure_idx][d]-radius) < x_lo[d]){
+                            ib_method_ops->getLDataManager()->inactivateLagrangianStructures(std::vector<int>{structure_idx}, finest_ln);
+                        std::cout << "hi..............." << 2*d << std::endl;
+                    }
+                    if( open_boundaries[2*d + 1] && (structure_COM[structure_idx][d]+radius) > x_up[1]){
+                            ib_method_ops->getLDataManager()->inactivateLagrangianStructures(std::vector<int>{structure_idx}, finest_ln);
+                            std::cout << "hi..............." << 2*d + 1 << std::endl;
+                    }
+                }
             }
 
             dt = time_integrator->getMaximumTimeStepSize();
