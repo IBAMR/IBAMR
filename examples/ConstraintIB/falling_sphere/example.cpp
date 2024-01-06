@@ -241,17 +241,6 @@ main(int argc, char* argv[])
 
         // associate volume element with force projector.
         ptr_gravityforce->associateVolumeElement(ib_method_ops->getVolumeElement()[0]);
-        
-
-        // double x_lo[NDIM];//={0.0, 0.0, 0.0};
-        // double x_up[NDIM];//={input_db->getDouble("Lx"), input_db->getDouble("Ly"), input_db->getDouble("Lz")};
-        
-        // if(app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_lo") && 
-        //         app_initializer->getComponentDatabase("CartesianGeometry")->keyExists("x_up"))
-	    // {
-        //     app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_lo",x_lo,NDIM);
-        //     app_initializer->getComponentDatabase("CartesianGeometry")->getDoubleArray("x_up",x_up,NDIM);
-        // }
 
         std::array<double, NDIM> x_lo{}, x_up{};
         std::copy_n(grid_geometry->getXLower(), NDIM, x_lo.data());
