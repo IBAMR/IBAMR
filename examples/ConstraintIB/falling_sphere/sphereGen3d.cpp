@@ -47,7 +47,7 @@ main()
     const int NY = ceil(DIAMETER / dy);
     const int NZ = ceil(DIAMETER / dz);
     const double X_cm = 0.0;
-    const double Y_cm = -6.0;
+    const double Y_cm = 0.0;
     const double Z_cm = 0.0;
 
     int total_lag_pts = 0;
