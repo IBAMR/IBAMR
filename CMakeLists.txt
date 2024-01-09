@@ -16,6 +16,14 @@
 # ---------------------------------------------------------------------------- #
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15.0)
 
+# Do this before project() to skip the compiler config process
+IF("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
+  MESSAGE(FATAL_ERROR "This project does not support in-source builds.
+    Please create a subfolder and use `cmake ..` inside it.
+    NOTE: cmake will now create CMakeCache.txt and CMakeFiles/*.
+          You must delete them, or cmake will refuse to work.")
+ENDIF()
+
 PROJECT(IBAMR
   DESCRIPTION "Software infrastructure for the IB method with adaptively-refined grids"
   VERSION ${IBAMR_VERSION}
