@@ -666,11 +666,11 @@ HierarchyIntegrator::integrateHierarchy(const double current_time, const double 
     TBOX_ASSERT(IBTK::abs_equal_eps(d_current_dt, new_time - current_time));
     TBOX_ASSERT(d_current_cycle_num == cycle_num);
     TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
-#else
-    NULL_USE(current_time);
-    NULL_USE(new_time);
-    NULL_USE(cycle_num);
 #endif
+
+    integrateHierarchySpecialized(current_time, new_time, cycle_num);
+
+    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 
@@ -1211,6 +1211,14 @@ HierarchyIntegrator::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+void
+HierarchyIntegrator::integrateHierarchySpecialized(const double /*current_time*/,
+                                                   const double /*new_time*/,
+                                                   const int /*cycle_num*/)
+{
+    // intentionally blank
+    return;
+} // integrateHierarchySpecialized
 
 void
 HierarchyIntegrator::regridHierarchyBeginSpecialized()

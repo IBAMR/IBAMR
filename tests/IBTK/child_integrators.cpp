@@ -44,14 +44,12 @@ public:
 
     ~DummyAdvDiffIntegrator() = default;
 
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override
-    {
-        plog << d_object_name << ": integrateHierarchy()\n";
-        HierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-        return;
-    }
-
 protected:
+    void integrateHierarchySpecialized(double /*current_time*/, double /*new_time*/, int cycle_num = 0) override
+    {
+        NULL_USE(cycle_num);
+        plog << d_object_name << ": integrateHierarchySpecialized()\n";
+    }
     void regridHierarchyBeginSpecialized() override
     {
         plog << d_object_name << ": regridHierarchyBeginSpecialized()\n";

@@ -175,12 +175,6 @@ public:
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
-     * Synchronously advance each level in the hierarchy over the given time
-     * increment.
-     */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override;
-
-    /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
     void postprocessIntegrateHierarchy(double current_time,
@@ -215,6 +209,12 @@ public:
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
 
 protected:
+    /*!
+     * Synchronously advance each level in the hierarchy over the given time
+     * increment.
+     */
+    void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
+
     /*!
      * L1 norm of the discrete divergence of the fluid velocity before regridding.
      */
