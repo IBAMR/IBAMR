@@ -194,11 +194,11 @@ SET(CXX_SRC
   IB/IBStandardSourceGen.cpp
 
   # complex fluids
-  complex_fluids/CFRoliePolyRelaxation.cpp
-  complex_fluids/CFGiesekusRelaxation.cpp
-  complex_fluids/CFRelaxationOperator.cpp
+  complex_fluids/CFRoliePolyStrategy.cpp
+  complex_fluids/CFGiesekusStrategy.cpp
+  complex_fluids/CFStrategy.cpp
   complex_fluids/CFINSForcing.cpp
-  complex_fluids/CFOldroydBRelaxation.cpp
+  complex_fluids/CFOldroydBStrategy.cpp
   complex_fluids/CFUpperConvectiveOperator.cpp
 
   # advect

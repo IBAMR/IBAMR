@@ -120,10 +120,10 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/complex_fluids/CFUpperConvectiveOperator.cpp \
-../src/complex_fluids/CFRelaxationOperator.cpp \
-../src/complex_fluids/CFGiesekusRelaxation.cpp \
-../src/complex_fluids/CFOldroydBRelaxation.cpp \
-../src/complex_fluids/CFRoliePolyRelaxation.cpp \
+../src/complex_fluids/CFStrategy.cpp \
+../src/complex_fluids/CFGiesekusStrategy.cpp \
+../src/complex_fluids/CFOldroydBStrategy.cpp \
+../src/complex_fluids/CFRoliePolyStrategy.cpp \
 ../src/complex_fluids/CFINSForcing.cpp \
 ../src/level_set/FastSweepingLSMethod.cpp \
 ../src/level_set/LSInitStrategy.cpp \

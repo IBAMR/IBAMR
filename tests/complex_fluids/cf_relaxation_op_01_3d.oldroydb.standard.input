@@ -10,6 +10,7 @@ EVOLUTION_TYPE = "STANDARD"
 RELAXATION_TIME = 0.1
 
 ComplexFluid {
+   viscosity = 0.0
    relaxation_time = RELAXATION_TIME
    evolve_type = EVOLUTION_TYPE
    FCN {

@@ -22,7 +22,7 @@
 
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
 #include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
-#include "ibamr/CFRelaxationOperator.h"
+#include "ibamr/CFStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
@@ -115,7 +115,7 @@ public:
      * evolved version of the tensor, and therefore must first be converted from the square root or logarithm to the
      * tensor.
      */
-    void registerSourceFunction(SAMRAI::tbox::Pointer<IBAMR::CFRelaxationOperator> source_fcn);
+    void registerCFStrategy(SAMRAI::tbox::Pointer<IBAMR::CFStrategy> cf_strategy);
 
 private:
     // Hierarchy configuration.
@@ -128,7 +128,7 @@ private:
     int d_u_scratch_idx = IBTK::invalid_index;
 
     // Source function data.
-    SAMRAI::tbox::Pointer<IBAMR::CFRelaxationOperator> d_s_fcn;
+    SAMRAI::tbox::Pointer<IBAMR::CFStrategy> d_cf_strategy;
     int d_s_idx = IBTK::invalid_index;
 
     // Convective Operator

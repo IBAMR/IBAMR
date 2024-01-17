@@ -217,10 +217,10 @@ CFUpperConvectiveOperator::~CFUpperConvectiveOperator()
 void
 CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
 {
-    if (!d_s_fcn)
+    if (!d_cf_strategy)
     {
         TBOX_ERROR("CFUpperConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  Source function must be register prior to call to "
+                   << "  CF strategy must be register prior to call to "
                       "applyConvectiveOperator\n");
     }
     if (!d_is_initialized)
@@ -270,8 +270,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
 
     d_convec_oper->applyConvectiveOperator(Q_idx, d_Q_convec_idx);
 
-    d_s_fcn->setPatchDataIndex(Q_idx);
-    d_s_fcn->setDataOnPatchHierarchy(d_s_idx, d_Q_var, d_hierarchy, d_solution_time, false, d_coarsest_ln, d_finest_ln);
+    d_cf_strategy->computeRelaxation(d_s_idx, d_Q_var, Q_idx, d_Q_var, d_evolve_type, d_hierarchy, d_solution_time);
 
     for (int level_num = d_coarsest_ln; level_num <= d_finest_ln; ++level_num)
     {
@@ -478,9 +477,9 @@ CFUpperConvectiveOperator::deallocateOperatorState()
 } // deallocateOperatorState
 
 void
-CFUpperConvectiveOperator::registerSourceFunction(Pointer<CFRelaxationOperator> source_fcn)
+CFUpperConvectiveOperator::registerCFStrategy(Pointer<CFStrategy> strategy)
 {
-    d_s_fcn = source_fcn;
+    d_cf_strategy = strategy;
 }
 
 } // namespace IBAMR

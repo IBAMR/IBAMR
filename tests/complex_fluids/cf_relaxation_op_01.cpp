@@ -28,9 +28,9 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include "ibamr/CFGiesekusRelaxation.h"
-#include "ibamr/CFOldroydBRelaxation.h"
-#include "ibamr/CFRoliePolyRelaxation.h"
+#include "ibamr/CFGiesekusStrategy.h"
+#include "ibamr/CFOldroydBStrategy.h"
+#include "ibamr/CFRoliePolyStrategy.h"
 #include "ibamr/ibamr_enums.h"
 
 #include <ibtk/AppInitializer.h>
@@ -87,19 +87,19 @@ main(int argc, char* argv[])
                                         error_detector,
                                         box_generator,
                                         load_balancer);
-        Pointer<CFRelaxationOperator> cf_op;
+        Pointer<CFStrategy> cf_op;
         std::string relax_op = input_db->getString("RELAX_OP");
         if (relax_op == "OLDROYDB")
         {
-            cf_op = new CFOldroydBRelaxation("OldroydB", app_initializer->getComponentDatabase("ComplexFluid"));
+            cf_op = new CFOldroydBStrategy("OldroydB", app_initializer->getComponentDatabase("ComplexFluid"));
         }
         else if (relax_op == "GIESEKUS")
         {
-            cf_op = new CFGiesekusRelaxation("Giesekus", app_initializer->getComponentDatabase("ComplexFluid"));
+            cf_op = new CFGiesekusStrategy("Giesekus", app_initializer->getComponentDatabase("ComplexFluid"));
         }
         else if (relax_op == "ROLIEPOLY")
         {
-            cf_op = new CFRoliePolyRelaxation("RoliePoly", app_initializer->getComponentDatabase("ComplexFluid"));
+            cf_op = new CFRoliePolyStrategy("RoliePoly", app_initializer->getComponentDatabase("ComplexFluid"));
         }
         else
         {
@@ -182,9 +182,7 @@ main(int argc, char* argv[])
             }
         }
 
-        cf_op->setPatchDataIndex(c_idx);
-        cf_op->setDataOnPatchHierarchy(
-            r_idx, c_var, patch_hierarchy, 0.0, false, 0, patch_hierarchy->getFinestLevelNumber());
+        cf_op->computeRelaxation(r_idx, c_var, c_idx, c_var, evolve_type, patch_hierarchy, 0.0);
         exact_fcn->setDataOnPatchHierarchy(
             c_idx, c_var, patch_hierarchy, 0.0, false, 0, patch_hierarchy->getFinestLevelNumber());
 
