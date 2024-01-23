@@ -51,7 +51,7 @@ namespace IBAMR
  * \brief Class ConstraintIBKinematics encapsulates structure information and provides abstraction to get
  * kinematics (deformational or imposed) of immersed structure to ConstraintIBMethod class.
  */
-class ConstraintIBKinematics : public virtual SAMRAI::tbox::DescribedClass, public SAMRAI::tbox::Serializable
+class ConstraintIBKinematics : public SAMRAI::tbox::Serializable
 {
 public:
     class StructureParameters
