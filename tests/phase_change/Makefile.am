@@ -13,11 +13,15 @@
 
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = stefan_problem_expansion_2d
+EXTRA_PROGRAMS = stefan_problem_enthalpy_2d stefan_problem_ac_2d
 
-stefan_problem_expansion_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-stefan_problem_expansion_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-stefan_problem_expansion_2d_SOURCES = stefan_problem_expansion.cpp
+stefan_problem_enthalpy_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stefan_problem_enthalpy_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stefan_problem_enthalpy_2d_SOURCES = stefan_problem_enthalpy.cpp
+
+stefan_problem_ac_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stefan_problem_ac_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stefan_problem_ac_2d_SOURCES = stefan_problem_ac.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
