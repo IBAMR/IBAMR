@@ -175,7 +175,8 @@ SETUP_2D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 
 # phase_change:
-SETUP_2D(phase_change stefan_problem_expansion.cpp)
+SETUP_2D(phase_change stefan_problem_enthalpy.cpp)
+SETUP_2D(phase_change stefan_problem_ac.cpp)
 
 # wave_tank:
 IF(${IBAMR_HAVE_LIBMESH})

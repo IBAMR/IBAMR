@@ -229,15 +229,6 @@ private:
      */
     double d_mu_liquid, d_mu_solid, d_mu_gas;
 
-    /*!
-     * Level set reinitialization interval
-     */
-    int d_ls_reinit_interval;
-
-    /*!
-     * Number of interface cells over which to smooth the material properties
-     */
-    double d_num_interface_cells;
 }; // SetFluidProperties
 
 #endif // #ifndef included_SetFluidProperties

@@ -87,7 +87,8 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = stefan_problem_expansion_2d$(EXEEXT)
+EXTRA_PROGRAMS = stefan_problem_enthalpy_2d$(EXEEXT) \
+	stefan_problem_ac_2d$(EXEEXT)
 subdir = tests/phase_change
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -118,18 +119,27 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_stefan_problem_expansion_2d_OBJECTS = stefan_problem_expansion_2d-stefan_problem_expansion.$(OBJEXT)
-stefan_problem_expansion_2d_OBJECTS =  \
-	$(am_stefan_problem_expansion_2d_OBJECTS)
-stefan_problem_expansion_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
-	$(IBAMR_LIBS)
+am_stefan_problem_ac_2d_OBJECTS =  \
+	stefan_problem_ac_2d-stefan_problem_ac.$(OBJEXT)
+stefan_problem_ac_2d_OBJECTS = $(am_stefan_problem_ac_2d_OBJECTS)
+stefan_problem_ac_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-stefan_problem_expansion_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+stefan_problem_ac_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
-	$(stefan_problem_expansion_2d_CXXFLAGS) $(CXXFLAGS) \
+	$(stefan_problem_ac_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_stefan_problem_enthalpy_2d_OBJECTS =  \
+	stefan_problem_enthalpy_2d-stefan_problem_enthalpy.$(OBJEXT)
+stefan_problem_enthalpy_2d_OBJECTS =  \
+	$(am_stefan_problem_enthalpy_2d_OBJECTS)
+stefan_problem_enthalpy_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+stefan_problem_enthalpy_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(stefan_problem_enthalpy_2d_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -146,7 +156,9 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Po
+am__depfiles_remade =  \
+	./$(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Po \
+	./$(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -166,8 +178,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(stefan_problem_expansion_2d_SOURCES)
-DIST_SOURCES = $(stefan_problem_expansion_2d_SOURCES)
+SOURCES = $(stefan_problem_ac_2d_SOURCES) \
+	$(stefan_problem_enthalpy_2d_SOURCES)
+DIST_SOURCES = $(stefan_problem_ac_2d_SOURCES) \
+	$(stefan_problem_enthalpy_2d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -453,9 +467,12 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-stefan_problem_expansion_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
-stefan_problem_expansion_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
-stefan_problem_expansion_2d_SOURCES = stefan_problem_expansion.cpp
+stefan_problem_enthalpy_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stefan_problem_enthalpy_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stefan_problem_enthalpy_2d_SOURCES = stefan_problem_enthalpy.cpp
+stefan_problem_ac_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+stefan_problem_ac_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+stefan_problem_ac_2d_SOURCES = stefan_problem_ac.cpp
 all: all-am
 
 .SUFFIXES:
@@ -491,9 +508,13 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
-stefan_problem_expansion_2d$(EXEEXT): $(stefan_problem_expansion_2d_OBJECTS) $(stefan_problem_expansion_2d_DEPENDENCIES) $(EXTRA_stefan_problem_expansion_2d_DEPENDENCIES) 
-	@rm -f stefan_problem_expansion_2d$(EXEEXT)
-	$(AM_V_CXXLD)$(stefan_problem_expansion_2d_LINK) $(stefan_problem_expansion_2d_OBJECTS) $(stefan_problem_expansion_2d_LDADD) $(LIBS)
+stefan_problem_ac_2d$(EXEEXT): $(stefan_problem_ac_2d_OBJECTS) $(stefan_problem_ac_2d_DEPENDENCIES) $(EXTRA_stefan_problem_ac_2d_DEPENDENCIES) 
+	@rm -f stefan_problem_ac_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stefan_problem_ac_2d_LINK) $(stefan_problem_ac_2d_OBJECTS) $(stefan_problem_ac_2d_LDADD) $(LIBS)
+
+stefan_problem_enthalpy_2d$(EXEEXT): $(stefan_problem_enthalpy_2d_OBJECTS) $(stefan_problem_enthalpy_2d_DEPENDENCIES) $(EXTRA_stefan_problem_enthalpy_2d_DEPENDENCIES) 
+	@rm -f stefan_problem_enthalpy_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(stefan_problem_enthalpy_2d_LINK) $(stefan_problem_enthalpy_2d_OBJECTS) $(stefan_problem_enthalpy_2d_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -501,7 +522,8 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -533,19 +555,33 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-stefan_problem_expansion_2d-stefan_problem_expansion.o: stefan_problem_expansion.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_expansion_2d_CXXFLAGS) $(CXXFLAGS) -MT stefan_problem_expansion_2d-stefan_problem_expansion.o -MD -MP -MF $(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Tpo -c -o stefan_problem_expansion_2d-stefan_problem_expansion.o `test -f 'stefan_problem_expansion.cpp' || echo '$(srcdir)/'`stefan_problem_expansion.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Tpo $(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stefan_problem_expansion.cpp' object='stefan_problem_expansion_2d-stefan_problem_expansion.o' libtool=no @AMDEPBACKSLASH@
+stefan_problem_ac_2d-stefan_problem_ac.o: stefan_problem_ac.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_ac_2d_CXXFLAGS) $(CXXFLAGS) -MT stefan_problem_ac_2d-stefan_problem_ac.o -MD -MP -MF $(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Tpo -c -o stefan_problem_ac_2d-stefan_problem_ac.o `test -f 'stefan_problem_ac.cpp' || echo '$(srcdir)/'`stefan_problem_ac.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Tpo $(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stefan_problem_ac.cpp' object='stefan_problem_ac_2d-stefan_problem_ac.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_expansion_2d_CXXFLAGS) $(CXXFLAGS) -c -o stefan_problem_expansion_2d-stefan_problem_expansion.o `test -f 'stefan_problem_expansion.cpp' || echo '$(srcdir)/'`stefan_problem_expansion.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_ac_2d_CXXFLAGS) $(CXXFLAGS) -c -o stefan_problem_ac_2d-stefan_problem_ac.o `test -f 'stefan_problem_ac.cpp' || echo '$(srcdir)/'`stefan_problem_ac.cpp
 
-stefan_problem_expansion_2d-stefan_problem_expansion.obj: stefan_problem_expansion.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_expansion_2d_CXXFLAGS) $(CXXFLAGS) -MT stefan_problem_expansion_2d-stefan_problem_expansion.obj -MD -MP -MF $(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Tpo -c -o stefan_problem_expansion_2d-stefan_problem_expansion.obj `if test -f 'stefan_problem_expansion.cpp'; then $(CYGPATH_W) 'stefan_problem_expansion.cpp'; else $(CYGPATH_W) '$(srcdir)/stefan_problem_expansion.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Tpo $(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stefan_problem_expansion.cpp' object='stefan_problem_expansion_2d-stefan_problem_expansion.obj' libtool=no @AMDEPBACKSLASH@
+stefan_problem_ac_2d-stefan_problem_ac.obj: stefan_problem_ac.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_ac_2d_CXXFLAGS) $(CXXFLAGS) -MT stefan_problem_ac_2d-stefan_problem_ac.obj -MD -MP -MF $(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Tpo -c -o stefan_problem_ac_2d-stefan_problem_ac.obj `if test -f 'stefan_problem_ac.cpp'; then $(CYGPATH_W) 'stefan_problem_ac.cpp'; else $(CYGPATH_W) '$(srcdir)/stefan_problem_ac.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Tpo $(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stefan_problem_ac.cpp' object='stefan_problem_ac_2d-stefan_problem_ac.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_expansion_2d_CXXFLAGS) $(CXXFLAGS) -c -o stefan_problem_expansion_2d-stefan_problem_expansion.obj `if test -f 'stefan_problem_expansion.cpp'; then $(CYGPATH_W) 'stefan_problem_expansion.cpp'; else $(CYGPATH_W) '$(srcdir)/stefan_problem_expansion.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_ac_2d_CXXFLAGS) $(CXXFLAGS) -c -o stefan_problem_ac_2d-stefan_problem_ac.obj `if test -f 'stefan_problem_ac.cpp'; then $(CYGPATH_W) 'stefan_problem_ac.cpp'; else $(CYGPATH_W) '$(srcdir)/stefan_problem_ac.cpp'; fi`
+
+stefan_problem_enthalpy_2d-stefan_problem_enthalpy.o: stefan_problem_enthalpy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_enthalpy_2d_CXXFLAGS) $(CXXFLAGS) -MT stefan_problem_enthalpy_2d-stefan_problem_enthalpy.o -MD -MP -MF $(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Tpo -c -o stefan_problem_enthalpy_2d-stefan_problem_enthalpy.o `test -f 'stefan_problem_enthalpy.cpp' || echo '$(srcdir)/'`stefan_problem_enthalpy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Tpo $(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stefan_problem_enthalpy.cpp' object='stefan_problem_enthalpy_2d-stefan_problem_enthalpy.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_enthalpy_2d_CXXFLAGS) $(CXXFLAGS) -c -o stefan_problem_enthalpy_2d-stefan_problem_enthalpy.o `test -f 'stefan_problem_enthalpy.cpp' || echo '$(srcdir)/'`stefan_problem_enthalpy.cpp
+
+stefan_problem_enthalpy_2d-stefan_problem_enthalpy.obj: stefan_problem_enthalpy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_enthalpy_2d_CXXFLAGS) $(CXXFLAGS) -MT stefan_problem_enthalpy_2d-stefan_problem_enthalpy.obj -MD -MP -MF $(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Tpo -c -o stefan_problem_enthalpy_2d-stefan_problem_enthalpy.obj `if test -f 'stefan_problem_enthalpy.cpp'; then $(CYGPATH_W) 'stefan_problem_enthalpy.cpp'; else $(CYGPATH_W) '$(srcdir)/stefan_problem_enthalpy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Tpo $(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='stefan_problem_enthalpy.cpp' object='stefan_problem_enthalpy_2d-stefan_problem_enthalpy.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stefan_problem_enthalpy_2d_CXXFLAGS) $(CXXFLAGS) -c -o stefan_problem_enthalpy_2d-stefan_problem_enthalpy.obj `if test -f 'stefan_problem_enthalpy.cpp'; then $(CYGPATH_W) 'stefan_problem_enthalpy.cpp'; else $(CYGPATH_W) '$(srcdir)/stefan_problem_enthalpy.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -678,7 +714,8 @@ clean: clean-am
 clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Po
+		-rm -f ./$(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Po
+	-rm -f ./$(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -724,7 +761,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/stefan_problem_expansion_2d-stefan_problem_expansion.Po
+		-rm -f ./$(DEPDIR)/stefan_problem_ac_2d-stefan_problem_ac.Po
+	-rm -f ./$(DEPDIR)/stefan_problem_enthalpy_2d-stefan_problem_enthalpy.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
