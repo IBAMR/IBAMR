@@ -121,6 +121,11 @@ public:
                                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
 
     /*!
+     * Get the global number of markers.
+     */
+    std::size_t getNumberOfMarkers() const;
+
+    /*!
      * Set the marker points stored by this class. This call is collective and
      * @p markers should be the same set of marker points on all processors.
      */

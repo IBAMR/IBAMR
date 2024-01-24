@@ -417,8 +417,8 @@ main(int argc, char* argv[])
         plog << "Input database:\n";
         input_db->printClassData(plog);
 
-        // Marker points
-        if (use_markers)
+        // Marker points. Don't clobber any markers loaded from restart data.
+        if (use_markers && time_integrator->getNumberOfMarkers() == 0)
         {
             EigenAlignedVector<IBTK::Point> positions;
             for (unsigned int i = 1; i < 100; ++i)
