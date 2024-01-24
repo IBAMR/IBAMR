@@ -417,9 +417,9 @@ EnthalpyHierarchyIntegrator {
    latent_heat                     = LATENT_HEAT
    rho_liquid                      = RHO_L
    rho_solid                       = RHO_S
-   Cp_liquid                       = CP_L
-   Cp_solid                        = CP_S
-   Cp_gas                          = CP_G
+   specific_heat_liquid            = CP_L
+   specific_heat_solid             = CP_S
+   specific_heat_gas               = CP_G
    T_melt                          = MELT_TEMPERATURE
    solve_mass_conservation         = SOLVE_MASS_CONSERVATION
    k_vc_interpolation_type         = K_VC_INTERPOLATION_TYPE
