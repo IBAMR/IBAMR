@@ -429,7 +429,7 @@ SurfaceTensionForceFunction::registerSurfaceTensionForceMasking(MaskSurfaceTensi
     d_mask_surface_tension_force_ctx = ctx;
 
     return;
-}// registerSurfaceTensionForceMasking
+} // registerSurfaceTensionForceMasking
 
 void
 SurfaceTensionForceFunction::registerSurfaceTensionCoefficientFunction(ComputeSurfaceTensionCoefficientPtr callback,
@@ -439,7 +439,7 @@ SurfaceTensionForceFunction::registerSurfaceTensionCoefficientFunction(ComputeSu
     d_compute_surface_tension_coef_ctx = ctx;
 
     return;
-}// registerSurfaceTensionCoefficientFunction
+} // registerSurfaceTensionCoefficientFunction
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
@@ -669,7 +669,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
             .upper(1)
 #endif
 #if (NDIM == 3)
-        F_data->getPointer(0),
+                F_data->getPointer(0),
         F_data->getPointer(1),
         F_data->getPointer(2),
         F_data->getGhostCellWidth().max(),

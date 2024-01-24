@@ -75,8 +75,7 @@ main(int argc, char* argv[])
         else if (input_db->getString("CENTERING").compare("SIDE") == 0)
             Q_var = new SideVariable<NDIM, double>("Q");
 
-        auto Q_fcn = [](const VectorNd& x) -> double
-        {
+        auto Q_fcn = [](const VectorNd& x) -> double {
             double val = 1.0;
             for (int d = 0; d < NDIM; ++d) val += x[d] + x[d] * x[d];
             return val;

@@ -695,9 +695,9 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                                        << "  unsupported diffusion time stepping type: "
-                                        << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
-                                        << "  valid choices are: BACKWARD_EULER, "
+                                         << "  unsupported diffusion time stepping type: "
+                                         << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                                         << "  valid choices are: BACKWARD_EULER, "
                                             "FORWARD_EULER, TRAPEZOIDAL_RULE\n");
             }
             PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
@@ -723,7 +723,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
                 const double kappa = d_Q_diffusion_coef[Q_var];
                 solver_spec.setDConstant(-K * kappa);
             }
-            
+
             // Initialize the linear solver.
             Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
             helmholtz_solver->setPoissonSpecifications(solver_spec);
@@ -738,7 +738,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
                 if (d_enable_logging)
                 {
                     plog << d_object_name << ": "
-                        << "Initializing Helmholtz solvers for variable number " << l << "\n";
+                         << "Initializing Helmholtz solvers for variable number " << l << "\n";
                 }
                 helmholtz_solver->initializeSolverState(*d_sol_vecs[l], *d_rhs_vecs[l]);
                 d_helmholtz_solvers_need_init[l] = false;

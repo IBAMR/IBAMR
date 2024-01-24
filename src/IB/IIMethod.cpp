@@ -536,17 +536,17 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
             }
             if (d_use_u_interp_correction)
             {
-               d_WSS_in_systems[part] = &d_equation_systems[part]->get_system(WSS_IN_SYSTEM_NAME);
-               d_WSS_in_half_vecs[part] =
-                  dynamic_cast<PetscVector<double>*>(d_WSS_in_systems[part]->current_local_solution.get());
-               d_WSS_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                   d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_IN_SYSTEM_NAME, /*localize_data*/ false));
-                   
-               d_WSS_out_systems[part] = &d_equation_systems[part]->get_system(WSS_OUT_SYSTEM_NAME);
-               d_WSS_out_half_vecs[part] =
-                  dynamic_cast<PetscVector<double>*>(d_WSS_out_systems[part]->current_local_solution.get());
-               d_WSS_out_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                   d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_OUT_SYSTEM_NAME, /*localize_data*/ false));
+                d_WSS_in_systems[part] = &d_equation_systems[part]->get_system(WSS_IN_SYSTEM_NAME);
+                d_WSS_in_half_vecs[part] =
+                    dynamic_cast<PetscVector<double>*>(d_WSS_in_systems[part]->current_local_solution.get());
+                d_WSS_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                    d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_IN_SYSTEM_NAME, /*localize_data*/ false));
+
+                d_WSS_out_systems[part] = &d_equation_systems[part]->get_system(WSS_OUT_SYSTEM_NAME);
+                d_WSS_out_half_vecs[part] =
+                    dynamic_cast<PetscVector<double>*>(d_WSS_out_systems[part]->current_local_solution.get());
+                d_WSS_out_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+                    d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_OUT_SYSTEM_NAME, /*localize_data*/ false));
             }
         }
         if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions && d_use_u_interp_correction)
@@ -599,8 +599,8 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
             }
             if (d_use_u_interp_correction)
             {
-              *d_WSS_in_half_vecs[part] = *d_WSS_in_systems[part]->solution;
-              *d_WSS_out_half_vecs[part] = *d_WSS_out_systems[part]->solution;
+                *d_WSS_in_half_vecs[part] = *d_WSS_in_systems[part]->solution;
+                *d_WSS_out_half_vecs[part] = *d_WSS_out_systems[part]->solution;
             }
         }
         if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions && d_use_u_interp_correction)
@@ -694,10 +694,10 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
             }
             if (d_use_u_interp_correction)
             {
-              *d_WSS_in_systems[part]->solution = *d_WSS_in_half_vecs[part];
-              *d_WSS_in_systems[part]->current_local_solution = *d_WSS_in_half_vecs[part];
-              *d_WSS_out_systems[part]->solution = *d_WSS_out_half_vecs[part];
-              *d_WSS_out_systems[part]->current_local_solution = *d_WSS_out_half_vecs[part];
+                *d_WSS_in_systems[part]->solution = *d_WSS_in_half_vecs[part];
+                *d_WSS_in_systems[part]->current_local_solution = *d_WSS_in_half_vecs[part];
+                *d_WSS_out_systems[part]->solution = *d_WSS_out_half_vecs[part];
+                *d_WSS_out_systems[part]->current_local_solution = *d_WSS_out_half_vecs[part];
             }
         }
         if (d_use_pressure_jump_conditions && d_use_velocity_jump_conditions && d_use_u_interp_correction)
@@ -784,8 +784,9 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                               const double data_time)
 {
     if (!d_use_velocity_jump_conditions && d_use_u_interp_correction)
-      TBOX_ERROR(" use_velocity_jump_conditions must be also true "
-                   "whenever use_u_interp_correction = true...\n");
+        TBOX_ERROR(
+            " use_velocity_jump_conditions must be also true "
+            "whenever use_u_interp_correction = true...\n");
     IBAMR_TIMER_START(t_interpolate_velocity);
     const double mu = getINSHierarchyIntegrator()->getStokesSpecifications()->getMu();
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2388,7 +2389,8 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 void
 IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time)
 {
-    if (d_compute_fluid_traction && (!d_use_pressure_jump_conditions || !d_use_velocity_jump_conditions || !d_use_u_interp_correction))
+    if (d_compute_fluid_traction &&
+        (!d_use_pressure_jump_conditions || !d_use_velocity_jump_conditions || !d_use_u_interp_correction))
     {
         TBOX_ERROR(d_object_name << ": To compute the traction all jump corrections need to be turned on!"
                                  << std::endl);
@@ -3072,8 +3074,8 @@ IIMethod::initializeFEEquationSystems()
                     vector_fe_family.push_back(d_viscous_jump_fe_family[part]);
                     vector_fe_order.push_back(d_viscous_jump_fe_order[part]);
                 }
-               if (d_use_u_interp_correction)
-               {
+                if (d_use_u_interp_correction)
+                {
                     vector_system_names.push_back(WSS_IN_SYSTEM_NAME);
                     vector_variable_prefixes.push_back("WSS_in");
                     vector_fe_family.push_back(d_viscous_jump_fe_family[part]);
@@ -3083,7 +3085,7 @@ IIMethod::initializeFEEquationSystems()
                     vector_variable_prefixes.push_back("WSS_out");
                     vector_fe_family.push_back(d_viscous_jump_fe_family[part]);
                     vector_fe_order.push_back(d_viscous_jump_fe_order[part]);
-				}
+                }
                 if (d_use_pressure_jump_conditions && d_use_u_interp_correction)
                 {
                     vector_system_names.push_back(TAU_IN_SYSTEM_NAME);
@@ -3205,13 +3207,13 @@ IIMethod::initializeFEData()
             }
             if (d_use_u_interp_correction)
             {
-              System& WSS_in_system = equation_systems->get_system<System>(WSS_IN_SYSTEM_NAME);
-              WSS_in_system.assemble_before_solve = false;
-              WSS_in_system.assemble();
+                System& WSS_in_system = equation_systems->get_system<System>(WSS_IN_SYSTEM_NAME);
+                WSS_in_system.assemble_before_solve = false;
+                WSS_in_system.assemble();
 
-              System& WSS_out_system = equation_systems->get_system<System>(WSS_OUT_SYSTEM_NAME);
-              WSS_out_system.assemble_before_solve = false;
-              WSS_out_system.assemble();
+                System& WSS_out_system = equation_systems->get_system<System>(WSS_OUT_SYSTEM_NAME);
+                WSS_out_system.assemble_before_solve = false;
+                WSS_out_system.assemble();
             }
         }
 
@@ -3288,9 +3290,8 @@ IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const in
     return;
 } // addWorkloadEstimate
 
-void
-IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // intentionally blank
@@ -3298,9 +3299,8 @@ IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
     return;
 } // beginDataRedistribution
 
-void
-IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                     Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     if (d_is_initialized)
@@ -4416,9 +4416,8 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
     {
         d_use_velocity_jump_conditions = db->getBool("use_velocity_jump_conditions");
         d_use_u_interp_correction = true;
-	}
-    if (db->isBool("use_u_interp_correction"))
-        d_use_u_interp_correction = db->getBool("use_u_interp_correction");
+    }
+    if (db->isBool("use_u_interp_correction")) d_use_u_interp_correction = db->getBool("use_u_interp_correction");
     if (d_use_velocity_jump_conditions && d_use_u_interp_correction)
     {
         if (db->isDouble("wss_calc_width")) d_wss_calc_width = db->getDouble("wss_calc_width");
@@ -4433,8 +4432,7 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         if (db->isDouble("mesh_perturb_tol")) d_mesh_perturb_tol = db->getDouble("mesh_perturb_tol");
         if (db->isDouble("fuzzy_tol")) d_fuzzy_tol = db->getDouble("fuzzy_tol");
     }
-    
-    
+
     if (db->isBool("compute_fluid_traction")) d_compute_fluid_traction = db->getBool("compute_fluid_traction");
     if (d_compute_fluid_traction)
     {

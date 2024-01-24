@@ -135,6 +135,6 @@ private:
      */
     double d_mu;
 
-};     // SetFluidProperties
+}; // SetFluidProperties
 
 #endif // #ifndef included_SetFluidProperties
