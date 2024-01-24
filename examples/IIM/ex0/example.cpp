@@ -337,6 +337,7 @@ main(int argc, char* argv[])
         equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
         IIMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data, tether_data_ptr);
         ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
+        if (compute_fluid_traction)   ibfe_ops->registerTractionCalc(0);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -497,14 +498,14 @@ main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                postprocess_data(input_db,
-                                 patch_hierarchy,
-                                 navier_stokes_integrator,
-                                 mesh,
-                                 equation_systems,
-                                 iteration_num,
-                                 loop_time,
-                                 postproc_data_dump_dirname);
+                //~ postprocess_data(input_db,
+                                 //~ patch_hierarchy,
+                                 //~ navier_stokes_integrator,
+                                 //~ mesh,
+                                 //~ equation_systems,
+                                 //~ iteration_num,
+                                 //~ loop_time,
+                                 //~ postproc_data_dump_dirname);
             }
         }
 

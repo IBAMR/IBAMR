@@ -20,7 +20,7 @@ ELEM_TYPE = "HEX8"                               // type of element to use for s
 IB_DELTA_FUNCTION            = "IB_3"            // the type of smoothed delta function to use for Lagrangian-Eulerian interaction
 USE_PRESSURE_JUMP_CONDITIONS = TRUE              // whether to impose pressure jumps at fluid-structure interfaces
 USE_VELOCITY_JUMP_CONDITIONS = TRUE              // whether to impose the velocity jumps at fluid-structure interfaces
-COMPUTE_FLUID_TRACTION       = TRUE              // whether to compute the exterior fluid traction
+COMPUTE_FLUID_TRACTION       = FALSE              // whether to compute the exterior fluid traction
 WSS_CALC_WIDTH               = 1.05              // ratio multiplied by the diagonal side of the grid spacing to calculate wss
 P_CALC_WIDTH                 = 1.5               // ratio multiplied by the diogonal side of the grid spacing to calculate the pressure
 USE_CONSISTENT_MASS_MATRIX   = TRUE              // whether to use a consistent or lumped mass matrix
@@ -153,7 +153,6 @@ IIMethod {
    IB_point_density             = IB_POINT_DENSITY
    p_calc_width                 = P_CALC_WIDTH
    wss_calc_width               = WSS_CALC_WIDTH
-   compute_fluid_traction       = COMPUTE_FLUID_TRACTION
    min_ghost_cell_width         = 6
 }
 
