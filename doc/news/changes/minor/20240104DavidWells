@@ -1,4 +1,0 @@
-Fixed: Fixed a bug where resetting marker points in a restarted simulation
-worked incorrectly.
-<br>
-(David Wells, 2024/01/04)
