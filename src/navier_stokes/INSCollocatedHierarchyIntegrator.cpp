@@ -1051,11 +1051,11 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
 } // preprocessIntegrateHierarchy
 
 void
-INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                     const double new_time,
-                                                     const int cycle_num)
+INSCollocatedHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                                const double new_time,
+                                                                const int cycle_num)
 {
-    INSHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    INSHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
@@ -1435,8 +1435,6 @@ INSCollocatedHierarchyIntegrator::integrateHierarchy(const double current_time,
         }
     }
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 

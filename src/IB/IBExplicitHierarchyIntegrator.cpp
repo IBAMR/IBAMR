@@ -156,9 +156,11 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
 } // preprocessIntegrateHierarchy
 
 void
-IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                             const double new_time,
+                                                             const int cycle_num)
 {
-    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    IBHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
@@ -357,8 +359,6 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                              half_time);
     }
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 

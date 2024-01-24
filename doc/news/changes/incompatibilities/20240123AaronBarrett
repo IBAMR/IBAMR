@@ -1,0 +1,11 @@
+Incompatability: Changed HierarchyIntegrator::integrateHierarchy() to be
+non-virtual and introduced pure virtual function
+HierarchyIntegrator::integrateHierarchySpecialized().
+HierarchyIntegrator::integrateHierarchy() now calls
+integrateHierarchySpecialized() and then the integrateHierarchy() callback
+functions. Implementations of integrateHierarchy() should be moved to
+integrateHierarchySpecialized() and calls to
+executeIntegrateHierarchyCallbackFcns() should be removed from derived classes
+of HierarchyIntegrator.
+<br>
+(Aaron Barrett, 2024/01/23)
