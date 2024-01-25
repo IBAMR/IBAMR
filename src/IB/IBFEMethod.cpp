@@ -1438,9 +1438,8 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
     return;
 } // addWorkloadEstimate
 
-void
-IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                         Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // clear some things that contain data specific to the current patch hierarchy
@@ -1484,9 +1483,8 @@ IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/
     return;
 } // beginDataRedistribution
 
-void
-IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     // if we are not initialized then there is nothing to do

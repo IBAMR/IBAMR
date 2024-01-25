@@ -134,8 +134,7 @@ ConstraintIBKinematics::~ConstraintIBKinematics()
 
 } // ~ConstraintIBKinematics
 
-void
-ConstraintIBKinematics::putToDatabase(Pointer<Database> /*db*/)
+void ConstraintIBKinematics::putToDatabase(Pointer<Database> /*db*/)
 {
     // intentionally left blank
     return;

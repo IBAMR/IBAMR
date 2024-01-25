@@ -89,8 +89,7 @@ RigidBodyKinematics::putToDatabase(Pointer<Database> db)
 
 } // putToDatabase
 
-void
-RigidBodyKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/)
+void RigidBodyKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();

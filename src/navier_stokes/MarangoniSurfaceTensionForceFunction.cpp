@@ -504,7 +504,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
             .upper(1)
 #endif
 #if (NDIM == 3)
-        F_data->getPointer(0),
+                F_data->getPointer(0),
         F_data->getPointer(1),
         F_data->getPointer(2),
         F_data->getGhostCellWidth().max(),
