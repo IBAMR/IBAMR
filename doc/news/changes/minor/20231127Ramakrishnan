@@ -1,4 +1,0 @@
-Enhanced: Now BrinkmanAdvDiffSemiImplicitHierarchyIntegrator and BrinkmanAdvDiffBcHelper classes support AMR. Please take a look at examples/adv_diff/ex8. This example solves a free convection problem with flux boundary conditions on the immersed object using 2 levels Cartesian grid.
-
-<br>
-(Ramakrishnan Thirumalaisamy, 2023/11/27)
