@@ -456,6 +456,26 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec X, Vec R)
                           << "  supported time stepping types are: BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
+    // Compute the Lagrangian source/sink strengths and spread them to the
+    // Eulerian grid.
+    //
+    // TODO: Should this be "half_time" or "new_time"?
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        if (d_enable_logging)
+            plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
+        d_ib_method_ops->computeLagrangianFluidSource(half_time);
+        if (d_enable_logging)
+            plog << d_object_name
+                 << "::integrateHierarchy(): spreading Lagrangian fluid source "
+                    "strength to the Eulerian grid\n";
+        d_hier_pressure_data_ops->setToScalar(d_q_idx, 0.0);
+        // NOTE: This does not correctly treat the case in which the structure
+        // is close to the physical boundary.
+        d_ib_method_ops->spreadFluidSource(
+            d_q_idx, nullptr, getProlongRefineSchedules(d_object_name + "::q"), half_time);
+    }
+
     // Solve the incompressible Navier-Stokes equations.
     if (d_enable_logging)
         plog << d_object_name << "::integrateHierarchy(): solving the incompressible Navier-Stokes equations\n";
@@ -557,6 +577,23 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec X, Vec R)
                                  << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
                                  << "  supported time stepping types are: BACKWARD_EULER, "
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+    }
+
+    // Compute the pressure at the updated locations of any distributed internal
+    // fluid sources or sinks.
+    if (d_ib_method_ops->hasFluidSources())
+    {
+        if (d_enable_logging)
+            plog << d_object_name
+                 << "::integrateHierarchy(): interpolating Eulerian fluid "
+                    "pressure to the Lagrangian mesh\n";
+        d_hier_pressure_data_ops->copyData(d_p_idx, p_new_idx);
+        d_p_phys_bdry_op->setPatchDataIndex(d_p_idx);
+        d_p_phys_bdry_op->setHomogeneousBc(false);
+        d_ib_method_ops->interpolatePressure(d_p_idx,
+                                             getCoarsenSchedules(d_object_name + "::p::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::p"),
+                                             half_time);
     }
 
     return;
