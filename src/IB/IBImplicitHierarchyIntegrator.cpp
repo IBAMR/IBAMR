@@ -15,7 +15,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
+
+#include "petscksp.h"
+#include "petscmat.h"
+#include "petscpctypes.h"
+#include "petscsnes.h"
+#include "petscvec.h"
 
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
@@ -44,7 +51,6 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(const std::string& 
     // Set default configuration options.
     d_use_structure_predictor = false;
     d_use_fixed_LE_operators = false;
-    d_solve_for_position = false;
     d_eta = std::numeric_limits<double>::quiet_NaN();
 
     // Set options from input.
@@ -54,12 +60,13 @@ IBImplicitHierarchyIntegrator::IBImplicitHierarchyIntegrator(const std::string& 
             d_use_structure_predictor = input_db->getBool("use_structure_predictor");
         if (input_db->keyExists("use_fixed_LE_operators"))
             d_use_fixed_LE_operators = input_db->getBool("use_fixed_LE_operators");
-        if (input_db->keyExists("solve_for_position")) d_solve_for_position = input_db->getBool("solve_for_position");
         if (input_db->keyExists("eta")) d_eta = input_db->getDouble("eta");
         if (input_db->keyExists("f_evals_target_min"))
             d_snes_f_evals_target_min = input_db->getInteger("f_evals_target_min");
         if (input_db->keyExists("f_evals_target_max"))
             d_snes_f_evals_target_max = input_db->getInteger("f_evals_target_max");
+        if (input_db->keyExists("skip_final_update_solution"))
+            d_skip_final_update_solution = input_db->getBool("skip_final_update_solution");
     }
     d_ib_implicit_ops->setUseFixedLEOperators(d_use_fixed_LE_operators);
 
@@ -137,7 +144,6 @@ IBImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
         if (d_enable_logging)
             plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
         d_ib_implicit_ops->forwardEulerStep(current_time, new_time);
-        if (!d_solve_for_position) d_ib_method_ops->computeLagrangianForce(new_time);
     }
 
     // Zero out the function evaluation counter.
@@ -149,9 +155,10 @@ IBImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
 } // preprocessIntegrateHierarchy
 
 void
-IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+IBImplicitHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                             const double new_time,
+                                                             const int cycle_num)
 {
-    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
     d_current_time = current_time;
     d_new_time = new_time;
     d_cycle_num = cycle_num;
@@ -179,10 +186,7 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     ierr = SNESSetFromOptions(snes);
     IBTK_CHKERRQ(ierr);
 
-    // We either solve for position or force.
-    Vec& Y = d_solve_for_position ? X : F;
-
-    ierr = SNESSolve(snes, R, Y);
+    ierr = SNESSolve(snes, R, X);
     IBTK_CHKERRQ(ierr);
     SNESConvergedReason converged_reason;
     ierr = SNESGetConvergedReason(snes, &converged_reason);
@@ -203,11 +207,10 @@ IBImplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
     const auto cfl = INSHierarchyIntegrator::compute_CFL_number(u_new_idx, dt, d_hierarchy);
     const auto cfl_max = d_ins_hier_integrator->getMaximumCFLNumber();
     const bool exceeded_cfl_number = cfl > d_cfl_max_tol * cfl_max;
-
     d_redo_time_step = snes_diverged || exceeded_cfl_number;
 
     // Ensure that the state variables are consistent with the solution.
-    if (!d_redo_time_step) updateSolution(Y, nullptr);
+    if (!d_redo_time_step && !d_skip_final_update_solution) updateSolution(X, nullptr);
 
     // Deallocate temporary data.
     ierr = VecDestroy(&X);
@@ -387,11 +390,8 @@ IBImplicitHierarchyIntegrator::getFromRestart()
 } // getFromRestart
 
 void
-IBImplicitHierarchyIntegrator::updateSolution(Vec Y, Vec R)
+IBImplicitHierarchyIntegrator::updateSolution(Vec X, Vec R)
 {
-    Vec X = d_solve_for_position ? Y : nullptr;
-    Vec F = d_solve_for_position ? nullptr : Y;
-
     const double current_time = d_current_time;
     const double new_time = d_new_time;
     const double half_time = current_time + 0.5 * (new_time - current_time);
@@ -402,27 +402,18 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y, Vec R)
                                                                    d_ins_hier_integrator->getCurrentContext());
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
+    const int p_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(),
+                                                               d_ins_hier_integrator->getNewContext());
 
-    if (d_solve_for_position)
-    {
-        // Set the current position data.
-        d_ib_implicit_ops->setUpdatedPosition(X);
-    }
-    else
-    {
-        // Set the current force data.
-        d_ib_implicit_ops->setUpdatedForce(F);
-    }
+    // Set the current position data.
+    d_ib_implicit_ops->setUpdatedPosition(X);
 
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     switch (d_time_stepping_type)
     {
     case BACKWARD_EULER:
-        if (d_solve_for_position)
-        {
-            if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
-            d_ib_method_ops->computeLagrangianForce(d_new_time);
-        }
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+        d_ib_method_ops->computeLagrangianForce(d_new_time);
         if (d_enable_logging)
             plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
@@ -433,11 +424,8 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y, Vec R)
         d_u_phys_bdry_op->setHomogeneousBc(false);
         break;
     case MIDPOINT_RULE:
-        if (d_solve_for_position)
-        {
-            if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
-            d_ib_method_ops->computeLagrangianForce(half_time);
-        }
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+        d_ib_method_ops->computeLagrangianForce(half_time);
         if (d_enable_logging)
             plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
@@ -448,11 +436,8 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y, Vec R)
         d_u_phys_bdry_op->setHomogeneousBc(false);
         break;
     case TRAPEZOIDAL_RULE:
-        if (d_solve_for_position)
-        {
-            if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
-            d_ib_method_ops->computeLagrangianForce(new_time);
-        }
+        if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
+        d_ib_method_ops->computeLagrangianForce(new_time);
         if (d_enable_logging)
             plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
@@ -520,7 +505,7 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y, Vec R)
     // Compute the time stepping-based residual before updating the IB variables.
     //
     // (Once the IB variables are updated, we can no longer get the residual from the IB ops object.)
-    if (R != nullptr && d_solve_for_position)
+    if (R != nullptr)
     {
         switch (d_time_stepping_type)
         {
@@ -574,41 +559,14 @@ IBImplicitHierarchyIntegrator::updateSolution(Vec Y, Vec R)
                                     "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
-    // Compute the force-based residual after updating the IB state variables.
-    if (R != nullptr && !d_solve_for_position)
-    {
-        switch (d_time_stepping_type)
-        {
-        case BACKWARD_EULER:
-        case TRAPEZOIDAL_RULE:
-        {
-            d_ib_method_ops->computeLagrangianForce(new_time);
-            d_ib_implicit_ops->getUpdatedForce(R);
-            PetscErrorCode ierr = VecAXPBY(R, 1.0, -1.0, F);
-            IBTK_CHKERRQ(ierr);
-            break;
-        }
-        case MIDPOINT_RULE:
-        {
-            TBOX_ERROR("unimplemented!");
-            break;
-        }
-        default:
-            TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                                     << "  unsupported time stepping type: "
-                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                                     << "  supported time stepping types are: BACKWARD_EULER, "
-                                        "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
-        }
-    }
     return;
 }
 
 PetscErrorCode
-IBImplicitHierarchyIntegrator::IBFunction(SNES /*snes*/, Vec Y, Vec R, void* ctx)
+IBImplicitHierarchyIntegrator::IBFunction(SNES /*snes*/, Vec X, Vec R, void* ctx)
 {
     auto integrator = static_cast<IBImplicitHierarchyIntegrator*>(ctx);
-    integrator->updateSolution(Y, R);
+    integrator->updateSolution(X, R);
     return 0;
 }
 

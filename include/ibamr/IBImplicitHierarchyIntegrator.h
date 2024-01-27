@@ -57,12 +57,14 @@ public:
      */
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
+protected:
     /*!
      * Synchronously advance each level in the hierarchy over the given time
      * increment.
      */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override;
+    void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
 
+public:
     /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
@@ -105,9 +107,6 @@ protected:
     // Whether to use "frozen" LE operators.
     bool d_use_fixed_LE_operators = false;
 
-    // Whether to solve for the position.
-    bool d_solve_for_position = false;
-
     // Penalty factor used in direct forcing.
     double d_eta = std::numeric_limits<double>::quiet_NaN();
 
@@ -141,17 +140,18 @@ private:
     /// Solver state data.
     int d_cycle_num, d_ins_cycle_num;
     int d_snes_f_evals, d_snes_f_evals_previous, d_snes_f_evals_target_min = 5, d_snes_f_evals_target_max = 10;
-    double d_current_time, d_new_time, d_cfl_max_tol = 1.1;
+    double d_current_time, d_new_time, d_cfl_max_tol = 1.2;
+    bool d_skip_final_update_solution = false;
 
     /*!
      * Update the solution (e.g. for fixed-point iteration) based on the current value of Y and compute the residual.
      */
-    void updateSolution(Vec Y, Vec R);
+    void updateSolution(Vec X, Vec R);
 
     /*!
      * Static function for implicit formulation.
      */
-    static PetscErrorCode IBFunction(SNES snes, Vec Y, Vec R, void* ctx);
+    static PetscErrorCode IBFunction(SNES snes, Vec X, Vec R, void* ctx);
 };
 } // namespace IBAMR
 
