@@ -3663,3 +3663,479 @@ c
       end
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Interpolate u onto V at the positions specified by X using the
+c     composite 5-point/4-point B-spline delta function.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_composite_bspline_54_interp2d(
+     &     dx,x_lower,x_upper,depth,axis,
+     &     ilower0,iupper0,ilower1,iupper1,
+     &     nugc0,nugc1,
+     &     u,
+     &     indices,Xshift,nindices,
+     &     X,V)
+c
+      implicit none
+c
+c     Functions.
+c
+      REAL lagrangian_bspline_4_delta
+      REAL lagrangian_bspline_5_delta
+c
+c     Input.
+c
+      INTEGER depth,axis
+      INTEGER ilower0,iupper0,ilower1,iupper1
+      INTEGER nugc0,nugc1
+      INTEGER nindices
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER d,l,s,nugc(0:NDIM-1)
+
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
+c     Use a composite B-spline function to interpolate u onto V.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+         do d=0,NDIM-1
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
+c
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell.
+c
+            ic_lower(d) = ic_center(d)-2
+            ic_upper(d) = ic_center(d)+2
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
+c
+c     Compute the interpolation weights.
+c
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               if (d .eq. axis) then
+                  w(d,ic-ic_lower(d)) =
+     &                 lagrangian_bspline_5_delta(
+     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+               else
+                  w(d,ic-ic_lower(d)) =
+     &                 lagrangian_bspline_4_delta(
+     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+               endif
+            enddo
+         enddo
+c
+c     Interpolate u onto V.
+c
+         INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               5)
+c
+c     End loop over points.
+c
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Spread V onto u at the positions specified by X using the composite
+c     5-point/4-point B-spline delta function using standard (double)
+c     precision accumulation on the Cartesian grid.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_composite_bspline_54_spread2d(
+     &     dx,x_lower,x_upper,depth,axis,
+     &     indices,Xshift,nindices,
+     &     X,V,
+     &     ilower0,iupper0,ilower1,iupper1,
+     &     nugc0,nugc1,
+     &     u)
+c
+      implicit none
+c
+c     Functions.
+c
+      REAL lagrangian_bspline_4_delta
+      REAL lagrangian_bspline_5_delta
+c
+c     Input.
+c
+      INTEGER depth,axis
+      INTEGER nindices
+      INTEGER ilower0,iupper0,ilower1,iupper1
+      INTEGER nugc0,nugc1
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER d,l,s,nugc(0:NDIM-1)
+
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:4)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
+c     Use a composite B-spline function to spread V onto u.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+         do d = 0,NDIM-1
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
+c
+c     Determine the spreading stencil corresponding to the position of
+c     X(s) within the cell.
+c
+            ic_lower(d) = ic_center(d)-2
+            ic_upper(d) = ic_center(d)+2
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
+c
+c     Compute the spreading weights.
+c
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               if (d .eq. axis) then
+                  w(d,ic-ic_lower(d)) =
+     &                 lagrangian_bspline_5_delta(
+     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+               else
+                  w(d,ic-ic_lower(d)) =
+     &                 lagrangian_bspline_4_delta(
+     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+               endif
+            enddo
+         enddo
+c
+c     Spread V onto u.
+c
+         SPREAD_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                          ic_lower(0), ic_upper(0),
+                                          5)
+c
+c     End loop over points.
+c
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Interpolate u onto V at the positions specified by X using the
+c     composite 6-point/5-point B-spline delta function.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_composite_bspline_65_interp2d(
+     &     dx,x_lower,x_upper,depth,axis,
+     &     ilower0,iupper0,ilower1,iupper1,
+     &     nugc0,nugc1,
+     &     u,
+     &     indices,Xshift,nindices,
+     &     X,V)
+c
+      implicit none
+c
+c     Functions.
+c
+      REAL lagrangian_bspline_5_delta
+      REAL lagrangian_bspline_6_delta
+c
+c     Input.
+c
+      INTEGER depth,axis
+      INTEGER ilower0,iupper0,ilower1,iupper1
+      INTEGER nugc0,nugc1
+      INTEGER nindices
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER d,l,s,nugc(0:NDIM-1)
+
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
+c     Use a composite B-spline function to interpolate u onto V.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+         do d=0,NDIM-1
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
+c
+c     Determine the interpolation stencil corresponding to the position
+c     of X(s) within the cell.
+c
+            if ( X(d,s).lt.X_cell(d) ) then
+               ic_lower(d) = ic_center(d)-3
+               ic_upper(d) = ic_center(d)+2
+            else
+               ic_lower(d) = ic_center(d)-2
+               ic_upper(d) = ic_center(d)+3
+            endif
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
+c
+c     Compute the interpolation weights.
+c
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               if (d .eq. axis) then
+                  w(d,ic-ic_lower(d)) =
+     &                 lagrangian_bspline_6_delta(
+     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+               else
+                  w(d,ic-ic_lower(d)) =
+     &                 lagrangian_bspline_5_delta(
+     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+               endif
+            enddo
+         enddo
+c
+c     Interpolate u onto V.
+c
+         INTERPOLATE_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                               ic_lower(0), ic_upper(0),
+                                               6)
+c
+c     End loop over points.
+c
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Spread V onto u at the positions specified by X using the composite
+c     6-point/5-point B-spline delta function using standard (double)
+c     precision accumulation on the Cartesian grid.
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine lagrangian_composite_bspline_65_spread2d(
+     &     dx,x_lower,x_upper,depth,axis,
+     &     indices,Xshift,nindices,
+     &     X,V,
+     &     ilower0,iupper0,ilower1,iupper1,
+     &     nugc0,nugc1,
+     &     u)
+c
+      implicit none
+c
+c     Functions.
+c
+      REAL lagrangian_bspline_5_delta
+      REAL lagrangian_bspline_6_delta
+c
+c     Input.
+c
+      INTEGER depth,axis
+      INTEGER nindices
+      INTEGER ilower0,iupper0,ilower1,iupper1
+      INTEGER nugc0,nugc1
+
+      INTEGER indices(0:nindices-1)
+
+      REAL Xshift(0:NDIM-1,0:nindices-1)
+
+      REAL dx(0:NDIM-1),x_lower(0:NDIM-1),x_upper(0:NDIM-1)
+      REAL u(CELL2dVECG(ilower,iupper,nugc),0:depth-1)
+      REAL X(0:NDIM-1,0:*)
+c
+c     Input/Output.
+c
+      REAL V(0:depth-1,0:*)
+c
+c     Local variables.
+c
+      INTEGER ilower(0:NDIM-1),iupper(0:NDIM-1)
+      INTEGER ic,ic0,ic1
+      INTEGER ic_center(0:NDIM-1),ic_lower(0:NDIM-1),ic_upper(0:NDIM-1)
+      INTEGER d,l,s,nugc(0:NDIM-1)
+
+      REAL X_cell(0:NDIM-1),w(0:NDIM-1,0:5)
+c
+c     Prevent compiler warning about unused variables.
+c
+      x_upper(0) = x_upper(0)
+c
+c     Setup convenience arrays.
+c
+      ilower(0) = ilower0
+      ilower(1) = ilower1
+
+      iupper(0) = iupper0
+      iupper(1) = iupper1
+
+      nugc(0) = nugc0
+      nugc(1) = nugc1
+c
+c     Use a composite B-spline function to spread V onto u.
+c
+      do l = 0,nindices-1
+         s = indices(l)
+         do d=0,NDIM-1
+c
+c     Determine the Cartesian cell in which X(s) is located.
+c
+            ic_center(d) =
+     &           floor((X(d,s)+Xshift(d,l)-x_lower(d))/dx(d))
+     &           + ilower(d)
+            X_cell(d) = x_lower(d)
+     &           +(dble(ic_center(d)-ilower(d))+0.5d0)*dx(d)
+c
+c     Determine the spreading stencil corresponding to the position of
+c     X(s) within the cell.
+c
+            if ( X(d,s).lt.X_cell(d) ) then
+               ic_lower(d) = ic_center(d)-3
+               ic_upper(d) = ic_center(d)+2
+            else
+               ic_lower(d) = ic_center(d)-2
+               ic_upper(d) = ic_center(d)+3
+            endif
+            ic_lower(d) = max(ic_lower(d),ilower(d)-nugc(d))
+            ic_upper(d) = min(ic_upper(d),iupper(d)+nugc(d))
+c
+c     Compute the spreading weights.
+c
+            do ic = ic_lower(d),ic_upper(d)
+               X_cell(d) = x_lower(d)+(dble(ic-ilower(d))+0.5d0)*dx(d)
+               if (d .eq. axis) then
+                  w(d,ic-ic_lower(d)) =
+     &                 lagrangian_bspline_6_delta(
+     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+               else
+                  w(d,ic-ic_lower(d)) =
+     &                 lagrangian_bspline_5_delta(
+     &                 (X(d,s)+Xshift(d,l)-X_cell(d))/dx(d))
+               endif
+            enddo
+         enddo
+c
+c     Spread V onto u.
+c
+         SPREAD_2D_SPECIALIZE_FIXED_WIDTH(ic_lower(1), ic_upper(1),
+                                          ic_lower(0), ic_upper(0),
+                                          6)
+c
+c     End loop over points.
+c
+      enddo
+c
+      return
+      end
+c
+cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
