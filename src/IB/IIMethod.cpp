@@ -516,19 +516,6 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
             d_P_jump_IB_ghost_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
                     PRESSURE_JUMP_SYSTEM_NAME, /*localize_data*/ false));
-
-            d_P_in_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_IN_SYSTEM_NAME);
-            d_P_in_half_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_P_in_systems[part]->current_local_solution.get());
-            d_P_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
-                d_fe_data_managers[part]->buildGhostedSolutionVector(PRESSURE_IN_SYSTEM_NAME, /*localize_data*/ false));
-
-            d_P_out_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_OUT_SYSTEM_NAME);
-            d_P_out_half_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_P_out_systems[part]->current_local_solution.get());
-            d_P_out_IB_ghost_vecs[part] =
-                dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
-                    PRESSURE_OUT_SYSTEM_NAME, /*localize_data*/ false));
         }
 
         if (d_use_velocity_jump_conditions)
@@ -544,6 +531,19 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
             }
             if (d_compute_fluid_traction[part])
             {
+				d_P_in_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_IN_SYSTEM_NAME);
+				d_P_in_half_vecs[part] =
+					dynamic_cast<PetscVector<double>*>(d_P_in_systems[part]->current_local_solution.get());
+				d_P_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
+					d_fe_data_managers[part]->buildGhostedSolutionVector(PRESSURE_IN_SYSTEM_NAME, /*localize_data*/ false));
+
+				d_P_out_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_OUT_SYSTEM_NAME);
+				d_P_out_half_vecs[part] =
+					dynamic_cast<PetscVector<double>*>(d_P_out_systems[part]->current_local_solution.get());
+				d_P_out_IB_ghost_vecs[part] =
+					dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
+						PRESSURE_OUT_SYSTEM_NAME, /*localize_data*/ false));
+                    
                d_WSS_in_systems[part] = &d_equation_systems[part]->get_system(WSS_IN_SYSTEM_NAME);
                d_WSS_in_half_vecs[part] =
                   dynamic_cast<PetscVector<double>*>(d_WSS_in_systems[part]->current_local_solution.get());
@@ -595,8 +595,6 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
         if (d_use_pressure_jump_conditions)
         {
             *d_P_jump_half_vecs[part] = *d_P_jump_systems[part]->solution;
-            *d_P_in_half_vecs[part] = *d_P_in_systems[part]->solution;
-            *d_P_out_half_vecs[part] = *d_P_out_systems[part]->solution;
         }
 
         if (d_use_velocity_jump_conditions)
@@ -608,6 +606,8 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
         }
         if (d_compute_fluid_traction[part])
         {
+			*d_P_in_half_vecs[part] = *d_P_in_systems[part]->solution;
+            *d_P_out_half_vecs[part] = *d_P_out_systems[part]->solution;
 			*d_WSS_in_half_vecs[part] = *d_WSS_in_systems[part]->solution;
             *d_WSS_out_half_vecs[part] = *d_WSS_out_systems[part]->solution;
             *d_TAU_in_half_vecs[part] = *d_TAU_in_systems[part]->solution;
@@ -684,10 +684,6 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
         {
             *d_P_jump_systems[part]->solution = *d_P_jump_half_vecs[part];
             *d_P_jump_systems[part]->current_local_solution = *d_P_jump_half_vecs[part];
-            *d_P_in_systems[part]->solution = *d_P_in_half_vecs[part];
-            *d_P_in_systems[part]->current_local_solution = *d_P_in_half_vecs[part];
-            *d_P_out_systems[part]->solution = *d_P_out_half_vecs[part];
-            *d_P_out_systems[part]->current_local_solution = *d_P_out_half_vecs[part];
         }
 
         if (d_use_velocity_jump_conditions)
@@ -700,6 +696,10 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
         }
         if (d_compute_fluid_traction[part])
         {
+			*d_P_in_systems[part]->solution = *d_P_in_half_vecs[part];
+            *d_P_in_systems[part]->current_local_solution = *d_P_in_half_vecs[part];
+            *d_P_out_systems[part]->solution = *d_P_out_half_vecs[part];
+            *d_P_out_systems[part]->current_local_solution = *d_P_out_half_vecs[part];
 			*d_WSS_in_systems[part]->solution = *d_WSS_in_half_vecs[part];
             *d_WSS_in_systems[part]->current_local_solution = *d_WSS_in_half_vecs[part];
             *d_WSS_out_systems[part]->solution = *d_WSS_out_half_vecs[part];
@@ -1368,37 +1368,29 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 #endif
                         }
                     }
-                    if (d_compute_fluid_traction[part])
-                    {
-                        for (unsigned int k = 0; k < local_indices.size(); ++k)
-                        {
-                            U_qp[NDIM * local_indices[k] + axis] = U_axis[local_indices[k]];
-                            if (dh != 0.0)
-                            {
-                                WSS_in_qp[NDIM * local_indices[k] + axis] =
-                                    mu * (1.0 / dh) *
-                                    (U_in_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
+					for (unsigned int k = 0; k < local_indices.size(); ++k)
+					{
+						U_qp[NDIM * local_indices[k] + axis] = U_axis[local_indices[k]];
+						if (dh != 0.0 && d_compute_fluid_traction[part])
+						{
+							WSS_in_qp[NDIM * local_indices[k] + axis] =
+								mu * (1.0 / dh) *
+								(U_in_qp[NDIM * local_indices[k] + axis] - U_qp[NDIM * local_indices[k] + axis]);
 
-                                double du_dn_jump = 0.0;
-                                for (int dd = 0; dd < NDIM; ++dd)
-                                {
-                                    du_dn_jump += DU_jump_qp[axis][NDIM * local_indices[k] + dd] *
-                                                  n_qp[NDIM * local_indices[k] + dd];
-                                }
-                                WSS_out_qp[NDIM * local_indices[k] + axis] =
-                                    (1.0 - d_exterior_calc_coef) *
-                                        (du_dn_jump - WSS_in_qp[NDIM * local_indices[k] + axis]) +
-                                    d_exterior_calc_coef * mu * (1.0 / dh) *
-                                        (U_out_qp[NDIM * local_indices[k] + axis] -
-                                         U_qp[NDIM * local_indices[k] + axis]);
-                            }
-                            else
-                            {
-                                TBOX_ERROR(d_object_name << ": The width for the wall shear stress hasn't been set up!"
-                                                         << std::endl);
-                            }
-                        }
-                    }
+							double du_dn_jump = 0.0;
+							for (int dd = 0; dd < NDIM; ++dd)
+							{
+								du_dn_jump += DU_jump_qp[axis][NDIM * local_indices[k] + dd] *
+											  n_qp[NDIM * local_indices[k] + dd];
+							}
+							WSS_out_qp[NDIM * local_indices[k] + axis] =
+								(1.0 - d_exterior_calc_coef) *
+									(du_dn_jump - WSS_in_qp[NDIM * local_indices[k] + axis]) +
+								d_exterior_calc_coef * mu * (1.0 / dh) *
+									(U_out_qp[NDIM * local_indices[k] + axis] -
+									 U_qp[NDIM * local_indices[k] + axis]);
+						}
+					}
                 }
             }
             // Loop over the elements and accumulate the right-hand-side values.
