@@ -323,7 +323,15 @@ IIMethod::registerTractionCalc(const unsigned int part)
     TBOX_ASSERT(part < d_num_parts);
     d_compute_fluid_traction[part] = true;
     return;
-} // registerTangentialVelocityMotion
+} // registerTractionCalc
+
+void
+IIMethod::registerPartForDirectForcing(const unsigned int part)
+{
+    TBOX_ASSERT(part < d_num_parts);
+    d_use_direct_forcing[part] = true;
+    return;
+} // registerPartForDirectForcing
 
 void
 IIMethod::registerPressureJumpNormalization(const unsigned int part)
@@ -2409,7 +2417,7 @@ IIMethod::forwardEulerStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (d_use_direct_forcing)
+        if (d_use_direct_forcing[part])
         {
             ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
@@ -2442,7 +2450,7 @@ IIMethod::midpointStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (d_use_direct_forcing)
+        if (d_use_direct_forcing[part])
         {
             ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
@@ -2473,7 +2481,7 @@ IIMethod::trapezoidalStep(const double current_time, const double new_time)
     int ierr;
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        if (d_use_direct_forcing)
+        if (d_use_direct_forcing[part])
         {
             ierr = VecCopy(d_X_current_vecs[part]->vec(), d_X_new_vecs[part]->vec());
             IBTK_CHKERRQ(ierr);
@@ -4424,7 +4432,6 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 
     if (db->isBool("use_consistent_mass_matrix"))
         d_use_consistent_mass_matrix = db->getBool("use_consistent_mass_matrix");
-    if (db->isBool("use_direct_forcing")) d_use_direct_forcing = db->getBool("use_direct_forcing");
 
     // Restart settings.
     if (db->isString("libmesh_restart_file_extension"))

@@ -221,6 +221,11 @@ public:
      * Register relevant part for which we would like to calculate traction forces
      */
     void registerTractionCalc(unsigned int part = 0);
+    
+    /*!
+     * Register relevant part for use with direct forcing
+     */
+    void registerPartForDirectForcing(unsigned int part = 0);
 
     /*!
      * Register the (optional) function used to initialize the physical
@@ -636,6 +641,7 @@ protected:
     std::vector<bool> d_use_discon_elem_for_jumps = { false };
     std::vector<bool> d_use_tangential_velocity = { false };
     std::vector<bool> d_compute_fluid_traction = { false };
+    std::vector<bool> d_use_direct_forcing = { false };
     std::vector<bool> d_normalize_pressure_jump = { false };
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
@@ -682,7 +688,6 @@ protected:
     std::vector<libMesh::QuadratureType> d_default_quad_type;
     std::vector<libMesh::Order> d_default_quad_order;
     bool d_use_consistent_mass_matrix = true;
-    bool d_use_direct_forcing = false;
     double d_exterior_calc_coef = 1.0;
     double d_wss_calc_width = 1.05;
     double d_p_calc_width = 1.3;
