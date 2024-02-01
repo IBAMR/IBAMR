@@ -104,6 +104,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/NonbondedForceEvaluator.cpp \
 ../src/IB/Wall.cpp \
 ../src/IB/WallForceEvaluator.cpp \
+../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp \
 ../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
 ../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 ../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
@@ -216,6 +217,7 @@ if LIBMESH_ENABLED
 endif
 
 pkg_include_HEADERS += \
+../include/ibamr/AcousticStreamingHierarchyIntegrator.h \
 ../include/ibamr/AcousticStreamingPETScMatUtilities.h \
 ../include/ibamr/AcousticStreamingPETScVecUtilities.h \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \

@@ -557,7 +557,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
         CellData<NDIM, double> pu_matrix_coefs(patch_box, pu_stencil_sz, no_ghosts);
 
         // Compute matrix coefficients corresponding to viscous and dilatational stress for both velocity components.
-        // Do not consider Dirichlet BCs in the matrix coefficients yet, as we will consider them after the matrix
+        // Do not consider Dirichlet BCs in the matrix coefficients yet, as we will consider them after matrix
         // assembly.
         PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(uur_matrix_coefs,
                                                                              patch,

@@ -460,7 +460,7 @@ main(int argc, char* argv[])
         delete lambda_bc_coef;
 
     } // cleanup dynamically allocated objects prior to shutdown
-} // run_example
+} // main
 
 // Some debugging code:
 

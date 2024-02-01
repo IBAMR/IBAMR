@@ -114,7 +114,27 @@ public:
      */
     void setDPatchDataInterpolationType(IBTK::VCInterpType D_interp_type);
 
+    /*
+     * \brief Set the patch data index of variable that multiplies velocity in the
+     * divergence of velocity operator.
+     *
+     * @param coef_idx Patch data index of the side centered variable that
+     * multiplies the velocity variable before taking its divergence.
+     */
+    void setDivUCoefPatchDataIndex(int coef_idx);
+
 protected:
+    /*
+     * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
+     */
+    IBTK::VCInterpType d_D_interp_type;
+
+    /*
+     * Patch data index of the side centered variable that
+     * multiplies the velocity variable before taking its divergence.
+     */
+    int d_DivU_coef_idx = IBTK::invalid_index;
+
 private:
     /*!
      * \brief Default constructor.
@@ -142,11 +162,6 @@ private:
      * \return A reference to this object.
      */
     VCStaggeredStokesOperator& operator=(const VCStaggeredStokesOperator& that) = delete;
-
-    /*
-     * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
-     */
-    IBTK::VCInterpType d_D_interp_type;
 };
 } // namespace IBAMR
 
