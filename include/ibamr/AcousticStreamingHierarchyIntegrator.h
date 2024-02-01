@@ -541,6 +541,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U1_init, d_P1_init, d_U2_init, d_P2_init;
     std::array<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>, 2> d_U1_bc_coefs;
+    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_so_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_so_bc_coefs, d_U2_bc_coefs, d_U2_star_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P2_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
