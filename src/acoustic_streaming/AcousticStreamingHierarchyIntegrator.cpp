@@ -114,7 +114,9 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
 AcousticStreamingHierarchyIntegrator::AcousticStreamingHierarchyIntegrator(std::string object_name,
                                                                            Pointer<Database> input_db,
                                                                            bool register_for_restart)
-    : HierarchyIntegrator(std::move(object_name), input_db, register_for_restart)
+    : HierarchyIntegrator(std::move(object_name), input_db, register_for_restart),
+      d_default_so_bc_coefs(d_object_name + "::default_so_bc_coefs", Pointer<Database>(nullptr)),
+      d_so_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
 {
     d_U1_var = new SideVariable<NDIM, double>(object_name + "::U1", /*depth*/ 2);
     d_U2_var = new SideVariable<NDIM, double>(object_name + "::U2", /*depth*/ 1);
@@ -156,8 +158,19 @@ AcousticStreamingHierarchyIntegrator::AcousticStreamingHierarchyIntegrator(std::
     }
 
     // Setup physical boundary conditions objects for the second-order system.
+
+    // First, setup default boundary condition objects that specify homogeneous
+    // Dirichlet (solid-wall) boundary conditions for the velocity.
+    // These BCs will be replaced further downstream during the problem setup (e.g., in main.cpp)
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        d_default_so_bc_coefs.setBoundaryValue(2 * d, 0.0);
+        d_default_so_bc_coefs.setBoundaryValue(2 * d + 1, 0.0);
+    }
+    registerSecondOrderPhysicalBoundaryConditions(
+        std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_so_bc_coefs));
+
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
-    d_so_bc_coefs.resize(NDIM, nullptr);
     d_U2_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -797,6 +810,12 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
                          d_lambda_refine_type,
                          d_lambda_init_fcn);
     }
+    else
+    {
+        d_lambda_current_idx = invalid_index;
+        d_lambda_new_idx = invalid_index;
+        d_lambda_scratch_idx = invalid_index;
+    }
 
 #if !defined(NDEBUG)
     // AcousticStreamingHierarchyIntegrator should initialize the density variable.
@@ -1046,7 +1065,7 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         brinkman_force->preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
     }
 
-    // Allocate memory for solver RHS vectors.
+    // Allocate memory for RHS vectors of the two solvers.
     d_rhs1_vec->allocateVectorData(current_time);
     d_rhs1_vec->setToScalar(0.0);
     d_U2_rhs_vec->allocateVectorData(current_time);
@@ -1054,12 +1073,21 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     d_P2_rhs_vec->allocateVectorData(current_time);
     d_P2_rhs_vec->setToScalar(0.0);
 
+    // Copy the current solution to new variables (to be used as guess solution)
+    d_hier_sc_data_ops->copyData(d_U1_new_idx, d_U1_current_idx);
+    d_hier_sc_data_ops->copyData(d_U2_new_idx, d_U2_current_idx);
+    d_hier_cc_data_ops->copyData(d_P1_new_idx, d_P1_current_idx);
+    d_hier_cc_data_ops->copyData(d_P2_new_idx, d_P2_current_idx);
+
     // Cache BC data.
     d_bc_helper->cacheBcCoefData(d_so_bc_coefs, new_time, d_hierarchy);
 
     // Set up inhomogeneous BCs.
     d_first_order_solver->setHomogeneousBc(false);
     d_stokes_solver->setHomogeneousBc(false);
+
+    // Execute any registered callbacks.
+    executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
 
     return;
 } // preprocessIntegrateHierarchy
@@ -2044,13 +2072,13 @@ AcousticStreamingHierarchyIntegrator::preprocessOperatorsAndSolvers(const double
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         auto U2_bc_coef = dynamic_cast<INSVCStaggeredVelocityBcCoef*>(d_U2_bc_coefs[d]);
-        U2_bc_coef->setStokesSpecifications(nullptr); // intentionally set to a nullptr to throw an error if used
+        // U2_bc_coef->setStokesSpecifications(nullptr); // intentionally set to a nullptr to throw an error if used
         U2_bc_coef->setPhysicalBcCoefs(d_so_bc_coefs);
         U2_bc_coef->setSolutionTime(new_time);
         U2_bc_coef->setTimeInterval(current_time, new_time);
     }
     auto P2_bc_coef = dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_P2_bc_coef);
-    P2_bc_coef->setStokesSpecifications(nullptr); // intentionally set to a nullptr to throw an error if used
+    // P2_bc_coef->setStokesSpecifications(nullptr); // intentionally set to a nullptr to throw an error if used
     P2_bc_coef->setPhysicalBcCoefs(d_so_bc_coefs);
     P2_bc_coef->setSolutionTime(new_time);
     P2_bc_coef->setTimeInterval(current_time, new_time);
