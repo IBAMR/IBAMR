@@ -499,6 +499,37 @@ public:
              int src2_depth = 0);
 
     /*!
+     * \brief Compute the cell-centered divergence of product of two side-centered normal
+     * vectors field using centered differences.
+     *
+     * Sets dst = alpha div (coef1 * src1) + beta src2.
+     *
+     * Compute the divergence of product of two side-centered vector fields using centered differences.
+     * When specified, coarse values on each coarse-fine interface are
+     * synchronized prior to performing the differencing.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void div(int dst_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > dst_var,
+             double alpha,
+             int src1_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+             double src1_ghost_fill_time,
+             bool src1_cf_bdry_synch,
+             int coef1_idx,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > coef1_var,
+             SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> coef1_ghost_fill,
+             double coef1_ghost_fill_time,
+             double beta = 0.0,
+             int src2_idx = invalid_index,
+             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > src2_var = NULL,
+             int dst_depth = 0,
+             int src2_depth = 0);
+
+    /*!
      * \brief Compute the gradient of a scalar quantity using centered
      * differences.
      *

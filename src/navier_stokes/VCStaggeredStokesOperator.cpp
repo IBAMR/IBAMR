@@ -168,7 +168,11 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                          U_sc_var,
                          d_no_fill,
                          d_new_time,
-                         /*cf_bdry_synch*/ true);
+                         /*cf_bdry_synch*/ true,
+                         d_DivU_coef_idx,
+                         U_sc_var,
+                         d_no_fill,
+                         d_new_time);
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
     IBAMR_TIMER_STOP(t_apply);
@@ -181,6 +185,13 @@ VCStaggeredStokesOperator::setDPatchDataInterpolationType(const IBTK::VCInterpTy
     d_D_interp_type = D_interp_type;
     return;
 } // setDPatchDataInterpolationType
+
+void
+VCStaggeredStokesOperator::setDivUCoefPatchDataIndex(int coef_idx)
+{
+    d_DivU_coef_idx = coef_idx;
+    return;
+} // setDivUCoefPatchDataIndex
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -108,7 +108,7 @@ public:
      * @param impose_physical_bcs_normal_comp incidates to modify the coefficients of the
      * stencil of the normal component of side-centered velocity due to phyical boundary conditions.
      * This flag can be set to false if modifications to the matrix coefficients, particularly
-     * for the Dirichlet boundary condition, needs to performed at a later stage. Once such case
+     * for the Dirichlet boundary condition, needs to performed at a later stage. One such case
      * is making use of PETSc's MatZeroRows function, which can be called only after the matrix has
      * been assembled.
      */
@@ -131,7 +131,7 @@ public:
      * @param impose_physical_bcs_normal_comp incidates to modify the coefficients of the
      * stencil of the normal component of side-centered velocity due to phyical boundary conditions.
      * This flag can be set to false if modifications to the matrix coefficients, particularly
-     * for the Dirichlet boundary condition, needs to performed at a later stage. Once such case
+     * for the Dirichlet boundary condition, needs to performed at a later stage. One such case
      * is making use of PETSc's MatZeroRows function, which can be called only after the matrix has
      * been assembled.
      */

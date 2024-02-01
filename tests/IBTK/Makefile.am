@@ -23,7 +23,8 @@ ghost_indices_01_3d ibtk_init hierarchy_callbacks ibtk_mpi equal_eps helmholtz_2
 helmholtz_3d secondary_hierarchy_01_2d child_integrators_2d version_macros \
 snapshot_cache_01_2d nodal_interpolation_01_2d nodal_interpolation_01_3d \
 curl_01_2d curl_01_3d marker_points_01_2d marker_points_02_2d \
-fo_acoustic_streaming_solver_2d fo_acoustic_streaming_solver_3d 
+fo_acoustic_streaming_solver_2d fo_acoustic_streaming_solver_3d \
+acoustic_streaming_hier_integrator_2d acoustic_streaming_hier_integrator_3d
 
 if LIBMESH_ENABLED
 EXTRA_PROGRAMS += elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
@@ -270,6 +271,14 @@ fo_acoustic_streaming_solver_2d_SOURCES = fo_acoustic_streaming_solver.cpp
 fo_acoustic_streaming_solver_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 fo_acoustic_streaming_solver_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 fo_acoustic_streaming_solver_3d_SOURCES = fo_acoustic_streaming_solver.cpp
+
+acoustic_streaming_hier_integrator_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+acoustic_streaming_hier_integrator_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+acoustic_streaming_hier_integrator_2d_SOURCES = acoustic_streaming_hier_integrator.cpp
+
+acoustic_streaming_hier_integrator_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+acoustic_streaming_hier_integrator_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+acoustic_streaming_hier_integrator_3d_SOURCES = acoustic_streaming_hier_integrator.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

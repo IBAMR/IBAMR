@@ -246,6 +246,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
+	../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
@@ -449,6 +450,7 @@ am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-NonbondedForceEvaluator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-WallForceEvaluator.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT) \
@@ -625,6 +627,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
+	../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
@@ -828,6 +831,7 @@ am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-NonbondedForceEvaluator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT) \
@@ -1108,9 +1112,11 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po \
@@ -1381,6 +1387,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ibamr_enums.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h \
+	../include/ibamr/AcousticStreamingHierarchyIntegrator.h \
 	../include/ibamr/AcousticStreamingPETScMatUtilities.h \
 	../include/ibamr/AcousticStreamingPETScVecUtilities.h \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
@@ -1821,6 +1828,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ibamr_enums.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h $(am__append_3) \
+	../include/ibamr/AcousticStreamingHierarchyIntegrator.h \
 	../include/ibamr/AcousticStreamingPETScMatUtilities.h \
 	../include/ibamr/AcousticStreamingPETScVecUtilities.h \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
@@ -2013,6 +2021,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
+	../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
@@ -2365,6 +2374,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) ../src/acoustic_streaming/$(DEPDIR)
 	@: > ../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT):  \
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
@@ -2954,6 +2966,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT):  \
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
@@ -3515,9 +3530,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po@am__quote@ # am--include-marker
@@ -4547,6 +4564,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/WallForceEvaluator.cpp' object='../src/IB/libIBAMR2d_a-WallForceEvaluator.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-WallForceEvaluator.obj `if test -f '../src/IB/WallForceEvaluator.cpp'; then $(CYGPATH_W) '../src/IB/WallForceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/WallForceEvaluator.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o: ../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o `test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o `test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj: ../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj `if test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj `if test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; fi`
 
 ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.o: ../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
@@ -6956,6 +6987,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-WallForceEvaluator.obj `if test -f '../src/IB/WallForceEvaluator.cpp'; then $(CYGPATH_W) '../src/IB/WallForceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/WallForceEvaluator.cpp'; fi`
 
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o: ../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o `test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o `test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj: ../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj `if test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj `if test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; fi`
+
 ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.o: ../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
@@ -8904,9 +8949,11 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
@@ -9294,9 +9341,11 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
