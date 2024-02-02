@@ -321,6 +321,12 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+	../src/phase_change/CarmanKozenyDragForce.cpp \
+	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+	../src/phase_change/HeavisideForcingFunction.cpp \
+	../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+	../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 	../src/utilities/CellConvectiveOperator.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
@@ -512,6 +518,12 @@ am__objects_2 =  \
 	../src/navier_stokes/libIBAMR2d_a-SurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-CellConvectiveOperator.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-ConvectiveOperator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.$(OBJEXT) \
@@ -675,6 +687,12 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+	../src/phase_change/CarmanKozenyDragForce.cpp \
+	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+	../src/phase_change/HeavisideForcingFunction.cpp \
+	../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+	../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 	../src/utilities/CellConvectiveOperator.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
@@ -866,6 +884,12 @@ am__objects_4 =  \
 	../src/navier_stokes/libIBAMR3d_a-SurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-CellConvectiveOperator.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-ConvectiveOperator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.$(OBJEXT) \
@@ -1210,6 +1234,18 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po \
@@ -1320,6 +1356,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/AllenCahnHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
@@ -1330,15 +1367,18 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
 	../include/ibamr/CIBStrategy.h \
+	../include/ibamr/CarmanKozenyDragForce.h \
 	../include/ibamr/CellConvectiveOperator.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
-	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
+	../include/ibamr/EnthalpyHierarchyIntegrator.h \
 	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/FifthOrderStokesWaveGenerator.h \
 	../include/ibamr/FirstOrderStokesWaveGenerator.h \
+	../include/ibamr/GeneralizedIBMethod.h \
+	../include/ibamr/HeavisideForcingFunction.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -1404,6 +1444,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
+	../include/ibamr/PhaseChangeDivUSourceFunction.h \
+	../include/ibamr/PhaseChangeHierarchyIntegrator.h \
 	../include/ibamr/RelaxationLSBcCoefs.h \
 	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
@@ -1748,6 +1790,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/AllenCahnHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
@@ -1758,15 +1801,18 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
 	../include/ibamr/CIBStrategy.h \
+	../include/ibamr/CarmanKozenyDragForce.h \
 	../include/ibamr/CellConvectiveOperator.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
-	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
+	../include/ibamr/EnthalpyHierarchyIntegrator.h \
 	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/FifthOrderStokesWaveGenerator.h \
 	../include/ibamr/FirstOrderStokesWaveGenerator.h \
+	../include/ibamr/GeneralizedIBMethod.h \
+	../include/ibamr/HeavisideForcingFunction.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -1832,6 +1878,8 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
+	../include/ibamr/PhaseChangeDivUSourceFunction.h \
+	../include/ibamr/PhaseChangeHierarchyIntegrator.h \
 	../include/ibamr/RelaxationLSBcCoefs.h \
 	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
@@ -1990,6 +2038,12 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+	../src/phase_change/CarmanKozenyDragForce.cpp \
+	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+	../src/phase_change/HeavisideForcingFunction.cpp \
+	../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+	../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 	../src/utilities/CellConvectiveOperator.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
@@ -2505,6 +2559,30 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/$(am__dirstamp):
+	@$(MKDIR_P) ../src/phase_change
+	@: > ../src/phase_change/$(am__dirstamp)
+../src/phase_change/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../src/phase_change/$(DEPDIR)
+	@: > ../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/$(am__dirstamp):
 	@$(MKDIR_P) ../src/utilities
 	@: > ../src/utilities/$(am__dirstamp)
@@ -3022,6 +3100,24 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3173,6 +3269,7 @@ mostlyclean-compile:
 	-rm -f ../src/complex_fluids/*.$(OBJEXT)
 	-rm -f ../src/level_set/*.$(OBJEXT)
 	-rm -f ../src/navier_stokes/*.$(OBJEXT)
+	-rm -f ../src/phase_change/*.$(OBJEXT)
 	-rm -f ../src/utilities/*.$(OBJEXT)
 	-rm -f ../src/wave_generation/*.$(OBJEXT)
 
@@ -3472,6 +3569,18 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po@am__quote@ # am--include-marker
@@ -5378,6 +5487,90 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o: ../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo -c -o ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o `test -f '../src/phase_change/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/CarmanKozenyDragForce.cpp' object='../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o `test -f '../src/phase_change/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/phase_change/CarmanKozenyDragForce.cpp
+
+../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj: ../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo -c -o ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj `if test -f '../src/phase_change/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/phase_change/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/CarmanKozenyDragForce.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/CarmanKozenyDragForce.cpp' object='../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj `if test -f '../src/phase_change/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/phase_change/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/CarmanKozenyDragForce.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+
+../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
 
 ../src/utilities/libIBAMR2d_a-CellConvectiveOperator.o: ../src/utilities/CellConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-CellConvectiveOperator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Tpo -c -o ../src/utilities/libIBAMR2d_a-CellConvectiveOperator.o `test -f '../src/utilities/CellConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/utilities/CellConvectiveOperator.cpp
@@ -7619,6 +7812,90 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; fi`
 
+../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o: ../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo -c -o ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o `test -f '../src/phase_change/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/CarmanKozenyDragForce.cpp' object='../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o `test -f '../src/phase_change/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/phase_change/CarmanKozenyDragForce.cpp
+
+../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj: ../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo -c -o ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj `if test -f '../src/phase_change/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/phase_change/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/CarmanKozenyDragForce.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/CarmanKozenyDragForce.cpp' object='../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj `if test -f '../src/phase_change/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/phase_change/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/CarmanKozenyDragForce.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+
+../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+
 ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.o: ../src/utilities/CellConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Tpo -c -o ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.o `test -f '../src/utilities/CellConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/utilities/CellConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
@@ -8179,6 +8456,8 @@ distclean-generic:
 	-rm -f ../src/level_set/$(am__dirstamp)
 	-rm -f ../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/navier_stokes/$(am__dirstamp)
+	-rm -f ../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ../src/phase_change/$(am__dirstamp)
 	-rm -f ../src/utilities/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/utilities/$(am__dirstamp)
 	-rm -f ../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
@@ -8497,6 +8776,18 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po
@@ -8863,6 +9154,18 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po

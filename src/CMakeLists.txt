@@ -133,6 +133,14 @@ SET(CXX_SRC
   navier_stokes/INSCollocatedCenteredConvectiveOperator.cpp
   navier_stokes/StaggeredStokesSolver.cpp
   navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
+  
+  # phase_change
+  phase_change/AllenCahnHierarchyIntegrator.cpp 
+  phase_change/CarmanKozenyDragForce.cpp 
+  phase_change/EnthalpyHierarchyIntegrator.cpp 
+  phase_change/HeavisideForcingFunction.cpp 
+  phase_change/PhaseChangeDivUSourceFunction.cpp 
+  phase_change/PhaseChangeHierarchyIntegrator.cpp
 
   # IB
   IB/IBInstrumentPanel.cpp
