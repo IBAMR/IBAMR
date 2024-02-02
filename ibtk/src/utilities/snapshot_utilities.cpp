@@ -58,10 +58,11 @@ update_snapshot(SnapshotCache& cache,
         current_hierarchy->getGridGeometry()->makeRefinedGridGeometry("SnapshotGeometry", 1, false);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        snapshot_hierarchy->removePatchLevel(ln);
-        Pointer<PatchLevel<NDIM> > new_level = new PatchLevel<NDIM>();
         Pointer<PatchLevel<NDIM> > current_level = current_hierarchy->getPatchLevel(ln);
-        new_level->setRefinedPatchLevel(current_level, 1, new_geometry);
+        snapshot_hierarchy->removePatchLevel(ln);
+        snapshot_hierarchy->makeNewPatchLevel(
+            ln, current_level->getRatio(), current_level->getBoxes(), current_level->getProcessorMapping());
+        Pointer<PatchLevel<NDIM> > new_level = snapshot_hierarchy->getPatchLevel(ln);
 
         // Now allocate data on the new level
         new_level->allocatePatchData(snapshot_idx, time);
