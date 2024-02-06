@@ -49,29 +49,13 @@ IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 {
     IBHierarchyIntegrator::preprocessIntegrateHierarchy(current_time, new_time, num_cycles);
 
-    const int coarsest_level_num = 0;
-    const int finest_level_num = d_hierarchy->getFinestLevelNumber();
-    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
-    LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
-
-    // Allocate Eulerian scratch and new data.
-    for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-        level->allocatePatchData(d_u_idx, current_time);
-        level->allocatePatchData(d_f_idx, current_time);
-        level->allocatePatchData(d_scratch_data, current_time);
-        level->allocatePatchData(d_new_data, new_time);
-    }
-
-    // Initialize the fluid solver.
-    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    d_ins_hier_integrator->preprocessIntegrateHierarchy(current_time, new_time, ins_num_cycles);
-
     // Initialize IB data.
     //
     // NOTE: We assume here that all IB data are assigned to the finest level of
     // the AMR patch hierarchy.
+    const int finest_level_num = d_hierarchy->getFinestLevelNumber();
+    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
     d_X_current_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME, finest_level_num);
     d_X_new_data = l_data_manager->createLData("X_new", finest_level_num, NDIM);
     d_U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, finest_level_num);
@@ -170,28 +154,11 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     IBHierarchyIntegrator::postprocessIntegrateHierarchy(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
-    const int coarsest_level_num = 0;
-    const int finest_level_num = d_hierarchy->getFinestLevelNumber();
-    PetscErrorCode ierr;
-
-    // Deallocate Eulerian scratch data.
-    for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-        level->deallocatePatchData(d_u_idx);
-        level->deallocatePatchData(d_f_idx);
-    }
-
-    // Deallocate the fluid solver.
-    const int ins_num_cycles = d_ins_hier_integrator->getNumberOfCycles();
-    d_ins_hier_integrator->postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, ins_num_cycles);
-
     // Reset and deallocate IB data.
     //
     // NOTE: We assume here that all IB data are assigned to the finest level of
     // the AMR patch hierarchy.
-    ierr = VecSwap(d_X_current_data->getVec(), d_X_new_data->getVec());
+    PetscErrorCode ierr = VecSwap(d_X_current_data->getVec(), d_X_new_data->getVec());
     IBTK_CHKERRQ(ierr);
     d_X_current_data = NULL;
     d_X_new_data = NULL;
