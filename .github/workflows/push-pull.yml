@@ -131,7 +131,6 @@ jobs:
           sccache --show-stats
       - name: Test IBAMR
         id: test
-        # run: ${{ LAUNCHER }} ctest --output-on-failure -V -S .github/cmake/ctest_test.cmake
         run: |
           bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
           sccache --show-stats
