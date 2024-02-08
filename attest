@@ -98,13 +98,21 @@ class Parameters:
 
         # These are the only two required inputs:
         if self.mpiexec == "":
-            raise ValueError("attest requires that MPIEXEC be provided either"
+            raise ValueError("attest requires that mpiexec be provided either"
                              " to configure, stored in attest.conf, or"
                              " explicitly provided as a command-line argument"
                              " to attest itself.")
         if not os.path.isfile(self.mpiexec):
             raise ValueError("The given path to mpiexec <" + self.mpiexec + ">"
                              " is not valid.")
+        if not os.access(self.mpiexec, os.X_OK):
+            raise ValueError("The given path to mpiexec <" + self.mpiexec + ">"
+                             " is not executable.")
+        # if we have a relative path, try to expand it
+        if self.mpiexec[0] == '.':
+            expanded_mpiexec = os.path.abspath(self.mpiexec)
+            if os.access(expanded_mpiexec, os.X_OK):
+                self.mpiexec = expanded_mpiexec
 
         if self.numdiff == "":
             raise ValueError("attest requires that NUMDIFF be provided either"
@@ -114,6 +122,14 @@ class Parameters:
         if not os.path.isfile(self.numdiff):
             raise ValueError("The given path to numdiff <" + self.numdiff + ">"
                              " is not valid.")
+        if not os.access(self.numdiff, os.X_OK):
+            raise ValueError("The given path to numdiff <" + self.numdiff + ">"
+                             " is not executable.")
+        # if we have a relative path, try to expand it
+        if self.numdiff[0] == '.':
+            expanded_numdiff = os.path.abspath(self.numdiff)
+            if os.access(expanded_numdiff, os.X_OK):
+                self.numdiff = expanded_numdiff
 
 
 def n_mpi_processes(input_file):
@@ -384,7 +400,13 @@ def main():
     """
     # 0. Set up environment and input settings:
     # a. permit running more MPI processes than we have logical cores
+    # (openmpi 4 and 5)
     os.environ['OMPI_MCA_rmaps_base_oversubscribe'] = "1"
+    ompi_5_key = 'PRTE_MCA_rmaps_default_mapping_policy'
+    if ompi_5_key in os.environ.keys():
+        os.environ[ompi_5_key] = os.environ[ompi_5_key] + ":oversubscribe"
+    else:
+        os.environ[ompi_5_key] = ":oversubscribe"
     # b. completely disable OMP threading. HYPRE may try to parallelize itself
     # with threads which leads to disasterous performance since we expect that
     # all parallelization is done with MPI.
