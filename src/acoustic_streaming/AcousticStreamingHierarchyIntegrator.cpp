@@ -133,6 +133,8 @@ AcousticStreamingHierarchyIntegrator::AcousticStreamingHierarchyIntegrator(std::
     d_U1_plot_var = new CellVariable<NDIM, double>(object_name + "::U1_plot", /*depth*/ 2 * NDIM);
     d_U2_plot_var = new CellVariable<NDIM, double>(object_name + "::U2_plot", /*depth*/ NDIM);
 
+    d_rho_plot_var = new CellVariable<NDIM, double>(object_name + "::rho_plot", /*depth*/ NDIM);
+
 #if (NDIM == 2)
     d_Omega2_var = new CellVariable<NDIM, double>(d_object_name + "::Omega2");
 #endif
@@ -834,6 +836,7 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     // AcousticStreamingHierarchyIntegrator.
     registerVariable(d_U1_plot_idx, d_U1_plot_var, no_ghosts, getCurrentContext());
     registerVariable(d_U2_plot_idx, d_U2_plot_var, no_ghosts, getCurrentContext());
+    registerVariable(d_rho_plot_idx, d_rho_plot_var, no_ghosts, getCurrentContext());
     registerVariable(d_Omega2_idx, d_Omega2_var, no_ghosts, getCurrentContext());
 
     // Register scratch variables that are maintained by the
@@ -866,6 +869,25 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
                 {
                     d_visit_writer->registerPlotQuantity("U1_real_z", "SCALAR", d_U1_plot_idx, d);
                     d_visit_writer->registerPlotQuantity("U1_imag_z", "SCALAR", d_U1_plot_idx, NDIM + d);
+                }
+            }
+        }
+
+        if (d_output_rho && d_rho_var)
+        {
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                if (d == 0)
+                {
+                    d_visit_writer->registerPlotQuantity("rho_acoustic_x", "SCALAR", d_rho_plot_idx, d);
+                }
+                if (d == 1)
+                {
+                    d_visit_writer->registerPlotQuantity("rho_acoustic_y", "SCALAR", d_rho_plot_idx, d);
+                }
+                if (d == 2)
+                {
+                    d_visit_writer->registerPlotQuantity("rho_acoustic_z", "SCALAR", d_rho_plot_idx, d);
                 }
             }
         }
@@ -982,7 +1004,6 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     {
         Pointer<KrylovLinearSolver> p_stokes_krylov_solver = d_stokes_solver;
         Pointer<VCStaggeredStokesOperator> p_vc_stokes_op = p_stokes_krylov_solver->getOperator();
-        p_vc_stokes_op->setDivUCoefPatchDataIndex(d_rho_linear_op_idx);
         p_vc_stokes_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
 
         Pointer<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
@@ -1751,6 +1772,22 @@ AcousticStreamingHierarchyIntegrator::setupPlotDataSpecialized()
         d_hier_math_ops->interp(
             U2_cc_plot_idx, d_U2_plot_var, U2_sc_idx, d_U2_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
     }
+    if (d_output_rho)
+    {
+        const int rho_sc_idx = var_db->mapVariableAndContextToIndex(d_rho_var, ctx);
+        const int rho_cc_plot_idx = var_db->mapVariableAndContextToIndex(d_rho_plot_var, ctx);
+        Pointer<SideVariable<NDIM, double> > rho_sc_var = d_rho_var;
+#if !defined(NDEBUG)
+        TBOX_ASSERT(rho_sc_var);
+#endif
+        d_hier_math_ops->interp(rho_cc_plot_idx,
+                                d_rho_plot_var,
+                                rho_sc_idx,
+                                rho_sc_var,
+                                d_no_fill_op,
+                                d_integrator_time,
+                                synch_cf_interface);
+    }
 
     // Compute Omega = curl U.
     if (d_output_Omega2)
@@ -2103,29 +2140,7 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
                                                                 const double new_time,
                                                                 int cycle_num)
 {
-    // Setup the first-order solver
-    if (d_first_order_solver_needs_init)
-    {
-        d_first_order_solver->setSoundSpeed(d_sound_speed);
-        d_first_order_solver->setAcousticAngularFrequency(d_acoustic_freq);
-        d_first_order_solver->setBoundaryConditionCoefficients(d_U1_bc_coefs);
-        d_first_order_solver->setMassDensityPatchDataIndex(d_rho_scratch_idx);
-        d_first_order_solver->setShearViscosityPatchDataIndex(d_mu_interp_idx);
-        d_first_order_solver->setBulkViscosityPatchDataIndex(d_lambda_scratch_idx);
-        d_first_order_solver->initializeSolverState(*d_sol1_vec, *d_rhs1_vec);
-
-        d_first_order_solver_needs_init = false;
-    }
-
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    // Backward Euler for viscous time stepping
-    const double K = 1.0;
-    PoissonSpecifications U2_problem_coefs(d_object_name + "::U2_problem_coefs");
-    PoissonSpecifications P2_problem_coefs(d_object_name + "::P2_problem_coefs");
-
-    // Compute the Brinkman contribution to the velocity operator.
+    // Compute the Brinkman contribution to the second order velocity operator.
     const bool has_brinkman_force = d_brinkman_force.size();
     if (has_brinkman_force)
     {
@@ -2147,6 +2162,10 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
         d_side_synch2_op->resetTransactionComponent(default_synch2_transaction);
     }
 
+    // Modify the viscosity coefficients based on the backward Euler scheme
+    const double K = 1.0;
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // Operate on a single level at a time
@@ -2164,13 +2183,33 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
             d_hier_sc_data_ops->copyData(d_velocity_C_idx, d_velocity_L_idx, /*interior_only*/ false);
         }
         // D_{ec,nc} = -K * mu
+        // Lambda{cc} = -K * Lambda
 #if (NDIM == 2)
         d_hier_nc_data_ops->scale(d_velocity_D_idx, -K, d_mu_interp_idx, /*interior_only*/ false);
 #elif (NDIM == 3)
         d_hier_ec_data_ops->scale(d_velocity_D_idx, -K, d_mu_interp_idx, /*interior_only*/ false);
 #endif
         d_hier_cc_data_ops->scale(d_velocity_D_cc_idx, -K, d_mu_scratch_idx, /*interior_only*/ false);
+
+        if (d_lambda_var)
+        {
+            d_hier_cc_data_ops->scale(d_lambda_scratch_idx, -K, d_lambda_scratch_idx, /*interior_only*/ false);
+        }
     }
+
+    // Ensure that hierarchy operators operate on all levels from now on.
+    d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
+    d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
+#if (NDIM == 2)
+    d_hier_nc_data_ops->resetLevels(coarsest_ln, finest_ln);
+#elif (NDIM == 3)
+    d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
+#endif
+
+    PoissonSpecifications U2_problem_coefs(d_object_name + "::U2_problem_coefs");
+    PoissonSpecifications P2_problem_coefs(d_object_name + "::P2_problem_coefs");
+    PoissonSpecifications P2_projection_pc_coefs(d_object_name + "::P2_projection_pc_coefs");
+    PoissonSpecifications P2_stokes_op_coefs(d_object_name + "::P2_stokes_op_coefs");
 
     if (has_brinkman_force)
     {
@@ -2182,30 +2221,21 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     }
     U2_problem_coefs.setDPatchDataId(d_velocity_D_idx);
 
-    // Ensure that hierarchy operators operate on all levels in the future
-    d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
-    d_hier_sc_data_ops->resetLevels(coarsest_ln, finest_ln);
-#if (NDIM == 2)
-    d_hier_nc_data_ops->resetLevels(coarsest_ln, finest_ln);
-#elif (NDIM == 3)
-    d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
-#endif
-
-    // Set the coefficients for the projection preconditioner
+    // Set the coefficients for the pressure solver within the projection preconditioner
     // D_sc = -rho/chi inside Brinkman zone and -rho outside.
     d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 1.0);
     for (auto& brinkman_force : d_brinkman_force)
     {
         brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
     }
-    d_hier_sc_data_ops->reciprocal(d_pressure_D_idx,
+    d_hier_sc_data_ops->reciprocal(d_velocity_L_idx,
                                    d_velocity_L_idx,
                                    /*interior_only*/ false);
-    d_hier_sc_data_ops->multiply(d_pressure_D_idx, d_rho_scratch_idx, d_pressure_D_idx, /*interior_only*/ false);
-    d_hier_sc_data_ops->scale(d_pressure_D_idx,
+    d_hier_sc_data_ops->scale(d_velocity_L_idx,
                               -1.0,
-                              d_pressure_D_idx,
+                              d_velocity_L_idx,
                               /*interior_only*/ false);
+    d_hier_sc_data_ops->multiply(d_pressure_D_idx, d_rho_scratch_idx, d_velocity_L_idx, /*interior_only*/ false);
 
     // Synchronize pressure patch data coefficient
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
@@ -2219,6 +2249,15 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
 
     P2_problem_coefs.setCZero();
     P2_problem_coefs.setDPatchDataId(d_pressure_D_idx);
+
+    // Set the coefficients used to compute density weighted divergence of velocity for the RHS of pressure problem
+    // as well as to correct velocity after pressure is computed within the preconditioner. These coefficients are
+    // set as C and D patch data indices.
+    P2_projection_pc_coefs.setCPatchDataId(d_rho_scratch_idx);
+    P2_projection_pc_coefs.setDPatchDataId(d_velocity_L_idx);
+
+    // Set the coefficient to compute density weighted divergence of velocity in the Stokes operator.
+    P2_stokes_op_coefs.setCPatchDataId(d_rho_scratch_idx);
 
     // Ensure that solver components are appropriately reinitialized at the
     // correct intervals
@@ -2287,14 +2326,14 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     auto p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     auto p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
     Pointer<VCStaggeredStokesOperator> p_vc_stokes_op = p_stokes_krylov_solver->getOperator();
-    p_vc_stokes_op->setDivUCoefPatchDataIndex(d_rho_linear_op_idx);
+    p_vc_stokes_op->setPressurePoissonSpecifications(P2_stokes_op_coefs);
 
     auto p_stokes_block_pc =
         dynamic_cast<StaggeredStokesBlockPreconditioner*>(p_stokes_krylov_solver->getPreconditioner().getPointer());
     auto p_vc_stokes_proj_pc = dynamic_cast<VCStaggeredStokesProjectionPreconditioner*>(
         p_stokes_krylov_solver->getPreconditioner().getPointer());
 
-    p_stokes_block_pc->setPressurePoissonSpecifications(P2_problem_coefs);
+    p_stokes_block_pc->setPressurePoissonSpecifications(P2_projection_pc_coefs);
     p_stokes_block_pc->setPhysicalBcCoefs(d_U2_star_bc_coefs, d_Phi_bc_coef);
     p_stokes_block_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
 
@@ -2314,6 +2353,20 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
         d_stokes_solver->initializeSolverState(*d_sol2_vec, *d_rhs2_vec);
         d_stokes_solver_needs_init = false;
     }
+
+    // Setup the first-order solver. Because the coefficients (viscosity etc.) have
+    // changed we need to rebuilt the matrix.
+    d_first_order_solver->deallocateSolverState();
+
+    d_first_order_solver->setSoundSpeed(d_sound_speed);
+    d_first_order_solver->setAcousticAngularFrequency(d_acoustic_freq);
+    d_first_order_solver->setBoundaryConditionCoefficients(d_U1_bc_coefs);
+    d_first_order_solver->setMassDensityPatchDataIndex(d_rho_scratch_idx);
+    d_first_order_solver->setShearViscosityPatchDataIndex(d_velocity_D_idx);
+    d_first_order_solver->setViscosityInterpolationType(d_mu_vc_interp_type);
+    d_first_order_solver->setBulkViscosityPatchDataIndex(d_lambda_scratch_idx);
+
+    d_first_order_solver->initializeSolverState(*d_sol1_vec, *d_rhs1_vec);
 
 } // updateOperatorsAndSolvers
 

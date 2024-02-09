@@ -85,6 +85,15 @@ public:
     } // allocate_solver
 
     /*!
+     * \brief Set the PoissonSpecifications object used to specify the
+     * coefficients for the pressure-Poisson problem.
+     *
+     * Note: This implemation differs from its parent class in that it does not propagate the
+     * PoissonSpecifications object to the registered pressure solver.
+     */
+    void setPressurePoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& P_problem_coefs) override;
+
+    /*!
      * \name Linear solver functionality.
      */
     //\{

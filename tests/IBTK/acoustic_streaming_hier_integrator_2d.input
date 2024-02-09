@@ -7,7 +7,7 @@ RHO0 = 1.0
 OMEGA0 = 1.0  // acoustic_angular_frequency
 C0 = 1.0      // speed of sound
 
-N = 32
+N = 128
 PERIODIC_BC = 0
 
 FOVelocityInitialConditions {
@@ -76,7 +76,7 @@ SOPressureInitialConditions {
 SOPressureExact {
 
    L = LENGTH
-   function = "X_0^2*X_1^2/L"       
+   function = "X_0^2*X_1^2/L - 1.0/9.0"       
 }
 
 F1_fcn {
@@ -359,7 +359,7 @@ PRECOND_REINIT_INTERVAL             =  1
 ENABLE_LOGGING                      = TRUE 
 NORMALIZE_PRESSURE                  = TRUE 
 NORMALIZE_VELOCITY                  = FALSE   
-EXPLICITLY_REMOVE_NULLSPACE         = FALSE  
+EXPLICITLY_REMOVE_NULLSPACE         = TRUE  
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
 DT_MAX                              = 10
@@ -403,7 +403,7 @@ AcousticStreamingHierarchyIntegrator {
    mu_vc_interpolation_type  = "VC_HARMONIC_INTERP"
 
    first_order_solver_db {
-      ksp_type          = "fgmres"
+      ksp_type          = "preonly"
       pc_type           = "lu"
       rel_residual_tol  = 1.0e-14
       abs_residual_tol  = 1.0e-15
@@ -426,14 +426,9 @@ AcousticStreamingHierarchyIntegrator {
    }
 
    velocity_precond_db {
-      coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 100
-      coarse_solver_db {
-         ksp_type = "gmres"
-         pc_type = "jacobi"
-      }
+      max_iterations = 100
+      ksp_type = "gmres"
+      pc_type = "jacobi"
    }
 
    pressure_solver_db {
@@ -443,18 +438,11 @@ AcousticStreamingHierarchyIntegrator {
    }
 
    pressure_precond_db {
-      num_pre_sweeps  = 0
+      num_pre_sweeps  = 3
       num_post_sweeps = 3
-      prolongation_method = "LINEAR_REFINE"
-      restriction_method  = "CONSERVATIVE_COARSEN"
-      coarse_solver_type = "HYPRE_LEVEL_SOLVER"
-      coarse_solver_rel_residual_tol = 1.0e-12
-      coarse_solver_abs_residual_tol = 1.0e-50
-      coarse_solver_max_iterations = 100
-      coarse_solver_db {
-         ksp_type = "gmres"
-         pc_type = "jacobi"
-      }
+      rel_residual_tol = 1.0e-12
+      abs_residual_tol = 1.0e-50
+      max_iterations = 100
    }
     
 }

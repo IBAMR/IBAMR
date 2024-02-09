@@ -50,40 +50,14 @@ callSetFluidDensityCallbackFunction(int rho_idx,
                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                     const int /*cycle_num*/,
-                                    const double /*time*/,
+                                    const double time,
                                     const double /*current_time*/,
                                     const double /*new_time*/,
-                                    void* /*ctx*/)
+                                    void* ctx)
 {
-    // Set the density based on the level set
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    Pointer<SideVariable<NDIM, double> > rho_sc_var = rho_var;
-#if !defined(NDEBUG)
-    TBOX_ASSERT(rho_sc_var);
-#endif
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
-
-            for (int axis = 0; axis < NDIM; ++axis)
-            {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                {
-                    SideIndex<NDIM> si(it(), axis, 0);
-                    (*rho_data)(si, /*depth*/ 0) = 1.0;
-                }
-            }
-        }
-    }
+    CartGridFunction* rho_fcn = static_cast<CartGridFunction*>(ctx);
+    rho_fcn->setDataOnPatchHierarchy(rho_idx, rho_var, patch_hierarchy, time);
     return;
 } // callSetFluidDensityCallbackFunction
 
@@ -92,37 +66,14 @@ callSetFluidShearViscosityCallbackFunction(int mu_idx,
                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
                                            SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                            const int /*cycle_num*/,
-                                           const double /*time*/,
+                                           const double time,
                                            const double /*current_time*/,
                                            const double /*new_time*/,
-                                           void* /*ctx*/)
+                                           void* ctx)
 {
-    // Set the density based on the level set
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    Pointer<CellVariable<NDIM, double> > mu_cc_var = mu_var;
-#if !defined(NDEBUG)
-    TBOX_ASSERT(mu_cc_var);
-#endif
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_idx);
-
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                CellIndex<NDIM> ci(it());
-                (*mu_data)(ci) = 1.0;
-            }
-        }
-    }
+    CartGridFunction* mu_fcn = static_cast<CartGridFunction*>(ctx);
+    mu_fcn->setDataOnPatchHierarchy(mu_idx, mu_var, patch_hierarchy, time);
     return;
 } // callSetFluidShearViscosityCallbackFunction
 
@@ -236,13 +187,8 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u1_real_bc_coefs_" << d;
-                const std::string bc_coefs_name = bc_coefs_name_stream.str();
-
-                std::ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "FOVelocityRealBcCoefs_" << d;
-                const std::string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_name = "u1_real_bc_coefs_" + std::to_string(d);
+                const std::string bc_coefs_db_name = "FOVelocityRealBcCoefs_" + std::to_string(d);
 
                 u1_bc_coefs[0][d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
@@ -250,13 +196,8 @@ main(int argc, char* argv[])
 
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                std::ostringstream bc_coefs_name_stream;
-                bc_coefs_name_stream << "u1_imag_bc_coefs_" << d;
-                const std::string bc_coefs_name = bc_coefs_name_stream.str();
-
-                std::ostringstream bc_coefs_db_name_stream;
-                bc_coefs_db_name_stream << "FOVelocityImagBcCoefs_" << d;
-                const std::string bc_coefs_db_name = bc_coefs_db_name_stream.str();
+                const std::string bc_coefs_name = "u1_imag_bc_coefs_" + std::to_string(d);
+                const std::string bc_coefs_db_name = "FOVelocityImagBcCoefs_" + std::to_string(d);
 
                 u1_bc_coefs[1][d] = new muParserRobinBcCoefs(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
@@ -278,7 +219,6 @@ main(int argc, char* argv[])
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 const std::string bc_coefs_name = "u2_bc_coefs_" + std::to_string(d);
-
                 const std::string bc_coefs_db_name = "SOVelocityBcCoefs_" + std::to_string(d);
 
                 u2_bc_coefs[d] = new muParserRobinBcCoefs(
@@ -315,8 +255,10 @@ main(int argc, char* argv[])
         time_integrator->registerShearViscosityVariable(mu_var);
 
         // Callback fncs to reset fluid material properties
-        time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction, nullptr);
-        time_integrator->registerResetFluidShearViscosityFcn(&callSetFluidShearViscosityCallbackFunction, nullptr);
+        time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
+                                                      static_cast<void*>(rho_init.getPointer()));
+        time_integrator->registerResetFluidShearViscosityFcn(&callSetFluidShearViscosityCallbackFunction,
+                                                             static_cast<void*>(mu_init.getPointer()));
 
         // Register body force and velocity diveregnce functions for the first and second order systems
         Pointer<CartGridFunction> F1_fcn =
@@ -332,6 +274,16 @@ main(int argc, char* argv[])
         time_integrator->registerSecondOrderBodyForceFunction(F2_fcn);
         time_integrator->registerFirstOrderVelocityDivergenceFunction(Q1_fcn);
         time_integrator->registerSecondOrderVelocityDivergenceFunction(Q2_fcn);
+
+        // Get exact solutions to compute errors
+        muParserCartGridFunction u1_exact(
+            "u1_exact", app_initializer->getComponentDatabase("FOVelocityExact"), grid_geometry);
+        muParserCartGridFunction p1_exact(
+            "p1_exact", app_initializer->getComponentDatabase("FOPressureExact"), grid_geometry);
+        muParserCartGridFunction u2_exact(
+            "u2_exact", app_initializer->getComponentDatabase("SOVelocityExact"), grid_geometry);
+        muParserCartGridFunction p2_exact(
+            "p2_exact", app_initializer->getComponentDatabase("SOPressureExact"), grid_geometry);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -404,6 +356,102 @@ main(int argc, char* argv[])
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
+        }
+
+        // Determine the accuracy of the computed solution.
+        pout << "\n"
+             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
+             << "Computing error norms.\n\n";
+
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+        const Pointer<Variable<NDIM> > u1_var = time_integrator->getFirstOrderVelocityVariable();
+        const Pointer<Variable<NDIM> > p1_var = time_integrator->getFirstOrderPressureVariable();
+        const Pointer<Variable<NDIM> > u2_var = time_integrator->getSecondOrderVelocityVariable();
+        const Pointer<Variable<NDIM> > p2_var = time_integrator->getSecondOrderPressureVariable();
+        const Pointer<VariableContext> ctx = time_integrator->getCurrentContext();
+
+        const int u1_idx = var_db->mapVariableAndContextToIndex(u1_var, ctx);
+        const int u1_cloned_idx = var_db->registerClonedPatchDataIndex(u1_var, u1_idx);
+        const int p1_idx = var_db->mapVariableAndContextToIndex(p1_var, ctx);
+        const int p1_cloned_idx = var_db->registerClonedPatchDataIndex(p1_var, p1_idx);
+
+        const int u2_idx = var_db->mapVariableAndContextToIndex(u2_var, ctx);
+        const int u2_cloned_idx = var_db->registerClonedPatchDataIndex(u2_var, u2_idx);
+        const int p2_idx = var_db->mapVariableAndContextToIndex(p2_var, ctx);
+        const int p2_cloned_idx = var_db->registerClonedPatchDataIndex(p2_var, p2_idx);
+
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(u1_cloned_idx, loop_time);
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p1_cloned_idx, loop_time);
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(u2_cloned_idx, loop_time);
+            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(p2_cloned_idx, loop_time);
+        }
+
+        u1_exact.setDataOnPatchHierarchy(u1_cloned_idx, u1_var, patch_hierarchy, loop_time);
+        p1_exact.setDataOnPatchHierarchy(p1_cloned_idx, p1_var, patch_hierarchy, loop_time);
+        u2_exact.setDataOnPatchHierarchy(u2_cloned_idx, u2_var, patch_hierarchy, loop_time);
+        p2_exact.setDataOnPatchHierarchy(p2_cloned_idx, p2_var, patch_hierarchy, loop_time);
+
+        Pointer<HierarchyMathOps> hier_math_ops = time_integrator->getHierarchyMathOps();
+        const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
+        const int wgt_sc_idx = hier_math_ops->getSideWeightPatchDescriptorIndex();
+
+        std::vector<double> u1_err(3), p1_err(3), u2_err(3), p2_err(3);
+
+        HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+
+        hier_sc_data_ops.subtract(u1_idx, u1_idx, u1_cloned_idx);
+        u1_err[0] = hier_sc_data_ops.L1Norm(u1_idx, wgt_sc_idx);
+        u1_err[1] = hier_sc_data_ops.L2Norm(u1_idx, wgt_sc_idx);
+        u1_err[2] = hier_sc_data_ops.maxNorm(u1_idx, wgt_sc_idx);
+        pout << "Error in u1 at time " << loop_time << ":\n"
+             << "  L1-norm:  " << std::setprecision(10) << u1_err[0] << "\n"
+             << "  L2-norm:  " << u1_err[1] << "\n"
+             << "  max-norm: " << u1_err[2] << "\n"
+             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
+        hier_sc_data_ops.subtract(u2_idx, u2_idx, u2_cloned_idx);
+        u2_err[0] = hier_sc_data_ops.L1Norm(u2_idx, wgt_sc_idx);
+        u2_err[1] = hier_sc_data_ops.L2Norm(u2_idx, wgt_sc_idx);
+        u2_err[2] = hier_sc_data_ops.maxNorm(u2_idx, wgt_sc_idx);
+        pout << "Error in u2 at time " << loop_time << ":\n"
+             << "  L1-norm:  " << std::setprecision(10) << u2_err[0] << "\n"
+             << "  L2-norm:  " << u2_err[1] << "\n"
+             << "  max-norm: " << u2_err[2] << "\n"
+             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
+        hier_cc_data_ops.subtract(p1_idx, p1_idx, p1_cloned_idx);
+        p1_err[0] = hier_cc_data_ops.L1Norm(p1_idx, wgt_cc_idx);
+        p1_err[1] = hier_cc_data_ops.L2Norm(p1_idx, wgt_cc_idx);
+        p1_err[2] = hier_cc_data_ops.maxNorm(p1_idx, wgt_cc_idx);
+
+        pout << "Error in p1 at time " << loop_time << ":\n"
+             << "  L1-norm:  " << p1_err[0] << "\n"
+             << "  L2-norm:  " << p1_err[1] << "\n"
+             << "  max-norm: " << p1_err[2] << "\n"
+             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
+        hier_cc_data_ops.subtract(p2_idx, p2_idx, p2_cloned_idx);
+        p2_err[0] = hier_cc_data_ops.L1Norm(p2_idx, wgt_cc_idx);
+        p2_err[1] = hier_cc_data_ops.L2Norm(p2_idx, wgt_cc_idx);
+        p2_err[2] = hier_cc_data_ops.maxNorm(p2_idx, wgt_cc_idx);
+
+        pout << "Error in p2 at time " << loop_time << ":\n"
+             << "  L1-norm:  " << p2_err[0] << "\n"
+             << "  L2-norm:  " << p2_err[1] << "\n"
+             << "  max-norm: " << p2_err[2] << "\n"
+             << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
+        if (dump_viz_data && uses_visit)
+        {
+            pout << "Printing velocity and pressure differences as last visit output" << std::endl;
+            time_integrator->setupPlotData();
+            visit_data_writer->writePlotData(patch_hierarchy, iteration_num + 1, loop_time);
         }
 
         // Cleanup dumb pointers

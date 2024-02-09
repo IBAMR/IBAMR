@@ -153,6 +153,14 @@ VCStaggeredStokesProjectionPreconditioner::~VCStaggeredStokesProjectionPrecondit
     return;
 } // ~VCStaggeredStokesProjectionPreconditioner
 
+void
+VCStaggeredStokesProjectionPreconditioner::setPressurePoissonSpecifications(
+    const PoissonSpecifications& P_problem_coefs)
+{
+    d_P_problem_coefs = P_problem_coefs;
+    return;
+} // setPressurePoissonSpecifications
+
 bool
 VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
                                                        SAMRAIVectorReal<NDIM, double>& b)
@@ -269,9 +277,14 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
                          d_no_fill_op,
                          d_new_time,
                          /*cf_bdry_synch*/ true,
+                         d_P_problem_coefs.cIsVariable() ? d_P_problem_coefs.getCPatchDataId() : IBTK::invalid_index,
+                         Pointer<SideVariable<NDIM, double> >(nullptr),
+                         d_no_fill_op,
+                         d_new_time,
                          -1.0,
                          F_P_idx,
                          F_P_cc_var);
+
     d_pressure_solver->setHomogeneousBc(true);
     auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     p_pressure_solver->setInitialGuessNonzero(false);

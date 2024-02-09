@@ -1248,7 +1248,7 @@ HierarchyMathOps::div(const int dst_idx,
                       const int dst_depth,
                       const int src2_depth)
 {
-    if (coef1_idx == invalid_index)
+    if (coef1_idx < 0)
     {
         div(dst_idx,
             dst_var,
@@ -1263,6 +1263,8 @@ HierarchyMathOps::div(const int dst_idx,
             src2_var,
             dst_depth,
             src2_depth);
+
+        return;
     }
 
     if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
