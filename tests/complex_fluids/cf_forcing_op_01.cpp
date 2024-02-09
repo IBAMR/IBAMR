@@ -29,10 +29,10 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/CFGiesekusRelaxation.h"
+#include "ibamr/CFGiesekusStrategy.h"
 #include "ibamr/CFINSForcing.h"
-#include "ibamr/CFOldroydBRelaxation.h"
-#include "ibamr/CFRoliePolyRelaxation.h"
+#include "ibamr/CFOldroydBStrategy.h"
+#include "ibamr/CFRoliePolyStrategy.h"
 #include "ibamr/ibamr_enums.h"
 
 #include <ibtk/AppInitializer.h>

@@ -11,6 +11,7 @@ RELAXATION_TIME = 0.1
 ALPHA = 1.0
 
 ComplexFluid {
+   viscosity = 0.0
    relaxation_time = RELAXATION_TIME
    alpha = ALPHA
    evolve_type = EVOLUTION_TYPE
