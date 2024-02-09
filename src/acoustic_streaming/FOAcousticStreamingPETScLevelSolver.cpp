@@ -68,7 +68,6 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 static const int SIDEG = 1;
-static const int NOGHOST = 0;
 
 static const int REAL = 0;
 static const int IMAG = 1;

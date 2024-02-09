@@ -94,8 +94,6 @@ public:
      */
     void setMassDensityPatchDataIndex(int rho_idx)
     {
-        if (d_is_initialized) return;
-
         d_rho_idx = rho_idx;
         return;
     } // registerMassDensityPatchDataIndex
@@ -105,8 +103,6 @@ public:
      */
     void setShearViscosityPatchDataIndex(int mu_idx)
     {
-        if (d_is_initialized) return;
-
         d_mu_idx = mu_idx;
         return;
     } // setShearViscosityPatchDataIndex
@@ -116,8 +112,6 @@ public:
      */
     void setBulkViscosityPatchDataIndex(int lambda_idx)
     {
-        if (d_is_initialized) return;
-
         d_lambda_idx = lambda_idx;
         return;
     } // setBulkViscosityPatchDataIndex
@@ -133,8 +127,6 @@ public:
      */
     void setAcousticAngularFrequency(double omega)
     {
-        if (d_is_initialized) return;
-
         d_omega = omega;
         return;
     } // setAcousticAngularFrequency
@@ -144,8 +136,6 @@ public:
      */
     void setSoundSpeed(double c0)
     {
-        if (d_is_initialized) return;
-
         d_sound_speed = c0;
         return;
     } // setSoundSpeed

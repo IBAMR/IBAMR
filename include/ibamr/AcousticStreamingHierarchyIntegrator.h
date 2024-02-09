@@ -711,8 +711,9 @@ protected:
      *
      * Plot variables have one context: current.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U1_plot_var, d_U2_plot_var, d_Omega2_var;
-    int d_U1_plot_idx, d_U2_plot_idx, d_Omega2_idx;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U1_plot_var, d_U2_plot_var, d_Omega2_var,
+        d_rho_plot_var;
+    int d_U1_plot_idx, d_U2_plot_idx, d_Omega2_idx, d_rho_plot_idx;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the

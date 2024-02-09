@@ -99,11 +99,25 @@ public:
     virtual void setVelocityPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& U_problem_coefs);
 
     /*!
+     * \brief Set the PoissonSpecifications object used to specify the
+     * coefficients for the incompressibility equation in the incompressible Stokes
+     * operator.
+     */
+    virtual void setPressurePoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& P_problem_coefs);
+
+    /*!
      * \brief Get the PoissonSpecifications object used to specify the
      * coefficients for the momentum equation in the incompressible Stokes
      * operator.
      */
     virtual const SAMRAI::solv::PoissonSpecifications& getVelocityPoissonSpecifications() const;
+
+    /*!
+     * \brief Get the PoissonSpecifications object used to specify the
+     * coefficients for the incompressibility equation in the incompressible Stokes
+     * operator.
+     */
+    virtual const SAMRAI::solv::PoissonSpecifications& getPressurePoissonSpecifications() const;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -221,7 +235,7 @@ public:
 
 protected:
     // Problem specification.
-    SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
+    SAMRAI::solv::PoissonSpecifications d_U_problem_coefs, d_P_problem_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_U_bc_coef;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_default_P_bc_coef;
