@@ -387,6 +387,7 @@ main(int argc, char* argv[])
             "FOAcousticStreamingPETScLevelSolver",
             app_initializer->getComponentDatabase("FOAcousticStreamingPETScLevelSolver"),
             "fo_acoustic_");
+        petsc_solver.setViscosityInterpolationType(IBTK::VC_AVERAGE_INTERP);
         petsc_solver.setAcousticAngularFrequency(input_db->getDouble("acoustic_angular_freq"));
         petsc_solver.setSoundSpeed(input_db->getDouble("sound_speed"));
         petsc_solver.setBoundaryConditionCoefficients(u_bc_coefs);
