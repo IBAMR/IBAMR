@@ -1187,6 +1187,26 @@ public:
                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = nullptr);
 
     /*!
+     * \brief Compute dst = alpha grad coef1 (div src1)  + beta src2, the variable coefficient
+     * dilatational stress force.
+     *
+     * \see setPatchHierarchy
+     * \see resetLevels
+     */
+    void vc_dilatational(int dst_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > dst_var,
+                         double alpha,
+                         int coef1_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > coef1_var,
+                         int src1_idx,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src1_var,
+                         SAMRAI::tbox::Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                         double src1_ghost_fill_time,
+                         double beta = 0.0,
+                         int src2_idx = invalid_index,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > src2_var = NULL);
+
+    /*!
      * \brief Compute dst = alpha src1 + beta src2, pointwise.
      *
      * \see setPatchHierarchy

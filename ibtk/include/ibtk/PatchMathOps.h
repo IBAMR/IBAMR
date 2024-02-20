@@ -517,6 +517,20 @@ public:
                     int n = 0) const;
 
     /*!
+     * \brief Computes dst_l = alpha grad (coef1_m div src1_m) + beta src2_n.
+     */
+    void vc_dilational(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > dst,
+                       double alpha,
+                       double beta_in,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > coef1,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src1,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::SideData<NDIM, double> > src2_in,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                       int l = 0,
+                       int m = 0,
+                       int n = 0) const;
+
+    /*!
      * \brief Compute dst_i = alpha src1_j + beta src2_k, pointwise.
      */
     void pointwiseMultiply(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dst,
