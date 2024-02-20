@@ -104,6 +104,8 @@
 
 #define S_TO_S_VC_LAPLACE_FC IBTK_FC_FUNC(stosvclaplace2d, STOSVCLAPLACE2D)
 
+#define S_TO_S_VC_DILATATIONAL_FC IBTK_FC_FUNC(stosvcdilatational2d, STOSVCDILATATIONAL2D)
+
 #define N_TO_S_ROT_FC IBTK_FC_FUNC(ntosrot2d, NTOSROT2D)
 #define C_TO_S_ROT_FC IBTK_FC_FUNC(ctosrot2d, CTOSROT2D)
 
@@ -183,6 +185,8 @@
 #define S_TO_N_INTERP_FC IBTK_FC_FUNC(stoninterp2nd3d, STONINTERP2ND3D)
 
 #define S_TO_S_VC_LAPLACE_FC IBTK_FC_FUNC(stosvclaplace3d, STOSVCLAPLACE3D)
+
+#define S_TO_S_VC_DILATATIONAL_FC IBTK_FC_FUNC(stosvcdilatational3d, STOSVCDILATATIONAL3D)
 
 #define S_TO_S_CURL_FC IBTK_FC_FUNC(stoscurl3d, STOSCURL3D)
 
@@ -1379,6 +1383,38 @@ extern "C"
                               const double* dx,
                               const int& rho_varying,
                               const int& use_harmonic_interp);
+
+    void S_TO_S_VC_DILATATIONAL_FC(double* f0,
+                                   double* f1,
+#if (NDIM == 3)
+                                   double* f2,
+#endif
+                                   const int& f_gcw,
+                                   const double& alpha,
+                                   const double& beta,
+                                   const double* lambda,
+                                   const int& lambda_gcw,
+                                   const double* u0,
+                                   const double* u1,
+#if (NDIM == 3)
+                                   const double* u2,
+#endif
+                                   const int& u_gcw,
+                                   const double* v0,
+                                   const double* v1,
+#if (NDIM == 3)
+                                   const double* v2,
+#endif
+                                   const int& v_gcw,
+                                   const int& ilower0,
+                                   const int& iupper0,
+                                   const int& ilower1,
+                                   const int& iupper1,
+#if (NDIM == 3)
+                                   const int& ilower2,
+                                   const int& iupper2,
+#endif
+                                   const double* dx);
 
     void S_TO_C_STRAIN_FC(double* E_diag,
                           const int& E_diag_gcw,
@@ -6410,6 +6446,163 @@ PatchMathOps::vc_laplace(Pointer<SideData<NDIM, double> > dst,
 #endif
     return;
 } // vc_laplace
+
+void
+PatchMathOps::vc_dilational(Pointer<SideData<NDIM, double> > dst,
+                            double alpha,
+                            double beta_in,
+                            Pointer<CellData<NDIM, double> > coef1,
+                            Pointer<SideData<NDIM, double> > src1,
+                            Pointer<SideData<NDIM, double> > src2_in,
+                            Pointer<Patch<NDIM> > patch,
+                            int l,
+                            int m,
+                            int n) const
+{
+    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const double* const dx = pgeom->getDx();
+
+    double* const f0 = dst->getPointer(0, l);
+    double* const f1 = dst->getPointer(1, l);
+#if (NDIM == 3)
+    double* const f2 = dst->getPointer(2, l);
+#endif
+    const int f_ghosts = (dst->getGhostCellWidth()).max();
+
+    const double* const lambda = coef1->getPointer(m);
+    const int lambda_ghosts = (coef1->getGhostCellWidth()).max();
+
+    const double* const u0 = src1->getPointer(0, m);
+    const double* const u1 = src1->getPointer(1, m);
+#if (NDIM == 3)
+    const double* const u2 = src1->getPointer(2, m);
+#endif
+    const int u_ghosts = (src1->getGhostCellWidth()).max();
+
+    const double beta = (src2_in ? beta_in : 0.0);
+    const Pointer<SideData<NDIM, double> > src2 = (src2_in ? src2_in : src1);
+    const double* const v0 = src2->getPointer(0, n);
+    const double* const v1 = src2->getPointer(1, n);
+#if (NDIM == 3)
+    const double* const v2 = src2->getPointer(2, n);
+#endif
+    const int v_ghosts = (src2->getGhostCellWidth()).max();
+
+    const Box<NDIM>& patch_box = patch->getBox();
+
+#if !defined(NDEBUG)
+    if (f_ghosts != (dst->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilational():\n"
+                   << "  dst does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (lambda_ghosts != (coef1->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilatational():\n"
+                   << "  coef1 does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (u_ghosts != (src1->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilational():\n"
+                   << "  src1 does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (v_ghosts != (src2->getGhostCellWidth()).min())
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilational():\n"
+                   << "  src2 does not have uniform ghost cell widths" << std::endl);
+    }
+
+    if (src1 == dst)
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilational():\n"
+                   << "  src1 == dst." << std::endl);
+    }
+
+    if ((src1 == src2) && (beta != 0.0))
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilational():\n"
+                   << "  src1 == src2 but beta is nonzero." << std::endl);
+    }
+
+    const Box<NDIM>& lambda_box = coef1->getGhostBox();
+    const Box<NDIM> lambda_box_shrunk = Box<NDIM>::grow(lambda_box, -1);
+
+    if ((!lambda_box_shrunk.contains(patch_box.lower())) || (!lambda_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilatational():\n"
+                   << "  coef1 has insufficient ghost cell width" << std::endl);
+    }
+
+    const Box<NDIM>& u_box = src1->getGhostBox();
+    const Box<NDIM> u_box_shrunk = Box<NDIM>::grow(u_box, -1);
+
+    if ((!u_box_shrunk.contains(patch_box.lower())) || (!u_box_shrunk.contains(patch_box.upper())))
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilatational():\n"
+                   << "  src1 has insufficient ghost cell width" << std::endl);
+    }
+
+    if (patch_box != dst->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilatational():\n"
+                   << "  dst, coef1, src1, and src2 must all live on the same patch" << std::endl);
+    }
+
+    if (patch_box != coef1->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilatational():\n"
+                   << "  dst, coef1, src1, and src2 must all live on the same patch" << std::endl);
+    }
+
+    if (patch_box != src1->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilatational():\n"
+                   << "  dst, coef1, src1, and src2 must all live on the same patch" << std::endl);
+    }
+
+    if (patch_box != src2->getBox())
+    {
+        TBOX_ERROR("PatchMathOps::vc_dilatational():\n"
+                   << "  dst, coef1, src1, and src2 must all live on the same patch" << std::endl);
+    }
+#endif
+    S_TO_S_VC_DILATATIONAL_FC(f0,
+                              f1,
+#if (NDIM == 3)
+                              f2,
+#endif
+                              f_ghosts,
+                              alpha,
+                              beta,
+                              lambda,
+                              lambda_ghosts,
+                              u0,
+                              u1,
+#if (NDIM == 3)
+                              u2,
+#endif
+                              u_ghosts,
+                              v0,
+                              v1,
+#if (NDIM == 3)
+                              v2,
+#endif
+                              v_ghosts,
+                              patch_box.lower(0),
+                              patch_box.upper(0),
+                              patch_box.lower(1),
+                              patch_box.upper(1),
+#if (NDIM == 3)
+                              patch_box.lower(2),
+                              patch_box.upper(2),
+#endif
+                              dx);
+
+    return;
+} //  vc_dilational
 
 void
 PatchMathOps::pointwiseMultiply(Pointer<CellData<NDIM, double> > dst,
