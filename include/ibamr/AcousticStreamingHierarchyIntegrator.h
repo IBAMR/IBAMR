@@ -727,6 +727,7 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_indicator2_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega2_Norm_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_pressure_D_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_projection_D_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_velocity_C_var, d_velocity_L_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_velocity_D_cc_var;
 #if (NDIM == 2)
@@ -739,7 +740,7 @@ protected:
 
     int d_U2_regrid_idx, d_U2_src_idx, d_indicator2_idx;
     int d_Omega2_Norm_idx;
-    int d_velocity_C_idx, d_velocity_L_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx;
+    int d_velocity_C_idx, d_velocity_L_idx, d_velocity_D_idx, d_velocity_D_cc_idx, d_pressure_D_idx, d_projection_D_idx;
     int d_mu_interp_idx;
 
     /*

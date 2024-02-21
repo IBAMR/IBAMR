@@ -310,11 +310,12 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     //
     //    U = U^* - inv(rho) G Phi
     //
-    // The ProblemSpecification object is assumed to store the value of -inv(rho) or
-    // the coefficient that multiplies the gradient of Phi in its D patch data index
-    if (steady_state)
+    // The ProblemSpecification object stores the value of the coefficient that
+    // multiplies the gradient of Phi (e.g., -inv(rho) or -1) in its D patch data index
+    // or as a constant.
+    if (vc_projection_spec.d_D_is_const)
     {
-        const double coef = -1.0;
+        const double& coef = vc_projection_spec.d_D_const;
         d_hier_math_ops->grad(U_idx,
                               U_sc_var,
                               /*cf_bdry_synch*/ true,
@@ -329,37 +330,19 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     }
     else
     {
-        if (vc_projection_spec.d_D_is_const)
-        {
-            const double coef = vc_projection_spec.d_D_const;
-            d_hier_math_ops->grad(U_idx,
-                                  U_sc_var,
-                                  /*cf_bdry_synch*/ true,
-                                  coef,
-                                  d_Phi_scratch_idx,
-                                  d_Phi_var,
-                                  d_Phi_bdry_fill_op,
-                                  d_pressure_solver->getSolutionTime(),
-                                  1.0,
-                                  U_idx,
-                                  U_sc_var);
-        }
-        else
-        {
-            int coef_idx = vc_projection_spec.d_D_idx;
-            d_hier_math_ops->grad(U_idx,
-                                  U_sc_var,
-                                  /*cf_bdry_synch*/ true,
-                                  coef_idx,
-                                  Pointer<SideVariable<NDIM, double> >(nullptr),
-                                  d_Phi_scratch_idx,
-                                  d_Phi_var,
-                                  d_Phi_bdry_fill_op,
-                                  d_pressure_solver->getSolutionTime(),
-                                  1.0,
-                                  U_idx,
-                                  U_sc_var);
-        }
+        int coef_idx = vc_projection_spec.d_D_idx;
+        d_hier_math_ops->grad(U_idx,
+                              U_sc_var,
+                              /*cf_bdry_synch*/ true,
+                              coef_idx,
+                              Pointer<SideVariable<NDIM, double> >(nullptr),
+                              d_Phi_scratch_idx,
+                              d_Phi_var,
+                              d_Phi_bdry_fill_op,
+                              d_pressure_solver->getSolutionTime(),
+                              1.0,
+                              U_idx,
+                              U_sc_var);
     }
 
     // Account for nullspace vectors.
