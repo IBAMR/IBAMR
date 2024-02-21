@@ -951,6 +951,9 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     d_velocity_L_var = new SideVariable<NDIM, double>(d_object_name + "::velocity_L");
     d_velocity_L_idx = var_db->registerVariableAndContext(d_velocity_L_var, getCurrentContext(), side_ghosts);
 
+    d_projection_D_var = new SideVariable<NDIM, double>(d_object_name + "::projection_D");
+    d_projection_D_idx = var_db->registerVariableAndContext(d_projection_D_var, getCurrentContext(), side_ghosts);
+
 #if (NDIM == 2)
     d_velocity_D_var = new NodeVariable<NDIM, double>(d_object_name + "::velocity_D");
 #elif (NDIM == 3)
@@ -986,7 +989,7 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
         new SideVariable<NDIM, double>(d_object_name + "_rho_sc_linear_op_var",
                                        /*depth*/ 1);
     d_rho_linear_op_idx = var_db->registerVariableAndContext(
-        rho_sc_linear_op_var, var_db->getContext(d_object_name + "::rho_linear_op_var"), no_ghosts);
+        rho_sc_linear_op_var, var_db->getContext(d_object_name + "::rho_linear_op_var"), side_ghosts);
 
     // Setup a specialized coarsen algorithm.
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
@@ -1071,6 +1074,7 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         level->allocatePatchData(d_velocity_D_idx, current_time);
         level->allocatePatchData(d_velocity_D_cc_idx, current_time);
         level->allocatePatchData(d_pressure_D_idx, current_time);
+        level->allocatePatchData(d_projection_D_idx, current_time);
         level->allocatePatchData(d_mu_interp_idx, current_time);
         if (!level->checkAllocated(d_mu_linear_op_idx)) level->allocatePatchData(d_mu_linear_op_idx, current_time);
         if (!level->checkAllocated(d_mu_interp_linear_op_idx))
@@ -1221,7 +1225,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchy(const double current_ti
         SynchronizationTransactionComponent(d_U2_scratch_idx, d_U_coarsen_type);
     d_side_synch2_op->resetTransactionComponent(default_synch_transaction);
 
-    // Store density for later use
+    // Store density for later use (e.g., apps defining gravity body force)
     d_hier_sc_data_ops->copyData(d_rho_linear_op_idx,
                                  d_rho_scratch_idx,
                                  /*interior_only*/ true);
@@ -1351,6 +1355,7 @@ AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double curre
         level->deallocatePatchData(d_velocity_D_idx);
         level->deallocatePatchData(d_velocity_D_cc_idx);
         level->deallocatePatchData(d_pressure_D_idx);
+        level->deallocatePatchData(d_projection_D_idx);
         level->deallocatePatchData(d_mu_interp_idx);
     }
 
@@ -2242,19 +2247,19 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
 
     // Set the coefficients for the pressure solver within the projection preconditioner
     // D_sc = -rho/chi inside Brinkman zone and -rho outside.
-    d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 1.0);
+    d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 1.0, /*interior_only*/ false);
     for (auto& brinkman_force : d_brinkman_force)
     {
         brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
     }
-    d_hier_sc_data_ops->reciprocal(d_velocity_L_idx,
+    d_hier_sc_data_ops->reciprocal(d_projection_D_idx,
                                    d_velocity_L_idx,
                                    /*interior_only*/ false);
-    d_hier_sc_data_ops->scale(d_velocity_L_idx,
+    d_hier_sc_data_ops->scale(d_projection_D_idx,
                               -1.0,
-                              d_velocity_L_idx,
+                              d_projection_D_idx,
                               /*interior_only*/ false);
-    d_hier_sc_data_ops->multiply(d_pressure_D_idx, d_rho_scratch_idx, d_velocity_L_idx, /*interior_only*/ false);
+    d_hier_sc_data_ops->multiply(d_pressure_D_idx, d_rho_scratch_idx, d_projection_D_idx, /*interior_only*/ false);
 
     // Synchronize pressure patch data coefficient
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
@@ -2271,15 +2276,15 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
 
     // Set the coefficients used to compute density weighted divergence of velocity for the RHS of pressure problem
     // as well as to correct velocity after pressure is computed within the preconditioner.
-    d_vc_projection_pc_spec.d_div_coef_idx = d_rho_scratch_idx;
-    d_vc_projection_pc_spec.d_D_idx = d_velocity_L_idx;
+    d_vc_projection_pc_spec.d_div_coef_idx = d_rho_linear_op_idx;
+    d_vc_projection_pc_spec.d_D_idx = d_projection_D_idx;
     d_vc_projection_pc_spec.d_D_is_const = false;
 
     // Set the cell centered "local viscosity" patch data index to be used within the projection preconditioner.
     d_vc_projection_pc_spec.d_mu_cc_idx = d_velocity_D_cc_idx;
 
     // Set the coefficient to compute density weighted divergence of velocity in the VCStaggeredStokesOperator.
-    d_vc_stokes_op_spec.d_div_coef_idx = d_rho_scratch_idx;
+    d_vc_stokes_op_spec.d_div_coef_idx = d_rho_linear_op_idx;
 
     // Ensure that solver components are appropriately reinitialized at the
     // correct intervals
@@ -2431,13 +2436,17 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVec
     }
 
     // Compute and add the Brinkman term to the RHS vector.
-    d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
-    for (auto& brinkman_force : d_brinkman_force)
+    const bool has_brinkman = d_brinkman_force.size();
+    if (has_brinkman)
     {
-        brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
+        d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+        for (auto& brinkman_force : d_brinkman_force)
+        {
+            brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
+        }
+        d_hier_sc_data_ops->add(
+            rhs2_vec->getComponentDescriptorIndex(0), rhs2_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
     }
-    d_hier_sc_data_ops->add(
-        rhs2_vec->getComponentDescriptorIndex(0), rhs2_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
 
     // Set solution components to equal most recent approximations to u(n+1) and
     // p(n+1).
