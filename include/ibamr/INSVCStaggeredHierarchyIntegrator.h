@@ -24,6 +24,7 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/VCStaggeredStokesSpec.h"
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/SideDataSynchronization.h"
@@ -735,6 +736,16 @@ protected:
      * Index to track which advection diffusion integrator maintains the viscosity.
      */
     unsigned int d_mu_adv_diff_idx = 0;
+
+    /*
+     * Problem specification object for VCStaggeredStokesOperator.
+     */
+    VCStaggeredStokesOpSpec d_vc_stokes_op_spec;
+
+    /*
+     * Problem specification object for VCStaggeredStokesProjectionPreconditioner.
+     */
+    VCStaggeredStokesProjectionPCSpec d_vc_projection_pc_spec;
 
 private:
     /*!

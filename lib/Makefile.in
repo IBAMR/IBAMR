@@ -1460,6 +1460,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
+	../include/ibamr/VCStaggeredStokesSpec.h \
 	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/WaveDampingFunctions.h \
 	../include/ibamr/WaveGenerationFunctions.h \
@@ -1893,6 +1894,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
+	../include/ibamr/VCStaggeredStokesSpec.h \
 	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/WaveDampingFunctions.h \
 	../include/ibamr/WaveGenerationFunctions.h \

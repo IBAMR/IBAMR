@@ -24,6 +24,7 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/VCStaggeredStokesOperator.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_enums.h"
 
@@ -1157,6 +1158,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     }
     PoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
     PoissonSpecifications P_problem_coefs(d_object_name + "::P_problem_coefs");
+    d_vc_stokes_op_spec.reset();
+    d_vc_projection_pc_spec.reset();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1210,6 +1213,11 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     }
     U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
     U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
+    d_vc_stokes_op_spec.d_C_idx = d_velocity_C_idx;
+    d_vc_stokes_op_spec.d_D_idx = d_velocity_D_idx;
+    d_vc_stokes_op_spec.d_C_is_const = false;
+    d_vc_stokes_op_spec.d_D_is_const = false;
+    d_vc_projection_pc_spec.d_mu_cc_idx = d_velocity_D_cc_idx;
 
     // Ensure that hierarchy operators operate on all levels in the future
     d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
@@ -1241,6 +1249,15 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
     d_side_synch_op->resetTransactionComponent(default_synch_transaction);
     P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
+
+    // Set the coefficient to correct velocity and pressure after the PPE is solved within the preconditioner.
+    // Note that there is no point in doing steady-state variable viscosity Stokes sytem
+    // using this (conservative) integrator, as the current integrator is specifically designed for high density ratio
+    // (inertial) flows. The steady-state variable viscosity Stokes sytem is handled by the non-conservative integrator.
+    d_vc_projection_pc_spec.d_D_idx = d_pressure_D_idx;
+    d_vc_projection_pc_spec.d_D_is_const = false;
+    d_vc_projection_pc_spec.d_steady_state = false;
+    d_vc_projection_pc_spec.d_theta = 1.0 / dt;
 
     // Ensure that solver components are appropriately reinitialized at the
     // correct intervals or
@@ -1312,7 +1329,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     }
 
     // Setup Stokes solver.
-    d_stokes_solver->setVelocityPoissonSpecifications(U_problem_coefs);
     d_stokes_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
@@ -1335,6 +1351,10 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
             auto p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
             {
+                auto p_vc_stokes_op =
+                    dynamic_cast<VCStaggeredStokesOperator*>(p_stokes_krylov_solver->getOperator().getPointer());
+                p_vc_stokes_op->setProblemSpecification(&d_vc_stokes_op_spec);
+
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
                     p_stokes_krylov_solver->getPreconditioner().getPointer());
 
@@ -1347,7 +1367,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         }
         if (p_stokes_block_pc)
         {
-            p_stokes_block_pc->setPressurePoissonSpecifications(P_problem_coefs);
             p_stokes_block_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef.get());
             p_stokes_block_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
         }
@@ -1363,7 +1382,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
 
         if (p_vc_stokes_proj_pc)
         {
-            p_vc_stokes_proj_pc->setVelocityCellCenteredDCoefficient(d_velocity_D_cc_idx);
+            p_vc_stokes_proj_pc->setProblemSpecification(&d_vc_projection_pc_spec);
         }
     }
     if (d_stokes_solver_needs_init)

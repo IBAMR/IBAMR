@@ -23,6 +23,7 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
+#include "ibamr/VCStaggeredStokesSpec.h"
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CCPoissonSolverManager.h"
@@ -773,6 +774,16 @@ protected:
      */
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>*d_mu_bc_coef = nullptr, *d_rho_bc_coef = nullptr,
     *d_lambda_bc_coef = nullptr;
+
+    /*
+     * Problem specification object for VCStaggeredStokesOperator for the second order system.
+     */
+    VCStaggeredStokesOpSpec d_vc_stokes_op_spec;
+
+    /*
+     * Problem specification object for VCStaggeredStokesProjectionPreconditioner.
+     */
+    VCStaggeredStokesProjectionPCSpec d_vc_projection_pc_spec;
 
 private:
     /*!
