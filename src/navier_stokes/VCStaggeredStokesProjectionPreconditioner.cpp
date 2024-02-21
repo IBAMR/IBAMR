@@ -15,6 +15,7 @@
 
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/VCStaggeredStokesSpec.h"
 #include "ibamr/ibamr_utilities.h"
 
 #include "ibtk/CellNoCornersFillPattern.h"
@@ -92,8 +93,7 @@ VCStaggeredStokesProjectionPreconditioner::VCStaggeredStokesProjectionPreconditi
       d_Phi_var(nullptr),
       d_F_Phi_var(nullptr),
       d_Phi_scratch_idx(-1),
-      d_F_Phi_idx(-1),
-      d_velocity_D_cc_idx(-1)
+      d_F_Phi_idx(-1)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
 
@@ -153,28 +153,20 @@ VCStaggeredStokesProjectionPreconditioner::~VCStaggeredStokesProjectionPrecondit
     return;
 } // ~VCStaggeredStokesProjectionPreconditioner
 
-void
-VCStaggeredStokesProjectionPreconditioner::setPressurePoissonSpecifications(
-    const PoissonSpecifications& P_problem_coefs)
-{
-    d_P_problem_coefs = P_problem_coefs;
-    return;
-} // setPressurePoissonSpecifications
-
 bool
 VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x,
                                                        SAMRAIVectorReal<NDIM, double>& b)
 {
     IBAMR_TIMER_START(t_solve_system);
 
+    auto vc_projection_spec = static_cast<const VCStaggeredStokesProjectionPCSpec&>(*d_problem_spec);
+
     // Initialize the solver (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeSolverState(x, b);
 
     // Determine whether we are solving a steady-state problem.
-    const bool steady_state =
-        d_U_problem_coefs.cIsZero() ||
-        (d_U_problem_coefs.cIsConstant() && IBTK::abs_equal_eps(d_U_problem_coefs.getCConstant(), 0.0));
+    const bool& steady_state = vc_projection_spec.d_steady_state;
 
     // Get the vector components.
     const int F_U_idx = b.getComponentDescriptorIndex(0);
@@ -267,8 +259,11 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     //
     // in which L_rho = D*inv(rho)*G, and mu is a diagonal matrix of viscosities
     // at pressure locations ("local viscosity" preconditioner).
-    //
     // Approximate Poisson solvers are used in both cases.
+    //
+    //  Note that here we allow for a generalized version of the divergence
+    // operator, i.e., D(.) = div (coef .)
+    //
     d_hier_math_ops->div(d_F_Phi_idx,
                          d_F_Phi_var,
                          -1.0,
@@ -277,7 +272,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
                          d_no_fill_op,
                          d_new_time,
                          /*cf_bdry_synch*/ true,
-                         d_P_problem_coefs.cIsVariable() ? d_P_problem_coefs.getCPatchDataId() : IBTK::invalid_index,
+                         vc_projection_spec.d_div_coef_idx,
                          Pointer<SideVariable<NDIM, double> >(nullptr),
                          d_no_fill_op,
                          d_new_time,
@@ -292,14 +287,15 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
 
     if (steady_state)
     {
-        d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, d_velocity_D_cc_idx);
+        d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, vc_projection_spec.d_mu_cc_idx);
         d_pressure_data_ops->scale(P_idx, -2.0, d_F_Phi_idx);
     }
     else
     {
-        // Scale F_phi by 2*mu*k and update pressure (D = -mu*k)
-        d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, d_velocity_D_cc_idx);
-        d_pressure_data_ops->linearSum(P_idx, 1.0 / getDt(), d_Phi_scratch_idx, -2.0, d_F_Phi_idx);
+        // Scale F_phi by 2*mu*k and update pressure (mu_cc = -mu*k)
+        // P = theta*Phi + 2*mu*(-F_P - D U^*)
+        d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, vc_projection_spec.d_mu_cc_idx);
+        d_pressure_data_ops->linearSum(P_idx, vc_projection_spec.d_theta, d_Phi_scratch_idx, -2.0, d_F_Phi_idx);
     }
 
     // (3) Evaluate U in terms of U^* and Phi.
@@ -313,6 +309,9 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     // (ii) rho != 0.  In this case,
     //
     //    U = U^* - inv(rho) G Phi
+    //
+    // The ProblemSpecification object is assumed to store the value of -inv(rho) or
+    // the coefficient that multiplies the gradient of Phi in its D patch data index
     if (steady_state)
     {
         const double coef = -1.0;
@@ -330,9 +329,9 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     }
     else
     {
-        if (d_P_problem_coefs.dIsConstant())
+        if (vc_projection_spec.d_D_is_const)
         {
-            const double coef = d_P_problem_coefs.getDConstant();
+            const double coef = vc_projection_spec.d_D_const;
             d_hier_math_ops->grad(U_idx,
                                   U_sc_var,
                                   /*cf_bdry_synch*/ true,
@@ -347,7 +346,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
         }
         else
         {
-            const double coef_idx = d_P_problem_coefs.getDPatchDataId();
+            int coef_idx = vc_projection_spec.d_D_idx;
             d_hier_math_ops->grad(U_idx,
                                   U_sc_var,
                                   /*cf_bdry_synch*/ true,
@@ -459,18 +458,6 @@ VCStaggeredStokesProjectionPreconditioner::setMaxIterations(int max_iterations)
     }
     return;
 } // setMaxIterations
-
-void
-VCStaggeredStokesProjectionPreconditioner::setVelocityCellCenteredDCoefficient(int velocity_D_cc_idx)
-{
-#if !defined(NDEBUG)
-    TBOX_ASSERT(velocity_D_cc_idx >= 0);
-#endif
-
-    d_velocity_D_cc_idx = velocity_D_cc_idx;
-
-    return;
-} // setVelocityPoissonSpecifications
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 

@@ -39,6 +39,11 @@ class SAMRAIVectorReal;
 } // namespace solv
 } // namespace SAMRAI
 
+namespace IBTK
+{
+class ProblemSpecification;
+} // namespace IBTK
+
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
 namespace IBTK
@@ -121,6 +126,16 @@ public:
      * \brief Get the HierarchyMathOps object used by the solver.
      */
     virtual SAMRAI::tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
+
+    /*!
+     *  \brief Set the ProblemSpecification object used by the operator.
+     */
+    virtual void setProblemSpecification(const ProblemSpecification* problem_spec);
+
+    /*!
+     *  \brief Set the ProblemSpecification object used by the operator.
+     */
+    virtual const ProblemSpecification* getProblemSpecification() const;
 
     /*!
      * \brief Solve the system of equations.
@@ -335,6 +350,9 @@ protected:
 
     // Logging configuration.
     bool d_enable_logging = false;
+
+    // Problem specs (coefficients) for the operator
+    const ProblemSpecification* d_problem_spec = nullptr;
 
 private:
     /*!

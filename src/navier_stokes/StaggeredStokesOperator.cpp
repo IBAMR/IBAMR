@@ -69,7 +69,6 @@ StaggeredStokesOperator::StaggeredStokesOperator(const std::string& object_name,
                                                  Pointer<Database> input_db)
     : LinearOperator(object_name, homogeneous_bc),
       d_U_problem_coefs(d_object_name + "::U_problem_coefs"),
-      d_P_problem_coefs(d_object_name + "::P_problem_coefs"),
       d_default_U_bc_coef(
           new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef", Pointer<Database>(nullptr))),
       d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
@@ -129,24 +128,11 @@ StaggeredStokesOperator::setVelocityPoissonSpecifications(const PoissonSpecifica
     return;
 } // setVelocityPoissonSpecifications
 
-void
-StaggeredStokesOperator::setPressurePoissonSpecifications(const PoissonSpecifications& P_problem_coefs)
-{
-    d_P_problem_coefs = P_problem_coefs;
-    return;
-} // setPressurePoissonSpecifications
-
 const PoissonSpecifications&
 StaggeredStokesOperator::getVelocityPoissonSpecifications() const
 {
     return d_U_problem_coefs;
 } // getVelocityPoissonSpecifications
-
-const PoissonSpecifications&
-StaggeredStokesOperator::getPressurePoissonSpecifications() const
-{
-    return d_P_problem_coefs;
-} // getPressurePoissonSpecifications
 
 void
 StaggeredStokesOperator::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
