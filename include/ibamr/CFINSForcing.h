@@ -329,11 +329,7 @@ private:
     /*!
      * \brief Given the conformation tensor, set up any requested drawing variables.
      */
-    void setupPlotVariables(int C_cc_idx);
-    /*!
-     * \brief Given the conformation tensor, set up any requested drawing variables on a given patch level.
-     */
-    void setupPlotVariablesOnPatchLevel(int C_cc_idx, SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level);
+    void setupPlotConformationTensor(int C_cc_idx);
 
     // Scratch variables
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var;

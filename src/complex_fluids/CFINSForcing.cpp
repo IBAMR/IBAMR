@@ -420,6 +420,9 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
         plog << "Smallest det: " << d_min_det << "\n";
     }
 
+    // If necessary, output the conformation tensor.
+    setupPlotConformationTensor(d_C_scratch_idx);
+
     // Convert conformation tensor to stress tensor
     d_cf_strategy->computeStress(d_C_scratch_idx, d_C_cc_var, hierarchy, data_time);
 
@@ -803,25 +806,17 @@ CFINSForcing::exponentiateMatrix(const int data_idx,
 } // exponentiateMatrix
 
 void
-CFINSForcing::setupPlotVariables(const int C_cc_idx)
+CFINSForcing::setupPlotConformationTensor(const int C_cc_idx)
 {
+    if (!d_conform_draw) return;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        setupPlotVariablesOnPatchLevel(C_cc_idx, level);
-    }
-}
-
-void
-CFINSForcing::setupPlotVariablesOnPatchLevel(const int C_cc_idx, Pointer<PatchLevel<NDIM> > level)
-{
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-    {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(C_cc_idx);
-        // If we are drawing the conformation tensor, copy it.
-        if (d_conform_draw)
+        if (!level->checkAllocated(d_conform_idx_draw)) level->allocatePatchData(d_conform_idx_draw);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(C_cc_idx);
             Pointer<CellData<NDIM, double> > conform_data_draw = patch->getPatchData(d_conform_idx_draw);
 #if (NDIM == 2)
             conform_data_draw->copyDepth(0, *C_data, 0);
