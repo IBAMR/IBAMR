@@ -135,19 +135,17 @@ FeedbackForcer::setDataOnPatch(const int data_idx,
                     {
                         X[d] = x_lower[d] + dx[d] * (double(i(d) - patch_box.lower(d)) + (d == component ? 0.0 : 0.5));
                     }
+                    double r_sq = 0.0;
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        if (d != axis) r_sq += pow(X[d] - 0.5 * d_H, 2.0);
+                    }
+                    const double r = sqrt(r_sq);
                     double fac;
                     if (component == axis)
                     {
-                        const double H = d_H;
-                        const double D = d_D;
-                        if ((X[1] > 0.5 * H - 0.5 * D) && (X[1] < 0.5 * H + 0.5 * D))
-                        {
-                            fac = 0.0;
-                        }
-                        else
-                        {
-                            fac = 1.0;
-                        }
+
+                            fac = (r <= 0.5 * d_D) ? 0.0 : 1.0;   
                     }
                     else
                     {
