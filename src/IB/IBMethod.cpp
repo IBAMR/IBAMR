@@ -1712,6 +1712,8 @@ IBMethod::convertTimeEnumToDouble(TimePoint time_pt)
         return d_half_time;
     case TimePoint::NEW_TIME:
         return d_new_time;
+    default:
+        return std::numeric_limits<double>::quiet_NaN();
     }
     return std::numeric_limits<double>::quiet_NaN();
 }
