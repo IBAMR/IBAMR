@@ -28,6 +28,7 @@
 
 #include "ibtk/LInitStrategy.h"
 #include "ibtk/LSiloDataWriter.h"
+#include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "GriddingAlgorithm.h"
@@ -445,10 +446,46 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
+     * \brief Convert the enum TimePoint to it respective value.
+     *
+     * If TimePoint is not one of CURRENT_TIME, HALF_TIME, or NEW_TIME, this returns NaN.
+     */
+    double convertTimeEnumToDouble(IBTK::TimePoint time_pt);
+
+    /*!
+     * \brief Get the structure position data at the specified time point.
+     *
+     * The time point should be one of CURRENT_TIME, HALF_TIME, or NEW_TIME. If this condition is met, X_data is set
+     * to the data at that respective time, otherwise the X_data pointers are unchanged.
+     */
+    void getPositionData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** X_data,
+                         bool** X_needs_ghost_fill,
+                         IBTK::TimePoint time_pt);
+
+    /*!
+     * \brief Get the current structure velocity data at the specified time point.
+     *
+     * The time point should be one of CURRENT_TIME, HALF_TIME, or NEW_TIME. If this condition is met, U_data is set
+     * to the data at that respective time, otherwise the U_data pointers are unchanged.
+     */
+    void getVelocityData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** U_data, IBTK::TimePoint time_pt);
+
+    /*!
+     * \brief Get the current structure force data at the specified time point.
+     *
+     * The time point should be one of CURRENT_TIME, HALF_TIME, or NEW_TIME. If this condition is met, F_data is set
+     * to the data at that respective time, otherwise the F_data pointers are unchanged.
+     */
+    void getForceData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** F_data,
+                      bool** F_needs_ghost_fill,
+                      IBTK::TimePoint time_pt);
+
+protected:
+    /*!
      * Get the current structure position data.
      *
      * data_time must be equal to one of current time, new time, or half time. If this condition is met, X_data is set
-     * to the data at that respective time, otherwise the X_data is unchanged.
+     * to the data at that respective time, otherwise the X_data pointers are unchanged.
      */
     void getPositionData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** X_data,
                          bool** X_needs_ghost_fill,
@@ -478,7 +515,7 @@ public:
      * Get the current structure velocity data.
      *
      * data_time must be equal to one of current time, new time, or half time. If this condition is met, U_data is set
-     * to the data at that respective time, otherwise the U_data is unchanged.
+     * to the data at that respective time, otherwise the U_data pointers are unchanged.
      */
     void getVelocityData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** U_data, double data_time);
 
@@ -493,7 +530,7 @@ public:
      * Get the current structure force data.
      *
      * data_time must be equal to one of current time, new time, or half time. If this condition is met, F_data is set
-     * to the data at that respective time, otherwise the F_data is unchanged.
+     * to the data at that respective time, otherwise the F_data pointers are unchanged.
      */
     void getForceData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** F_data,
                       bool** F_needs_ghost_fill,
@@ -506,7 +543,6 @@ public:
      */
     void getLinearizedForceData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** F_data, bool** F_needs_ghost_fill);
 
-protected:
     /*!
      * Interpolate the current and new data to obtain values at the midpoint of
      * the time interval.

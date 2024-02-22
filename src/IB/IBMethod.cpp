@@ -1701,6 +1701,42 @@ IBMethod::putToDatabase(Pointer<Database> db)
     return;
 } // putToDatabase
 
+double
+IBMethod::convertTimeEnumToDouble(TimePoint time_pt)
+{
+    switch (time_pt)
+    {
+    case TimePoint::CURRENT_TIME:
+        return d_current_time;
+    case TimePoint::HALF_TIME:
+        return d_half_time;
+    case TimePoint::NEW_TIME:
+        return d_new_time;
+    }
+    return std::numeric_limits<double>::quiet_NaN();
+}
+
+void
+IBMethod::getPositionData(std::vector<Pointer<LData> >** X_data, bool** X_needs_ghost_fill, TimePoint time_pt)
+{
+    double time = convertTimeEnumToDouble(time_pt);
+    getPositionData(X_data, X_needs_ghost_fill, time);
+}
+
+void
+IBMethod::getVelocityData(std::vector<Pointer<LData> >** U_data, TimePoint time_pt)
+{
+    double time = convertTimeEnumToDouble(time_pt);
+    getVelocityData(U_data, time);
+}
+
+void
+IBMethod::getForceData(std::vector<Pointer<LData> >** F_data, bool** F_needs_ghost_fill, TimePoint time_pt)
+{
+    double time = convertTimeEnumToDouble(time_pt);
+    getPositionData(F_data, F_needs_ghost_fill, time);
+}
+
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void

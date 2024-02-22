@@ -207,6 +207,34 @@ enum_to_string<NodeOutsidePatchCheckType>(NodeOutsidePatchCheckType val)
     return "UNKNOWN_NODE_OUTSIDE_PATCH_CHECK_TYPE";
 } // enum_to_string
 
+enum class TimePoint
+{
+    CURRENT_TIME,
+    HALF_TIME,
+    NEW_TIME,
+    UNKNOWN_TIME
+};
+
+template <>
+inline TimePoint
+string_to_enum<TimePoint>(const std::string& val)
+{
+    if (strcasecmp(val.c_str(), "CURRENT_TIME") == 0) return TimePoint::CURRENT_TIME;
+    if (strcasecmp(val.c_str(), "HALF_TIME") == 0) return TimePoint::HALF_TIME;
+    if (strcasecmp(val.c_str(), "NEW_TIME") == 0) return TimePoint::NEW_TIME;
+    return TimePoint::UNKNOWN_TIME;
+}
+
+template <>
+inline std::string
+enum_to_string<TimePoint>(TimePoint val)
+{
+    if (val == TimePoint::CURRENT_TIME) return "CURRENT_TIME";
+    if (val == TimePoint::HALF_TIME) return "HALF_TIME";
+    if (val == TimePoint::NEW_TIME) return "NEW_TIME";
+    return "UNKNOWN_TIME_POINT";
+}
+
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
