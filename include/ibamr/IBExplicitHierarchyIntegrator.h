@@ -94,12 +94,6 @@ public:
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
-     * Synchronously advance each level in the hierarchy over the given time
-     * increment.
-     */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override;
-
-    /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
     void postprocessIntegrateHierarchy(double current_time,
@@ -119,6 +113,11 @@ public:
     void
     initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+
+    /*!
+     * Get the global number of markers.
+     */
+    std::size_t getNumberOfMarkers() const;
 
     /*!
      * Set the marker points stored by this class. This call is collective and
@@ -141,6 +140,12 @@ public:
                                      const bool save_velocites = true) const;
 
 protected:
+    /*!
+     * Synchronously advance each level in the hierarchy over the given time
+     * increment.
+     */
+    void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
+
     /*!
      * Perform necessary data movement, workload estimation, and logging prior
      * to regridding.

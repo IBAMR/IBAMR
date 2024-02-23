@@ -313,10 +313,10 @@ public:
         }
         else
         {
-            return std::find_if(d_map.begin(),
-                                d_map.end(),
-                                [&](const std::pair<libMesh::subdomain_id_type, int>& pair)
-                                { return pair.second == level_number; }) != d_map.end();
+            return std::find_if(
+                       d_map.begin(), d_map.end(), [&](const std::pair<libMesh::subdomain_id_type, int>& pair) {
+                           return pair.second == level_number;
+                       }) != d_map.end();
         }
     }
 

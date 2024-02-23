@@ -13,6 +13,7 @@ BETA = 1.0
 DELTA = 1.0
 
 ComplexFluid {
+   viscosity = 0.0
    lambda_d = LAMBDA_D
    lambda_R = LAMBDA_R
    beta = BETA

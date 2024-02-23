@@ -151,11 +151,10 @@ fill_snapshot_at_time(SnapshotCache& cache,
     // Determine the correct snapshot index
     double snapshot_time_low = 0.0, snapshot_time_up = 0.0;
     double t_low = 0.0, t_up = 0.0;
-    auto it_up =
-        std::upper_bound(cache.begin(),
-                         cache.end(),
-                         time,
-                         [](const double a, const SnapshotCache::value_type& b) -> bool { return a < b.first; });
+    auto it_up = std::upper_bound(
+        cache.begin(), cache.end(), time, [](const double a, const SnapshotCache::value_type& b) -> bool {
+            return a < b.first;
+        });
     if (period == period && it_up == cache.end())
     {
         // Snapshot is storing periodic values, and the time value is between the last element and the first.

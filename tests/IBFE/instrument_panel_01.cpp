@@ -416,8 +416,7 @@ main(int argc, char** argv)
             visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
         }
 
-        auto do_instrument_panel = [&](const int data_time)
-        {
+        auto do_instrument_panel = [&](const int data_time) {
             // reallocate in case we regridded
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
             hier_math_ops.setPatchHierarchy(patch_hierarchy);

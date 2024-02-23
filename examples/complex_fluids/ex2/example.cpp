@@ -100,6 +100,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
                       Pointer<CFINSForcing> polymericStressForcing,
+                      double viscosity,
+                      double relaxation_time,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
                       const int iteration_num,
@@ -360,6 +362,7 @@ main(int argc, char* argv[])
         // Generate the extra stress component and set up necessary components. The constructor registers the extra
         // stress with the advection diffusion integrator.
         Pointer<CFINSForcing> polymericStressForcing;
+        double viscosity = 0.0, relaxation_time = 0.0;
         if (input_db->keyExists("ComplexFluid"))
         {
             polymericStressForcing = new CFINSForcing("PolymericStressForcing",
@@ -369,6 +372,8 @@ main(int argc, char* argv[])
                                                       adv_diff_integrator,
                                                       visit_data_writer);
             time_integrator->registerBodyForceFunction(polymericStressForcing);
+            viscosity = input_db->getDatabase("ComplexFluid")->getDouble("viscosity");
+            relaxation_time = input_db->getDatabase("ComplexFluid")->getDouble("relaxation_time");
         }
 
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
@@ -470,6 +475,8 @@ main(int argc, char* argv[])
                                  navier_stokes_integrator,
                                  adv_diff_integrator,
                                  polymericStressForcing,
+                                 viscosity,
+                                 relaxation_time,
                                  mesh,
                                  equation_systems,
                                  iteration_num,
@@ -497,6 +504,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
                  Pointer<CFINSForcing> polymericStressForcing,
+                 const double viscosity,
+                 const double relaxation_time,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
                  const int iteration_num,
@@ -652,7 +661,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             yp = 0.0;
             X[0] = xp;
             X[1] = yp;
-            sxx = polymericStressForcing->getViscosity() / polymericStressForcing->getRelaxationTime() *
+            sxx = viscosity / relaxation_time *
                   (IBTK::InterpolationUtilities::interpolate(
                        X,
                        polymericStressForcing->getVariableIdx(),
@@ -671,7 +680,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             yp = std::sin(M_PI * i / num_pts);
             X[0] = xp;
             X[1] = yp;
-            sxx = polymericStressForcing->getViscosity() / polymericStressForcing->getRelaxationTime() *
+            sxx = viscosity / relaxation_time *
                   (IBTK::InterpolationUtilities::interpolate(
                        X,
                        polymericStressForcing->getVariableIdx(),
@@ -689,7 +698,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             yp = 0.0;
             X[0] = xp;
             X[1] = yp;
-            sxx = polymericStressForcing->getViscosity() / polymericStressForcing->getRelaxationTime() *
+            sxx = viscosity / relaxation_time *
                   (IBTK::InterpolationUtilities::interpolate(
                        X,
                        polymericStressForcing->getVariableIdx(),

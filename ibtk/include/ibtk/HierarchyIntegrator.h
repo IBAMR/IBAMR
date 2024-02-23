@@ -409,14 +409,10 @@ public:
     virtual void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
-     * Pure virtual method to advance data from current_time to new_time.
-     *
-     * Implementations of this virtual function are not required to synchronize
-     * data on the patch hierarchy.  Data synchronization may be done
-     * (optionally) in a specialization of the public virtual member function
-     * postprocessIntegrateHierarchy().
+     * Advance data from current_time to new_time. The current implementation calls
+     * doIntegrateHierarchy() followed by executeIntegrateHierarchyCallbackFcns().
      */
-    virtual void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) = 0;
+    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
 
     /*!
      * Method to skip a cycle of the time integration scheme (e.g. for cases in
@@ -697,6 +693,21 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
+    /*!
+     * Pure virtual function that integrates the hierarchy from current_time to new_time.
+     *
+     * Implementations of this virtual function are not required to synchronize
+     * data on the patch hierarchy.  Data synchronization may be done
+     * (optionally) in a specialization of the public virtual member function
+     * postprocessIntegrateHierarchy().
+     *
+     * This function is called by integrateHierarchy() prior to the execution of callbacks.
+     *
+     * @note Inheriting classes should call their base class versions of this
+     * method.
+     */
+    virtual void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) = 0;
+
     /*!
      * Perform any necessary work relevant to data owned by the current
      * integrator prior to regridding (e.g., calculating divergences). An

@@ -1239,12 +1239,11 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
 } // preprocessIntegrateHierarchy
 
 void
-INSStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                    const double new_time,
-                                                    const int cycle_num)
+INSStaggeredHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                               const double new_time,
+                                                               const int cycle_num)
 {
-    INSHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-
+    INSHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     // Check to make sure that the number of cycles is what we expect it to be.
     const int expected_num_cycles = getNumberOfCycles();
     if (d_current_num_cycles != expected_num_cycles)

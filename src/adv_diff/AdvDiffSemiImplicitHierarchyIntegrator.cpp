@@ -651,11 +651,11 @@ AdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
 } // preprocessIntegrateHierarchy
 
 void
-AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                           const double new_time,
-                                                           const int cycle_num)
+AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                                      const double new_time,
+                                                                      const int cycle_num)
 {
-    AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    AdvDiffHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -907,8 +907,6 @@ AdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_
         }
     }
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 

@@ -156,9 +156,11 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
 } // preprocessIntegrateHierarchy
 
 void
-IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                             const double new_time,
+                                                             const int cycle_num)
 {
-    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    IBHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
@@ -357,8 +359,6 @@ IBExplicitHierarchyIntegrator::integrateHierarchy(const double current_time, con
                                              half_time);
     }
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 
@@ -370,8 +370,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
 {
     auto ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(d_u_var, d_hierarchy, true);
 
-    auto velocity_ghost_update = [&](const std::vector<int>& indices)
-    {
+    auto velocity_ghost_update = [&](const std::vector<int>& indices) {
         using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<ITC> ghostfills;
         for (const int& idx : indices)
@@ -483,13 +482,22 @@ IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierar
     return;
 } // initializeHierarchyIntegrator
 
+std::size_t
+IBExplicitHierarchyIntegrator::getNumberOfMarkers() const
+{
+    if (d_markers)
+        return d_markers->getNumberOfMarkers();
+    else
+        return 0u;
+}
+
 void
 IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>& markers)
 {
     if (d_marker_kernel.size() == 0)
     {
         TBOX_ERROR(d_object_name << "::setMarkers():\n To use marker points the IB kernel must be specified in "
-                                    "the input database via IB_kernel_fcn.");
+                                    "the input database via IB_delta_fcn.");
     }
     if (!d_hierarchy)
     {
@@ -510,11 +518,15 @@ IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>&
     IBTK::Vector v;
     v.fill(0.0);
     std::fill(velocities.begin(), velocities.end(), v);
-    // explicitly destroy the present markers (should they exist) since the
-    // new one will have the same name. This is necessary because otherwise we
-    // would have two objects with the same name in the restart database.
-    d_markers.setNull();
-    d_markers = new MarkerPatchHierarchy(d_object_name + "::markers", d_hierarchy, markers, velocities);
+
+    if (d_markers)
+    {
+        d_markers->reinit(markers, velocities);
+    }
+    else
+    {
+        d_markers = new MarkerPatchHierarchy(d_object_name + "::markers", d_hierarchy, markers, velocities);
+    }
     d_marker_velocities_set = false;
 } // setMarkers
 
@@ -610,6 +622,12 @@ IBExplicitHierarchyIntegrator::getFromRestart()
     if (ver != IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION)
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
+    }
+
+    if (db->isDatabase(d_object_name + "::markers"))
+    {
+        // MarkerPatchHierarchy will access the restart database itself
+        d_markers = new MarkerPatchHierarchy(d_object_name + "::markers", d_hierarchy, {}, {});
     }
 
     return;

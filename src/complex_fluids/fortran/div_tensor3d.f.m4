@@ -26,7 +26,7 @@ c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine div_tensor_c_to_s_3d(dx, d_data_0, d_data_1, d_data_2,
      &        d_gcw, s_data, s_gcw, ilower0, iupper0,
-     &        ilower1,  iupper1, ilower2, iupper2, alpha)
+     &        ilower1,  iupper1, ilower2, iupper2)
       implicit none
 c     INPUTS
       INTEGER ilower0,  iupper0
@@ -34,7 +34,6 @@ c     INPUTS
       INTEGER iupper2, ilower2
       INTEGER s_gcw,  d_gcw
 
-      REAL alpha
 c     RETURNS
       REAL d_data_0(SIDE3d0(ilower,iupper,d_gcw))
       REAL d_data_1(SIDE3d1(ilower,iupper,d_gcw))
@@ -48,15 +47,15 @@ c     TAU DATA
       REAL scale1_x, scale1_y, scale1_z
       REAL scale2_x, scale2_y, scale2_z
 
-      scale0_x = alpha/dx(0)
-      scale0_y = alpha/(dx(1)*4.d0)
-      scale0_z = alpha/(dx(2)*4.d0)
-      scale1_y = alpha/dx(1)
-      scale1_x = alpha/(dx(0)*4.d0)
-      scale1_z = alpha/(dx(2)*4.d0)
-      scale2_z = alpha/dx(2)
-      scale2_x = alpha/(dx(0)*4.d0)
-      scale2_y = alpha/(dx(1)*4.d0)
+      scale0_x = 1.d0/dx(0)
+      scale0_y = 1.d0/(dx(1)*4.d0)
+      scale0_z = 1.d0/(dx(2)*4.d0)
+      scale1_y = 1.d0/dx(1)
+      scale1_x = 1.d0/(dx(0)*4.d0)
+      scale1_z = 1.d0/(dx(2)*4.d0)
+      scale2_z = 1.d0/dx(2)
+      scale2_x = 1.d0/(dx(0)*4.d0)
+      scale2_y = 1.d0/(dx(1)*4.d0)
 
       do i2 = ilower2, iupper2
         do i1 = ilower1, iupper1
@@ -106,7 +105,7 @@ c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine div_tensor_c_to_c_3d(dx, d_data,
      &        d_gcw, s_data, s_gcw, ilower0, iupper0,
-     &        ilower1,  iupper1, ilower2, iupper2, alpha)
+     &        ilower1,  iupper1, ilower2, iupper2)
 
       implicit none
 c     INPUTS
@@ -115,7 +114,6 @@ c     INPUTS
       INTEGER iupper2, ilower2
       INTEGER s_gcw,  d_gcw
 
-      REAL alpha
 c     RETURNS
       REAL d_data(CELL3d(ilower,iupper,d_gcw),0:2)
 c     TAU DATA
@@ -125,9 +123,9 @@ c     TAU DATA
       INTEGER i0, i1, i2
       REAL scale_x, scale_y, scale_z
 
-      scale_x = alpha/(2.d0*dx(0))
-      scale_y = alpha/(2.d0*dx(1))
-      scale_z = alpha/(2.d0*dx(2))
+      scale_x = 1.d0/(2.d0*dx(0))
+      scale_y = 1.d0/(2.d0*dx(1))
+      scale_z = 1.d0/(2.d0*dx(2))
 
       do i2 = ilower2, iupper2
         do i1 = ilower1, iupper1

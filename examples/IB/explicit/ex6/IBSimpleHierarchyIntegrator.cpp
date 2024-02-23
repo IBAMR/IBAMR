@@ -80,10 +80,10 @@ IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 } // preprocessIntegrateHierarchy
 
 void
-IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                           const double new_time,
+                                                           const int /*cycle_num*/)
 {
-    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
     const double dt = new_time - current_time;

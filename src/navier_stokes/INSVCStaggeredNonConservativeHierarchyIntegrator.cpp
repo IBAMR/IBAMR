@@ -551,12 +551,11 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
 } // preprocessIntegrateHierarchy
 
 void
-INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                                     const double new_time,
-                                                                     const int cycle_num)
+INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                                                const double new_time,
+                                                                                const int cycle_num)
 {
-    INSVCStaggeredHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-
+    INSVCStaggeredHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     // Get the coarsest and finest level numbers.
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -843,8 +842,6 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::integrateHierarchy(const doubl
         }
     }
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 

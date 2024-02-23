@@ -171,7 +171,7 @@ namespace IBTK
  *
  * \see LMesh, LNode, LData
  */
-class LDataManager : public SAMRAI::tbox::Serializable, public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>
+class LDataManager : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>, public SAMRAI::tbox::Serializable
 {
 public:
     /*!

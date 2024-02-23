@@ -111,6 +111,16 @@ IBTK_ENABLE_EXTRA_WARNINGS
     IBTK_FC_FUNC_(lagrangian_composite_bspline_43_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_43_INTERP2D)
 #define LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD_FC                                                                      \
     IBTK_FC_FUNC_(lagrangian_composite_bspline_43_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD2D)
+
+#define LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_composite_bspline_54_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP2D)
+#define LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_composite_bspline_54_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD2D)
+
+#define LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_composite_bspline_65_interp2d, LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP2D)
+#define LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_composite_bspline_65_spread2d, LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD2D)
 #endif
 
 #if (NDIM == 3)
@@ -170,6 +180,16 @@ IBTK_ENABLE_EXTRA_WARNINGS
     IBTK_FC_FUNC_(lagrangian_composite_bspline_43_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_43_INTERP3D)
 #define LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD_FC                                                                      \
     IBTK_FC_FUNC_(lagrangian_composite_bspline_43_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD3D)
+
+#define LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_composite_bspline_54_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP3D)
+#define LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_composite_bspline_54_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD3D)
+
+#define LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_composite_bspline_65_interp3d, LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP3D)
+#define LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD_FC                                                                      \
+    IBTK_FC_FUNC_(lagrangian_composite_bspline_65_spread3d, LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD3D)
 #endif
 
 extern "C"
@@ -1079,6 +1099,130 @@ extern "C"
                                                    const int&,
 #endif
                                                    double*);
+
+    void LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP_FC(const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+#if (NDIM == 2)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+#if (NDIM == 3)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+                                                   const double*,
+                                                   const int*,
+                                                   const double*,
+                                                   const int&,
+                                                   const double*,
+                                                   double*);
+
+    void LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD_FC(const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+                                                   const int*,
+                                                   const double*,
+                                                   const int&,
+                                                   const double*,
+                                                   const double*,
+#if (NDIM == 2)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+#if (NDIM == 3)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+                                                   double*);
+
+    void LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP_FC(const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+#if (NDIM == 2)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+#if (NDIM == 3)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+                                                   const double*,
+                                                   const int*,
+                                                   const double*,
+                                                   const int&,
+                                                   const double*,
+                                                   double*);
+
+    void LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD_FC(const double*,
+                                                   const double*,
+                                                   const double*,
+                                                   const int&,
+                                                   const int&,
+                                                   const int*,
+                                                   const double*,
+                                                   const int&,
+                                                   const double*,
+                                                   const double*,
+#if (NDIM == 2)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+#if (NDIM == 3)
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+                                                   const int&,
+#endif
+                                                   double*);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -1467,6 +1611,8 @@ enum KernelType
     BSPLINE_6,
     COMPOSITE_BSPLINE_32,
     COMPOSITE_BSPLINE_43,
+    COMPOSITE_BSPLINE_54,
+    COMPOSITE_BSPLINE_65,
     DISCONTINUOUS_LINEAR,
     PIECEWISE_CONSTANT,
     PIECEWISE_LINEAR,
@@ -1522,6 +1668,10 @@ string_to_kernel(const std::string& kernel_fcn)
             return COMPOSITE_BSPLINE_32;
         case '3':
             return COMPOSITE_BSPLINE_43;
+        case '4':
+            return COMPOSITE_BSPLINE_54;
+        case '5':
+            return COMPOSITE_BSPLINE_65;
         }
         break;
     }
@@ -1594,6 +1744,7 @@ LEInteractor::isKnownKernel(const std::string& kernel_fcn)
 {
     return kernel_fcn == "BSPLINE_3" || kernel_fcn == "BSPLINE_4" || kernel_fcn == "BSPLINE_5" ||
            kernel_fcn == "BSPLINE_6" || kernel_fcn == "COMPOSITE_BSPLINE_32" || kernel_fcn == "COMPOSITE_BSPLINE_43" ||
+           kernel_fcn == "COMPOSITE_BSPLINE_54" || kernel_fcn == "COMPOSITE_BSPLINE_65" ||
            kernel_fcn == "DISCONTINUOUS_LINEAR" || kernel_fcn == "PIECEWISE_CONSTANT" ||
            kernel_fcn == "PIECEWISE_LINEAR" || kernel_fcn == "PIECEWISE_CUBIC" || kernel_fcn == "IB_3" ||
            kernel_fcn == "IB_4" || kernel_fcn == "IB_4_W8" || kernel_fcn == "IB_5" || kernel_fcn == "IB_6" ||
@@ -1617,6 +1768,10 @@ LEInteractor::getStencilSize(const std::string& kernel_fcn)
         return 4;
     case COMPOSITE_BSPLINE_43:
         return 4;
+    case COMPOSITE_BSPLINE_54:
+        return 5;
+    case COMPOSITE_BSPLINE_65:
+        return 6;
     case DISCONTINUOUS_LINEAR:
         return 2;
     case PIECEWISE_CONSTANT:
@@ -4506,6 +4661,74 @@ LEInteractor::interpolate(double* const Q_data,
                                                   Q_data);
         break;
     }
+    case COMPOSITE_BSPLINE_54:
+    {
+        LAGRANGIAN_COMPOSITE_BSPLINE_54_INTERP_FC(dx,
+                                                  x_lower,
+                                                  x_upper,
+                                                  q_depth,
+                                                  axis,
+#if (NDIM == 2)
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+#endif
+#if (NDIM == 3)
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  ilower(2),
+                                                  iupper(2),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+                                                  q_gcw(2),
+#endif
+                                                  q_data,
+                                                  &local_indices[0],
+                                                  &periodic_shifts[0],
+                                                  local_indices_size,
+                                                  X_data,
+                                                  Q_data);
+        break;
+    }
+    case COMPOSITE_BSPLINE_65:
+    {
+        LAGRANGIAN_COMPOSITE_BSPLINE_65_INTERP_FC(dx,
+                                                  x_lower,
+                                                  x_upper,
+                                                  q_depth,
+                                                  axis,
+#if (NDIM == 2)
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+#endif
+#if (NDIM == 3)
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  ilower(2),
+                                                  iupper(2),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+                                                  q_gcw(2),
+#endif
+                                                  q_data,
+                                                  &local_indices[0],
+                                                  &periodic_shifts[0],
+                                                  local_indices_size,
+                                                  X_data,
+                                                  Q_data);
+        break;
+    }
     case USER_DEFINED:
     {
         userDefinedInterpolate(Q_data,
@@ -5039,6 +5262,76 @@ LEInteractor::spread(double* const q_data,
     case COMPOSITE_BSPLINE_43:
     {
         LAGRANGIAN_COMPOSITE_BSPLINE_43_SPREAD_FC(dx,
+                                                  x_lower,
+                                                  x_upper,
+                                                  q_depth,
+                                                  axis,
+                                                  &local_indices[0],
+                                                  &periodic_shifts[0],
+                                                  local_indices_size,
+                                                  X_data,
+                                                  Q_data,
+#if (NDIM == 2)
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+#endif
+#if (NDIM == 3)
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  ilower(2),
+                                                  iupper(2),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+                                                  q_gcw(2),
+#endif
+                                                  q_data);
+
+        break;
+    }
+    case COMPOSITE_BSPLINE_54:
+    {
+        LAGRANGIAN_COMPOSITE_BSPLINE_54_SPREAD_FC(dx,
+                                                  x_lower,
+                                                  x_upper,
+                                                  q_depth,
+                                                  axis,
+                                                  &local_indices[0],
+                                                  &periodic_shifts[0],
+                                                  local_indices_size,
+                                                  X_data,
+                                                  Q_data,
+#if (NDIM == 2)
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+#endif
+#if (NDIM == 3)
+                                                  ilower(0),
+                                                  iupper(0),
+                                                  ilower(1),
+                                                  iupper(1),
+                                                  ilower(2),
+                                                  iupper(2),
+                                                  q_gcw(0),
+                                                  q_gcw(1),
+                                                  q_gcw(2),
+#endif
+                                                  q_data);
+
+        break;
+    }
+    case COMPOSITE_BSPLINE_65:
+    {
+        LAGRANGIAN_COMPOSITE_BSPLINE_65_SPREAD_FC(dx,
                                                   x_lower,
                                                   x_upper,
                                                   q_depth,

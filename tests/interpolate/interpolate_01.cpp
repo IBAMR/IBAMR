@@ -207,7 +207,7 @@ main(int argc, char** argv)
                         // the ultra-wide kernels have a lot of trouble with
                         // roundoff that is evident at different optimization
                         // settings
-                        const double tol = interp_fcn == "BSPLINE_6" ? 1e-10 : 1e-12;
+                        const double tol = LEInteractor::getStencilSize(interp_fcn) > 4 ? 1e-10 : 1e-12;
                         const double error = std::abs(Q_data[point_n * NDIM + d] - exact);
                         if (error > tol)
                         {

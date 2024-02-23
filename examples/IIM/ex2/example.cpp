@@ -61,10 +61,11 @@ static double yi = 0.0;
 static double yo = 0.0;
 static double U_MAX = 0.0;
 static double zo = 0.0;
+static double dx = 0.0;
 void
 tether_body_force_function_thin(VectorValue<double>& F,
                                 const VectorValue<double>& n,
-                                const VectorValue<double>& /*N*/,
+                                const VectorValue<double>& N,
                                 const TensorValue<double>& /*FF*/,
                                 const libMesh::Point& x,
                                 const libMesh::Point& X,
@@ -78,18 +79,20 @@ tether_body_force_function_thin(VectorValue<double>& F,
     const std::vector<double>& U = *var_data[0];
 
     double u_bndry_n = 0.0;
-    double x_kappa_n = 0.0;
+    double disp = 0.0;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        x_kappa_n += n(d) * kappa_s_thin * (X(d) - x(d));
+        disp += (X(d) - x(d)) * (X(d) - x(d));
         u_bndry_n += n(d) * U[d];
     }
+    disp = sqrt(disp);
+    TBOX_ASSERT(disp < 4.0 * dx);
 
     // The tether force is proportional to the mismatch between the positions
     // and velocities.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        F(d) = kappa_s_thin * (X(d) - x(d)) - eta_s_thin * (0.0 - u_bndry_n * n(d));
+        F(d) = kappa_s_thin * (X(d) - x(d)) + eta_s_thin * (0.0 - u_bndry_n * n(d));
     }
     return;
 }
@@ -155,6 +158,8 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
+    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-8");
+    PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-8");
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -186,6 +191,7 @@ main(int argc, char* argv[])
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
+        const bool USE_TANGENTIAL_TREATMENT =  input_db->getBoolWithDefault("USE_TANGENTIAL_TREATMENT", false);
         // Create FE mesh.
         D = input_db->getDouble("D");              // channel height (cm)
         L = input_db->getDouble("L");              // channel length (cm)
@@ -197,7 +203,7 @@ main(int argc, char* argv[])
         yi = input_db->getDouble("Yi");
         zi = input_db->getDouble("Zi");
         U_MAX = input_db->getDouble("U_MAX");
-        const double dx = input_db->getDouble("DX");
+        dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         MU = input_db->getDouble("MU");
         theta = input_db->getDouble("THETA");
@@ -313,6 +319,8 @@ main(int argc, char* argv[])
 
         //~ ib_method_ops->registerLagBodyForceFunction(tether_body_force_data, 0);
         ib_method_ops->registerLagSurfaceForceFunction(tether_body_force_thin_data, 0);
+        if (USE_TANGENTIAL_TREATMENT)
+           ib_method_ops->registerTangentialVelocityMotion(0);
         ib_method_ops->initializeFEEquationSystems();
 
         // Create Eulerian initial condition specification objects.
@@ -478,13 +486,13 @@ main(int argc, char* argv[])
             }
             pout << "\nWriting state data...\n\n";
 
-            postprocess_data(patch_hierarchy,
-                             navier_stokes_integrator,
-                             cylinder_mesh_thin,
-                             equation_systems_thin,
-                             iteration_num,
-                             loop_time,
-                             postproc_data_dump_dirname);
+            //~ postprocess_data(patch_hierarchy,
+                             //~ navier_stokes_integrator,
+                             //~ cylinder_mesh_thin,
+                             //~ equation_systems_thin,
+                             //~ iteration_num,
+                             //~ loop_time,
+                             //~ postproc_data_dump_dirname);
         }
 
         // Determine the accuracy of the computed solution.

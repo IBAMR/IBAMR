@@ -514,11 +514,11 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
 } // preprocessIntegrateHierarchy
 
 void
-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                                   const double new_time,
-                                                                   const int cycle_num)
+BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                                              const double new_time,
+                                                                              const int cycle_num)
 {
-    AdvDiffHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    AdvDiffHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -695,9 +695,9 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double 
                 break;
             default:
                 TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
-                                        << "  unsupported diffusion time stepping type: "
-                                        << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
-                                        << "  valid choices are: BACKWARD_EULER, "
+                                         << "  unsupported diffusion time stepping type: "
+                                         << enum_to_string<TimeSteppingType>(diffusion_time_stepping_type) << " \n"
+                                         << "  valid choices are: BACKWARD_EULER, "
                                             "FORWARD_EULER, TRAPEZOIDAL_RULE\n");
             }
             PoissonSpecifications solver_spec(d_object_name + "::solver_spec::" + Q_var->getName());
@@ -723,7 +723,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double 
                 const double kappa = d_Q_diffusion_coef[Q_var];
                 solver_spec.setDConstant(-K * kappa);
             }
-            
+
             // Initialize the linear solver.
             Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
             helmholtz_solver->setPoissonSpecifications(solver_spec);
@@ -738,7 +738,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double 
                 if (d_enable_logging)
                 {
                     plog << d_object_name << ": "
-                        << "Initializing Helmholtz solvers for variable number " << l << "\n";
+                         << "Initializing Helmholtz solvers for variable number " << l << "\n";
                 }
                 helmholtz_solver->initializeSolverState(*d_sol_vecs[l], *d_rhs_vecs[l]);
                 d_helmholtz_solvers_need_init[l] = false;
@@ -928,8 +928,6 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchy(const double 
         }
     }
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 
