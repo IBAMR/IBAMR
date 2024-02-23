@@ -17,7 +17,7 @@ include $(top_srcdir)/config/Make-rules
 ## Dimension-dependent testers
 EXAMPLE_DRIVER = example.cpp FeedbackForcer.cpp
 
-EXTRA_DIST = input3d
+EXTRA_DIST = input3d input3d.pressurized
 
 EXAMPLES =
 EXTRA_PROGRAMS =

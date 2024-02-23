@@ -462,7 +462,7 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = example.cpp FeedbackForcer.cpp
-EXTRA_DIST = input3d
+EXTRA_DIST = input3d input3d.pressurized
 EXAMPLES = $(am__append_1)
 main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)

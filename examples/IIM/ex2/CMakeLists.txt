@@ -30,4 +30,5 @@ IBAMR_ADD_EXAMPLE(
     IBAMR3d
   INPUT_FILES
     input3d
+    input3d.pressurized
     )
