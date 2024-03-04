@@ -1,0 +1,50 @@
+Testing masking function
+Copied value on index (0,0,0) and axis 0
+Copied value on index (2,0,0) and axis 0
+Copied value on index (0,1,0) and axis 0
+Copied value on index (2,1,0) and axis 0
+Copied value on index (0,0,1) and axis 0
+Copied value on index (2,0,1) and axis 0
+Copied value on index (0,1,1) and axis 0
+Copied value on index (2,1,1) and axis 0
+Copied value on index (0,0,0) and axis 1
+Copied value on index (1,0,0) and axis 1
+Copied value on index (0,2,0) and axis 1
+Copied value on index (1,2,0) and axis 1
+Copied value on index (0,0,1) and axis 1
+Copied value on index (1,0,1) and axis 1
+Copied value on index (0,2,1) and axis 1
+Copied value on index (1,2,1) and axis 1
+Copied value on index (0,0,0) and axis 2
+Copied value on index (1,0,0) and axis 2
+Copied value on index (0,1,0) and axis 2
+Copied value on index (1,1,0) and axis 2
+Copied value on index (0,0,2) and axis 2
+Copied value on index (1,0,2) and axis 2
+Copied value on index (0,1,2) and axis 2
+Copied value on index (1,1,2) and axis 2
+Testing dirichlet boundaries
+Cell (0,0,0) and axis 0 touches boundary
+Cell (2,0,0) and axis 0 touches boundary
+Cell (0,1,0) and axis 0 touches boundary
+Cell (2,1,0) and axis 0 touches boundary
+Cell (0,0,1) and axis 0 touches boundary
+Cell (2,0,1) and axis 0 touches boundary
+Cell (0,1,1) and axis 0 touches boundary
+Cell (2,1,1) and axis 0 touches boundary
+Cell (0,0,0) and axis 1 touches boundary
+Cell (1,0,0) and axis 1 touches boundary
+Cell (0,2,0) and axis 1 touches boundary
+Cell (1,2,0) and axis 1 touches boundary
+Cell (0,0,1) and axis 1 touches boundary
+Cell (1,0,1) and axis 1 touches boundary
+Cell (0,2,1) and axis 1 touches boundary
+Cell (1,2,1) and axis 1 touches boundary
+Cell (0,0,0) and axis 2 touches boundary
+Cell (1,0,0) and axis 2 touches boundary
+Cell (0,1,0) and axis 2 touches boundary
+Cell (1,1,0) and axis 2 touches boundary
+Cell (0,0,2) and axis 2 touches boundary
+Cell (1,0,2) and axis 2 touches boundary
+Cell (0,1,2) and axis 2 touches boundary
+Cell (1,1,2) and axis 2 touches boundary

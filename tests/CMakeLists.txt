@@ -155,6 +155,8 @@ SETUP_3D(navier_stokes stokes_operator.cpp)
 SETUP(physical_boundary extrapolation_01.cpp IBAMR2d)
 SETUP_2D(physical_boundary 01.cpp)
 SETUP_3D(physical_boundary 01.cpp)
+SETUP_2D(physical_boundary staggered_helper.cpp)
+SETUP_3D(physical_boundary staggered_helper.cpp)
 
 # refine:
 SETUP_2D(refine rt0_refine_01.cpp)
