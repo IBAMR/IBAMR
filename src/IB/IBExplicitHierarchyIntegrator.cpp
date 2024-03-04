@@ -370,7 +370,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
 {
     auto ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(d_u_var, d_hierarchy, true);
 
-    auto velocity_ghost_update = [&](const std::vector<int>& indices) {
+    auto velocity_ghost_update = [&](const std::vector<int>& indices)
+    {
         using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<ITC> ghostfills;
         for (const int& idx : indices)

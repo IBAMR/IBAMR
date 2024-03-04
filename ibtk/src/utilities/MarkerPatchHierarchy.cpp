@@ -378,7 +378,8 @@ MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
     unsigned int num_emplaced_markers = 0;
     std::vector<bool> marker_emplaced(positions.size());
 
-    auto insert_markers = [&](MarkerPatch& marker_patch) {
+    auto insert_markers = [&](MarkerPatch& marker_patch)
+    {
         for (unsigned int k = 0; k < positions.size(); ++k)
         {
             if (!marker_emplaced[k] && marker_patch.contains(positions[k]))
@@ -497,7 +498,8 @@ MarkerPatchHierarchy::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database
     TBOX_ASSERT(d_num_markers <= std::numeric_limits<int>::max());
     db->putInteger("num_markers", int(d_num_markers));
 
-    auto put_marker_patch = [&](const MarkerPatch& marker_patch, const std::string& prefix) {
+    auto put_marker_patch = [&](const MarkerPatch& marker_patch, const std::string& prefix)
+    {
         db->putInteger(prefix + "_num_markers", static_cast<int>(marker_patch.d_indices.size()));
         // Yet another SAMRAI bug: we are not allowed to store zero-length
         // arrays in the database so we have to special-case that here ourselves
@@ -556,7 +558,8 @@ MarkerPatchHierarchy::writeH5Part(const std::string& filename,
 
     // Make these files also compatible with SAMRAI by encoding their types
     // in the manner perscribed by HDFDatabase.C
-    auto set_samrai_attribute = [](const hid_t dataset_id, const int type_key) {
+    auto set_samrai_attribute = [](const hid_t dataset_id, const int type_key)
+    {
         const hid_t attribute_id = H5Screate(H5S_SCALAR);
         TBOX_ASSERT(attribute_id >= 0);
         const auto samrai_attribute_type = H5T_STD_I8BE;
@@ -673,7 +676,8 @@ MarkerPatchHierarchy::getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Databa
     d_num_markers = static_cast<std::size_t>(db->getInteger("num_markers"));
 
     int num_loaded_markers = 0;
-    auto get_marker_patch = [&](MarkerPatch& marker_patch, const std::string& prefix) {
+    auto get_marker_patch = [&](MarkerPatch& marker_patch, const std::string& prefix)
+    {
         const auto num_markers = static_cast<std::size_t>(db->getInteger(prefix + "_num_markers"));
         // No arrays are saved if num_markers == 0
         if (num_markers > 0)
@@ -731,7 +735,8 @@ MarkerPatchHierarchy::collectAllMarkers() const
     std::vector<double> local_velocities;
     std::vector<int> local_indices;
 
-    auto extract_markers = [&](const MarkerPatch& marker_patch) {
+    auto extract_markers = [&](const MarkerPatch& marker_patch)
+    {
         for (unsigned int k = 0; k < marker_patch.size(); ++k)
         {
             const auto marker_point = marker_patch[k];
