@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build IBAMR and run tests
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.10.1-bundled-deps'
+      image: 'docker://wellsd2/ibamr:ibamr-0.14-bundled-deps'
     env:
       # For now, hardwire the configuration since we have only one.
       # This is used by ctest_configure.cmake to initialize the
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build IBAMR and run tests (no libMesh)
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.10.1-bundled-deps'
+      image: 'docker://wellsd2/ibamr:ibamr-0.14-bundled-deps'
     env:
       CMAKE_CONFIGURATION: fedora33_no_libmesh
 
@@ -219,7 +219,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build IBAMR (autotools)
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.10.1-bundled-deps'
+      image: 'docker://wellsd2/ibamr:ibamr-0.14-bundled-deps'
     env:
       # Delete old files in the cache (10G, the default limit, is GitHub's limit
       # for all cached artifacts)
@@ -295,7 +295,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build IBAMR and run tests (CENTOS 7)
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.10-oldest-bundled-deps'
+      image: 'docker://wellsd2/ibamr:ibamr-0.14-oldest-bundled-deps'
     env:
       CMAKE_CONFIGURATION: centos7
       CTEST_NO_WARNINGS_ALLOWED: true
@@ -364,7 +364,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build IBAMR with a non-system MPI
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.10-custom-deps'
+      image: 'docker://wellsd2/ibamr:ibamr-0.14-custom-deps'
     env:
       CMAKE_CONFIGURATION: archlinux
       CTEST_NO_WARNINGS_ALLOWED: true
@@ -388,7 +388,6 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          # this is the new default location (specified by XDG_CACHE_HOME)
           path: ~/.cache/ccache
           key: ${{ runner.os }}-build-archlinux-cmake-${{ github.run_number }}
           restore-keys: |
