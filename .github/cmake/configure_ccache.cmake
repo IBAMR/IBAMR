@@ -11,6 +11,6 @@
 ##
 ## ---------------------------------------------------------------------
 
-SET(CMAKE_C_COMPILER_LAUNCHER "sccache" CACHE STRING "Use sccache to compile C code.")
-SET(CMAKE_CXX_COMPILER_LAUNCHER "sccache" CACHE STRING "Use sccache to compile C++ code.")
-SET(CMAKE_Fortran_COMPILER_LAUNCHER "sccache" CACHE STRING "Use sccache to compile Fortran code.")
+SET(CMAKE_C_COMPILER_LAUNCHER "ccache" CACHE STRING "Use ccache to compile C code.")
+SET(CMAKE_CXX_COMPILER_LAUNCHER "ccache" CACHE STRING "Use ccache to compile C++ code.")
+SET(CMAKE_Fortran_COMPILER_LAUNCHER "ccache" CACHE STRING "Use ccache to compile Fortran code.")

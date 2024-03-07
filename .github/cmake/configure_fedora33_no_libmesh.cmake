@@ -15,7 +15,7 @@ SET(CTEST_USE_LAUNCHERS "ON" CACHE STRING "")
 
 SET(IBAMR_ENABLE_TESTING "ON" CACHE BOOL "")
 
-INCLUDE("${CMAKE_CURRENT_LIST_DIR}/configure_sccache.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/configure_ccache.cmake")
 
 SET(CMAKE_C_COMPILER "/usr/lib64/mpich/bin/mpicc" CACHE STRING "C Compiler")
 SET(CMAKE_CXX_COMPILER "/usr/lib64/mpich/bin/mpic++" CACHE STRING "C++ Compiler")

@@ -46,7 +46,7 @@ jobs:
 
       # Delete old files in the cache (10G, the default limit, is GitHub's limit
       # for all cached artifacts)
-      SCCACHE_CACHE_SIZE: 500M
+      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
@@ -60,17 +60,17 @@ jobs:
           echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate sccache
+      - name: Populate ccache
         uses: actions/cache@v3
         env:
-          cache-name: sccache
+          cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/sccache
+          path: ~/.cache/ccache
           # A fundamental problem with the cache is that it is identified by a
           # single key and, should a cache with that key already exist, the
           # cache will not be updated. This makes sense for things like NPM but
-          # not so much for sccache, since we get a new and unique cache each
+          # not so much for ccache, since we get a new and unique cache each
           # time we rebuild the library with a new branch.
           #
           # To get around this, always make the key unique and rely on
@@ -85,9 +85,6 @@ jobs:
             ${{ runner.os }}-build-cmake-libmesh-${{ env.key5 }}
             ${{ runner.os }}-build-cmake-libmesh-
             ${{ runner.os }}-build-cmake
-      - name: Start sccache server
-        id: cache-server
-        run: sccache --start-server
       - name: Configure IBAMR
         id: configure
         run: |
@@ -109,7 +106,7 @@ jobs:
           # Archive doesn't like absolute paths to files so dump everything in ~/
           find /build -name CMakeError.log -exec cp {} ./ \;
           find /build -name CMakeOutput.log -exec cp {} ./ \;
-          sccache --show-stats
+          ccache --show-stats
           exit $configure_status
       - name: Archive CMakeError.log
         if: always()
@@ -128,12 +125,12 @@ jobs:
         run: |
           cd /build/ibamr
           make -j2 tests examples
-          sccache --show-stats
+          ccache --show-stats
       - name: Test IBAMR
         id: test
         run: |
           bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
-          sccache --show-stats
+          ccache --show-stats
 
   # build IBAMR with CMake, no libMesh, and run tests
   build_ibamr_no_libmesh:
@@ -151,8 +148,7 @@ jobs:
 
       # Delete old files in the cache (10G, the default limit, is GitHub's limit
       # for all cached artifacts)
-      SCCACHE_CACHE_SIZE: 500M
-
+      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
@@ -166,13 +162,13 @@ jobs:
           echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate sccache
+      - name: Populate ccache
         uses: actions/cache@v3
         env:
-          cache-name: sccache
+          cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/sccache
+          path: ~/.cache/ccache
           key: ${{ runner.os }}-build-cmake-no-libmesh-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key1 }}
@@ -181,9 +177,6 @@ jobs:
             ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key4 }}
             ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key5 }}
             ${{ runner.os }}-build-cmake-no-libmesh-
-      - name: Start sccache server
-        id: cache-server
-        run: sccache --start-server
       - name: Configure IBAMR
         id: configure
         run: |
@@ -196,13 +189,13 @@ jobs:
           export HDF5_ROOT=$(pwd)/hdf5-shim
           popd
           bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
-          sccache --show-stats
+          ccache --show-stats
       - name: Compile IBAMR
         id: build
         run: |
           cd /build/ibamr
           make -j2 tests
-          sccache --show-stats
+          ccache --show-stats
       - name: Test IBAMR
         id: test
         run: |
@@ -212,7 +205,7 @@ jobs:
         run: |
           cd /build/ibamr
           make -j2 examples
-          sccache --show-stats
+          ccache --show-stats
 
   # build IBAMR with autotools
   build_ibamr_autotools:
@@ -223,7 +216,8 @@ jobs:
     env:
       # Delete old files in the cache (10G, the default limit, is GitHub's limit
       # for all cached artifacts)
-      SCCACHE_CACHE_SIZE: 500M
+      CCACHE_MAXSIZE: 250M
+      CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -236,13 +230,13 @@ jobs:
           echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate sccache
+      - name: Populate ccache
         uses: actions/cache@v3
         env:
-          cache-name: sccache
+          cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/sccache
+          path: ~/.cache/ccache
           # The same note on picking keys above applies here.
           key: ${{ runner.os }}-build-autotools-${{ github.run_number }}
           restore-keys: |
@@ -252,16 +246,13 @@ jobs:
             ${{ runner.os }}-build-autotools-${{ env.key4 }}
             ${{ runner.os }}-build-autotools-${{ env.key5 }}
             ${{ runner.os }}-build-autotools-
-      - name: Start sccache server
-        id: cache-server
-        run: sccache --start-server
       - name: Configure IBAMR (autotools)
         id: configure
         run: |
           source /etc/profile.d/modules.sh
           module load mpi
-          export CC="sccache $(which mpicc)"
-          export CXX="sccache $(which mpic++)"
+          export CC="ccache $(which mpicc)"
+          export CXX="ccache $(which mpic++)"
           # we are just compiling things so go for speed
           export CFLAGS="-O0"
           export CXXFLAGS="-O0"
@@ -270,7 +261,7 @@ jobs:
           cd build
           ../configure PETSC_DIR=/petsc/ --with-samrai=/samrai \
           --enable-libmesh --with-libmesh=/libmesh --with-libmesh-method=opt
-          sccache --show-stats
+          ccache --show-stats
       - name: archive
         if: always()
         uses: actions/upload-artifact@v1
@@ -282,13 +273,13 @@ jobs:
         run: |
           source /etc/profile.d/modules.sh
           module load mpi
-          export CC="sccache $(which mpicc)"
-          export CXX="sccache $(which mpic++)"
+          export CC="ccache $(which mpicc)"
+          export CXX="ccache $(which mpic++)"
           echo "CC=${CC}"
           echo "CXX=${CXX}"
           cd build
           make -j2 tests examples
-          sccache --show-stats
+          ccache --show-stats
 
   # build IBAMR with CMake and run tests with our oldest dependencies on CENTOS 7
   build_ibamr_centos:
@@ -368,7 +359,7 @@ jobs:
     env:
       CMAKE_CONFIGURATION: archlinux
       CTEST_NO_WARNINGS_ALLOWED: true
-      CCACHE_MAXSIZE: 1G
+      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
     steps:
       - name: Checkout Source
