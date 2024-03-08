@@ -104,22 +104,15 @@ jobs:
           # The directory /build/ibamr is hardcoded in cmake/github_ci.cmake
           #
           # Archive doesn't like absolute paths to files so dump everything in ~/
-          find /build -name CMakeError.log -exec cp {} ./ \;
-          find /build -name CMakeOutput.log -exec cp {} ./ \;
+          find /build -name CMakeConfigureLog.yaml -exec cp {} ./ \;
           ccache --show-stats
           exit $configure_status
-      - name: Archive CMakeError.log
+      - name: Archive CMakeConfigureLog.yaml
         if: always()
         uses: actions/upload-artifact@v1
         with:
           name: fedora33-CMakeError.log
-          path: CMakeError.log
-      - name: Archive CMakeOutput.log
-        if: always()
-        uses: actions/upload-artifact@v1
-        with:
-          name: fedora33-CMakeOutput.log
-          path: CMakeOutput.log
+          path: CMakeConfigureLog.yaml
       - name: Compile IBAMR
         id: build
         run: |
