@@ -35,10 +35,6 @@ CTEST_CONFIGURE(
 # Read the files from the build directory.
 CTEST_READ_CUSTOM_FILES("${CTEST_BINARY_DIRECTORY}")
 
-# We can now submit because we've configured. This is idiomatic.
-CTEST_SUBMIT(PARTS Update)
-CTEST_SUBMIT(PARTS Configure)
-
 IF (configure_result)
   MESSAGE(FATAL_ERROR "Failed to configure ${configure_result}")
 ENDIF ()
