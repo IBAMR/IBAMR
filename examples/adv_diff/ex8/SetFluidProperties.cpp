@@ -127,9 +127,6 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const double* const patch_dx = patch_geom->getDx();
-                double vol_cell = 1.0;
-                for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
 
                 const Box<NDIM>& patch_box = patch->getBox();
                 Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
