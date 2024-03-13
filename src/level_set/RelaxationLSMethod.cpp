@@ -952,22 +952,9 @@ RelaxationLSMethod::applyVolumeRedistribution(Pointer<HierarchyMathOps> hier_mat
                 const double grad_phi = (*ham_data)(ci);
                 const double dv = (*wgt_data)(ci);
 
-                double h_prime, h_phi; // smoothed delta and Heaviside functions
-                if (phi < -alpha)
-                {
-                    h_phi = 0.0;
-                    h_prime = 0.0;
-                }
-                else if (std::abs(phi) <= alpha)
-                {
-                    h_phi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
-                    h_prime = 0.5 / alpha + 1.0 / (2.0 * alpha) * std::cos(M_PI * phi / alpha);
-                }
-                else
-                {
-                    h_phi = 1.0;
-                    h_prime = 0.0;
-                }
+                // smoothened delta and Heaviside functions
+                const double h_phi = IBTK::smooth_heaviside(phi, alpha);
+                const double h_prime = IBTK::smooth_delta(phi, alpha);
 
                 (*lambda_data)(ci) = h_phi * (1.0 - h_phi);
 
