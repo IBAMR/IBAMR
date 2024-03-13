@@ -8,7 +8,7 @@ H   = 1.0         // Height of channel
 // grid spacing parameters
 MAX_LEVELS = 1                                // maximum number of levels in locally refined grid
 REF_RATIO  = 4                                // refinement ratio between levels
-N  = 64                                     
+N  = 64
 Nx = 5 * N                  // grid size on the coarsest level in x direction
 Ny = N                      // grid size on the coarsest level in y direction
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N      // effective number of grid cells on finest   grid level
@@ -45,7 +45,7 @@ VelocityInitialConditions {
 U_MAX              = 1.5   // maximum flow speed
 
 VelocityBcCoefs_0 {
-   h = H/2 
+   h = H/2
    u_max = U_MAX
    acoef_function_0 = "1.0"
    acoef_function_1 = "0.0"

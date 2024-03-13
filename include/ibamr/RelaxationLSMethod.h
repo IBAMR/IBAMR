@@ -214,28 +214,6 @@ private:
                                    int dt_idx) const;
 
     /*!
-     * \brief Compute the volume of a region demarcated by a level set variable
-     */
-    double
-    computeRegionVolume(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops, int hs_phi_idx, int phi_idx) const;
-
-    /*!
-     * \brief Apply the volume shift over the hierarchy
-     */
-    void applyVolumeShift(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                          int dist_idx,
-                          int dist_copy_idx,
-                          double dV) const;
-
-    /*!
-     * \brief Apply the volume shift over a patch
-     */
-    void applyVolumeShift(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                          const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_copy_data,
-                          const double dV,
-                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
-
-    /*!
      * Read input values from a given database.
      */
     void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);

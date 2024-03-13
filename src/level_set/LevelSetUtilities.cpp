@@ -18,7 +18,6 @@
 
 #include "ibtk/HierarchyMathOps.h"
 #include "ibtk/IBTK_MPI.h"
-#include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/ibtk_utilities.h"
 
 #include "tbox/Array.h"
@@ -84,7 +83,7 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
     }
 
     std::vector<double> integrals{ vol_phase1, vol_phase2, integral_delta };
-    IBTK_MPI::sumReduction(&integrals[0], 3);
+    IBTK_MPI::sumReduction(&integrals[0], integrals.size());
 
     return integrals;
 } // compute_heaviside_integrals
@@ -142,7 +141,7 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
     }
 
     std::vector<double> integrals{ vol_phase1, vol_phase2, vol_phase3, integral_delta };
-    IBTK_MPI::sumReduction(&integrals[0], 4);
+    IBTK_MPI::sumReduction(&integrals[0], integrals.size());
 
     return integrals;
 } // compute_heaviside_integrals
@@ -151,14 +150,16 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+namespace LevelSetUtilities
+{
 void
-LevelSetUtilities::TagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
-                              const int level_number,
-                              const double /*error_data_time*/,
-                              const int tag_index,
-                              const bool /*initial_time*/,
-                              const bool /*uses_richardson_extrapolation_too*/,
-                              void* ctx)
+tagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+           const int level_number,
+           const double /*error_data_time*/,
+           const int tag_index,
+           const bool /*initial_time*/,
+           const bool /*uses_richardson_extrapolation_too*/,
+           void* ctx)
 {
     TagLSRefinementCells* ls_tagger = static_cast<TagLSRefinementCells*>(ctx);
 
@@ -169,10 +170,12 @@ LevelSetUtilities::TagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
 
+    const LevelSetContainer& ls_container = ls_tagger->getLevelSetContainer();
+
     // Get the level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_idx = var_db->mapVariableAndContextToIndex(
-        ls_tagger->getLevelSetVariable(), ls_tagger->getAdvDiffHierarchyIntegrator()->getCurrentContext());
+        ls_container.getLevelSetVariable(), ls_container.getAdvDiffHierarchyIntegrator()->getCurrentContext());
 
     // Get the tagging criterion
     const double& tag_min_val = ls_tagger->getTagMinValue();
@@ -200,16 +203,15 @@ LevelSetUtilities::TagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     }
 
     return;
-} // TagLSCells
+} // tagLSCells
 
-LevelSetUtilities::LevelSetMassLossFixer::LevelSetMassLossFixer(
-    std::string object_name,
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-    std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars,
-    Pointer<Database> input_db,
-    bool register_for_restart)
-    : LevelSetContainer(adv_diff_integrator, ls_vars),
-      d_object_name(std::move(object_name)),
+LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
+                                             Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                                             std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars,
+                                             Pointer<Database> input_db,
+                                             bool register_for_restart)
+    : d_object_name(std::move(object_name)),
+      d_ls_container(adv_diff_integrator, ls_vars),
       d_registered_for_restart(register_for_restart)
 {
     if (d_registered_for_restart)
@@ -230,7 +232,7 @@ LevelSetUtilities::LevelSetMassLossFixer::LevelSetMassLossFixer(
     return;
 } // LevelSetMassLossFixer
 
-LevelSetUtilities::LevelSetMassLossFixer::~LevelSetMassLossFixer()
+LevelSetMassLossFixer::~LevelSetMassLossFixer()
 {
     if (d_registered_for_restart)
     {
@@ -241,15 +243,16 @@ LevelSetUtilities::LevelSetMassLossFixer::~LevelSetMassLossFixer()
 } // ~LevelSetMassLossFixer
 
 void
-LevelSetUtilities::LevelSetMassLossFixer::putToDatabase(Pointer<Database> db)
+LevelSetMassLossFixer::putToDatabase(Pointer<Database> db)
 {
-    db->putDouble("d_vol_init", d_vol_init);
-    db->putDouble("d_ncells", d_ncells);
-    db->putDouble("d_vol_target", d_vol_target);
+    const LevelSetContainer& ls_container = getLevelSetContainer();
+    db->putDouble("vol_init", d_vol_init);
+    db->putDouble("ncells", ls_container.getInterfaceHalfWidth());
+    db->putDouble("vol_target", d_vol_target);
 } // putToDatabase
 
 void
-LevelSetUtilities::LevelSetMassLossFixer::setInitialVolume(double v0)
+LevelSetMassLossFixer::setInitialVolume(double v0)
 {
     if (RestartManager::getManager()->isFromRestart()) return;
 
@@ -262,12 +265,12 @@ LevelSetUtilities::LevelSetMassLossFixer::setInitialVolume(double v0)
 } // setInitialVolume
 
 void
-LevelSetUtilities::SetLSProperties::setLSData(int ls_idx,
-                                              SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
-                                              const int integrator_step,
-                                              const double current_time,
-                                              const bool initial_time,
-                                              const bool regrid_time)
+SetLSProperties::setLSData(int ls_idx,
+                           SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                           const int integrator_step,
+                           const double current_time,
+                           const bool initial_time,
+                           const bool regrid_time)
 {
     // If at the regrid time, force reinitialization
     d_ls_ops->setReinitializeLSData(regrid_time);
@@ -277,18 +280,18 @@ LevelSetUtilities::SetLSProperties::setLSData(int ls_idx,
 } // setLSData
 
 void
-LevelSetUtilities::fixMassLoss2PhaseFlows(double /*current_time*/,
-                                          double new_time,
-                                          bool /*skip_synchronize_new_state_data*/,
-                                          int /*num_cycles*/,
-                                          void* ctx)
+fixMassLoss2PhaseFlows(double /*current_time*/,
+                       double new_time,
+                       bool /*skip_synchronize_new_state_data*/,
+                       int /*num_cycles*/,
+                       void* ctx)
 {
     LevelSetMassLossFixer* mass_fixer = static_cast<LevelSetMassLossFixer*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(mass_fixer);
 #endif
-
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = mass_fixer->getAdvDiffHierarchyIntegrator();
+    const LevelSetContainer& ls_container = mass_fixer->getLevelSetContainer();
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = ls_container.getAdvDiffHierarchyIntegrator();
     const int integrator_step = adv_diff_integrator->getIntegratorStep();
     const int mass_correction_interval = mass_fixer->getCorrectionInterval();
 
@@ -299,13 +302,13 @@ LevelSetUtilities::fixMassLoss2PhaseFlows(double /*current_time*/,
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
     const double vol_target = mass_fixer->getTargetVolume();
-    const double ncells = mass_fixer->getInterfaceHalfWidth();
+    const double ncells = ls_container.getInterfaceHalfWidth();
 
     // NOTE: In practice the level set mass loss would be fixed during the postprocess integrate hierarchy stage.
     // Hence the application time would be the new time and the variable context would be the new context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_idx =
-        var_db->mapVariableAndContextToIndex(mass_fixer->getLevelSetVariable(), adv_diff_integrator->getNewContext());
+        var_db->mapVariableAndContextToIndex(ls_container.getLevelSetVariable(), adv_diff_integrator->getNewContext());
 
     // Carry out the Newton iterations
     double rel_error = 1.0e12;
@@ -345,18 +348,18 @@ LevelSetUtilities::fixMassLoss2PhaseFlows(double /*current_time*/,
 } // fixMassLoss2PhaseFlows
 
 void
-LevelSetUtilities::fixMassLoss3PhaseFlows(double /*current_time*/,
-                                          double new_time,
-                                          bool /*skip_synchronize_new_state_data*/,
-                                          int /*num_cycles*/,
-                                          void* ctx)
+fixMassLoss3PhaseFlows(double /*current_time*/,
+                       double new_time,
+                       bool /*skip_synchronize_new_state_data*/,
+                       int /*num_cycles*/,
+                       void* ctx)
 {
     LevelSetMassLossFixer* mass_fixer = static_cast<LevelSetMassLossFixer*>(ctx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(mass_fixer);
 #endif
-
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = mass_fixer->getAdvDiffHierarchyIntegrator();
+    const LevelSetContainer& ls_container = mass_fixer->getLevelSetContainer();
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = ls_container.getAdvDiffHierarchyIntegrator();
     const int integrator_step = adv_diff_integrator->getIntegratorStep();
     const int mass_correction_interval = mass_fixer->getCorrectionInterval();
 
@@ -367,15 +370,15 @@ LevelSetUtilities::fixMassLoss3PhaseFlows(double /*current_time*/,
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
     const double vol_target = mass_fixer->getTargetVolume();
-    const double ncells = mass_fixer->getInterfaceHalfWidth();
+    const double ncells = ls_container.getInterfaceHalfWidth();
 
     // NOTE: In practice the level set mass loss would be fixed during the postprocess integrate hierarchy stage.
     // Hence the application time would be the new time and the variable context would be the new context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int fluid_ls_idx =
-        var_db->mapVariableAndContextToIndex(mass_fixer->getLevelSetVariable(0), adv_diff_integrator->getNewContext());
+        var_db->mapVariableAndContextToIndex(ls_container.getLevelSetVariable(0), adv_diff_integrator->getNewContext());
     const int solid_ls_idx =
-        var_db->mapVariableAndContextToIndex(mass_fixer->getLevelSetVariable(1), adv_diff_integrator->getNewContext());
+        var_db->mapVariableAndContextToIndex(ls_container.getLevelSetVariable(1), adv_diff_integrator->getNewContext());
 
     // Carry out the Newton iterations
     double rel_error = 1.0e12;
@@ -415,10 +418,10 @@ LevelSetUtilities::fixMassLoss3PhaseFlows(double /*current_time*/,
 } // fixMassLoss3PhaseFlows
 
 std::vector<double>
-LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(LevelSetContainer* lsc)
+computeHeavisideIntegrals2PhaseFlows(const LevelSetContainer& lsc)
 {
-    const double ncells = lsc->getInterfaceHalfWidth();
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc->getAdvDiffHierarchyIntegrator();
+    const double ncells = lsc.getInterfaceHalfWidth();
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc.getAdvDiffHierarchyIntegrator();
     Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
     Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
@@ -426,7 +429,7 @@ LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(LevelSetContainer* lsc)
     // would be the new time and the variable context would be the current context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int ls_idx =
-        var_db->mapVariableAndContextToIndex(lsc->getLevelSetVariable(), adv_diff_integrator->getCurrentContext());
+        var_db->mapVariableAndContextToIndex(lsc.getLevelSetVariable(), adv_diff_integrator->getCurrentContext());
 
     std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, ls_idx, ncells);
 
@@ -435,10 +438,10 @@ LevelSetUtilities::computeHeavisideIntegrals2PhaseFlows(LevelSetContainer* lsc)
 } // computeHeavisideIntegrals2PhaseFlows
 
 std::vector<double>
-LevelSetUtilities::computeHeavisideIntegrals3PhaseFlows(LevelSetContainer* lsc)
+computeHeavisideIntegrals3PhaseFlows(const LevelSetContainer& lsc)
 {
-    const double ncells = lsc->getInterfaceHalfWidth();
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc->getAdvDiffHierarchyIntegrator();
+    const double ncells = lsc.getInterfaceHalfWidth();
+    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc.getAdvDiffHierarchyIntegrator();
     Pointer<PatchHierarchy<NDIM> > patch_hier = adv_diff_integrator->getPatchHierarchy();
     Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
@@ -446,88 +449,23 @@ LevelSetUtilities::computeHeavisideIntegrals3PhaseFlows(LevelSetContainer* lsc)
     // would be the new time and the variable context would be the current context.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const int fluid_ls_idx =
-        var_db->mapVariableAndContextToIndex(lsc->getLevelSetVariable(0), adv_diff_integrator->getCurrentContext());
+        var_db->mapVariableAndContextToIndex(lsc.getLevelSetVariable(0), adv_diff_integrator->getCurrentContext());
     const int solid_ls_idx =
-        var_db->mapVariableAndContextToIndex(lsc->getLevelSetVariable(1), adv_diff_integrator->getCurrentContext());
+        var_db->mapVariableAndContextToIndex(lsc.getLevelSetVariable(1), adv_diff_integrator->getCurrentContext());
 
     std::vector<double> integrals = compute_heaviside_integrals(hier_math_ops, fluid_ls_idx, solid_ls_idx, ncells);
 
     return integrals;
 } // computeHeavisideIntegrals3PhaseFlows
 
-double
-LevelSetUtilities::computeNetInflowPhysicalBoundary(Pointer<HierarchyMathOps> hier_math_ops,
-                                                    int u_idx,
-                                                    int bdry_loc_idx)
-{
-    Pointer<PatchHierarchy<NDIM> > patch_hier = hier_math_ops->getPatchHierarchy();
-    const int wgt_sc_idx = hier_math_ops->getSideWeightPatchDescriptorIndex();
-    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
-
-    double integral = 0.0;
-    for (int ln = 0; ln <= hier_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-            if (!pgeom->getTouchesRegularBoundary()) continue;
-
-            const tbox::Array<BoundaryBox<NDIM> > physical_codim1_boxes =
-                PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-            if (physical_codim1_boxes.size() == 0) continue;
-
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-            Pointer<SideData<NDIM, double> > wgt_data = patch->getPatchData(wgt_sc_idx);
-            const double* const dx = pgeom->getDx();
-
-            for (int n = 0; n < physical_codim1_boxes.size(); ++n)
-            {
-                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                const int bdry_box_loc_idx = bdry_box.getLocationIndex();
-                if (bdry_box_loc_idx != bdry_loc_idx) continue;
-
-                const unsigned int axis = bdry_loc_idx / 2;
-                const unsigned int side = bdry_loc_idx % 2;
-                const bool is_lower = side == 0;
-                const double axis_normal = is_lower ? -1.0 : 1.0;
-
-                BoundaryBox<NDIM> trimmed_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-                Box<NDIM> integration_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_box);
-
-                // Ensure the integration box is of width one in the normal direction
-                integration_box.upper(axis) = integration_box.lower(axis);
-
-                for (Box<NDIM>::Iterator b(integration_box); b; b++)
-                {
-                    const hier::Index<NDIM>& i = b();
-                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
-
-                    const double u = (*u_data)(i_s);
-
-                    // At a physical boundary a side-centered control volume is half
-                    // the size of an internal one.
-                    const double ds = (*wgt_data)(i_s) / (0.5 * dx[axis]);
-
-                    integral += -u * ds * axis_normal;
-                }
-            }
-        }
-    }
-
-    return IBTK_MPI::sumReduction(integral);
-
-} // computeNetInFlowPhysicalBoundary
-
 void
-LevelSetUtilities::setLSDataPatchHierarchy(int ls_idx,
-                                           Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                           const int integrator_step,
-                                           const double current_time,
-                                           const bool initial_time,
-                                           const bool regrid_time,
-                                           void* ctx)
+setLSDataPatchHierarchy(int ls_idx,
+                        Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                        const int integrator_step,
+                        const double current_time,
+                        const bool initial_time,
+                        const bool regrid_time,
+                        void* ctx)
 {
     // Set the density from the level set information
     SetLSProperties* ptr_SetLSProperties = static_cast<SetLSProperties*>(ctx);
@@ -535,23 +473,24 @@ LevelSetUtilities::setLSDataPatchHierarchy(int ls_idx,
 
     return;
 } // setLSDataPatchHierarchy
-
 ////////////////////////////// PROTECTED ///////////////////////////////////////
 
 void
-LevelSetUtilities::LevelSetMassLossFixer::getFromInput(Pointer<Database> input_db)
+LevelSetMassLossFixer::getFromInput(Pointer<Database> input_db)
 {
     d_enable_logging = input_db->getBoolWithDefault("enable_logging", false);
     d_interval = input_db->getIntegerWithDefault("correction_interval", 1);
     d_max_its = input_db->getIntegerWithDefault("max_its", 4);
     d_rel_tol = input_db->getDoubleWithDefault("rel_tol", 1e-12);
-    d_ncells = input_db->getDoubleWithDefault("half_width", 1.0);
+
+    LevelSetContainer& ls_container = getLevelSetContainer();
+    ls_container.setInterfaceHalfWidth(input_db->getDoubleWithDefault("half_width", 1.0));
 
     return;
 } // getFromInput
 
 void
-LevelSetUtilities::LevelSetMassLossFixer::getFromRestart()
+LevelSetMassLossFixer::getFromRestart()
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -565,11 +504,15 @@ LevelSetUtilities::LevelSetMassLossFixer::getFromRestart()
                                  << " not found in restart file." << std::endl);
     }
 
-    d_vol_init = db->getDouble("d_vol_init");
-    d_vol_target = db->getDouble("d_vol_target");
-    d_ncells = db->getDouble("d_ncells");
+    d_vol_init = db->getDouble("vol_init");
+    d_vol_target = db->getDouble("vol_target");
+
+    LevelSetContainer& ls_container = getLevelSetContainer();
+    ls_container.setInterfaceHalfWidth(db->getDouble("ncells"));
 
     return;
 } // getFromRestart
+
+} // namespace LevelSetUtilities
 
 } // namespace IBAMR

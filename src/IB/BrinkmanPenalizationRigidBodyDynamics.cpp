@@ -205,12 +205,134 @@ BrinkmanPenalizationRigidBodyDynamics::preprocessComputeBrinkmanPenalization(dou
 void
 BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double time, int cycle_num)
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(IBTK::rel_equal_eps(time, d_new_time));
+#endif
+
+    const double hydro_compute_time = cycle_num > 0 ? time : d_current_time;
+    d_hydro_force_eval->computeHydrodynamicForceTorque(d_hydro_force_pressure,
+                                                       d_hydro_force_viscous,
+                                                       d_hydro_torque_pressure,
+                                                       d_hydro_torque_viscous,
+                                                       d_center_of_mass_new,
+                                                       hydro_compute_time,
+                                                       d_current_time,
+                                                       d_new_time);
+
+    if (d_ext_force_torque_fcn_data.forcetorquefcn)
+    {
+        d_ext_force_torque_fcn_data.forcetorquefcn(
+            time, cycle_num, d_ext_force, d_ext_torque, d_ext_force_torque_fcn_data.ctx);
+    }
+    else
+    {
+        d_ext_force.setZero();
+        d_ext_torque.setZero();
+    }
+
+    // Get imposed motion.
+    Eigen::Vector3d U_imposed = Eigen::Vector3d::Zero(), W_imposed = Eigen::Vector3d::Zero();
+    if (d_kinematics_fcn_data.comvelfcn)
+    {
+        d_kinematics_fcn_data.comvelfcn(time, cycle_num, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
+    }
+
+    // Integrate Newton's second law of motion to find updated COM velocity and
+    // position.
+    // a) Translational motion
+    const double dt = d_new_time - d_current_time;
+    Eigen::Vector3d F_rigid;
+    F_rigid = d_hydro_force_pressure + d_hydro_force_viscous + d_ext_force;
+    d_trans_vel_new = d_trans_vel_current + (dt * F_rigid) / d_mass;
+    for (unsigned s = 0; s < NDIM; ++s)
+    {
+        if (!d_solve_rigid_vel(s))
+        {
+            d_trans_vel_new(s) = U_imposed(s);
+        }
+    }
+    d_center_of_mass_new = d_center_of_mass_current + dt * d_trans_vel_new;
+
+    // b) Rotational motion
+    const Eigen::Matrix3d R_current = d_quaternion_current.toRotationMatrix();
+    Eigen::Matrix3d R_new = Eigen::Matrix3d::Identity(3, 3);
+    set_rotation_matrix(d_rot_vel_new, d_quaternion_current, d_quaternion_new, R_new, dt);
+
+    Eigen::Vector3d T_rigid = d_hydro_torque_pressure + d_hydro_torque_viscous + d_ext_torque;
+    d_rot_vel_new.setZero();
+    if (NDIM == 2)
+    {
+        d_rot_vel_new(2) = d_rot_vel_current(2) + (dt * T_rigid(2)) / d_inertia_tensor_initial(2, 2);
+    }
+    else if (NDIM == 3)
+    {
+        const Eigen::Vector3d IW_new =
+            (T_rigid * dt + R_current * d_inertia_tensor_initial * R_current.transpose() * d_rot_vel_current);
+        d_rot_vel_new = R_new * solve_3x3_system(R_new.transpose() * IW_new, d_inertia_tensor_initial);
+    }
+    for (unsigned s = NDIM; s < s_max_free_dofs; ++s)
+    {
+        if (!d_solve_rigid_vel(s))
+        {
+            if (NDIM == 2)
+            {
+                d_rot_vel_new(s) = W_imposed(s);
+            }
+            else if (NDIM == 3)
+            {
+                d_rot_vel_new(s - NDIM) = W_imposed(s - NDIM);
+            }
+        }
+    }
+
+    // Ghost fill the level set values.
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
+
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+
+    std::vector<InterpolationTransactionComponent> transaction_comps;
+    transaction_comps.emplace_back(
+        InterpolationTransactionComponent(ls_scratch_idx,
+                                          ls_solid_idx,
+                                          "CONSERVATIVE_LINEAR_REFINE",
+                                          false,
+                                          "CONSERVATIVE_COARSEN",
+                                          "LINEAR",
+                                          false,
+                                          d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var)));
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+
     if (!d_split_penalty)
     {
+        hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
+        hier_bdry_fill->fillData(time);
+
         computeBrinkmanVelocityWithoutSplitting(u_idx, time, cycle_num);
     }
     else
     {
+        const int u_new_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
+                                                                   d_fluid_solver->getNewContext());
+        const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
+                                                                       d_fluid_solver->getScratchContext());
+
+        transaction_comps.emplace_back(
+            InterpolationTransactionComponent(u_scratch_idx,
+                                              u_new_idx,
+                                              "NONE",
+                                              false,
+                                              "CUBIC_COARSEN",
+                                              "LINEAR",
+                                              false,
+                                              d_fluid_solver->getVelocityBoundaryConditions()));
+
+        hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
+        hier_bdry_fill->fillData(time);
+
         computeBrinkmanVelocityWithSplitting(u_idx, time, cycle_num);
     }
 
@@ -220,6 +342,34 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
 void
 BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double time, int cycle_num)
 {
+#if !defined(NDEBUG)
+    TBOX_ASSERT(IBTK::rel_equal_eps(time, d_new_time));
+#else
+    NULL_USE(time);
+#endif
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
+
+    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+
+    // Ghost fill the level set values.
+    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
+    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
+                                                                 ls_solid_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    hier_bdry_fill->fillData(time);
+
     if (!d_split_penalty)
     {
         demarcateBrinkmanZoneWithoutSplitting(u_idx, time, cycle_num);
@@ -264,14 +414,14 @@ BrinkmanPenalizationRigidBodyDynamics::putToDatabase(Pointer<Database> db)
     db->putDoubleArray(Q, &Q_coeffs[0], 4);
     db->putDouble(M, d_mass);
 
-    db->putDouble("d_num_interface_cells", d_num_interface_cells);
-    db->putDouble("d_contour_level", d_contour_level);
-    db->putDouble("d_penalty_factor", d_penalty_factor);
-    db->putDouble("d_penalty_factor_tangential", d_penalty_factor_tangential);
-    db->putDouble("d_penalty_factor_normal", d_penalty_factor_normal);
-    db->putBool("d_use_rho_scale", d_use_rho_scale);
-    db->putBool("d_use_mu_scale", d_use_mu_scale);
-    db->putBool("d_split_penalty", d_split_penalty);
+    db->putDouble("num_interface_cells", d_num_interface_cells);
+    db->putDouble("contour_level", d_contour_level);
+    db->putDouble("penalty_factor", d_penalty_factor);
+    db->putDouble("penalty_factor_tangential", d_penalty_factor_tangential);
+    db->putDouble("penalty_factor_normal", d_penalty_factor_normal);
+    db->putBool("use_rho_scale", d_use_rho_scale);
+    db->putBool("use_mu_scale", d_use_mu_scale);
+    db->putBool("split_penalty", d_split_penalty);
 
     return;
 } // putToDatabase
@@ -374,130 +524,38 @@ BrinkmanPenalizationRigidBodyDynamics::getFromRestart()
     d_quaternion_current.z() = Q_coeffs[3];
     d_quaternion_current.normalize();
 
-    d_num_interface_cells = db->getDouble("d_num_interface_cells");
-    d_contour_level = db->getDouble("d_contour_level");
-    d_penalty_factor = db->getDouble("d_penalty_factor");
-    d_penalty_factor_tangential = db->getDouble("d_penalty_factor_tangential");
-    d_penalty_factor_normal = db->getDouble("d_penalty_factor_normal");
-    d_use_rho_scale = db->getBool("d_use_rho_scale");
-    d_use_mu_scale = db->getBool("d_use_mu_scale");
-    d_split_penalty = db->getBool("d_split_penalty");
+    d_num_interface_cells = db->getDouble("num_interface_cells");
+    d_contour_level = db->getDouble("contour_level");
+    d_penalty_factor = db->getDouble("penalty_factor");
+    d_penalty_factor_tangential = db->getDouble("penalty_factor_tangential");
+    d_penalty_factor_normal = db->getDouble("penalty_factor_normal");
+    d_use_rho_scale = db->getBool("use_rho_scale");
+    d_use_mu_scale = db->getBool("use_mu_scale");
+    d_split_penalty = db->getBool("split_penalty");
 
     return;
 } // getFromRestart
 
 void
-BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithoutSplitting(int u_in_idx, double time, int cycle_num)
+BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithoutSplitting(int u_in_idx,
+                                                                               double /*time*/,
+                                                                               int /*cycle_num*/)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(IBTK::rel_equal_eps(time, d_new_time));
-#endif
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const double hydro_compute_time = cycle_num > 0 ? time : d_current_time;
-    d_hydro_force_eval->computeHydrodynamicForceTorque(d_hydro_force_pressure,
-                                                       d_hydro_force_viscous,
-                                                       d_hydro_torque_pressure,
-                                                       d_hydro_torque_viscous,
-                                                       d_center_of_mass_new,
-                                                       hydro_compute_time,
-                                                       d_current_time,
-                                                       d_new_time);
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
 
-    if (d_ext_force_torque_fcn_data.forcetorquefcn)
-    {
-        d_ext_force_torque_fcn_data.forcetorquefcn(
-            time, cycle_num, d_ext_force, d_ext_torque, d_ext_force_torque_fcn_data.ctx);
-    }
-    else
-    {
-        d_ext_force.setZero();
-        d_ext_torque.setZero();
-    }
-
-    // Get imposed motion.
-    Eigen::Vector3d U_imposed = Eigen::Vector3d::Zero(), W_imposed = Eigen::Vector3d::Zero();
-    if (d_kinematics_fcn_data.comvelfcn)
-    {
-        d_kinematics_fcn_data.comvelfcn(time, cycle_num, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
-    }
-
-    // Integrate Newton's second law of motion to find updated COM velocity and
-    // position.
-    // a) Translational motion
-    const double dt = d_new_time - d_current_time;
-    Eigen::Vector3d F_rigid;
-    F_rigid = d_hydro_force_pressure + d_hydro_force_viscous + d_ext_force;
-    d_trans_vel_new = d_trans_vel_current + (dt * F_rigid) / d_mass;
-    for (unsigned s = 0; s < NDIM; ++s)
-    {
-        if (!d_solve_rigid_vel(s))
-        {
-            d_trans_vel_new(s) = U_imposed(s);
-        }
-    }
-    d_center_of_mass_new = d_center_of_mass_current + dt * d_trans_vel_new;
-
-    // b) Rotational motion
-    const Eigen::Matrix3d R_current = d_quaternion_current.toRotationMatrix();
-    Eigen::Matrix3d R_new = Eigen::Matrix3d::Identity(3, 3);
-    set_rotation_matrix(d_rot_vel_new, d_quaternion_current, d_quaternion_new, R_new, dt);
-
-    Eigen::Vector3d T_rigid = d_hydro_torque_pressure + d_hydro_torque_viscous + d_ext_torque;
-    d_rot_vel_new.setZero();
-    if (NDIM == 2)
-    {
-        d_rot_vel_new(2) = d_rot_vel_current(2) + (dt * T_rigid(2)) / d_inertia_tensor_initial(2, 2);
-    }
-    else if (NDIM == 3)
-    {
-        const Eigen::Vector3d IW_new =
-            (T_rigid * dt + R_current * d_inertia_tensor_initial * R_current.transpose() * d_rot_vel_current);
-        d_rot_vel_new = R_new * solve_3x3_system(R_new.transpose() * IW_new, d_inertia_tensor_initial);
-    }
-    for (unsigned s = NDIM; s < s_max_free_dofs; ++s)
-    {
-        if (!d_solve_rigid_vel(s))
-        {
-            if (NDIM == 2)
-            {
-                d_rot_vel_new(s) = W_imposed(s);
-            }
-            else if (NDIM == 3)
-            {
-                d_rot_vel_new(s - NDIM) = W_imposed(s - NDIM);
-            }
-        }
-    }
-
-    // Get the interpolated density variable
+    // Get the interpolated density variable.
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    // Ghost fill the level set values.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    const int ls_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
-
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
-
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
-    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
-                                                                 ls_solid_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 "LINEAR",
-                                                                 false,
-                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
-    hier_bdry_fill->fillData(time);
+    const double dt = d_new_time - d_current_time;
 
     // Set the rigid body velocity in u_in_idx
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
@@ -558,134 +616,27 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithoutSplitting(i
 } // computeBrinkmanVelocityWithoutSplitting
 
 void
-BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithSplitting(int u_in_idx, double time, int cycle_num)
+BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithSplitting(int u_in_idx,
+                                                                            double /*time*/,
+                                                                            int /*cycle_num*/)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(IBTK::rel_equal_eps(time, d_new_time));
-#endif
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const double hydro_compute_time = cycle_num > 0 ? time : d_current_time;
-    d_hydro_force_eval->computeHydrodynamicForceTorque(d_hydro_force_pressure,
-                                                       d_hydro_force_viscous,
-                                                       d_hydro_torque_pressure,
-                                                       d_hydro_torque_viscous,
-                                                       d_center_of_mass_new,
-                                                       hydro_compute_time,
-                                                       d_current_time,
-                                                       d_new_time);
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
+    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
+                                                                   d_fluid_solver->getScratchContext());
 
-    if (d_ext_force_torque_fcn_data.forcetorquefcn)
-    {
-        d_ext_force_torque_fcn_data.forcetorquefcn(
-            time, cycle_num, d_ext_force, d_ext_torque, d_ext_force_torque_fcn_data.ctx);
-    }
-    else
-    {
-        d_ext_force.setZero();
-        d_ext_torque.setZero();
-    }
-
-    // Get imposed motion.
-    Eigen::Vector3d U_imposed = Eigen::Vector3d::Zero(), W_imposed = Eigen::Vector3d::Zero();
-    if (d_kinematics_fcn_data.comvelfcn)
-    {
-        d_kinematics_fcn_data.comvelfcn(time, cycle_num, U_imposed, W_imposed, d_kinematics_fcn_data.ctx);
-    }
-
-    // Integrate Newton's second law of motion to find updated COM velocity and
-    // position.
-    // a) Translational motion
-    const double dt = d_new_time - d_current_time;
-    Eigen::Vector3d F_rigid;
-    F_rigid = d_hydro_force_pressure + d_hydro_force_viscous + d_ext_force;
-    d_trans_vel_new = d_trans_vel_current + (dt * F_rigid) / d_mass;
-    for (unsigned s = 0; s < NDIM; ++s)
-    {
-        if (!d_solve_rigid_vel(s))
-        {
-            d_trans_vel_new(s) = U_imposed(s);
-        }
-    }
-    d_center_of_mass_new = d_center_of_mass_current + dt * d_trans_vel_new;
-
-    // b) Rotational motion
-    const Eigen::Matrix3d R_current = d_quaternion_current.toRotationMatrix();
-    Eigen::Matrix3d R_new = Eigen::Matrix3d::Identity(3, 3);
-    set_rotation_matrix(d_rot_vel_new, d_quaternion_current, d_quaternion_new, R_new, dt);
-
-    Eigen::Vector3d T_rigid = d_hydro_torque_pressure + d_hydro_torque_viscous + d_ext_torque;
-    d_rot_vel_new.setZero();
-    if (NDIM == 2)
-    {
-        d_rot_vel_new(2) = d_rot_vel_current(2) + (dt * T_rigid(2)) / d_inertia_tensor_initial(2, 2);
-    }
-    else if (NDIM == 3)
-    {
-        const Eigen::Vector3d IW_new =
-            (T_rigid * dt + R_current * d_inertia_tensor_initial * R_current.transpose() * d_rot_vel_current);
-        d_rot_vel_new = R_new * solve_3x3_system(R_new.transpose() * IW_new, d_inertia_tensor_initial);
-    }
-    for (unsigned s = NDIM; s < s_max_free_dofs; ++s)
-    {
-        if (!d_solve_rigid_vel(s))
-        {
-            if (NDIM == 2)
-            {
-                d_rot_vel_new(s) = W_imposed(s);
-            }
-            else if (NDIM == 3)
-            {
-                d_rot_vel_new(s - NDIM) = W_imposed(s - NDIM);
-            }
-        }
-    }
-
-    // Get the interpolated density variable
+    // Get the interpolated density variable.
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    // Ghost fill the level set and velocity values.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    const int ls_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
-
-    const int u_new_idx =
-        var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
-    const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_fluid_solver->getVelocityVariable(),
-                                                                   d_fluid_solver->getScratchContext());
-
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
-
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> transaction_comps(2);
-
-    transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
-                                                             ls_solid_idx,
-                                                             "CONSERVATIVE_LINEAR_REFINE",
-                                                             false,
-                                                             "CONSERVATIVE_COARSEN",
-                                                             "LINEAR",
-                                                             false,
-                                                             d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
-
-    transaction_comps[1] = InterpolationTransactionComponent(u_scratch_idx,
-                                                             u_new_idx,
-                                                             "NONE",
-                                                             false,
-                                                             "CUBIC_COARSEN",
-                                                             "LINEAR",
-                                                             false,
-                                                             d_fluid_solver->getVelocityBoundaryConditions());
-
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
-    hier_bdry_fill->fillData(time);
+    const double dt = d_new_time - d_current_time;
 
     // Set the rigid body velocity in u_in_idx
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
@@ -785,7 +736,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithSplitting(int 
                         }
                     }
                     const double n_norm = n.norm();
-                    if (!IBTK::rel_equal_eps(n_norm, 0.0))
+                    if (!IBTK::abs_equal_eps(n_norm, 0.0))
                     {
                         n /= n_norm;
                     }
@@ -845,44 +796,25 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithSplitting(int 
 } // computeBrinkmanVelocityWithSplitting
 
 void
-BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithoutSplitting(int u_idx, double time, int /*cycle_num*/)
+BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithoutSplitting(int u_idx,
+                                                                             double /*time*/,
+                                                                             int /*cycle_num*/)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(IBTK::rel_equal_eps(time, d_new_time));
-#else
-    NULL_USE(time);
-#endif
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const double dt = d_new_time - d_current_time;
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
 
-    // Get the interpolated density variable
+    // Get the interpolated density variable.
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    const int ls_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
-
-    // Ghost fill the level set values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
-    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
-                                                                 ls_solid_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 "LINEAR",
-                                                                 false,
-                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
-    hier_bdry_fill->fillData(time);
+    const double dt = d_new_time - d_current_time;
 
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
@@ -936,44 +868,23 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithoutSplitting(int
 } // demarcateBrinkmanZoneWithoutSplitting
 
 void
-BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithSplitting(int u_idx, double time, int /*cycle_num*/)
+BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithSplitting(int u_idx, double /*time*/, int /*cycle_num*/)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(IBTK::rel_equal_eps(time, d_new_time));
-#else
-    NULL_USE(time);
-#endif
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    const double dt = d_new_time - d_current_time;
+    const int ls_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
 
-    // Get the interpolated density variable
+    // Get the interpolated density variable.
     const int rho_ins_idx = d_fluid_solver->getLinearOperatorRhoPatchDataIndex();
 
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    const int ls_scratch_idx =
-        var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
-
-    // Ghost fill the level set values.
-    typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> phi_transaction_comps(1);
-    phi_transaction_comps[0] = InterpolationTransactionComponent(ls_scratch_idx,
-                                                                 ls_solid_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 "LINEAR",
-                                                                 false,
-                                                                 d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
-    hier_bdry_fill->fillData(time);
+    const double dt = d_new_time - d_current_time;
 
     for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
     {
@@ -1050,7 +961,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithSplitting(int u_
                         }
                     }
                     const double n_norm = n.norm();
-                    if (!IBTK::rel_equal_eps(n_norm, 0.0))
+                    if (!IBTK::abs_equal_eps(n_norm, 0.0))
                     {
                         n /= n_norm;
                     }

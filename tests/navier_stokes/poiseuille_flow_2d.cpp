@@ -26,6 +26,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 #include <ibamr/LevelSetUtilities.h>
+#include <ibamr/ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -223,10 +224,10 @@ main(int argc, char* argv[])
             const int u_idx = var_db->mapVariableAndContextToIndex(time_integrator->getVelocityVariable(),
                                                                    time_integrator->getCurrentContext());
 
-            const double vol_inflow = dt * LevelSetUtilities::computeNetInflowPhysicalBoundary(
-                                               time_integrator->getHierarchyMathOps(),
-                                               u_idx,
-                                               /*location_idx*/ 0); // location_idx is boundary_0
+            const double vol_inflow =
+                dt * IBAMR::computeNetInflowPhysicalBoundary(time_integrator->getHierarchyMathOps(),
+                                                             u_idx,
+                                                             /*location_idx*/ 0); // location_idx is boundary_0
 
             if (SAMRAI_MPI::getRank() == 0)
             {
