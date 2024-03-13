@@ -125,6 +125,7 @@ IBPDMethod::preprocessIntegrateData(double current_time, double new_time, int nu
             resetLagrangianPDForceFunction(current_time, initial_time);
             d_ib_pd_force_fcn_needs_init = false;
         }
+        d_ib_pd_force_fcn->setTimeInterval(current_time, new_time);
     }
 
     return;
@@ -210,6 +211,7 @@ IBPDMethod::computeLagrangianForce(const double data_time)
         {
             d_ib_pd_force_fcn->computeLagrangianForceAndDamage((*F_data)[ln],
                                                                d_l_data_manager->getLData("damage", ln),
+                                                               d_l_data_manager->getLData("jacobian", ln),
                                                                (*X_data)[ln],
                                                                (*U_data)[ln],
                                                                d_hierarchy,
@@ -261,6 +263,7 @@ IBPDMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     if (initial_time)
     {
         VecSet(d_l_data_manager->getLData("damage", struct_ln)->getVec(), 0.0);
+        VecSet(d_l_data_manager->getLData("jacobian", struct_ln)->getVec(), 1.0);
     }
 
     // Register plot quantities.
@@ -268,6 +271,9 @@ IBPDMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     {
         Pointer<LData> dmg_data = d_l_data_manager->getLData("damage", struct_ln);
         d_silo_writer->registerVariableData("damage", dmg_data, struct_ln);
+
+        Pointer<LData> jacobian_data = d_l_data_manager->getLData("jacobian", struct_ln);
+        d_silo_writer->registerVariableData("jacobian", jacobian_data, struct_ln);
     }
 
     // Initialize unshifted X0 data.
@@ -344,9 +350,42 @@ IBPDMethod::initializePDData()
         d_l_data_manager->endDataRedistribution(ln, ln);
     }
 
+    d_ib_pd_force_fcn_needs_init = true;
+
     return;
 
 } // initializePDData
+
+void
+IBPDMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+{
+    IBMethod::registerLoadBalancer(load_balancer,workload_data_idx);
+    return;
+} // registerLoadBalancer
+
+void
+IBPDMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+{
+    IBMethod::addWorkloadEstimate(hierarchy,workload_data_idx);
+    return;
+} // addWorkloadEstimate
+
+void IBPDMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                       Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    IBMethod::beginDataRedistribution(hierarchy,gridding_alg);
+    return;
+} // beginDataRedistribution
+
+void IBPDMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                       Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    IBMethod::endDataRedistribution(hierarchy,gridding_alg);
+
+    d_ib_pd_force_fcn_needs_init = true;
+
+    return;
+} // endDataRedistribution
 
 void
 IBPDMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
@@ -362,9 +401,10 @@ IBPDMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 
     // Allocate LData corresponding to the Lagrange multiplier.
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
-    {
+    {   
         // Create LData for damage variable.
         d_l_data_manager->createLData("damage", level_number, 1, /*manage_data*/ true);
+        d_l_data_manager->createLData("jacobian", level_number, 1, /*manage_data*/ true);
 
         // Create unshifted initial position of the structure.
         Pointer<IBTK::LData> X0_unshifted_data = d_l_data_manager->createLData("X0_unshifted",
@@ -375,6 +415,16 @@ IBPDMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 
     return;
 } // initializeLevelData
+
+void
+IBPDMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                      int coarsest_level,
+                                      int finest_level)
+{
+    IBMethod::resetHierarchyConfiguration(hierarchy, coarsest_level, finest_level);
+
+    return;
+} // resetHierarchyConfiguration
 
 void
 IBPDMethod::putToDatabase(Pointer<Database> db)
