@@ -848,6 +848,14 @@ protected:
     virtual void doInitializeFEData(bool use_present_data) override;
 
     /*!
+     * Get the libMesh restart file name.
+     */
+    std::string libmesh_restart_file_name(const std::string& restart_dump_dirname,
+                                          unsigned int time_step_number,
+                                          unsigned int part,
+                                          const std::string& extension) override;
+
+    /*!
      * \brief Compute the stress normalization field.
      */
     void computeStressNormalization(libMesh::PetscVector<double>& P_vec,
