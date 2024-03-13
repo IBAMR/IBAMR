@@ -66,72 +66,71 @@ namespace IBAMR
  * to enforce mass/volume conservation of phases.
  */
 
-class LevelSetUtilities
+namespace LevelSetUtilities
+{
+/*!
+ * \brief A lightweight class to hold the level set variable and the associated hierarchy
+ * integrator (AdvDiffHierarchyIntegrator).
+ */
+class LevelSetContainer : public SAMRAI::tbox::DescribedClass
 {
 public:
     /*!
-     * \brief A lightweight class to hold the level set variable and the associated hierarchy
-     * integrator (AdvDiffHierarchyIntegrator).
+     * \brief Constructor of the class.
      */
-    class LevelSetContainer : public virtual SAMRAI::tbox::DescribedClass
+    LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                      double ncells = 1.0)
+        : d_adv_diff_integrator(adv_diff_integrator), d_ncells(ncells)
     {
-    public:
-        /*!
-         * \brief Constructor of the class.
-         */
-        LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
-                          double ncells = 1.0)
-            : d_adv_diff_integrator(adv_diff_integrator), d_ncells(ncells)
-        {
-            d_ls_vars.emplace_back(ls_var);
-            return;
-        } // LevelSetContainer
+        d_ls_vars.emplace_back(ls_var);
+        return;
+    } // LevelSetContainer
 
-        LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                          std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > ls_vars,
-                          double ncells = 1.0)
-            : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(std::move(ls_vars)), d_ncells(ncells)
-        {
-            // return;
-        } // LevelSetContainer
+    LevelSetContainer(SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                      std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > ls_vars,
+                      double ncells = 1.0)
+        : d_adv_diff_integrator(adv_diff_integrator), d_ls_vars(std::move(ls_vars)), d_ncells(ncells)
+    {
+        // intentionally left blank
+    } // LevelSetContainer
 
-        /*!
-         * @param ncells are the number of cells representing the half-width of the
-         * interface. Depending upon the application, ncells is used to specify material
-         * properties like density or viscosity (via some mixture model) or to compute volume
-         * of the phase enclosed by the level set variable.
-         */
-        void setInterfaceHalfWidth(double ncells)
-        {
-            d_ncells = ncells;
-        } // setInterfaceHalfWidth
+    /*!
+     * @param ncells are the number of cells representing the half-width of the
+     * interface. Depending upon the application, ncells is used to specify material
+     * properties like density or viscosity (via some mixture model) or to compute volume
+     * of the phase enclosed by the level set variable.
+     */
+    void setInterfaceHalfWidth(double ncells)
+    {
+        d_ncells = ncells;
+    } // setInterfaceHalfWidth
 
-        double getInterfaceHalfWidth()
-        {
-            return d_ncells;
-        } // getInterfaceHalfWidth
+    double getInterfaceHalfWidth() const
+    {
+        return d_ncells;
+    } // getInterfaceHalfWidth
 
-        SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> getAdvDiffHierarchyIntegrator()
-        {
-            return d_adv_diff_integrator;
-        } // getAdvDiffHierarchyIntegrator
+    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> getAdvDiffHierarchyIntegrator() const
+    {
+        return d_adv_diff_integrator;
+    } // getAdvDiffHierarchyIntegrator
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLevelSetVariable(int idx = 0)
-        {
-            return d_ls_vars[idx];
-        } // getLSVariable
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > getLevelSetVariable(int idx = 0) const
+    {
+        return d_ls_vars[idx];
+    } // getLSVariable
 
-    protected:
-        SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
-        std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_ls_vars;
-        double d_ncells = 1.0;
+private:
+    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_integrator;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_ls_vars;
+    double d_ncells = 1.0;
     };
 
     /*!
      * \brief A lightweight class to tag grid cells containing the level set variable for grid refinement
      */
-    class TagLSRefinementCells : public LevelSetContainer
+    class TagLSRefinementCells
     {
     public:
         /*!
@@ -141,12 +140,17 @@ public:
                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
                              double tag_min_value = 0.0,
                              double tag_max_value = 0.0)
-            : LevelSetContainer(adv_diff_integrator, ls_var),
+            : d_ls_container(adv_diff_integrator, ls_var),
               d_tag_min_value(tag_min_value),
               d_tag_max_value(tag_max_value)
         {
-            return;
+            // intentionally left blank
         } // TagLevelSetRefinementCells
+
+        LevelSetContainer getLevelSetContainer() const
+        {
+            return d_ls_container;
+        } // getLevelSetContainer
 
         void setTagMinValue(double tag_min)
         {
@@ -171,27 +175,39 @@ public:
         } // getTagMaxValue
 
     private:
+        LevelSetContainer d_ls_container;
         double d_tag_min_value = 0.0;
         double d_tag_max_value = 0.0;
     }; // TagLevelSetRefinementCells
 
-    static void TagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                           const int level_number,
-                           const double error_data_time,
-                           const int tag_index,
-                           const bool initial_time,
-                           const bool uses_richardson_extrapolation_too,
-                           void* ctx);
+    /*!
+     * \brief Preprocessing call back function to be hooked into IBAMR::HierarchyIntegrator class
+     * to tag the cells for grid refinement based on the given tagging criteria.
+     *
+     * This static member should be registered with an appropriate hierarchy integrator
+     * via registerApplyGradientDetectorCallback().
+     *
+     * \param ctx is the pointer to the TagLSRefinementCells class object.
+     */
+    void tagLSCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                    const int level_number,
+                    const double error_data_time,
+                    const int tag_index,
+                    const bool initial_time,
+                    const bool uses_richardson_extrapolation_too,
+                    void* ctx);
 
     /*!
      * \brief A lightweight class that stores the current value of the Lagrange multiplier
      *  for the level set variable.
      */
-    class LevelSetMassLossFixer : public LevelSetContainer, public SAMRAI::tbox::Serializable
+    class LevelSetMassLossFixer : public SAMRAI::tbox::Serializable
     {
     public:
         /*!
          * \brief Constructor of the class.
+         * @param input_db provides parameters such as enable_logging, correction_interval, max_its, rel_tol, and
+         * half_width.
          */
         LevelSetMassLossFixer(std::string object_name,
                               SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
@@ -203,6 +219,11 @@ public:
         ~LevelSetMassLossFixer();
 
         void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+        LevelSetContainer getLevelSetContainer() const
+        {
+            return d_ls_container;
+        } // getLevelSetContainer
 
         // Getter and setter functions
         void setInitialVolume(double v0);
@@ -265,8 +286,9 @@ public:
             return d_enable_logging;
         } // enableLogging
 
-    protected:
+    private:
         std::string d_object_name;
+        LevelSetContainer d_ls_container;
         bool d_registered_for_restart, d_enable_logging = false;
 
         /*
@@ -296,23 +318,39 @@ public:
     };
 
     /*!
-     * \brief Compute the value of the Lagrange multiplier and use that to adjust the flow level set variable.
+     * \brief Compute the value of the Lagrange multiplier \f$ q \f$ and use that to adjust the flow level set variable
+     * \f$ \tilde{\phi} \f$ to satisfy the constraint: \f$ f(q) = \int_{\Omega} H(\tilde{\phi} + q) \text{d}\Omega - V^0
+     * = 0 \f$. where, \f$ \tilde{\phi} \f$ is the level set field obtained from the reinitialization procedure, \f$ V^0
+     * \f$ is the volume of the fluid at \f$ t = 0 \f$ s which needs to be conserved. Here, \f$ q \f$ is computed using
+     * the Newton's method till required tolerance. In practice the level set mass loss would be fixed during the
+     * postprocess integrate hierarchy stage. Hence the application time would be the new time and the variable context
+     * would be the new context.
+     *
+     * \param ctx is the pointer to the LevelSetMassLossFixer class object.
      */
-    static void fixMassLoss2PhaseFlows(double current_time,
-                                       double new_time,
-                                       bool skip_synchronize_new_state_data,
-                                       int num_cycles,
-                                       void* ctx);
+    void fixMassLoss2PhaseFlows(double current_time,
+                                double new_time,
+                                bool skip_synchronize_new_state_data,
+                                int num_cycles,
+                                void* ctx);
 
     /*!
-     * \brief Compute the value of the Lagrange multiplier and use that to adjust the flow level set when
-     * there is a solid phase in the domain.
+     * \brief Compute the value of the Lagrange multiplier \f$ q \f$ and use that to adjust the flow level set \f$
+     * \tilde{\phi \f$ when there is a solid phase in the domain with level set \f$ \psi < 0 \f$. Satisfies the
+     * constraint: \f$ f(q) = \int_{\Omega} H(\tilde{\phi} + q) H(\psi) \text{d}\Omega - V^0 = 0 \f$. where, \f$
+     * \tilde{\phi} \f$ is the level set field obtained from the reinitialization procedure, \f$ V^0 \f$ is the volume
+     * of the fluid at \f$ t = 0 \f$ s which needs to be conserved. Here, \f$ q \f$ is computed using the Newton's
+     * method till required tolerance. In practice the level set mass loss would be fixed during the postprocess
+     * integrate hierarchy stage. Hence the application time would be the new time and the variable context would be the
+     * new context.
+     *
+     * \param ctx is the pointer to the LevelSetMassLossFixer class object.
      */
-    static void fixMassLoss3PhaseFlows(double current_time,
-                                       double new_time,
-                                       bool skip_synchronize_new_state_data,
-                                       int num_cycles,
-                                       void* ctx);
+    void fixMassLoss3PhaseFlows(double current_time,
+                                double new_time,
+                                bool skip_synchronize_new_state_data,
+                                int num_cycles,
+                                void* ctx);
 
     /*!
      * \return Integrals of \f$ 1- H(\phi)\f$, \f$ H(\phi)\f$, and \f$ \delta(\phi) \f$  over
@@ -325,7 +363,7 @@ public:
      * Physically, these three integrals represent volume of the gas region, liquid region, and
      * surface area of the interface, respectively.
      */
-    static std::vector<double> computeHeavisideIntegrals2PhaseFlows(LevelSetContainer* lsc);
+    std::vector<double> computeHeavisideIntegrals2PhaseFlows(const LevelSetContainer& lsc);
 
     /*!
      * \return Integrals of \f$ [1- H(\phi)] H(\Psi) \f$, \f$ H(\phi) H(\Psi)\f$, \f$ 1 - H(\Psi)\f$,
@@ -341,16 +379,7 @@ public:
      *
      * \f$ \Psi \f$ is taken to be positive outside the solid and negative inside the solid.
      */
-    static std::vector<double> computeHeavisideIntegrals3PhaseFlows(LevelSetContainer* lsc);
-
-    /*!
-     * \return Integral of inflow \f$ -\vec{u} \cdot \vec{n}\f$ at a physical boundary.
-     *
-     * \param location_idx of the boundary at which the integral is evaluated
-     */
-    static double computeNetInflowPhysicalBoundary(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                                   int u_idx,
-                                                   int bdry_loc_idx);
+    std::vector<double> computeHeavisideIntegrals3PhaseFlows(const LevelSetContainer& lsc);
 
     /*!
      * \brief Class SetLSProperties is a utility class which sets (or resets after reinitialization)
@@ -412,14 +441,14 @@ public:
     /*!
      * \brief A function that sets or resets the level set data on the patch hierarchy
      */
-    static void setLSDataPatchHierarchy(int ls_idx,
-                                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                        const int integrator_step,
-                                        const double current_time,
-                                        const bool initial_time,
-                                        const bool regrid_time,
-                                        void* ctx);
-};
+    void setLSDataPatchHierarchy(int ls_idx,
+                                 SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                 const int integrator_step,
+                                 const double current_time,
+                                 const bool initial_time,
+                                 const bool regrid_time,
+                                 void* ctx);
+    } // namespace LevelSetUtilities
 
 } // namespace IBAMR
 

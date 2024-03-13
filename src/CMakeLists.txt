@@ -225,6 +225,7 @@ SET(CXX_SRC
   utilities/CellConvectiveOperator.cpp
   utilities/ConvectiveOperator.cpp
   utilities/STSMassFluxIntegrator.cpp
+  utilities/ins_utilities.cpp
   )
 
 IF(${IBAMR_HAVE_LIBMESH})
