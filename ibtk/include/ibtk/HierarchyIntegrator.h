@@ -684,7 +684,8 @@ public:
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
                           const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL),
+                          const bool register_for_restart = true);
 
     ///
     ///  Implementations of functions declared in the SAMRAI::tbox::Serializable

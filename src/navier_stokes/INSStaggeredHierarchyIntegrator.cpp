@@ -921,13 +921,13 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     {
         d_F_cc_idx = invalid_index;
     }
-    registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
+    registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext(), false);
     if (d_output_Omega)
     {
         registerVariable(d_Omega_nc_idx, d_Omega_nc_var, no_ghosts, getPlotContext());
         d_plot_indices.push_back(d_Omega_nc_idx);
     }
-    registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext(), false);
 
     // Register scratch variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
@@ -1367,6 +1367,13 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
     if (d_using_vorticity_tagging)
     {
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
+
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            if (!level->checkAllocated(d_Omega_idx)) level->allocatePatchData(d_Omega_idx);
+        }
+
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
         if (d_Omega_Norm_idx != IBTK::invalid_index)
             d_hier_math_ops->pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
@@ -1693,22 +1700,25 @@ INSStaggeredHierarchyIntegrator::getFromRestart()
     }
 } // getFromRestart
 
-
 void
 INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    // Do not coarsen or refine any plot data:
+    // Do not coarsen or refine any plot data. Also ensure that the divergence is allocated.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         for (const int idx : d_plot_indices)
         {
-            if (level->checkAllocated(idx))
-                level->deallocatePatchData(idx);
+            if (level->checkAllocated(idx)) level->deallocatePatchData(idx);
+        }
+        if (!level->checkAllocated(d_Div_U_idx))
+        {
+            level->allocatePatchData(d_Div_U_idx);
         }
     }
+
     // Determine the divergence of the velocity field before regridding.
     d_hier_math_ops->div(d_Div_U_idx,
                          d_Div_U_var,
@@ -1910,6 +1920,12 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
             U_bdry_bc_fill_op.fillData(init_data_time);
 
             // Compute max |Omega|_2.
+            for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(d_Omega_idx)) level->allocatePatchData(d_Omega_idx);
+            }
+
             HierarchyMathOps hier_math_ops(d_object_name + "::HierarchyLevelMathOps", d_hierarchy, 0, level_number);
             hier_math_ops.curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
             if (d_Omega_Norm_idx != IBTK::invalid_index)
@@ -2116,6 +2132,15 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
             if (!level->checkAllocated(idx))
             {
                 level->allocatePatchData(idx);
+            }
+        }
+
+        // If we need it, ensure that the divergence is allocated:
+        if (d_output_Div_U)
+        {
+            if (!level->checkAllocated(d_Div_U_idx))
+            {
+                level->allocatePatchData(d_Div_U_idx);
             }
         }
     }

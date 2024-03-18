@@ -1148,7 +1148,8 @@ void
 HierarchyIntegrator::registerVariable(int& idx,
                                       const Pointer<Variable<NDIM> > variable,
                                       const IntVector<NDIM>& ghosts,
-                                      Pointer<VariableContext> ctx)
+                                      Pointer<VariableContext> ctx,
+                                      const bool register_for_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(variable);
@@ -1166,7 +1167,7 @@ HierarchyIntegrator::registerVariable(int& idx,
     if (*ctx == *getCurrentContext())
     {
         d_current_data.setFlag(idx);
-        if (d_registered_for_restart)
+        if (d_registered_for_restart && register_for_restart)
         {
             var_db->registerPatchDataForRestart(idx);
         }
@@ -1306,8 +1307,7 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
             // If a variable is in the current context but not registered for
             // restarts, then it will not be allocated at this point, so
             // double-check that dst is allocated:
-            if (!level->checkAllocated(dst_idx))
-                level->allocatePatchData(dst_idx);
+            if (!level->checkAllocated(dst_idx)) level->allocatePatchData(dst_idx);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
@@ -1421,7 +1421,8 @@ HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHie
     return;
 } // applyGradientDetectorSpecialized
 
-void HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
+void
+HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;
