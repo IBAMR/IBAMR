@@ -1306,6 +1306,8 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
                 Pointer<PatchData<NDIM> > src_data = patch->getPatchData(src_idx);
                 Pointer<PatchData<NDIM> > dst_data = patch->getPatchData(dst_idx);
 #if !defined(NDEBUG)
+                TBOX_ASSERT(src_data);
+                TBOX_ASSERT(dst_data);
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
 #endif
