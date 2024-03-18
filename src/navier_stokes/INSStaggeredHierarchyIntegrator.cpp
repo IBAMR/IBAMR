@@ -2086,7 +2086,6 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     if (d_output_U)
     {
         const int U_sc_idx = var_db->mapVariableAndContextToIndex(d_U_var, ctx);
-        const int U_nc_idx = var_db->mapVariableAndContextToIndex(d_U_nc_var, ctx);
 
         // We need updated ghost values to interpolate from side data:
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -2105,7 +2104,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         }
 
         // synch both the src and dst data:
-        d_hier_math_ops->interp(U_nc_idx,
+        d_hier_math_ops->interp(d_U_nc_idx,
                                 d_U_nc_var,
                                 synch_cf_interface,
                                 d_U_scratch_idx,
@@ -2119,7 +2118,6 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     if (d_output_P)
     {
         const int P_cc_idx = var_db->mapVariableAndContextToIndex(d_P_var, ctx);
-        const int P_nc_idx = var_db->mapVariableAndContextToIndex(d_P_nc_var, ctx);
 
         // We need updated ghost values to interpolate from side data:
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -2139,14 +2137,13 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 
         // synch both the src and dst data:
         d_hier_math_ops->interp(
-            P_nc_idx, d_P_nc_var, synch_cf_interface, d_P_scratch_idx, d_P_var, d_no_fill_op, d_integrator_time);
+            d_P_nc_idx, d_P_nc_var, synch_cf_interface, d_P_scratch_idx, d_P_var, d_no_fill_op, d_integrator_time);
     }
     if (d_F_fcn && d_output_F)
     {
         const int F_sc_idx = var_db->mapVariableAndContextToIndex(d_F_var, ctx);
-        const int F_cc_idx = var_db->mapVariableAndContextToIndex(d_F_cc_var, ctx);
         d_hier_math_ops->interp(
-            F_cc_idx, d_F_cc_var, F_sc_idx, d_F_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
+            d_F_cc_idx, d_F_cc_var, F_sc_idx, d_F_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
     }
 
     // Compute Omega = curl U.
