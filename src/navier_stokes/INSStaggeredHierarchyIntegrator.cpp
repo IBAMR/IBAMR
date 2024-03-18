@@ -844,6 +844,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                      d_U_refine_type,
                      d_U_init);
 
+    // We use d_P_current_idx as the initial guess for d_P_new_idx, so the
+    // pressure should always be in the restart database.
     registerVariable(d_P_current_idx,
                      d_P_new_idx,
                      d_P_scratch_idx,
@@ -855,6 +857,10 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
     if (d_F_fcn)
     {
+        // Work around a common bug in examples and tests - they print graphical
+        // output prior to timestepping whether or not the run is restarted.
+        // Hence, in that case, we need F to be in the restart database to
+        // generate valid output.
         registerVariable(d_F_current_idx,
                          d_F_new_idx,
                          d_F_scratch_idx,
@@ -862,7 +868,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                          side_ghosts,
                          d_F_coarsen_type,
                          d_F_refine_type,
-                         d_F_fcn);
+                         d_F_fcn,
+                         d_output_F);
     }
     else
     {
@@ -889,6 +896,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         d_Q_scratch_idx = invalid_index;
     }
 
+    // We need previous values of N for Adams-Bashforth so keep it in the
+    // restart database.
     registerVariable(d_N_old_current_idx,
                      d_N_old_new_idx,
                      d_N_old_scratch_idx,
