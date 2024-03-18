@@ -1025,6 +1025,12 @@ HierarchyIntegrator::getScratchContext() const
     return d_scratch_context;
 } // getScratchContext
 
+Pointer<VariableContext>
+HierarchyIntegrator::getPlotContext() const
+{
+    return d_plot_context;
+} // getPlotContext
+
 bool
 HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_ln, int finest_ln) const
 {
@@ -1168,6 +1174,8 @@ HierarchyIntegrator::registerVariable(int& idx,
         d_scratch_data.setFlag(idx);
     else if (*ctx == *getNewContext())
         d_new_data.setFlag(idx);
+    else if (*ctx == *getPlotContext())
+        d_plot_data.setFlag(idx);
     else
     {
         TBOX_ERROR(d_object_name << "::registerVariable():\n"

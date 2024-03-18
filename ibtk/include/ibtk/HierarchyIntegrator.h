@@ -608,6 +608,13 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getScratchContext() const;
 
     /*!
+     * Return a pointer to the "plot" variable context used by integrator. Plot
+     * data is only read from by the VisItDataWriter and is allocated by
+     * setupPlotData() and deallocated by regridHierarchyBegin().
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getPlotContext() const;
+
+    /*!
      * Check whether a patch data index corresponds to allocated data over the
      * specified range of patch level numbers.
      *
@@ -1154,14 +1161,15 @@ protected:
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_fast;
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_slow;
 
-    SAMRAI::hier::ComponentSelector d_current_data, d_new_data, d_scratch_data;
+    SAMRAI::hier::ComponentSelector d_current_data, d_new_data, d_scratch_data, d_plot_data;
 
     std::map<SAMRAI::hier::Variable<NDIM>*, SAMRAI::tbox::Pointer<CartGridFunction> > d_state_var_init_fcns;
 
     /*!
      * Variable contexts.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context, d_scratch_context;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context, d_scratch_context,
+        d_plot_context;
 
     /*!
      * Names of special coarsen algorithms/schedules.
