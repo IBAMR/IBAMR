@@ -256,6 +256,11 @@ protected:
     double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
 
     /*!
+     * Write out specialized object state to the given database.
+     */
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
      * Prepare the current hierarchy for regridding. Here we calculate the divergence.
      */
     void regridHierarchyBeginSpecialized() override;
@@ -341,6 +346,12 @@ private:
      * \return A reference to this object.
      */
     INSStaggeredHierarchyIntegrator& operator=(const INSStaggeredHierarchyIntegrator& that) = delete;
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void getFromRestart();
 
     /*!
      * Compute the appropriate source term that must be added to the momentum

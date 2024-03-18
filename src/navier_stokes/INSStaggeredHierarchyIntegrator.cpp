@@ -338,6 +338,9 @@ namespace IBAMR
 
 namespace
 {
+// Version of INSHierarchyIntegrator restart file data.
+static const int INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
+
 // Timers.
 static Timer* t_setup_plot_data_specialized;
 
@@ -427,6 +430,10 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     auto set_timer = [&](const char* name) { return tbox::TimerManager::getManager()->getTimer(name); };
     IBTK_DO_ONCE(t_setup_plot_data_specialized =
                      set_timer("IBTK::INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()"););
+
+    // Initialize object with data read from the input and restart databases.
+    bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) getFromRestart();
 
     // Check to see whether the solver types have been set.
     if (input_db->keyExists("stokes_solver_type")) d_stokes_solver_type = input_db->getString("stokes_solver_type");
@@ -1637,6 +1644,38 @@ INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) 
                                  stable_dt);
     return stable_dt;
 } // getStableTimestep
+
+void
+INSStaggeredHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+{
+    INSHierarchyIntegrator::putToDatabaseSpecialized(db);
+    db->putInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION", INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
+
+    return;
+} // putToDatabaseSpecialized
+
+void
+INSStaggeredHierarchyIntegrator::getFromRestart()
+{
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
+                                 << " not found in restart file." << std::endl);
+    }
+
+    int ver = db->getIntegerWithDefault("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION", -1);
+    if (ver != INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
+    {
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
+    }
+} // getFromRestart
+
 
 void
 INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
