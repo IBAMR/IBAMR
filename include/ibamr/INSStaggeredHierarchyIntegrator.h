@@ -454,14 +454,25 @@ private:
         d_N_old_scratch_idx = IBTK::invalid_index;
 
     /*
+     * Patch data descriptor for state variables which are only present in the current context.
+     */
+    int d_Div_U_idx = IBTK::invalid_index, d_Omega_idx = IBTK::invalid_index;
+
+    /*
      * Patch data descriptor indices for all "plot" variables managed by the
-     * integrator.
+     * integrator. These are only used for directly computing graphical output.
+     * In particular, this list does *not* contain some scratch variables used
+     * to generate graphical output. d_Div_U_idx is also directly plotted.
      *
-     * Plot variables have one context: current.
+     * Plot variables have one context: plot.
      */
     int d_U_nc_idx = IBTK::invalid_index, d_P_nc_idx = IBTK::invalid_index, d_F_cc_idx = IBTK::invalid_index,
-        d_Omega_idx = IBTK::invalid_index, d_Omega_nc_idx = IBTK::invalid_index, d_Div_U_idx = IBTK::invalid_index,
-        d_EE_idx = IBTK::invalid_index;
+        d_Omega_nc_idx = IBTK::invalid_index, d_EE_idx = IBTK::invalid_index;
+
+    /**
+     * Vector of all such plot-only data indices.
+     */
+    std::vector<int> d_plot_indices;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the

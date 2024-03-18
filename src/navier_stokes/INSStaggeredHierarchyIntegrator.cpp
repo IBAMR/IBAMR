@@ -897,20 +897,27 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                      d_N_coarsen_type,
                      d_N_refine_type);
 
-    registerVariable(d_U_nc_idx, d_U_nc_var, no_ghosts, getCurrentContext());
-    registerVariable(d_P_nc_idx, d_P_nc_var, no_ghosts, getCurrentContext());
+    registerVariable(d_U_nc_idx, d_U_nc_var, no_ghosts, getPlotContext());
+    d_plot_indices.push_back(d_U_nc_idx);
+    registerVariable(d_P_nc_idx, d_P_nc_var, no_ghosts, getPlotContext());
+    d_plot_indices.push_back(d_P_nc_idx);
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
     if (d_F_fcn)
     {
-        registerVariable(d_F_cc_idx, d_F_cc_var, no_ghosts, getCurrentContext());
+        registerVariable(d_F_cc_idx, d_F_cc_var, no_ghosts, getPlotContext());
+        d_plot_indices.push_back(d_F_cc_idx);
     }
     else
     {
         d_F_cc_idx = invalid_index;
     }
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
-    if (d_output_Omega) registerVariable(d_Omega_nc_idx, d_Omega_nc_var, no_ghosts, getCurrentContext());
+    if (d_output_Omega)
+    {
+        registerVariable(d_Omega_nc_idx, d_Omega_nc_var, no_ghosts, getPlotContext());
+        d_plot_indices.push_back(d_Omega_nc_idx);
+    }
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
 
     // Register scratch variables that are maintained by the
@@ -985,7 +992,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
         if (d_output_EE)
         {
-            registerVariable(d_EE_idx, d_EE_var, no_ghosts, getCurrentContext());
+            registerVariable(d_EE_idx, d_EE_var, no_ghosts, getPlotContext());
+            d_plot_indices.push_back(d_EE_idx);
             d_visit_writer->registerPlotQuantity("EE", "TENSOR", d_EE_idx);
         }
     }
@@ -1680,6 +1688,18 @@ INSStaggeredHierarchyIntegrator::getFromRestart()
 void
 INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    // Do not coarsen or refine any plot data:
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (const int idx : d_plot_indices)
+        {
+            if (level->checkAllocated(idx))
+                level->deallocatePatchData(idx);
+        }
+    }
     // Determine the divergence of the velocity field before regridding.
     d_hier_math_ops->div(d_Div_U_idx,
                          d_Div_U_var,
@@ -2079,6 +2099,15 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         if (d_output_P)
         {
             level->allocatePatchData(d_P_scratch_idx, d_integrator_time);
+        }
+
+        // Make sure all plot data is allocated:
+        for (const int idx : d_plot_indices)
+        {
+            if (!level->checkAllocated(idx))
+            {
+                level->allocatePatchData(idx);
+            }
         }
     }
 
