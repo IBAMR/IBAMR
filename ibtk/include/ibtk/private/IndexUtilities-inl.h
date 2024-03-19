@@ -76,6 +76,57 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
 
 template <typename Vector>
 inline Vector
+IndexUtilities::getCellCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::CellIndex<NDIM>& cell_idx)
+{
+    const SAMRAI::hier::Index<NDIM>& patch_lower = patch.getBox().lower();
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const double* const dx = patch_geom->getDx();
+    const double* const x_lower = patch_geom->getXLower();
+    Vector x_c;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        x_c[d] = x_lower[d] + dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)) + 0.5);
+    }
+    return x_c;
+} // getCellCenter
+
+inline VectorNd
+IndexUtilities::getCellCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::CellIndex<NDIM>& cell_idx)
+{
+    return getCellCenter<VectorNd>(patch, cell_idx);
+} // getCellCenter
+
+template <typename Vector>
+inline Vector
+IndexUtilities::getCellCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
+                              const SAMRAI::hier::IntVector<NDIM>& ratio,
+                              const SAMRAI::pdat::CellIndex<NDIM>& cell_idx)
+{
+    const double* const dx0 = grid_geom->getDx();
+    double patch_dx[NDIM];
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        patch_dx[d] = dx0[d] / static_cast<double>(ratio(d));
+    }
+    const SAMRAI::hier::Box<NDIM> domain_box =
+        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+    const double* const grid_x_lower = grid_geom->getXLower();
+    const SAMRAI::hier::Index<NDIM>& grid_lower_idx = domain_box.lower();
+
+    Vector x_c;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        x_c[d] = grid_x_lower[d] + patch_dx[d] * (static_cast<double>(cell_idx(d) - grid_lower_idx(d)) + 0.5);
+    }
+    for (int d = NDIM; d < x_c.size(); ++d)
+    {
+        x_c[d] = 0.0;
+    }
+    return x_c;
+} // getCellCenter
+
+template <typename Vector>
+inline Vector
 IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
 {
     const int axis = side_idx.getAxis();
