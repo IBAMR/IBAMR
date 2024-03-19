@@ -14,8 +14,8 @@
 ADD_CUSTOM_TARGET(examples)
 
 SET(EXAMPLE_DIRECTORIES CIB ConstraintIB DLM IB IBFE IBLevelSet IMP IIM adv_diff
-  advect complex_fluids fe_mechanics level_set multiphase_flow navier_stokes
-  vc_navier_stokes wave_tank)
+  advect complex_fluids fe_mechanics level_set multiphase_flow navier_stokes 
+  phase_change vc_navier_stokes wave_tank)
 
 #
 # Helper macro for setting up an example. Call as, for example,

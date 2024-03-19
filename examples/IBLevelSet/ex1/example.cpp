@@ -262,7 +262,7 @@ main(int argc, char* argv[])
         const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double rho_fluid = input_db->getDouble("RHO_F");
         const double rho_solid = input_db->getDouble("RHO_S");
-        const int num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
+        const double num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
         circle.rho_solid = rho_solid;
         SetFluidSolidDensity* ptr_setFluidSolidDensity = new SetFluidSolidDensity("SetFluidSolidDensity",
                                                                                   adv_diff_integrator,

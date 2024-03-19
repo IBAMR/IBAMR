@@ -20,7 +20,7 @@ ADD_CUSTOM_TARGET(tests)
 #    their corresponding build directories.
 SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IIM IMP IBTK adv_diff advect coarsen
   complex_fluids external fe_mechanics interpolate level_set multiphase_flow
-  navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank)
+  navier_stokes phase_change physical_boundary refine spread vc_navier_stokes wave_tank)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_TARGET("tests-${_dir}")
@@ -144,6 +144,8 @@ SETUP(multiphase_flow free_falling_cyl_cib.cpp IBAMR2d)
 SETUP(multiphase_flow rotating_barge_cib.cpp IBAMR2d)
 SETUP(multiphase_flow check_hydro_force.cpp IBAMR2d)
 SETUP(multiphase_flow high_density_droplet.cpp IBAMR2d)
+SETUP(multiphase_flow static_bubble_with_surface_tension.cpp IBAMR2d)
+SETUP(multiphase_flow migration_of_bubble_with_zero_ma.cpp IBAMR2d)
 
 # navier_stokes:
 SETUP_2D(navier_stokes navier_stokes_01.cpp)
@@ -173,6 +175,10 @@ ENDIF()
 # vc_navier_stokes:
 SETUP_2D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
+
+# phase_change:
+SETUP_2D(phase_change stefan_problem_enthalpy.cpp)
+SETUP_2D(phase_change stefan_problem_ac.cpp)
 
 # wave_tank:
 IF(${IBAMR_HAVE_LIBMESH})

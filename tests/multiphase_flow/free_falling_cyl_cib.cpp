@@ -199,6 +199,7 @@ main(int argc, char* argv[])
 #if (NDIM == 3)
         circle.X0[2] = input_db->getDouble("ZCOM");
 #endif
+        circle.reset_ls_analytically = true;
         const double fluid_height = input_db->getDouble("GAS_LS_INIT");
 
         const string& ls_name_solid = "level_set_solid";
@@ -258,8 +259,8 @@ main(int argc, char* argv[])
         const double rho_fluid = input_db->getDouble("RHO_F");
         const double rho_solid = input_db->getDouble("RHO_S");
         const double rho_gas = input_db->getDouble("RHO_G");
-        const int num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
-        const int num_gas_interface_cells = input_db->getDouble("NUM_GAS_INTERFACE_CELLS");
+        const double num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
+        const double num_gas_interface_cells = input_db->getDouble("NUM_GAS_INTERFACE_CELLS");
         SetFluidGasSolidDensity* ptr_setFluidGasSolidDensity = new SetFluidGasSolidDensity("SetFluidGasSolidDensity",
                                                                                            adv_diff_integrator,
                                                                                            phi_var_solid,

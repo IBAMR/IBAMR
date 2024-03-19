@@ -89,7 +89,9 @@ build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = free_falling_cyl_cib$(EXEEXT) \
 	rotating_barge_cib$(EXEEXT) check_hydro_force$(EXEEXT) \
-	high_density_droplet$(EXEEXT)
+	high_density_droplet$(EXEEXT) \
+	static_bubble_with_surface_tension$(EXEEXT) \
+	migration_of_bubble_with_zero_ma$(EXEEXT)
 subdir = tests/multiphase_flow
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -148,6 +150,15 @@ high_density_droplet_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(high_density_droplet_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_migration_of_bubble_with_zero_ma_OBJECTS = migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.$(OBJEXT)
+migration_of_bubble_with_zero_ma_OBJECTS =  \
+	$(am_migration_of_bubble_with_zero_ma_OBJECTS)
+migration_of_bubble_with_zero_ma_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+migration_of_bubble_with_zero_ma_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(migration_of_bubble_with_zero_ma_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am_rotating_barge_cib_OBJECTS =  \
 	rotating_barge_cib-rotating_barge_cib.$(OBJEXT)
 rotating_barge_cib_OBJECTS = $(am_rotating_barge_cib_OBJECTS)
@@ -156,6 +167,15 @@ rotating_barge_cib_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_static_bubble_with_surface_tension_OBJECTS = static_bubble_with_surface_tension-static_bubble_with_surface_tension.$(OBJEXT)
+static_bubble_with_surface_tension_OBJECTS =  \
+	$(am_static_bubble_with_surface_tension_OBJECTS)
+static_bubble_with_surface_tension_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+static_bubble_with_surface_tension_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(static_bubble_with_surface_tension_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -175,7 +195,9 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/check_hydro_force-check_hydro_force.Po \
 	./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po \
 	./$(DEPDIR)/high_density_droplet-high_density_droplet.Po \
-	./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
+	./$(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Po \
+	./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po \
+	./$(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -196,10 +218,16 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(check_hydro_force_SOURCES) $(free_falling_cyl_cib_SOURCES) \
-	$(high_density_droplet_SOURCES) $(rotating_barge_cib_SOURCES)
+	$(high_density_droplet_SOURCES) \
+	$(migration_of_bubble_with_zero_ma_SOURCES) \
+	$(rotating_barge_cib_SOURCES) \
+	$(static_bubble_with_surface_tension_SOURCES)
 DIST_SOURCES = $(check_hydro_force_SOURCES) \
 	$(free_falling_cyl_cib_SOURCES) \
-	$(high_density_droplet_SOURCES) $(rotating_barge_cib_SOURCES)
+	$(high_density_droplet_SOURCES) \
+	$(migration_of_bubble_with_zero_ma_SOURCES) \
+	$(rotating_barge_cib_SOURCES) \
+	$(static_bubble_with_surface_tension_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -501,6 +529,12 @@ check_hydro_force_SOURCES = check_hydro_force.cpp
 high_density_droplet_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 high_density_droplet_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 high_density_droplet_SOURCES = high_density_droplet.cpp
+static_bubble_with_surface_tension_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+static_bubble_with_surface_tension_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+static_bubble_with_surface_tension_SOURCES = static_bubble_with_surface_tension.cpp
+migration_of_bubble_with_zero_ma_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+migration_of_bubble_with_zero_ma_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+migration_of_bubble_with_zero_ma_SOURCES = migration_of_bubble_with_zero_ma.cpp
 all: all-am
 
 .SUFFIXES:
@@ -548,9 +582,17 @@ high_density_droplet$(EXEEXT): $(high_density_droplet_OBJECTS) $(high_density_dr
 	@rm -f high_density_droplet$(EXEEXT)
 	$(AM_V_CXXLD)$(high_density_droplet_LINK) $(high_density_droplet_OBJECTS) $(high_density_droplet_LDADD) $(LIBS)
 
+migration_of_bubble_with_zero_ma$(EXEEXT): $(migration_of_bubble_with_zero_ma_OBJECTS) $(migration_of_bubble_with_zero_ma_DEPENDENCIES) $(EXTRA_migration_of_bubble_with_zero_ma_DEPENDENCIES) 
+	@rm -f migration_of_bubble_with_zero_ma$(EXEEXT)
+	$(AM_V_CXXLD)$(migration_of_bubble_with_zero_ma_LINK) $(migration_of_bubble_with_zero_ma_OBJECTS) $(migration_of_bubble_with_zero_ma_LDADD) $(LIBS)
+
 rotating_barge_cib$(EXEEXT): $(rotating_barge_cib_OBJECTS) $(rotating_barge_cib_DEPENDENCIES) $(EXTRA_rotating_barge_cib_DEPENDENCIES) 
 	@rm -f rotating_barge_cib$(EXEEXT)
 	$(AM_V_CXXLD)$(rotating_barge_cib_LINK) $(rotating_barge_cib_OBJECTS) $(rotating_barge_cib_LDADD) $(LIBS)
+
+static_bubble_with_surface_tension$(EXEEXT): $(static_bubble_with_surface_tension_OBJECTS) $(static_bubble_with_surface_tension_DEPENDENCIES) $(EXTRA_static_bubble_with_surface_tension_DEPENDENCIES) 
+	@rm -f static_bubble_with_surface_tension$(EXEEXT)
+	$(AM_V_CXXLD)$(static_bubble_with_surface_tension_LINK) $(static_bubble_with_surface_tension_OBJECTS) $(static_bubble_with_surface_tension_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -561,7 +603,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_hydro_force-check_hydro_force.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/high_density_droplet-high_density_droplet.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -635,6 +679,20 @@ high_density_droplet-high_density_droplet.obj: high_density_droplet.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(high_density_droplet_CXXFLAGS) $(CXXFLAGS) -c -o high_density_droplet-high_density_droplet.obj `if test -f 'high_density_droplet.cpp'; then $(CYGPATH_W) 'high_density_droplet.cpp'; else $(CYGPATH_W) '$(srcdir)/high_density_droplet.cpp'; fi`
 
+migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.o: migration_of_bubble_with_zero_ma.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(migration_of_bubble_with_zero_ma_CXXFLAGS) $(CXXFLAGS) -MT migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.o -MD -MP -MF $(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Tpo -c -o migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.o `test -f 'migration_of_bubble_with_zero_ma.cpp' || echo '$(srcdir)/'`migration_of_bubble_with_zero_ma.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Tpo $(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='migration_of_bubble_with_zero_ma.cpp' object='migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(migration_of_bubble_with_zero_ma_CXXFLAGS) $(CXXFLAGS) -c -o migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.o `test -f 'migration_of_bubble_with_zero_ma.cpp' || echo '$(srcdir)/'`migration_of_bubble_with_zero_ma.cpp
+
+migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.obj: migration_of_bubble_with_zero_ma.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(migration_of_bubble_with_zero_ma_CXXFLAGS) $(CXXFLAGS) -MT migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.obj -MD -MP -MF $(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Tpo -c -o migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.obj `if test -f 'migration_of_bubble_with_zero_ma.cpp'; then $(CYGPATH_W) 'migration_of_bubble_with_zero_ma.cpp'; else $(CYGPATH_W) '$(srcdir)/migration_of_bubble_with_zero_ma.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Tpo $(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='migration_of_bubble_with_zero_ma.cpp' object='migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(migration_of_bubble_with_zero_ma_CXXFLAGS) $(CXXFLAGS) -c -o migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.obj `if test -f 'migration_of_bubble_with_zero_ma.cpp'; then $(CYGPATH_W) 'migration_of_bubble_with_zero_ma.cpp'; else $(CYGPATH_W) '$(srcdir)/migration_of_bubble_with_zero_ma.cpp'; fi`
+
 rotating_barge_cib-rotating_barge_cib.o: rotating_barge_cib.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) -MT rotating_barge_cib-rotating_barge_cib.o -MD -MP -MF $(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Tpo -c -o rotating_barge_cib-rotating_barge_cib.o `test -f 'rotating_barge_cib.cpp' || echo '$(srcdir)/'`rotating_barge_cib.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Tpo $(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
@@ -648,6 +706,20 @@ rotating_barge_cib-rotating_barge_cib.obj: rotating_barge_cib.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='rotating_barge_cib.cpp' object='rotating_barge_cib-rotating_barge_cib.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) -c -o rotating_barge_cib-rotating_barge_cib.obj `if test -f 'rotating_barge_cib.cpp'; then $(CYGPATH_W) 'rotating_barge_cib.cpp'; else $(CYGPATH_W) '$(srcdir)/rotating_barge_cib.cpp'; fi`
+
+static_bubble_with_surface_tension-static_bubble_with_surface_tension.o: static_bubble_with_surface_tension.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(static_bubble_with_surface_tension_CXXFLAGS) $(CXXFLAGS) -MT static_bubble_with_surface_tension-static_bubble_with_surface_tension.o -MD -MP -MF $(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Tpo -c -o static_bubble_with_surface_tension-static_bubble_with_surface_tension.o `test -f 'static_bubble_with_surface_tension.cpp' || echo '$(srcdir)/'`static_bubble_with_surface_tension.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Tpo $(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='static_bubble_with_surface_tension.cpp' object='static_bubble_with_surface_tension-static_bubble_with_surface_tension.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(static_bubble_with_surface_tension_CXXFLAGS) $(CXXFLAGS) -c -o static_bubble_with_surface_tension-static_bubble_with_surface_tension.o `test -f 'static_bubble_with_surface_tension.cpp' || echo '$(srcdir)/'`static_bubble_with_surface_tension.cpp
+
+static_bubble_with_surface_tension-static_bubble_with_surface_tension.obj: static_bubble_with_surface_tension.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(static_bubble_with_surface_tension_CXXFLAGS) $(CXXFLAGS) -MT static_bubble_with_surface_tension-static_bubble_with_surface_tension.obj -MD -MP -MF $(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Tpo -c -o static_bubble_with_surface_tension-static_bubble_with_surface_tension.obj `if test -f 'static_bubble_with_surface_tension.cpp'; then $(CYGPATH_W) 'static_bubble_with_surface_tension.cpp'; else $(CYGPATH_W) '$(srcdir)/static_bubble_with_surface_tension.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Tpo $(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='static_bubble_with_surface_tension.cpp' object='static_bubble_with_surface_tension-static_bubble_with_surface_tension.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(static_bubble_with_surface_tension_CXXFLAGS) $(CXXFLAGS) -c -o static_bubble_with_surface_tension-static_bubble_with_surface_tension.obj `if test -f 'static_bubble_with_surface_tension.cpp'; then $(CYGPATH_W) 'static_bubble_with_surface_tension.cpp'; else $(CYGPATH_W) '$(srcdir)/static_bubble_with_surface_tension.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -783,7 +855,9 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/check_hydro_force-check_hydro_force.Po
 	-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
 	-rm -f ./$(DEPDIR)/high_density_droplet-high_density_droplet.Po
+	-rm -f ./$(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Po
 	-rm -f ./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
+	-rm -f ./$(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -832,7 +906,9 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/check_hydro_force-check_hydro_force.Po
 	-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
 	-rm -f ./$(DEPDIR)/high_density_droplet-high_density_droplet.Po
+	-rm -f ./$(DEPDIR)/migration_of_bubble_with_zero_ma-migration_of_bubble_with_zero_ma.Po
 	-rm -f ./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
+	-rm -f ./$(DEPDIR)/static_bubble_with_surface_tension-static_bubble_with_surface_tension.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
