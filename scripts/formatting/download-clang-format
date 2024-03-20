@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# based on deal.II's download_clang_format script and licensed under the LGPL
+
+#
+# This script downloads and installs the clang-format binary. The
+# destination directory is
+#   scripts/formatting/programs/clang-<VERSION>/bin.
+#
+# This script only works on Linux (amd64) and macOS. For other
+# architectures it is necessary to compile the clang-format binary by hand.
+# This can be done with the compile_clang_format script.
+#
+
+VERSION=16
+PRG="$(cd "$(dirname "$0")" && pwd)/programs"
+CLANG_PATH="${PRG}/clang-${VERSION}"
+
+URL="https://github.com/dealii/dealii/releases/download/v9.5.1"
+
+# Find out which kind of OS we are running and set the appropriate settings
+case "${OSTYPE}" in
+  linux*)
+    FILENAME="clang-format-${VERSION}-linux.tar.gz"
+    CHECKSUM_CMD="sha256sum"
+    CHECKSUM="e6d92ab1b385f5e4392466a3cf651a9e403a5c212f4c1c3737ee173bc6d79d93  $FILENAME"
+    ;;
+  darwin*)
+    FILENAME="clang-format-${VERSION}-darwin-intel.tar.gz"
+    CHECKSUM_CMD="shasum"
+    CHECKSUM="5b8c310a660102a1aa46cc0242294fb14271797a4027883a698651411f8e51bf  $FILENAME"
+    ;;
+  *)
+    echo "unknown: ${OSTYPE}"
+    exit 1
+    ;;
+esac
+
+if [ ! -d "${PRG}" ]
+then
+    echo "create folder ${PRG}"
+    mkdir "${PRG}"
+fi
+
+if [ -d "${CLANG_PATH}" ]
+then
+    echo "${CLANG_PATH} exists. Exiting."
+    exit 1
+fi
+
+echo "Downloading and installing clang-format-${VERSION} from ${URL}/${FILENAME}"
+mkdir "${CLANG_PATH}"
+
+tmpdir="${TMPDIR:-/tmp}/dealiiclang${RANDOM}${RANDOM}"
+mkdir -p "${tmpdir}"
+cd "${tmpdir}"
+if [ -x "$(command -v wget)" ]; then
+  echo "Using wget to download..."
+  wget -q -L "${URL}/${FILENAME}" > /dev/null
+else
+  if [ -x "$(command -v curl)" ]; then
+    echo "Using curl to download..."
+    curl -L "${URL}/${FILENAME}" -O > /dev/null
+  else
+    echo "Error: Neither wget nor curl is available..."
+    exit 1
+  fi
+fi
+
+if echo "${CHECKSUM}" | "${CHECKSUM_CMD}" -c; then
+  tar xfz "${FILENAME}" -C "${PRG}" > /dev/null
+else
+  echo "*** The downloaded file has the wrong SHA256 checksum!"
+  exit 1
+fi
+rm -r "${tmpdir}"
+
+echo "All done. clang-format successfully installed into"
+echo "    ${CLANG_PATH}/bin"

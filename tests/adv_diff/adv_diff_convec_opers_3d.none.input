@@ -28,7 +28,7 @@ Q_bcs {
    acoef_function_3 = "0.0"
    acoef_function_4 = "1.0"
    acoef_function_5 = "0.0"
-   
+
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "1.0"
    bcoef_function_2 = "0.0"
@@ -58,7 +58,7 @@ Main {
 // log file parameters
    log_file_name               = "output"
    log_all_nodes               = FALSE
-      
+
    viz_writer                  = "VisIt"
    viz_dump_interval           = 2
    viz_dump_dirname            = "viz_advect2d"

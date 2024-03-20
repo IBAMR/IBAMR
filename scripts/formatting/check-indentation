@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# based on deal.II's check_indentation and licensed under the LGPL
+
+#
+# This is a script that is used by the continuous integration servers
+# to make sure that the currently checked out version of a git repository
+# satisfies our "indentation" standards. This does no longer only cover
+# indentation, but other automated checks as well.
+#
+# WARNING: The continuous integration services return a failure code for a
+# pull request if this script returns a failure, so the return value of this
+# script is important.
+#
+
+# Run indent-all and fail if script fails:
+./scripts/formatting/indent-all || exit $?
+
+# Show the diff in the output:
+git diff
+
+# Make this script fail if any changes were applied by indent above:
+git diff-files --quiet || exit $?
+
+# Success!
+exit 0

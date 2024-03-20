@@ -138,8 +138,8 @@ INSCollocatedHierarchyIntegrator {
    cfl                           = CFL_MAX
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
-   vorticity_abs_thresh          =  0.125,0.25,0.5,1,2 
-   tag_buffer                    = TAG_BUFFER  
+   vorticity_abs_thresh          =  0.125,0.25,0.5,1,2
+   tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
    output_F                      = OUTPUT_F
@@ -165,7 +165,7 @@ INSStaggeredHierarchyIntegrator {
    dt_max                        = DT
    using_vorticity_tagging       = VORTICITY_TAGGING
    vorticity_abs_thresh          = 0.125,0.25,0.5,1,2
-   tag_buffer                    = TAG_BUFFER  
+   tag_buffer                    = TAG_BUFFER
    output_U                      = OUTPUT_U
    output_P                      = OUTPUT_P
    output_F                      = OUTPUT_F

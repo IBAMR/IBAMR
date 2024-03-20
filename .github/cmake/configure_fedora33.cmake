@@ -16,4 +16,13 @@ SET(CMAKE_CXX_COMPILER "/usr/lib64/mpich/bin/mpic++" CACHE STRING "C++ Compiler"
 SET(CMAKE_Fortran_COMPILER "/usr/lib64/mpich/bin/mpifort" CACHE STRING "Fortran Compiler")
 SET(HDF5_ROOT "$ENV{HDF5_DIR}" CACHE PATH "Location of HDF5 binaries")
 
+# Work around a GCC-12 bug with PatchCellDataBasicOps - GCC thinks its member
+# variables are not initialized even though they have default constructors.
+#
+# libMesh uses std::iterator, which is deprecated, so turn off Wdeprecated-declarations
+SET(CMAKE_C_FLAGS "-O1 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized -Wno-deprecated-declarations"
+  CACHE STRING "C flags")
+SET(CMAKE_CXX_FLAGS "-O1 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized -Wno-deprecated-declarations" CACHE STRING "C++ flags")
+SET(CMAKE_Fortran_FLAGS "-O3" CACHE STRING "Fortran flags")
+
 INCLUDE("${CMAKE_CURRENT_LIST_DIR}/configure_common.cmake")

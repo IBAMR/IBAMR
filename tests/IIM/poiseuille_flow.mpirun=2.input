@@ -11,7 +11,7 @@ REF_RATIO  = 1                                      // refinement ratio between 
 N = 128                                   // actual    number of grid cells on coarsest grid level
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
 L = 5.0                                           // channel length (cm)
-P_E = 4* MU * L 
+P_E = 4* MU * L
 H = 5.0                                           // domain  height (cm)
 D = 1.0
 FAC = 0.0
@@ -41,7 +41,7 @@ USE_CONSISTENT_MASS_MATRIX = TRUE              // whether to use a consistent or
 IB_POINT_DENSITY           = 4                    // approximate density of IB quadrature points for Lagrangian-Eulerian interaction
 SOLVER_TYPE                = "STAGGERED"            // the fluid solver to use (STAGGERED or COLLOCATED)
 CFL_MAX                    = 0.10                   // maximum CFL number
-DT       				   = 0.5*CFL_MAX*DX  
+DT       				   = 0.5*CFL_MAX*DX
 START_TIME                 = 0.0e0                  // initial simulation time
 END_TIME                   = 20*DT               // final simulation time
 GROW_DT                    = 2.0e0                  // growth factor for timesteps
@@ -64,10 +64,10 @@ ENABLE_LOGGING             = TRUE
 
 // Penalty parameter
 KAPPA_S_THIN = 0.0022/(cos(THETA) * DT^2)
-ETA_S_THIN = 0.0*DX/DT 
+ETA_S_THIN = 0.0*DX/DT
      // maximum timestep size
-     
-X1_lower = 0.5*H - 0.5*D/cos(THETA) - 0.5*L*tan(THETA) 
+
+X1_lower = 0.5*H - 0.5*D/cos(THETA) - 0.5*L*tan(THETA)
 X1_upper = X1_lower + D/cos(THETA)
 
 // Parabolic profile
@@ -83,8 +83,8 @@ VelocityInitialConditions {
     D = D
     w = W
     L = L
-    X1_lower = X1_lower 
-    X1_upper = X1_upper 
+    X1_lower = X1_lower
+    X1_upper = X1_upper
     mu = MU
     function_0 = U
     function_1 = V
@@ -95,12 +95,12 @@ PressureInitialConditions {
     D = D
     L = L
     H = H
-    
+
     mu = MU
     p_e = P_E
     theta = THETA
-    X1_lower = X1_lower 
-    X1_upper = X1_upper 
+    X1_lower = X1_lower
+    X1_upper = X1_upper
     function = P
 }
 
@@ -111,8 +111,8 @@ VelocityBcCoefs_0 {
     D = D
     w = W
     L = L
-    X1_lower = X1_lower 
-    X1_upper = X1_upper 
+    X1_lower = X1_lower
+    X1_upper = X1_upper
     mu = MU
 
     H = H
@@ -122,13 +122,13 @@ VelocityBcCoefs_0 {
     acoef_function_2 = "1.0"
     acoef_function_3 = "1.0"
 
-    bcoef_function_0 = "1.0" 
+    bcoef_function_0 = "1.0"
     bcoef_function_1 = "1.0"
     bcoef_function_2 = "0.0"
     bcoef_function_3 = "0.0"
 
-    gcoef_function_0 = "( X1 < (X1_lower + X0*tan(theta)) ? 0.0 : ( (X1 > (X1_upper + X0*tan(theta))) ? 0.0 : -(-2.*p_e*(X0/cos(theta) + (X1-X1_lower-X0*tan(theta))*sin(theta))/(L/cos(theta) + D*tan(theta)) + p_e)))"    
-    gcoef_function_1 = "( X1 < (X1_lower + X0*tan(theta)) ? 0.0 : ( (X1 > (X1_upper + X0*tan(theta))) ? 0.0 : -(-2.*p_e*(X0/cos(theta) + (X1-X1_lower-X0*tan(theta))*sin(theta))/(L/cos(theta) + D*tan(theta)) + p_e)))"    
+    gcoef_function_0 = "( X1 < (X1_lower + X0*tan(theta)) ? 0.0 : ( (X1 > (X1_upper + X0*tan(theta))) ? 0.0 : -(-2.*p_e*(X0/cos(theta) + (X1-X1_lower-X0*tan(theta))*sin(theta))/(L/cos(theta) + D*tan(theta)) + p_e)))"
+    gcoef_function_1 = "( X1 < (X1_lower + X0*tan(theta)) ? 0.0 : ( (X1 > (X1_upper + X0*tan(theta))) ? 0.0 : -(-2.*p_e*(X0/cos(theta) + (X1-X1_lower-X0*tan(theta))*sin(theta))/(L/cos(theta) + D*tan(theta)) + p_e)))"
     gcoef_function_2 = "0.0"
     gcoef_function_3 = "0.0"
 }
@@ -140,24 +140,24 @@ VelocityBcCoefs_1 {
     D = D
     w = W
     L = L
-    X1_lower = X1_lower 
-    X1_upper = X1_upper 
+    X1_lower = X1_lower
+    X1_upper = X1_upper
     mu = MU
- 
+
     H = H
 
-   acoef_function_0 = "1.0" 
-   acoef_function_1 = "1.0" 
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
    acoef_function_2 = "0.0"
    acoef_function_3 = "0.0"
 
-   bcoef_function_0 = "0.0" 
-   bcoef_function_1 = "0.0" 
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
    bcoef_function_2 = "1.0"
    bcoef_function_3 = "1.0"
 
-   gcoef_function_0 = V 
-   gcoef_function_1 = V 
+   gcoef_function_0 = V
+   gcoef_function_1 = V
    gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
 }
@@ -263,7 +263,7 @@ GriddingAlgorithm {
       level_7 = REF_RATIO,REF_RATIO
    }
    largest_patch_size {
-   
+
       level_0 = 256 , 256  // all finer levels will use same values as level_0
    }
    smallest_patch_size {

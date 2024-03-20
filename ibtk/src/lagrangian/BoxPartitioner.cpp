@@ -165,7 +165,8 @@ BoxPartitioner::_do_partition(MeshBase& mesh, const unsigned int n)
     }
 
     const int current_rank = IBTK_MPI::getRank();
-    auto to_ibtk_point = [](const libMesh::Point& p) -> IBTK::Point {
+    auto to_ibtk_point = [](const libMesh::Point& p) -> IBTK::Point
+    {
         IBTK::Point point;
         for (unsigned int d = 0; d < NDIM; ++d) point[d] = p(d);
         return point;

@@ -1962,6 +1962,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
     NULL_USE(SILO_MPI_TAG);
     NULL_USE(SILO_NAME_BUFSIZE);
     NULL_USE(d_time_step_number);
+    NULL_USE(d_summary_file_opened);
     NULL_USE(time_step_number);
     NULL_USE(simulation_time);
     TBOX_WARNING("LSiloDataWriter::writePlotData(): SILO is not installed; cannot write data." << std::endl);

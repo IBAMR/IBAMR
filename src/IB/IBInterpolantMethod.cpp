@@ -675,15 +675,17 @@ IBInterpolantMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarch
     return;
 } // addWorkloadEstimate
 
-void IBInterpolantMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IBInterpolantMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                             Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     d_l_data_manager->beginDataRedistribution();
     return;
 } // beginDataRedistribution
 
-void IBInterpolantMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                                Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IBInterpolantMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                           Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     d_l_data_manager->endDataRedistribution();
     return;

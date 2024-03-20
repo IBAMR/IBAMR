@@ -206,9 +206,9 @@ DensityBoundaryConditions {
 
    gcoef_function_0 = RHO
    gcoef_function_1 = RHO
-   gcoef_function_2 = RHO  
+   gcoef_function_2 = RHO
    gcoef_function_3 = RHO
-   gcoef_function_4 = RHO  
+   gcoef_function_4 = RHO
    gcoef_function_5 = RHO
 
 }
@@ -233,9 +233,9 @@ ViscosityBoundaryConditions {
 
    gcoef_function_0 = MU
    gcoef_function_1 = MU
-   gcoef_function_2 = MU  
+   gcoef_function_2 = MU
    gcoef_function_3 = MU
-   gcoef_function_4 = MU  
+   gcoef_function_4 = MU
    gcoef_function_5 = MU
 
 }
@@ -276,7 +276,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    output_mu                     = OUTPUT_MU
    rho_is_const                  = RHO_IS_CONST
    mu_is_const                   = MU_IS_CONST
-   operator_scale_factors        = OPERATOR_SCALE_FACTORS 
+   operator_scale_factors        = OPERATOR_SCALE_FACTORS
    vc_interpolation_type         = VC_INTERPOLATION_TYPE
    precond_reinit_interval       = PRECOND_REINIT_INTERVAL
    enable_logging                = ENABLE_LOGGING
@@ -308,7 +308,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    }
     pressure_solver_type = "PETSC_KRYLOV_SOLVER"
     pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-    pressure_solver_db 
+    pressure_solver_db
     {
       ksp_type = "richardson"
       max_iterations = 5
@@ -328,7 +328,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
          pc_type = "jacobi"
       }
     }
-   
+
 }
 
 Main {

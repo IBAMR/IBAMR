@@ -43,7 +43,7 @@ VelocityInitialConditions {
 }
 
 ForcingFunction {
-   
+
    kappa = KAPPA
    sigma = SIGMA
    x_c = L/2
@@ -65,7 +65,7 @@ QInitialConditions {
 }
 
 Q_bc_coefs {
-   
+
    kappa = KAPPA
    x_c = L/2
    omega = OMEGA

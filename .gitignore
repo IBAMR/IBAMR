@@ -15,6 +15,7 @@ compile_flags.txt
 .cache
 .clangd
 .clang-tidy
+scripts/formatting/programs
 
 # Created by https://www.gitignore.io/api/linux,osx,c,c++,fortran
 

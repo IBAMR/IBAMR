@@ -45,7 +45,7 @@ GitHub.
   the third argument to `getOperationsDouble` et al. This prevents memory leaks
   where a statically stored `HierarchyDataOps` object keeps a patch hierarchy
   alive that is otherwise inaccessible.
-- [ ] Run clang-format on the entire code base.
+- [ ] Run clang-format on the entire code base via `make indent-all`.
 - [ ] Check that we don't use `Eigen::Index` anywhere: that is not available in
   older versions of Eigen. Instead, write
 ```cpp

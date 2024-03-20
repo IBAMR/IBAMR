@@ -306,7 +306,8 @@ FEData::getFromRestart()
 {
 } // getFromRestart
 
-void FEData::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> /*db*/)
+void
+FEData::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> /*db*/)
 {
 } // putToDatabase
 

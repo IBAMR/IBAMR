@@ -91,14 +91,14 @@ IBStandardInitializer {
 
 }
 
-CIBStaggeredStokesSolver 
+CIBStaggeredStokesSolver
 {
     // Parameters to control various linear operators
     scale_interp_operator     = 1.0                            // defaults to 1.0
     scale_spread_operator     = 1.0                            // defaults to 1.0
     normalize_spread_force    = FALSE                          // defaults to false
     regularize_mob_factor     = DELTA                          // defaults to 0.0
- 
+
     // Setting for outer Krylov solver.
     options_prefix        = "SP_"
     max_iterations        = 100
@@ -109,7 +109,7 @@ CIBStaggeredStokesSolver
     initial_guess_nonzero = FALSE
     enable_logging        = TRUE
     mobility_solver_type  = MOBILITY_SOLVER_TYPE
-  
+
     // Stokes solver for the 1st and 3rd Stokes solve in the preconditioner
     PCStokesSolver
     {
@@ -132,12 +132,12 @@ CIBStaggeredStokesSolver
 
         velocity_solver_type = "PETSC_KRYLOV_SOLVER"
         velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-        velocity_solver_db 
+        velocity_solver_db
         {
             ksp_type = "richardson"
             max_iterations = 1
         }
-        velocity_precond_db 
+        velocity_precond_db
         {
             ghost_cell_width = 4
             num_pre_sweeps  = 0
@@ -148,7 +148,7 @@ CIBStaggeredStokesSolver
             coarse_solver_rel_residual_tol = 1.0e-12
             coarse_solver_abs_residual_tol = 1.0e-50
             coarse_solver_max_iterations = 1
-            coarse_solver_db 
+            coarse_solver_db
             {
                 solver_type          = "Split"
                 split_solver_type    = "PFMG"
@@ -158,12 +158,12 @@ CIBStaggeredStokesSolver
 
          pressure_solver_type = "PETSC_KRYLOV_SOLVER"
          pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-         pressure_solver_db 
+         pressure_solver_db
          {
              ksp_type = "richardson"
              max_iterations = 1
          }
-         pressure_precond_db 
+         pressure_precond_db
          {
              num_pre_sweeps  = 0
              num_post_sweeps = 3
@@ -173,7 +173,7 @@ CIBStaggeredStokesSolver
              coarse_solver_rel_residual_tol = 1.0e-12
              coarse_solver_abs_residual_tol = 1.0e-50
              coarse_solver_max_iterations = 1
-             coarse_solver_db 
+             coarse_solver_db
              {
                  solver_type          = "PFMG"
                  num_pre_relax_steps  = 0
@@ -209,12 +209,12 @@ CIBStaggeredStokesSolver
 
         velocity_solver_type = "PETSC_KRYLOV_SOLVER"
         velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-        velocity_solver_db 
+        velocity_solver_db
         {
             ksp_type = "richardson"
             max_iterations = 1
         }
-        velocity_precond_db 
+        velocity_precond_db
         {
             ghost_cell_width = 4
             num_pre_sweeps  = 0
@@ -225,7 +225,7 @@ CIBStaggeredStokesSolver
             coarse_solver_rel_residual_tol = 1.0e-12
             coarse_solver_abs_residual_tol = 1.0e-50
             coarse_solver_max_iterations = 1
-            coarse_solver_db 
+            coarse_solver_db
             {
                 solver_type          = "Split"
                 split_solver_type    = "PFMG"
@@ -235,12 +235,12 @@ CIBStaggeredStokesSolver
 
          pressure_solver_type = "PETSC_KRYLOV_SOLVER"
          pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-         pressure_solver_db 
+         pressure_solver_db
          {
              ksp_type = "richardson"
              max_iterations = 1
          }
-         pressure_precond_db 
+         pressure_precond_db
          {
              num_pre_sweeps  = 0
              num_post_sweeps = 3
@@ -250,7 +250,7 @@ CIBStaggeredStokesSolver
              coarse_solver_rel_residual_tol = 1.0e-12
              coarse_solver_abs_residual_tol = 1.0e-50
              coarse_solver_max_iterations = 1
-             coarse_solver_db 
+             coarse_solver_db
              {
                  solver_type          = "PFMG"
                  num_pre_relax_steps  = 0
@@ -310,7 +310,7 @@ INSStaggeredHierarchyIntegrator {
    output_Omega                  = OUTPUT_OMEGA
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
-   init_convective_time_stepping_type = "FORWARD_EULER" 
+   init_convective_time_stepping_type = "FORWARD_EULER"
 }
 
 Main {
@@ -354,19 +354,19 @@ VelocityBcCoefs_0 {
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0" 
-   acoef_function_3 = "1.0" 
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
-   bcoef_function_2 = "0.0" 
+   bcoef_function_2 = "0.0"
    bcoef_function_3 = "0.0"
 
    gcoef_function_0 = "u_wall"
    gcoef_function_1 = "u_wall"
    gcoef_function_2 = "u_wall"
    gcoef_function_3 = "u_wall"
-   
+
 }
 
 // v velocity
@@ -374,8 +374,8 @@ VelocityBcCoefs_1 {
 
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
-   acoef_function_2 = "1.0" 
-   acoef_function_3 = "1.0"  
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
 
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
@@ -384,9 +384,9 @@ VelocityBcCoefs_1 {
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
-   gcoef_function_2 = "0.0" 
+   gcoef_function_2 = "0.0"
    gcoef_function_3 = "0.0"
-   
+
 }
 
 

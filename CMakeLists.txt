@@ -1328,3 +1328,20 @@ IF(IBAMR_ENABLE_TESTING)
   ADD_SUBDIRECTORY(tests)
 ENDIF()
 ADD_SUBDIRECTORY(examples)
+
+# ---------------------------------------------------------------------------- #
+#                               6: Other targets                               #
+# ---------------------------------------------------------------------------- #
+
+# Targets for indenting recently changed and all files
+ADD_CUSTOM_TARGET(indent
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND ./scripts/formatting/indent
+  COMMENT "Indenting recently changed IBAMR files"
+  )
+
+ADD_CUSTOM_TARGET(indent-all
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND ./scripts/formatting/indent-all
+  COMMENT "Indenting all IBAMR files"
+  )

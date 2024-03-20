@@ -1,7 +1,6 @@
-#! /bin/bash
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2014 - 2016 by the IBAMR developers
+## Copyright (c) 2021 - 2021 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -12,8 +11,6 @@
 ##
 ## ---------------------------------------------------------------------
 
-FILES="`find examples include ibtk/include ibtk/examples ibtk/src src tests -name *.cpp -o -name *.h`"
-for file in $FILES; do
-  echo $file
-  clang-format -i -style=file $file
-done
+SET(CMAKE_C_COMPILER_LAUNCHER "ccache" CACHE STRING "Use ccache to compile C code.")
+SET(CMAKE_CXX_COMPILER_LAUNCHER "ccache" CACHE STRING "Use ccache to compile C++ code.")
+SET(CMAKE_Fortran_COMPILER_LAUNCHER "ccache" CACHE STRING "Use ccache to compile Fortran code.")

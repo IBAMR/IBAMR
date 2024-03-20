@@ -74,7 +74,8 @@ LSInitStrategy::setReinitializeLSData(bool reinit_ls_data)
     return;
 } // setReinitializeLSData
 
-void LSInitStrategy::putToDatabase(Pointer<Database> /*db*/)
+void
+LSInitStrategy::putToDatabase(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;

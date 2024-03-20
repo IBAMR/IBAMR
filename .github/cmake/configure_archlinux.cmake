@@ -25,10 +25,9 @@ SET(CMAKE_C_COMPILER "/petsc/bin/mpicc" CACHE STRING "C Compiler")
 SET(CMAKE_CXX_COMPILER "/petsc/bin/mpic++" CACHE STRING "C++ Compiler")
 SET(CMAKE_Fortran_COMPILER "/petsc/bin/mpifort" CACHE STRING "Fortran Compiler")
 
-# GCC 12 has a bug with Wmaybe-uninitialized so disable it in this container
-# libMesh uses std::iterator, which is deprecated, so turn that off too
-SET(CMAKE_C_FLAGS "-O0 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized -Wno-deprecated-declarations" CACHE STRING "C flags")
-SET(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized -Wno-deprecated-declarations" CACHE STRING "C++ flags")
+# libMesh uses std::iterator, which is deprecated, so turn off Wdeprecated-declarations
+SET(CMAKE_C_FLAGS "-O0 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations" CACHE STRING "C flags")
+SET(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations" CACHE STRING "C++ flags")
 SET(CMAKE_Fortran_FLAGS "-O0" CACHE STRING "Fortran flags")
 
 SET(CMAKE_INSTALL_PREFIX "/ibamr" CACHE PATH "Install destination")

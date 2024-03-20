@@ -72,7 +72,8 @@ BrinkmanPenalizationStrategy::postprocessComputeBrinkmanPenalization(double /*cu
     return;
 } // postprocessComputeBrinkmanPenalization
 
-void BrinkmanPenalizationStrategy::putToDatabase(Pointer<Database> /*db*/)
+void
+BrinkmanPenalizationStrategy::putToDatabase(Pointer<Database> /*db*/)
 {
     return;
 } // putToDatabase
