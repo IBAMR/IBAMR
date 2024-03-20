@@ -256,6 +256,11 @@ protected:
     double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
 
     /*!
+     * Write out specialized object state to the given database.
+     */
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
      * Prepare the current hierarchy for regridding. Here we calculate the divergence.
      */
     void regridHierarchyBeginSpecialized() override;
@@ -341,6 +346,12 @@ private:
      * \return A reference to this object.
      */
     INSStaggeredHierarchyIntegrator& operator=(const INSStaggeredHierarchyIntegrator& that) = delete;
+
+    /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void getFromRestart();
 
     /*!
      * Compute the appropriate source term that must be added to the momentum
@@ -443,14 +454,25 @@ private:
         d_N_old_scratch_idx = IBTK::invalid_index;
 
     /*
+     * Patch data descriptor for state variables which are only present in the current context.
+     */
+    int d_Div_U_idx = IBTK::invalid_index, d_Omega_idx = IBTK::invalid_index;
+
+    /*
      * Patch data descriptor indices for all "plot" variables managed by the
-     * integrator.
+     * integrator. These are only used for directly computing graphical output.
+     * In particular, this list does *not* contain some scratch variables used
+     * to generate graphical output. d_Div_U_idx is also directly plotted.
      *
-     * Plot variables have one context: current.
+     * Plot variables have one context: plot.
      */
     int d_U_nc_idx = IBTK::invalid_index, d_P_nc_idx = IBTK::invalid_index, d_F_cc_idx = IBTK::invalid_index,
-        d_Omega_idx = IBTK::invalid_index, d_Omega_nc_idx = IBTK::invalid_index, d_Div_U_idx = IBTK::invalid_index,
-        d_EE_idx = IBTK::invalid_index;
+        d_Omega_nc_idx = IBTK::invalid_index, d_EE_idx = IBTK::invalid_index;
+
+    /**
+     * Vector of all such plot-only data indices.
+     */
+    std::vector<int> d_plot_indices;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the

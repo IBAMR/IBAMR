@@ -1025,6 +1025,12 @@ HierarchyIntegrator::getScratchContext() const
     return d_scratch_context;
 } // getScratchContext
 
+Pointer<VariableContext>
+HierarchyIntegrator::getPlotContext() const
+{
+    return d_plot_context;
+} // getPlotContext
+
 bool
 HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_ln, int finest_ln) const
 {
@@ -1081,7 +1087,8 @@ HierarchyIntegrator::registerVariable(int& current_idx,
                                       const IntVector<NDIM>& scratch_ghosts,
                                       const std::string& coarsen_name,
                                       const std::string& refine_name,
-                                      Pointer<CartGridFunction> init_fcn)
+                                      Pointer<CartGridFunction> init_fcn,
+                                      const bool register_for_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(variable);
@@ -1101,7 +1108,7 @@ HierarchyIntegrator::registerVariable(int& current_idx,
     // Setup the current context.
     current_idx = var_db->registerVariableAndContext(variable, getCurrentContext(), no_ghosts);
     d_current_data.setFlag(current_idx);
-    if (d_registered_for_restart)
+    if (d_registered_for_restart && register_for_restart)
     {
         var_db->registerPatchDataForRestart(current_idx);
     }
@@ -1141,7 +1148,8 @@ void
 HierarchyIntegrator::registerVariable(int& idx,
                                       const Pointer<Variable<NDIM> > variable,
                                       const IntVector<NDIM>& ghosts,
-                                      Pointer<VariableContext> ctx)
+                                      Pointer<VariableContext> ctx,
+                                      const bool register_for_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(variable);
@@ -1159,7 +1167,7 @@ HierarchyIntegrator::registerVariable(int& idx,
     if (*ctx == *getCurrentContext())
     {
         d_current_data.setFlag(idx);
-        if (d_registered_for_restart)
+        if (d_registered_for_restart && register_for_restart)
         {
             var_db->registerPatchDataForRestart(idx);
         }
@@ -1168,6 +1176,8 @@ HierarchyIntegrator::registerVariable(int& idx,
         d_scratch_data.setFlag(idx);
     else if (*ctx == *getNewContext())
         d_new_data.setFlag(idx);
+    else if (*ctx == *getPlotContext())
+        d_plot_data.setFlag(idx);
     else
     {
         TBOX_ERROR(d_object_name << "::registerVariable():\n"
@@ -1289,15 +1299,23 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
     {
         const int src_idx = var_db->mapVariableAndContextToIndex(v, getNewContext());
         const int dst_idx = var_db->mapVariableAndContextToIndex(v, getCurrentContext());
+
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+            // If a variable is in the current context but not registered for
+            // restarts, then it will not be allocated at this point, so
+            // double-check that dst is allocated:
+            if (!level->checkAllocated(dst_idx)) level->allocatePatchData(dst_idx);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<PatchData<NDIM> > src_data = patch->getPatchData(src_idx);
                 Pointer<PatchData<NDIM> > dst_data = patch->getPatchData(dst_idx);
 #if !defined(NDEBUG)
+                TBOX_ASSERT(src_data);
+                TBOX_ASSERT(dst_data);
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
 #endif
@@ -1403,7 +1421,8 @@ HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHie
     return;
 } // applyGradientDetectorSpecialized
 
-void HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
+void
+HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;

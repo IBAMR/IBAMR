@@ -338,6 +338,9 @@ namespace IBAMR
 
 namespace
 {
+// Version of INSHierarchyIntegrator restart file data.
+static const int INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION = 1;
+
 // Timers.
 static Timer* t_setup_plot_data_specialized;
 
@@ -427,6 +430,10 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     auto set_timer = [&](const char* name) { return tbox::TimerManager::getManager()->getTimer(name); };
     IBTK_DO_ONCE(t_setup_plot_data_specialized =
                      set_timer("IBTK::INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()"););
+
+    // Initialize object with data read from the input and restart databases.
+    bool from_restart = RestartManager::getManager()->isFromRestart();
+    if (from_restart) getFromRestart();
 
     // Check to see whether the solver types have been set.
     if (input_db->keyExists("stokes_solver_type")) d_stokes_solver_type = input_db->getString("stokes_solver_type");
@@ -837,6 +844,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                      d_U_refine_type,
                      d_U_init);
 
+    // We use d_P_current_idx as the initial guess for d_P_new_idx, so the
+    // pressure should always be in the restart database.
     registerVariable(d_P_current_idx,
                      d_P_new_idx,
                      d_P_scratch_idx,
@@ -848,6 +857,10 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
     if (d_F_fcn)
     {
+        // Work around a common bug in examples and tests - they print graphical
+        // output prior to timestepping whether or not the run is restarted.
+        // Hence, in that case, we need F to be in the restart database to
+        // generate valid output.
         registerVariable(d_F_current_idx,
                          d_F_new_idx,
                          d_F_scratch_idx,
@@ -855,7 +868,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                          side_ghosts,
                          d_F_coarsen_type,
                          d_F_refine_type,
-                         d_F_fcn);
+                         d_F_fcn,
+                         d_output_F);
     }
     else
     {
@@ -882,6 +896,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
         d_Q_scratch_idx = invalid_index;
     }
 
+    // We need previous values of N for Adams-Bashforth so keep it in the
+    // restart database.
     registerVariable(d_N_old_current_idx,
                      d_N_old_new_idx,
                      d_N_old_scratch_idx,
@@ -890,21 +906,28 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                      d_N_coarsen_type,
                      d_N_refine_type);
 
-    registerVariable(d_U_nc_idx, d_U_nc_var, no_ghosts, getCurrentContext());
-    registerVariable(d_P_nc_idx, d_P_nc_var, no_ghosts, getCurrentContext());
+    registerVariable(d_U_nc_idx, d_U_nc_var, no_ghosts, getPlotContext());
+    d_plot_indices.push_back(d_U_nc_idx);
+    registerVariable(d_P_nc_idx, d_P_nc_var, no_ghosts, getPlotContext());
+    d_plot_indices.push_back(d_P_nc_idx);
     // Register plot variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
     if (d_F_fcn)
     {
-        registerVariable(d_F_cc_idx, d_F_cc_var, no_ghosts, getCurrentContext());
+        registerVariable(d_F_cc_idx, d_F_cc_var, no_ghosts, getPlotContext());
+        d_plot_indices.push_back(d_F_cc_idx);
     }
     else
     {
         d_F_cc_idx = invalid_index;
     }
-    registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
-    if (d_output_Omega) registerVariable(d_Omega_nc_idx, d_Omega_nc_var, no_ghosts, getCurrentContext());
-    registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
+    registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext(), false);
+    if (d_output_Omega)
+    {
+        registerVariable(d_Omega_nc_idx, d_Omega_nc_var, no_ghosts, getPlotContext());
+        d_plot_indices.push_back(d_Omega_nc_idx);
+    }
+    registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext(), false);
 
     // Register scratch variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
@@ -978,7 +1001,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
         if (d_output_EE)
         {
-            registerVariable(d_EE_idx, d_EE_var, no_ghosts, getCurrentContext());
+            registerVariable(d_EE_idx, d_EE_var, no_ghosts, getPlotContext());
+            d_plot_indices.push_back(d_EE_idx);
             d_visit_writer->registerPlotQuantity("EE", "TENSOR", d_EE_idx);
         }
     }
@@ -1343,6 +1367,13 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
     if (d_using_vorticity_tagging)
     {
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
+
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            if (!level->checkAllocated(d_Omega_idx)) level->allocatePatchData(d_Omega_idx);
+        }
+
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
         if (d_Omega_Norm_idx != IBTK::invalid_index)
             d_hier_math_ops->pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
@@ -1639,8 +1670,55 @@ INSStaggeredHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch) 
 } // getStableTimestep
 
 void
+INSStaggeredHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+{
+    INSHierarchyIntegrator::putToDatabaseSpecialized(db);
+    db->putInteger("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION", INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION);
+
+    return;
+} // putToDatabaseSpecialized
+
+void
+INSStaggeredHierarchyIntegrator::getFromRestart()
+{
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> db;
+    if (restart_db->isDatabase(d_object_name))
+    {
+        db = restart_db->getDatabase(d_object_name);
+    }
+    else
+    {
+        TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
+                                 << " not found in restart file." << std::endl);
+    }
+
+    int ver = db->getIntegerWithDefault("INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION", -1);
+    if (ver != INS_STAGGERED_HIERARCHY_INTEGRATOR_VERSION)
+    {
+        TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
+    }
+} // getFromRestart
+
+void
 INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    // Do not coarsen or refine any plot data. Also ensure that the divergence is allocated.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (const int idx : d_plot_indices)
+        {
+            if (level->checkAllocated(idx)) level->deallocatePatchData(idx);
+        }
+        if (!level->checkAllocated(d_Div_U_idx))
+        {
+            level->allocatePatchData(d_Div_U_idx);
+        }
+    }
+
     // Determine the divergence of the velocity field before regridding.
     d_hier_math_ops->div(d_Div_U_idx,
                          d_Div_U_var,
@@ -1842,6 +1920,12 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
             U_bdry_bc_fill_op.fillData(init_data_time);
 
             // Compute max |Omega|_2.
+            for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(d_Omega_idx)) level->allocatePatchData(d_Omega_idx);
+            }
+
             HierarchyMathOps hier_math_ops(d_object_name + "::HierarchyLevelMathOps", d_hierarchy, 0, level_number);
             hier_math_ops.curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
             if (d_Omega_Norm_idx != IBTK::invalid_index)
@@ -2041,13 +2125,30 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         {
             level->allocatePatchData(d_P_scratch_idx, d_integrator_time);
         }
+
+        // Make sure all plot data is allocated:
+        for (const int idx : d_plot_indices)
+        {
+            if (!level->checkAllocated(idx))
+            {
+                level->allocatePatchData(idx);
+            }
+        }
+
+        // If we need it, ensure that the divergence is allocated:
+        if (d_output_Div_U)
+        {
+            if (!level->checkAllocated(d_Div_U_idx))
+            {
+                level->allocatePatchData(d_Div_U_idx);
+            }
+        }
     }
 
     // Interpolate u to nodal data.
     if (d_output_U)
     {
         const int U_sc_idx = var_db->mapVariableAndContextToIndex(d_U_var, ctx);
-        const int U_nc_idx = var_db->mapVariableAndContextToIndex(d_U_nc_var, ctx);
 
         // We need updated ghost values to interpolate from side data:
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -2066,7 +2167,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
         }
 
         // synch both the src and dst data:
-        d_hier_math_ops->interp(U_nc_idx,
+        d_hier_math_ops->interp(d_U_nc_idx,
                                 d_U_nc_var,
                                 synch_cf_interface,
                                 d_U_scratch_idx,
@@ -2080,7 +2181,6 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
     if (d_output_P)
     {
         const int P_cc_idx = var_db->mapVariableAndContextToIndex(d_P_var, ctx);
-        const int P_nc_idx = var_db->mapVariableAndContextToIndex(d_P_nc_var, ctx);
 
         // We need updated ghost values to interpolate from side data:
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -2100,14 +2200,13 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 
         // synch both the src and dst data:
         d_hier_math_ops->interp(
-            P_nc_idx, d_P_nc_var, synch_cf_interface, d_P_scratch_idx, d_P_var, d_no_fill_op, d_integrator_time);
+            d_P_nc_idx, d_P_nc_var, synch_cf_interface, d_P_scratch_idx, d_P_var, d_no_fill_op, d_integrator_time);
     }
     if (d_F_fcn && d_output_F)
     {
         const int F_sc_idx = var_db->mapVariableAndContextToIndex(d_F_var, ctx);
-        const int F_cc_idx = var_db->mapVariableAndContextToIndex(d_F_cc_var, ctx);
         d_hier_math_ops->interp(
-            F_cc_idx, d_F_cc_var, F_sc_idx, d_F_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
+            d_F_cc_idx, d_F_cc_var, F_sc_idx, d_F_var, d_no_fill_op, d_integrator_time, synch_cf_interface);
     }
 
     // Compute Omega = curl U.
