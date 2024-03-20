@@ -160,6 +160,26 @@ public:
                          const SAMRAI::hier::IntVector<NDIM>& ratio);
 
     /*!
+     * \return The spatial coordinate of the given cell center.
+     *
+     * @param patch The patch on which the cell lives.
+     *
+     * @param cell_idx The CellIndex describing the current cell.
+     */
+    template <typename Vector>
+    static Vector getCellCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::CellIndex<NDIM>& cell_idx);
+
+    /*!
+     * \return The spatial coordinate of the given cell center.
+     *
+     * @param patch The patch on which the cell lives.
+     *
+     * @param cell_idx The CellIndex describing the current cell.
+     */
+    static IBTK::VectorNd getCellCenter(const SAMRAI::hier::Patch<NDIM>& patch,
+                                        const SAMRAI::pdat::CellIndex<NDIM>& cell_idx);
+
+    /*!
      * \return The spatial coordinate of the given side center.
      *
      * @param patch The patch on which the cell lives.

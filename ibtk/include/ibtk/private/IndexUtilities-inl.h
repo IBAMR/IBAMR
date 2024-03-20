@@ -76,6 +76,28 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
 
 template <typename Vector>
 inline Vector
+IndexUtilities::getCellCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::CellIndex<NDIM>& cell_idx)
+{
+    const SAMRAI::hier::Index<NDIM>& patch_lower = patch.getBox().lower();
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const double* const dx = patch_geom->getDx();
+    const double* const x_lower = patch_geom->getXLower();
+    Vector x_c;
+    for (int d = 0; d < NDIM; ++d)
+    {
+        x_c[d] = x_lower[d] + dx[d] * (static_cast<double>(cell_idx(d) - patch_lower(d)) + 0.5);
+    }
+    return x_c;
+} // getCellCenter
+
+inline VectorNd
+IndexUtilities::getCellCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::CellIndex<NDIM>& cell_idx)
+{
+    return getCellCenter<VectorNd>(patch, cell_idx);
+} // getCellCenter
+
+template <typename Vector>
+inline Vector
 IndexUtilities::getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx)
 {
     const int axis = side_idx.getAxis();
