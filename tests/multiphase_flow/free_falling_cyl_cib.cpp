@@ -37,6 +37,7 @@
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -48,7 +49,6 @@
 #include <ibamr/app_namespaces.h>
 
 // other headers
-#include "GravityForcing.h"
 #include "LSLocateCircularInterface.h"
 #include "LSLocateGasInterface.h"
 #include "RigidBodyKinematics.h"
@@ -377,7 +377,7 @@ main(int argc, char* argv[])
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
         Pointer<CartGridFunction> grav_force =
-            new GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
+            new IBAMR::GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",

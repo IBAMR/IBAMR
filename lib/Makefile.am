@@ -200,7 +200,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/wave_generation/WaveGenerationFunctions.cpp \
 ../src/utilities/STSMassFluxIntegrator.cpp \
 ../src/utilities/RNG.cpp \
-../src/utilities/ins_utilities.cpp 
+../src/utilities/ins_utilities.cpp \
+../src/utilities/vc_ins_utilities.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
@@ -356,6 +357,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
+../include/ibamr/vc_ins_utilities.h \
 ../include/ibamr/Wall.h \
 ../include/ibamr/WallForceEvaluator.h \
 ../include/ibamr/WaveDampingFunctions.h \
