@@ -18,6 +18,7 @@
 
 #include <ibtk/config.h>
 
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 
 #include "ibtk/CartGridFunction.h"
@@ -39,8 +40,12 @@ public:
      * \brief Class constructor.
      */
     GravityForcing(const std::string& object_name,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
-                   std::vector<double> grav_const);
+                   SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
+                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_gas_var,
+                   std::vector<double> grav_const,
+                   std::string grav_type);
 
     /*!
      * \brief Empty destructor.
@@ -91,8 +96,13 @@ private:
     GravityForcing& operator=(const GravityForcing& that);
 
     std::string d_object_name;
-    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator;
+    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator = nullptr;
+    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hierarchy_integrator = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var = nullptr;
+    double d_rho_neg, d_rho_pos;
     std::vector<double> d_grav_const;
+    int d_num_solid_interface_cells, d_num_gas_interface_cells;
+    std::string d_grav_type = "FULL"; // Valid options are: "FULL" and "FLOW".
 };
 } // namespace IBAMR
 

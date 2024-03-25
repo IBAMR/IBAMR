@@ -24,6 +24,7 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include "ibamr/vc_ins_utilities.h"
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/ConstraintIBMethod.h>
@@ -47,8 +48,6 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "FlowGravityForcing.h"
-#include "GravityForcing.h"
 #include "LSLocateCircularInterface.h"
 #include "LSLocateGasInterface.h"
 #include "RigidBodyKinematics.h"
@@ -419,24 +418,14 @@ main(int argc, char* argv[])
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
         const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
-        Pointer<CartGridFunction> grav_force;
-        if (grav_type == "FULL")
-        {
-            grav_force = new GravityForcing("GravityForcing", navier_stokes_integrator, grav_const);
-        }
-        else if (grav_type == "FLOW")
-        {
-            grav_force = new FlowGravityForcing("FlowGravityForcing",
-                                                app_initializer->getComponentDatabase("FlowGravityForcing"),
-                                                adv_diff_integrator,
-                                                phi_var_gas,
-                                                grav_const);
-        }
-        else
-        {
-            TBOX_ERROR("Unsupported GRAV_TYPE specified: " << grav_type << "\n"
-                                                           << "Valid options are: FLOW, FULL");
-        }
+        Pointer<CartGridFunction> grav_force =
+            new IBAMR::GravityForcing("GravityForcing",
+                                      app_initializer->getComponentDatabase("FlowGravityForcing"),
+                                      navier_stokes_integrator,
+                                      adv_diff_integrator,
+                                      phi_var_gas,
+                                      grav_const,
+                                      grav_type);
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
