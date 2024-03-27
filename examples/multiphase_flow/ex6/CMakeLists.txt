@@ -21,8 +21,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    GravityForcing.cpp LSLocateFluidInterface.cpp LevelSetInitialCondition.cpp
-    SetFluidProperties.cpp SetLSProperties.cpp TagLSRefinementCells.cpp
+    LSLocateFluidInterface.cpp LevelSetInitialCondition.cpp SetFluidProperties.cpp
     VelocityInitialCondition.cpp example.cpp
   LINK_TARGETS
     IBAMR2d
@@ -40,8 +39,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    GravityForcing.cpp LSLocateFluidInterface.cpp LevelSetInitialCondition.cpp
-    SetFluidProperties.cpp SetLSProperties.cpp TagLSRefinementCells.cpp
+    LSLocateFluidInterface.cpp LevelSetInitialCondition.cpp SetFluidProperties.cpp
     VelocityInitialCondition.cpp example.cpp
   LINK_TARGETS
     IBAMR3d

@@ -21,9 +21,8 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    GravityForcing.cpp LSLocateCircularInterface.cpp LSLocateGasInterface.cpp
-    RigidBodyKinematics.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp
-    SetLSProperties.cpp TagLSRefinementCells.cpp example.cpp
+    LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp
+    SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp example.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
@@ -40,9 +39,8 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    GravityForcing.cpp LSLocateCircularInterface.cpp LSLocateGasInterface.cpp
-    RigidBodyKinematics.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp
-    SetLSProperties.cpp TagLSRefinementCells.cpp example.cpp
+    LSLocateCircularInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp
+    SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp example.cpp
   LINK_TARGETS
     IBAMR3d
   INPUT_FILES

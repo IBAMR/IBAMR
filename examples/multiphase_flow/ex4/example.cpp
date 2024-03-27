@@ -28,7 +28,9 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -40,10 +42,8 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "GravityForcing.h"
 #include "LSLocateLayerInterface.h"
 #include "SetFluidProperties.h"
-#include "SetLSProperties.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -180,9 +180,10 @@ main(int argc, char* argv[])
             new LSLocateLayerInterface("LSLocateLayerInterface", adv_diff_integrator, phi_var, layer);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateLayerInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateLayerInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties* ptr_SetLSProperties =
+            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_SetLSProperties));
 
         // LS initial conditions
         if (input_db->keyExists("LevelSetInitialConditions"))
@@ -294,7 +295,9 @@ main(int argc, char* argv[])
         // Forcing terms
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        Pointer<CartGridFunction> grav_force = new GravityForcing("GravityForcing", time_integrator, grav_const);
+        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
+        Pointer<CartGridFunction> grav_force =
+            new IBAMR::VcINSUtilities::GravityForcing("GravityForcing", time_integrator, grav_const, grav_type);
 
         Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(grav_force);

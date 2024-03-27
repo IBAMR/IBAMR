@@ -25,19 +25,23 @@
 
 namespace IBAMR
 {
+
+namespace VcINSUtilities
+{
+
 GravityForcing::GravityForcing(const std::string& object_name,
-                               Pointer<Database> input_db,
                                Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
+                               std::vector<double> grav_const,
+                               const string grav_type,
                                Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
                                Pointer<CellVariable<NDIM, double> > ls_gas_var,
-                               std::vector<double> grav_const,
-                               const string grav_type)
+                               Pointer<Database> input_db)
     : d_object_name(object_name),
       d_ins_hierarchy_integrator(ins_hierarchy_integrator),
-      d_adv_diff_hierarchy_integrator(adv_diff_hierarchy_integrator),
-      d_ls_gas_var(ls_gas_var),
       d_grav_const(grav_const),
-      d_grav_type(grav_type)
+      d_grav_type(grav_type),
+      d_adv_diff_hierarchy_integrator(adv_diff_hierarchy_integrator),
+      d_ls_gas_var(ls_gas_var)
 {
     if (!(d_grav_type == "FULL" || d_grav_type == "FLOW"))
     {
@@ -213,5 +217,7 @@ GravityForcing::setDataOnPatch(const int data_idx,
 } // setDataOnPatch
 
 //////////////////////////////////////////////////////////////////////////////
+
+} // namespace VcINSUtilities
 
 } // namespace IBAMR

@@ -28,8 +28,10 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -41,12 +43,9 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "GravityForcing.h"
 #include "LSLocateFluidInterface.h"
 #include "LevelSetInitialCondition.h"
 #include "SetFluidProperties.h"
-#include "SetLSProperties.h"
-#include "TagLSRefinementCells.h"
 #include "VelocityInitialCondition.h"
 
 // Function prototypes
@@ -188,9 +187,10 @@ main(int argc, char* argv[])
             new LSLocateFluidInterface("LSLocateFluidInterface", adv_diff_integrator, phi_var, film, circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateFluidInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateFluidInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties* ptr_SetLSProperties =
+            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_SetLSProperties));
 
         // LS initial conditions
         Pointer<CartGridFunction> phi_init = new LevelSetInitialCondition("ls_init", film, circle);
@@ -240,14 +240,12 @@ main(int argc, char* argv[])
                                                         static_cast<void*>(ptr_SetFluidProperties));
 
         // Register callback function for tagging refined cells for level set data
-        const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
-        TagLSRefinementCells ls_tagger;
-        ls_tagger.d_ls_gas_var = phi_var;
-        ls_tagger.d_tag_value = tag_value;
-        ls_tagger.d_tag_abs_thresh = tag_thresh;
-        ls_tagger.d_adv_diff_solver = adv_diff_integrator;
-        time_integrator->registerApplyGradientDetectorCallback(&callTagLSRefinementCellsCallbackFunction,
+        const double tag_min_value = -tag_thresh;
+        const double tag_max_value = tag_thresh;
+        IBAMR::LevelSetUtilities::TagLSRefinementCells ls_tagger(
+            adv_diff_integrator, phi_var, tag_min_value, tag_max_value);
+        time_integrator->registerApplyGradientDetectorCallback(&IBAMR::LevelSetUtilities::tagLSCells,
                                                                static_cast<void*>(&ls_tagger));
 
         Pointer<CartGridFunction> u_init =
@@ -313,7 +311,9 @@ main(int argc, char* argv[])
         // Forcing terms
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        Pointer<CartGridFunction> grav_force = new GravityForcing("GravityForcing", time_integrator, grav_const);
+        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
+        Pointer<CartGridFunction> grav_force =
+            new IBAMR::VcINSUtilities::GravityForcing("GravityForcing", time_integrator, grav_const, grav_type);
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",

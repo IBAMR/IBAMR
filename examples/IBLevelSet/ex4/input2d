@@ -44,7 +44,6 @@ H_COARSEST = X_MAX/Nx
 
 
 // Level set option parameters
-LS_TAG_VALUE          = 0.0
 LS_TAG_ABS_THRESH     = 0.03 // 2*H_COARSEST
 
 VelocityInitialConditions {

@@ -33,6 +33,7 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 
 #include <ibtk/AppInitializer.h>
@@ -49,7 +50,6 @@
 #include "LSLocateGasInterface.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
-#include "SetLSProperties.h"
 
 int coarsest_ln, max_finest_ln;
 double dx, ds;
@@ -237,9 +237,11 @@ main(int argc, char* argv[])
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
         // Register the reinitialization functions for the level set variables
-        SetLSProperties* ptr_setSetLSProperties = new SetLSProperties("SetLSProperties", nullptr, level_set_gas_ops);
-        adv_diff_integrator->registerResetFunction(
-            phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+        IBAMR::LevelSetUtilities::SetLSProperties* ptr_setSetLSProperties =
+            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_gas_ops);
+        adv_diff_integrator->registerResetFunction(phi_var_gas,
+                                                   &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy,
+                                                   static_cast<void*>(ptr_setSetLSProperties));
 
         // Setup the advected and diffused fluid quantities.
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
@@ -434,6 +436,7 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
         delete ptr_setFluidGasSolidDensity;
         delete ptr_setFluidGasSolidViscosity;
+        delete ptr_setSetLSProperties;
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;

@@ -24,7 +24,6 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
-#include "ibamr/vc_ins_utilities.h"
 #include <ibamr/AdvDiffPredictorCorrectorHierarchyIntegrator.h>
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/ConstraintIBMethod.h>
@@ -34,8 +33,10 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -53,8 +54,6 @@
 #include "RigidBodyKinematics.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
-#include "SetLSProperties.h"
-#include "TagLSRefinementCells.h"
 
 // Function prototypes
 void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
@@ -252,12 +251,16 @@ main(int argc, char* argv[])
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
         // Register the reinitialization functions for the level set variables
-        SetLSProperties* ptr_setSetLSProperties =
-            new SetLSProperties("SetLSProperties", level_set_solid_ops, level_set_gas_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties* ptr_setSetLSPropertiesSolid =
+            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_solid_ops);
+        adv_diff_integrator->registerResetFunction(phi_var_solid,
+                                                   &LevelSetUtilities::setLSDataPatchHierarchy,
+                                                   static_cast<void*>(ptr_setSetLSPropertiesSolid));
+
+        IBAMR::LevelSetUtilities::SetLSProperties* ptr_setSetLSPropertiesGas =
+            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_gas_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var_solid, &callSetSolidLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
-        adv_diff_integrator->registerResetFunction(
-            phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+            phi_var_gas, &LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_setSetLSPropertiesGas));
 
         // LS initial conditions
         if (input_db->keyExists("LevelSetGasInitialConditions"))
@@ -331,14 +334,12 @@ main(int argc, char* argv[])
                                                                  static_cast<void*>(ptr_setFluidGasSolidViscosity));
 
         // Register callback function for tagging refined cells for level set data
-        const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
-        TagLSRefinementCells ls_tagger;
-        ls_tagger.d_ls_gas_var = phi_var_gas;
-        ls_tagger.d_tag_value = tag_value;
-        ls_tagger.d_tag_abs_thresh = tag_thresh;
-        ls_tagger.d_adv_diff_solver = adv_diff_integrator;
-        time_integrator->registerApplyGradientDetectorCallback(&callTagLSRefinementCellsCallbackFunction,
+        const double tag_min_value = -tag_thresh;
+        const double tag_max_value = tag_thresh;
+        IBAMR::LevelSetUtilities::TagLSRefinementCells ls_tagger(
+            adv_diff_integrator, phi_var_gas, tag_min_value, tag_max_value);
+        time_integrator->registerApplyGradientDetectorCallback(&IBAMR::LevelSetUtilities::tagLSCells,
                                                                static_cast<void*>(&ls_tagger));
 
         // Create Eulerian initial condition specification objects.
@@ -419,13 +420,13 @@ main(int argc, char* argv[])
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
         const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
         Pointer<CartGridFunction> grav_force =
-            new IBAMR::GravityForcing("GravityForcing",
-                                      app_initializer->getComponentDatabase("FlowGravityForcing"),
-                                      navier_stokes_integrator,
-                                      adv_diff_integrator,
-                                      phi_var_gas,
-                                      grav_const,
-                                      grav_type);
+            new IBAMR::VcINSUtilities::GravityForcing("GravityForcing",
+                                                      navier_stokes_integrator,
+                                                      grav_const,
+                                                      grav_type,
+                                                      adv_diff_integrator,
+                                                      phi_var_gas,
+                                                      app_initializer->getComponentDatabase("FlowGravityForcing"));
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
@@ -607,7 +608,8 @@ main(int argc, char* argv[])
         delete ptr_LSLocateGasInterface;
         delete ptr_setFluidGasSolidDensity;
         delete ptr_setFluidGasSolidViscosity;
-        delete ptr_setSetLSProperties;
+        delete ptr_setSetLSPropertiesSolid;
+        delete ptr_setSetLSPropertiesGas;
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;

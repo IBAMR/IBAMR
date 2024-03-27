@@ -30,7 +30,6 @@ H_COARSEST       = LENGTH_DOMAIN/N
 H                = LENGTH_DOMAIN/NFINEST
 
 // Level set option parameters
-LS_TAG_VALUE          = 0.0
 LS_TAG_ABS_THRESH     = 2*H_COARSEST
 
 

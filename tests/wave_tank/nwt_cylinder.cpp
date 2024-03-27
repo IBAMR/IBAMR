@@ -47,12 +47,14 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/StokesFifthOrderWaveBcCoef.h>
 #include <ibamr/StokesFirstOrderWaveBcCoef.h>
 #include <ibamr/StokesSecondOrderWaveBcCoef.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/WaveDampingFunctions.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -65,19 +67,13 @@
 #include <ibamr/app_namespaces.h>
 
 // Application specific includes.
-#include "FlowGravityForcing.h"
 #include "LSLocateGasInterface.h"
 #include "SetFluidGasSolidDensity.h"
 #include "SetFluidGasSolidViscosity.h"
-#include "SetLSProperties.h"
-#include "TagLSRefinementCells.h"
 
-#include "FlowGravityForcing.cpp"
 #include "LSLocateGasInterface.cpp"
 #include "SetFluidGasSolidDensity.cpp"
 #include "SetFluidGasSolidViscosity.cpp"
-#include "SetLSProperties.cpp"
-#include "TagLSRefinementCells.cpp"
 
 int coarsest_ln, max_finest_ln;
 double dx, ds;
@@ -681,9 +677,12 @@ main(int argc, char* argv[])
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
         // Register the reinitialization functions for the level set variables
-        SetLSProperties* ptr_setSetLSProperties = new SetLSProperties("SetLSProperties", level_set_gas_ops);
-        adv_diff_integrator->registerResetFunction(
-            phi_var_gas, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_setSetLSProperties));
+        IBAMR::LevelSetUtilities::SetLSProperties* ptr_setSetLSProperties =
+            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_gas_ops);
+        adv_diff_integrator->registerResetFunction(phi_var_gas,
+                                                   &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy,
+                                                   static_cast<void*>(ptr_setSetLSProperties));
+
         SolidLevelSetResetter solid_level_set_resetter;
         solid_level_set_resetter.ib_interp_ops = ib_interpolant_method_ops;
         solid_level_set_resetter.adv_diff_integrator = adv_diff_integrator;
@@ -890,12 +889,15 @@ main(int argc, char* argv[])
         circle.k_spring = input_db->getDouble("K_SPRING");
         circle.c_damper = input_db->getDouble("C_DAMPER");
         circle.delta0_rest_length = input_db->getDouble("SPRING_REST_LENGTH");
+        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
         Pointer<CartGridFunction> grav_force =
-            new FlowGravityForcing("FlowGravityForcing",
-                                   app_initializer->getComponentDatabase("FlowGravityForcing"),
-                                   adv_diff_integrator,
-                                   phi_var_gas,
-                                   grav_const);
+            new IBAMR::VcINSUtilities::GravityForcing("GravityForcing",
+                                                      navier_stokes_integrator,
+                                                      grav_const,
+                                                      grav_type,
+                                                      adv_diff_integrator,
+                                                      phi_var_gas,
+                                                      app_initializer->getComponentDatabase("FlowGravityForcing"));
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",

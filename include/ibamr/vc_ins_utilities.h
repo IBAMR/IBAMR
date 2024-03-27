@@ -33,6 +33,9 @@ class HierarchyMathOps;
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
 namespace IBAMR
 {
+
+namespace VcINSUtilities
+{
 class GravityForcing : public IBTK::CartGridFunction
 {
 public:
@@ -40,12 +43,12 @@ public:
      * \brief Class constructor.
      */
     GravityForcing(const std::string& object_name,
-                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
-                   SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
-                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_gas_var,
                    std::vector<double> grav_const,
-                   std::string grav_type);
+                   std::string grav_type = "FULL",
+                   SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator = nullptr,
+                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_gas_var = nullptr,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
 
     /*!
      * \brief Empty destructor.
@@ -97,13 +100,15 @@ private:
 
     std::string d_object_name;
     SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator = nullptr;
+    std::vector<double> d_grav_const;
+    std::string d_grav_type = "FULL"; // Valid options are: "FULL" and "FLOW".
     SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hierarchy_integrator = nullptr;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var = nullptr;
     double d_rho_neg, d_rho_pos;
-    std::vector<double> d_grav_const;
     int d_num_solid_interface_cells, d_num_gas_interface_cells;
-    std::string d_grav_type = "FULL"; // Valid options are: "FULL" and "FLOW".
 };
+} // namespace VcINSUtilities
+
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
