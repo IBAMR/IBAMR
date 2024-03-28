@@ -32,6 +32,7 @@
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/IrregularWaveBcCoef.h>
 #include <ibamr/IrregularWaveGenerator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/StokesFifthOrderWaveBcCoef.h>
 #include <ibamr/StokesFirstOrderWaveBcCoef.h>
@@ -39,6 +40,7 @@
 #include <ibamr/SurfaceTensionForceFunction.h>
 #include <ibamr/WaveDampingFunctions.h>
 #include <ibamr/WaveGenerationFunctions.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include "ibtk/IndexUtilities.h"
 #include <ibtk/AppInitializer.h>
@@ -416,8 +418,8 @@ main(int argc, char* argv[])
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
         const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
-        Pointer<CartGridFunction> grav_force = new IBAMR::VcINSUtilities::GravityForcing(
-            "GravityForcing", navier_stokes_integrator, grav_const, grav_type);
+        Pointer<CartGridFunction> grav_force =
+            new IBAMR::VcINSUtilities::GravityForcing("GravityForcing", time_integrator, grav_const, grav_type);
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",

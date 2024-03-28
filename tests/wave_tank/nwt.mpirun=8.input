@@ -60,7 +60,7 @@ VORTICITY_REL_THRESH = 0.5
 // Level set initial conditions
 LevelSetInitialConditions {
   depth = DEPTH
-  function = "X_1 - depth" 
+  function = "X_1 - depth"
 }
 
 
