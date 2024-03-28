@@ -88,8 +88,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = navier_stokes_01_2d$(EXEEXT) \
-	navier_stokes_01_3d$(EXEEXT) stokes_operator_2d$(EXEEXT) \
-	stokes_operator_3d$(EXEEXT)
+	navier_stokes_01_3d$(EXEEXT) poiseuille_flow_2d$(EXEEXT) \
+	stokes_operator_2d$(EXEEXT) stokes_operator_3d$(EXEEXT)
 subdir = tests/navier_stokes
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -140,6 +140,14 @@ navier_stokes_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(navier_stokes_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_poiseuille_flow_2d_OBJECTS =  \
+	poiseuille_flow_2d-poiseuille_flow_2d.$(OBJEXT)
+poiseuille_flow_2d_OBJECTS = $(am_poiseuille_flow_2d_OBJECTS)
+poiseuille_flow_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+poiseuille_flow_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(poiseuille_flow_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_stokes_operator_2d_OBJECTS =  \
 	stokes_operator_2d-stokes_operator.$(OBJEXT)
 stokes_operator_2d_OBJECTS = $(am_stokes_operator_2d_OBJECTS)
@@ -174,6 +182,7 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade =  \
 	./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po \
 	./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po \
+	./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po \
 	./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po \
 	./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po
 am__mv = mv -f
@@ -196,11 +205,11 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(navier_stokes_01_2d_SOURCES) \
-	$(navier_stokes_01_3d_SOURCES) $(stokes_operator_2d_SOURCES) \
-	$(stokes_operator_3d_SOURCES)
+	$(navier_stokes_01_3d_SOURCES) $(poiseuille_flow_2d_SOURCES) \
+	$(stokes_operator_2d_SOURCES) $(stokes_operator_3d_SOURCES)
 DIST_SOURCES = $(navier_stokes_01_2d_SOURCES) \
-	$(navier_stokes_01_3d_SOURCES) $(stokes_operator_2d_SOURCES) \
-	$(stokes_operator_3d_SOURCES)
+	$(navier_stokes_01_3d_SOURCES) $(poiseuille_flow_2d_SOURCES) \
+	$(stokes_operator_2d_SOURCES) $(stokes_operator_3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -492,6 +501,9 @@ navier_stokes_01_2d_SOURCES = navier_stokes_01.cpp
 navier_stokes_01_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 navier_stokes_01_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 navier_stokes_01_3d_SOURCES = navier_stokes_01.cpp
+poiseuille_flow_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+poiseuille_flow_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+poiseuille_flow_2d_SOURCES = poiseuille_flow_2d.cpp
 stokes_operator_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 stokes_operator_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 stokes_operator_2d_SOURCES = stokes_operator.cpp
@@ -541,6 +553,10 @@ navier_stokes_01_3d$(EXEEXT): $(navier_stokes_01_3d_OBJECTS) $(navier_stokes_01_
 	@rm -f navier_stokes_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(navier_stokes_01_3d_LINK) $(navier_stokes_01_3d_OBJECTS) $(navier_stokes_01_3d_LDADD) $(LIBS)
 
+poiseuille_flow_2d$(EXEEXT): $(poiseuille_flow_2d_OBJECTS) $(poiseuille_flow_2d_DEPENDENCIES) $(EXTRA_poiseuille_flow_2d_DEPENDENCIES) 
+	@rm -f poiseuille_flow_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(poiseuille_flow_2d_LINK) $(poiseuille_flow_2d_OBJECTS) $(poiseuille_flow_2d_LDADD) $(LIBS)
+
 stokes_operator_2d$(EXEEXT): $(stokes_operator_2d_OBJECTS) $(stokes_operator_2d_DEPENDENCIES) $(EXTRA_stokes_operator_2d_DEPENDENCIES) 
 	@rm -f stokes_operator_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(stokes_operator_2d_LINK) $(stokes_operator_2d_OBJECTS) $(stokes_operator_2d_LDADD) $(LIBS)
@@ -557,6 +573,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po@am__quote@ # am--include-marker
 
@@ -617,6 +634,20 @@ navier_stokes_01_3d-navier_stokes_01.obj: navier_stokes_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='navier_stokes_01.cpp' object='navier_stokes_01_3d-navier_stokes_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(navier_stokes_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o navier_stokes_01_3d-navier_stokes_01.obj `if test -f 'navier_stokes_01.cpp'; then $(CYGPATH_W) 'navier_stokes_01.cpp'; else $(CYGPATH_W) '$(srcdir)/navier_stokes_01.cpp'; fi`
+
+poiseuille_flow_2d-poiseuille_flow_2d.o: poiseuille_flow_2d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_2d_CXXFLAGS) $(CXXFLAGS) -MT poiseuille_flow_2d-poiseuille_flow_2d.o -MD -MP -MF $(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Tpo -c -o poiseuille_flow_2d-poiseuille_flow_2d.o `test -f 'poiseuille_flow_2d.cpp' || echo '$(srcdir)/'`poiseuille_flow_2d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Tpo $(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='poiseuille_flow_2d.cpp' object='poiseuille_flow_2d-poiseuille_flow_2d.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_2d_CXXFLAGS) $(CXXFLAGS) -c -o poiseuille_flow_2d-poiseuille_flow_2d.o `test -f 'poiseuille_flow_2d.cpp' || echo '$(srcdir)/'`poiseuille_flow_2d.cpp
+
+poiseuille_flow_2d-poiseuille_flow_2d.obj: poiseuille_flow_2d.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_2d_CXXFLAGS) $(CXXFLAGS) -MT poiseuille_flow_2d-poiseuille_flow_2d.obj -MD -MP -MF $(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Tpo -c -o poiseuille_flow_2d-poiseuille_flow_2d.obj `if test -f 'poiseuille_flow_2d.cpp'; then $(CYGPATH_W) 'poiseuille_flow_2d.cpp'; else $(CYGPATH_W) '$(srcdir)/poiseuille_flow_2d.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Tpo $(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='poiseuille_flow_2d.cpp' object='poiseuille_flow_2d-poiseuille_flow_2d.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(poiseuille_flow_2d_CXXFLAGS) $(CXXFLAGS) -c -o poiseuille_flow_2d-poiseuille_flow_2d.obj `if test -f 'poiseuille_flow_2d.cpp'; then $(CYGPATH_W) 'poiseuille_flow_2d.cpp'; else $(CYGPATH_W) '$(srcdir)/poiseuille_flow_2d.cpp'; fi`
 
 stokes_operator_2d-stokes_operator.o: stokes_operator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(stokes_operator_2d_CXXFLAGS) $(CXXFLAGS) -MT stokes_operator_2d-stokes_operator.o -MD -MP -MF $(DEPDIR)/stokes_operator_2d-stokes_operator.Tpo -c -o stokes_operator_2d-stokes_operator.o `test -f 'stokes_operator.cpp' || echo '$(srcdir)/'`stokes_operator.cpp
@@ -779,6 +810,7 @@ clean-am: clean-generic clean-libtool mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po
+	-rm -f ./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po
 	-rm -f Makefile
@@ -828,6 +860,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/navier_stokes_01_2d-navier_stokes_01.Po
 	-rm -f ./$(DEPDIR)/navier_stokes_01_3d-navier_stokes_01.Po
+	-rm -f ./$(DEPDIR)/poiseuille_flow_2d-poiseuille_flow_2d.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_2d-stokes_operator.Po
 	-rm -f ./$(DEPDIR)/stokes_operator_3d-stokes_operator.Po
 	-rm -f Makefile
