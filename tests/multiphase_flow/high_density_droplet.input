@@ -47,7 +47,7 @@ LevelSetInitialConditions {
   radius = R
   xcom = XCOM
   ycom = YCOM
-  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius" 
+  function = "sqrt((X_0 - xcom)^2 + (X_1 - ycom)^2) - radius"
 }
 
 // Note: Velocity initial conditions are set
@@ -151,13 +151,13 @@ END_TIME                            =  10.0e0    // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS                =  1         // max number of simulation timesteps
 REGRID_INTERVAL                     =  5
-CFL_MAX                             =  0.5   
+CFL_MAX                             =  0.5
 NUM_INS_CYCLES                      =  2
 NON_CONSERVATIVE_CONVECTIVE_OP_TYPE = "CUI"
 CONVECTIVE_FORM                     = "CONSERVATIVE"                // how to compute the convective terms
 INIT_CONVECTIVE_TS_TYPE             = "MIDPOINT_RULE"
 CONVECTIVE_TS_TYPE                  = "MIDPOINT_RULE"    // convective time stepping type
-NORMALIZE_PRESSURE                  = TRUE     
+NORMALIZE_PRESSURE                  = TRUE
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
 DT_MAX                              = 0.032/NFINEST
@@ -213,7 +213,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
-   operator_scale_factors     = OPERATOR_SCALE_FACTORS 
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS
    vc_interpolation_type      = VC_INTERPOLATION_TYPE
    enable_logging             = ENABLE_LOGGING
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
@@ -244,7 +244,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
    }
     pressure_solver_type = "PETSC_KRYLOV_SOLVER"
     pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-    pressure_solver_db 
+    pressure_solver_db
     {
       ksp_type = "richardson"
       max_iterations = 5
@@ -281,7 +281,7 @@ INSVCStaggeredConservativeHierarchyIntegrator {
       density_convective_limiter = DENSITY_CONVECTIVE_LIMITER
       enable_logging = ENABLE_LOGGING
     }
-   
+
 }
 
 INSVCStaggeredNonConservativeHierarchyIntegrator {
@@ -309,7 +309,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    rho_is_const               = RHO_IS_CONST
    mu_is_const                = MU_IS_CONST
    precond_reinit_interval    = PRECOND_REINIT_INTERVAL
-   operator_scale_factors     = OPERATOR_SCALE_FACTORS 
+   operator_scale_factors     = OPERATOR_SCALE_FACTORS
    vc_interpolation_type      = VC_INTERPOLATION_TYPE
    enable_logging             = ENABLE_LOGGING
    max_integrator_steps       = MAX_INTEGRATOR_STEPS
@@ -340,7 +340,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator {
    }
     pressure_solver_type = "PETSC_KRYLOV_SOLVER"
     pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
-    pressure_solver_db 
+    pressure_solver_db
     {
       ksp_type = "richardson"
       max_iterations = 5

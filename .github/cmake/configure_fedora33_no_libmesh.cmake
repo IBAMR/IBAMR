@@ -15,14 +15,17 @@ SET(CTEST_USE_LAUNCHERS "ON" CACHE STRING "")
 
 SET(IBAMR_ENABLE_TESTING "ON" CACHE BOOL "")
 
-INCLUDE("${CMAKE_CURRENT_LIST_DIR}/configure_sccache.cmake")
+INCLUDE("${CMAKE_CURRENT_LIST_DIR}/configure_ccache.cmake")
 
 SET(CMAKE_C_COMPILER "/usr/lib64/mpich/bin/mpicc" CACHE STRING "C Compiler")
 SET(CMAKE_CXX_COMPILER "/usr/lib64/mpich/bin/mpic++" CACHE STRING "C++ Compiler")
 SET(CMAKE_Fortran_COMPILER "/usr/lib64/mpich/bin/mpifort" CACHE STRING "Fortran Compiler")
 
-SET(CMAKE_C_FLAGS "-O1" CACHE STRING "C flags")
-SET(CMAKE_CXX_FLAGS "-O1" CACHE STRING "C++ flags")
+# Work around a GCC-12 bug with PatchCellDataBasicOps - GCC thinks its member
+# variables are not initialized even though they have default constructors.
+SET(CMAKE_C_FLAGS "-O1 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized"
+  CACHE STRING "C flags")
+SET(CMAKE_CXX_FLAGS "-O1 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized" CACHE STRING "C++ flags")
 SET(CMAKE_Fortran_FLAGS "-O3" CACHE STRING "Fortran flags")
 SET(CMAKE_INSTALL_PREFIX "/ibamr" CACHE PATH "Install destination")
 SET(SAMRAI_ROOT "/samrai" CACHE PATH "Location of SAMRAI")

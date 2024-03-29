@@ -7,7 +7,7 @@ bc_0 {
     acoef_function_3 = "1.0"
     acoef_function_4 = "0.0"
     acoef_function_5 = "1.0"
-    
+
     bcoef_function_0 = "0.0"
     bcoef_function_1 = "0.0"
     bcoef_function_2 = "0.0"
@@ -30,7 +30,7 @@ bc_1 {
     acoef_function_3 = "1.0"
     acoef_function_4 = "1.0"
     acoef_function_5 = "0.0"
-    
+
     bcoef_function_0 = "0.0"
     bcoef_function_1 = "0.0"
     bcoef_function_2 = "0.0"
@@ -53,7 +53,7 @@ bc_2 {
     acoef_function_3 = "0.0"
     acoef_function_4 = "1.0"
     acoef_function_5 = "1.0"
-    
+
     bcoef_function_0 = "0.0"
     bcoef_function_1 = "0.0"
     bcoef_function_2 = "0.0"

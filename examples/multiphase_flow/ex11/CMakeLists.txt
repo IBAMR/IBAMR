@@ -45,4 +45,3 @@ IBAMR_ADD_EXAMPLE(
   SOURCES
     bargeGen.cpp
   )
-

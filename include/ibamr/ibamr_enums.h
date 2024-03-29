@@ -43,7 +43,8 @@ string_to_enum(const std::string& /*val*/)
  * \brief Routine for converting enums to strings.
  */
 template <typename T>
-inline std::string enum_to_string(T /*val*/)
+inline std::string
+enum_to_string(T /*val*/)
 {
     TBOX_ERROR("UNSUPPORTED ENUM TYPE\n");
     return "UNKNOWN";

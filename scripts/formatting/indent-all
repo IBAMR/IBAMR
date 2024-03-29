@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Based on deal.II's indent-all script and licensed under the LGPL
+
+#
+#   ./scripts/formatting/indent-all
+# from the top-level directory of the source tree, or via
+#   make indent
+# from a build directory.
+#
+
+if [ ! -f scripts/formatting/indent-all ]; then
+  echo "*** This script must be run from the top-level directory of IBAMR."
+  exit 1
+fi
+
+if [ ! -f scripts/formatting/indent_common.sh ]; then
+  echo "*** This script requires scripts/formatting/indent_common.sh."
+  exit 1
+fi
+
+source scripts/formatting/indent_common.sh
+
+#
+# Run sanity checks:
+#
+
+checks
+
+#
+# Process all source and header files:
+#
+
+process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+  ".*\.(cpp|h)" format_file
+
+#
+# Fix permissions and convert to unix line ending if necessary:
+#
+
+process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+  ".*\.(cpp|h|cmake|am|in|input|output)" fix_permissions
+
+process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+  ".*\.(cpp|h|cmake|am|in|input|output)" dos_to_unix
+
+# same thing, but explicitly for example input files
+process "examples ibtk/examples" "input" fix_permissions
+
+process "examples ibtk/examples" "input" dos_to_unix
+
+#
+# Removing trailing whitespace
+#
+
+process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+  ".*\.(md|html|txt|input)" remove_trailing_whitespace
+
+process "examples ibtk/examples" "input" remove_trailing_whitespace
+
+#
+# Ensure only a single newline at end of files
+#
+
+process "include src ibtk/include ibtk/src examples ibtk/examples tests" \
+  ".*\.(cpp|h|html|dox|txt|input)" ensure_single_trailing_newline

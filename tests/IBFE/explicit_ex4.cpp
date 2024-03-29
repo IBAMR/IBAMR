@@ -531,7 +531,8 @@ main(int argc, char** argv)
             other_manager->setPatchHierarchy(patch_hierarchy);
         }
 
-        auto add_markers = [&]() {
+        auto add_markers = [&]()
+        {
             System& X_system = equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
             NumericVector<double>& X_vec = *X_system.solution.get();
             std::vector<double> X_vec_global(X_vec.size());

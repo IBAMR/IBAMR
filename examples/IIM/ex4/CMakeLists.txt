@@ -32,4 +32,3 @@ IBAMR_ADD_EXAMPLE(
   EXTRA_FILES
     compute_St.m
     )
-

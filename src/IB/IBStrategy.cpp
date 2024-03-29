@@ -270,15 +270,17 @@ IBStrategy::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, co
     return;
 } // addWorkloadEstimate
 
-void IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                         Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IBStrategy::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     // intentionally blank
     return;
 } // beginDataRedistribution
 
-void IBStrategy::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                       Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+void
+IBStrategy::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
 {
     // intentionally blank
     return;
@@ -318,7 +320,8 @@ IBStrategy::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy
     return;
 } // applyGradientDetector
 
-void IBStrategy::putToDatabase(Pointer<Database> /*db*/)
+void
+IBStrategy::putToDatabase(Pointer<Database> /*db*/)
 {
     // intentionally blank
     return;

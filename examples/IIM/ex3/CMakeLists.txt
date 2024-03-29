@@ -32,4 +32,3 @@ IBAMR_ADD_EXAMPLE(
     compute_St.m
     airfoil_bc_0.1_TRI3_0.1.e
     )
-
