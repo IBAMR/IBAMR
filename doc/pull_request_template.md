@@ -9,7 +9,8 @@ code. Thanks in advance for helping to make IBAMR better!
 
 ### IBAMR Pull Request Checklist
 - [ ] Does the test suite pass?
-- [ ] Was clang-format (i.e., `make indent`) run?
+- [ ] Was clang-format (i.e., `make indent`) run? For more information see
+      `scripts/formatting/README.md`.
 - [ ] Were relevant issues cited? Please remember to add `Fixes #12345` to close
       the issue automatically if we are fixing the problem.
 - [ ] Is this a change others will want to know about? If so, then has a

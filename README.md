@@ -48,6 +48,14 @@ Bugs and Other Issues
 
 Please use the GitHub issue tracking system to report bugs, feature requests, or other issues with IBAMR.
 
+Writing patches
+---------------
+
+IBAMR has a core group of developers but also regularly takes contributions from our students as well as outside users.
+All patches undergo a peer review process and are usually accepted after some minor revisions.
+To ensure style uniformity, we require that users run `make indent` (or make the fixes indicated by the continous integration run).
+For more information on how this process works see `scripts/formatting/README.md`.
+
 Acknowledgments
 ---------------
 
