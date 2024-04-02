@@ -18,7 +18,7 @@ set -u
 PRG="$(cd "$(dirname "$0")" && pwd)/programs"
 
 VERSION="16"
-RELEASE_DATE="2023-06-10"
+RELEASE_DATE="2023-06-01"
 LLVM_COMMIT="7cbf1a2591520c2491aa35339f227775f4d3adf6"
 
 CLANG_PATH="${PRG}/clang-${VERSION}"
