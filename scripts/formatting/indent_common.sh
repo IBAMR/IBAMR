@@ -26,9 +26,10 @@ checks() {
   if ! [ -x "$(command -v "clang-format")" ]; then
     echo "***   No clang-format program found."
     echo "***"
-    echo "***   You can run the './scripts/download-clang-format'"
-    echo "***   script, or the './scripts/compile-clang-format' script "
-    echo "***   to install a compatible binary into './scripts/programs'."
+    echo "***   You can run the './scripts/formatting/download-clang-format'"
+    echo "***   script, or the './scripts/formatting/compile-clang-format' "
+    echo "***   script to install a compatible binary into"
+    echo "***   './scripts/formatting/programs'."
     exit 1
   fi
 
@@ -41,9 +42,9 @@ checks() {
     echo "***   This indent script requires clang-format version 16.0,"
     echo "***   but version ${CLANG_FORMAT_MAJOR_VERSION}.${CLANG_FORMAT_MINOR_VERSION} was found instead."
     echo "***"
-    echo "***   You can run the 'scripts/download-clang-format'"
-    echo "***   script, or the 'scripts/compile-clang-format' script "
-    echo "***   to install a compatible binary into 'scripts/utilities/programs'."
+    echo "***   You can run the 'scripts/formatting/download-clang-format'"
+    echo "***   script, or the 'scripts/formatting/compile-clang-format' script "
+    echo "***   to install a compatible binary into 'scripts/formatting/programs'."
     exit 1
   fi
 }
