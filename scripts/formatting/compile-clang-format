@@ -54,7 +54,7 @@ else
   GIT_SHALLOW_SINCE_AVAILABLE=false
 fi
 
-git init
+git init --initial-branch=main
 git remote add origin "${LLVM_REPOSITORY}"
 if [ "$GIT_SHALLOW_SINCE_AVAILABLE" = true ]; then
   git fetch --shallow-since="${RELEASE_DATE}" origin "${RELEASE_BRANCH}"
