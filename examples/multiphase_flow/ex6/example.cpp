@@ -182,14 +182,13 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateFluidInterface* ptr_LSLocateFluidInterface =
-            new LSLocateFluidInterface("LSLocateFluidInterface", adv_diff_integrator, phi_var, film, circle);
+        LSLocateFluidInterface setLSLocateFluidInterface(
+            "LSLocateFluidInterface", adv_diff_integrator, phi_var, film, circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateFluidInterfaceCallbackFunction,
-                                                                static_cast<void*>(ptr_LSLocateFluidInterface));
-        IBAMR::LevelSetUtilities::SetLSProperties* ptr_SetLSProperties =
-            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_ops);
+                                                                static_cast<void*>(&setLSLocateFluidInterface));
+        IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_SetLSProperties));
+            phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // LS initial conditions
         Pointer<CartGridFunction> phi_init = new LevelSetInitialCondition("ls_init", film, circle);
@@ -216,30 +215,25 @@ main(int argc, char* argv[])
         const double rho_outside = input_db->getDouble("RHO_O");
         const double mu_inside = input_db->getDouble("MU_I");
         const double mu_outside = input_db->getDouble("MU_O");
-        const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double num_interface_cells = input_db->getDouble("NUM_INTERFACE_CELLS");
         std::vector<double> inside_velocity(NDIM), outside_velocity(NDIM);
         input_db->getDoubleArray("INSIDE_VELOCITY", &inside_velocity[0], NDIM);
         input_db->getDoubleArray("OUTSIDE_VELOCITY", &outside_velocity[0], NDIM);
-        const std::string num_phases = "TWO_PHASE";
 
         // Callback functions can either be registered with the NS integrator, or the advection-diffusion integrator
         // Note that these will set the initial conditions for density and viscosity, based on level set information
-        IBAMR::VcINSUtilities::SetFluidProperties* ptr_SetFluidProperties =
-            new IBAMR::VcINSUtilities::SetFluidProperties("SetFluidProperties",
-                                                          adv_diff_integrator,
-                                                          phi_var,
-                                                          rho_outside,
-                                                          rho_inside,
-                                                          mu_outside,
-                                                          mu_inside,
-                                                          ls_reinit_interval,
-                                                          num_interface_cells,
-                                                          num_phases);
-        time_integrator->registerResetFluidDensityFcn(&IBAMR::VcINSUtilities::callSetDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VcINSUtilities::callSetViscosityCallbackFunction,
-                                                        static_cast<void*>(ptr_SetFluidProperties));
+        IBAMR::VCINSUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
+                                                                        adv_diff_integrator,
+                                                                        phi_var,
+                                                                        rho_outside,
+                                                                        rho_inside,
+                                                                        mu_outside,
+                                                                        mu_inside,
+                                                                        num_interface_cells);
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
+                                                      static_cast<void*>(&setSetFluidProperties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VCINSUtilities::callSetViscosityCallbackFunction,
+                                                        static_cast<void*>(&setSetFluidProperties));
 
         // Register callback function for tagging refined cells for level set data
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
@@ -313,9 +307,8 @@ main(int argc, char* argv[])
         // Forcing terms
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
         Pointer<CartGridFunction> grav_force =
-            new IBAMR::VcINSUtilities::GravityForcing("GravityForcing", time_integrator, grav_const, grav_type);
+            new IBAMR::VCINSUtilities::GravityForcing("GravityForcing", time_integrator, grav_const);
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
@@ -441,11 +434,6 @@ main(int argc, char* argv[])
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
-        // Cleanup other dumb pointers
-        delete ptr_SetLSProperties;
-        delete ptr_SetFluidProperties;
-        delete ptr_LSLocateFluidInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

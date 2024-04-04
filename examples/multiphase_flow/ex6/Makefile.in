@@ -128,7 +128,6 @@ am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 = $(am__EXEEXT_3)
 @SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 = $(am__EXEEXT_3)
 am__objects_1 = main2d-example.$(OBJEXT) \
-	main2d-SetFluidProperties.$(OBJEXT) \
 	main2d-LSLocateFluidInterface.$(OBJEXT) \
 	main2d-VelocityInitialCondition.$(OBJEXT) \
 	main2d-LevelSetInitialCondition.$(OBJEXT)
@@ -143,7 +142,6 @@ main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__objects_2 = main3d-example.$(OBJEXT) \
-	main3d-SetFluidProperties.$(OBJEXT) \
 	main3d-LSLocateFluidInterface.$(OBJEXT) \
 	main3d-VelocityInitialCondition.$(OBJEXT) \
 	main3d-LevelSetInitialCondition.$(OBJEXT)
@@ -170,12 +168,10 @@ depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-LSLocateFluidInterface.Po \
 	./$(DEPDIR)/main2d-LevelSetInitialCondition.Po \
-	./$(DEPDIR)/main2d-SetFluidProperties.Po \
 	./$(DEPDIR)/main2d-VelocityInitialCondition.Po \
 	./$(DEPDIR)/main2d-example.Po \
 	./$(DEPDIR)/main3d-LSLocateFluidInterface.Po \
 	./$(DEPDIR)/main3d-LevelSetInitialCondition.Po \
-	./$(DEPDIR)/main3d-SetFluidProperties.Po \
 	./$(DEPDIR)/main3d-VelocityInitialCondition.Po \
 	./$(DEPDIR)/main3d-example.Po
 am__mv = mv -f
@@ -485,7 +481,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp LSLocateFluidInterface.cpp VelocityInitialCondition.cpp LevelSetInitialCondition.cpp
+EXAMPLE_DRIVER = example.cpp LSLocateFluidInterface.cpp VelocityInitialCondition.cpp LevelSetInitialCondition.cpp
 EXTRA_DIST = input2d input3d
 EXAMPLES = $(am__append_1) $(am__append_3)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -545,12 +541,10 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateFluidInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LevelSetInitialCondition.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-VelocityInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LSLocateFluidInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LevelSetInitialCondition.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-SetFluidProperties.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-VelocityInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-example.Po@am__quote@ # am--include-marker
 
@@ -597,20 +591,6 @@ main2d-example.obj: example.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main2d-example.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
-
-main2d-SetFluidProperties.o: SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidProperties.o -MD -MP -MF $(DEPDIR)/main2d-SetFluidProperties.Tpo -c -o main2d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidProperties.Tpo $(DEPDIR)/main2d-SetFluidProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidProperties.cpp' object='main2d-SetFluidProperties.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
-
-main2d-SetFluidProperties.obj: SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidProperties.obj -MD -MP -MF $(DEPDIR)/main2d-SetFluidProperties.Tpo -c -o main2d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidProperties.Tpo $(DEPDIR)/main2d-SetFluidProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidProperties.cpp' object='main2d-SetFluidProperties.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
 
 main2d-LSLocateFluidInterface.o: LSLocateFluidInterface.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-LSLocateFluidInterface.o -MD -MP -MF $(DEPDIR)/main2d-LSLocateFluidInterface.Tpo -c -o main2d-LSLocateFluidInterface.o `test -f 'LSLocateFluidInterface.cpp' || echo '$(srcdir)/'`LSLocateFluidInterface.cpp
@@ -667,20 +647,6 @@ main3d-example.obj: example.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main3d-example.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
-
-main3d-SetFluidProperties.o: SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-SetFluidProperties.o -MD -MP -MF $(DEPDIR)/main3d-SetFluidProperties.Tpo -c -o main3d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-SetFluidProperties.Tpo $(DEPDIR)/main3d-SetFluidProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidProperties.cpp' object='main3d-SetFluidProperties.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-SetFluidProperties.o `test -f 'SetFluidProperties.cpp' || echo '$(srcdir)/'`SetFluidProperties.cpp
-
-main3d-SetFluidProperties.obj: SetFluidProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-SetFluidProperties.obj -MD -MP -MF $(DEPDIR)/main3d-SetFluidProperties.Tpo -c -o main3d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-SetFluidProperties.Tpo $(DEPDIR)/main3d-SetFluidProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidProperties.cpp' object='main3d-SetFluidProperties.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-SetFluidProperties.obj `if test -f 'SetFluidProperties.cpp'; then $(CYGPATH_W) 'SetFluidProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidProperties.cpp'; fi`
 
 main3d-LSLocateFluidInterface.o: LSLocateFluidInterface.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-LSLocateFluidInterface.o -MD -MP -MF $(DEPDIR)/main3d-LSLocateFluidInterface.Tpo -c -o main3d-LSLocateFluidInterface.o `test -f 'LSLocateFluidInterface.cpp' || echo '$(srcdir)/'`LSLocateFluidInterface.cpp
@@ -857,12 +823,10 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-LSLocateFluidInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
-	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-VelocityInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateFluidInterface.Po
 	-rm -f ./$(DEPDIR)/main3d-LevelSetInitialCondition.Po
-	-rm -f ./$(DEPDIR)/main3d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-VelocityInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile
@@ -912,12 +876,10 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-LSLocateFluidInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
-	-rm -f ./$(DEPDIR)/main2d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main2d-VelocityInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f ./$(DEPDIR)/main3d-LSLocateFluidInterface.Po
 	-rm -f ./$(DEPDIR)/main3d-LevelSetInitialCondition.Po
-	-rm -f ./$(DEPDIR)/main3d-SetFluidProperties.Po
 	-rm -f ./$(DEPDIR)/main3d-VelocityInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile

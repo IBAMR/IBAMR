@@ -7,7 +7,6 @@ RHO_G      = 1.2
 RHO_RATIO  = (RHO_S - RHO_G)/RHO_G
 G          =  9.81
 GRAV_CONST = 0.0,-G
-GRAV_TYPE  = "FULL"
 
 // Optional flag to set viscosity in the solid region
 SET_MU_S = TRUE

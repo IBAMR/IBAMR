@@ -20,6 +20,7 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/ibamr_enums.h>
 
 #include "ibtk/CartGridFunction.h"
 
@@ -40,7 +41,7 @@ namespace IBAMR
  *
  * \note Various options are available for computing the side-centered density within this class.
  */
-namespace VcINSUtilities
+namespace VCINSUtilities
 {
 
 /*!
@@ -84,6 +85,10 @@ class SetFluidProperties
 public:
     /*!
      * Constructor for this class.
+     *
+     * num_interface_cells - number of cells over which the Heaviside function is smoothed on
+     * either side of the interface.
+     *
      */
     SetFluidProperties(const std::string& object_name,
                        SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
@@ -92,12 +97,20 @@ public:
                        const double rho_gas,
                        const double mu_liquid,
                        const double mu_gas,
-                       const int ls_reinit_interval,
-                       const double num_interface_cells,
-                       const std::string& num_phases);
+                       const double num_interface_cells);
 
     /*!
      * Constructor for this class.
+     *
+     * num_gas_interface_cells - number of cells over which the Heaviside function is smoothed on
+     * either side of the gas interface.
+     *
+     * num_solid_interface_cells - number of cells over which the Heaviside function is smoothed on
+     * either side of the solid interface.
+     *
+     * set_mu_solid - If it is true, then visocity is set in the entire domain. If it is false, the viscosity is set
+     * in the fluid and gas phases but not the solid.
+     *
      */
     SetFluidProperties(const std::string& object_name,
                        SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
@@ -109,16 +122,76 @@ public:
                        const double mu_fluid,
                        const double mu_gas,
                        const double mu_solid,
-                       const int ls_reinit_interval,
                        const double num_gas_interface_cells,
                        const double num_solid_interface_cells,
-                       const bool set_mu_solid,
-                       const std::string& num_phases);
+                       const bool set_mu_solid);
 
     /*!
      * Destructor for this class.
      */
-    ~SetFluidProperties();
+    ~SetFluidProperties() = default;
+
+    /*!
+     * Set the density based on the current level set information.
+     */
+    inline void setDensityPatchData(int rho_idx,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
+                                    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                    const int cycle_num,
+                                    const double time,
+                                    const double current_time,
+                                    const double new_time)
+    {
+        if (d_num_phases == 2)
+        {
+            setDensityPatchData2PhaseFlows(rho_idx, rho_var, hier_math_ops, cycle_num, time, current_time, new_time);
+        }
+        else if (d_num_phases == 3)
+        {
+            setDensityPatchData3PhaseFlows(rho_idx, rho_var, hier_math_ops, cycle_num, time, current_time, new_time);
+        }
+
+        return;
+    } // setDensityPatchData
+
+    /*!
+     * Set the viscosity based on the current level set information.
+     */
+    inline void setViscosityPatchData(int mu_idx,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
+                                      SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                      const int cycle_num,
+                                      const double time,
+                                      const double current_time,
+                                      const double new_time)
+    {
+        if (d_num_phases == 2)
+        {
+            setViscosityPatchData2PhaseFlows(mu_idx, mu_var, hier_math_ops, cycle_num, time, current_time, new_time);
+        }
+        else if (d_num_phases == 3)
+        {
+            setViscosityPatchData3PhaseFlows(mu_idx, mu_var, hier_math_ops, cycle_num, time, current_time, new_time);
+        }
+
+        return;
+    } // setViscosityPatchData
+
+private:
+    /*!
+     * Default constructor is not implemented and should not be used.
+     */
+    SetFluidProperties();
+
+    /*!
+     * Default assignment operator is not implemented and should not be used.
+     */
+    SetFluidProperties& operator=(const SetFluidProperties& that);
+
+    /*!
+     * Default copy constructor is not implemented and should not be used.
+     */
+    SetFluidProperties(const SetFluidProperties& from);
 
     /*!
      * Set the density based on the current level set information for two-phase flows.
@@ -165,30 +238,6 @@ public:
                                           const double new_time);
 
     /*!
-     * Return the number of phases.
-     */
-    const std::string& getNumberOfPhases() const
-    {
-        return d_num_phases;
-    } // getNumberOfPhases
-
-private:
-    /*!
-     * Default constructor is not implemented and should not be used.
-     */
-    SetFluidProperties();
-
-    /*!
-     * Default assignment operator is not implemented and should not be used.
-     */
-    SetFluidProperties& operator=(const SetFluidProperties& that);
-
-    /*!
-     * Default copy constructor is not implemented and should not be used.
-     */
-    SetFluidProperties(const SetFluidProperties& from);
-
-    /*!
      * Name of this object.
      */
     std::string d_object_name;
@@ -214,11 +263,6 @@ private:
     double d_mu_liquid, d_mu_gas, d_mu_solid;
 
     /*!
-     * Level set reinitialization interval.
-     */
-    int d_ls_reinit_interval;
-
-    /*!
      * Number of interface cells over which to smooth the material properties.
      */
     double d_num_gas_interface_cells, d_num_solid_interface_cells;
@@ -229,30 +273,48 @@ private:
     bool d_set_mu_solid;
 
     /*!
-     * Number of phases. Valid options are "TWO_PHASE" and "THREE_PHASE".
+     * Number of phases. Valid options are 2 and 3.
      */
-    const std::string d_num_phases = "TWO_PHASE";
+    int d_num_phases = 2;
 
 }; // SetFluidProperties
 
+/*!
+ * \brief The GravityForcing class provides an implementation of gravity force.
+ * This class can be utilized to set the gravity force \f$ \rho g \f$ throughout the entire domain with
+ * the option grav_type = "FULL" or specifically within the liquid and gas regions (excluding the solid phase)
+ * with the option grav_type = "FLOW".
+ */
 class GravityForcing : public IBTK::CartGridFunction
 {
 public:
     /*!
-     * \brief Class constructor.
+     * \brief Constructor for this class.
+     *
+     * grav_const stores the acceleration due to gravity.
+     *
      */
     GravityForcing(const std::string& object_name,
                    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
-                   std::vector<double> grav_const,
-                   std::string grav_type = "FULL",
-                   SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator = nullptr,
-                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_gas_var = nullptr,
-                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
+                   std::vector<double> grav_const);
+
+    /*!
+     * \brief Constructor for this class.
+     *
+     * @param input_db provides parameters such as rho_neg, rho_pos, and num_gas_interface_cells.
+     * grav_const stores the acceleration due to gravity.
+     *
+     */
+    GravityForcing(const std::string& object_name,
+                   SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
+                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_gas_var,
+                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                   std::vector<double> grav_const);
 
     /*!
      * \brief Empty destructor.
      */
-    ~GravityForcing();
+    ~GravityForcing() = default;
 
     /*!
      * \name Methods to set patch data.
@@ -263,7 +325,7 @@ public:
      * \brief Indicates whether the concrete GravityForcing object is
      * time-dependent.
      */
-    bool isTimeDependent() const;
+    bool isTimeDependent() const override;
 
     /*!
      * \brief Evaluate the function on the patch interiors on the specified
@@ -275,7 +337,7 @@ public:
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
-                                 const int finest_ln = -1);
+                                 const int finest_ln = -1) override;
 
     /*!
      * \brief Evaluate the function on the patch interior.
@@ -286,17 +348,11 @@ public:
                         const double data_time,
                         const bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     //\}
 
 private:
-    GravityForcing();
-
-    GravityForcing(const GravityForcing& from);
-
-    GravityForcing& operator=(const GravityForcing& that);
-
     /*!
      * Name of this object.
      */
@@ -305,27 +361,30 @@ private:
     /*!
      * Pointer to INSVC solver.
      */
-    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator = nullptr;
-
-    /*!
-     * Vector to store the acceleration due to gravity.
-     */
-    std::vector<double> d_grav_const;
-
-    /*!
-     * String to specify the type of gravity force. Valid options are: "FULL" and "FLOW".
-     */
-    std::string d_grav_type = "FULL";
+    SAMRAI::tbox::Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator;
 
     /*!
      * Pointer to advection-diffusion solver.
      */
-    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hierarchy_integrator = nullptr;
+    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hierarchy_integrator;
 
     /*!
      * Level set variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var;
+
+    /*!
+     * Vector to store the acceleration due to gravity.
+     */
+    const std::vector<double> d_grav_const;
+
+    /*!
+     * String to specify the type of gravity force. Valid options are: "FULL" and "FLOW".
+     * "FULL" - compute volumetric gravitational source term \f$ \rho g \f$.
+     * "FLOW" - sets the \f$ \rho^\text{flow} g \f$ where \f$ \rho^\text{flow} \f$ is the density of the flow phase
+     * (excludes solid).
+     */
+    const std::string d_grav_type;
 
     /*!
      * Density.
@@ -336,9 +395,14 @@ private:
      * Number of interface cells over which to smooth the material properties.
      */
     int d_num_gas_interface_cells;
+
+    /*!
+     * Level set scratch data.
+     */
+    int d_ls_gas_scratch_idx = IBTK::invalid_index;
 };
 
-} // namespace VcINSUtilities
+} // namespace VCINSUtilities
 
 } // namespace IBAMR
 

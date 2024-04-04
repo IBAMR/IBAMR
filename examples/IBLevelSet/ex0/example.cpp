@@ -564,10 +564,10 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
         Pointer<RelaxationLSMethod> level_set_gas_ops =
             new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
-        LSLocateGasInterface* ptr_LSLocateGasInterface =
-            new LSLocateGasInterface("LSLocateGasInterface", adv_diff_integrator, phi_var_gas, fluid_height);
+        LSLocateGasInterface setLSLocateGasInterface(
+            "LSLocateGasInterface", adv_diff_integrator, phi_var_gas, fluid_height);
         level_set_gas_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateGasInterfaceCallbackFunction,
-                                                                    static_cast<void*>(ptr_LSLocateGasInterface));
+                                                                    static_cast<void*>(&setLSLocateGasInterface));
 
         // Register the level sets with advection diffusion integrator.
         adv_diff_integrator->registerTransportedQuantity(phi_var_solid);
@@ -581,11 +581,9 @@ main(int argc, char* argv[])
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
         // Register the reinitialization functions for the level set variables
-        IBAMR::LevelSetUtilities::SetLSProperties* ptr_setSetLSProperties =
-            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_gas_ops);
-        adv_diff_integrator->registerResetFunction(phi_var_gas,
-                                                   &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy,
-                                                   static_cast<void*>(ptr_setSetLSProperties));
+        IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_gas_ops);
+        adv_diff_integrator->registerResetFunction(
+            phi_var_gas, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
         SolidLevelSetResetter solid_level_set_resetter;
         solid_level_set_resetter.ib_interp_ops = ib_interpolant_method_ops;
         solid_level_set_resetter.adv_diff_integrator = adv_diff_integrator;
@@ -608,7 +606,6 @@ main(int argc, char* argv[])
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
-        const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double rho_fluid = input_db->getDouble("RHO_F");
         const double rho_solid = input_db->getDouble("RHO_S");
         const double rho_gas = input_db->getDouble("RHO_G");
@@ -618,28 +615,24 @@ main(int argc, char* argv[])
         const bool set_mu_solid = input_db->getBool("SET_MU_S");
         const int num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
         const int num_gas_interface_cells = input_db->getDouble("NUM_GAS_INTERFACE_CELLS");
-        const std::string num_phases = "THREE_PHASE";
         circle.rho_solid = rho_solid;
-        IBAMR::VcINSUtilities::SetFluidProperties* ptr_SetFluidProperties =
-            new IBAMR::VcINSUtilities::SetFluidProperties("SetFluidProperties",
-                                                          adv_diff_integrator,
-                                                          phi_var_gas,
-                                                          phi_var_solid,
-                                                          rho_fluid,
-                                                          rho_gas,
-                                                          rho_solid,
-                                                          mu_fluid,
-                                                          mu_gas,
-                                                          mu_solid,
-                                                          ls_reinit_interval,
-                                                          num_gas_interface_cells,
-                                                          num_solid_interface_cells,
-                                                          set_mu_solid,
-                                                          num_phases);
-        navier_stokes_integrator->registerResetFluidDensityFcn(&IBAMR::VcINSUtilities::callSetDensityCallbackFunction,
-                                                               static_cast<void*>(ptr_SetFluidProperties));
+        IBAMR::VCINSUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
+                                                                        adv_diff_integrator,
+                                                                        phi_var_gas,
+                                                                        phi_var_solid,
+                                                                        rho_fluid,
+                                                                        rho_gas,
+                                                                        rho_solid,
+                                                                        mu_fluid,
+                                                                        mu_gas,
+                                                                        mu_solid,
+                                                                        num_gas_interface_cells,
+                                                                        num_solid_interface_cells,
+                                                                        set_mu_solid);
+        navier_stokes_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
+                                                               static_cast<void*>(&setSetFluidProperties));
         navier_stokes_integrator->registerResetFluidViscosityFcn(
-            &IBAMR::VcINSUtilities::callSetViscosityCallbackFunction, static_cast<void*>(ptr_SetFluidProperties));
+            &IBAMR::VCINSUtilities::callSetViscosityCallbackFunction, static_cast<void*>(&setSetFluidProperties));
 
         // Register callback function for tagging refined cells for level set data
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
@@ -727,15 +720,12 @@ main(int argc, char* argv[])
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
         circle.g_y = grav_const[1];
-        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
         Pointer<CartGridFunction> grav_force =
-            new IBAMR::VcINSUtilities::GravityForcing("GravityForcing",
-                                                      navier_stokes_integrator,
-                                                      grav_const,
-                                                      grav_type,
+            new IBAMR::VCINSUtilities::GravityForcing("GravityForcing",
                                                       adv_diff_integrator,
                                                       phi_var_gas,
-                                                      app_initializer->getComponentDatabase("FlowGravityForcing"));
+                                                      app_initializer->getComponentDatabase("FlowGravityForcing"),
+                                                      grav_const);
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
@@ -990,7 +980,6 @@ main(int argc, char* argv[])
 
         // Delete dumb pointers.
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete ptr_SetFluidProperties;
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;

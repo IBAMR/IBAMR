@@ -26,7 +26,7 @@
 namespace IBAMR
 {
 
-namespace VcINSUtilities
+namespace VCINSUtilities
 {
 void
 callSetDensityCallbackFunction(int rho_idx,
@@ -39,23 +39,9 @@ callSetDensityCallbackFunction(int rho_idx,
                                void* ctx)
 {
     // Set the density from the level set information
-    static SetFluidProperties* ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
-    const std::string& num_phases = ptr_SetFluidProperties->getNumberOfPhases();
-    if (num_phases == "TWO_PHASE")
-    {
-        ptr_SetFluidProperties->setDensityPatchData2PhaseFlows(
-            rho_idx, rho_var, hier_math_ops, cycle_num, time, current_time, new_time);
-    }
-    else if (num_phases == "THREE_PHASE")
-    {
-        ptr_SetFluidProperties->setDensityPatchData3PhaseFlows(
-            rho_idx, rho_var, hier_math_ops, cycle_num, time, current_time, new_time);
-    }
-    else
-    {
-        TBOX_ERROR("Unsupported num_phases: " << num_phases << "\n"
-                                              << "Valid options are: TWO_PHASE, THREE_PHASE");
-    }
+    auto ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
+    ptr_SetFluidProperties->setDensityPatchData(
+        rho_idx, rho_var, hier_math_ops, cycle_num, time, current_time, new_time);
 
     return;
 } // callSetDensityCallBackFunction
@@ -71,23 +57,9 @@ callSetViscosityCallbackFunction(int mu_idx,
                                  void* ctx)
 {
     // Set the density from the level set information
-    static SetFluidProperties* ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
-    const std::string& num_phases = ptr_SetFluidProperties->getNumberOfPhases();
-    if (num_phases == "TWO_PHASE")
-    {
-        ptr_SetFluidProperties->setViscosityPatchData2PhaseFlows(
-            mu_idx, mu_var, hier_math_ops, cycle_num, time, current_time, new_time);
-    }
-    else if (num_phases == "THREE_PHASE")
-    {
-        ptr_SetFluidProperties->setViscosityPatchData3PhaseFlows(
-            mu_idx, mu_var, hier_math_ops, cycle_num, time, current_time, new_time);
-    }
-    else
-    {
-        TBOX_ERROR("Unsupported num_phases: " << num_phases << "\n"
-                                              << "Valid options are: TWO_PHASE, THREE_PHASE");
-    }
+    auto ptr_SetFluidProperties = static_cast<SetFluidProperties*>(ctx);
+    ptr_SetFluidProperties->setViscosityPatchData(
+        mu_idx, mu_var, hier_math_ops, cycle_num, time, current_time, new_time);
 
     return;
 } // callSetDensityCallBackFunction
@@ -99,9 +71,7 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        const double rho_gas,
                                        const double mu_liquid,
                                        const double mu_gas,
-                                       const int ls_reinit_interval,
-                                       const double num_interface_cells,
-                                       const std::string& number_of_phases)
+                                       const double num_interface_cells)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
       d_ls_gas_var(ls_var),
@@ -109,11 +79,10 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
       d_rho_gas(rho_gas),
       d_mu_liquid(mu_liquid),
       d_mu_gas(mu_gas),
-      d_ls_reinit_interval(ls_reinit_interval),
       d_num_gas_interface_cells(num_interface_cells),
-      d_num_phases(number_of_phases)
+      d_num_phases(2)
 {
-    // intentionally left blank
+    // Intentionally left blank
     return;
 } // SetFluidProperties
 
@@ -127,11 +96,9 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        const double mu_liquid,
                                        const double mu_gas,
                                        const double mu_solid,
-                                       const int ls_reinit_interval,
                                        const double num_gas_interface_cells,
                                        const double num_solid_interface_cells,
-                                       const bool set_mu_solid,
-                                       const std::string& number_of_phases)
+                                       const bool set_mu_solid)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
       d_ls_gas_var(ls_gas_var),
@@ -142,25 +109,14 @@ SetFluidProperties::SetFluidProperties(const std::string& object_name,
       d_mu_liquid(mu_liquid),
       d_mu_gas(mu_gas),
       d_mu_solid(mu_solid),
-      d_ls_reinit_interval(ls_reinit_interval),
       d_num_gas_interface_cells(num_gas_interface_cells),
       d_num_solid_interface_cells(num_solid_interface_cells),
       d_set_mu_solid(set_mu_solid),
-      d_num_phases(number_of_phases)
+      d_num_phases(3)
 {
-    // intentionally left blank
+    // Intentionally left blank
     return;
 } // SetFluidProperties
-
-SetFluidProperties::~SetFluidProperties()
-{
-    // intentionally left blank
-    return;
-} //~SetFluidProperties
-
-// Various options to setting side-centered densities
-#define SMOOTH_SC_RHO_2_PHASE 1
-#define DESJARDINS_SC_RHO_2_PHASE 0
 
 void
 SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
@@ -173,7 +129,7 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
 {
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int ls_idx = -1;
+    int ls_idx = IBTK::invalid_index;
     if (IBTK::rel_equal_eps(time, current_time))
     {
         ls_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getCurrentContext());
@@ -206,7 +162,7 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
                 const double* const patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
                 for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-                double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+                const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
@@ -236,7 +192,7 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
         {
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(ls_scratch_idx, time);
         }
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         InterpolationTransactionComponent ls_transaction(ls_scratch_idx,
                                                          ls_idx,
                                                          "CONSERVATIVE_LINEAR_REFINE",
@@ -259,12 +215,14 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
                 const double* const patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
                 for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-                double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+                const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_scratch_idx);
                 Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
-
+// Various options to setting side-centered densities
+#define SMOOTH_SC_RHO_2_PHASE 1
+#define DESJARDINS_SC_RHO_2_PHASE 0
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
@@ -312,11 +270,6 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
     return;
 } // setDensityPatchData2PhaseFlows
 
-// Various options to setting side-centered densities
-#define SMOOTH_SC_RHO_3_PHASE 0
-#define DESJARDINS_SC_RHO_3_PHASE 0
-#define HARMONIC_CC_TO_SC_RHO_3_PHASE 1
-
 void
 SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                                                    Pointer<Variable<NDIM> > rho_var,
@@ -329,8 +282,8 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
     // Get the current level set information
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
-    int ls_solid_idx = -1;
-    int ls_gas_idx = -1;
+    int ls_solid_idx = IBTK::invalid_index;
+    int ls_gas_idx = IBTK::invalid_index;
     if (IBTK::rel_equal_eps(time, current_time))
     {
         ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getCurrentContext());
@@ -374,8 +327,11 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
-                const double alpha = d_num_solid_interface_cells * patch_dx[0];
-                const double beta = d_num_gas_interface_cells * patch_dx[1];
+
+                double vol_cell = 1.0;
+                for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+                const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+                const double beta = d_num_solid_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
@@ -389,8 +345,8 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                     const double phi_s = (*ls_solid_data)(ci);
                     const double phi_g = (*ls_gas_data)(ci);
 
-                    const double Hphi_s = IBTK::smooth_heaviside(phi_s, alpha);
-                    const double Hphi_g = IBTK::smooth_heaviside(phi_g, beta);
+                    const double Hphi_s = IBTK::smooth_heaviside(phi_s, beta);
+                    const double Hphi_g = IBTK::smooth_heaviside(phi_g, alpha);
 
                     // First, compute the density of the "flowing" phases
                     const double rho_flow = (d_rho_liquid - d_rho_gas) * Hphi_g + d_rho_gas;
@@ -419,7 +375,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(ls_solid_scratch_idx, time);
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(ls_gas_scratch_idx, time);
         }
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ls_transaction_comps(2);
         ls_transaction_comps[0] = InterpolationTransactionComponent(ls_solid_scratch_idx,
                                                                     ls_solid_idx,
@@ -454,6 +410,17 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                 const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(ls_gas_scratch_idx);
                 Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
 
+                const double* const patch_dx = patch_geom->getDx();
+                double vol_cell = 1.0;
+                for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+                const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+                const double beta = d_num_solid_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+
+// Various options to setting side-centered densities
+#define SMOOTH_SC_RHO_3_PHASE 0
+#define DESJARDINS_SC_RHO_3_PHASE 0
+#define HARMONIC_CC_TO_SC_RHO_3_PHASE 1
+
                 // Compute the indicators for both level sets
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -465,7 +432,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                         const double phi_gas_lower = (*ls_gas_data)(si.toCell(0));
                         const double phi_gas_upper = (*ls_gas_data)(si.toCell(1));
 
-                        if (DESJARDINS_SC_RHO_3_PHASE)
+#if (DESJARDINS_SC_RHO_3_PHASE)
                         {
                             // SETTING 1: Desjardins way to set side-centered density
                             double h_solid, h_gas;
@@ -501,19 +468,14 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
 
                             // Next, compute the density taking into account the solid phase
                             (*rho_data)(si) = d_rho_solid + (rho_flow - d_rho_solid) * h_solid;
-                        }
-                        else if (HARMONIC_CC_TO_SC_RHO_3_PHASE)
-                        {
+#endif
+#if (HARMONIC_CC_TO_SC_RHO_3_PHASE)
                             // SETTING 2: Set rho on cell centers and harmonic average to side centers
-                            const double* const patch_dx = patch_geom->getDx();
-                            const double alpha = d_num_solid_interface_cells * patch_dx[0];
-                            const double beta = d_num_gas_interface_cells * patch_dx[1];
+                            const double h_solid_lower = IBTK::smooth_heaviside(phi_solid_lower, beta);
+                            const double h_solid_upper = IBTK::smooth_heaviside(phi_solid_upper, beta);
 
-                            const double h_solid_lower = IBTK::smooth_heaviside(phi_solid_lower, alpha);
-                            const double h_solid_upper = IBTK::smooth_heaviside(phi_solid_upper, alpha);
-
-                            const double h_gas_lower = IBTK::smooth_heaviside(phi_gas_lower, beta);
-                            const double h_gas_upper = IBTK::smooth_heaviside(phi_gas_upper, beta);
+                            const double h_gas_lower = IBTK::smooth_heaviside(phi_gas_lower, alpha);
+                            const double h_gas_upper = IBTK::smooth_heaviside(phi_gas_upper, alpha);
 
                             const double rho_flow_lower = (d_rho_liquid - d_rho_gas) * h_gas_lower + d_rho_gas;
                             const double rho_flow_upper = (d_rho_liquid - d_rho_gas) * h_gas_upper + d_rho_gas;
@@ -522,13 +484,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                             const double rho_full_upper = (rho_flow_upper - d_rho_solid) * h_solid_upper + d_rho_solid;
 
                             (*rho_data)(si) = 2.0 * rho_full_upper * rho_full_lower / (rho_full_upper + rho_full_lower);
-                        }
-                        else if (SMOOTH_SC_RHO_3_PHASE)
-                        {
+#endif
+#if (SMOOTH_SC_RHO_3_PHASE)
                             // SETTING 3: Simple average of phi onto side centers and set rho_sc directly
-                            const double* const patch_dx = patch_geom->getDx();
-                            const double alpha = d_num_solid_interface_cells * patch_dx[0];
-                            const double beta = d_num_gas_interface_cells * patch_dx[1];
                             const double phi_solid = 0.5 * (phi_solid_lower + phi_solid_upper);
                             const double phi_gas = 0.5 * (phi_gas_lower + phi_gas_upper);
 
@@ -539,136 +497,53 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                             const double rho_full = (rho_flow - d_rho_solid) * h_solid + d_rho_solid;
 
                             (*rho_data)(si) = rho_full;
-                        }
-                        else
-                        {
-                            TBOX_ERROR("No side centered density setting was chosen");
+#endif
                         }
                     }
                 }
             }
-        }
 
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(ls_solid_scratch_idx);
-            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(ls_gas_scratch_idx);
-        }
-        var_db->removePatchDataIndex(ls_solid_scratch_idx);
-        var_db->removePatchDataIndex(ls_gas_scratch_idx);
-    }
-
-    return;
-} // setDensityPatchData3PhaseFlows
-
-void
-SetFluidProperties::setViscosityPatchData2PhaseFlows(int mu_idx,
-                                                     Pointer<Variable<NDIM> > /*mu_var*/,
-                                                     SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
-                                                     const int /*cycle_num*/,
-                                                     const double time,
-                                                     const double current_time,
-                                                     const double new_time)
-{
-    // Get the current level set information
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int ls_idx = -1;
-    if (IBTK::rel_equal_eps(time, current_time))
-    {
-        ls_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getCurrentContext());
-    }
-    else if (IBTK::rel_equal_eps(time, new_time))
-    {
-        ls_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getNewContext());
-    }
-    else
-    {
-        TBOX_ERROR("This statement should not be reached");
-    }
-
-    // Set the density based on the level set
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* const patch_dx = patch_geom->getDx();
-            double vol_cell = 1.0;
-            for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
-
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
-            if (!ls_data) TBOX_ERROR("This statement should not be reached");
-            Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_idx);
-
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                CellIndex<NDIM> ci(it());
-                const double phi = (*ls_data)(ci);
-
-                double h_phi = IBTK::smooth_heaviside(phi, alpha);
-                (*mu_data)(ci) = d_mu_gas + (d_mu_liquid - d_mu_gas) * h_phi;
+                patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(ls_solid_scratch_idx);
+                patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(ls_gas_scratch_idx);
             }
+            var_db->removePatchDataIndex(ls_solid_scratch_idx);
+            var_db->removePatchDataIndex(ls_gas_scratch_idx);
         }
-    }
 
-    return;
-} // setViscosityPatchData2PhaseFlows
+        return;
+    } // setDensityPatchData3PhaseFlows
 
-void
-SetFluidProperties::setViscosityPatchData3PhaseFlows(int mu_idx,
-                                                     Pointer<Variable<NDIM> > mu_var,
-                                                     SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
-                                                     const int /*cycle_num*/,
-                                                     const double time,
-                                                     const double current_time,
-                                                     const double new_time)
-{
-    // Get the current level set information
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    int ls_solid_idx = -1;
-    int ls_gas_idx = -1;
+    void SetFluidProperties::setViscosityPatchData2PhaseFlows(int mu_idx,
+                                                              Pointer<Variable<NDIM> > /*mu_var*/,
+                                                              SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                                                              const int /*cycle_num*/,
+                                                              const double time,
+                                                              const double current_time,
+                                                              const double new_time)
+    {
+        // Get the current level set information
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        int ls_idx = IBTK::invalid_index;
+        if (IBTK::rel_equal_eps(time, current_time))
+        {
+            ls_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getCurrentContext());
+        }
+        else if (IBTK::rel_equal_eps(time, new_time))
+        {
+            ls_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getNewContext());
+        }
+        else
+        {
+            TBOX_ERROR("This statement should not be reached");
+        }
 
-    if (IBTK::rel_equal_eps(time, current_time))
-    {
-        ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getCurrentContext());
-    }
-    else if (IBTK::rel_equal_eps(time, new_time))
-    {
-        ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
-    }
-    else
-    {
-        TBOX_ERROR("This statement should not be reached");
-    }
+        // Set the density based on the level set
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-    if (IBTK::rel_equal_eps(time, current_time))
-    {
-        ls_gas_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getCurrentContext());
-    }
-    else if (IBTK::rel_equal_eps(time, new_time))
-    {
-        ls_gas_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getNewContext());
-    }
-    else
-    {
-        TBOX_ERROR("This statement should not be reached");
-    }
-
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    const int coarsest_ln = 0;
-    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-
-    Pointer<CellVariable<NDIM, double> > mu_cc_var = mu_var;
-    if (mu_cc_var)
-    {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -677,232 +552,297 @@ SetFluidProperties::setViscosityPatchData3PhaseFlows(int mu_idx,
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
-                const double alpha = d_num_solid_interface_cells * patch_dx[0];
-                const double beta = d_num_gas_interface_cells * patch_dx[1];
+                double vol_cell = 1.0;
+                for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+                const double alpha = d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
-                const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(ls_gas_idx);
+                const Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_idx);
+                if (!ls_data) TBOX_ERROR("This statement should not be reached");
                 Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_idx);
 
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
                     CellIndex<NDIM> ci(it());
-                    const double phi_s = (*ls_solid_data)(ci);
-                    const double phi_g = (*ls_gas_data)(ci);
-                    const double Hphi_s = IBTK::smooth_heaviside(phi_s, alpha);
-                    const double Hphi_g = IBTK::smooth_heaviside(phi_g, beta);
+                    const double phi = (*ls_data)(ci);
 
-                    // First, compute the viscosity of the "flowing" phases
-                    const double mu_flow = (d_mu_liquid - d_mu_gas) * Hphi_g + d_mu_gas;
-
-                    // Next, set the viscosity of the solid phase in the usual way
-                    if (d_set_mu_solid)
-                        (*mu_data)(ci) = (mu_flow - d_mu_solid) * Hphi_s + d_mu_solid;
-                    else
-                        (*mu_data)(ci) = mu_flow;
+                    double h_phi = IBTK::smooth_heaviside(phi, alpha);
+                    (*mu_data)(ci) = d_mu_gas + (d_mu_liquid - d_mu_gas) * h_phi;
                 }
             }
         }
-    }
-    else
-    {
-        // Erroring out if any other centered is used for mu
-        TBOX_ERROR("This statement should not have been reached");
-    }
 
-    return;
-} // setViscosityPatchData3PhaseFlows
+        return;
+    } // setViscosityPatchData2PhaseFlows
 
-GravityForcing::GravityForcing(const std::string& object_name,
-                               Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
-                               std::vector<double> grav_const,
-                               const string grav_type,
-                               Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
-                               Pointer<CellVariable<NDIM, double> > ls_gas_var,
-                               Pointer<Database> input_db)
-    : d_object_name(object_name),
-      d_ins_hierarchy_integrator(ins_hierarchy_integrator),
-      d_grav_const(grav_const),
-      d_grav_type(grav_type),
-      d_adv_diff_hierarchy_integrator(adv_diff_hierarchy_integrator),
-      d_ls_gas_var(ls_gas_var)
-{
-    if (!(d_grav_type == "FULL" || d_grav_type == "FLOW"))
+    void SetFluidProperties::setViscosityPatchData3PhaseFlows(int mu_idx,
+                                                              Pointer<Variable<NDIM> > mu_var,
+                                                              SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                                                              const int /*cycle_num*/,
+                                                              const double time,
+                                                              const double current_time,
+                                                              const double new_time)
     {
-        TBOX_ERROR("Unsupported grav type: " << grav_type << "\n"
-                                             << "Valid options are: FULL, FLOW");
-    }
+        // Get the current level set information
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        int ls_solid_idx = IBTK::invalid_index;
+        int ls_gas_idx = IBTK::invalid_index;
 
-    if (d_grav_type == "FLOW")
+        if (IBTK::rel_equal_eps(time, current_time))
+        {
+            ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getCurrentContext());
+        }
+        else if (IBTK::rel_equal_eps(time, new_time))
+        {
+            ls_solid_idx = var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getNewContext());
+        }
+        else
+        {
+            TBOX_ERROR("This statement should not be reached");
+        }
+
+        if (IBTK::rel_equal_eps(time, current_time))
+        {
+            ls_gas_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getCurrentContext());
+        }
+        else if (IBTK::rel_equal_eps(time, new_time))
+        {
+            ls_gas_idx = var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_solver->getNewContext());
+        }
+        else
+        {
+            TBOX_ERROR("This statement should not be reached");
+        }
+
+        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        const int coarsest_ln = 0;
+        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+
+        Pointer<CellVariable<NDIM, double> > mu_cc_var = mu_var;
+        if (mu_cc_var)
+        {
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    const double* const patch_dx = patch_geom->getDx();
+                    double vol_cell = 1.0;
+                    for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+                    const double alpha =
+                        d_num_gas_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+                    const double beta =
+                        d_num_solid_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+
+                    const Box<NDIM>& patch_box = patch->getBox();
+                    const Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
+                    const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(ls_gas_idx);
+                    Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_idx);
+
+                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                    {
+                        CellIndex<NDIM> ci(it());
+                        const double phi_s = (*ls_solid_data)(ci);
+                        const double phi_g = (*ls_gas_data)(ci);
+                        const double Hphi_s = IBTK::smooth_heaviside(phi_s, beta);
+                        const double Hphi_g = IBTK::smooth_heaviside(phi_g, alpha);
+
+                        // First, compute the viscosity of the "flowing" phases
+                        const double mu_flow = (d_mu_liquid - d_mu_gas) * Hphi_g + d_mu_gas;
+
+                        // Next, set the viscosity of the solid phase in the usual way
+                        if (d_set_mu_solid)
+                            (*mu_data)(ci) = (mu_flow - d_mu_solid) * Hphi_s + d_mu_solid;
+                        else
+                            (*mu_data)(ci) = mu_flow;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Erroring out if any other centered is used for mu
+            TBOX_ERROR("This statement should not have been reached");
+        }
+
+        return;
+    } // setViscosityPatchData3PhaseFlows
+
+    GravityForcing::GravityForcing(const std::string& object_name,
+                                   Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
+                                   std::vector<double> grav_const)
+        : d_object_name(object_name), d_ins_hierarchy_integrator(ins_hierarchy_integrator), d_grav_const(grav_const)
     {
+        d_grav_type = "FULL";
+        return;
+    } // GravityForcing
+
+    GravityForcing::GravityForcing(const std::string& object_name,
+                                   Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
+                                   Pointer<CellVariable<NDIM, double> > ls_gas_var,
+                                   Pointer<Database> input_db,
+                                   std::vector<double> grav_const)
+        : d_object_name(object_name),
+          d_adv_diff_hierarchy_integrator(adv_diff_hierarchy_integrator),
+          d_ls_gas_var(ls_gas_var),
+          d_grav_const(grav_const)
+    {
+        d_grav_type = "FLOW";
         d_rho_neg = input_db->getDouble("rho_neg");
         d_rho_pos = input_db->getDouble("rho_pos");
         d_num_gas_interface_cells = input_db->getDouble("num_interface_cells");
-    }
 
-    return;
-} // GravityForcing
+        return;
+    } // GravityForcing
 
-GravityForcing::~GravityForcing()
-{
-    // intentionally blank
-    return;
-} // ~GravityForcing
-
-bool
-GravityForcing::isTimeDependent() const
-{
-    return true;
-} // isTimeDependent
-
-void
-GravityForcing::setDataOnPatchHierarchy(const int data_idx,
-                                        Pointer<Variable<NDIM> > /*var*/,
-                                        Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                        const double data_time,
-                                        const bool /*initial_time*/,
-                                        const int coarsest_ln_in,
-                                        const int finest_ln_in)
-{
-    const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
-    const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-
-    if (d_grav_type == "FULL")
+    bool GravityForcing::isTimeDependent() const
     {
-        // Get interpolated density variable
-        const int rho_ins_idx = d_ins_hierarchy_integrator->getLinearOperatorRhoPatchDataIndex();
+        return true;
+    } // isTimeDependent
 
-#if !defined(NDEBUG)
-        TBOX_ASSERT(rho_ins_idx >= 0);
-#endif
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& box = patch->getBox();
-                Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
-                const Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
-                for (int axis = 0; axis < NDIM; ++axis)
-                {
-                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(box, axis)); it; it++)
-                    {
-                        SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
-                        (*f_data)(s_i) = ((*rho_data)(s_i)) * d_grav_const[axis];
-                    }
-                }
-            }
-        }
-    }
-    else if (d_grav_type == "FLOW")
+    void GravityForcing::setDataOnPatchHierarchy(const int data_idx,
+                                                 Pointer<Variable<NDIM> > var,
+                                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                 const double data_time,
+                                                 const bool initial_time,
+                                                 const int coarsest_ln_in,
+                                                 const int finest_ln_in)
     {
-        // Get level set information
+        const int coarsest_ln = (coarsest_ln_in == IBTK::invalid_level_number ? 0 : coarsest_ln_in);
+        const int finest_ln =
+            (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        int ls_gas_current_idx =
-            var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_hierarchy_integrator->getCurrentContext());
-        int ls_gas_new_idx =
-            var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_hierarchy_integrator->getNewContext());
-        const bool ls_gas_new_is_allocated = d_adv_diff_hierarchy_integrator->isAllocatedPatchData(ls_gas_new_idx);
-        int ls_gas_idx = ls_gas_new_is_allocated ? ls_gas_new_idx : ls_gas_current_idx;
 
-        IntVector<NDIM> cell_ghosts = 1;
-        int ls_gas_scratch_idx = var_db->registerVariableAndContext(
-            d_ls_gas_var, var_db->getContext(d_object_name + "::LS_GAS_SCRATCH"), cell_ghosts);
+        if (d_grav_type == "FLOW")
+        {
+            // Get level set information
+            int ls_gas_current_idx = var_db->mapVariableAndContextToIndex(
+                d_ls_gas_var, d_adv_diff_hierarchy_integrator->getCurrentContext());
+            int ls_gas_new_idx =
+                var_db->mapVariableAndContextToIndex(d_ls_gas_var, d_adv_diff_hierarchy_integrator->getNewContext());
+            const bool ls_gas_new_is_allocated = d_adv_diff_hierarchy_integrator->isAllocatedPatchData(ls_gas_new_idx);
+            int ls_gas_idx = ls_gas_new_is_allocated ? ls_gas_new_idx : ls_gas_current_idx;
+
+            IntVector<NDIM> cell_ghosts = 1;
+            int d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
+                d_ls_gas_var, var_db->getContext(d_object_name + "::LS_GAS_SCRATCH"), cell_ghosts);
 
 #if !defined(NDEBUG)
-        TBOX_ASSERT(ls_gas_idx >= 0);
-        TBOX_ASSERT(ls_gas_scratch_idx >= 0);
+            TBOX_ASSERT(ls_gas_idx >= 0);
+            TBOX_ASSERT(d_ls_gas_scratch_idx >= 0);
 #endif
 
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            hierarchy->getPatchLevel(ln)->allocatePatchData(ls_gas_scratch_idx, data_time);
-        }
-        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> ls_transaction_comp(1);
-        ls_transaction_comp[0] =
-            InterpolationTransactionComponent(ls_gas_scratch_idx,
-                                              ls_gas_idx,
-                                              "CONSERVATIVE_LINEAR_REFINE",
-                                              false,
-                                              "CONSERVATIVE_COARSEN",
-                                              "LINEAR",
-                                              false,
-                                              d_adv_diff_hierarchy_integrator->getPhysicalBcCoefs(d_ls_gas_var));
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(ls_transaction_comp, hierarchy);
-        hier_bdry_fill->fillData(data_time);
-
-        // Set the gravity force. In this version, the gravity force is reconstructed from the flow density field.
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const double* const patch_dx = patch_geom->getDx();
-                const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
-                const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(ls_gas_scratch_idx);
-
-                double beta = 1.0;
-                for (int d = 0; d < NDIM; ++d) beta *= patch_dx[d];
-                beta = std::pow(beta, 1.0 / NDIM) * d_num_gas_interface_cells;
-
-                for (int axis = 0; axis < NDIM; ++axis)
-                {
-                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-                    {
-                        SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
-
-                        // Reconstruct density
-                        double phi_gas_lower = (*ls_gas_data)(s_i.toCell(0));
-                        double phi_gas_upper = (*ls_gas_data)(s_i.toCell(1));
-
-                        double h_gas_lower, h_gas_upper;
-                        h_gas_lower = IBTK::smooth_heaviside(phi_gas_lower, beta);
-                        h_gas_upper = IBTK::smooth_heaviside(phi_gas_upper, beta);
-
-                        const double rho_flow_lower = (d_rho_pos - d_rho_neg) * h_gas_lower + d_rho_neg;
-                        const double rho_flow_upper = (d_rho_pos - d_rho_neg) * h_gas_upper + d_rho_neg;
-                        (*f_data)(s_i) = d_grav_const[axis] * 2.0 * (rho_flow_lower * rho_flow_upper) /
-                                         (rho_flow_lower + rho_flow_upper);
-                    }
-                }
+                hierarchy->getPatchLevel(ln)->allocatePatchData(d_ls_gas_scratch_idx, data_time);
             }
+            using InterpolationTransactionComponent =
+                HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+            std::vector<InterpolationTransactionComponent> ls_transaction_comp(1);
+            ls_transaction_comp[0] =
+                InterpolationTransactionComponent(d_ls_gas_scratch_idx,
+                                                  ls_gas_idx,
+                                                  "CONSERVATIVE_LINEAR_REFINE",
+                                                  false,
+                                                  "CONSERVATIVE_COARSEN",
+                                                  "LINEAR",
+                                                  false,
+                                                  d_adv_diff_hierarchy_integrator->getPhysicalBcCoefs(d_ls_gas_var));
+            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+            hier_bdry_fill->initializeOperatorState(ls_transaction_comp, hierarchy);
+            hier_bdry_fill->fillData(data_time);
         }
 
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        // Fill data on each patch level
+        CartGridFunction::setDataOnPatchHierarchy(
+            data_idx, var, hierarchy, data_time, initial_time, coarsest_ln_in, finest_ln_in);
+
+        if (d_grav_type == "FLOW")
         {
-            hierarchy->getPatchLevel(ln)->deallocatePatchData(ls_gas_scratch_idx);
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                hierarchy->getPatchLevel(ln)->deallocatePatchData(d_ls_gas_scratch_idx);
+            }
+            var_db->removePatchDataIndex(d_ls_gas_scratch_idx);
         }
-        var_db->removePatchDataIndex(ls_gas_scratch_idx);
-    }
-    return;
-} // setDataOnPatchHierarchy
 
-void
-GravityForcing::setDataOnPatch(const int data_idx,
-                               Pointer<Variable<NDIM> > /*var*/,
-                               Pointer<Patch<NDIM> > patch,
-                               const double /*data_time*/,
-                               const bool initial_time,
-                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
-{
-    if (initial_time)
+        return;
+    } // setDataOnPatchHierarchy
+
+    void GravityForcing::setDataOnPatch(const int data_idx,
+                                        Pointer<Variable<NDIM> > /*var*/,
+                                        Pointer<Patch<NDIM> > patch,
+                                        const double /*data_time*/,
+                                        const bool initial_time,
+                                        Pointer<PatchLevel<NDIM> > /*patch_level*/)
     {
         Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
-        f_data->fillAll(0.0);
-    }
-    // Intentionally left blank
+        if (initial_time)
+        {
+            f_data->fillAll(0.0);
+            return;
+        }
 
-} // setDataOnPatch
+        const Box<NDIM>& patch_box = patch->getBox();
+        if (d_grav_type == "FULL")
+        {
+            // Get interpolated density variable
+            const int rho_ins_idx = d_ins_hierarchy_integrator->getLinearOperatorRhoPatchDataIndex();
 
-//////////////////////////////////////////////////////////////////////////////
+#if !defined(NDEBUG)
+            TBOX_ASSERT(rho_ins_idx >= 0);
+#endif
 
-} // namespace VcINSUtilities
+            const Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                {
+                    SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                    (*f_data)(s_i) = ((*rho_data)(s_i)) * d_grav_const[axis];
+                }
+            }
+        }
+        else if (d_grav_type == "FLOW")
+        {
+            // Set the gravity force. In this version, the gravity force is reconstructed from the flow density field.
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            const Pointer<CellData<NDIM, double> > ls_gas_data = patch->getPatchData(d_ls_gas_scratch_idx);
+
+            double alpha = 1.0;
+            for (int d = 0; d < NDIM; ++d) alpha *= patch_dx[d];
+            alpha = std::pow(alpha, 1.0 / NDIM) * d_num_gas_interface_cells;
+
+            for (int axis = 0; axis < NDIM; ++axis)
+            {
+                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                {
+                    SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+
+                    // Reconstruct density
+                    double phi_gas_lower = (*ls_gas_data)(s_i.toCell(0));
+                    double phi_gas_upper = (*ls_gas_data)(s_i.toCell(1));
+
+                    double h_gas_lower, h_gas_upper;
+                    h_gas_lower = IBTK::smooth_heaviside(phi_gas_lower, alpha);
+                    h_gas_upper = IBTK::smooth_heaviside(phi_gas_upper, alpha);
+
+                    const double rho_flow_lower = (d_rho_pos - d_rho_neg) * h_gas_lower + d_rho_neg;
+                    const double rho_flow_upper = (d_rho_pos - d_rho_neg) * h_gas_upper + d_rho_neg;
+                    (*f_data)(s_i) = d_grav_const[axis] * 2.0 * (rho_flow_lower * rho_flow_upper) /
+                                     (rho_flow_lower + rho_flow_upper);
+                }
+            }
+        }
+
+        return;
+    } // setDataOnPatch
+
+    //////////////////////////////////////////////////////////////////////////////
+
+} // namespace VCINSUtilities
 
 } // namespace IBAMR

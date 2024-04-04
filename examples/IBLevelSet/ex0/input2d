@@ -7,8 +7,6 @@ RHO_G      = 1.2
 G          = 9.81
 GRAV_CONST = 0.0,-G
 GCW        = 4
-GRAV_TYPE  = "FLOW"
-
 
 // Optional flag to set viscosity in the solid region
 SET_MU_S = TRUE

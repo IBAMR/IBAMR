@@ -256,29 +256,24 @@ main(int argc, char* argv[])
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
-        const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double rho_fluid = input_db->getDouble("RHO_F");
         const double rho_solid = input_db->getDouble("RHO_S");
         const double mu_fluid = input_db->getDouble("MU_F");
         const double mu_solid = input_db->getDoubleWithDefault("MU_S", std::numeric_limits<double>::quiet_NaN());
         const int num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
-        const std::string num_phases = "TWO_PHASE";
         circle.rho_solid = rho_solid;
-        IBAMR::VcINSUtilities::SetFluidProperties* ptr_SetFluidProperties =
-            new IBAMR::VcINSUtilities::SetFluidProperties("SetFluidProperties",
-                                                          adv_diff_integrator,
-                                                          phi_var_solid,
-                                                          rho_fluid,
-                                                          rho_solid,
-                                                          mu_fluid,
-                                                          mu_solid,
-                                                          ls_reinit_interval,
-                                                          num_solid_interface_cells,
-                                                          num_phases);
-        navier_stokes_integrator->registerResetFluidDensityFcn(&IBAMR::VcINSUtilities::callSetDensityCallbackFunction,
-                                                               static_cast<void*>(ptr_SetFluidProperties));
+        IBAMR::VCINSUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
+                                                                        adv_diff_integrator,
+                                                                        phi_var_solid,
+                                                                        rho_fluid,
+                                                                        rho_solid,
+                                                                        mu_fluid,
+                                                                        mu_solid,
+                                                                        num_solid_interface_cells);
+        navier_stokes_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
+                                                               static_cast<void*>(&setSetFluidProperties));
         navier_stokes_integrator->registerResetFluidViscosityFcn(
-            &IBAMR::VcINSUtilities::callSetViscosityCallbackFunction, static_cast<void*>(ptr_SetFluidProperties));
+            &IBAMR::VCINSUtilities::callSetViscosityCallbackFunction, static_cast<void*>(&setSetFluidProperties));
 
         // Register callback function for tagging refined cells for level set data
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
@@ -488,8 +483,6 @@ main(int argc, char* argv[])
 
         // Delete dumb pointers.
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete ptr_setFluidSolidDensity;
-        delete ptr_setFluidSolidViscosity;
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;

@@ -135,8 +135,6 @@ bargeGen_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(bargeGen_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__objects_1 = main2d-example.$(OBJEXT) \
-	main2d-SetFluidGasSolidDensity.$(OBJEXT) \
-	main2d-SetFluidGasSolidViscosity.$(OBJEXT) \
 	main2d-LSLocateStructureInterface.$(OBJEXT) \
 	main2d-LSLocateGasInterface.$(OBJEXT) \
 	main2d-RigidBodyKinematics.$(OBJEXT) \
@@ -167,8 +165,6 @@ am__depfiles_remade = ./$(DEPDIR)/bargeGen-bargeGen.Po \
 	./$(DEPDIR)/main2d-LSLocateStructureInterface.Po \
 	./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po \
 	./$(DEPDIR)/main2d-RigidBodyKinematics.Po \
-	./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po \
-	./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po \
 	./$(DEPDIR)/main2d-example.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -477,7 +473,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateStructureInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp LevelSetSolidInitialCondition.cpp
+EXAMPLE_DRIVER = example.cpp LSLocateStructureInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp LevelSetSolidInitialCondition.cpp
 EXTRA_DIST = input2d
 EXAMPLES = $(am__append_1)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -540,8 +536,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateStructureInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-RigidBodyKinematics.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -601,34 +595,6 @@ main2d-example.obj: example.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main2d-example.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
-
-main2d-SetFluidGasSolidDensity.o: SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidGasSolidDensity.o -MD -MP -MF $(DEPDIR)/main2d-SetFluidGasSolidDensity.Tpo -c -o main2d-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidGasSolidDensity.Tpo $(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidDensity.cpp' object='main2d-SetFluidGasSolidDensity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidGasSolidDensity.o `test -f 'SetFluidGasSolidDensity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidDensity.cpp
-
-main2d-SetFluidGasSolidDensity.obj: SetFluidGasSolidDensity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidGasSolidDensity.obj -MD -MP -MF $(DEPDIR)/main2d-SetFluidGasSolidDensity.Tpo -c -o main2d-SetFluidGasSolidDensity.obj `if test -f 'SetFluidGasSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidDensity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidGasSolidDensity.Tpo $(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidDensity.cpp' object='main2d-SetFluidGasSolidDensity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidGasSolidDensity.obj `if test -f 'SetFluidGasSolidDensity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidDensity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidDensity.cpp'; fi`
-
-main2d-SetFluidGasSolidViscosity.o: SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidGasSolidViscosity.o -MD -MP -MF $(DEPDIR)/main2d-SetFluidGasSolidViscosity.Tpo -c -o main2d-SetFluidGasSolidViscosity.o `test -f 'SetFluidGasSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidGasSolidViscosity.Tpo $(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidViscosity.cpp' object='main2d-SetFluidGasSolidViscosity.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidGasSolidViscosity.o `test -f 'SetFluidGasSolidViscosity.cpp' || echo '$(srcdir)/'`SetFluidGasSolidViscosity.cpp
-
-main2d-SetFluidGasSolidViscosity.obj: SetFluidGasSolidViscosity.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetFluidGasSolidViscosity.obj -MD -MP -MF $(DEPDIR)/main2d-SetFluidGasSolidViscosity.Tpo -c -o main2d-SetFluidGasSolidViscosity.obj `if test -f 'SetFluidGasSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidViscosity.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetFluidGasSolidViscosity.Tpo $(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidGasSolidViscosity.cpp' object='main2d-SetFluidGasSolidViscosity.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidGasSolidViscosity.obj `if test -f 'SetFluidGasSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidGasSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidGasSolidViscosity.cpp'; fi`
 
 main2d-LSLocateStructureInterface.o: LSLocateStructureInterface.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-LSLocateStructureInterface.o -MD -MP -MF $(DEPDIR)/main2d-LSLocateStructureInterface.Tpo -c -o main2d-LSLocateStructureInterface.o `test -f 'LSLocateStructureInterface.cpp' || echo '$(srcdir)/'`LSLocateStructureInterface.cpp
@@ -822,8 +788,6 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/main2d-LSLocateStructureInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-RigidBodyKinematics.Po
-	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
-	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -875,8 +839,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/main2d-LSLocateStructureInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-RigidBodyKinematics.Po
-	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
-	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic

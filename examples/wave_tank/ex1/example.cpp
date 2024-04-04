@@ -218,19 +218,19 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
         Pointer<RelaxationLSMethod> level_set_solid_ops =
             new RelaxationLSMethod(ls_name_solid, app_initializer->getComponentDatabase("LevelSet_Solid"));
-        LSLocateTrapezoidalInterface* ptr_LSLocateTrapezoidalInterface = new LSLocateTrapezoidalInterface(
+        LSLocateTrapezoidalInterface setLSLocateTrapezoidalInterface(
             "LSLocateTrapezoidalInterface", adv_diff_integrator, phi_var_solid, &trapezoid);
         level_set_solid_ops->registerInterfaceNeighborhoodLocatingFcn(
-            &callLSLocateTrapezoidalInterfaceCallbackFunction, static_cast<void*>(ptr_LSLocateTrapezoidalInterface));
+            &callLSLocateTrapezoidalInterfaceCallbackFunction, static_cast<void*>(&setLSLocateTrapezoidalInterface));
 
         const string& ls_name_gas = "level_set_gas";
         Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
         Pointer<RelaxationLSMethod> level_set_gas_ops =
             new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
-        LSLocateGasInterface* ptr_LSLocateGasInterface =
-            new LSLocateGasInterface("LSLocateGasInterface", adv_diff_integrator, phi_var_gas, fluid_height);
+        LSLocateGasInterface setLSLocateGasInterface(
+            "LSLocateGasInterface", adv_diff_integrator, phi_var_gas, fluid_height);
         level_set_gas_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateGasInterfaceCallbackFunction,
-                                                                    static_cast<void*>(ptr_LSLocateGasInterface));
+                                                                    static_cast<void*>(&setLSLocateGasInterface));
 
         adv_diff_integrator->registerTransportedQuantity(phi_var_solid);
         adv_diff_integrator->setDiffusionCoefficient(phi_var_solid, 0.0);
@@ -245,17 +245,15 @@ main(int argc, char* argv[])
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
         // Register the reinitialization functions for the level set variables
-        IBAMR::LevelSetUtilities::SetLSProperties* ptr_setSetLSPropertiesSolid =
-            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_solid_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties setSetLSPropertiesSolid("SetLSPropertiesSolid", level_set_solid_ops);
         adv_diff_integrator->registerResetFunction(phi_var_solid,
                                                    &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy,
-                                                   static_cast<void*>(ptr_setSetLSPropertiesSolid));
+                                                   static_cast<void*>(&setSetLSPropertiesSolid));
 
-        IBAMR::LevelSetUtilities::SetLSProperties* ptr_setSetLSPropertiesGas =
-            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_gas_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties setSetLSPropertiesGas("SetLSPropertiesGas", level_set_gas_ops);
         adv_diff_integrator->registerResetFunction(phi_var_gas,
                                                    &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy,
-                                                   static_cast<void*>(ptr_setSetLSPropertiesGas));
+                                                   static_cast<void*>(&setSetLSPropertiesGas));
 
         // LS gas initial conditions
         if (input_db->keyExists("LevelSetGasInitialConditions"))
@@ -286,7 +284,6 @@ main(int argc, char* argv[])
         navier_stokes_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
-        const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double rho_fluid = input_db->getDouble("RHO_F");
         const double rho_solid = input_db->getDoubleWithDefault("RHO_S", std::numeric_limits<double>::quiet_NaN());
         const double rho_gas = input_db->getDouble("RHO_G");
@@ -296,28 +293,24 @@ main(int argc, char* argv[])
         const bool set_mu_solid = input_db->getBool("SET_MU_S");
         const int num_solid_interface_cells = input_db->getDouble("NUM_SOLID_INTERFACE_CELLS");
         const int num_gas_interface_cells = input_db->getDouble("NUM_GAS_INTERFACE_CELLS");
-        const std::string num_phases = "THREE_PHASE";
 
-        IBAMR::VcINSUtilities::SetFluidProperties* ptr_SetFluidProperties =
-            new IBAMR::VcINSUtilities::SetFluidProperties("SetFluidProperties",
-                                                          adv_diff_integrator,
-                                                          phi_var_gas,
-                                                          phi_var_solid,
-                                                          rho_fluid,
-                                                          rho_gas,
-                                                          rho_solid,
-                                                          mu_fluid,
-                                                          mu_gas,
-                                                          mu_solid,
-                                                          ls_reinit_interval,
-                                                          num_gas_interface_cells,
-                                                          num_solid_interface_cells,
-                                                          set_mu_solid,
-                                                          num_phases);
-        navier_stokes_integrator->registerResetFluidDensityFcn(&IBAMR::VcINSUtilities::callSetDensityCallbackFunction,
-                                                               static_cast<void*>(ptr_SetFluidProperties));
+        IBAMR::VCINSUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
+                                                                        adv_diff_integrator,
+                                                                        phi_var_gas,
+                                                                        phi_var_solid,
+                                                                        rho_fluid,
+                                                                        rho_gas,
+                                                                        rho_solid,
+                                                                        mu_fluid,
+                                                                        mu_gas,
+                                                                        mu_solid,
+                                                                        num_gas_interface_cells,
+                                                                        num_solid_interface_cells,
+                                                                        set_mu_solid);
+        navier_stokes_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
+                                                               static_cast<void*>(&setSetFluidProperties));
         navier_stokes_integrator->registerResetFluidViscosityFcn(
-            &IBAMR::VcINSUtilities::callSetViscosityCallbackFunction, static_cast<void*>(ptr_SetFluidProperties));
+            &IBAMR::VCINSUtilities::callSetViscosityCallbackFunction, static_cast<void*>(&setSetFluidProperties));
 
         // Register callback function for tagging refined cells for level set data
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
@@ -437,9 +430,12 @@ main(int argc, char* argv[])
         // Initialize objects
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
-        Pointer<CartGridFunction> grav_force = new IBAMR::VcINSUtilities::GravityForcing(
-            "GravityForcing", navier_stokes_integrator, grav_const, grav_type);
+        Pointer<CartGridFunction> grav_force =
+            new IBAMR::VCINSUtilities::GravityForcing("GravityForcing",
+                                                      adv_diff_integrator,
+                                                      phi_var_gas,
+                                                      app_initializer->getComponentDatabase("FlowGravityForcing"),
+                                                      grav_const);
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
@@ -675,11 +671,6 @@ main(int argc, char* argv[])
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete ptr_LSLocateTrapezoidalInterface;
-        delete ptr_LSLocateGasInterface;
-        delete ptr_SetFluidProperties;
-        delete ptr_setSetLSPropertiesSolid;
-        delete ptr_setSetLSPropertiesGas;
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;

@@ -31,6 +31,7 @@
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -179,14 +180,13 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateCircularInterface* ptr_LSLocateCircularInterface =
-            new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, phi_var, circle);
+        LSLocateCircularInterface setLSLocateCircularInterface(
+            "LSLocateCircularInterface", adv_diff_integrator, phi_var, circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
-                                                                static_cast<void*>(ptr_LSLocateCircularInterface));
-        IBAMR::LevelSetUtilities::SetLSProperties* ptr_SetLSProperties =
-            new IBAMR::LevelSetUtilities::SetLSProperties("SetLSProperties", level_set_ops);
+                                                                static_cast<void*>(&setLSLocateCircularInterface));
+        IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(ptr_SetLSProperties));
+            phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // LS initial conditions
         if (input_db->keyExists("LevelSetInitialConditions"))
@@ -216,26 +216,21 @@ main(int argc, char* argv[])
         const double rho_outside = input_db->getDouble("RHO_O");
         const double mu_inside = input_db->getDouble("MU_I");
         const double mu_outside = input_db->getDouble("MU_O");
-        const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double num_interface_cells = input_db->getDouble("NUM_INTERFACE_CELLS");
-        const std::string num_phases = "TWO_PHASE";
 
         // Callback functions can either be registered with the NS integrator, or the advection-diffusion integrator
-        IBAMR::VcINSUtilities::SetFluidProperties* ptr_SetFluidProperties =
-            new IBAMR::VcINSUtilities::SetFluidProperties("SetFluidProperties",
-                                                          adv_diff_integrator,
-                                                          phi_var,
-                                                          rho_outside,
-                                                          rho_inside,
-                                                          mu_outside,
-                                                          mu_inside,
-                                                          ls_reinit_interval,
-                                                          num_interface_cells,
-                                                          num_phases);
-        time_integrator->registerResetFluidDensityFcn(&IBAMR::VcINSUtilities::callSetDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VcINSUtilities::callSetViscosityCallbackFunction,
-                                                        static_cast<void*>(ptr_SetFluidProperties));
+        IBAMR::VCINSUtilities::SetFluidProperties SetFluidProperties("SetFluidProperties",
+                                                                     adv_diff_integrator,
+                                                                     phi_var,
+                                                                     rho_outside,
+                                                                     rho_inside,
+                                                                     mu_outside,
+                                                                     mu_inside,
+                                                                     num_interface_cells);
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
+                                                      static_cast<void*>(&SetFluidProperties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VCINSUtilities::callSetViscosityCallbackFunction,
+                                                        static_cast<void*>(&SetFluidProperties));
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -451,11 +446,6 @@ main(int argc, char* argv[])
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
-        // Cleanup other dumb pointers
-        delete ptr_SetLSProperties;
-        delete ptr_SetFluidProperties;
-        delete ptr_LSLocateCircularInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main
