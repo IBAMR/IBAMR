@@ -24,7 +24,6 @@ IBAMR_ADD_EXAMPLE(
     LevelSetInitialCondition.cpp
     SetFluidSolidDensity.cpp
     SetFluidSolidViscosity.cpp
-    TagLSRefinementCells.cpp
     example.cpp
   REQUIRES
     IBAMR_HAVE_LIBMESH

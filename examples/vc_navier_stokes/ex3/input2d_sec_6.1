@@ -1,0 +1,374 @@
+// physical parameters
+L   = 1.0
+RHO0 = 1.0                            // Outside density
+RHO1 = -RHO0+1.0e3                     // Inside density - 1.0
+MU0  = 1e-4
+MU1  = -MU0+1e-2
+
+
+// grid spacing parameters
+MAX_LEVELS  = 1
+REF_RATIO  = 2                            // refinement ratio between levels
+N = 64                                  // actual    number of grid cells on coarsest grid level
+NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N  // effective number of grid cells on finest   grid level
+HFINEST = 2*L/NFINEST
+DELTA = 0.05                           // Width of smoothed region
+
+
+// solver parameters
+SOLVER_TYPE         = "STAGGERED"          // the fluid solver to use (STAGGERED or COLLOCATED)
+DISCRETIZATION_FORM = "CONSERVATIVE"    // the discretization form to use (CONSERVATIVE or NON_CONSERVATIVE)
+START_TIME         = 0.0e0                // initial simulation time
+END_TIME           = 1e-2                  // final simulation time
+MAX_INTEGRATOR_STEPS = 1000000
+GROW_DT            = 2.0e0                // growth factor for timesteps
+NUM_CYCLES         = 2                    // number of cycles of fixed-point iteration
+CONVECTIVE_FORM    = "CONSERVATIVE"          // how to compute the convective terms
+NORMALIZE_PRESSURE = TRUE                 // whether to explicitly force the pressure to have mean zero
+CFL_MAX            = 0.5                  // maximum CFL number
+DT_MAX             = 1e-3 // maximum time step size
+VORTICITY_TAGGING  = TRUE                 // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER         = 1                    // sized of tag buffer used by grid generation algorithm
+REGRID_INTERVAL    = 10000000             // effectively disable regridding
+OUTPUT_U           = TRUE
+OUTPUT_P           = TRUE
+OUTPUT_F           = TRUE
+OUTPUT_OMEGA       = TRUE
+OUTPUT_DIV_U       = TRUE
+OUTPUT_RHO         = TRUE
+OUTPUT_MU          = TRUE
+RHO_IS_CONST       = FALSE
+MU_IS_CONST        = FALSE
+VISCOUS_TIME_STEPPING_TYPE = "BACKWARD_EULER"
+// Whether or not to reset the rho at the beginning of each time step via callback function
+RESET_RHO = TRUE
+
+// Application
+PRECOND_REINIT_INTERVAL = 1
+DENSITY_CONVECTIVE_LIMITER   = "CUI"
+VELOCITY_CONVECTIVE_LIMITER = "CUI"
+DENSITY_TS_TYPE = "SSPRK3"
+
+// Scaling c is chosen such that c(rho/dt - mu/dx^2) ~ 1/dx
+// Assuming dt ~ dx and 1/dx = N, we have
+// c ~ 1/(rho - mu*N)
+//OPERATOR_SCALE_FACTORS = abs(1.0/(RHO1/2.0 - MU1/2.0*N*REF_RATIO^(MAX_LEVELS - 1)))
+ OPERATOR_SCALE_FACTORS = 1.0
+
+// How to interpolate from cell centers to nodes (mu)
+// Harmonic averaging is better in cases where there is a large density of viscosity ratio
+VC_INTERPOLATION_TYPE   = "VC_AVERAGE_INTERP"
+
+EXPLICITLY_REMOVE_NULLSPACE = TRUE
+ENABLE_LOGGING     = TRUE
+
+CREEPING_FLOW = FALSE
+
+// supply some variable density field
+RHO = "rho0 + (rho1*(1 + tanh((0.1 - sqrt((X_0-0.5)^2 + (X_1-0.5)^2))/delta)))/2"
+DensityFunction {
+rho0 = RHO0
+rho1 = RHO1
+delta = DELTA
+function = RHO
+}
+
+MU = "mu0 + mu1 + mu1 * sin(2*PI*X_0) * cos(2 * PI * X_1)"
+// supply some variable viscosity field
+ViscosityFunction {
+   mu0 = MU0
+   mu1 = MU1
+   function = MU
+}
+
+// MMS functions for non-zero divergence velocity case
+U = "2.0*PI*cos(2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)"
+V = "2.0*PI*sin(2*PI*X_0)*sin(2*PI*t - 2*PI*X_1) - sin(2*PI*t - 2*PI*X_0)"
+P = "-2.0*PI*sin(2*PI*t - 2*PI*X_0)*cos(2*PI*t - 2*PI*X_1)"
+
+// Forcing terms with bulk viscosity convective terms
+F_U = "4/3*PI^2*(3*cos(2*PI*(t-X_0))+16*PI*(mu0+mu1)*cos(2*PI*X_0))*cos(2*PI*(t-X_1)) + (-372.075* rho0 - 186.038*rho1)*cos(2*PI*(t-X_1))^2*sin(4*PI*X_0) + 413.417*mu1*cos(2*PI*(t-X_1))*cos(2*PI*X_1)* sin(4*PI*X_0) + (rho1*cos(2*PI*X_0)*cos(2*PI*(t-X_1))*(1 - tanh((0.1 -((-0.5+X_0)^2+(-0.5+X_1)^2)^0.5)/delta)^2)*((9.8696 -19.7392*X_0)*cos(2*PI*X_0)*cos(2*PI*(t-X_1)) + (-0.5+X_1)*(3.14159*sin(2*PI*(t-X_0)) - 19.7392*sin(2*PI*X_0)*sin(2*PI*(t-X_1)))))/((0.5 +(-1+X_0)*X_0+(-1+X_1)*X_1)^0.5*delta) + 39.4784*mu1*cos(2*PI*(t-X_0))*sin(2*PI*X_0)*sin(2*PI*X_1) + sin(2*PI*(t-X_1))*((rho0+0.5*rho1)*cos(2*PI*X_0)*(-39.4784-39.4784*sin(2*PI*(t-X_0)))+sin(4*PI*X_0)*((124.025*rho0+62.0126*rho1)*sin(2*PI*(t-X_1)) + 248.05*mu1*sin(2*PI*X_1))) + rho1* ((-62.0126-124.025*cos(4*PI*(t-X_1)))*sin(4*PI*X_0) + cos(2*PI*X_0)*(-19.7392-19.7392* sin(2*PI*(t-X_0)))*sin(2*PI*(t-X_1)))*tanh((0.1 -((-0.5+X_0)^2+(-0.5+X_1)^2)^0.5)/delta)"
+
+F_V ="PI*(cos(2*PI*(t-X_0))*(-2*rho0-rho1+2*PI*cos(2*PI*X_0)*((2*rho0+rho1)*cos(2*PI*(t-X_1))-2*mu1* cos(2*PI*X_1)))-4*PI*(mu0+mu1)*sin(2*PI*(t-X_0)))-39.4784*mu1*cos(2*PI*X_1)*sin(2*PI*(t-X_0))* sin(2*PI*X_0)+(-39.4784*sin(2*PI*(t-X_0))+661.467*mu0*sin(2*PI*X_0)+mu1*(82.6834* cos(2*PI*X_1)-289.392*cos(2*PI*(2*X_0+X_1))-289.392*cos(4*PI*X_0 - 2*PI*X_1)+661.467* sin(2*PI*X_0)))*sin(2*PI*(t-X_1))+(rho1*(1 - tanh((0.1 -((-0.5+X_0)^2+(-0.5+X_1)^2)^0.5)/delta)^2)*((0.25 -0.5*X_1)*sin(2*PI*(t-X_0))^2+(-3.14159+6.28319*X_1)*sin(2*PI*(t-X_0))* sin(2*PI*X_0)*sin(2*PI*(t-X_1))+(9.8696 -19.7392*X_1)*sin(2*PI*X_0)^2*sin(2*PI*(t-X_1))^2+(-0.5+ X_0)*cos(2*PI*X_0)*cos(2*PI*(t-X_1))*(3.14159*sin(2*PI*(t-X_0))-19.7392*sin(2*PI*X_0)*sin(2*PI*(t-X_1)))))/((0.5 +(-1+X_0)*X_0+(-1+X_1)*X_1)^0.5*delta)+(-124.025*rho0-62.0126*rho1+(248.05*rho0+124.025*rho1)*cos(4*PI*X_0))*sin(4*PI*(t-X_1))+cos(2*PI*(t-X_1))*sin(2*PI*X_0)*(39.4784*rho0+19.7392*rho1+(118.435*rho0+59.2176*rho1)* sin(2*PI*(t-X_0))-165.367*mu1*sin(2*PI*X_0)*sin(2*PI*X_1))+rho1*(-3.14159*cos(2*PI*(t-X_0))+19.7392*cos(2*PI*(2*t-2*X_0-X_1))-9.8696*cos(2*PI*X_1)+19.7392*cos(2*PI*(-2*X_0+X_1))-9.8696 *cos(4*PI*t - 2*PI*X_1)-62.0126*sin(4*PI*(t-X_1))+9.8696*sin(2*PI*(t+X_0-X_1))+62.0126 *sin(4*PI*(t+X_0-X_1))+9.8696*sin(2*PI*(-t+X_0+X_1))-62.0126*sin(4*PI*(-t+X_0+X_1)))*tanh((0.1 -((-0.5+X_0)^2+(-0.5+X_1)^2)^0.5)/delta)"
+
+F_M = "-((3.14159*(rho1*(1 - tanh((0.1 -((-0.5+X_0)^2+(-0.5+X_1)^2)^0.5)/delta)^2)*((-0.5+X_0)* cos(2*PI*X_0)*cos(2*PI*(t-X_1))+(0.0795775 -0.159155*X_1)*sin(2*PI*(t-X_0))+(-0.5+X_1)* sin(2*PI*X_0)*sin(2*PI*(t-X_1)))+(0.5 -X_0+X_0^2- X_1+X_1^2)^0.5*delta*cos(2*PI*(t-X_1))* sin(2*PI*X_0)*(25.1327*rho0+12.5664*rho1+12.5664*rho1*tanh((0.1 -((-0.5+X_0)^2+(-0.5+X_1)^2)^0.5)/delta))))/(((-0.5+X_0)^2+(-0.5+X_1)^2)^0.5*delta))"
+
+F_C = "8*PI^2*cos(2*PI*t - 2*PI*X_1)*sin(2*PI*X_0)"
+
+T_nr = "2*cos(t)*(1.0 + sin(X_0)) - sin(t)*sin(X_0)*sin(X_1)"
+
+VelocityInitialConditions {
+   function_0 = U
+   function_1 = V
+}
+
+VelocityBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = U
+   gcoef_function_1 = U // T_nr
+   gcoef_function_2 = U
+   gcoef_function_3 = U
+}
+
+VelocityBcCoefs_1 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = V
+   gcoef_function_1 = V
+   gcoef_function_2 = V
+   gcoef_function_3 = V
+}
+
+PressureInitialConditions {
+   function = "0.0"
+}
+
+PressureExactSolution
+{
+   function = P
+}
+
+ForcingFunction {
+    rho0 = RHO0
+    rho1 = RHO1
+    mu0 = MU0
+    mu1 = MU1
+    delta = DELTA
+   function_0 = F_U
+   function_1 = F_V
+}
+
+DensitySourceFunction
+{
+    rho0 = RHO0
+    rho1 = RHO1
+    delta = DELTA
+   function = F_M
+}
+
+ContinuityForcingFunction {
+   function = F_C
+}
+
+// Density boundary conditions since this manufactured solution does not satisfy d(rho)/dn = 0 on the boundaries
+DensityBcCoef {
+   rho0 = RHO0
+   rho1 = RHO1
+   delta = DELTA
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = RHO
+   gcoef_function_1 = RHO
+   gcoef_function_2 = RHO
+   gcoef_function_3 = RHO
+}
+
+// Viscosity boundary conditions since this manufactured solution
+ViscosityBcCoef {
+   mu0 = MU0
+   mu1 = MU1
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = MU
+   gcoef_function_1 = MU
+   gcoef_function_2 = MU
+   gcoef_function_3 = MU
+}
+
+INSVCStaggeredConservativeHierarchyIntegrator {
+   start_time                    = START_TIME
+   end_time                      = END_TIME
+   grow_dt                       = GROW_DT
+   num_cycles                    = NUM_CYCLES
+   convective_difference_form    = CONVECTIVE_FORM
+   normalize_pressure            = NORMALIZE_PRESSURE
+   cfl                           = CFL_MAX
+   dt_max                        = DT_MAX
+   using_vorticity_tagging       = VORTICITY_TAGGING
+   vorticity_rel_thresh          = 0.25,0.125
+   tag_buffer                    = TAG_BUFFER
+   regrid_interval               = REGRID_INTERVAL
+   output_U                      = OUTPUT_U
+   output_P                      = OUTPUT_P
+   output_F                      = OUTPUT_F
+   output_Omega                  = OUTPUT_OMEGA
+   output_Div_U                  = OUTPUT_DIV_U
+   output_rho                    = OUTPUT_RHO
+   output_mu                     = OUTPUT_MU
+   rho_is_const                  = RHO_IS_CONST
+   mu_is_const                   = MU_IS_CONST
+   operator_scale_factors        = OPERATOR_SCALE_FACTORS
+   vc_interpolation_type         = VC_INTERPOLATION_TYPE
+   precond_reinit_interval       = PRECOND_REINIT_INTERVAL
+   enable_logging                = ENABLE_LOGGING
+   max_integrator_steps          = MAX_INTEGRATOR_STEPS
+   explicitly_remove_nullspace   = EXPLICITLY_REMOVE_NULLSPACE
+   creeping_flow                 = CREEPING_FLOW
+   // viscous_time_stepping_type    = VISCOUS_TIME_STEPPING_TYPE
+
+   // Solver parameters
+   velocity_solver_type = "VC_VELOCITY_PETSC_KRYLOV_SOLVER"
+   velocity_precond_type = "VC_VELOCITY_POINT_RELAXATION_FAC_PRECONDITIONER"
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 5
+      rel_residual_tol = 1.0e-5
+   }
+   velocity_precond_db {
+      num_pre_sweeps = 0
+      num_post_sweeps = 3
+      prolongation_method = "CONSERVATIVE_LINEAR_REFINE"
+      restriction_method = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "VC_VELOCITY_PETSC_LEVEL_SOLVER"
+      coarse_solver_prefix = "bottom_velocity_"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 10
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
+      }
+   }
+    pressure_solver_type = "PETSC_KRYLOV_SOLVER"
+    pressure_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
+    pressure_solver_db
+    {
+      ksp_type = "richardson"
+      max_iterations = 5
+      rel_residual_tol = 1.0e-5
+    }
+    pressure_precond_db {
+      num_pre_sweeps  = 0
+      num_post_sweeps = 3
+      prolongation_method = "LINEAR_REFINE"
+      restriction_method  = "CONSERVATIVE_COARSEN"
+      coarse_solver_type = "PETSC_LEVEL_SOLVER"
+      coarse_solver_rel_residual_tol = 1.0e-12
+      coarse_solver_abs_residual_tol = 1.0e-50
+      coarse_solver_max_iterations = 10
+      coarse_solver_db {
+         ksp_type = "gmres"
+         pc_type = "jacobi"
+      }
+    }
+    mass_momentum_integrator_db {
+      density_convective_limiter = DENSITY_CONVECTIVE_LIMITER
+      velocity_convective_limiter = VELOCITY_CONVECTIVE_LIMITER
+      density_time_stepping_type = DENSITY_TS_TYPE
+    }
+
+}
+
+Main {
+   solver_type         = SOLVER_TYPE
+   discretization_form = DISCRETIZATION_FORM
+   reset_rho           = RESET_RHO
+
+// log file parameters
+   log_file_name               = "INS2d.log"
+   log_all_nodes               = FALSE
+
+// visualization dump parameters
+   viz_writer                  = "VisIt"
+   viz_dump_interval           = 1
+   viz_dump_dirname            = "viz_INS2d"
+   visit_number_procs_per_file = 1
+
+// restart dump parameters
+   restart_dump_interval       = 0
+   restart_dump_dirname        = "restart_INS2d"
+
+// timer dump parameters
+   timer_dump_interval         = 0
+}
+
+CartesianGeometry {
+   domain_boxes = [ (0,0),(N - 1,N - 1) ]
+   x_lo = 0,0
+   x_up = L,L
+   periodic_dimension = 0,0
+}
+
+GriddingAlgorithm {
+   max_levels = MAX_LEVELS
+   ratio_to_coarser {
+      level_1 = REF_RATIO,REF_RATIO
+      level_2 = REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO
+   }
+   largest_patch_size {
+      level_0 = 512,512  // all finer levels will use same values as level_0
+   }
+   smallest_patch_size {
+      level_0 =   4,  4  // all finer levels will use same values as level_0
+   }
+   efficiency_tolerance = 0.85e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+      level_0 = [( 0 , 0 ),( N - 1 , N - 1 )]
+      level_1 = [( 0 , 0 ),( 2*N - 1 , 2*N - 1 )]
+      level_2 = [( 0 , 0 ),( 4*N - 1 , 4*N - 1 )]
+      level_3 = [( 0 , 0 ),( 8*N - 1 , 8*N - 1 )]
+      level_4 = [( 0 , 0 ),( 16*N - 1 , 16*N - 1 )]
+      level_5 = [( 0 , 0 ),( 32*N - 1 , 32*N - 1 )]
+      level_6 = [( 0 , 0 ),( 64*N - 1 , 64*N - 1 )]
+      level_7 = [( 0 , 0 ),( 128*N - 1 , 128*N - 1 )]
+      level_8 = [( 0 , 0 ),( 256*N - 1 , 256*N - 1 )]
+      level_9 = [( 0 , 0 ),( 512*N - 1 , 512*N - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method     = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total     = TRUE
+   print_threshold = 0.1
+   timer_list      = "IBAMR::*::*","IBTK::*::*","*::*::*"
+}

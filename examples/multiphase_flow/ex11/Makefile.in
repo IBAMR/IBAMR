@@ -140,9 +140,6 @@ am__objects_1 = main2d-example.$(OBJEXT) \
 	main2d-LSLocateStructureInterface.$(OBJEXT) \
 	main2d-LSLocateGasInterface.$(OBJEXT) \
 	main2d-RigidBodyKinematics.$(OBJEXT) \
-	main2d-TagLSRefinementCells.$(OBJEXT) \
-	main2d-SetLSProperties.$(OBJEXT) \
-	main2d-GravityForcing.$(OBJEXT) \
 	main2d-LevelSetSolidInitialCondition.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
@@ -166,15 +163,12 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/bargeGen-bargeGen.Po \
-	./$(DEPDIR)/main2d-GravityForcing.Po \
 	./$(DEPDIR)/main2d-LSLocateGasInterface.Po \
 	./$(DEPDIR)/main2d-LSLocateStructureInterface.Po \
 	./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po \
 	./$(DEPDIR)/main2d-RigidBodyKinematics.Po \
 	./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po \
 	./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po \
-	./$(DEPDIR)/main2d-SetLSProperties.Po \
-	./$(DEPDIR)/main2d-TagLSRefinementCells.Po \
 	./$(DEPDIR)/main2d-example.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -483,7 +477,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateStructureInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp TagLSRefinementCells.cpp SetLSProperties.cpp GravityForcing.cpp LevelSetSolidInitialCondition.cpp
+EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidViscosity.cpp LSLocateStructureInterface.cpp LSLocateGasInterface.cpp RigidBodyKinematics.cpp LevelSetSolidInitialCondition.cpp
 EXTRA_DIST = input2d
 EXAMPLES = $(am__append_1)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -542,15 +536,12 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bargeGen-bargeGen.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-GravityForcing.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateGasInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateStructureInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-RigidBodyKinematics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetLSProperties.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -680,48 +671,6 @@ main2d-RigidBodyKinematics.obj: RigidBodyKinematics.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='RigidBodyKinematics.cpp' object='main2d-RigidBodyKinematics.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-RigidBodyKinematics.obj `if test -f 'RigidBodyKinematics.cpp'; then $(CYGPATH_W) 'RigidBodyKinematics.cpp'; else $(CYGPATH_W) '$(srcdir)/RigidBodyKinematics.cpp'; fi`
-
-main2d-TagLSRefinementCells.o: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagLSRefinementCells.o -MD -MP -MF $(DEPDIR)/main2d-TagLSRefinementCells.Tpo -c -o main2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagLSRefinementCells.Tpo $(DEPDIR)/main2d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main2d-TagLSRefinementCells.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-
-main2d-TagLSRefinementCells.obj: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagLSRefinementCells.obj -MD -MP -MF $(DEPDIR)/main2d-TagLSRefinementCells.Tpo -c -o main2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagLSRefinementCells.Tpo $(DEPDIR)/main2d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main2d-TagLSRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-
-main2d-SetLSProperties.o: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetLSProperties.o -MD -MP -MF $(DEPDIR)/main2d-SetLSProperties.Tpo -c -o main2d-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetLSProperties.Tpo $(DEPDIR)/main2d-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='main2d-SetLSProperties.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetLSProperties.o `test -f 'SetLSProperties.cpp' || echo '$(srcdir)/'`SetLSProperties.cpp
-
-main2d-SetLSProperties.obj: SetLSProperties.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-SetLSProperties.obj -MD -MP -MF $(DEPDIR)/main2d-SetLSProperties.Tpo -c -o main2d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-SetLSProperties.Tpo $(DEPDIR)/main2d-SetLSProperties.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetLSProperties.cpp' object='main2d-SetLSProperties.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetLSProperties.obj `if test -f 'SetLSProperties.cpp'; then $(CYGPATH_W) 'SetLSProperties.cpp'; else $(CYGPATH_W) '$(srcdir)/SetLSProperties.cpp'; fi`
-
-main2d-GravityForcing.o: GravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-GravityForcing.o -MD -MP -MF $(DEPDIR)/main2d-GravityForcing.Tpo -c -o main2d-GravityForcing.o `test -f 'GravityForcing.cpp' || echo '$(srcdir)/'`GravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-GravityForcing.Tpo $(DEPDIR)/main2d-GravityForcing.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GravityForcing.cpp' object='main2d-GravityForcing.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-GravityForcing.o `test -f 'GravityForcing.cpp' || echo '$(srcdir)/'`GravityForcing.cpp
-
-main2d-GravityForcing.obj: GravityForcing.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-GravityForcing.obj -MD -MP -MF $(DEPDIR)/main2d-GravityForcing.Tpo -c -o main2d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-GravityForcing.Tpo $(DEPDIR)/main2d-GravityForcing.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='GravityForcing.cpp' object='main2d-GravityForcing.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-GravityForcing.obj `if test -f 'GravityForcing.cpp'; then $(CYGPATH_W) 'GravityForcing.cpp'; else $(CYGPATH_W) '$(srcdir)/GravityForcing.cpp'; fi`
 
 main2d-LevelSetSolidInitialCondition.o: LevelSetSolidInitialCondition.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-LevelSetSolidInitialCondition.o -MD -MP -MF $(DEPDIR)/main2d-LevelSetSolidInitialCondition.Tpo -c -o main2d-LevelSetSolidInitialCondition.o `test -f 'LevelSetSolidInitialCondition.cpp' || echo '$(srcdir)/'`LevelSetSolidInitialCondition.cpp
@@ -869,15 +818,12 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/bargeGen-bargeGen.Po
-	-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateStructureInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-RigidBodyKinematics.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
-	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -925,15 +871,12 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/bargeGen-bargeGen.Po
-	-rm -f ./$(DEPDIR)/main2d-GravityForcing.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateGasInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LSLocateStructureInterface.Po
 	-rm -f ./$(DEPDIR)/main2d-LevelSetSolidInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-RigidBodyKinematics.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidGasSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/main2d-SetLSProperties.Po
-	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic

@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp SetLSProperties.cpp LSLocateColumnInterface.cpp GravityForcing.cpp TagLSRefinementCells.cpp
+EXAMPLE_DRIVER = example.cpp LSLocateColumnInterface.cpp
 EXTRA_DIST     = input2d
 EXTRA_DIST    += input2d_CaseA input2d_CaseA_IrregularWave input2d_CaseB input2d_CaseC input2d_5thOrderStokes
 EXTRA_DIST    += input3d
