@@ -990,6 +990,16 @@ uninstall-am:
 lib: all
 examples: lib
 	cd $@ && $(MAKE) $(AM_MAKEFLAGS) $@
+
+indent:
+	@echo "Indenting recently changed IBAMR files"
+	@cd "$(top_srcdir)" && ./scripts/formatting/indent
+.PHONY: indent
+
+indent-all:
+	@echo "Indenting all IBAMR files"
+	@cd "$(top_srcdir)" && ./scripts/formatting/indent-all
+.PHONY: indent-all
 # attest uses parameters set in attest.conf; said parameters are overridden by
 # command line arguments. Use configuration info to set up the path to mpirun:
 attest.conf: $(abs_builddir)/tests/attest.conf
