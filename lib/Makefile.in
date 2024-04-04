@@ -342,6 +342,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
 	../src/utilities/STSMassFluxIntegrator.cpp \
 	../src/utilities/RNG.cpp ../src/utilities/ins_utilities.cpp \
+	../src/utilities/vc_ins_utilities.cpp \
 	../src/IB/FEMechanicsBase.cpp \
 	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
@@ -542,6 +543,7 @@ am__objects_2 =  \
 	../src/utilities/libIBAMR2d_a-STSMassFluxIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-RNG.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-ins_utilities.$(OBJEXT) \
+	../src/utilities/libIBAMR2d_a-vc_ins_utilities.$(OBJEXT) \
 	$(am__objects_1)
 am_libIBAMR2d_a_OBJECTS = $(am__objects_2) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.$(OBJEXT) \
@@ -713,6 +715,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
 	../src/utilities/STSMassFluxIntegrator.cpp \
 	../src/utilities/RNG.cpp ../src/utilities/ins_utilities.cpp \
+	../src/utilities/vc_ins_utilities.cpp \
 	../src/IB/FEMechanicsBase.cpp \
 	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
@@ -913,6 +916,7 @@ am__objects_4 =  \
 	../src/utilities/libIBAMR3d_a-STSMassFluxIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-RNG.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-ins_utilities.$(OBJEXT) \
+	../src/utilities/libIBAMR3d_a-vc_ins_utilities.$(OBJEXT) \
 	$(am__objects_3)
 am_libIBAMR3d_a_OBJECTS = $(am__objects_4) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.$(OBJEXT) \
@@ -1263,11 +1267,13 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-STSMassFluxIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-STSMassFluxIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po \
@@ -1490,7 +1496,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
-	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
+	../include/ibamr/vc_ins_utilities.h ../include/ibamr/Wall.h \
+	../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/WaveDampingFunctions.h \
 	../include/ibamr/WaveGenerationFunctions.h \
 	../include/ibamr/RNG.h ../include/ibamr/FEMechanicsBase.h \
@@ -1927,7 +1934,8 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
-	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
+	../include/ibamr/vc_ins_utilities.h ../include/ibamr/Wall.h \
+	../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/WaveDampingFunctions.h \
 	../include/ibamr/WaveGenerationFunctions.h \
 	../include/ibamr/RNG.h $(am__append_5)
@@ -2077,7 +2085,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
 	../src/utilities/STSMassFluxIntegrator.cpp \
 	../src/utilities/RNG.cpp ../src/utilities/ins_utilities.cpp \
-	$(am__append_4)
+	../src/utilities/vc_ins_utilities.cpp $(am__append_4)
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
@@ -2663,6 +2671,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/utilities/libIBAMR2d_a-ins_utilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR2d_a-vc_ins_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-FEMechanicsBase.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-FEMechanicsExplicitIntegrator.$(OBJEXT):  \
@@ -3192,6 +3203,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/utilities/libIBAMR3d_a-ins_utilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR3d_a-vc_ins_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-FEMechanicsBase.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-FEMechanicsExplicitIntegrator.$(OBJEXT):  \
@@ -3620,11 +3634,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-STSMassFluxIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-STSMassFluxIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po@am__quote@ # am--include-marker
@@ -5831,6 +5847,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ins_utilities.cpp' object='../src/utilities/libIBAMR2d_a-ins_utilities.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-ins_utilities.obj `if test -f '../src/utilities/ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ins_utilities.cpp'; fi`
+
+../src/utilities/libIBAMR2d_a-vc_ins_utilities.o: ../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-vc_ins_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Tpo -c -o ../src/utilities/libIBAMR2d_a-vc_ins_utilities.o `test -f '../src/utilities/vc_ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/vc_ins_utilities.cpp' object='../src/utilities/libIBAMR2d_a-vc_ins_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-vc_ins_utilities.o `test -f '../src/utilities/vc_ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/vc_ins_utilities.cpp
+
+../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj: ../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Tpo -c -o ../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj `if test -f '../src/utilities/vc_ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/vc_ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/vc_ins_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/vc_ins_utilities.cpp' object='../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj `if test -f '../src/utilities/vc_ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/vc_ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/vc_ins_utilities.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-FEMechanicsBase.o: ../src/IB/FEMechanicsBase.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-FEMechanicsBase.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsBase.Tpo -c -o ../src/IB/libIBAMR2d_a-FEMechanicsBase.o `test -f '../src/IB/FEMechanicsBase.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsBase.cpp
@@ -8184,6 +8214,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-ins_utilities.obj `if test -f '../src/utilities/ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ins_utilities.cpp'; fi`
 
+../src/utilities/libIBAMR3d_a-vc_ins_utilities.o: ../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-vc_ins_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Tpo -c -o ../src/utilities/libIBAMR3d_a-vc_ins_utilities.o `test -f '../src/utilities/vc_ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/vc_ins_utilities.cpp' object='../src/utilities/libIBAMR3d_a-vc_ins_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-vc_ins_utilities.o `test -f '../src/utilities/vc_ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/vc_ins_utilities.cpp
+
+../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj: ../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Tpo -c -o ../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj `if test -f '../src/utilities/vc_ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/vc_ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/vc_ins_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/vc_ins_utilities.cpp' object='../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj `if test -f '../src/utilities/vc_ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/vc_ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/vc_ins_utilities.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-FEMechanicsBase.o: ../src/IB/FEMechanicsBase.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-FEMechanicsBase.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsBase.Tpo -c -o ../src/IB/libIBAMR3d_a-FEMechanicsBase.o `test -f '../src/IB/FEMechanicsBase.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsBase.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsBase.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsBase.Po
@@ -8887,11 +8931,13 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-STSMassFluxIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-STSMassFluxIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po
@@ -9269,11 +9315,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-STSMassFluxIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-STSMassFluxIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po

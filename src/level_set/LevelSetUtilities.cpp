@@ -157,10 +157,12 @@ tagLSCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
            const int level_number,
            const double /*error_data_time*/,
            const int tag_index,
-           const bool /*initial_time*/,
+           const bool initial_time,
            const bool /*uses_richardson_extrapolation_too*/,
            void* ctx)
 {
+    if (initial_time || level_number == hierarchy->getFinestLevelNumber()) return;
+
     TagLSRefinementCells* ls_tagger = static_cast<TagLSRefinementCells*>(ctx);
 
 #if !defined(NDEBUG)
