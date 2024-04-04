@@ -26,9 +26,10 @@ checks() {
   if ! [ -x "$(command -v "clang-format")" ]; then
     echo "***   No clang-format program found."
     echo "***"
-    echo "***   You can run the './scripts/download-clang-format'"
-    echo "***   script, or the './scripts/compile-clang-format' script "
-    echo "***   to install a compatible binary into './scripts/programs'."
+    echo "***   You can run the './scripts/formatting/download-clang-format'"
+    echo "***   script, or the './scripts/formatting/compile-clang-format' "
+    echo "***   script to install a compatible binary into"
+    echo "***   './scripts/formatting/programs'."
     exit 1
   fi
 
@@ -41,9 +42,9 @@ checks() {
     echo "***   This indent script requires clang-format version 16.0,"
     echo "***   but version ${CLANG_FORMAT_MAJOR_VERSION}.${CLANG_FORMAT_MINOR_VERSION} was found instead."
     echo "***"
-    echo "***   You can run the 'scripts/download-clang-format'"
-    echo "***   script, or the 'scripts/compile-clang-format' script "
-    echo "***   to install a compatible binary into 'scripts/utilities/programs'."
+    echo "***   You can run the 'scripts/formatting/download-clang-format'"
+    echo "***   script, or the 'scripts/formatting/compile-clang-format' script "
+    echo "***   to install a compatible binary into 'scripts/formatting/programs'."
     exit 1
   fi
 }
@@ -261,24 +262,13 @@ process_changed()
 #
 ensure_single_trailing_newline()
 {
-  f=$1
+  file="${1}"
 
-  # Remove newlines at end of file
-  # Check that the current line only contains newlines
-  # If it doesn't match, print it
-  # If it does match and we're not at the end of the file,
-  # append the next line to the current line and repeat the check
-  # If it does match and we're at the end of the file,
-  # remove the line.
-  sed -e :a -e '/^\n*$/{$d;N;};/\n$/ba' $f >$f.tmpi
-
-  # Then add a newline to the end of the file
-  # '$' denotes the end of file
-  # 'a\' appends the following text (which in this case is nothing)
-  # on a new line
-  sed -e '$a\' $f.tmpi >$f.tmp
-
-  diff -q $f $f.tmp >/dev/null || mv $f.tmp $f
-  rm -f $f.tmp $f.tmpi
+  if test $(tail -c1 "$file") ; then
+    tmpfile="$(mktemp "${TMPDIR}/$(basename "$file").tmp.XXXXXXXX")"
+    sed -e '$a\'$'\n' "$file" > "$tmpfile"
+    mv "$tmpfile" "$file"
+    rm -f "$tmpfile"
+  fi
 }
 export -f ensure_single_trailing_newline

@@ -18,7 +18,7 @@ set -u
 PRG="$(cd "$(dirname "$0")" && pwd)/programs"
 
 VERSION="16"
-RELEASE_DATE="2023-06-10"
+RELEASE_DATE="2023-06-01"
 LLVM_COMMIT="7cbf1a2591520c2491aa35339f227775f4d3adf6"
 
 CLANG_PATH="${PRG}/clang-${VERSION}"
@@ -54,7 +54,7 @@ else
   GIT_SHALLOW_SINCE_AVAILABLE=false
 fi
 
-git init
+git init --initial-branch=main
 git remote add origin "${LLVM_REPOSITORY}"
 if [ "$GIT_SHALLOW_SINCE_AVAILABLE" = true ]; then
   git fetch --shallow-since="${RELEASE_DATE}" origin "${RELEASE_BRANCH}"
