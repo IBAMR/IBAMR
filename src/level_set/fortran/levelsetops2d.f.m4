@@ -68,8 +68,12 @@ c     Prevent compiler warning about unused variables.
 c
       eps = eps
 
-C       S_eps = two*H_eps(x,eps) - one
-C       S_eps = x/sqrt(x**2+eps**2)
+c     S_eps = two*H_eps(x,eps) - one
+c     S_eps = x/sqrt(x**2+eps**2)
+
+c     Since the method that actually works for most of the cases is
+c     ENO2+subcell fix, use the discrete sign function and not the smooth ones
+c     as commented above that are commonly found in the literature
 
       S_eps = sign(one,x)
       if (x.eq.zero) then
@@ -337,6 +341,7 @@ c
       subroutine relaxationls1storder2d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     dx,
@@ -350,7 +355,7 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER dir
 
 c
@@ -358,6 +363,7 @@ c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL DT(CELL2d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -367,7 +373,7 @@ c
       if (dir .eq. 0) then
         do i1 = ilower1,iupper1
           do i0 = ilower0,iupper0
-              call evalrelax1storder2d(U,U_gcw,V,V_gcw,
+              call evalrelax1storder2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                 ilower0,iupper0,
      &                                 ilower1,iupper1,
      &                                 i0,i1,dx)
@@ -376,7 +382,7 @@ c
       elseif (dir .eq. 1) then
         do i1 = ilower1,iupper1
           do i0 = iupper0,ilower0,-1
-              call evalrelax1storder2d(U,U_gcw,V,V_gcw,
+              call evalrelax1storder2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                 ilower0,iupper0,
      &                                 ilower1,iupper1,
      &                                 i0,i1,dx)
@@ -385,7 +391,7 @@ c
       elseif (dir .eq. 2) then
         do i1 = iupper1,ilower1,-1
           do i0 = ilower0,iupper0
-              call evalrelax1storder2d(U,U_gcw,V,V_gcw,
+              call evalrelax1storder2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                 ilower0,iupper0,
      &                                 ilower1,iupper1,
      &                                 i0,i1,dx)
@@ -394,7 +400,7 @@ c
       elseif (dir .eq. 3 )then
         do i1 = iupper1,ilower1,-1
           do i0 = iupper0,ilower0,-1
-              call evalrelax1storder2d(U,U_gcw,V,V_gcw,
+              call evalrelax1storder2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                 ilower0,iupper0,
      &                                 ilower1,iupper1,
      &                                 i0,i1,dx)
@@ -415,6 +421,7 @@ c
       subroutine evalrelax1storder2d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     i0,i1,
@@ -433,13 +440,14 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
 
 c
 c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL DT(CELL2d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -447,24 +455,25 @@ c
       INTEGER i0,i1
       REAL    hx,hy,hmin
       REAL    sgn
-      REAL    dt
-      REAL    G
+      REAL    dt_cell
+      REAL    H
       REAL    Dxp,Dxm
       REAL    Dyp,Dym
 
       hx = dx(0)
       hy = dx(1)
       hmin = dmin1(hx,hy)
-      dt = half*hmin
+      dt_cell = half*hmin
       sgn = S_eps(V(i0,i1),hmin)
 
       Dxm = one/hx*(U(i0,i1)-U(i0-1,i1))
       Dxp = one/hx*(U(i0+1,i1)-U(i0,i1))
       Dym = one/hy*(U(i0,i1)-U(i0,i1-1))
       Dyp = one/hy*(U(i0,i1+1)-U(i0,i1))
-      G = HG(Dxp,Dxm,Dyp,Dym,sgn)
+      H = HG(Dxp,Dxm,Dyp,Dym,sgn)
 
-      U(i0,i1) = U(i0,i1) - dt*sgn*(G-one)
+      DT(i0,i1) = dt_cell
+      U(i0,i1) = U(i0,i1) - dt_cell*sgn*(H-one)
 
       return
       end
@@ -483,6 +492,7 @@ c
       subroutine relaxationls3rdordereno2d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     dx,
@@ -498,7 +508,7 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER dir
       INTEGER use_subcell,use_sign_fix
 
@@ -507,16 +517,18 @@ c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL DT(CELL2d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
 c
+
       INTEGER i0,i1
 
       if (dir .eq. 0) then
         do i1 = ilower1,iupper1
           do i0 = ilower0,iupper0
-              call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,DT,DT_gcw, 
      &                                    ilower0,iupper0,
      &                                    ilower1,iupper1,
      &                                    i0,i1,dx,
@@ -526,7 +538,7 @@ c
       elseif (dir .eq. 1) then
         do i1 = ilower1,iupper1
           do i0 = iupper0,ilower0,-1
-              call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                    ilower0,iupper0,
      &                                    ilower1,iupper1,
      &                                    i0,i1,dx,
@@ -536,7 +548,7 @@ c
       elseif (dir .eq. 2) then
         do i1 = iupper1,ilower1,-1
           do i0 = ilower0,iupper0
-              call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                    ilower0,iupper0,
      &                                    ilower1,iupper1,
      &                                    i0,i1,dx,
@@ -546,7 +558,7 @@ c
       elseif (dir .eq. 3 )then
         do i1 = iupper1,ilower1,-1
           do i0 = iupper0,ilower0,-1
-              call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdordereno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                    ilower0,iupper0,
      &                                    ilower1,iupper1,
      &                                    i0,i1,dx,
@@ -567,6 +579,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine evalrelax3rdordereno2d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     i0,i1,
@@ -587,7 +600,7 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER use_subcell, use_sign_fix
 
 c
@@ -595,6 +608,7 @@ c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL DT(CELL2d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -606,7 +620,7 @@ c
       REAL    Dxm,Dxp,Dym,Dyp
       REAL    Dxx,Dxxp,Dxxm,Dyy,Dyyp,Dyym
       REAL    Dxx0,Dyy0
-      REAL    H,dt,sgn,cfl,eps,D,diff
+      REAL    H,dt_cell,sgn,cfl,eps,D,diff
 
       hx = dx(0)
       hy = dx(1)
@@ -717,10 +731,12 @@ c     Compute ENO differences with subcell fix
       endif
 
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
-      dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)
 
-      if (dt .gt. zero) then
-        U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+      dt_cell = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym)
+      DT(i0,i1) = dt_cell
+
+      if (dt_cell .gt. zero) then
+        U(i0,i1) = U(i0,i1) - dt_cell*sgn*(H-one)
       endif
 
       return
@@ -889,6 +905,7 @@ c
       subroutine relaxationls3rdorderweno2d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     dx,
@@ -904,7 +921,7 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER dir
       INTEGER use_subcell,use_sign_fix
 
@@ -913,6 +930,7 @@ c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL DT(CELL2d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -922,7 +940,7 @@ c
       if (dir .eq. 0) then
         do i1 = ilower1,iupper1
           do i0 = ilower0,iupper0
-              call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
      &                                     i0,i1,dx,
@@ -932,7 +950,7 @@ c
       elseif (dir .eq. 1) then
         do i1 = ilower1,iupper1
           do i0 = iupper0,ilower0,-1
-              call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
      &                                     i0,i1,dx,
@@ -942,7 +960,7 @@ c
       elseif (dir .eq. 2) then
         do i1 = iupper1,ilower1,-1
           do i0 = ilower0,iupper0
-              call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
      &                                     i0,i1,dx,
@@ -952,7 +970,7 @@ c
       elseif (dir .eq. 3 )then
         do i1 = iupper1,ilower1,-1
           do i0 = iupper0,ilower0,-1
-              call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,
+              call evalrelax3rdorderweno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
      &                                     i0,i1,dx,
@@ -974,6 +992,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine evalrelax3rdorderweno2d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     i0,i1,
@@ -994,7 +1013,7 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER use_subcell,use_sign_fix
 
 c
@@ -1002,6 +1021,7 @@ c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL DT(CELL2d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -1020,7 +1040,7 @@ c
       REAL    ryp,wyp
       REAL    h1,h2
       REAL    Dxx0,Dyy0
-      REAL    H,dt,sgn,cfl,eps,D,diff
+      REAL    H,dt_cell,sgn,cfl,eps,D,diff
 
       hx = dx(0)
       hy = dx(1)
@@ -1174,11 +1194,13 @@ c     Compute first order derivatives
       Dyp = (one - wyp)*Dyc + wyp*Dyt
 
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
-      dt = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym,
-     &               abs(hx-hxm),abs(hy-hym),abs(hx-hxp),abs(hy-hyp))
+      dt_cell = cfl*dmin1(hx,hy,hxp,hxm,hyp,hym,
+     &          abs(hx-hxm),abs(hy-hym),abs(hx-hxp),abs(hy-hyp))
 
-      if (dt .gt. zero) then
-        U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+      DT(i0,i1) = dt_cell
+
+      if (dt_cell .gt. zero) then
+        U(i0,i1) = U(i0,i1) - dt_cell*sgn*(H-one)
       endif
 
       return
@@ -1397,6 +1419,7 @@ c
       subroutine relaxationls5thorderweno2d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     dx,
@@ -1411,7 +1434,7 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER dir,use_sign_fix
 
 c
@@ -1419,6 +1442,7 @@ c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL DT(CELL2d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -1428,7 +1452,7 @@ c
       if (dir .eq. 0) then
         do i1 = ilower1,iupper1
           do i0 = ilower0,iupper0
-              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
+              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
      &                                     i0,i1,dx,use_sign_fix)
@@ -1437,7 +1461,7 @@ c
       elseif (dir .eq. 1) then
         do i1 = ilower1,iupper1
           do i0 = iupper0,ilower0,-1
-              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
+              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
      &                                     i0,i1,dx,use_sign_fix)
@@ -1446,7 +1470,7 @@ c
       elseif (dir .eq. 2) then
         do i1 = iupper1,ilower1,-1
           do i0 = ilower0,iupper0
-              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
+              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
      &                                     i0,i1,dx,use_sign_fix)
@@ -1455,7 +1479,7 @@ c
       elseif (dir .eq. 3 )then
         do i1 = iupper1,ilower1,-1
           do i0 = iupper0,ilower0,-1
-              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,
+              call evalrelax5thorderweno2d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                     ilower0,iupper0,
      &                                     ilower1,iupper1,
      &                                     i0,i1,dx,use_sign_fix)
@@ -1474,6 +1498,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine evalrelax5thorderweno2d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     i0,i1,
@@ -1493,13 +1518,14 @@ c     Input.
 c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
 
 c
 c     Input/Output.
 c
       REAL U(CELL2d(ilower,iupper,U_gcw))
       REAL V(CELL2d(ilower,iupper,V_gcw))
+      REAL DT(CELL2d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -1507,7 +1533,7 @@ c
       INTEGER i0,i1,k,np,nm
       REAL    hx,hy,hmin
       REAL    Dxm,Dxp,Dym,Dyp
-      REAL    H,dt,sgn,cfl
+      REAL    H,dt_cell,sgn,cfl
       REAL    Qx(-2:1),Qy(-2:1)
       REAL    Qxxp(-2:1),Qxxm(-2:1)
       REAL    Qyyp(-2:1),Qyym(-2:1)
@@ -1516,7 +1542,7 @@ c
 
       hx = dx(0)
       hy = dx(1)
-      cfl = 0.45d0
+c     cfl = 0.45d0
       hmin = dmin1(hx,hy)
       sgn = S_eps(V(i0,i1),hmin)
 
@@ -1560,9 +1586,13 @@ c     Compute all the required finite differences and their WENO5 interpolation
       Dym = Ey-WENO5(Qyym)
 
       H = HG(Dxp,Dxm,Dyp,Dym,sgn)
-      dt = cfl*hmin
+      dt_cell = cfl*hmin
 
-      U(i0,i1) = U(i0,i1) - dt*sgn*(H-one)
+      DT(i0,i1) = dt_cell 
+
+      if (dt_cell .gt. zero) then
+        U(i0,i1) = U(i0,i1) - dt_cell*sgn*(H-one)
+      endif
 
       return
       end
@@ -1744,57 +1774,6 @@ c           as this can cause the level set variable to blow up
               U(i0,i1) = C(i0,i1) + lambda*dij*H(i0,i1)
             endif
 
-        enddo
-      enddo
-      return
-      end
-c
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Volume shift on level set to ensure that it does not lose volume
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine applylsvolumeshift2d(
-     &     U,U_gcw,
-     &     C,C_gcw,
-     &     dV,
-     &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     dx)
-c
-      implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
-
-c
-c     Input.
-c
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-      INTEGER U_gcw,C_gcw
-
-c
-c     Input/Output.
-c
-      REAL U(CELL2d(ilower,iupper,U_gcw))
-      REAL C(CELL2d(ilower,iupper,C_gcw))
-      REAL dV
-      REAL dx(0:NDIM-1)
-c
-c     Local variables.
-c
-      INTEGER i0,i1
-      REAL    hx,hy,hmin
-      REAL    dt
-
-      hx = dx(0)
-      hy = dx(1)
-      hmin = dmin1(hx,hy)
-      dt = one
-
-      do i1 = ilower1,iupper1
-        do i0 = ilower0,iupper0
-              U(i0,i1) = C(i0,i1) + dt * dV
         enddo
       enddo
       return

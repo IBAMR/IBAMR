@@ -202,6 +202,26 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
+     * \brief Factor to enhance the Brinkman penalty in the normal direction to
+     * the solid interface.
+     */
+    void setNormalBrinkmanPenaltyFactor(double penalty_factor_normal)
+    {
+        d_penalty_factor_normal = penalty_factor_normal;
+        return;
+    } // setNormalBrinkmanPenaltyFactor
+
+    /*!
+     * \brief Factor to enhance the Brinkman penalty in the tangential direction to
+     * the solid interface.
+     */
+    void setTangentialBrinkmanPenaltyFactor(double penalty_factor_tangential)
+    {
+        d_penalty_factor_tangential = penalty_factor_tangential;
+        return;
+    } // setTangentialBrinkmanPenaltyFactor
+
+    /*!
      * \brief Get initial center of mass of the body.
      */
     const Eigen::Vector3d& getInitialCOMPosn() const
@@ -308,7 +328,8 @@ protected:
     // Hydrodynamic force evaluator.
     SAMRAI::tbox::Pointer<IBAMR::IBHydrodynamicSurfaceForceEvaluator> d_hydro_force_eval;
 
-    // Contour level
+    // Contour level of the indicator function/level set at which hydrodynamic forces
+    // are evaluated
     double d_contour_level = 0.0;
 
     // Number of interface cells to compute the Heaviside function
@@ -321,6 +342,11 @@ protected:
     // Routines to get prescribed kinematics and additional external forces and torques.
     KinematicsFcnData d_kinematics_fcn_data;
     ExternalForceTorqueFcnData d_ext_force_torque_fcn_data;
+
+    // If we want to apply Brinkman penalty differently in the normal vs. tangential directions
+    // along the structure interface
+    bool d_split_penalty = false;
+    double d_penalty_factor_normal = 1.0, d_penalty_factor_tangential = 1.0;
 
 private:
     /*!
@@ -356,6 +382,14 @@ private:
      * members.
      */
     void getFromRestart();
+
+    void computeBrinkmanVelocityWithoutSplitting(int u_in_idx, double time, int cycle_num);
+
+    void computeBrinkmanVelocityWithSplitting(int u_in_idx, double time, int cycle_num);
+
+    void demarcateBrinkmanZoneWithoutSplitting(int u_idx, double time, int cycle_num);
+
+    void demarcateBrinkmanZoneWithSplitting(int u_idx, double time, int cycle_num);
 };
 
 } // namespace IBAMR

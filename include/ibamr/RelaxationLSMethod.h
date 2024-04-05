@@ -127,13 +127,16 @@ public:
     void setLSGhostCellWidth(int D_gcw);
 
     /*!
-     * \brief Indicate that the class should apply the volume shift.
+     * \brief Indicate that the class should apply the volume redistribution algorithm.
      */
-    void setApplyVolumeShift(bool apply_volume_shift);
+    void setApplyVolumeRedistribution(bool apply_volume_redistribution);
 
 protected:
     // Flag for applying the mass constraint
     bool d_apply_mass_constraint = false;
+
+    // Flag for applying the volume redistribution algorithm
+    bool d_apply_vol_redistribution = false;
 
     // Flag for applying subcell fix
     bool d_apply_subcell_fix = false;
@@ -143,12 +146,6 @@ protected:
 
     // Ghost cell width for level set variable
     int d_D_gcw = -1;
-
-    // Flag for applying the volume shift
-    bool d_apply_volume_shift = false;
-
-    // Initial volume of the level set domain
-    double d_init_ls_vol;
 
     // Relaxation weight parameter
     double d_alpha = 1.0;
@@ -162,6 +159,7 @@ private:
                int dist_idx,
                int dist_init_idx,
                int dist_copy_idx,
+               int dt_idx,
                const int iter,
                const double time) const;
 
@@ -170,22 +168,22 @@ private:
      */
     void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
                const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
+               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dt_data,
                const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                const int iter) const;
 
     /*!
      * \brief Compute the Hamiltonian of the indicator field over the hierarchy
      */
-    void computeInitialHamiltonian(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                   int ham_init_idx,
-                                   int dist_init_idx) const;
+    void
+    computeHamiltonian(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops, int ham_idx, int dist_idx) const;
 
     /*!
      * \brief Compute the hamiltonian of the indicator field field over a patch
      */
-    void computeInitialHamiltonian(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
-                                   const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-                                   const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void computeHamiltonian(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_data,
+                            const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
+                            const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
     /*!
      * \brief Apply the mass constraint over the hierarchy
@@ -205,27 +203,15 @@ private:
                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
                              const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
 
-    /*!
-     * \brief Compute the volume of a region demarcated by a level set variable
+    /*
+     * \brief Apply the volume redistribution algorithm over the hierarchy
      */
-    double
-    computeRegionVolume(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops, int hs_phi_idx, int phi_idx) const;
-
-    /*!
-     * \brief Apply the volume shift over the hierarchy
-     */
-    void applyVolumeShift(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                          int dist_idx,
-                          int dist_copy_idx,
-                          double dV) const;
-
-    /*!
-     * \brief Apply the volume shift over a patch
-     */
-    void applyVolumeShift(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                          const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_copy_data,
-                          const double dV,
-                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void applyVolumeRedistribution(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                   int lambda_idx,
+                                   int dist_idx,
+                                   int dist_init_idx,
+                                   int ham_idx,
+                                   int dt_idx) const;
 
     /*!
      * Read input values from a given database.

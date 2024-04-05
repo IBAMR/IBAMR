@@ -126,6 +126,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/complex_fluids/CFRoliePolyStrategy.cpp \
 ../src/complex_fluids/CFINSForcing.cpp \
 ../src/level_set/FastSweepingLSMethod.cpp \
+../src/level_set/LevelSetUtilities.cpp \
 ../src/level_set/LSInitStrategy.cpp \
 ../src/level_set/RelaxationLSBcCoefs.cpp \
 ../src/level_set/RelaxationLSMethod.cpp \
@@ -198,7 +199,8 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/wave_generation/WaveDampingFunctions.cpp \
 ../src/wave_generation/WaveGenerationFunctions.cpp \
 ../src/utilities/STSMassFluxIntegrator.cpp \
-../src/utilities/RNG.cpp
+../src/utilities/RNG.cpp \
+../src/utilities/ins_utilities.cpp 
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
@@ -312,9 +314,11 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 ../include/ibamr/IrregularWaveBcCoef.h \
 ../include/ibamr/IrregularWaveGenerator.h \
+../include/ibamr/ins_utilities.h \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
+../include/ibamr/LevelSetUtilities.h \
 ../include/ibamr/LSInitStrategy.h \
 ../include/ibamr/MarangoniSurfaceTensionForceFunction.h \
 ../include/ibamr/MobilityFunctions.h \
