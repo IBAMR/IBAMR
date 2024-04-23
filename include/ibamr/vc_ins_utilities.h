@@ -384,7 +384,7 @@ private:
      * "FLOW" - sets the \f$ \rho^\text{flow} g \f$ where \f$ \rho^\text{flow} \f$ is the density of the flow phase
      * (excludes solid).
      */
-    const std::string d_grav_type;
+    std::string d_grav_type;
 
     /*!
      * Density.
