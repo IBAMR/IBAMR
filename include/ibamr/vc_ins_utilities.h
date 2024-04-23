@@ -76,12 +76,12 @@ void callSetViscosityCallbackFunction(int mu_idx,
                                       const double new_time,
                                       void* ctx);
 
+/*!
+ * \brief Class SetFluidProperties is a utility class which sets the fluid and
+ * solid Eulerian density based on the current level set information.
+ */
 class SetFluidProperties
 {
-    /*!
-     * \brief Class SetFluidProperties is a utility class which sets the fluid and
-     * solid Eulerian density based on the current level set information
-     */
 public:
     /*!
      * Constructor for this class.
@@ -281,15 +281,16 @@ private:
 
 /*!
  * \brief The GravityForcing class provides an implementation of gravity force.
- * This class can be utilized to set the gravity force \f$ \rho g \f$ throughout the entire domain with
- * the option grav_type = "FULL" or specifically within the liquid and gas regions (excluding the solid phase)
- * with the option grav_type = "FLOW".
+ * This class can be utilized to apply the gravitational force \f$ \rho g \f$ using the density field,
+ * which includes all three phases: liquid, gas, and solid; or using the flow density field, which includes
+ * only liquid and gas phases and excludes the solid phase.
  */
 class GravityForcing : public IBTK::CartGridFunction
 {
 public:
     /*!
-     * \brief Constructor for this class.
+     * \brief Constructor for this class. Applies the gravitational force throughout the
+     * computational domain with the density retrieved from the provided <code>ins_hierarchy_integrator<\code>.
      *
      * grav_const stores the acceleration due to gravity.
      *
@@ -299,7 +300,8 @@ public:
                    std::vector<double> grav_const);
 
     /*!
-     * \brief Constructor for this class.
+     * \brief Constructor for this class. Applies the gravitational force using the
+     * flow density field, which is computed from the fluid level set function.
      *
      * @param input_db provides parameters such as rho_neg, rho_pos, and num_gas_interface_cells.
      * grav_const stores the acceleration due to gravity.
@@ -387,7 +389,8 @@ private:
     std::string d_grav_type;
 
     /*!
-     * Density.
+     * rho_neg - density where the fluid level set takes a negative value.
+     * rho_pos - density where the fluid level set takes a positive value.
      */
     double d_rho_neg, d_rho_pos;
 
