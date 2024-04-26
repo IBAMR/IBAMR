@@ -120,10 +120,22 @@ jobs:
           name: fedora33-CMakeError.log
           path: CMakeConfigureLog.yaml
       - name: Compile IBAMR
-        id: build
+        id: build-library
         run: |
           cd /build/ibamr
-          make -j2 tests examples
+          make -j2
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
+        run: |
+          cd /build/ibamr
+          make -j2 examples
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          cd /build/ibamr
+          make -j2 tests
           ccache --show-stats
       - name: Test IBAMR
         id: test
@@ -196,7 +208,19 @@ jobs:
           bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
           ccache --show-stats
       - name: Compile IBAMR
-        id: build
+        id: build-library
+        run: |
+          cd /build/ibamr
+          make -j2
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
+        run: |
+          cd /build/ibamr
+          make -j2 examples
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
         run: |
           cd /build/ibamr
           make -j2 tests
@@ -205,12 +229,6 @@ jobs:
         id: test
         run: |
           bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
-      - name: Compile IBAMR examples
-        id: examples
-        run: |
-          cd /build/ibamr
-          make -j2 examples
-          ccache --show-stats
 
   # build IBAMR with autotools
   build_ibamr_autotools:
@@ -280,7 +298,7 @@ jobs:
           name: autotools-config.log
           path: build/config.log
       - name: Compile IBAMR (autotools)
-        id: build
+        id: build-library
         run: |
           source /etc/profile.d/modules.sh
           module load mpi
@@ -289,7 +307,23 @@ jobs:
           echo "CC=${CC}"
           echo "CXX=${CXX}"
           cd build
-          make -j2 tests examples
+          make -j2
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
+        run: |
+          source /etc/profile.d/modules.sh
+          module load mpi
+          cd build
+          make -j2 examples
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          source /etc/profile.d/modules.sh
+          module load mpi
+          cd build
+          make -j2 tests
           ccache --show-stats
 
   # build IBAMR with CMake and run tests with our oldest dependencies on CENTOS 7
@@ -338,11 +372,23 @@ jobs:
           bash -c "source /etc/profile.d/modules.sh && module load mpi && ctest3 -VV -S .github/cmake/ctest_configure.cmake"
           ccache --show-stats
       - name: Compile IBAMR
-        id: build
+        id: build-library
+        run: |
+          cd /build/ibamr
+          make -j2
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
         run: |
           cd /build/ibamr
           # compile examples which depend on libMesh to verify that they still work with libMesh 1.1.0
-          make -j2 tests examples-IBFE examples-IBLevelSet examples-IIM examples-IMP examples-complex_fluids examples-fe_mechanics
+          make -j2 examples-IBFE examples-IBLevelSet examples-IIM examples-IMP examples-complex_fluids examples-fe_mechanics
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          cd /build/ibamr
+          make -j2 tests
           ccache --show-stats
       - name: Test IBAMR
         id: test
@@ -412,10 +458,10 @@ jobs:
           bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
           ccache --show-stats
       - name: Compile IBAMR
-        id: build
+        id: build-library
         run: |
           cd /build/ibamr
-          make -j2 examples
+          make -j2
           ccache --show-stats
       - name: Install IBAMR
         id: install
