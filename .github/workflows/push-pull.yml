@@ -43,11 +43,14 @@ jobs:
       # be treated as an error (causing the build to fail before
       # testing and preventing merging).
       CTEST_NO_WARNINGS_ALLOWED: true
+      CMAKE_GENERATOR: Unix Makefiles
 
       # Delete old files in the cache (10G, the default limit, is GitHub's limit
       # for all cached artifacts)
       CCACHE_MAXSIZE: 250M
-      CMAKE_GENERATOR: Unix Makefiles
+      # For uniformity, always explicitly define the compilation cache instead
+      # of relying on how ccache interacts with XDG_CACHE_HOME
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -72,7 +75,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/ccache
+          path: ${{ env.CCACHE_DIR }}
           # A fundamental problem with the cache is that it is identified by a
           # single key and, should a cache with that key already exist, the
           # cache will not be updated. This makes sense for things like NPM but
@@ -156,11 +159,10 @@ jobs:
       # be treated as an error (causing the build to fail before
       # testing and preventing merging).
       CTEST_NO_WARNINGS_ALLOWED: true
-
-      # Delete old files in the cache (10G, the default limit, is GitHub's limit
-      # for all cached artifacts)
-      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
+
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -185,7 +187,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/ccache
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ runner.os }}-build-cmake-no-libmesh-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key1 }}
@@ -237,10 +239,10 @@ jobs:
     container:
       image: 'docker://wellsd2/ibamr:ibamr-0.14-bundled-deps'
     env:
-      # Delete old files in the cache (10G, the default limit, is GitHub's limit
-      # for all cached artifacts)
-      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
+
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -265,8 +267,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/ccache
-          # The same note on picking keys above applies here.
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ runner.os }}-build-autotools-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-autotools-${{ env.key1 }}
@@ -335,8 +336,10 @@ jobs:
     env:
       CMAKE_CONFIGURATION: centos7
       CTEST_NO_WARNINGS_ALLOWED: true
-      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
+
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -356,7 +359,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.ccache/
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ runner.os }}-build-centos-cmake-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-centos-cmake-${{ env.key1 }}
@@ -417,8 +420,10 @@ jobs:
     env:
       CMAKE_CONFIGURATION: archlinux
       CTEST_NO_WARNINGS_ALLOWED: true
-      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
+
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -443,7 +448,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/ccache
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ runner.os }}-build-archlinux-cmake-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-archlinux-cmake-${{ env.key1 }}
