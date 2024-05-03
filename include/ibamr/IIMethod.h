@@ -103,6 +103,7 @@ class IIMethod : public IBStrategy
 {
 public:
     static const std::string COORD_MAPPING_SYSTEM_NAME;
+    static const std::string NORMAL_SYSTEM_NAME;
     static const std::string COORDS_SYSTEM_NAME;
     static const std::string FORCE_SYSTEM_NAME;
     static const std::string NORMAL_VELOCITY_SYSTEM_NAME;
@@ -364,7 +365,11 @@ public:
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
         double data_time) override;
-
+    /*!
+     * Compute the nodal normal vector
+     */
+    void computeNodalNormalVec(double current_time, unsigned int part = 0);
+    
     /*!
      * Compute the fluid traction if all jump conditions are applied.
      */
@@ -622,6 +627,7 @@ protected:
     /*
      * FE data associated with this object.
      * d_X: coordinates system
+     * d_Normal: nodal outward normal system
      * d_F: IB force system
      * d_U: velocity system
      * d_U_n: normal velocity system
@@ -640,18 +646,19 @@ protected:
     std::vector<libMesh::EquationSystems*> d_equation_systems;
     std::vector<bool> d_use_discon_elem_for_jumps = { false };
     std::vector<bool> d_use_tangential_velocity = { false };
-    std::vector<bool> d_compute_fluid_traction = { false };
+    std::vector<bool> d_compute_fluid_traction = { true };
     std::vector<bool> d_use_direct_forcing = { false };
     std::vector<bool> d_normalize_pressure_jump = { false };
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
+    std::vector<libMesh::System*> d_X_systems, d_Normal_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
         d_WSS_in_systems, d_WSS_out_systems, d_P_in_systems, d_P_out_systems, d_TAU_in_systems, d_TAU_out_systems;
     std::vector<std::array<libMesh::System*, NDIM> > d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
         d_X_IB_ghost_vecs;
+    std::vector<libMesh::PetscVector<double>*> d_Normal_half_vecs, d_Normal_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
@@ -674,6 +681,7 @@ protected:
     IBTK::FEDataManager::WorkloadSpec d_default_workload_spec;
     std::vector<IBTK::FEDataManager::InterpSpec> d_interp_spec;
     std::vector<IBTK::FEDataManager::SpreadSpec> d_spread_spec;
+    bool d_use_u_interp_nodal_quadrature = false;
     bool d_use_pressure_jump_conditions = false;
     bool d_use_velocity_jump_conditions = false;
     bool d_perturb_fe_mesh_nodes = true;

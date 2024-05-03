@@ -171,8 +171,8 @@ main(int argc, char* argv[])
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
 
-    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-10");
-    PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-10");
+    PetscOptionsSetValue(nullptr, "-ksp_rtol", "1e-8");
+    PetscOptionsSetValue(nullptr, "-stokes_ksp_atol", "1e-8");
 
     { // cleanup dynamically allocated objects prior to shutdown
 
@@ -275,7 +275,7 @@ main(int argc, char* argv[])
         compute_fluid_traction = input_db->getBoolWithDefault("COMPUTE_FLUID_TRACTION", false);
 
         Mesh& mesh = boundary_mesh;
-
+       
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
@@ -337,7 +337,7 @@ main(int argc, char* argv[])
         equation_systems = ibfe_ops->getFEDataManager()->getEquationSystems();
         IIMethod::LagSurfaceForceFcnData surface_fcn_data(tether_force_function, sys_data, tether_data_ptr);
         ibfe_ops->registerLagSurfaceForceFunction(surface_fcn_data);
-        if (compute_fluid_traction)   ibfe_ops->registerTractionCalc(0);
+        ibfe_ops->registerTractionCalc();
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
@@ -393,11 +393,9 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
         std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
-
         // Initialize hierarchy configuration and data on all patches.
         ibfe_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
-
         // Deallocate initialization objects.
         app_initializer.setNull();
 
@@ -427,13 +425,13 @@ main(int argc, char* argv[])
         // velocity.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            drag_F_stream.open("C_F_D.curve", ios_base::out | ios_base::trunc);
-            lift_F_stream.open("C_F_L.curve", ios_base::out | ios_base::trunc);
-            drag_TAU_stream.open("C_T_D.curve", ios_base::out | ios_base::trunc);
-            lift_TAU_stream.open("C_T_L.curve", ios_base::out | ios_base::trunc);
-            U_L1_norm_stream.open("U_L1.curve", ios_base::out | ios_base::trunc);
-            U_L2_norm_stream.open("U_L2.curve", ios_base::out | ios_base::trunc);
-            U_max_norm_stream.open("U_max.curve", ios_base::out | ios_base::trunc);
+            drag_F_stream.open("C_F_D_qp.curve", ios_base::out | ios_base::trunc);
+            lift_F_stream.open("C_F_L_qp.curve", ios_base::out | ios_base::trunc);
+            drag_TAU_stream.open("C_T_D_qp.curve", ios_base::out | ios_base::trunc);
+            lift_TAU_stream.open("C_T_L_qp.curve", ios_base::out | ios_base::trunc);
+            U_L1_norm_stream.open("U_L1_qp.curve", ios_base::out | ios_base::trunc);
+            U_L2_norm_stream.open("U_L2_qp.curve", ios_base::out | ios_base::trunc);
+            U_max_norm_stream.open("U_max_qp.curve", ios_base::out | ios_base::trunc);
 
             drag_F_stream.precision(10);
             lift_F_stream.precision(10);
@@ -498,14 +496,14 @@ main(int argc, char* argv[])
             }
             if (dump_postproc_data && (iteration_num % postproc_data_dump_interval == 0 || last_step))
             {
-                //~ postprocess_data(input_db,
-                                 //~ patch_hierarchy,
-                                 //~ navier_stokes_integrator,
-                                 //~ mesh,
-                                 //~ equation_systems,
-                                 //~ iteration_num,
-                                 //~ loop_time,
-                                 //~ postproc_data_dump_dirname);
+                postprocess_data(input_db,
+                                 patch_hierarchy,
+                                 navier_stokes_integrator,
+                                 mesh,
+                                 equation_systems,
+                                 iteration_num,
+                                 loop_time,
+                                 postproc_data_dump_dirname);
             }
         }
 
@@ -567,7 +565,6 @@ postprocess_data(Pointer<Database> input_db,
 
     NumericVector<double>& X_vec = x_system->get_vector("INITIAL_COORDINATES");
 
-    std::vector<std::vector<unsigned int> > WSS_o_dof_indices(NDIM);
     System* TAU_system;
     NumericVector<double>* TAU_ghost_vec = NULL;
     if (compute_fluid_traction)
