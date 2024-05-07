@@ -624,7 +624,7 @@ main(int argc, char* argv[])
                     for (Box<NDIM>::Iterator it(patch_box); it; it++)
                     {
                         CellIndex<NDIM> ci(it());
-                        (*v_data)(ci) = (*U_cc_data)(ci, 1) / U_ref;               // non_dimensional velocity
+                        (*v_data)(ci) = (*U_cc_data)(ci, 1) / U_ref; // non_dimensional velocity
                         const double phi = (*phi_data)(ci);
                         (*H_cloned_data)(ci) = IBTK::smooth_heaviside(phi, alpha); // This gives H=1 in the liquid.
                         (*H_cloned_data)(ci) = 1.0 - (*H_cloned_data)(ci);

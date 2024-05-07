@@ -20,6 +20,6 @@
 
 #define IBAMR_VERSION_GTE(major, minor, subminor)                                                                      \
     ((IBAMR_VERSION_MAJOR * 10000 + IBAMR_VERSION_MINOR * 100 + IBAMR_VERSION_SUBMINOR) >=                             \
-     (major)*10000 + (minor)*100 + (subminor))
+     (major) * 10000 + (minor) * 100 + (subminor))
 
 #endif // #ifndef included_IBAMR_ibamr_macros

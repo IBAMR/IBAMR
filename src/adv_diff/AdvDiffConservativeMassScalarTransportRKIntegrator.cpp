@@ -997,17 +997,18 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
                 E_data, R_new_data, R_cur_data, V_adv_data, R_half_data, patch_box, dt, dx);
 
             // subtract Error*Q*gamma from the convective operator.
+            Pointer<CellData<NDIM, double> > Q_new_data = patch->getPatchData(d_Q_cc_new_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
 
                 if (d_gamma_cc_var)
                 {
-                    Pointer<CellData<NDIM, double> > C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
-                    (*N_data)(ci) -= (*C_pre_data)(ci) * (*Q_pre_data)(ci) * (*E_data)(ci);
+                    Pointer<CellData<NDIM, double> > C_new_data = patch->getPatchData(d_gamma_cc_new_idx);
+                    (*N_data)(ci) -= (*C_new_data)(ci) * (*Q_new_data)(ci) * (*E_data)(ci);
                 }
                 else
-                    (*N_data)(ci) -= (*Q_pre_data)(ci) * (*E_data)(ci);
+                    (*N_data)(ci) -= (*Q_new_data)(ci) * (*E_data)(ci);
             }
         }
     }

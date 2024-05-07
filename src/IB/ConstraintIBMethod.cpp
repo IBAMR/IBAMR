@@ -1474,7 +1474,7 @@ ConstraintIBMethod::calculateVolumeElement()
                 vol_cc_scratch_idx_data->fill(0, patch_box, 0);
 
             } // all patches
-        }     // all structs
+        } // all structs
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     } // all levels
     IBTK_MPI::sumReduction(&d_structure_vol[0], d_no_structures);
@@ -1817,8 +1817,8 @@ ConstraintIBMethod::calculateCurrentLagrangianVelocity()
                     }
 
                 } // choose a struct
-            }     // all nodes on a level
-        }         // all structs
+            } // all nodes on a level
+        } // all structs
         d_l_data_U_current[ln]->restoreArrays();
         d_l_data_manager->getLData("X", ln)->restoreArrays();
     } // all levels
@@ -1926,8 +1926,8 @@ ConstraintIBMethod::correctVelocityOnLagrangianMesh()
                     }
 
                 } // choose a struct
-            }     // all nodes on a level
-        }         // all structs
+            } // all nodes on a level
+        } // all structs
         d_l_data_U_interp[ln]->restoreArrays();
         d_l_data_U_correction[ln]->restoreArrays();
         d_l_data_U_new[ln]->restoreArrays();

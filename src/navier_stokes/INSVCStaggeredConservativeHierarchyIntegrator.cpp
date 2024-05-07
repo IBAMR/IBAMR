@@ -1424,7 +1424,8 @@ INSVCStaggeredConservativeHierarchyIntegrator::setupSolverVectors(
     if (d_F_fcn)
     {
         const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
-        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time, initial_time, coarsest_ln, finest_ln);
+        d_F_fcn->setDataOnPatchHierarchy(
+            d_F_scratch_idx, d_F_var, d_hierarchy, half_time, initial_time, coarsest_ln, finest_ln);
         d_hier_sc_data_ops->add(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }

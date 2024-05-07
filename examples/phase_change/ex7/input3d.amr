@@ -13,8 +13,10 @@ KAPPA_G = 0.5*KAPPA_L
 CP_G    = 0.5*CP_L
 MU_G    = 0.5*MU_L
 
-OUTPUT_FILE_NAME = "normalized_rise_velocity_amr_3d"
-FILE_NAME = "bubble_volume_amr_3d"
+FIX_MASS_LOSS = FALSE
+
+OUTPUT_FILE_NAME = "normalized_rise_velocity_amr_caseb1_3d"
+FILE_NAME = "bubble_volume_amr_caseb1_3d"
 
 MELT_TEMPERATURE = 265.0
 NUMBER_OF_INTERFACE_CELLS  = 2.0
@@ -46,9 +48,9 @@ MAX_LEVELS = 2        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-Nx = 16
-Ny = 16                               // coarsest grid spacing
-Nz = 16
+Nx = 64
+Ny = 64                               // coarsest grid spacing
+Nz = 64
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
 
@@ -352,7 +354,7 @@ NORMALIZE_PRESSURE   = TRUE
 VORTICITY_TAGGING    = FALSE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL  = 0.2
-DT_MAX               = 1e-4
+DT_MAX               = 1e-5
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -593,13 +595,13 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "thermocapillary_advection_amr_3d.log"
+   log_file_name               = "thermocapillary_advection_amr_caseb1_3d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 100
-   viz_dump_dirname            = "viz_thermocapillary_advection_amr_3d"
+   viz_dump_dirname            = "viz_thermocapillary_advection_amr_caseb1_3d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
@@ -620,13 +622,13 @@ CartesianGeometry {
 GriddingAlgorithm {
    max_levels = MAX_LEVELS           // Maximum number of levels in hierarchy.
    ratio_to_coarser {
-      level_1 = REF_RATIO,REF_RATIO  // vector ratio to next coarser level
-      level_2 = REF_RATIO,REF_RATIO
-      level_3 = REF_RATIO,REF_RATIO
-      level_4 = REF_RATIO,REF_RATIO
-      level_5 = REF_RATIO,REF_RATIO
-      level_6 = REF_RATIO,REF_RATIO
-      level_7 = REF_RATIO,REF_RATIO
+      level_1 = REF_RATIO,REF_RATIO,REF_RATIO  // vector ratio to next coarser level
+      level_2 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_3 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_4 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_5 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_6 = REF_RATIO,REF_RATIO,REF_RATIO
+      level_7 = REF_RATIO,REF_RATIO,REF_RATIO
    }
 
    largest_patch_size {
@@ -635,7 +637,7 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 =  4, 4, 4 // smallest patch allowed in hierarchy
+      level_0 =  16, 16, 16 // smallest patch allowed in hierarchy
                             // all finer levels will use same values as level_0...
    }
 

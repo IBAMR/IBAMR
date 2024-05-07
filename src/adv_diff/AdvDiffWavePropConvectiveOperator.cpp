@@ -259,7 +259,7 @@ AdvDiffWavePropConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
 
 #endif
         } // end Patch loop
-    }     // end Level loop
+    } // end Level loop
 } // end applyConvectiveOperator
 
 void

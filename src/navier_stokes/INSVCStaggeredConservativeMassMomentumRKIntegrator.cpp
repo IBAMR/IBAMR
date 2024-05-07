@@ -1428,7 +1428,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                                  dt,
                                  dx);
 
-            Pointer<SideData<NDIM, double> > V_cur_data = patch->getPatchData(d_V_current_idx);
+            Pointer<SideData<NDIM, double> > V_new_data = patch->getPatchData(d_V_new_idx);
             computeErrorOfMassConservationEquation(
                 E_data, R_new_data, R_cur_data, V_adv_data, R_half_data, side_boxes, dt, dx);
 
@@ -1439,7 +1439,7 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::integrate(double dt)
                 {
                     SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
-                    (*N_data)(si) -= (*V_cur_data)(si) * (*E_data)(si);
+                    (*N_data)(si) -= (*V_new_data)(si) * (*E_data)(si);
                 }
             }
         }

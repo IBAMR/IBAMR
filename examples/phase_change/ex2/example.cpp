@@ -507,6 +507,16 @@ main(int argc, char* argv[])
         const int H_idx = var_db->mapVariableAndContextToIndex(H_var, adv_diff_integrator->getCurrentContext());
         const int lf_idx = var_db->mapVariableAndContextToIndex(lf_var, adv_diff_integrator->getCurrentContext());
         const int total_enthalpy_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
+        const int x_mom_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
+        const int y_mom_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
+
+        // Interpolating side-centered velocity to cell-centered
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > U_sc_var =
+            time_integrator->getVelocityVariable();
+        const int U_sc_idx = var_db->mapVariableAndContextToIndex(U_sc_var, time_integrator->getCurrentContext());
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > U_cc_var;
+        U_cc_var = new CellVariable<NDIM, double>("U_cc", NDIM);
+        int U_cc_idx = var_db->registerVariableAndContext(U_cc_var, var_db->getContext("U_cc"), 0);
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -516,6 +526,18 @@ main(int argc, char* argv[])
             if (!level->checkAllocated(total_enthalpy_idx))
             {
                 patch_hierarchy->getPatchLevel(ln)->allocatePatchData(total_enthalpy_idx, loop_time);
+            }
+            if (!level->checkAllocated(U_cc_idx))
+            {
+                patch_hierarchy->getPatchLevel(ln)->allocatePatchData(U_cc_idx, loop_time);
+            }
+            if (!level->checkAllocated(x_mom_idx))
+            {
+                patch_hierarchy->getPatchLevel(ln)->allocatePatchData(x_mom_idx, loop_time);
+            }
+            if (!level->checkAllocated(y_mom_idx))
+            {
+                patch_hierarchy->getPatchLevel(ln)->allocatePatchData(y_mom_idx, loop_time);
             }
         }
         Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
@@ -580,16 +602,62 @@ main(int argc, char* argv[])
                 {
                     patch_hierarchy->getPatchLevel(ln)->allocatePatchData(total_enthalpy_idx, loop_time);
                 }
+                if (!level->checkAllocated(U_cc_idx))
+                {
+                    patch_hierarchy->getPatchLevel(ln)->allocatePatchData(U_cc_idx, loop_time);
+                }
+                if (!level->checkAllocated(x_mom_idx))
+                {
+                    patch_hierarchy->getPatchLevel(ln)->allocatePatchData(x_mom_idx, loop_time);
+                }
+                if (!level->checkAllocated(y_mom_idx))
+                {
+                    patch_hierarchy->getPatchLevel(ln)->allocatePatchData(y_mom_idx, loop_time);
+                }
+            }
+
+            hier_math_ops.interp(U_cc_idx, U_cc_var, U_sc_idx, U_sc_var, nullptr, loop_time, true);
+
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    const Box<NDIM>& patch_box = patch->getBox();
+                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    const double* patch_dx = patch_geom->getDx();
+                    double vol_cell = 1.0;
+                    for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+                    const double num_interface_cells = sync_ls_ctx.num_interface_cells;
+                    const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+
+                    Pointer<CellData<NDIM, double> > U_cc_data = patch->getPatchData(U_cc_idx);
+                    Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
+                    Pointer<CellData<NDIM, double> > x_mom_data = patch->getPatchData(x_mom_idx);
+                    Pointer<CellData<NDIM, double> > y_mom_data = patch->getPatchData(y_mom_idx);
+                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                    {
+                        CellIndex<NDIM> ci(it());
+
+                        (*x_mom_data)(ci) = (*rho_data)(ci) * (*U_cc_data)(ci, 0);
+                        (*y_mom_data)(ci) = (*rho_data)(ci) * (*U_cc_data)(ci, 1);
+                    }
+                }
             }
 
             hier_cc_data_ops->multiply(total_enthalpy_idx, rho_idx, h_idx);
             const double total_enthalpy = hier_cc_data_ops->integral(total_enthalpy_idx, wgt_cc_idx);
+            const double mass = hier_cc_data_ops->integral(rho_idx, wgt_cc_idx);
+            const double x_mom = hier_cc_data_ops->integral(x_mom_idx, wgt_cc_idx);
+            const double y_mom = hier_cc_data_ops->integral(y_mom_idx, wgt_cc_idx);
             if (SAMRAI_MPI::getRank() == 0)
             {
                 vol_stream.precision(16);
                 vol_stream.setf(ios::fixed, ios::floatfield);
                 vol_stream << loop_time << "\t" << H_integrals[0] << "\t" << H_integrals[1] << "\t"
-                           << level_set_fixer.getLagrangeMultiplier() << "\t" << total_enthalpy << std::endl;
+                           << level_set_fixer.getLagrangeMultiplier() << "\t" << mass << "\t" << x_mom << "\t" << y_mom
+                           << "\t" << total_enthalpy << std::endl;
             }
 
             // At specified intervals, write visualization and restart files,
@@ -618,9 +686,15 @@ main(int argc, char* argv[])
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(total_enthalpy_idx);
+            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(U_cc_idx);
+            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(x_mom_idx);
+            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(y_mom_idx);
         }
 
         var_db->removePatchDataIndex(total_enthalpy_idx);
+        var_db->removePatchDataIndex(U_cc_idx);
+        var_db->removePatchDataIndex(x_mom_idx);
+        var_db->removePatchDataIndex(y_mom_idx);
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).

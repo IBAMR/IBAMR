@@ -220,6 +220,6 @@ private:
      * Dynamic viscosity.
      */
     double d_mu_liquid, d_mu_gas;
-};     // SetFluidProperties
+}; // SetFluidProperties
 
 #endif // #ifndef included_SetFluidProperties

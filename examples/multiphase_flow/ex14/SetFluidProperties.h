@@ -155,6 +155,6 @@ private:
      */
     double d_num_interface_cells;
 
-};     // SetFluidProperties
+}; // SetFluidProperties
 
 #endif // #ifndef included_SetFluidProperties

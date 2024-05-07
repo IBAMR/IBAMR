@@ -317,6 +317,7 @@ LaserBeamForceFunction::setDataOnPatch(const int data_idx,
 
         const double multiplier =
             2.0 * (*rho_data)(ci) * (*cp_data)(ci) / (d_rho_liquid * d_cp_liquid + d_rho_gas * d_cp_gas);
+        // const double multiplier = 1.0;
 
         (*f_cc_data)(ci) = grad_H_mag * multiplier;
     }

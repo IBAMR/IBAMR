@@ -225,12 +225,12 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                                     evaluateForces(mstr_petsc_idx, search_petsc_idx, X_data, cell_offset, F_data);
                                 }
                             } // search node index
-                        }     // mstr node index
-                    }         // if(search node set)
-                }             // search cell loop
-            }                 // if mastr_node_idx
-        }                     // first cell
-    }                         // patches
+                        } // mstr node index
+                    } // if(search node set)
+                } // search cell loop
+            } // if mastr_node_idx
+        } // first cell
+    } // patches
     return;
 } // computeLagrangianForce
 

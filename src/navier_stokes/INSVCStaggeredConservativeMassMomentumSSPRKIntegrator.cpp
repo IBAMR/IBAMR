@@ -436,7 +436,7 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
                                      dt,
                                      dx);
 
-                Pointer<SideData<NDIM, double> > V_cur_data = patch->getPatchData(d_V_current_idx);
+                Pointer<SideData<NDIM, double> > V_new_data = patch->getPatchData(d_V_new_idx);
                 if ((d_density_time_stepping_type == SSPRK2 && step == 1) ||
                     (d_density_time_stepping_type == SSPRK3 && step == 2))
                 {
@@ -450,7 +450,7 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
                         {
                             SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
-                            (*N_data)(si) -= (*V_cur_data)(si) * (*E_data)(si);
+                            (*N_data)(si) -= (*V_new_data)(si) * (*E_data)(si);
                         }
                     }
                 }

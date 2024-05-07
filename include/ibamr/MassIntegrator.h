@@ -298,4 +298,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_MassIntegrator
+#endif // #ifndef included_IBAMR_MassIntegrator

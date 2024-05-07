@@ -174,10 +174,10 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                         double wall_distance = lposition[particle_petsc_idx * NDIM + axis] - wall.getLocation();
                         force[particle_petsc_idx * NDIM + axis] += wall.applyForce(wall_distance, eval_time);
                     } // iterate through nodes
-                }     // if search_node_set
-            }         // iterate through cells in wall area
-        }             // iterate through patches
-    }                 // iterate through walls
+                } // if search_node_set
+            } // iterate through cells in wall area
+        } // iterate through patches
+    } // iterate through walls
     VecRestoreArray(F_data->getVec(), &force);
     return;
 } // computeLagrangianForce

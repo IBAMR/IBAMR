@@ -13,12 +13,14 @@ KAPPA_G = 0.5*KAPPA_L
 CP_G    = 0.5*CP_L
 MU_G    = 0.5*MU_L
 
-OUTPUT_FILE_NAME = "normalized_rise_velocity_amr_2d"
-FILE_NAME = "bubble_volume_amr_2d"
+FIX_MASS_LOSS = FALSE
+
+OUTPUT_FILE_NAME = "normalized_rise_velocity_amr_casec0_2d"
+FILE_NAME = "bubble_volume_amr_casec0_2d"
 
 MELT_TEMPERATURE = 265.0
 NUMBER_OF_INTERFACE_CELLS  = 2.0
-GAS_LIQUID_FRACTION = 1.0
+GAS_LIQUID_FRACTION = 0.0
 
 LIQUIDUS_TEMPERATURE = 270.0
 SOLIDUS_TEMPERATURE = 260.0
@@ -264,7 +266,7 @@ NORMALIZE_PRESSURE   = TRUE
 VORTICITY_TAGGING    = FALSE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL  = 0.2
-DT_MAX               = 1e-4
+DT_MAX               = 2.5e-5
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -505,13 +507,13 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "thermocapillary_advection_amr_2d.log"
+   log_file_name               = "thermocapillary_advection_amr_casec0_2d.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
    viz_dump_interval           = 100
-   viz_dump_dirname            = "viz_thermocapillary_advection_amr_2d"
+   viz_dump_dirname            = "viz_thermocapillary_advection_amr_casec0_2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters

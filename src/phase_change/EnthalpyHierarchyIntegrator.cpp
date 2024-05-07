@@ -847,13 +847,13 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
                         (*h_data)(ci) = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
                     }
                 }
-                 else
-                 {
-                     (*h_data)(ci) = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
-                 }
-                 // const double h_liquid = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
-                 // const double h_gas = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
-                 // (*h_data)(ci) = h_liquid * (*H_data)(ci) + (1.0 - (*H_data)(ci)) * h_gas;
+                else
+                {
+                    (*h_data)(ci) = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
+                }
+                // const double h_liquid = d_Cp_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
+                // const double h_gas = d_Cp_gas * ((*T_data)(ci)-d_reference_temperature);
+                // (*h_data)(ci) = h_liquid * (*H_data)(ci) + (1.0 - (*H_data)(ci)) * h_gas;
             }
         }
     }
@@ -1025,6 +1025,10 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
                             ((d_rho_liquid - d_rho_solid) * (*h_data)(ci)-d_rho_liquid * h_l + d_rho_solid * h_s);
                     }
                 }
+	/*	else if ((*H_data)(ci) > 0 && (*H_data)(ci) < H_LIM)
+		{
+			(*lf_data)(ci) = 1.0;
+		}*/
                 else
                 {
                     (*lf_data)(ci) = d_gas_liquid_fraction;

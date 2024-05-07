@@ -429,7 +429,7 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
                 break;
             }
         } // end Patch loop
-    }     // end Level loop
+    } // end Level loop
 } // applyConvectiveOperator
 
 void
