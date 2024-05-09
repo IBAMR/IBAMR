@@ -1375,15 +1375,14 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
         }
 
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
-        if (d_Omega_Norm_idx != IBTK::invalid_index)
-            d_hier_math_ops->pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
         const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-        if (NDIM == 2)
+        if (d_Omega_Norm_idx == IBTK::invalid_index)
         {
             d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_idx, wgt_cc_idx);
         }
         else
         {
+            d_hier_math_ops->pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
             d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_idx, wgt_cc_idx);
         }
     }
@@ -1928,15 +1927,14 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
 
             HierarchyMathOps hier_math_ops(d_object_name + "::HierarchyLevelMathOps", d_hierarchy, 0, level_number);
             hier_math_ops.curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
-            if (d_Omega_Norm_idx != IBTK::invalid_index)
-                hier_math_ops.pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-            if (NDIM == 2)
+            if (d_Omega_Norm_idx == IBTK::invalid_index)
             {
                 d_Omega_max = hier_cc_data_ops->maxNorm(d_Omega_idx, wgt_cc_idx);
             }
             else
             {
+                hier_math_ops.pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
                 d_Omega_max = hier_cc_data_ops->max(d_Omega_Norm_idx, wgt_cc_idx);
             }
 
