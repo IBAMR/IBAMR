@@ -130,6 +130,7 @@ HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Databa
     d_current_context = var_db->getContext(d_object_name + "::CURRENT");
     d_new_context = var_db->getContext(d_object_name + "::NEW");
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
+    d_plot_context = var_db->getContext(d_object_name + "::PLOT");
 
     // Create default communications algorithms.
     d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
