@@ -29,7 +29,9 @@
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include "ibtk/IndexUtilities.h"
 #include <ibtk/AppInitializer.h>
@@ -42,8 +44,6 @@
 
 // Application
 #include "LSLocateCircularInterface.h"
-#include "SetFluidProperties.h"
-#include "SetLSProperties.h"
 #include "VelocityInitialCondition.h"
 
 /*******************************************************************************
@@ -172,13 +172,14 @@ main(int argc, char* argv[])
 
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateCircularInterface* ptr_LSLocateCircularInterface =
-            new LSLocateCircularInterface("LSLocateCircularInterface", adv_diff_integrator, phi_var, &circle);
+        LSLocateCircularInterface setLSLocateCircularInterface(
+            "LSLocateCircularInterface", adv_diff_integrator, phi_var, &circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
-                                                                static_cast<void*>(ptr_LSLocateCircularInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", NULL, level_set_ops);
+                                                                static_cast<void*>(&setLSLocateCircularInterface));
+
+        IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            phi_var, &callSetGasLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            phi_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // LS initial conditions
         if (input_db->keyExists("LevelSetInitialConditions"))
@@ -209,26 +210,24 @@ main(int argc, char* argv[])
         const double rho_outside = input_db->getDouble("RHO_O");
         const double mu_inside = input_db->getDouble("MU_I");
         const double mu_outside = input_db->getDouble("MU_O");
-        const int ls_reinit_interval = input_db->getInteger("LS_REINIT_INTERVAL");
         const double num_interface_cells = input_db->getDouble("NUM_INTERFACE_CELLS");
         std::vector<double> inside_velocity(NDIM), outside_velocity(NDIM);
         input_db->getDoubleArray("INSIDE_VELOCITY", &inside_velocity[0], NDIM);
         input_db->getDoubleArray("OUTSIDE_VELOCITY", &outside_velocity[0], NDIM);
 
         // Callback functions can either be registered with the NS integrator, or the advection-diffusion integrator
-        SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
-                                                                            adv_diff_integrator,
-                                                                            phi_var,
-                                                                            rho_outside,
-                                                                            rho_inside,
-                                                                            mu_outside,
-                                                                            mu_inside,
-                                                                            ls_reinit_interval,
-                                                                            num_interface_cells);
-        time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
-                                                        static_cast<void*>(ptr_SetFluidProperties));
+        IBAMR::VCINSUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
+                                                                        adv_diff_integrator,
+                                                                        phi_var,
+                                                                        rho_outside,
+                                                                        rho_inside,
+                                                                        mu_outside,
+                                                                        mu_inside,
+                                                                        num_interface_cells);
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
+                                                      static_cast<void*>(&setSetFluidProperties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VCINSUtilities::callSetViscosityCallbackFunction,
+                                                        static_cast<void*>(&setSetFluidProperties));
 
         // Create Eulerian initial condition specification objects.
         Pointer<CartGridFunction> u_init =
@@ -455,11 +454,6 @@ main(int argc, char* argv[])
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-
-        // Cleanup other dumb pointers
-        delete ptr_SetLSProperties;
-        delete ptr_SetFluidProperties;
-        delete ptr_LSLocateCircularInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

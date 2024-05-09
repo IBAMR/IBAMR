@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp LSLocateLayerInterface.cpp SetLSProperties.cpp GravityForcing.cpp
+EXAMPLE_DRIVER = example.cpp LSLocateLayerInterface.cpp
 EXTRA_DIST     = input2d.stationary input2d.filling
 
 EXAMPLES =

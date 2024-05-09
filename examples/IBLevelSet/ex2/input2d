@@ -7,8 +7,6 @@ RHO_G      = 1.2
 G          = 9.81
 GRAV_CONST = 0.0,-G
 GCW        = 4
-GRAV_TYPE  = "FLOW"
-
 
 // Optional flag to set viscosity in the solid region
 SET_MU_S = TRUE
@@ -57,7 +55,6 @@ LS_ORDER              = "THIRD_ORDER_ENO"
 LS_ABS_TOL            = 1.0e-6
 LS_REINIT_INTERVAL    = 1
 MAX_ITERATIONS        = 50
-LS_TAG_VALUE          = 0.0
 LS_TAG_ABS_THRESH     = 2*H_COARSEST
 APPLY_SIGN_FIX        = TRUE
 APPLY_SUBCELL_FIX     = TRUE

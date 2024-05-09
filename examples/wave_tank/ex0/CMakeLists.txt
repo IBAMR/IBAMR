@@ -21,8 +21,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-wave_tank
   SOURCES
-    GravityForcing.cpp LSLocateColumnInterface.cpp SetFluidProperties.cpp
-    SetLSProperties.cpp TagLSRefinementCells.cpp example.cpp
+    LSLocateColumnInterface.cpp example.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
@@ -43,8 +42,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-wave_tank
   SOURCES
-    GravityForcing.cpp LSLocateColumnInterface.cpp SetFluidProperties.cpp
-    SetLSProperties.cpp TagLSRefinementCells.cpp example.cpp
+    LSLocateColumnInterface.cpp example.cpp
   LINK_TARGETS
     IBAMR3d
   INPUT_FILES

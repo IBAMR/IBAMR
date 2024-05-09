@@ -33,7 +33,7 @@ APPLY_SUBCELL_FIX  = TRUE
 APPLY_MASS_CONSTRAINT = FALSE
 
 // In this case it will tag less than thresh
-LS_TAG_THRESH = 2.0*L/N
+LS_TAG_ABS_THRESH = 2.0*L/N
 
 // Level set initial conditions
 LevelSetInitialConditions {

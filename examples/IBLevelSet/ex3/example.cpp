@@ -41,6 +41,7 @@
 #include <ibamr/IBFEMethod.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -56,7 +57,6 @@
 #include "LevelSetInitialCondition.h"
 #include "SetFluidSolidDensity.h"
 #include "SetFluidSolidViscosity.h"
-#include "TagLSRefinementCells.h"
 
 // Struct to maintain the properties of the circular interface
 struct CircularInterface
@@ -423,21 +423,22 @@ main(int argc, char* argv[])
 
         // Array for input into callback function
         const double rho_fluid = input_db->getDouble("RHO_F");
-        SetFluidSolidDensity* ptr_setFluidSolidDensity = new SetFluidSolidDensity("SetFluidSolidDensity", rho_fluid);
+        SetFluidSolidDensity setsetFluidSolidDensity("SetFluidSolidDensity", rho_fluid);
         navier_stokes_integrator->registerResetFluidDensityFcn(&callSetFluidSolidDensityCallbackFunction,
-                                                               static_cast<void*>(ptr_setFluidSolidDensity));
+                                                               static_cast<void*>(&setsetFluidSolidDensity));
 
         const double mu_fluid = input_db->getDouble("MU_F");
-        SetFluidSolidViscosity* ptr_setFluidSolidViscosity =
-            new SetFluidSolidViscosity("SetFluidSolidViscosity", mu_fluid);
+        SetFluidSolidViscosity setsetFluidSolidViscosity("SetFluidSolidViscosity", mu_fluid);
         navier_stokes_integrator->registerResetFluidViscosityFcn(&callSetFluidSolidViscosityCallbackFunction,
-                                                                 static_cast<void*>(ptr_setFluidSolidViscosity));
+                                                                 static_cast<void*>(&setsetFluidSolidViscosity));
 
         // Register callback function for tagging refined cells for level set data
-        const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
-        TagLSRefinementCells ls_tagger(adv_diff_integrator, phi_var_solid, tag_value, tag_thresh);
-        time_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
+        const double tag_min_value = -tag_thresh;
+        const double tag_max_value = tag_thresh;
+        IBAMR::LevelSetUtilities::TagLSRefinementCells ls_tagger(
+            adv_diff_integrator, phi_var_solid, tag_min_value, tag_max_value);
+        time_integrator->registerApplyGradientDetectorCallback(&IBAMR::LevelSetUtilities::tagLSCells,
                                                                static_cast<void*>(&ls_tagger));
 
         // Create Eulerian initial condition specification objects.
@@ -653,8 +654,6 @@ main(int argc, char* argv[])
 
         // Delete dumb pointers.
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete ptr_setFluidSolidDensity;
-        delete ptr_setFluidSolidViscosity;
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;

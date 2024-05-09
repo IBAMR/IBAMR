@@ -22,14 +22,8 @@ IBAMR_ADD_EXAMPLE(
     examples-IBLevelSet
   SOURCES
     example.cpp
-    FlowGravityForcing.cpp
-    GravityForcing.cpp
     LSLocateGasInterface.cpp
     LevelSetInitialCondition.cpp
-    SetFluidGasSolidDensity.cpp
-    SetFluidGasSolidViscosity.cpp
-    SetLSProperties.cpp
-    TagLSRefinementCells.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES

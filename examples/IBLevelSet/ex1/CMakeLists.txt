@@ -22,9 +22,6 @@ IBAMR_ADD_EXAMPLE(
     examples-IBLevelSet
   SOURCES
     example.cpp
-    SetFluidSolidDensity.cpp
-    SetFluidSolidViscosity.cpp
-    TagLSRefinementCells.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES

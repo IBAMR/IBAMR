@@ -126,7 +126,7 @@ am__EXEEXT_2 = $(am__EXEEXT_1)
 am__objects_1 = main2d-LevelSetInitialCondition.$(OBJEXT) \
 	main2d-SetFluidSolidDensity.$(OBJEXT) \
 	main2d-SetFluidSolidViscosity.$(OBJEXT) \
-	main2d-TagLSRefinementCells.$(OBJEXT) main2d-example.$(OBJEXT)
+	main2d-example.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -155,7 +155,6 @@ am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po \
 	./$(DEPDIR)/main2d-SetFluidSolidDensity.Po \
 	./$(DEPDIR)/main2d-SetFluidSolidViscosity.Po \
-	./$(DEPDIR)/main2d-TagLSRefinementCells.Po \
 	./$(DEPDIR)/main2d-example.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -482,7 +481,7 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = LevelSetInitialCondition.cpp SetFluidSolidDensity.cpp SetFluidSolidViscosity.cpp TagLSRefinementCells.cpp example.cpp LevelSetInitialCondition.h SetFluidSolidDensity.h  SetFluidSolidViscosity.h TagLSRefinementCells.h
+EXAMPLE_DRIVER = LevelSetInitialCondition.cpp SetFluidSolidDensity.cpp SetFluidSolidViscosity.cpp example.cpp LevelSetInitialCondition.h SetFluidSolidDensity.h  SetFluidSolidViscosity.h
 EXTRA_DIST = input2d 
 EXAMPLES = $(am__append_1)
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
@@ -536,7 +535,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LevelSetInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidSolidDensity.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-SetFluidSolidViscosity.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-TagLSRefinementCells.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -610,20 +608,6 @@ main2d-SetFluidSolidViscosity.obj: SetFluidSolidViscosity.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='SetFluidSolidViscosity.cpp' object='main2d-SetFluidSolidViscosity.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-SetFluidSolidViscosity.obj `if test -f 'SetFluidSolidViscosity.cpp'; then $(CYGPATH_W) 'SetFluidSolidViscosity.cpp'; else $(CYGPATH_W) '$(srcdir)/SetFluidSolidViscosity.cpp'; fi`
-
-main2d-TagLSRefinementCells.o: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagLSRefinementCells.o -MD -MP -MF $(DEPDIR)/main2d-TagLSRefinementCells.Tpo -c -o main2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagLSRefinementCells.Tpo $(DEPDIR)/main2d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main2d-TagLSRefinementCells.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagLSRefinementCells.o `test -f 'TagLSRefinementCells.cpp' || echo '$(srcdir)/'`TagLSRefinementCells.cpp
-
-main2d-TagLSRefinementCells.obj: TagLSRefinementCells.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-TagLSRefinementCells.obj -MD -MP -MF $(DEPDIR)/main2d-TagLSRefinementCells.Tpo -c -o main2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-TagLSRefinementCells.Tpo $(DEPDIR)/main2d-TagLSRefinementCells.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='TagLSRefinementCells.cpp' object='main2d-TagLSRefinementCells.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-TagLSRefinementCells.obj `if test -f 'TagLSRefinementCells.cpp'; then $(CYGPATH_W) 'TagLSRefinementCells.cpp'; else $(CYGPATH_W) '$(srcdir)/TagLSRefinementCells.cpp'; fi`
 
 main2d-example.o: example.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-example.o -MD -MP -MF $(DEPDIR)/main2d-example.Tpo -c -o main2d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
@@ -773,7 +757,6 @@ distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -823,7 +806,6 @@ maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidSolidDensity.Po
 	-rm -f ./$(DEPDIR)/main2d-SetFluidSolidViscosity.Po
-	-rm -f ./$(DEPDIR)/main2d-TagLSRefinementCells.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
