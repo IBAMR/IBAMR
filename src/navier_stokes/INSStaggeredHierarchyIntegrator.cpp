@@ -932,7 +932,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     // Register scratch variables that are maintained by the
     // INSStaggeredHierarchyIntegrator.
     if (NDIM == 3)
-        registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
+        registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts, getScratchContext(), false);
     else
         d_Omega_Norm_idx = IBTK::invalid_index;
     registerVariable(d_U_regrid_idx, d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
