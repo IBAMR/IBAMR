@@ -1358,7 +1358,7 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
         synchronizeHierarchyData(NEW_DATA);
     }
 
-    // Compute max |Omega|_2.
+    // Compute Omega.
     if (d_using_vorticity_tagging)
     {
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
@@ -1370,7 +1370,6 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
         }
 
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
-        d_Omega_max = getMaximumVorticityMagnitude(d_Omega_idx);
     }
 
     // Deallocate scratch data.
@@ -1870,11 +1869,9 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
     // Initialize level data at the initial time.
     if (initial_time)
     {
-        // Initialize the maximum value of |Omega|_2 on the grid.
+        // Initialize Omega.
         if (d_using_vorticity_tagging)
         {
-            if (level_number == 0) d_Omega_max = 0.0;
-
             // Allocate scratch data.
             for (int ln = 0; ln <= level_number; ++ln)
             {
@@ -1911,7 +1908,6 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
 
             HierarchyMathOps hier_math_ops(d_object_name + "::HierarchyLevelMathOps", d_hierarchy, 0, level_number);
             hier_math_ops.curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
-            d_Omega_max = getMaximumVorticityMagnitude(d_Omega_idx);
 
             // Deallocate scratch data.
             for (int ln = 0; ln <= level_number; ++ln)

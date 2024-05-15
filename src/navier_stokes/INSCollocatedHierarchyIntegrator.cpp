@@ -1448,12 +1448,11 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
         synchronizeHierarchyData(NEW_DATA);
     }
 
-    // Compute max |Omega|_2.
+    // Compute Omega.
     if (d_using_vorticity_tagging)
     {
         d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
-        d_Omega_max = getMaximumVorticityMagnitude(d_Omega_idx);
     }
 
     // Deallocate scratch data.
@@ -1589,14 +1588,10 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
                              d_no_fill_op,
                              init_data_time);
 
-        // Initialize the maximum value of |Omega|_2 on the grid.
+        // Initialize Omega.
         if (d_using_vorticity_tagging)
         {
-            if (level_number == 0) d_Omega_max = 0.0;
-
-            // Compute max |Omega|_2.
             hier_math_ops.curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
-            d_Omega_max = getMaximumVorticityMagnitude(d_Omega_idx);
         }
 
         // Deallocate scratch data.

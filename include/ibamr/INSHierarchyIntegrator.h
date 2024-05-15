@@ -530,7 +530,6 @@ protected:
      */
     bool d_using_vorticity_tagging = false;
     SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
-    double d_Omega_max = 0.0;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have
