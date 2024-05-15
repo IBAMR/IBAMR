@@ -638,20 +638,33 @@ INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, con
         {
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_idx);
-            Pointer<CellData<NDIM, double> > Omega_data = patch->getPatchData(Omega_idx);
+            Pointer<CellData<NDIM, double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
+            Pointer<CellData<NDIM, int> > tag_data_ptr = patch->getPatchData(tag_idx);
+            TBOX_ASSERT(Omega_data_ptr);
+            TBOX_ASSERT(tag_data_ptr);
+            const CellData<NDIM, double>& Omega_data = *Omega_data_ptr;
+            CellData<NDIM, int>& tag_data = *tag_data_ptr;
             for (CellIterator<NDIM> ic(patch_box); ic; ic++)
             {
                 const hier::Index<NDIM>& i = ic();
-                double norm_Omega_sq = 0.0;
-                for (unsigned int d = 0; d < (NDIM == 2 ? 1 : NDIM); ++d)
+                double norm_Omega = 0.0;
+                if (NDIM == 2)
                 {
-                    norm_Omega_sq += (*Omega_data)(i, d) * (*Omega_data)(i, d);
+                    norm_Omega = std::abs(Omega_data(i));
                 }
-                const double norm_Omega = std::sqrt(norm_Omega_sq);
+                else
+                {
+                    double norm_Omega_sq = 0.0;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        const double o = Omega_data(i, d);
+                        norm_Omega_sq += o * o;
+                    }
+                    norm_Omega = std::sqrt(norm_Omega_sq);
+                }
                 if (norm_Omega > thresh)
                 {
-                    (*tags_data)(i) = 1;
+                    tag_data(i) = 1;
                 }
             }
         }
