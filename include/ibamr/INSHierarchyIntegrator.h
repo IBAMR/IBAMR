@@ -453,6 +453,13 @@ protected:
     double getMaximumVorticityMagnitude(const int Omega_idx);
 
     /*!
+     * Tag cells based on the vorticity magnitude.
+     *
+     * @note This function is typically called by applyGradientDetectorSpecialized() in inheriting classes.
+     */
+    void tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx);
+
+    /*!
      * Return the maximum stable time step size.
      */
     double getMaximumTimeStepSizeSpecialized() override;

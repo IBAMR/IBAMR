@@ -609,6 +609,56 @@ INSHierarchyIntegrator::getMaximumVorticityMagnitude(const int Omega_idx)
     return IBTK_MPI::maxReduction(max_vorticity_norm);
 }
 
+void
+INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx)
+{
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+
+    // Tag cells based on the magnitude of the vorticity.
+    //
+    // Note that if either the relative or absolute threshold is zero for a
+    // particular level, no tagging is performed on that level.
+    double Omega_rel_thresh = 0.0;
+    if (d_Omega_rel_thresh.size() > 0)
+    {
+        Omega_rel_thresh = d_Omega_rel_thresh[std::max(std::min(level_number, d_Omega_rel_thresh.size() - 1), 0)];
+    }
+    double Omega_abs_thresh = 0.0;
+    if (d_Omega_abs_thresh.size() > 0)
+    {
+        Omega_abs_thresh = d_Omega_abs_thresh[std::max(std::min(level_number, d_Omega_abs_thresh.size() - 1), 0)];
+    }
+    if (Omega_rel_thresh > 0.0 || Omega_abs_thresh > 0.0)
+    {
+        double thresh = std::numeric_limits<double>::max();
+        if (Omega_rel_thresh > 0.0) thresh = std::min(thresh, Omega_rel_thresh * d_Omega_max);
+        if (Omega_abs_thresh > 0.0) thresh = std::min(thresh, Omega_abs_thresh);
+        thresh += std::sqrt(std::numeric_limits<double>::epsilon());
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_idx);
+            Pointer<CellData<NDIM, double> > Omega_data = patch->getPatchData(Omega_idx);
+            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            {
+                const hier::Index<NDIM>& i = ic();
+                double norm_Omega_sq = 0.0;
+                for (unsigned int d = 0; d < (NDIM == 2 ? 1 : NDIM); ++d)
+                {
+                    norm_Omega_sq += (*Omega_data)(i, d) * (*Omega_data)(i, d);
+                }
+                const double norm_Omega = std::sqrt(norm_Omega_sq);
+                if (norm_Omega > thresh)
+                {
+                    (*tags_data)(i) = 1;
+                }
+            }
+        }
+    }
+    return;
+}
+
 double
 INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
