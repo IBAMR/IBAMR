@@ -446,6 +446,13 @@ protected:
     virtual void updateCurrentCFLNumber(const int data_idx, const double dt);
 
     /*!
+     * Compute the maximum vorticity magnitude at any given point.
+     *
+     * @note This function does not read ghost data from @p Omega_idx.
+     */
+    double getMaximumVorticityMagnitude(const int Omega_idx);
+
+    /*!
      * Return the maximum stable time step size.
      */
     double getMaximumTimeStepSizeSpecialized() override;

@@ -564,6 +564,52 @@ INSHierarchyIntegrator::updateCurrentCFLNumber(const int data_idx, const double 
 } // updateCurrentCFLNumber
 
 double
+INSHierarchyIntegrator::getMaximumVorticityMagnitude(const int Omega_idx)
+{
+    TBOX_ASSERT(d_hier_math_ops);
+    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    double max_vorticity_norm = 0.0;
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
+            Pointer<CellData<NDIM, double> > cc_wgt_data_ptr = patch->getPatchData(wgt_cc_idx);
+            TBOX_ASSERT(Omega_data_ptr);
+            TBOX_ASSERT(cc_wgt_data_ptr);
+            const CellData<NDIM, double>& Omega_data = *Omega_data_ptr;
+            const CellData<NDIM, double>& cc_wgt_data = *cc_wgt_data_ptr;
+            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            {
+                const hier::Index<NDIM>& i = ic();
+                if (cc_wgt_data(i) > 0.0)
+                {
+                    if (NDIM == 2)
+                    {
+                        max_vorticity_norm = std::max(max_vorticity_norm, std::abs(Omega_data(i)));
+                    }
+                    else
+                    {
+                        double norm_Omega_sq = 0.0;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            const double o = Omega_data(i, d);
+                            norm_Omega_sq += o * o;
+                        }
+                        max_vorticity_norm = std::max(max_vorticity_norm, std::sqrt(norm_Omega_sq));
+                    }
+                }
+            }
+        }
+    }
+
+    return IBTK_MPI::maxReduction(max_vorticity_norm);
+}
+
+double
 INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
