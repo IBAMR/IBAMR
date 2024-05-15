@@ -825,6 +825,14 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> 
     // Initialize level data at the initial time.
     if (initial_time)
     {
+        // Initialize or reset the hierarchy math operations object.
+        d_hier_math_ops = buildHierarchyMathOps(hierarchy);
+        if (d_manage_hier_math_ops)
+        {
+            d_hier_math_ops->setPatchHierarchy(hierarchy);
+            d_hier_math_ops->resetLevels(0, std::max(level_number, hierarchy->getFinestLevelNumber()));
+        }
+
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         for (const auto& var : d_state_variables)
         {

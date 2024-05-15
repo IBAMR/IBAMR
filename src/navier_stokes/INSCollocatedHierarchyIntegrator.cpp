@@ -423,9 +423,6 @@ INSCollocatedHierarchyIntegrator::INSCollocatedHierarchyIntegrator(std::string o
 #endif
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
     d_Div_u_ADV_var = new CellVariable<NDIM, double>(d_object_name + "::Div_u_ADV");
-#if (NDIM == 3)
-    d_Omega_Norm_var = new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
-#endif
     d_Grad_P_var = new CellVariable<NDIM, double>(d_object_name + "::Grad_P", NDIM);
     d_Phi_var = new CellVariable<NDIM, double>(d_object_name + "::Phi");
     d_Grad_Phi_cc_var = new CellVariable<NDIM, double>(d_object_name + "::Grad_Phi_cc", NDIM);
@@ -748,10 +745,6 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
 
     // Register scratch variables that are maintained by the
     // INSCollocatedHierarchyIntegrator.
-    if (NDIM == 3)
-        registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
-    else
-        d_Omega_Norm_idx = IBTK::invalid_index;
     registerVariable(d_Grad_P_idx, d_Grad_P_var, no_ghosts);
     registerVariable(d_Phi_idx, d_Phi_var, cell_ghosts);
     registerVariable(d_Grad_Phi_cc_idx, d_Grad_Phi_cc_var, no_ghosts);
@@ -1460,16 +1453,7 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
     {
         d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
-#if (NDIM == 3)
-        d_hier_math_ops->pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
-#endif
-        const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-#if (NDIM == 2)
-        d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_idx, wgt_cc_idx);
-#endif
-#if (NDIM == 3)
-        d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_idx, wgt_cc_idx);
-#endif
+        d_Omega_max = getMaximumVorticityMagnitude(d_Omega_idx);
     }
 
     // Deallocate scratch data.
@@ -1575,9 +1559,6 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
         for (int ln = 0; ln <= level_number; ++ln)
         {
             hierarchy->getPatchLevel(ln)->allocatePatchData(d_U_scratch_idx, init_data_time);
-#if (NDIM == 3)
-            hierarchy->getPatchLevel(ln)->allocatePatchData(d_Omega_Norm_idx, init_data_time);
-#endif
         }
 
         // Fill ghost cells.
@@ -1615,25 +1596,13 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
 
             // Compute max |Omega|_2.
             hier_math_ops.curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
-#if (NDIM == 3)
-            hier_math_ops.pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
-#endif
-            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-#if (NDIM == 2)
-            d_Omega_max = hier_cc_data_ops->maxNorm(d_Omega_idx, wgt_cc_idx);
-#endif
-#if (NDIM == 3)
-            d_Omega_max = hier_cc_data_ops->max(d_Omega_Norm_idx, wgt_cc_idx);
-#endif
+            d_Omega_max = getMaximumVorticityMagnitude(d_Omega_idx);
         }
 
         // Deallocate scratch data.
         for (int ln = 0; ln <= level_number; ++ln)
         {
             hierarchy->getPatchLevel(ln)->deallocatePatchData(d_U_scratch_idx);
-#if (NDIM == 3)
-            hierarchy->getPatchLevel(ln)->deallocatePatchData(d_Omega_Norm_idx);
-#endif
         }
     }
     return;

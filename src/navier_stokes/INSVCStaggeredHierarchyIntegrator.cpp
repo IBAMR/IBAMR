@@ -520,9 +520,6 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
 #endif
     d_Div_U_var = new CellVariable<NDIM, double>(d_object_name + "::Div_U");
 
-#if (NDIM == 3)
-    d_Omega_Norm_var = new CellVariable<NDIM, double>(d_object_name + "::|Omega|_2");
-#endif
     d_U_regrid_var = new SideVariable<NDIM, double>(d_object_name + "::U_regrid");
     d_U_src_var = new SideVariable<NDIM, double>(d_object_name + "::U_src");
     d_indicator_var = new SideVariable<NDIM, double>(d_object_name + "::indicator");
@@ -932,11 +929,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
     registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext());
     registerVariable(d_Div_U_idx, d_Div_U_var, cell_ghosts, getCurrentContext());
 
-// Register scratch variables that are maintained by the
-// INSVCStaggeredHierarchyIntegrator.
-#if (NDIM == 3)
-    registerVariable(d_Omega_Norm_idx, d_Omega_Norm_var, no_ghosts);
-#endif
+    // Register scratch variables that are maintained by the
+    // INSVCStaggeredHierarchyIntegrator.
     registerVariable(d_U_regrid_idx, d_U_regrid_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_U_src_idx, d_U_src_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
     registerVariable(d_indicator_idx, d_indicator_var, CartSideDoubleDivPreservingRefine::REFINE_OP_STENCIL_WIDTH);
@@ -1241,16 +1235,7 @@ INSVCStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double cu
     {
         d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
-#if (NDIM == 3)
-        d_hier_math_ops->pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
-#endif
-        const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-#if (NDIM == 2)
-        d_Omega_max = d_hier_cc_data_ops->maxNorm(d_Omega_idx, wgt_cc_idx);
-#endif
-#if (NDIM == 3)
-        d_Omega_max = d_hier_cc_data_ops->max(d_Omega_Norm_idx, wgt_cc_idx);
-#endif
+        d_Omega_max = getMaximumVorticityMagnitude(d_Omega_idx);
     }
 
     // Deallocate scratch data.
@@ -1659,9 +1644,6 @@ INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             for (int ln = 0; ln <= level_number; ++ln)
             {
                 hierarchy->getPatchLevel(ln)->allocatePatchData(d_U_scratch_idx, init_data_time);
-#if (NDIM == 3)
-                hierarchy->getPatchLevel(ln)->allocatePatchData(d_Omega_Norm_idx, init_data_time);
-#endif
             }
 
             // Fill ghost cells.
@@ -1688,24 +1670,12 @@ INSVCStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(
             // Compute max |Omega|_2.
             HierarchyMathOps hier_math_ops(d_object_name + "::HierarchyLevelMathOps", d_hierarchy, 0, level_number);
             hier_math_ops.curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
-#if (NDIM == 3)
-            hier_math_ops.pointwiseL2Norm(d_Omega_Norm_idx, d_Omega_Norm_var, d_Omega_idx, d_Omega_var);
-#endif
-            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-#if (NDIM == 2)
-            d_Omega_max = hier_cc_data_ops->maxNorm(d_Omega_idx, wgt_cc_idx);
-#endif
-#if (NDIM == 3)
-            d_Omega_max = hier_cc_data_ops->max(d_Omega_Norm_idx, wgt_cc_idx);
-#endif
+            d_Omega_max = getMaximumVorticityMagnitude(d_Omega_idx);
 
             // Deallocate scratch data.
             for (int ln = 0; ln <= level_number; ++ln)
             {
                 hierarchy->getPatchLevel(ln)->deallocatePatchData(d_U_scratch_idx);
-#if (NDIM == 3)
-                hierarchy->getPatchLevel(ln)->deallocatePatchData(d_Omega_Norm_idx);
-#endif
             }
         }
     }
