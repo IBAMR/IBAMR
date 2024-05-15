@@ -920,7 +920,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     {
         d_F_cc_idx = invalid_index;
     }
-    registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getCurrentContext(), false);
+    registerVariable(d_Omega_idx, d_Omega_var, no_ghosts, getScratchContext(), false);
     if (d_output_Omega)
     {
         registerVariable(d_Omega_nc_idx, d_Omega_nc_var, no_ghosts, getPlotContext());
@@ -1356,20 +1356,6 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
         if (d_enable_logging)
             plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
         synchronizeHierarchyData(NEW_DATA);
-    }
-
-    // Compute Omega.
-    if (d_using_vorticity_tagging)
-    {
-        d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
-
-        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            if (!level->checkAllocated(d_Omega_idx)) level->allocatePatchData(d_Omega_idx);
-        }
-
-        d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
     }
 
     // Deallocate scratch data.
@@ -1866,56 +1852,6 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
         if (old_level) old_level->deallocatePatchData(scratch_data);
     }
 
-    // Initialize level data at the initial time.
-    if (initial_time)
-    {
-        // Initialize Omega.
-        if (d_using_vorticity_tagging)
-        {
-            // Allocate scratch data.
-            for (int ln = 0; ln <= level_number; ++ln)
-            {
-                hierarchy->getPatchLevel(ln)->allocatePatchData(d_U_scratch_idx, init_data_time);
-            }
-
-            // Fill ghost cells.
-            HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-            Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
-                hier_ops_manager->getOperationsDouble(d_Omega_var, d_hierarchy, true);
-            Pointer<HierarchySideDataOpsReal<NDIM, double> > hier_sc_data_ops =
-                hier_ops_manager->getOperationsDouble(d_U_var, d_hierarchy, true);
-            hier_sc_data_ops->resetLevels(0, level_number);
-            hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-            using InterpolationTransactionComponent =
-                HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-            InterpolationTransactionComponent U_bc_component(d_U_scratch_idx,
-                                                             DATA_REFINE_TYPE,
-                                                             USE_CF_INTERPOLATION,
-                                                             DATA_COARSEN_TYPE,
-                                                             d_bdry_extrap_type, // TODO: update variable name
-                                                             CONSISTENT_TYPE_2_BDRY,
-                                                             d_U_bc_coefs);
-            HierarchyGhostCellInterpolation U_bdry_bc_fill_op;
-            U_bdry_bc_fill_op.initializeOperatorState(U_bc_component, d_hierarchy, 0, level_number);
-            U_bdry_bc_fill_op.fillData(init_data_time);
-
-            // Compute max |Omega|_2.
-            for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
-            {
-                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(d_Omega_idx)) level->allocatePatchData(d_Omega_idx);
-            }
-
-            HierarchyMathOps hier_math_ops(d_object_name + "::HierarchyLevelMathOps", d_hierarchy, 0, level_number);
-            hier_math_ops.curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
-
-            // Deallocate scratch data.
-            for (int ln = 0; ln <= level_number; ++ln)
-            {
-                hierarchy->getPatchLevel(ln)->deallocatePatchData(d_U_scratch_idx);
-            }
-        }
-    }
     return;
 } // initializeLevelDataSpecialized
 
@@ -2012,7 +1948,7 @@ INSStaggeredHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 void
 INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                                                   const int level_number,
-                                                                  const double /*error_data_time*/,
+                                                                  const double error_data_time,
                                                                   const int tag_index,
                                                                   const bool /*initial_time*/,
                                                                   const bool /*uses_richardson_extrapolation_too*/)
@@ -2025,7 +1961,26 @@ INSStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<
 
     if (d_using_vorticity_tagging)
     {
+        // To do tagging we may need to coarsen data to fill ghost values or
+        // prolong data to covered cells - i.e., even though we are given
+        // level_number, we need to compute across the whole hierarchy.
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->allocatePatchData(d_Omega_idx, error_data_time);
+            level->allocatePatchData(d_U_scratch_idx, error_data_time);
+        }
+
+        d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+        d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, error_data_time);
         tagCellsByVorticityMagnitude(level_number, d_Omega_idx, tag_index);
+
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_Omega_idx);
+            level->deallocatePatchData(d_U_scratch_idx);
+        }
     }
 
     return;

@@ -1,0 +1,4 @@
+Improved: Classes derived from INSHierarchyIntegrator only compute the
+vorticity when they need to instead of at the end of every time step.
+<br>
+(David Wells, 2024/05/15)

@@ -1448,13 +1448,6 @@ INSCollocatedHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
         synchronizeHierarchyData(NEW_DATA);
     }
 
-    // Compute Omega.
-    if (d_using_vorticity_tagging)
-    {
-        d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
-        d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, new_time);
-    }
-
     // Deallocate scratch data.
     deallocate_vector_data(*d_U_rhs_vec);
     deallocate_vector_data(*d_Phi_rhs_vec);
@@ -1588,12 +1581,6 @@ INSCollocatedHierarchyIntegrator::initializeLevelDataSpecialized(
                              d_no_fill_op,
                              init_data_time);
 
-        // Initialize Omega.
-        if (d_using_vorticity_tagging)
-        {
-            hier_math_ops.curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, init_data_time);
-        }
-
         // Deallocate scratch data.
         for (int ln = 0; ln <= level_number; ++ln)
         {
@@ -1690,7 +1677,7 @@ INSCollocatedHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
 void
 INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                                                    const int level_number,
-                                                                   const double /*error_data_time*/,
+                                                                   const double error_data_time,
                                                                    const int tag_index,
                                                                    const bool /*initial_time*/,
                                                                    const bool /*uses_richardson_extrapolation_too*/)
@@ -1703,7 +1690,25 @@ INSCollocatedHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer
 
     if (d_using_vorticity_tagging)
     {
+        // To do tagging we may need to coarsen data to fill ghost values or
+        // prolong data to covered cells - i.e., even though we are given
+        // level_number, we need to compute across the whole hierarchy.
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            // In this integrator d_Omega_idx is still in the current context so it is always allocated
+            level->allocatePatchData(d_U_scratch_idx, error_data_time);
+        }
+
+        d_hier_cc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+        d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, error_data_time);
         tagCellsByVorticityMagnitude(level_number, d_Omega_idx, tag_index);
+
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_U_scratch_idx);
+        }
     }
 
     return;
