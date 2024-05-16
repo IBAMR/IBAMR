@@ -130,6 +130,7 @@ HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Databa
     d_current_context = var_db->getContext(d_object_name + "::CURRENT");
     d_new_context = var_db->getContext(d_object_name + "::NEW");
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
+    d_plot_context = var_db->getContext(d_object_name + "::PLOT");
 
     // Create default communications algorithms.
     d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
@@ -824,6 +825,14 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> 
     // Initialize level data at the initial time.
     if (initial_time)
     {
+        // Initialize or reset the hierarchy math operations object.
+        d_hier_math_ops = buildHierarchyMathOps(hierarchy);
+        if (d_manage_hier_math_ops)
+        {
+            d_hier_math_ops->setPatchHierarchy(hierarchy);
+            d_hier_math_ops->resetLevels(0, std::max(level_number, hierarchy->getFinestLevelNumber()));
+        }
+
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         for (const auto& var : d_state_variables)
         {

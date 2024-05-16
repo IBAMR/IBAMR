@@ -446,6 +446,20 @@ protected:
     virtual void updateCurrentCFLNumber(const int data_idx, const double dt);
 
     /*!
+     * Compute the maximum vorticity magnitude at any given point.
+     *
+     * @note This function does not read ghost data from @p Omega_idx.
+     */
+    double getMaximumVorticityMagnitude(const int Omega_idx);
+
+    /*!
+     * Tag cells based on the vorticity magnitude.
+     *
+     * @note This function is typically called by applyGradientDetectorSpecialized() in inheriting classes.
+     */
+    void tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx);
+
+    /*!
      * Return the maximum stable time step size.
      */
     double getMaximumTimeStepSizeSpecialized() override;
@@ -516,7 +530,6 @@ protected:
      */
     bool d_using_vorticity_tagging = false;
     SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
-    double d_Omega_max = 0.0;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have
