@@ -167,6 +167,10 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> mu_init =
             new muParserCartGridFunction("mu_init", app_initializer->getComponentDatabase("mu"), grid_geometry);
         time_integrator->registerShearViscosityInitialConditions(mu_init);
+        // Pointer<CartGridFunction> lambda_init =
+        //     new muParserCartGridFunction("lambda_init", app_initializer->getComponentDatabase("lambda"),
+        //     grid_geometry);
+        // time_integrator->registerBulkViscosityInitialConditions(lambda_init);
 
         // Create boundary condition specification objects for the first-order system.
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -253,6 +257,9 @@ main(int argc, char* argv[])
 
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
         time_integrator->registerShearViscosityVariable(mu_var);
+
+        // Pointer<CellVariable<NDIM, double> > lambda_var = new CellVariable<NDIM, double>("lambda");
+        // time_integrator->registerBulkViscosityVariable(lambda_var);
 
         // Callback fncs to reset fluid material properties
         time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,

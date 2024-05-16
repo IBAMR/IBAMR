@@ -30,8 +30,9 @@
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
+#include "ibtk/VCSCViscousDilatationalOperator.h"
+#include "ibtk/VCSCViscousDilatationalPETScLevelSolver.h"
 #include "ibtk/VCSCViscousOpPointRelaxationFACOperator.h"
-#include "ibtk/VCSCViscousOperator.h"
 #include "ibtk/VCSCViscousPETScLevelSolver.h"
 
 #include "HierarchyDataOpsManager.h"
@@ -105,7 +106,7 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
 {
     Pointer<PETScKrylovPoissonSolver> krylov_solver =
         new PETScKrylovPoissonSolver(solver_object_name, solver_input_db, solver_default_options_prefix);
-    krylov_solver->setOperator(new VCSCViscousOperator(solver_object_name + "::vc_viscous_operator"));
+    krylov_solver->setOperator(new VCSCViscousDilatationalOperator(solver_object_name + "::vc_viscous_dil_operator"));
     return krylov_solver;
 }
 
@@ -198,9 +199,10 @@ AcousticStreamingHierarchyIntegrator::AcousticStreamingHierarchyIntegrator(std::
     SCPoissonSolverManager::getManager()->registerSolverFactoryFunction(DEFAULT_VC_VELOCITY_SOLVER,
                                                                         allocate_vc_velocity_krylov_solver);
     SCPoissonSolverManager::getManager()->registerSolverFactoryFunction(
-        DEFAULT_VC_VELOCITY_PRECOND, VCSCViscousOpPointRelaxationFACOperator::allocate_solver);
-    SCPoissonSolverManager::getManager()->registerSolverFactoryFunction(DEFAULT_VC_VELOCITY_LEVEL_SOLVER,
-                                                                        VCSCViscousPETScLevelSolver::allocate_solver);
+        DEFAULT_VC_VELOCITY_PRECOND,
+        VCSCViscousOpPointRelaxationFACOperator::allocate_solver); // NOTE: NO DILATATIONAL STRESS SOLVED IN THE FAC OP.
+    SCPoissonSolverManager::getManager()->registerSolverFactoryFunction(
+        DEFAULT_VC_VELOCITY_LEVEL_SOLVER, VCSCViscousDilatationalPETScLevelSolver::allocate_solver);
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -1026,13 +1028,13 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
             Pointer<VCSCViscousPETScLevelSolver> p_vc_level_solver = p_vc_point_fac_op->getCoarseSolver();
             p_vc_level_solver->setViscosityInterpolationType(d_mu_vc_interp_type);
         }
-        Pointer<VCSCViscousPETScLevelSolver> p_vc_level_solver = p_velocity_solver->getPreconditioner();
+        Pointer<VCSCViscousDilatationalPETScLevelSolver> p_vc_level_solver = p_velocity_solver->getPreconditioner();
         if (p_vc_level_solver)
         {
-            p_vc_level_solver->setViscosityInterpolationType(d_mu_vc_interp_type);
+            p_vc_level_solver->setShearViscosityInterpolationType(d_mu_vc_interp_type);
         }
 
-        Pointer<VCSCViscousOperator> p_velocity_op = p_velocity_solver->getOperator();
+        Pointer<VCSCViscousDilatationalOperator> p_velocity_op = p_velocity_solver->getOperator();
         p_velocity_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
     }
 
@@ -2213,14 +2215,12 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     d_hier_ec_data_ops->resetLevels(coarsest_ln, finest_ln);
 #endif
 
-    PoissonSpecifications U2_problem_coefs(d_object_name + "::U2_problem_coefs");
     PoissonSpecifications P2_problem_coefs(d_object_name + "::P2_problem_coefs");
     d_vc_stokes_op_spec.reset();
     d_vc_projection_pc_spec.reset();
 
     if (has_brinkman_force)
     {
-        U2_problem_coefs.setCPatchDataId(d_velocity_C_idx);
         d_vc_stokes_op_spec.d_C_idx = d_velocity_C_idx;
         d_vc_stokes_op_spec.d_C_is_const = false;
         d_vc_projection_pc_spec.d_steady_state = false;
@@ -2228,14 +2228,12 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     }
     else
     {
-        U2_problem_coefs.setCZero(); // pure Stokes problem
-        d_vc_stokes_op_spec.d_C_const = 0.0;
+        d_vc_stokes_op_spec.d_C_const = 0.0; // pure Stokes problem
         d_vc_stokes_op_spec.d_C_is_const = true;
         d_vc_projection_pc_spec.d_steady_state = true;
         d_vc_projection_pc_spec.d_theta = 0.0;
     }
 
-    U2_problem_coefs.setDPatchDataId(d_velocity_D_idx);
     d_vc_stokes_op_spec.d_D_idx = d_velocity_D_idx;
     d_vc_stokes_op_spec.d_D_is_const = false;
 
@@ -2300,10 +2298,13 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     const bool has_velocity_nullspace = d_normalize_velocity;
     const bool has_pressure_nullspace = d_normalize_pressure;
 
-    d_velocity_solver->setPoissonSpecifications(U2_problem_coefs);
+    // Create a sub-specification object from the Stokes operator.
+    d_vc_velocity_op_spec = d_vc_stokes_op_spec.getVCViscousDilatationalOpSpec();
+    d_velocity_solver->setProblemSpecification(&d_vc_velocity_op_spec);
     d_velocity_solver->setPhysicalBcCoefs(d_U2_star_bc_coefs);
     d_velocity_solver->setSolutionTime(new_time);
     d_velocity_solver->setTimeInterval(current_time, new_time);
+
     if (d_velocity_solver_needs_init)
     {
         if (d_enable_logging)

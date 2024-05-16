@@ -30,9 +30,9 @@ namespace IBAMR
  * \brief Class VCStaggeredStokesOpSpec is a light-weight structure holding
  * values of VCStaggeredStokesOperator's coefficients.
  */
-struct VCStaggeredStokesOpSpec : public IBTK::ProblemSpecification
+struct VCStaggeredStokesOpSpec : public IBTK::VCViscousDilatationalOpSpec
 {
-    VCStaggeredStokesOpSpec()
+    VCStaggeredStokesOpSpec() : VCViscousDilatationalOpSpec()
     {
         return;
     } // VCStaggeredStokesOpSpec
@@ -42,27 +42,28 @@ struct VCStaggeredStokesOpSpec : public IBTK::ProblemSpecification
      */
     void reset()
     {
-        d_C_idx = IBTK::invalid_index;
-        d_D_idx = IBTK::invalid_index;
-        d_L_idx = IBTK::invalid_index;
+        VCViscousDilatationalOpSpec::reset();
         d_div_coef_idx = IBTK::invalid_index;
-        d_D_const = std::numeric_limits<double>::signaling_NaN();
-        d_C_const = std::numeric_limits<double>::signaling_NaN();
-        d_L_const = std::numeric_limits<double>::signaling_NaN();
-        d_D_is_const = false;
-        d_C_is_const = false;
-        d_L_is_const = false;
     } // reset
 
-    int d_C_idx = IBTK::invalid_index, d_D_idx = IBTK::invalid_index, d_L_idx = IBTK::invalid_index;
+    VCViscousDilatationalOpSpec getVCViscousDilatationalOpSpec()
+    {
+        VCViscousDilatationalOpSpec obj;
+        obj.d_C_idx = this->d_C_idx;
+        obj.d_D_idx = this->d_D_idx;
+        obj.d_L_idx = this->d_L_idx;
+        obj.d_D_const = this->d_D_const;
+        obj.d_C_const = this->d_C_const;
+        obj.d_L_const = this->d_L_const;
+        obj.d_D_is_const = this->d_D_is_const;
+        obj.d_C_is_const = this->d_C_is_const;
+        obj.d_L_is_const = this->d_L_is_const;
 
+        return obj;
+    } // getVCViscousDilatationalOpSpec
+
+    // The coefficient multiplying the velocity variable in the divergence of velocity condition.
     int d_div_coef_idx = IBTK::invalid_index;
-
-    double d_D_const = std::numeric_limits<double>::signaling_NaN();
-    double d_C_const = std::numeric_limits<double>::signaling_NaN();
-    double d_L_const = std::numeric_limits<double>::signaling_NaN();
-
-    bool d_D_is_const = false, d_C_is_const = false, d_L_is_const = false;
 
 }; // VCStaggeredStokesOpSpec
 

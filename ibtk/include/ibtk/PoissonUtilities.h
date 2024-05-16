@@ -101,10 +101,6 @@ public:
      * Compute the matrix coefficients corresponding to a side-centered
      * discretization of the divergence of the viscous stress tensor.
      *
-     * \note The scaling factors of \f$ C \f$ and \f$ D \f$ variables in
-     * the PoissonSpecification object are passed separately and are denoted
-     * by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
-     *
      * @param impose_physical_bcs_normal_comp incidates to modify the coefficients of the
      * stencil of the normal component of side-centered velocity due to phyical boundary conditions.
      * This flag can be set to false if modifications to the matrix coefficients, particularly
@@ -117,8 +113,6 @@ public:
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const std::vector<std::map<SAMRAI::hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        double alpha,
-        double beta,
         const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
         double data_time,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP,
@@ -186,15 +180,11 @@ public:
      * Modify the right-hand side entries to account for physical boundary
      * conditions corresponding to a side-centered discretization of the
      * variable-coefficient viscous operator.
-     *
-     * \note The scaling factors of \f$ D \f$ variable in the PoissonSpecification object
-     * is passed separately and is denoted \f$ \alpha \f$.
      */
     static void
     adjustVCSCViscousOpRHSAtPhysicalBoundary(SAMRAI::pdat::SideData<NDIM, double>& rhs_data,
                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                              const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                             double alpha,
                                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                              double data_time,
                                              bool homogeneous_bc,
@@ -262,7 +252,6 @@ public:
         const SAMRAI::pdat::SideData<NDIM, double>& sol_data,
         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
         const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-        double alpha,
         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& type1_cf_bdry,
         VCInterpType mu_interp_type = VC_HARMONIC_INTERP);
 

@@ -159,7 +159,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
 {
     IBAMR_TIMER_START(t_solve_system);
 
-    auto vc_projection_spec = static_cast<const VCStaggeredStokesProjectionPCSpec&>(*d_problem_spec);
+    auto& vc_projection_spec = static_cast<const VCStaggeredStokesProjectionPCSpec&>(*d_problem_spec);
 
     // Initialize the solver (if necessary).
     const bool deallocate_at_completion = !d_is_initialized;

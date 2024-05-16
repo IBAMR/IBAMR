@@ -18,8 +18,9 @@
 #include "ibtk/PETScMatUtilities.h"
 #include "ibtk/PETScVecUtilities.h"
 #include "ibtk/PoissonUtilities.h"
+#include "ibtk/ProblemSpecification.h"
 #include "ibtk/SCPoissonPETScLevelSolver.h"
-#include "ibtk/VCSCViscousPETScLevelSolver.h"
+#include "ibtk/VCSCViscousDilatationalPETScLevelSolver.h"
 #include "ibtk/ibtk_enums.h"
 
 #include "BoundaryBox.h"
@@ -51,17 +52,17 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-VCSCViscousPETScLevelSolver::VCSCViscousPETScLevelSolver(std::string object_name,
-                                                         Pointer<Database> input_db,
-                                                         std::string default_options_prefix)
+VCSCViscousDilatationalPETScLevelSolver::VCSCViscousDilatationalPETScLevelSolver(std::string object_name,
+                                                                                 Pointer<Database> input_db,
+                                                                                 std::string default_options_prefix)
     : SCPoissonPETScLevelSolver(std::move(object_name), input_db, std::move(default_options_prefix))
 {
     // Set a default interpolation type.
     d_mu_interp_type = VC_HARMONIC_INTERP;
     return;
-} // VCSCViscousPETScLevelSolver
+} // VCSCViscousDilatationalPETScLevelSolver
 
-VCSCViscousPETScLevelSolver::~VCSCViscousPETScLevelSolver()
+VCSCViscousDilatationalPETScLevelSolver::~VCSCViscousDilatationalPETScLevelSolver()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
@@ -70,8 +71,8 @@ VCSCViscousPETScLevelSolver::~VCSCViscousPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                              const SAMRAIVectorReal<NDIM, double>& /*b*/)
+VCSCViscousDilatationalPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
+                                                                          const SAMRAIVectorReal<NDIM, double>& /*b*/)
 {
     // Allocate DOF index data.
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
@@ -91,14 +92,14 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    PETScMatUtilities::constructPatchLevelVCSCViscousOp(d_petsc_mat,
-                                                        d_poisson_spec,
-                                                        d_bc_coefs,
-                                                        d_solution_time,
-                                                        d_num_dofs_per_proc,
-                                                        d_dof_index_idx,
-                                                        d_level,
-                                                        d_mu_interp_type);
+    PETScMatUtilities::constructPatchLevelVCSCViscousDilatationalOp(d_petsc_mat,
+                                                                    d_problem_spec,
+                                                                    d_bc_coefs,
+                                                                    d_solution_time,
+                                                                    d_num_dofs_per_proc,
+                                                                    d_dof_index_idx,
+                                                                    d_level,
+                                                                    d_mu_interp_type);
 
     d_petsc_pc = d_petsc_mat;
 
@@ -109,11 +110,15 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
 } // initializeSolverStateSpecialized
 
 void
-VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
-                                          Vec& petsc_b,
-                                          SAMRAIVectorReal<NDIM, double>& x,
-                                          SAMRAIVectorReal<NDIM, double>& b)
+VCSCViscousDilatationalPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
+                                                      Vec& petsc_b,
+                                                      SAMRAIVectorReal<NDIM, double>& x,
+                                                      SAMRAIVectorReal<NDIM, double>& b)
 {
+    auto& vc_op_spec = static_cast<const VCViscousDilatationalOpSpec&>(*d_problem_spec);
+    const int mu_idx = vc_op_spec.d_D_idx;
+    const int lambda_idx = vc_op_spec.d_L_idx;
+
     if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
     const bool level_zero = (d_level_num == 0);
     const int x_idx = x.getComponentDescriptorIndex(0);
@@ -130,8 +135,15 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)
         {
-            PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(
-                *b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc, d_mu_interp_type);
+            PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtPhysicalBoundary(*b_adj_data,
+                                                                                   /*rhs_depth*/ 0,
+                                                                                   patch,
+                                                                                   mu_idx,
+                                                                                   lambda_idx,
+                                                                                   d_bc_coefs,
+                                                                                   d_solution_time,
+                                                                                   d_homogeneous_bc,
+                                                                                   d_mu_interp_type);
         }
         const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
             level_zero ? Array<BoundaryBox<NDIM> >() :
@@ -139,8 +151,8 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)
         {
-            PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(
-                *b_adj_data, *x_data, patch, d_poisson_spec, type_1_cf_bdry);
+            PoissonUtilities::adjustVCSCViscousDilatationalOpRHSAtCoarseFineBoundary(
+                *b_adj_data, *x_data, /*depth*/ 0, patch, mu_idx, lambda_idx, type_1_cf_bdry, d_mu_interp_type);
         }
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, d_level);
@@ -148,7 +160,7 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
 } // setupKSPVecs
 
 void
-VCSCViscousPETScLevelSolver::setViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
+VCSCViscousDilatationalPETScLevelSolver::setShearViscosityInterpolationType(const IBTK::VCInterpType mu_interp_type)
 {
     d_mu_interp_type = mu_interp_type;
     return;

@@ -28,6 +28,7 @@
 
 #include "ibtk/CCPoissonSolverManager.h"
 #include "ibtk/HierarchyIntegrator.h"
+#include "ibtk/ProblemSpecification.h"
 #include "ibtk/SCPoissonSolverManager.h"
 #include "ibtk/SideDataSynchronization.h"
 #include "ibtk/ibtk_enums.h"
@@ -781,6 +782,10 @@ protected:
      */
     VCStaggeredStokesOpSpec d_vc_stokes_op_spec;
 
+    /*
+     * Problem specification object for VCSCViscousDilatationalOp in the velocity solver.
+     */
+    IBTK::VCViscousDilatationalOpSpec d_vc_velocity_op_spec;
     /*
      * Problem specification object for VCStaggeredStokesProjectionPreconditioner.
      */
