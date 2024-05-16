@@ -43,11 +43,14 @@ jobs:
       # be treated as an error (causing the build to fail before
       # testing and preventing merging).
       CTEST_NO_WARNINGS_ALLOWED: true
+      CMAKE_GENERATOR: Unix Makefiles
 
       # Delete old files in the cache (10G, the default limit, is GitHub's limit
       # for all cached artifacts)
       CCACHE_MAXSIZE: 250M
-      CMAKE_GENERATOR: Unix Makefiles
+      # For uniformity, always explicitly define the compilation cache instead
+      # of relying on how ccache interacts with XDG_CACHE_HOME
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -72,7 +75,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/ccache
+          path: ${{ env.CCACHE_DIR }}
           # A fundamental problem with the cache is that it is identified by a
           # single key and, should a cache with that key already exist, the
           # cache will not be updated. This makes sense for things like NPM but
@@ -120,10 +123,22 @@ jobs:
           name: fedora33-CMakeError.log
           path: CMakeConfigureLog.yaml
       - name: Compile IBAMR
-        id: build
+        id: build-library
         run: |
           cd /build/ibamr
-          make -j2 tests examples
+          make -j2
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
+        run: |
+          cd /build/ibamr
+          make -j2 examples
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          cd /build/ibamr
+          make -j2 tests
           ccache --show-stats
       - name: Test IBAMR
         id: test
@@ -144,11 +159,10 @@ jobs:
       # be treated as an error (causing the build to fail before
       # testing and preventing merging).
       CTEST_NO_WARNINGS_ALLOWED: true
-
-      # Delete old files in the cache (10G, the default limit, is GitHub's limit
-      # for all cached artifacts)
-      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
+
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -173,7 +187,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/ccache
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ runner.os }}-build-cmake-no-libmesh-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key1 }}
@@ -196,7 +210,19 @@ jobs:
           bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
           ccache --show-stats
       - name: Compile IBAMR
-        id: build
+        id: build-library
+        run: |
+          cd /build/ibamr
+          make -j2
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
+        run: |
+          cd /build/ibamr
+          make -j2 examples
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
         run: |
           cd /build/ibamr
           make -j2 tests
@@ -205,12 +231,6 @@ jobs:
         id: test
         run: |
           bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
-      - name: Compile IBAMR examples
-        id: examples
-        run: |
-          cd /build/ibamr
-          make -j2 examples
-          ccache --show-stats
 
   # build IBAMR with autotools
   build_ibamr_autotools:
@@ -219,10 +239,10 @@ jobs:
     container:
       image: 'docker://wellsd2/ibamr:ibamr-0.14-bundled-deps'
     env:
-      # Delete old files in the cache (10G, the default limit, is GitHub's limit
-      # for all cached artifacts)
-      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
+
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -247,8 +267,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/ccache
-          # The same note on picking keys above applies here.
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ runner.os }}-build-autotools-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-autotools-${{ env.key1 }}
@@ -280,7 +299,7 @@ jobs:
           name: autotools-config.log
           path: build/config.log
       - name: Compile IBAMR (autotools)
-        id: build
+        id: build-library
         run: |
           source /etc/profile.d/modules.sh
           module load mpi
@@ -289,7 +308,23 @@ jobs:
           echo "CC=${CC}"
           echo "CXX=${CXX}"
           cd build
-          make -j2 tests examples
+          make -j2
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
+        run: |
+          source /etc/profile.d/modules.sh
+          module load mpi
+          cd build
+          make -j2 examples
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          source /etc/profile.d/modules.sh
+          module load mpi
+          cd build
+          make -j2 tests
           ccache --show-stats
 
   # build IBAMR with CMake and run tests with our oldest dependencies on CENTOS 7
@@ -301,8 +336,10 @@ jobs:
     env:
       CMAKE_CONFIGURATION: centos7
       CTEST_NO_WARNINGS_ALLOWED: true
-      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
+
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -322,7 +359,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.ccache/
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ runner.os }}-build-centos-cmake-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-centos-cmake-${{ env.key1 }}
@@ -338,11 +375,23 @@ jobs:
           bash -c "source /etc/profile.d/modules.sh && module load mpi && ctest3 -VV -S .github/cmake/ctest_configure.cmake"
           ccache --show-stats
       - name: Compile IBAMR
-        id: build
+        id: build-library
+        run: |
+          cd /build/ibamr
+          make -j2
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
         run: |
           cd /build/ibamr
           # compile examples which depend on libMesh to verify that they still work with libMesh 1.1.0
-          make -j2 tests examples-IBFE examples-IBLevelSet examples-IIM examples-IMP examples-complex_fluids examples-fe_mechanics
+          make -j2 examples-IBFE examples-IBLevelSet examples-IIM examples-IMP examples-complex_fluids examples-fe_mechanics
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          cd /build/ibamr
+          make -j2 tests
           ccache --show-stats
       - name: Test IBAMR
         id: test
@@ -371,8 +420,10 @@ jobs:
     env:
       CMAKE_CONFIGURATION: archlinux
       CTEST_NO_WARNINGS_ALLOWED: true
-      CCACHE_MAXSIZE: 250M
       CMAKE_GENERATOR: Unix Makefiles
+
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
         uses: actions/checkout@v3
@@ -397,7 +448,7 @@ jobs:
           cache-name: ccache
         id: cache
         with:
-          path: ~/.cache/ccache
+          path: ${{ env.CCACHE_DIR }}
           key: ${{ runner.os }}-build-archlinux-cmake-${{ github.run_number }}
           restore-keys: |
             ${{ runner.os }}-build-archlinux-cmake-${{ env.key1 }}
@@ -412,10 +463,10 @@ jobs:
           bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
           ccache --show-stats
       - name: Compile IBAMR
-        id: build
+        id: build-library
         run: |
           cd /build/ibamr
-          make -j2 examples
+          make -j2
           ccache --show-stats
       - name: Install IBAMR
         id: install
