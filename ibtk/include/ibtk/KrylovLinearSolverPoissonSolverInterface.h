@@ -69,6 +69,12 @@ public:
     void setPoissonSpecifications(const SAMRAI::solv::PoissonSpecifications& poisson_spec) override;
 
     /*!
+     * \brief Set the IBTK::ProblemSpecification object used to specify
+     * the coefficients for the scalar-valued or vector-valued Laplace operator.
+     */
+    void setProblemSpecification(const IBTK::ProblemSpecification* problem_spec) override;
+
+    /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
      * physical boundary conditions.
      *

@@ -719,8 +719,6 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
     const std::vector<std::map<hier::Index<NDIM>, int, IndexFortranOrder> >& stencil_map_vec,
     const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-    double alpha,
-    double beta,
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
     double data_time,
     VCInterpType mu_interp_type,
@@ -796,12 +794,12 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 
             if (C_is_varying)
             {
-                matrix_coefficients(i, stencil_map[ORIGIN]) = beta * (*C_data)(i, 0);
+                matrix_coefficients(i, stencil_map[ORIGIN]) = (*C_data)(i, 0);
             }
             else
             {
                 matrix_coefficients(i, stencil_map[ORIGIN]) =
-                    poisson_spec.cIsZero() ? 0.0 : beta * poisson_spec.getCConstant();
+                    poisson_spec.cIsZero() ? 0.0 : poisson_spec.getCConstant();
             }
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -827,8 +825,8 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                         TBOX_ERROR("this statement should not be reached");
                     }
 
-                    const double coef_plus = (2.0 * alpha * mu_upper) / (dx[axis] * dx[axis]);
-                    const double coef_minus = (2.0 * alpha * mu_lower) / (dx[axis] * dx[axis]);
+                    const double coef_plus = (2.0 * mu_upper) / (dx[axis] * dx[axis]);
+                    const double coef_minus = (2.0 * mu_lower) / (dx[axis] * dx[axis]);
                     matrix_coefficients(i, stencil_map[shift_axis_plus]) = coef_plus;
                     matrix_coefficients(i, stencil_map[shift_axis_minus]) = coef_minus;
                     matrix_coefficients(i, stencil_map[ORIGIN]) -= coef_plus + coef_minus;
@@ -850,19 +848,19 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
                     const double mu_lower = get_mu_edge(cc, perp, mu_data);
 #endif
 
-                    matrix_coefficients(i, stencil_map[shift_d_plus]) = (alpha * mu_upper) / (dx[d] * dx[d]);
-                    matrix_coefficients(i, stencil_map[shift_d_minus]) = (alpha * mu_lower) / (dx[d] * dx[d]);
+                    matrix_coefficients(i, stencil_map[shift_d_plus]) = (mu_upper) / (dx[d] * dx[d]);
+                    matrix_coefficients(i, stencil_map[shift_d_minus]) = (mu_lower) / (dx[d] * dx[d]);
                     matrix_coefficients(i, stencil_map[ORIGIN]) -= matrix_coefficients(i, stencil_map[shift_d_plus]) +
                                                                    matrix_coefficients(i, stencil_map[shift_d_minus]);
 
                     matrix_coefficients(i, stencil_map[shift_d_plus + shift_axis_plus]) =
-                        (alpha * mu_upper) / (dx[axis] * dx[d]);
+                        (mu_upper) / (dx[axis] * dx[d]);
                     matrix_coefficients(i, stencil_map[shift_d_plus + shift_axis_minus]) =
-                        -(alpha * mu_upper) / (dx[axis] * dx[d]);
+                        -(mu_upper) / (dx[axis] * dx[d]);
                     matrix_coefficients(i, stencil_map[shift_d_minus + shift_axis_plus]) =
-                        -(alpha * mu_lower) / (dx[axis] * dx[d]);
+                        -(mu_lower) / (dx[axis] * dx[d]);
                     matrix_coefficients(i, stencil_map[shift_d_minus + shift_axis_minus]) =
-                        (alpha * mu_lower) / (dx[axis] * dx[d]);
+                        (mu_lower) / (dx[axis] * dx[d]);
                 }
             }
         }
@@ -2085,7 +2083,6 @@ void
 PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double>& rhs_data,
                                                            Pointer<Patch<NDIM> > patch,
                                                            const PoissonSpecifications& poisson_spec,
-                                                           double alpha,
                                                            const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                            double data_time,
                                                            bool homogeneous_bc,
@@ -2241,7 +2238,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 #endif
 
                 const double D = is_lower ? mu_lower : mu_upper;
-                rhs_data(i_s) += alpha * (D / h) * (-2.0 * g) / (2.0 * b + h * a);
+                rhs_data(i_s) += (D / h) * (-2.0 * g) / (2.0 * b + h * a);
             }
         }
     }
@@ -2352,13 +2349,13 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 #endif
                     if (is_lower)
                     {
-                        rhs_data(i_s) -= alpha * (mu_lower / hd) * (2.0 * g_lower) / (2.0 * b_lower + a_lower * h);
-                        rhs_data(i_s) += alpha * (mu_upper / hd) * (2.0 * g_upper) / (2.0 * b_upper + a_upper * h);
+                        rhs_data(i_s) -= (mu_lower / hd) * (2.0 * g_lower) / (2.0 * b_lower + a_lower * h);
+                        rhs_data(i_s) += (mu_upper / hd) * (2.0 * g_upper) / (2.0 * b_upper + a_upper * h);
                     }
                     else
                     {
-                        rhs_data(i_s) += alpha * (mu_lower / hd) * (2.0 * g_lower) / (2.0 * b_lower + a_lower * h);
-                        rhs_data(i_s) -= alpha * (mu_upper / hd) * (2.0 * g_upper) / (2.0 * b_upper + a_upper * h);
+                        rhs_data(i_s) += (mu_lower / hd) * (2.0 * g_lower) / (2.0 * b_lower + a_lower * h);
+                        rhs_data(i_s) -= (mu_upper / hd) * (2.0 * g_upper) / (2.0 * b_upper + a_upper * h);
                     }
                 }
             }
@@ -2456,7 +2453,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideData<NDIM, double
 #if !defined(NDEBUG)
                     TBOX_ASSERT(!IBTK::abs_equal_eps(b, 0.0));
 #endif
-                    rhs_data(i_s_bdry) += (2.0 * alpha) * (D / h) * (-2.0 * g) / b;
+                    rhs_data(i_s_bdry) += 2.0 * (D / h) * (-2.0 * g) / b;
                 }
             }
         }
@@ -2989,7 +2986,6 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                                                              const SideData<NDIM, double>& sol_data,
                                                              Pointer<Patch<NDIM> > patch,
                                                              const PoissonSpecifications& poisson_spec,
-                                                             double alpha,
                                                              const Array<BoundaryBox<NDIM> >& type1_cf_bdry,
                                                              VCInterpType mu_interp_type)
 {
@@ -3064,7 +3060,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
 #endif
 
                 const double D = is_lower ? mu_lower : mu_upper;
-                rhs_data(i_s_intr) -= alpha * (D / h) * sol_data(i_s_bdry) / h;
+                rhs_data(i_s_intr) -= (D / h) * sol_data(i_s_bdry) / h;
             }
         }
     }
@@ -3116,8 +3112,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                         const SideIndex<NDIM> sw(i + shift_axis_minus, comp, SideIndex<NDIM>::Lower);
                         const SideIndex<NDIM> nw(i + shift_axis_minus, comp, SideIndex<NDIM>::Upper);
 
-                        rhs_data(i_s) -= alpha * (mu_lower / (h * hd)) * sol_data(sw);
-                        rhs_data(i_s) += alpha * (mu_upper / (h * hd)) * sol_data(nw);
+                        rhs_data(i_s) -= (mu_lower / (h * hd)) * sol_data(sw);
+                        rhs_data(i_s) += (mu_upper / (h * hd)) * sol_data(nw);
                     }
                     else
                     {
@@ -3125,8 +3121,8 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                         const SideIndex<NDIM> se(i, comp, SideIndex<NDIM>::Lower);
                         const SideIndex<NDIM> ne(i, comp, SideIndex<NDIM>::Upper);
 
-                        rhs_data(i_s) += alpha * (mu_lower / (h * hd)) * sol_data(se);
-                        rhs_data(i_s) -= alpha * (mu_upper / (h * hd)) * sol_data(ne);
+                        rhs_data(i_s) += (mu_lower / (h * hd)) * sol_data(se);
+                        rhs_data(i_s) -= (mu_upper / (h * hd)) * sol_data(ne);
                     }
                 }
             }
@@ -3182,7 +3178,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideData<NDIM, doub
                 }
                 const double D = is_lower ? mu_lower : mu_upper;
 
-                rhs_data(i_s) -= (2.0 * alpha) * (D / h) * sol_data(i_s_bdry) / h;
+                rhs_data(i_s) -= 2.0 * (D / h) * sol_data(i_s_bdry) / h;
             }
         }
     }

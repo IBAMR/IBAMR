@@ -49,13 +49,13 @@ SOVelocityExact {
    L = LENGTH
    
    function_0 = U2     // u x-component
-   function_1 = V2    // v y-component
+   function_1 = V2     // v y-component
 }
 
 FOPressureInitialConditions {
 
    function_0 = "0.0"      // pr 
-   function_1 = "0.0"     // pi 
+   function_1 = "0.0"      // pi 
 
 }
 

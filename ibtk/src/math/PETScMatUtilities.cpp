@@ -13,11 +13,14 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/ExtendedRobinBcCoefStrategy.h"
 #include "ibtk/IBTK_CHKERRQ.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/IndexUtilities.h"
 #include "ibtk/PETScMatUtilities.h"
+#include "ibtk/PhysicalBoundaryUtilities.h"
 #include "ibtk/PoissonUtilities.h"
+#include "ibtk/ProblemSpecification.h"
 #include "ibtk/ibtk_enums.h"
 #include "ibtk/ibtk_utilities.h"
 
@@ -429,17 +432,14 @@ PETScMatUtilities::constructPatchLevelSCLaplaceOp(Mat& mat,
 } // constructPatchLevelSCLaplaceOp
 
 void
-PETScMatUtilities::constructPatchLevelVCSCViscousOp(
-    Mat& mat,
-    const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-    double alpha,
-    double beta,
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
-    double data_time,
-    const std::vector<int>& num_dofs_per_proc,
-    int dof_index_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-    VCInterpType mu_interp_type)
+PETScMatUtilities::constructPatchLevelVCSCViscousOp(Mat& mat,
+                                                    const PoissonSpecifications& poisson_spec,
+                                                    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                    double data_time,
+                                                    const std::vector<int>& num_dofs_per_proc,
+                                                    int dof_index_idx,
+                                                    Pointer<PatchLevel<NDIM> > patch_level,
+                                                    VCInterpType mu_interp_type)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -683,7 +683,7 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
         const IntVector<NDIM> no_ghosts(0);
         SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, no_ghosts);
         PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
-            matrix_coefs, patch, stencil_map_vec, poisson_spec, alpha, beta, bc_coefs, data_time, mu_interp_type);
+            matrix_coefs, patch, stencil_map_vec, poisson_spec, bc_coefs, data_time, mu_interp_type);
 
         // Copy matrix entries to the PETSc matrix structure.
         Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
@@ -777,6 +777,460 @@ PETScMatUtilities::constructPatchLevelVCSCViscousOp(
     IBTK_CHKERRQ(ierr);
     return;
 } // constructPatchLevelVCSCViscousOp
+
+void
+PETScMatUtilities::constructPatchLevelVCSCViscousDilatationalOp(Mat& mat,
+                                                                const ProblemSpecification* problem_spec,
+                                                                const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                                double data_time,
+                                                                const std::vector<int>& num_dofs_per_proc,
+                                                                int dof_index_idx,
+                                                                Pointer<PatchLevel<NDIM> > patch_level,
+                                                                VCInterpType mu_interp_type)
+{
+    auto& vc_op_spec = static_cast<const VCViscousDilatationalOpSpec&>(*problem_spec);
+    const int mu_idx = vc_op_spec.d_D_idx;
+    const int lambda_idx = vc_op_spec.d_L_idx;
+    const bool C_is_const = vc_op_spec.d_C_is_const;
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(bc_coefs.size() == NDIM);
+#endif
+
+    int ierr;
+    if (mat)
+    {
+        ierr = MatDestroy(&mat);
+        IBTK_CHKERRQ(ierr);
+    }
+
+    // Determine the index ranges.
+    const int mpi_rank = IBTK_MPI::getRank();
+    const int n_local = num_dofs_per_proc[mpi_rank];
+    const int proc_lower = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
+    const int proc_upper = proc_lower + n_local;
+    const int n_total = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.end(), 0);
+
+    // Determine the non-zero structure of the matrix.
+    std::vector<int> d_nnz(n_local, 0), o_nnz(n_local, 0);
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+#if !defined(NDEBUG)
+        TBOX_ASSERT(dof_index_data->getDepth() == 1);
+#endif
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+            {
+                const hier::Index<NDIM>& cc = b();
+                const SideIndex<NDIM> i(cc, axis, SideIndex<NDIM>::Lower);
+                const int i_dof_index = (*dof_index_data)(i);
+                if (proc_lower <= i_dof_index && i_dof_index < proc_upper)
+                {
+                    // Stencil for finite difference operator.
+                    const int local_idx = i_dof_index - proc_lower;
+                    d_nnz[local_idx] += 1;
+
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        if (d == axis)
+                        {
+                            hier::Index<NDIM> shift_axis = get_shift(axis, 1);
+
+                            const int i_dof_hi = (*dof_index_data)(i + shift_axis);
+                            if (i_dof_hi >= proc_lower && i_dof_hi < proc_upper)
+                            {
+                                d_nnz[local_idx] += 1;
+                            }
+                            else
+                            {
+                                o_nnz[local_idx] += 1;
+                            }
+                            const int i_dof_lo = (*dof_index_data)(i - shift_axis);
+                            if (i_dof_lo >= proc_lower && i_dof_lo < proc_upper)
+                            {
+                                d_nnz[local_idx] += 1;
+                            }
+                            else
+                            {
+                                o_nnz[local_idx] += 1;
+                            }
+                        }
+                        else
+                        {
+                            hier::Index<NDIM> shift_d_plus = get_shift(d, 1);
+                            hier::Index<NDIM> shift_d_minus = get_shift(d, -1);
+                            hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+
+                            const int i_dof_hi = (*dof_index_data)(i + shift_d_plus);
+                            if (i_dof_hi >= proc_lower && i_dof_hi < proc_upper)
+                            {
+                                d_nnz[local_idx] += 1;
+                            }
+                            else
+                            {
+                                o_nnz[local_idx] += 1;
+                            }
+                            const int i_dof_lo = (*dof_index_data)(i + shift_d_minus);
+                            if (i_dof_lo >= proc_lower && i_dof_lo < proc_upper)
+                            {
+                                d_nnz[local_idx] += 1;
+                            }
+                            else
+                            {
+                                o_nnz[local_idx] += 1;
+                            }
+
+                            const SideIndex<NDIM> j_se(cc, d, SideIndex<NDIM>::Lower);
+                            const int j_se_dof_index = (*dof_index_data)(j_se);
+                            if (j_se_dof_index >= proc_lower && j_se_dof_index < proc_upper)
+                            {
+                                d_nnz[local_idx] += 1;
+                            }
+                            else
+                            {
+                                o_nnz[local_idx] += 1;
+                            }
+
+                            const SideIndex<NDIM> j_sw(cc + shift_axis_minus, d, SideIndex<NDIM>::Lower);
+                            const int j_sw_dof_index = (*dof_index_data)(j_sw);
+                            if (j_sw_dof_index >= proc_lower && j_sw_dof_index < proc_upper)
+                            {
+                                d_nnz[local_idx] += 1;
+                            }
+                            else
+                            {
+                                o_nnz[local_idx] += 1;
+                            }
+
+                            const SideIndex<NDIM> j_ne(cc, d, SideIndex<NDIM>::Upper);
+                            const int j_ne_dof_index = (*dof_index_data)(j_ne);
+                            if (j_ne_dof_index >= proc_lower && j_ne_dof_index < proc_upper)
+                            {
+                                d_nnz[local_idx] += 1;
+                            }
+                            else
+                            {
+                                o_nnz[local_idx] += 1;
+                            }
+
+                            const SideIndex<NDIM> j_nw(b() + shift_axis_minus, d, SideIndex<NDIM>::Upper);
+                            const int j_nw_dof_index = (*dof_index_data)(j_nw);
+                            if (j_nw_dof_index >= proc_lower && j_nw_dof_index < proc_upper)
+                            {
+                                d_nnz[local_idx] += 1;
+                            }
+                            else
+                            {
+                                o_nnz[local_idx] += 1;
+                            }
+                        }
+                    }
+
+                    d_nnz[local_idx] = std::min(n_local, d_nnz[local_idx]);
+                    o_nnz[local_idx] = std::min(n_total - n_local, o_nnz[local_idx]);
+                }
+            }
+        }
+    }
+
+    // Create an empty matrix.
+    ierr = MatCreateAIJ(PETSC_COMM_WORLD,
+                        n_local,
+                        n_local,
+                        PETSC_DETERMINE,
+                        PETSC_DETERMINE,
+                        0,
+                        n_local ? &d_nnz[0] : nullptr,
+                        0,
+                        n_local ? &o_nnz[0] : nullptr,
+                        &mat);
+    IBTK_CHKERRQ(ierr);
+
+    using StencilMapType = std::map<hier::Index<NDIM>, int, IndexFortranOrder>;
+    static std::vector<StencilMapType> stencil_map_vec;
+    static const int stencil_sz = (2 * NDIM + 1) + 4 * (NDIM - 1);
+    static const hier::Index<NDIM> ORIGIN(0);
+
+#if (NDIM == 2)
+    // Create stencil dictionary.
+    enum DIRECTIONS
+    {
+        CENTER = 0,
+        EAST = 1,
+        WEST = 2,
+        NORTH = 3,
+        SOUTH = 4,
+        NORTHEAST = 5,
+        NORTHWEST = 6,
+        SOUTHEAST = 7,
+        SOUTHWEST = 8,
+        X = 0,
+        Y = 1
+    };
+    IBTK_DO_ONCE(static StencilMapType sm; sm[ORIGIN] = CENTER; sm[get_shift(X, 1)] = EAST; sm[get_shift(X, -1)] = WEST;
+                 sm[get_shift(Y, 1)] = NORTH;
+                 sm[get_shift(Y, -1)] = SOUTH;
+                 sm[get_shift(Y, 1) + get_shift(X, 1)] = NORTHEAST;
+                 sm[get_shift(Y, 1) + get_shift(X, -1)] = NORTHWEST;
+                 sm[get_shift(Y, -1) + get_shift(X, 1)] = SOUTHEAST;
+                 sm[get_shift(Y, -1) + get_shift(X, -1)] = SOUTHWEST;
+                 stencil_map_vec.push_back(sm););
+
+#elif (NDIM == 3)
+    // In 3D, the shifted directions depend on the axis under consideration
+    enum COMMONDIRECTIONS
+    {
+        CENTER = 0,
+        EAST = 1,
+        WEST = 2,
+        NORTH = 3,
+        SOUTH = 4,
+        TOP = 5,
+        BOTTOM = 6,
+        X = 0,
+        Y = 1,
+        Z = 2
+    };
+    IBTK_DO_ONCE(for (int axis = 0; axis < NDIM; ++axis) {
+        static StencilMapType sm;
+        // Common to all axes
+        sm[ORIGIN] = CENTER;
+        sm[get_shift(X, 1)] = EAST;
+        sm[get_shift(X, -1)] = WEST;
+        sm[get_shift(Y, 1)] = NORTH;
+        sm[get_shift(Y, -1)] = SOUTH;
+        sm[get_shift(Z, 1)] = TOP;
+        sm[get_shift(Z, -1)] = BOTTOM;
+
+        // Specific to certain axes
+        int idx = BOTTOM;
+        for (int d = 0; d < NDIM; ++d)
+        {
+            if (d == axis) continue;
+            idx += 1;
+            sm[get_shift(axis, 1) + get_shift(d, 1)] = idx;
+            idx += 1;
+            sm[get_shift(axis, -1) + get_shift(d, 1)] = idx;
+            idx += 1;
+            sm[get_shift(axis, 1) + get_shift(d, -1)] = idx;
+            idx += 1;
+            sm[get_shift(axis, -1) + get_shift(d, -1)] = idx;
+        }
+        stencil_map_vec.push_back(sm);
+    });
+#endif
+
+    // Set the matrix coefficients to correspond to the standard finite
+    // difference approximation to the divergence of the viscous stress tensor.
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+
+        Pointer<SideData<NDIM, double> > C_data = nullptr;
+        if (!C_is_const) C_data = patch->getPatchData(vc_op_spec.d_C_idx);
+
+        // Compute matrix coefficients.
+        const IntVector<NDIM> no_ghosts(0);
+        SideData<NDIM, double> matrix_coefs(patch_box, stencil_sz, no_ghosts);
+
+        // Compute matrix coefficients corresponding to viscous and dilatational stress for both velocity components.
+        // Do not consider Dirichlet BCs in the matrix coefficients yet, as we will consider them after matrix
+        // assembly.
+        PoissonUtilities::computeVCSCViscousDilatationalOpMatrixCoefficients(matrix_coefs,
+                                                                             patch,
+                                                                             stencil_map_vec,
+                                                                             bc_coefs,
+                                                                             data_time,
+                                                                             mu_idx,
+                                                                             lambda_idx,
+                                                                             mu_interp_type,
+                                                                             /*consider_dirichlet_bcs*/ false);
+
+        // Copy matrix entries to the PETSc matrix structure.
+        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+        std::vector<double> mat_vals(stencil_sz);
+        std::vector<int> mat_cols(stencil_sz);
+
+#if (NDIM == 2)
+        StencilMapType& stencil_map = stencil_map_vec[0];
+#endif
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+#if (NDIM == 3)
+            StencilMapType& stencil_map = stencil_map_vec[axis];
+#endif
+            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+            {
+                const hier::Index<NDIM>& cc = b();
+                const SideIndex<NDIM> i(b(), axis, SideIndex<NDIM>::Lower);
+                const int dof_index = (*dof_index_data)(i);
+                if (proc_lower <= dof_index && dof_index < proc_upper)
+                {
+                    int idx = 0;
+
+                    // Initialize with intertial and/or diagonal term
+                    if (!C_is_const)
+                    {
+                        mat_vals[idx] = (*C_data)(i, 0);
+                    }
+                    else
+                    {
+                        mat_vals[idx] = vc_op_spec.d_C_const;
+                    }
+                    // Add the viscous and dilatational part
+                    mat_vals[idx] += matrix_coefs(i, stencil_map[ORIGIN]);
+                    mat_cols[idx] = dof_index;
+
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        if (d == axis)
+                        {
+                            const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                            const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+
+                            idx += 1;
+                            mat_vals[idx] = matrix_coefs(i, stencil_map[shift_axis_plus]);
+                            mat_cols[idx] = (*dof_index_data)(i + shift_axis_plus);
+
+                            idx += 1;
+                            mat_vals[idx] = matrix_coefs(i, stencil_map[shift_axis_minus]);
+                            mat_cols[idx] = (*dof_index_data)(i + shift_axis_minus);
+                        }
+                        else
+                        {
+                            const hier::Index<NDIM> shift_d_plus = get_shift(d, 1);
+                            const hier::Index<NDIM> shift_d_minus = get_shift(d, -1);
+                            const hier::Index<NDIM> shift_axis_plus = get_shift(axis, 1);
+                            const hier::Index<NDIM> shift_axis_minus = get_shift(axis, -1);
+
+                            idx += 1;
+                            mat_vals[idx] = matrix_coefs(i, stencil_map[shift_d_plus]);
+                            mat_cols[idx] = (*dof_index_data)(i + shift_d_plus);
+
+                            idx += 1;
+                            mat_vals[idx] = matrix_coefs(i, stencil_map[shift_d_minus]);
+                            mat_cols[idx] = (*dof_index_data)(i + shift_d_minus);
+
+                            idx += 1;
+                            mat_vals[idx] = matrix_coefs(i, stencil_map[shift_d_plus + shift_axis_plus]);
+                            const SideIndex<NDIM> ne(cc, d, SideIndex<NDIM>::Upper);
+                            mat_cols[idx] = (*dof_index_data)(ne);
+
+                            idx += 1;
+                            mat_vals[idx] = matrix_coefs(i, stencil_map[shift_d_plus + shift_axis_minus]);
+                            const SideIndex<NDIM> nw(cc + shift_axis_minus, d, SideIndex<NDIM>::Upper);
+                            mat_cols[idx] = (*dof_index_data)(nw);
+
+                            idx += 1;
+                            mat_vals[idx] = matrix_coefs(i, stencil_map[shift_d_minus + shift_axis_plus]);
+                            const SideIndex<NDIM> se(cc, d, SideIndex<NDIM>::Lower);
+                            mat_cols[idx] = (*dof_index_data)(se);
+
+                            idx += 1;
+                            mat_vals[idx] = matrix_coefs(i, stencil_map[shift_d_minus + shift_axis_minus]);
+                            const SideIndex<NDIM> sw(cc + shift_axis_minus, d, SideIndex<NDIM>::Lower);
+                            mat_cols[idx] = (*dof_index_data)(sw);
+                        }
+                    }
+#if !defined(NDEBUG)
+                    TBOX_ASSERT(idx == (stencil_sz - 1));
+#endif
+                    ierr = MatSetValues(mat, 1, &dof_index, stencil_sz, &mat_cols[0], &mat_vals[0], INSERT_VALUES);
+                    IBTK_CHKERRQ(ierr);
+                }
+            }
+        }
+    }
+
+    // Assemble the matrix.
+    ierr = MatAssemblyBegin(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+    ierr = MatAssemblyEnd(mat, MAT_FINAL_ASSEMBLY);
+    IBTK_CHKERRQ(ierr);
+
+    // Modify the matrix coefficients for Dirichlet BCs for the normal component of the velocity
+    std::vector<int> dirichlet_rows;
+    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+            PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
+        const int n_physical_codim1_boxes = physical_codim1_boxes.size();
+
+        Pointer<SideData<NDIM, int> > dof_index_data = patch->getPatchData(dof_index_idx);
+
+        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        {
+            for (int n = 0; n < n_physical_codim1_boxes; ++n)
+            {
+                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const unsigned int location_index = bdry_box.getLocationIndex();
+                const unsigned int bdry_normal_axis = location_index / 2;
+                const bool is_lower = location_index % 2 == 0;
+
+                if (bdry_normal_axis != axis) continue;
+
+                const Box<NDIM> bc_fill_box =
+                    pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
+                const BoundaryBox<NDIM> trimmed_bdry_box =
+                    PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+                const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+
+                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+
+                // Set the boundary condition coefficients.
+                static const bool homogeneous_bc = true;
+                auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
+                if (extended_bc_coef)
+                {
+                    extended_bc_coef->clearTargetPatchDataIndex();
+                    extended_bc_coef->setHomogeneousBc(homogeneous_bc);
+                }
+                bc_coefs[axis]->setBcCoefs(
+                    acoef_data, bcoef_data, gcoef_data, nullptr, *patch, trimmed_bdry_box, data_time);
+                if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
+
+                // Modify the matrix coefficients to account for homogeneous
+                // boundary conditions.
+                //
+                // If b == 0 we enforce Dirichlet condition directly.
+                for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+                {
+                    const hier::Index<NDIM>& i = bc();
+                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+
+                    const int dof_index = (*dof_index_data)(i_s);
+                    if (UNLIKELY(proc_lower > dof_index || dof_index >= proc_upper)) continue;
+
+                    const double& b = (*bcoef_data)(i, 0);
+                    if (IBTK::abs_equal_eps(b, 0.0))
+                    {
+#if !defined(NDEBUG)
+                        const double& a = (*acoef_data)(i, 0);
+                        TBOX_ASSERT(IBTK::rel_equal_eps(a, 1.0));
+#endif
+                        dirichlet_rows.push_back(dof_index);
+                    }
+                }
+            }
+        }
+    }
+
+    // Send-in the (local) Dirichlet row information to PETSc Mat
+    const int num_dirichlet_rows = dirichlet_rows.size();
+    ierr = MatZeroRows(mat, num_dirichlet_rows, &dirichlet_rows[0], /*diag_value*/ 1.0, NULL, NULL);
+    IBTK_CHKERRQ(ierr);
+    return;
+} // constructPatchLevelVCSCViscousDilatationalOp
 
 void
 PETScMatUtilities::constructPatchLevelSCInterpOp(Mat& mat,

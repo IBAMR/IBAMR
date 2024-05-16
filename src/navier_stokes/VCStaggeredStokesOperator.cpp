@@ -81,7 +81,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 {
     IBAMR_TIMER_START(t_apply);
 
-    auto vc_stokes_op_spec = static_cast<const VCStaggeredStokesOpSpec&>(*d_problem_spec);
+    auto& vc_stokes_op_spec = static_cast<const VCStaggeredStokesOpSpec&>(*d_problem_spec);
 
     // Get the vector components.
     const int U_idx = x.getComponentDescriptorIndex(0);
