@@ -376,6 +376,16 @@ private:
     double getTimeStepSizeRatio() const;
 
     /*!
+     * Apply divergence-preserving (and curl-preserving) prolongation to the specified staggered-grid velocity field.
+     */
+    void applyDivergencePreservingProlongation(int U_idx,
+                                               int level_number,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > old_level,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                               double init_data_time) const;
+
+    /*!
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;

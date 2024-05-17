@@ -1878,71 +1878,14 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
         level->allocatePatchData(scratch_data, init_data_time);
         if (old_level) old_level->allocatePatchData(scratch_data, init_data_time);
 
-        // Set the indicator data to equal "0" in each patch of the new patch
-        // level, and initialize values of U to cause floating point errors if
-        // we fail to re-initialize it properly.
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        // Apply divergence and curl preserving prolongation to all stored velocity fields.
+        std::vector<int> U_idxs = { d_U_current_idx };
+        if (d_U_old_current_idx != IBTK::invalid_index)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-
-            Pointer<SideData<NDIM, double> > indicator_data = patch->getPatchData(d_indicator_idx);
-            indicator_data->fillAll(0.0);
-
-            Pointer<SideData<NDIM, double> > U_current_data = patch->getPatchData(d_U_current_idx);
-            Pointer<SideData<NDIM, double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-            Pointer<SideData<NDIM, double> > U_src_data = patch->getPatchData(d_U_src_idx);
-            U_current_data->fillAll(std::numeric_limits<double>::quiet_NaN());
-            U_regrid_data->fillAll(std::numeric_limits<double>::quiet_NaN());
-            U_src_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+            U_idxs.push_back(d_U_old_current_idx);
         }
-
-        if (old_level)
-        {
-            // Set the indicator data to equal "1" on each patch of the old
-            // patch level and reset U.
-            for (PatchLevel<NDIM>::Iterator p(old_level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = old_level->getPatch(p());
-
-                Pointer<SideData<NDIM, double> > indicator_data = patch->getPatchData(d_indicator_idx);
-                indicator_data->fillAll(1.0);
-
-                Pointer<SideData<NDIM, double> > U_current_data = patch->getPatchData(d_U_current_idx);
-                Pointer<SideData<NDIM, double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-                Pointer<SideData<NDIM, double> > U_src_data = patch->getPatchData(d_U_src_idx);
-                U_regrid_data->copy(*U_current_data);
-                U_src_data->copy(*U_current_data);
-            }
-
-            // Create a communications schedule to copy data from the old patch
-            // level to the new patch level.
-            //
-            // Note that this will set the indicator data to equal "1" at each
-            // location in the new patch level that is a copy of a location from
-            // the old patch level.
-            RefineAlgorithm<NDIM> copy_data;
-            copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, nullptr);
-            copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, nullptr);
-            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, nullptr);
-            ComponentSelector bc_fill_data;
-            bc_fill_data.setFlag(d_U_regrid_idx);
-            bc_fill_data.setFlag(d_U_src_idx);
-            CartSideRobinPhysBdryOp phys_bdry_bc_op(bc_fill_data, d_U_bc_coefs, false);
-            copy_data.createSchedule(level, old_level, &phys_bdry_bc_op)->fillData(init_data_time);
-        }
-
-        // Setup the divergence- and curl-preserving prolongation refine
-        // algorithm and refine the velocity data.
-        RefineAlgorithm<NDIM> fill_div_free_prolongation;
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, nullptr);
-        Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, d_U_refine_type);
-        Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
-        CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
-        CartSideDoubleDivPreservingRefine div_preserving_op(
-            d_U_regrid_idx, d_U_src_idx, d_indicator_idx, refine_op, coarsen_op, init_data_time, &phys_bdry_bc_op);
-        fill_div_free_prolongation.createSchedule(level, old_level, level_number - 1, hierarchy, &div_preserving_op)
-            ->fillData(init_data_time);
+        for (auto U_idx : U_idxs)
+            applyDivergencePreservingProlongation(U_idx, level_number, level, old_level, hierarchy, init_data_time);
 
         // Free scratch data.
         level->deallocatePatchData(scratch_data);
@@ -2898,6 +2841,76 @@ INSStaggeredHierarchyIntegrator::getTimeStepSizeRatio() const
     {
         return d_current_dt / d_dt_previous[0];
     }
+}
+
+void
+INSStaggeredHierarchyIntegrator::applyDivergencePreservingProlongation(const int U_idx,
+                                                                       const int level_number,
+                                                                       Pointer<PatchLevel<NDIM> > level,
+                                                                       Pointer<PatchLevel<NDIM> > old_level,
+                                                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                       const double init_data_time) const
+{
+    // Set the indicator data to equal "0" in each patch of the new patch level, and initialize values of U to cause
+    // floating point errors if we fail to re-initialize it properly.
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+        Pointer<SideData<NDIM, double> > indicator_data = patch->getPatchData(d_indicator_idx);
+        indicator_data->fillAll(0.0);
+
+        Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_idx);
+        Pointer<SideData<NDIM, double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+        Pointer<SideData<NDIM, double> > U_src_data = patch->getPatchData(d_U_src_idx);
+        U_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+        U_regrid_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+        U_src_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+    }
+
+    if (old_level)
+    {
+        // Set the indicator data to equal "1" on each patch of the old patch level and reset U.
+        for (PatchLevel<NDIM>::Iterator p(old_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = old_level->getPatch(p());
+
+            Pointer<SideData<NDIM, double> > indicator_data = patch->getPatchData(d_indicator_idx);
+            indicator_data->fillAll(1.0);
+
+            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_idx);
+            Pointer<SideData<NDIM, double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+            Pointer<SideData<NDIM, double> > U_src_data = patch->getPatchData(d_U_src_idx);
+            U_regrid_data->copy(*U_data);
+            U_src_data->copy(*U_data);
+        }
+
+        // Create a communications schedule to copy data from the old patch level to the new patch level.
+        //
+        // Note that this will set the indicator data to equal "1" at each location in the new patch level that is a
+        // copy of a location from the old patch level.
+        RefineAlgorithm<NDIM> copy_data;
+        copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, nullptr);
+        copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, nullptr);
+        copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, nullptr);
+        ComponentSelector bc_fill_data;
+        bc_fill_data.setFlag(d_U_regrid_idx);
+        bc_fill_data.setFlag(d_U_src_idx);
+        CartSideRobinPhysBdryOp phys_bdry_bc_op(bc_fill_data, d_U_bc_coefs, false);
+        copy_data.createSchedule(level, old_level, &phys_bdry_bc_op)->fillData(init_data_time);
+    }
+
+    // Setup the divergence- and curl-preserving prolongation refine algorithm and refine the velocity data.
+    RefineAlgorithm<NDIM> fill_div_free_prolongation;
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    fill_div_free_prolongation.registerRefine(U_idx, U_idx, d_U_regrid_idx, nullptr);
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, d_U_refine_type);
+    Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
+    CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
+    CartSideDoubleDivPreservingRefine div_preserving_op(
+        d_U_regrid_idx, d_U_src_idx, d_indicator_idx, refine_op, coarsen_op, init_data_time, &phys_bdry_bc_op);
+    fill_div_free_prolongation.createSchedule(level, old_level, level_number - 1, hierarchy, &div_preserving_op)
+        ->fillData(init_data_time);
 }
 
 //////////////////////////////////////////////////////////////////////////////
