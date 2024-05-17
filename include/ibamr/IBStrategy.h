@@ -279,6 +279,14 @@ public:
         double data_time) = 0;
 
     /*!
+     * Indicate that multistep time stepping will be used.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void setUseMultistepTimeStepping(int n_steps = 1);
+
+    /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */

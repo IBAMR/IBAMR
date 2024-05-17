@@ -93,6 +93,22 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(std::string object_
         }
     }
 
+    // Configure the IB strategy.
+    if (is_multistep_time_stepping_type(d_time_stepping_type))
+    {
+        switch (d_time_stepping_type)
+        {
+        case BDF2:
+            d_ib_method_ops->setUseMultistepTimeStepping(1);
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::IBExplicitHierarchyIntegrator():\n"
+                                     << "  unsupported multistep time stepping type: "
+                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                     << "  supported multistep time stepping types are: BDF2\n");
+        }
+    }
+
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();

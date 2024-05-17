@@ -181,6 +181,14 @@ IBStrategy::updateFixedLEOperators()
 } // updateFixedLEOperators
 
 void
+IBStrategy::setUseMultistepTimeStepping(const int n_steps)
+{
+    TBOX_ASSERT(n_steps > 0);
+    TBOX_ERROR("IBStrategy::setUseMultistepTimeStepping(): unimplemented\n");
+    return;
+} // setUseMultistepTimeStepping
+
+void
 IBStrategy::backwardEulerStep(double /*current_time*/, double /*new_time*/)
 {
     TBOX_ERROR("IBStrategy::backwardEulerStep(): unimplemented\n");
