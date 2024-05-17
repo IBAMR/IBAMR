@@ -634,11 +634,7 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
     if (d_multistep_n_steps > 0)
     {
         TBOX_ASSERT(d_multistep_n_steps == 1);
-        d_X_vecs->copy("current", { "old" });
         d_U_vecs->copy("current", { "old" });
-        d_F_vecs->copy("current", { "old" });
-        if (d_P_vecs) d_P_vecs->copy("current", { "old" });
-        if (d_Q_vecs) d_Q_vecs->copy("current", { "old" });
         d_dt_old.push_front(new_time - current_time);
         if (d_dt_old.size() > static_cast<size_t>(d_multistep_n_steps)) d_dt_old.pop_back();
     }
@@ -909,16 +905,16 @@ IBFEMethod::AB2Step(const double current_time, const double new_time)
 
     const double dt = new_time - current_time;
     const double omega = dt / d_dt_old[0];
-    const double a1 = 1.0 + 0.5 * omega;
-    const double a2 = -0.5 * omega;
+    const double b1 = 1.0 + 0.5 * omega;
+    const double b2 = -0.5 * omega;
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         int ierr = VecWAXPY(d_X_vecs->get("new", part).vec(),
-                            a1 * dt,
+                            b1 * dt,
                             d_U_vecs->get("current", part).vec(),
                             d_X_vecs->get("current", part).vec());
         IBTK_CHKERRQ(ierr);
-        ierr = VecAXPY(d_X_vecs->get("new", part).vec(), a2 * dt, d_U_vecs->get("old", part).vec());
+        ierr = VecAXPY(d_X_vecs->get("new", part).vec(), b2 * dt, d_U_vecs->get("old", part).vec());
         IBTK_CHKERRQ(ierr);
         ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
                            0.5,
