@@ -371,6 +371,11 @@ private:
     TimeSteppingType getConvectiveTimeSteppingType(int cycle_num);
 
     /*!
+     * Determine the time step size ratio.
+     */
+    double getTimeStepSizeRatio() const;
+
+    /*!
      * Hierarchy operations objects.
      */
     SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
@@ -416,6 +421,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_F_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_old_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_Omega_nc_var;
@@ -451,6 +457,8 @@ private:
     int d_Q_current_idx = IBTK::invalid_index, d_Q_new_idx = IBTK::invalid_index, d_Q_scratch_idx = IBTK::invalid_index;
     int d_N_old_current_idx = IBTK::invalid_index, d_N_old_new_idx = IBTK::invalid_index,
         d_N_old_scratch_idx = IBTK::invalid_index;
+    int d_U_old_current_idx = IBTK::invalid_index, d_U_old_new_idx = IBTK::invalid_index,
+        d_U_old_scratch_idx = IBTK::invalid_index;
 
     /*
      * Patch data descriptor for state variables which are only present in the current context.
