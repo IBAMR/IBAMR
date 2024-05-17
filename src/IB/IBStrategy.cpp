@@ -187,6 +187,13 @@ IBStrategy::backwardEulerStep(double /*current_time*/, double /*new_time*/)
     return;
 } // backwardEulerStep
 
+void
+IBStrategy::AB2Step(double /*current_time*/, double /*new_time*/)
+{
+    TBOX_ERROR("IBStrategy::AB2Step(): unimplemented\n");
+    return;
+} // AB2Step
+
 bool
 IBStrategy::hasFluidSources() const
 {
