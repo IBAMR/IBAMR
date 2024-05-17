@@ -631,6 +631,18 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
     if (d_Q_vecs) vecs.push_back(d_Q_vecs->get("half"));
     batch_vec_ghost_update(vecs, INSERT_VALUES, SCATTER_FORWARD);
 
+    if (d_multistep_n_steps > 0)
+    {
+        TBOX_ASSERT(d_multistep_n_steps == 1);
+        d_X_vecs->copy("current", { "old" });
+        d_U_vecs->copy("current", { "old" });
+        d_F_vecs->copy("current", { "old" });
+        if (d_P_vecs) d_P_vecs->copy("current", { "old" });
+        if (d_Q_vecs) d_Q_vecs->copy("current", { "old" });
+        d_dt_old.push_front(new_time - current_time);
+        if (d_dt_old.size() > static_cast<size_t>(d_multistep_n_steps)) d_dt_old.pop_back();
+    }
+
     d_X_vecs->copy("new", { "solution", "current" });
     d_U_vecs->copy("new", { "solution", "current" });
     d_F_vecs->copy(forcing_data_time_str, { "solution", "current" });
@@ -762,6 +774,13 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void
+IBFEMethod::setUseMultistepTimeStepping(const int n_steps)
+{
+    d_multistep_n_steps = n_steps;
+    return;
+} // setUseMultistepTimeStepping
+
+void
 IBFEMethod::forwardEulerStep(const double current_time, const double new_time)
 {
     const double dt = new_time - current_time;
@@ -878,6 +897,43 @@ IBFEMethod::trapezoidalStep(const double current_time, const double new_time)
     }
     return;
 } // trapezoidalStep
+
+void
+IBFEMethod::AB2Step(const double current_time, const double new_time)
+{
+    if (getINSHierarchyIntegrator()->getIntegratorStep() == 0)
+    {
+        forwardEulerStep(current_time, new_time);
+        return;
+    }
+
+    const double dt = new_time - current_time;
+    const double omega = dt / d_dt_old[0];
+    const double a1 = 1.0 + 0.5 * omega;
+    const double a2 = -0.5 * omega;
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        int ierr = VecWAXPY(d_X_vecs->get("new", part).vec(),
+                            a1 * dt,
+                            d_U_vecs->get("current", part).vec(),
+                            d_X_vecs->get("current", part).vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(d_X_vecs->get("new", part).vec(), a2 * dt, d_U_vecs->get("old", part).vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
+                           0.5,
+                           0.5,
+                           0.0,
+                           d_X_vecs->get("current", part).vec(),
+                           d_X_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+        if (d_direct_forcing_kinematics_data[part])
+        {
+            TBOX_ERROR("IBFEDirectForcingKinematics does not implement AB2Step().\n");
+        }
+    }
+    return;
+} // AB2Step
 
 void
 IBFEMethod::computeLagrangianForce(const double data_time)

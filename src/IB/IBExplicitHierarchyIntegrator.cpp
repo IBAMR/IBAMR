@@ -99,6 +99,7 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(std::string object_
         switch (d_time_stepping_type)
         {
         case BDF2:
+            // NOTE: We will actually use AB2 for the structure --- this is more-or-less a VSSBDF2 scheme.
             d_ib_method_ops->setUseMultistepTimeStepping(1);
             break;
         default:
