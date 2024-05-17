@@ -93,6 +93,22 @@ IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(std::string object_
         }
     }
 
+    // Configure the IB strategy.
+    if (is_multistep_time_stepping_type(d_time_stepping_type))
+    {
+        switch (d_time_stepping_type)
+        {
+        case BDF2:
+            d_ib_method_ops->setUseMultistepTimeStepping(1);
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::IBExplicitHierarchyIntegrator():\n"
+                                     << "  unsupported multistep time stepping type: "
+                                     << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                     << "  supported multistep time stepping types are: BDF2\n");
+        }
+    }
+
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
     if (from_restart) getFromRestart();
@@ -128,14 +144,15 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
         if (d_f_current_idx != invalid_index) d_hier_velocity_data_ops->copyData(d_f_current_idx, d_f_idx);
         break;
     case MIDPOINT_RULE:
+    case BDF2:
         // intentionally blank
         break;
     default:
-        TBOX_ERROR(
-            d_object_name
-            << "::preprocessIntegrateHierarchy():\n"
-            << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-            << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+        TBOX_ERROR(d_object_name << "::preprocessIntegrateHierarchy():\n"
+                                 << "  unsupported time stepping type: "
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, BDF2, "
+                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE, ADAMS_BASHFORTH\n");
     }
 
     // Compute an initial prediction of the updated positions of the Lagrangian
@@ -143,7 +160,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
     //
     // NOTE: The velocity should already have been interpolated to the
     // curvilinear mesh and should not need to be re-interpolated.
-    if (d_use_structure_predictor)
+    if (d_use_structure_predictor && d_time_stepping_type != BDF2)
     {
         if (d_enable_logging)
             plog << d_object_name << "::preprocessIntegrateHierarchy(): performing Lagrangian forward Euler step\n";
@@ -170,6 +187,19 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
     const int p_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getPressureVariable(),
                                                                d_ins_hier_integrator->getNewContext());
 
+    // Update the structure configuration if we are using VSSBDF-type time stepping.
+    if (d_time_stepping_type == BDF2)
+    {
+        if (cycle_num == 0)
+        {
+            d_ib_method_ops->AB2Step(current_time, new_time);
+        }
+        else
+        {
+            TBOX_ERROR("BDF-type time stepping does not currently support multiple cycles\n");
+        }
+    }
+
     // Compute the Lagrangian forces and spread them to the Eulerian grid.
     switch (d_time_stepping_type)
     {
@@ -178,17 +208,21 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
         // intentionally blank
         break;
     case MIDPOINT_RULE:
+    case BDF2:
+    {
+        const double data_time = is_bdf_time_stepping_type(d_time_stepping_type) ? new_time : half_time;
         if (d_enable_logging) plog << d_object_name << "::integrateHierarchy(): computing Lagrangian force\n";
-        d_ib_method_ops->computeLagrangianForce(half_time);
+        d_ib_method_ops->computeLagrangianForce(data_time);
         if (d_enable_logging)
             plog << d_object_name << "::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid\n";
         d_hier_velocity_data_ops->setToScalar(d_f_idx, 0.0);
         d_u_phys_bdry_op->setPatchDataIndex(d_f_idx);
         d_u_phys_bdry_op->setHomogeneousBc(true);
         d_ib_method_ops->spreadForce(
-            d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), half_time);
+            d_f_idx, d_u_phys_bdry_op, getProlongRefineSchedules(d_object_name + "::f"), data_time);
         d_u_phys_bdry_op->setHomogeneousBc(false);
         break;
+    }
     case TRAPEZOIDAL_RULE:
         if (d_use_structure_predictor || cycle_num > 0)
         {
@@ -207,20 +241,21 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
         }
         break;
     default:
-        TBOX_ERROR(
-            d_object_name
-            << "::integrateHierarchy():\n"
-            << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-            << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+        TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                 << "  unsupported time stepping type: "
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, BDF2, "
+                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE, BDF2\n");
     }
 
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
     if (d_ib_method_ops->hasFluidSources())
     {
+        const double data_time = is_bdf_time_stepping_type(d_time_stepping_type) ? new_time : half_time;
         if (d_enable_logging)
             plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
-        d_ib_method_ops->computeLagrangianFluidSource(half_time);
+        d_ib_method_ops->computeLagrangianFluidSource(data_time);
         if (d_enable_logging)
             plog << d_object_name
                  << "::integrateHierarchy(): spreading Lagrangian fluid source "
@@ -229,7 +264,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
         // NOTE: This does not correctly treat the case in which the structure
         // is close to the physical boundary.
         d_ib_method_ops->spreadFluidSource(
-            d_q_idx, nullptr, getProlongRefineSchedules(d_object_name + "::q"), half_time);
+            d_q_idx, nullptr, getProlongRefineSchedules(d_object_name + "::q"), data_time);
     }
 
     // Solve the incompressible Navier-Stokes equations.
@@ -258,6 +293,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
     {
     case FORWARD_EULER:
     case BACKWARD_EULER:
+    case TRAPEZOIDAL_RULE:
+    case BDF2:
         d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
         if (d_enable_logging)
             plog << d_object_name
@@ -271,7 +308,6 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
                                              new_time);
         break;
     case MIDPOINT_RULE:
-    {
         d_hier_velocity_data_ops->linearSum(d_u_idx, 0.5, u_current_idx, 0.5, u_new_idx);
         if (d_enable_logging)
             plog << d_object_name
@@ -283,27 +319,13 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
                                              getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
                                              getGhostfillRefineSchedules(d_object_name + "::u"),
                                              half_time);
-    }
-    break;
-    case TRAPEZOIDAL_RULE:
-        d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
-        if (d_enable_logging)
-            plog << d_object_name
-                 << "::integrateHierarchy(): interpolating Eulerian velocity to "
-                    "the Lagrangian mesh\n";
-        d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-        d_u_phys_bdry_op->setHomogeneousBc(false);
-        d_ib_method_ops->interpolateVelocity(d_u_idx,
-                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                             getGhostfillRefineSchedules(d_object_name + "::u"),
-                                             new_time);
         break;
     default:
-        TBOX_ERROR(
-            d_object_name
-            << "::integrateHierarchy():\n"
-            << "  unsupported time stepping type: " << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-            << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+        TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
+                                 << "  unsupported time stepping type: "
+                                 << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
+                                 << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, BDF2, "
+                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE, BDF2\n");
     }
 
     // Compute an updated prediction of the updated positions of the Lagrangian
@@ -333,12 +355,15 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
                 plog << d_object_name << "::integrateHierarchy(): performing Lagrangian trapezoidal-rule step\n";
             d_ib_method_ops->trapezoidalStep(current_time, new_time);
             break;
+        case BDF2:
+            // intentionally blank
+            break;
         default:
             TBOX_ERROR(d_object_name << "::integrateHierarchy():\n"
                                      << "  unsupported time stepping type: "
                                      << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
-                                     << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, "
-                                        "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
+                                     << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, BDF2, "
+                                        "MIDPOINT_RULE, TRAPEZOIDAL_RULE, BDF2\n");
         }
     }
 
@@ -346,6 +371,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
     // fluid sources or sinks.
     if (d_ib_method_ops->hasFluidSources())
     {
+        const double data_time = is_bdf_time_stepping_type(d_time_stepping_type) ? new_time : half_time;
         if (d_enable_logging)
             plog << d_object_name
                  << "::integrateHierarchy(): interpolating Eulerian fluid "
@@ -356,7 +382,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
         d_ib_method_ops->interpolatePressure(d_p_idx,
                                              getCoarsenSchedules(d_object_name + "::p::CONSERVATIVE_COARSEN"),
                                              getGhostfillRefineSchedules(d_object_name + "::p"),
-                                             half_time);
+                                             data_time);
     }
 
     return;
@@ -374,6 +400,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
     {
         using ITC = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<ITC> ghostfills;
+        ghostfills.reserve(indices.size());
         for (const int& idx : indices)
         {
             ghostfills.emplace_back(idx,
@@ -411,21 +438,23 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
                                                                    d_ins_hier_integrator->getCurrentContext());
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
+    if (!is_bdf_time_stepping_type(d_time_stepping_type))
+    {
 #ifndef NDEBUG
-    ops->setToScalar(d_u_idx, std::numeric_limits<double>::quiet_NaN(), false);
+        ops->setToScalar(d_u_idx, std::numeric_limits<double>::quiet_NaN(), false);
 #endif
-    ops->copyData(d_u_idx, u_new_idx);
-    if (d_enable_logging)
-        plog << d_object_name
-             << "::postprocessIntegrateHierarchy(): interpolating Eulerian "
-                "velocity to the Lagrangian mesh\n";
-    d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
-    d_u_phys_bdry_op->setHomogeneousBc(false);
-    d_ib_method_ops->interpolateVelocity(d_u_idx,
-                                         getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
-                                         getGhostfillRefineSchedules(d_object_name + "::u"),
-                                         new_time);
-
+        ops->copyData(d_u_idx, u_new_idx);
+        if (d_enable_logging)
+            plog << d_object_name
+                 << "::postprocessIntegrateHierarchy(): interpolating Eulerian "
+                    "velocity to the Lagrangian mesh\n";
+        d_u_phys_bdry_op->setPatchDataIndex(d_u_idx);
+        d_u_phys_bdry_op->setHomogeneousBc(false);
+        d_ib_method_ops->interpolateVelocity(d_u_idx,
+                                             getCoarsenSchedules(d_object_name + "::u::CONSERVATIVE_COARSEN"),
+                                             getGhostfillRefineSchedules(d_object_name + "::u"),
+                                             new_time);
+    }
     if (d_markers)
     {
 #ifndef NDEBUG
