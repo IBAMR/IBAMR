@@ -90,7 +90,7 @@ struct VCViscousDilatationalOpSpec : public VCViscousOpSpec
         d_L_is_const = false;
     } // reset
 
-    VCViscousOpSpec getVCViscousOpSpec()
+    operator VCViscousOpSpec()
     {
         VCViscousOpSpec obj;
         obj.d_C_idx = this->d_C_idx;
@@ -101,7 +101,7 @@ struct VCViscousDilatationalOpSpec : public VCViscousOpSpec
         obj.d_C_is_const = this->d_C_is_const;
 
         return obj;
-    } // getVCViscousOpSpec
+    } // operator VCViscousOpSpec
 
     // L_idx is the dilatational viscosity coefficient
     int d_L_idx = IBTK::invalid_index;

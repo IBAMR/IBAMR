@@ -2299,7 +2299,7 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     const bool has_pressure_nullspace = d_normalize_pressure;
 
     // Create a sub-specification object from the Stokes operator.
-    d_vc_velocity_op_spec = d_vc_stokes_op_spec.getVCViscousDilatationalOpSpec();
+    d_vc_velocity_op_spec = d_vc_stokes_op_spec;
     d_velocity_solver->setProblemSpecification(&d_vc_velocity_op_spec);
     d_velocity_solver->setPhysicalBcCoefs(d_U2_star_bc_coefs);
     d_velocity_solver->setSolutionTime(new_time);

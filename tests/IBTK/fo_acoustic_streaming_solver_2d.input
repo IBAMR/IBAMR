@@ -7,7 +7,7 @@ RHO0 = 1.0
 acoustic_angular_freq = 1.0
 sound_speed = 1.0
 
-N = 128
+N = 64
 PERIODIC_BC = 0
 
 u {

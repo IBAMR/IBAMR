@@ -46,36 +46,20 @@
 
 // Routines to reset fluid properties
 void
-callSetFluidDensityCallbackFunction(int rho_idx,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
-                                    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                    const int /*cycle_num*/,
-                                    const double time,
-                                    const double /*current_time*/,
-                                    const double /*new_time*/,
-                                    void* ctx)
+callSetFluidPropertyCallbackFunction(int dst_idx,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > dst_var,
+                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                     const int /*cycle_num*/,
+                                     const double time,
+                                     const double /*current_time*/,
+                                     const double /*new_time*/,
+                                     void* ctx)
 {
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    CartGridFunction* rho_fcn = static_cast<CartGridFunction*>(ctx);
-    rho_fcn->setDataOnPatchHierarchy(rho_idx, rho_var, patch_hierarchy, time);
+    CartGridFunction* cart_fcn = static_cast<CartGridFunction*>(ctx);
+    cart_fcn->setDataOnPatchHierarchy(dst_idx, dst_var, patch_hierarchy, time);
     return;
-} // callSetFluidDensityCallbackFunction
-
-void
-callSetFluidShearViscosityCallbackFunction(int mu_idx,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
-                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                           const int /*cycle_num*/,
-                                           const double time,
-                                           const double /*current_time*/,
-                                           const double /*new_time*/,
-                                           void* ctx)
-{
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
-    CartGridFunction* mu_fcn = static_cast<CartGridFunction*>(ctx);
-    mu_fcn->setDataOnPatchHierarchy(mu_idx, mu_var, patch_hierarchy, time);
-    return;
-} // callSetFluidShearViscosityCallbackFunction
+} // callSetFluidPropertyCallbackFunction
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -167,10 +151,9 @@ main(int argc, char* argv[])
         Pointer<CartGridFunction> mu_init =
             new muParserCartGridFunction("mu_init", app_initializer->getComponentDatabase("mu"), grid_geometry);
         time_integrator->registerShearViscosityInitialConditions(mu_init);
-        // Pointer<CartGridFunction> lambda_init =
-        //     new muParserCartGridFunction("lambda_init", app_initializer->getComponentDatabase("lambda"),
-        //     grid_geometry);
-        // time_integrator->registerBulkViscosityInitialConditions(lambda_init);
+        Pointer<CartGridFunction> lambda_init =
+            new muParserCartGridFunction("lambda_init", app_initializer->getComponentDatabase("lambda"), grid_geometry);
+        time_integrator->registerBulkViscosityInitialConditions(lambda_init);
 
         // Create boundary condition specification objects for the first-order system.
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
@@ -258,14 +241,16 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
         time_integrator->registerShearViscosityVariable(mu_var);
 
-        // Pointer<CellVariable<NDIM, double> > lambda_var = new CellVariable<NDIM, double>("lambda");
-        // time_integrator->registerBulkViscosityVariable(lambda_var);
+        Pointer<CellVariable<NDIM, double> > lambda_var = new CellVariable<NDIM, double>("lambda");
+        time_integrator->registerBulkViscosityVariable(lambda_var);
 
         // Callback fncs to reset fluid material properties
-        time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
+        time_integrator->registerResetFluidDensityFcn(&callSetFluidPropertyCallbackFunction,
                                                       static_cast<void*>(rho_init.getPointer()));
-        time_integrator->registerResetFluidShearViscosityFcn(&callSetFluidShearViscosityCallbackFunction,
+        time_integrator->registerResetFluidShearViscosityFcn(&callSetFluidPropertyCallbackFunction,
                                                              static_cast<void*>(mu_init.getPointer()));
+        time_integrator->registerResetFluidBulkViscosityFcn(&callSetFluidPropertyCallbackFunction,
+                                                            static_cast<void*>(lambda_init.getPointer()));
 
         // Register body force and velocity diveregnce functions for the first and second order systems
         Pointer<CartGridFunction> F1_fcn =
@@ -416,6 +401,7 @@ main(int argc, char* argv[])
         u1_err[0] = hier_sc_data_ops.L1Norm(u1_idx, wgt_sc_idx);
         u1_err[1] = hier_sc_data_ops.L2Norm(u1_idx, wgt_sc_idx);
         u1_err[2] = hier_sc_data_ops.maxNorm(u1_idx, wgt_sc_idx);
+
         pout << "Error in u1 at time " << loop_time << ":\n"
              << "  L1-norm:  " << std::setprecision(10) << u1_err[0] << "\n"
              << "  L2-norm:  " << u1_err[1] << "\n"
@@ -426,6 +412,7 @@ main(int argc, char* argv[])
         u2_err[0] = hier_sc_data_ops.L1Norm(u2_idx, wgt_sc_idx);
         u2_err[1] = hier_sc_data_ops.L2Norm(u2_idx, wgt_sc_idx);
         u2_err[2] = hier_sc_data_ops.maxNorm(u2_idx, wgt_sc_idx);
+
         pout << "Error in u2 at time " << loop_time << ":\n"
              << "  L1-norm:  " << std::setprecision(10) << u2_err[0] << "\n"
              << "  L2-norm:  " << u2_err[1] << "\n"
@@ -453,6 +440,35 @@ main(int argc, char* argv[])
              << "  L2-norm:  " << p2_err[1] << "\n"
              << "  max-norm: " << p2_err[2] << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
+
+        if (IBTK_MPI::getRank() == 0)
+        {
+            std::ofstream out("output");
+
+            out << "Error in u1 at time " << loop_time << ":\n"
+                << "  L1-norm:  " << std::setprecision(10) << u1_err[0] << "\n"
+                << "  L2-norm:  " << u1_err[1] << "\n"
+                << "  max-norm: " << u1_err[2] << "\n"
+                << "+++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+
+            out << "Error in u2 at time " << loop_time << ":\n"
+                << "  L1-norm:  " << std::setprecision(10) << u2_err[0] << "\n"
+                << "  L2-norm:  " << u2_err[1] << "\n"
+                << "  max-norm: " << u2_err[2] << "\n"
+                << "+++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+
+            out << "Error in p1 at time " << loop_time << ":\n"
+                << "  L1-norm:  " << p1_err[0] << "\n"
+                << "  L2-norm:  " << p1_err[1] << "\n"
+                << "  max-norm: " << p1_err[2] << "\n"
+                << "+++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+
+            out << "Error in p2 at time " << loop_time << ":\n"
+                << "  L1-norm:  " << p2_err[0] << "\n"
+                << "  L2-norm:  " << p2_err[1] << "\n"
+                << "  max-norm: " << p2_err[2] << "\n"
+                << "+++++++++++++++++++++++++++++++++++++++++++++++++++" << std::endl;
+        }
 
         if (dump_viz_data && uses_visit)
         {
