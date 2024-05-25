@@ -1542,7 +1542,7 @@ c
 
       hx = dx(0)
       hy = dx(1)
-c     cfl = 0.45d0
+      cfl = 0.45d0
       hmin = dmin1(hx,hy)
       sgn = S_eps(V(i0,i1),hmin)
 
