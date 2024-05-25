@@ -17,6 +17,7 @@
 #define included_IBAMR_EnthalpyHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include "ibamr/CellConvectiveOperator.h"
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
 
 namespace IBTK
@@ -28,7 +29,7 @@ class PoissonSolver;
 
 namespace IBAMR
 {
-class ConvectiveOperator;
+class CellConvectiveOperator;
 } // namespace IBAMR
 
 namespace SAMRAI
@@ -139,6 +140,40 @@ public:
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
+    /*!
+     * \brief Register LevelSet variable \f$ \phi \f$ maintained by AdvDiffHierarchyIntegrator.
+     */
+    void registerLevelSetVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > phi_var);
+
+    /*!
+     * \brief Register liquid fraction variable for extrapolation.
+     */
+    void registerLiquidFractionVariableForExtrapolation(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
+
+    // /*!
+    //  * \brief Function to compute the advection velocity which is used for liquid fraction extrapolation to gas
+    //  region.
+    //  */
+    // using LiquidFractionExtrapAdvectionVelocityPtr = void (*)(int F_idx,
+    //                                             SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+    //                                             int cycle_num,
+    //                                             double time,
+    //                                             double current_time,
+    //                                             double new_time,
+    //                                             void* ctx);
+
+    // /*!
+    //  * \brief Register function to compute the advection velocity for liquid fraction extrapolation.
+    //  */
+    // void registerLiquidFractionExtrapAdvectionVelocity(LiquidFractionExtrapAdvectionVelocityPtr callback, void* ctx)
+
+protected:
+    /*!
+     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     */
+    virtual void regridHierarchyEndSpecialized() override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -205,6 +240,27 @@ private:
     void computeLiquidFraction(int lf_idx, const int h_idx, const int H_idx);
 
     /*!
+     * \brief Extrapolate liquid fraction from PCM to gas region using constant extrapolation.
+     */
+    void extrapolateLiquidFractionToGasRegion(int lf_new_idx);
+
+    /*!
+     * \brief Compute advection velocity \f$ u_{\rm adv} = H(-\phi) n \f$.
+     */
+    void computeAdvectionVelocityForExtrapolation(int u_adv_fc_lf_extrap_current_idx,
+                                                  const double current_time,
+                                                  const double new_time);
+
+    /*!
+     * Get the convective operator for solving lf extrapolation equation.
+     *
+     * If the convective operator has not already been constructed, then this
+     * function will initialize a default convective operator.
+     */
+    SAMRAI::tbox::Pointer<CellConvectiveOperator> getLiquidFractionExtrapConvectiveOperator(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_extrap_var);
+
+    /*!
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_h_var;
@@ -253,6 +309,34 @@ private:
      */
     int d_max_inner_iterations = 5;
     double d_lf_iteration_error_tolerance = 1e-8;
+
+    /*!
+     * Machineries related to constant extrapolation.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_extrap_var, d_lf_extrap_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_extrap_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_adv_fc_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_adv_sc_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_u_adv_cc_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_normal_lf_extrap_var;
+
+    int d_lf_extrap_current_idx = IBTK::invalid_index, d_lf_extrap_new_idx = IBTK::invalid_index,
+        d_lf_extrap_scratch_idx = IBTK::invalid_index;
+    int d_lf_extrap_interp_idx = IBTK::invalid_index;
+    int d_u_adv_fc_lf_extrap_current_idx = IBTK::invalid_index;
+    int d_u_adv_sc_lf_extrap_current_idx = IBTK::invalid_index;
+    int d_u_adv_cc_lf_extrap_current_idx = IBTK::invalid_index;
+    int d_normal_lf_extrap_current_idx = IBTK::invalid_index;
+    int d_lf_extrap_rhs_scratch_idx = IBTK::invalid_index;
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_extrap_convective_op_input_db = d_default_convective_op_input_db;
+    bool d_lf_extrap_convective_op_needs_init;
+    SAMRAI::tbox::Pointer<CellConvectiveOperator> d_lf_extrap_convective_op = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_lf_extrap_sol, d_lf_extrap_rhs;
+
+    int d_lf_extrap_max_num_time_steps = 15;
+    double d_lf_extrap_cell_size;
 };
 } // namespace IBAMR
 

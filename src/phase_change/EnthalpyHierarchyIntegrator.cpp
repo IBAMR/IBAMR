@@ -12,6 +12,7 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include "ibamr/AdvDiffCUIConvectiveOperator.h"
 #include "ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h"
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
@@ -20,7 +21,6 @@
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
-#include "ibtk/CCLaplaceOperator.h"
 #include "ibtk/CartGridFunction.h"
 #include "ibtk/IBTK_MPI.h"
 #include "ibtk/LaplaceOperator.h"
@@ -35,7 +35,6 @@
 #include "FaceVariable.h"
 #include "GriddingAlgorithm.h"
 #include "HierarchyCellDataOpsReal.h"
-#include "HierarchyDataOpsManager.h"
 #include "HierarchyFaceDataOpsReal.h"
 #include "HierarchySideDataOpsReal.h"
 #include "IntVector.h"
@@ -79,6 +78,77 @@ class RobinBcCoefStrategy;
 } // namespace solv
 } // namespace SAMRAI
 
+// FORTRAN ROUTINES
+#if (NDIM == 2)
+#define SC_NORMAL_FC IBAMR_FC_FUNC_(sc_normal_2d, SC_NORMAL_2D)
+#define NAVIER_STOKES_SIDE_TO_FACE_FC IBAMR_FC_FUNC_(navier_stokes_side_to_face2d, NAVIER_STOKES_SIDE_TO_FACE2D)
+#endif
+
+#if (NDIM == 3)
+#define SC_NORMAL_FC IBAMR_FC_FUNC_(sc_normal_3d, SC_NORMAL_3D)
+#define NAVIER_STOKES_SIDE_TO_FACE_FC IBAMR_FC_FUNC_(navier_stokes_side_to_face3d, NAVIER_STOKES_SIDE_TO_FACE3D)
+#endif
+
+extern "C"
+{
+    void SC_NORMAL_FC(double* N00,
+                      double* N01,
+#if (NDIM == 3)
+                      double* N02,
+#endif
+                      double* N10,
+                      double* N11,
+#if (NDIM == 3)
+                      double* N12,
+                      double* N20,
+                      double* N21,
+                      double* N22,
+#endif
+                      const int& N_gcw,
+                      const double* U,
+                      const int& U_gcw,
+                      const int& ilower0,
+                      const int& iupper0,
+                      const int& ilower1,
+                      const int& iupper1,
+#if (NDIM == 3)
+                      const int& ilower2,
+                      const int& iupper2,
+#endif
+                      const double* dx);
+
+    void NAVIER_STOKES_SIDE_TO_FACE_FC(
+#if (NDIM == 2)
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const int&,
+        double*,
+        double*,
+        const int&
+#endif
+#if (NDIM == 3)
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const int&,
+        const double*,
+        const double*,
+        const double*,
+        const int&,
+        double*,
+        double*,
+        double*,
+        const int&
+#endif
+    );
+}
+
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
 namespace IBAMR
@@ -91,9 +161,59 @@ static const int ENTHALPY_PC_HIERARCHY_INTEGRATOR_VERSION = 4;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
+static const int SIDEG = 1;
+static const int FACEG = 1;
 static const int NOGHOSTS = 0;
 
 static const double H_LIM = 0.5;
+
+// Copy data from a side-centered variable to a face-centered variable.
+void
+copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy<NDIM> > hierarchy)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const hier::Index<NDIM>& ilower = patch->getBox().lower();
+            const hier::Index<NDIM>& iupper = patch->getBox().upper();
+            Pointer<SideData<NDIM, double> > U_sc_data = patch->getPatchData(U_sc_idx);
+            Pointer<FaceData<NDIM, double> > U_fc_data = patch->getPatchData(U_fc_idx);
+#if !defined(NDEBUG)
+            TBOX_ASSERT(U_sc_data->getGhostCellWidth().min() == U_sc_data->getGhostCellWidth().max());
+            TBOX_ASSERT(U_fc_data->getGhostCellWidth().min() == U_fc_data->getGhostCellWidth().max());
+#endif
+            const int U_sc_gcw = U_sc_data->getGhostCellWidth().max();
+            const int U_fc_gcw = U_fc_data->getGhostCellWidth().max();
+            NAVIER_STOKES_SIDE_TO_FACE_FC(ilower(0),
+                                          iupper(0),
+                                          ilower(1),
+                                          iupper(1),
+#if (NDIM == 3)
+                                          ilower(2),
+                                          iupper(2),
+#endif
+                                          U_sc_data->getPointer(0),
+                                          U_sc_data->getPointer(1),
+#if (NDIM == 3)
+                                          U_sc_data->getPointer(2),
+#endif
+                                          U_sc_gcw,
+                                          U_fc_data->getPointer(0),
+                                          U_fc_data->getPointer(1),
+#if (NDIM == 3)
+                                          U_fc_data->getPointer(2),
+#endif
+                                          U_fc_gcw);
+        }
+    }
+    return;
+} // copy_side_to_face
+
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -129,6 +249,8 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
 
     // Register additional variables required for present time stepping algorithm.
     const IntVector<NDIM> cell_ghosts = CELLG;
+    const IntVector<NDIM> side_ghosts = SIDEG;
+    const IntVector<NDIM> face_ghosts = FACEG;
     const IntVector<NDIM> no_ghosts = NOGHOSTS;
 
     // Register specific enthalpy.
@@ -141,7 +263,55 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
                      "CONSERVATIVE_LINEAR_REFINE");
     if (d_visit_writer && d_output_h) d_visit_writer->registerPlotQuantity("enthalpy", "SCALAR", d_h_current_idx);
 
+    registerVariable(d_lf_extrap_current_idx,
+                     d_lf_extrap_new_idx,
+                     d_lf_extrap_scratch_idx,
+                     d_lf_extrap_var,
+                     cell_ghosts,
+                     "CONSERVATIVE_COARSEN",
+                     "CONSERVATIVE_LINEAR_REFINE");
+    if (d_visit_writer) d_visit_writer->registerPlotQuantity("lf_extrap", "SCALAR", d_lf_extrap_current_idx);
+
+    // Plotting extrapolation velocity
+    d_u_adv_cc_lf_extrap_var = new CellVariable<NDIM, double>(d_object_name + "::rho_interp_cc", NDIM);
+    registerVariable(d_u_adv_cc_lf_extrap_current_idx, d_u_adv_cc_lf_extrap_var, no_ghosts, getCurrentContext());
+    if (d_visit_writer)
+    {
+        d_visit_writer->registerPlotQuantity("u_extrap_cc", "VECTOR", d_u_adv_cc_lf_extrap_current_idx, 0, 1.0);
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            if (d == 0)
+                d_visit_writer->registerPlotQuantity(
+                    "u_extrap_cc_x", "SCALAR", d_u_adv_cc_lf_extrap_current_idx, d, 1.0);
+            if (d == 1)
+                d_visit_writer->registerPlotQuantity(
+                    "u_extrap_cc_y", "SCALAR", d_u_adv_cc_lf_extrap_current_idx, d, 1.0);
+            if (d == 2)
+                d_visit_writer->registerPlotQuantity(
+                    "u_extrap_cc_z", "SCALAR", d_u_adv_cc_lf_extrap_current_idx, d, 1.0);
+        }
+    }
+
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    d_lf_extrap_rhs_var = new CellVariable<NDIM, double>(d_object_name + "::lf_extrap_rhs_var");
+    ;
+    registerVariable(d_lf_extrap_rhs_scratch_idx, d_lf_extrap_rhs_var, cell_ghosts, getScratchContext());
+
+    d_u_adv_fc_lf_extrap_var = new FaceVariable<NDIM, double>(d_object_name + "::u_adv_fc_lf_extrap_var");
+    d_u_adv_fc_lf_extrap_current_idx =
+        var_db->registerVariableAndContext(d_u_adv_fc_lf_extrap_var, getCurrentContext(), face_ghosts);
+
+    d_u_adv_sc_lf_extrap_var = new SideVariable<NDIM, double>(d_object_name + "::u_adv_sc_lf_extrap_var");
+    d_u_adv_sc_lf_extrap_current_idx =
+        var_db->registerVariableAndContext(d_u_adv_sc_lf_extrap_var, getCurrentContext(), side_ghosts);
+
+    d_normal_lf_extrap_var = new SideVariable<NDIM, double>(d_object_name + "::normal_lf_extrap_var", /*depth*/ NDIM);
+    d_normal_lf_extrap_current_idx =
+        var_db->registerVariableAndContext(d_normal_lf_extrap_var, getCurrentContext(), /*gcw*/ IntVector<NDIM>(2));
+
+    d_lf_extrap_interp_var = new FaceVariable<NDIM, double>(d_lf_extrap_var->getName() + "::interp");
+    d_lf_extrap_interp_idx = var_db->registerVariableAndContext(d_lf_extrap_interp_var, getCurrentContext(), no_ghosts);
+
     d_T_pre_var = new CellVariable<NDIM, double>(d_object_name + "::T_pre_var");
     d_T_pre_idx = var_db->registerVariableAndContext(d_T_pre_var, getCurrentContext());
 
@@ -158,6 +328,9 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
         Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         rho_p_cc_integrator->setCellCenteredTransportQuantityBoundaryConditions(d_h_bc_coef);
     }
+
+    // For extrapolating the lf_var.
+    d_lf_extrap_convective_op = getLiquidFractionExtrapConvectiveOperator(d_lf_extrap_var);
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
@@ -184,6 +357,14 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
         if (!level->checkAllocated(d_dh_dT_scratch_idx)) level->allocatePatchData(d_dh_dT_scratch_idx, current_time);
         if (!level->checkAllocated(d_T_pre_idx)) level->allocatePatchData(d_T_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_T_idx)) level->allocatePatchData(d_grad_T_idx, current_time);
+        if (!level->checkAllocated(d_u_adv_fc_lf_extrap_current_idx))
+            level->allocatePatchData(d_u_adv_fc_lf_extrap_current_idx, current_time);
+        if (!level->checkAllocated(d_u_adv_sc_lf_extrap_current_idx))
+            level->allocatePatchData(d_u_adv_sc_lf_extrap_current_idx, current_time);
+        if (!level->checkAllocated(d_normal_lf_extrap_current_idx))
+            level->allocatePatchData(d_normal_lf_extrap_current_idx, current_time);
+        if (!level->checkAllocated(d_lf_extrap_interp_idx))
+            level->allocatePatchData(d_lf_extrap_interp_idx, current_time);
     }
 
     const int h_current_idx = var_db->mapVariableAndContextToIndex(d_h_var, getCurrentContext());
@@ -332,6 +513,9 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     d_hier_cc_data_ops->copyData(T_diff_coef_cc_new_idx, T_diff_coef_cc_current_idx);
     d_hier_cc_data_ops->copyData(lf_new_idx, lf_current_idx);
 
+    // Initializing operator state.
+    d_lf_extrap_convective_op->initializeOperatorState(*d_lf_extrap_sol, *d_lf_extrap_rhs);
+
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
@@ -435,6 +619,9 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
     if (d_u_adv_var) d_hier_cc_data_ops->axpy(T_rhs_scratch_idx, -1.0, T_N_scratch_idx, T_rhs_scratch_idx);
 
     PoissonSpecifications T_solver_spec(d_object_name + "::solver_spec::" + d_T_var->getName());
+
+    // compute u_adv = H*n based on phi^{n+1, k+1}.
+    computeAdvectionVelocityForExtrapolation(d_u_adv_fc_lf_extrap_current_idx, current_time, new_time);
 
     double lf_relative_iteration_error = 1.0;
     double inner_iterations = 1.0;
@@ -617,6 +804,9 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
     // Compute the source term for Div U equation.
     computeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
 
+    // extrapolate the liquid fraction to gas region.
+    extrapolateLiquidFractionToGasRegion(lf_new_idx);
+
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
@@ -638,6 +828,10 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
         level->deallocatePatchData(d_T_pre_idx);
         level->deallocatePatchData(d_dh_dT_scratch_idx);
         level->deallocatePatchData(d_grad_T_idx);
+        level->deallocatePatchData(d_u_adv_fc_lf_extrap_current_idx);
+        level->deallocatePatchData(d_u_adv_sc_lf_extrap_current_idx);
+        level->deallocatePatchData(d_normal_lf_extrap_current_idx);
+        level->deallocatePatchData(d_lf_extrap_interp_idx);
     }
 
     PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -680,10 +874,60 @@ EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("d_gas_liquid_fraction", d_gas_liquid_fraction);
     db->putInteger("d_max_inner_iterations", d_max_inner_iterations);
     db->putDouble("d_lf_iteration_error_tolerance", d_lf_iteration_error_tolerance);
+    db->putInteger("d_max_inner_iterations", d_max_inner_iterations);
+    db->putDouble("d_lf_iteration_error_tolerance", d_lf_iteration_error_tolerance);
+
+    db->putInteger("lf_extrap_max_num_time_steps", d_lf_extrap_max_num_time_steps);
+    db->putDouble("lf_extrap_cell_size", d_lf_extrap_cell_size);
 
     AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
 } // putToDatabaseSpecialized
+
+void
+EnthalpyHierarchyIntegrator::registerLevelSetVariable(Pointer<CellVariable<NDIM, double> > phi_var)
+{
+    d_phi_var = phi_var;
+    return;
+} // registerLevelSetVariable
+
+void
+EnthalpyHierarchyIntegrator::registerLiquidFractionVariableForExtrapolation(
+    Pointer<CellVariable<NDIM, double> > lf_extrap_var)
+{
+    d_lf_extrap_var = lf_extrap_var;
+    return;
+} // registerLiquidFractionVariableForExtrapolation
+
+/////////////////////////////// PROTECTED //////////////////////////////////////
+
+void
+EnthalpyHierarchyIntegrator::regridHierarchyEndSpecialized()
+{
+    PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized();
+
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+    // Setup the patch boundary filling objects.
+    const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+
+    // Reset the solution and rhs vectors.
+    const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+
+    const int lf_extrap_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_extrap_var, getScratchContext());
+    d_lf_extrap_sol = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::sol_vec::" + d_lf_var->getName(), d_hierarchy, 0, finest_hier_level);
+    d_lf_extrap_sol->addComponent(d_lf_extrap_var, lf_extrap_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+
+    const int lf_extrap_rhs_scratch_idx =
+        var_db->mapVariableAndContextToIndex(d_lf_extrap_rhs_var, getScratchContext());
+    d_lf_extrap_rhs = new SAMRAIVectorReal<NDIM, double>(
+        d_object_name + "::rhs_vec::" + d_lf_extrap_var->getName(), d_hierarchy, 0, finest_hier_level);
+    d_lf_extrap_rhs->addComponent(d_lf_extrap_rhs_var, lf_extrap_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+
+    d_lf_extrap_convective_op_needs_init = true;
+    return;
+} // regridHierarchyEndSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
@@ -1040,6 +1284,242 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
 } // computeLiquidFraction
 
 void
+EnthalpyHierarchyIntegrator::extrapolateLiquidFractionToGasRegion(int lf_new_idx)
+{
+    const double dt = 0.3 * d_lf_extrap_cell_size; // define dx.
+
+    // PoissonSpecifications lf_extrap_solver_spec(d_object_name + "::lf_extrap_solver_spec::" +
+    // lf_extrap_var->getName()); PoissonSpecifications lf_extrap_rhs_op_spec(d_object_name +
+    // "::lf_extrap_rhs_op_spec::" + lf_extrap_var->getName()); lf_extrap_solver_spec.setCConstant(1.0 / dt);
+    // lf_extrap_rhs_spec.setCConstant(1.0 / dt);
+
+    // const double kappa = 0.0;
+    // lf_extrap_solver_spec.setDConstant(kappa);
+    // lf_extrap_rhs_spec.setDConstant(1.0 - kappa);
+
+    // Pointer<LaplaceOperator> lf_extrap_helmholtz_rhs_op = d_helmhol;
+    // lf_extrap_helmholtz_rhs_op->setPoissonSpecifications(lf_extrap_rhs_spec);
+    // lf_extrap_helmholtz_rhs_op->setPhysicalBcCoefs(lf_bc_coef);
+    // lf_extrap_helmholtz_rhs_op->setHomogeneousBc(false);
+    // lf_extrap_helmholtz_rhs_op->setSolutionTime(current_time);
+    // lf_extrap_helmholtz_rhs_op->setTimeInterval(current_time, new_time);
+    // if (d_helmholtz_rhs_ops_need_init[l])
+    // {
+    //     if (d_enable_logging)
+    //     {
+    //         plog << d_object_name << ": "
+    //                 << "Initializing Helmholtz RHS operator for variable number " << l << "\n";
+    //     }
+    //     helmholtz_rhs_op->initializeOperatorState(*d_lf_extrap_sol, *d_lf_extrap_rhs);
+    //     d_helmholtz_rhs_ops_need_init[l] = false;
+    // }
+    // d_hier_cc_data_ops->copyData(lf_extrap_scratch_idx, lf_extrap_current_idx, false);
+    // helmholtz_rhs_op->apply(*d_lf_extrap_sol, *d_lf_extrap_rhs);
+
+    // // Initialize the linear solver.
+    // Pointer<PoissonSolver> helmholtz_solver = d_helmholtz_solvers[l];
+    // helmholtz_solver->setPoissonSpecifications(solver_spec);
+    // helmholtz_solver->setPhysicalBcCoefs(Q_bc_coef);
+    // helmholtz_solver->setHomogeneousBc(false);
+    // helmholtz_solver->setSolutionTime(new_time);
+    // helmholtz_solver->setTimeInterval(current_time, new_time);
+    // if (d_helmholtz_solvers_need_init[l])
+    // {
+    //     if (d_enable_logging)
+    //     {
+    //         plog << d_object_name << ": "
+    //                 << "Initializing Helmholtz solvers for variable number " << l << "\n";
+    //     }
+    //     helmholtz_solver->initializeSolverState(*d_sol_vecs[l], *d_rhs_vecs[l]);
+    //     d_helmholtz_solvers_need_init[l] = false;
+    //      }
+
+    int current_time_step = 0;
+
+    // Initially, copy lf from pcm for extrapolation.
+    d_hier_cc_data_ops->copyData(d_lf_extrap_current_idx, lf_new_idx);
+    d_hier_cc_data_ops->copyData(d_lf_extrap_scratch_idx, d_lf_extrap_current_idx);
+
+    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    // pout << "Max norm of d_lf_extrap_rhs_scratch_idx\t"
+    //      << d_hier_cc_data_ops->maxNorm(d_lf_extrap_rhs_scratch_idx, wgt_cc_idx)
+    //      << "\tL2 norm of d_lf_extrap_rhs_scratch_idx\t"
+    //      << d_hier_cc_data_ops->L2Norm(d_lf_extrap_rhs_scratch_idx, wgt_cc_idx) << "\n";
+
+    // Initializing with zero for the safety.
+    d_hier_cc_data_ops->setToScalar(d_lf_extrap_rhs_scratch_idx, 0.0);
+    while (current_time_step < d_lf_extrap_max_num_time_steps)
+    {
+        // pout << "current_time_step\t" << current_time_step << "\n";
+        // Using CUI limiter, limit \varphi.
+        d_lf_extrap_convective_op->interpolateToFaceOnHierarchy(
+            d_lf_extrap_interp_idx, d_lf_extrap_scratch_idx, d_u_adv_fc_lf_extrap_current_idx, /*synch_cf_bdry*/ false);
+
+        // compute N = u . \grad{\varphi}.
+        d_lf_extrap_convective_op->computeAdvectiveDerivativeOnHierarchy(d_lf_extrap_rhs_scratch_idx,
+                                                                         d_lf_extrap_interp_idx,
+                                                                         d_u_adv_fc_lf_extrap_current_idx,
+                                                                         /*synch_cf_bdry*/ false);
+
+        d_hier_cc_data_ops->scale(d_lf_extrap_rhs_scratch_idx, -dt, d_lf_extrap_rhs_scratch_idx);
+        d_hier_cc_data_ops->add(d_lf_extrap_rhs_scratch_idx, d_lf_extrap_rhs_scratch_idx, d_lf_extrap_current_idx);
+        d_hier_cc_data_ops->copyData(d_lf_extrap_new_idx, d_lf_extrap_rhs_scratch_idx);
+        current_time_step += 1;
+        // For visit writing and for next iteration.
+        d_hier_cc_data_ops->copyData(d_lf_extrap_scratch_idx, d_lf_extrap_new_idx);
+        d_hier_cc_data_ops->copyData(d_lf_extrap_current_idx, d_lf_extrap_new_idx);
+    }
+
+    return;
+}
+
+void
+EnthalpyHierarchyIntegrator::computeAdvectionVelocityForExtrapolation(int u_adv_fc_lf_extrap_current_idx,
+                                                                      const double current_time,
+                                                                      const double new_time)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int phi_new_idx = var_db->mapVariableAndContextToIndex(d_phi_var, getNewContext());
+    const int phi_scratch_idx = var_db->mapVariableAndContextToIndex(d_phi_var, getScratchContext());
+
+    const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, getNewContext());
+    const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, getScratchContext());
+
+    // Fill the ghost cell values of level set at new_time.
+    std::vector<RobinBcCoefStrategy<NDIM>*> phi_bc_coef = getPhysicalBcCoefs(d_phi_var);
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> interface_transaction(2);
+    interface_transaction[0] = InterpolationTransactionComponent(phi_scratch_idx,
+                                                                 phi_new_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 true,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 phi_bc_coef);
+
+    std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
+    interface_transaction[1] = InterpolationTransactionComponent(H_scratch_idx,
+                                                                 H_new_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 true,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 H_bc_coef);
+
+    Pointer<HierarchyGhostCellInterpolation> interface_fill_op = new HierarchyGhostCellInterpolation();
+    interface_fill_op->initializeOperatorState(interface_transaction, d_hierarchy);
+    interface_fill_op->fillData(new_time);
+
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+
+            Pointer<SideData<NDIM, double> > u_sc_data = patch->getPatchData(d_u_adv_sc_lf_extrap_current_idx);
+            Pointer<SideData<NDIM, double> > normal_data = patch->getPatchData(d_normal_lf_extrap_current_idx);
+            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
+            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
+
+            // computes normal_data = grad(phi_data)
+            SC_NORMAL_FC(normal_data->getPointer(0, 0),
+                         normal_data->getPointer(0, 1),
+#if (NDIM == 3)
+                         normal_data->getPointer(0, 2),
+#endif
+                         normal_data->getPointer(1, 0),
+                         normal_data->getPointer(1, 1),
+#if (NDIM == 3)
+                         normal_data->getPointer(1, 2),
+                         normal_data->getPointer(2, 0),
+                         normal_data->getPointer(2, 1),
+                         normal_data->getPointer(2, 2),
+#endif
+                         normal_data->getGhostCellWidth().max(),
+                         phi_data->getPointer(),
+                         phi_data->getGhostCellWidth().max(),
+                         patch_box.lower(0),
+                         patch_box.upper(0),
+                         patch_box.lower(1),
+                         patch_box.upper(1),
+#if (NDIM == 3)
+                         patch_box.lower(2),
+                         patch_box.upper(2),
+#endif
+                         dx);
+
+            for (unsigned int axis = 0; axis < NDIM; axis++)
+            {
+                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                {
+                    SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                    const double H_lower = (*H_data)(si.toCell(0));
+                    const double H_upper = (*H_data)(si.toCell(1));
+
+                    const double H = 0.5 * (H_lower + H_upper);
+
+                    (*u_sc_data)(si) =
+                        -(1.0 - H) * (*normal_data)(si, axis); // -ive sign to point the normal towards gas region;
+                }
+            }
+        }
+    }
+
+    // copy side-centered H*n to face-centered.
+    copy_side_to_face(u_adv_fc_lf_extrap_current_idx, d_u_adv_sc_lf_extrap_current_idx, d_hierarchy);
+
+    static const bool synch_cf_interface = true;
+    d_hier_math_ops->interp(d_u_adv_cc_lf_extrap_current_idx,
+                            d_u_adv_cc_lf_extrap_var,
+                            d_u_adv_sc_lf_extrap_current_idx,
+                            d_u_adv_sc_lf_extrap_var,
+                            d_no_fill_op,
+                            current_time,
+                            synch_cf_interface);
+
+    return;
+} // extrapolateLiquidFractionToGasRegion
+
+Pointer<CellConvectiveOperator>
+EnthalpyHierarchyIntegrator::getLiquidFractionExtrapConvectiveOperator(
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_extrap_var)
+{
+    // Allocate convective operator.
+    std::vector<RobinBcCoefStrategy<NDIM>*> lf_bc_coef = getPhysicalBcCoefs(d_H_var); // using H_bc for lf_var
+    const ConvectiveDifferencingType lf_difference_form =
+        IBAMR::string_to_enum<ConvectiveDifferencingType>("ADVECTIVE");
+
+    // Set the convective operator.
+    if (!d_lf_extrap_convective_op)
+    {
+        d_lf_extrap_convective_op = new AdvDiffCUIConvectiveOperator(d_object_name + "::lfExtrapConvectiveOperator",
+                                                                     lf_extrap_var,
+                                                                     d_lf_extrap_convective_op_input_db,
+                                                                     lf_difference_form,
+                                                                     lf_bc_coef);
+    }
+
+    return d_lf_extrap_convective_op;
+} // getLiquidFractionExtrapConvectiveOperator
+
+// void
+// EnthalpyHierarchyIntegrator::copySideToFace(const int U_fc_idx,
+//                                             const int U_sc_idx,
+//                                             Pointer<PatchHierarchy<NDIM> > hierarchy)
+// {
+//     copy_side_to_face(U_fc_idx, U_sc_idx, hierarchy);
+//     return;
+// } // copySideToFace
+
+void
 EnthalpyHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)
 {
 #if !defined(NDEBUG)
@@ -1065,6 +1545,9 @@ EnthalpyHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_fr
             d_max_inner_iterations = input_db->getInteger("max_inner_iterations");
         if (input_db->keyExists("lf_iteration_error_tolerance"))
             d_lf_iteration_error_tolerance = input_db->getDouble("lf_iteration_error_tolerance");
+
+        d_lf_extrap_max_num_time_steps = input_db->getInteger("lf_extrap_max_num_time_steps");
+        d_lf_extrap_cell_size = input_db->getDouble("lf_extrap_cell_size");
     }
     return;
 } // getFromInput
@@ -1099,6 +1582,9 @@ EnthalpyHierarchyIntegrator::getFromRestart()
     d_gas_liquid_fraction = db->getDouble("d_gas_liquid_fraction");
     d_max_inner_iterations = db->getInteger("d_max_inner_iterations");
     d_lf_iteration_error_tolerance = db->getDouble("d_lf_iteration_error_tolerance");
+
+    d_lf_extrap_max_num_time_steps = db->getInteger("lf_extrap_max_num_time_steps");
+    d_lf_extrap_cell_size = db->getDouble("lf_extrap_cell_size");
 
     return;
 } // getFromRestart

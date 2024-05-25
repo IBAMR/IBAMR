@@ -439,8 +439,15 @@ main(int argc, char* argv[])
         adv_diff_integrator->registerTransportedQuantity(H_var, true);
         adv_diff_integrator->setDiffusionCoefficient(H_var, 0.0);
 
+        // set Level set
+        enthalpy_hier_integrator->registerLevelSetVariable(ls_var);
+
         // set Heaviside
         enthalpy_hier_integrator->registerHeavisideVariable(H_var);
+
+        // set registerLiquidFractionVariableForExtrapolation.
+        Pointer<CellVariable<NDIM, double> > lf_extrap_var = new CellVariable<NDIM, double>("lf_extrap_var");
+        enthalpy_hier_integrator->registerLiquidFractionVariableForExtrapolation(lf_extrap_var);
 
         // register temperature
         Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("Temperature");

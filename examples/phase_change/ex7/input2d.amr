@@ -21,6 +21,7 @@ FILE_NAME = "bubble_volume_amr_casec0_2d"
 MELT_TEMPERATURE = 265.0
 NUMBER_OF_INTERFACE_CELLS  = 2.0
 GAS_LIQUID_FRACTION = 0.0
+LF_EXTRAP_MAX_TS = 15
 
 LIQUIDUS_TEMPERATURE = 270.0
 SOLIDUS_TEMPERATURE = 260.0
@@ -254,7 +255,7 @@ DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
 END_TIME             =   0.12   // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
-MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
+MAX_INTEGRATOR_STEPS =   1 // 50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   1
 CFL_MAX              =   0.5
 NUM_INS_CYCLES       =   2
@@ -434,6 +435,8 @@ EnthalpyHierarchyIntegrator {
    solidus_temperature             = SOLIDUS_TEMPERATURE
    reference_temperature           = REFERENCE_TEMPERATURE
    gas_liquid_fraction             = GAS_LIQUID_FRACTION
+   lf_extrap_max_num_time_steps    = LF_EXTRAP_MAX_TS
+   lf_extrap_cell_size             = HFINEST
    output_Div_U_F                  = OUTPUT_DIV_U_F
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
@@ -512,7 +515,7 @@ Main {
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 100
+   viz_dump_interval           = 1
    viz_dump_dirname            = "viz_thermocapillary_advection_amr_casec0_2d"
    visit_number_procs_per_file = 1
 
