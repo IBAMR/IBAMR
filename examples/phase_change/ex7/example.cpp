@@ -109,6 +109,7 @@ synchronize_levelset_with_heaviside_fcn(int H_current_idx,
 struct MaskSurfaceTensionForceCtx
 {
     Pointer<CellVariable<NDIM, double> > lf_var;
+    Pointer<CellVariable<NDIM, double> > lf_extrap_var;
     Pointer<CellVariable<NDIM, double> > H_var;
     RobinBcCoefStrategy<NDIM>* lf_bc_coef;
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
@@ -139,6 +140,13 @@ mask_surface_tension_force(int F_idx,
         mask_surface_tension_force_ctx->lf_var,
         mask_surface_tension_force_ctx->adv_diff_hier_integrator->getScratchContext());
 
+    const int lf_extrap_new_idx =
+        var_db->mapVariableAndContextToIndex(mask_surface_tension_force_ctx->lf_extrap_var,
+                                             mask_surface_tension_force_ctx->adv_diff_hier_integrator->getNewContext());
+    const int lf_extrap_scratch_idx = var_db->mapVariableAndContextToIndex(
+        mask_surface_tension_force_ctx->lf_extrap_var,
+        mask_surface_tension_force_ctx->adv_diff_hier_integrator->getScratchContext());
+
     const int H_new_idx =
         var_db->mapVariableAndContextToIndex(mask_surface_tension_force_ctx->H_var,
                                              mask_surface_tension_force_ctx->adv_diff_hier_integrator->getNewContext());
@@ -148,7 +156,7 @@ mask_surface_tension_force(int F_idx,
 
     // ghost cell filling for liquid fraction variable.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> lf_transaction_comps(2);
+    std::vector<InterpolationTransactionComponent> lf_transaction_comps(3);
     lf_transaction_comps[0] = InterpolationTransactionComponent(lf_scratch_idx,
                                                                 lf_new_idx,
                                                                 "CONSERVATIVE_LINEAR_REFINE",
@@ -160,6 +168,15 @@ mask_surface_tension_force(int F_idx,
 
     lf_transaction_comps[1] = InterpolationTransactionComponent(H_scratch_idx,
                                                                 H_new_idx,
+                                                                "CONSERVATIVE_LINEAR_REFINE",
+                                                                false,
+                                                                "CONSERVATIVE_COARSEN",
+                                                                "LINEAR",
+                                                                false,
+                                                                mask_surface_tension_force_ctx->lf_bc_coef);
+
+    lf_transaction_comps[2] = InterpolationTransactionComponent(lf_extrap_scratch_idx,
+                                                                lf_extrap_new_idx,
                                                                 "CONSERVATIVE_LINEAR_REFINE",
                                                                 false,
                                                                 "CONSERVATIVE_COARSEN",
@@ -183,6 +200,7 @@ mask_surface_tension_force(int F_idx,
             const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
 
             Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
+            Pointer<CellData<NDIM, double> > lf_extrap_data = patch->getPatchData(lf_extrap_scratch_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
             Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
             Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
@@ -195,15 +213,16 @@ mask_surface_tension_force(int F_idx,
 
                     const double lf_sc_value = 0.5 * ((*lf_data)(si.toCell(0)) + (*lf_data)(si.toCell(1)));
                     const double H_sc_value = 0.5 * ((*H_data)(si.toCell(0)) + (*H_data)(si.toCell(1)));
+                    const double lf_extrap_sc_value =
+                        0.5 * ((*lf_extrap_data)(si.toCell(0)) + (*lf_extrap_data)(si.toCell(1)));
 
                     double multiplier_term =
                         2.0 * (*rho_data)(si) /
                         (mask_surface_tension_force_ctx->rho_liquid + mask_surface_tension_force_ctx->rho_gas);
-		   if (H_sc_value >= 0.5 && IBTK::rel_equal_eps(lf_sc_value, 0.0))
-                   {
-                      multiplier_term *= lf_sc_value;
-                   }
-
+                    // if (H_sc_value >= 0.5 && IBTK::rel_equal_eps(lf_sc_value, 0.0))
+                    //         {
+                    multiplier_term *= lf_extrap_sc_value;
+                    // }
 
                     (*F_data)(si) *= multiplier_term;
                 }
@@ -712,6 +731,7 @@ main(int argc, char* argv[])
         mask_surface_tension_force_ctx.rho_gas = rho_gas;
         mask_surface_tension_force_ctx.adv_diff_hier_integrator = adv_diff_integrator;
         mask_surface_tension_force_ctx.lf_var = lf_var;
+        mask_surface_tension_force_ctx.lf_extrap_var = lf_extrap_var;
         mask_surface_tension_force_ctx.H_var = H_var;
         mask_surface_tension_force_ctx.lf_bc_coef = lf_bc_coef;
 
