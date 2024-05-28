@@ -726,7 +726,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             int ls_gas_idx = ls_gas_new_is_allocated ? ls_gas_new_idx : ls_gas_current_idx;
 
             IntVector<NDIM> cell_ghosts = 1;
-            int d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
+            d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
                 d_ls_gas_var, var_db->getContext(d_object_name + "::LS_GAS_SCRATCH"), cell_ghosts);
 
 #if !defined(NDEBUG)
@@ -736,7 +736,9 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
 
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                hierarchy->getPatchLevel(ln)->allocatePatchData(d_ls_gas_scratch_idx, data_time);
+                Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(d_ls_gas_scratch_idx))
+                    hierarchy->getPatchLevel(ln)->allocatePatchData(d_ls_gas_scratch_idx, data_time);
             }
             using InterpolationTransactionComponent =
                 HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
