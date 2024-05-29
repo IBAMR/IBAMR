@@ -349,6 +349,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
 	../src/level_set/FESurfaceDistanceEvaluator.cpp \
+	$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
@@ -535,6 +536,7 @@ am__objects_2 =  \
 	../src/utilities/libIBAMR2d_a-STSMassFluxIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-RNG.$(OBJEXT) $(am__objects_1)
 am_libIBAMR2d_a_OBJECTS = $(am__objects_2) \
+	$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.$(OBJEXT) \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.$(OBJEXT) \
@@ -711,6 +713,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
 	../src/level_set/FESurfaceDistanceEvaluator.cpp \
+	$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
@@ -897,6 +900,7 @@ am__objects_4 =  \
 	../src/utilities/libIBAMR3d_a-STSMassFluxIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-RNG.$(OBJEXT) $(am__objects_3)
 am_libIBAMR3d_a_OBJECTS = $(am__objects_4) \
+	$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.$(OBJEXT) \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.$(OBJEXT) \
@@ -2045,6 +2049,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
@@ -2069,6 +2074,7 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
@@ -2644,6 +2650,14 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.$(OBJEXT):  \
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/acoustic_streaming/fortran
+	@: > $(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp)
+$(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)
+	@: > $(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.$(OBJEXT): $(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/adv_diff/fortran/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/src/adv_diff/fortran
 	@: > $(top_builddir)/src/adv_diff/fortran/$(am__dirstamp)
@@ -3161,6 +3175,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.$(OBJEXT):  \
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.$(OBJEXT): $(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.$(OBJEXT):  \
 	$(top_builddir)/src/adv_diff/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/adv_diff/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -3229,6 +3245,7 @@ libIBAMR3d.a: $(libIBAMR3d_a_OBJECTS) $(libIBAMR3d_a_DEPENDENCIES) $(EXTRA_libIB
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f $(top_builddir)/src/acoustic_streaming/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/adv_diff/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/advect/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/complex_fluids/fortran/*.$(OBJEXT)
@@ -8374,6 +8391,8 @@ distclean-generic:
 	-rm -f ../src/utilities/$(am__dirstamp)
 	-rm -f ../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/wave_generation/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/adv_diff/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/adv_diff/fortran/$(DEPDIR)/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/adv_diff/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/adv_diff/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/advect/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/advect/fortran/$(DEPDIR)/$(am__dirstamp)

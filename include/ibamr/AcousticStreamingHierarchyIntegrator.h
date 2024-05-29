@@ -842,20 +842,33 @@ private:
 
     /*!
      * Setup solution and RHS vectors using state data maintained by the
-     * integrator.
+     * integrator for the first order system.
      */
-    void setupSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
-                            const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs1_vec,
-                            const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol2_vec,
-                            const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs2_vec,
-                            double current_time,
-                            double new_time,
-                            int cycle_num);
+    void setupSolverVectorsFOSystem(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+                                    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs1_vec,
+                                    double current_time,
+                                    double new_time,
+                                    int cycle_num);
 
     /*!
-     * Copy the solution data into the state data maintained by
-     * the integrator.
+     * Setup solution and RHS vectors using state data maintained by the
+     * integrator for the second order system.
      */
+    void setupSolverVectorsSOSystem(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol2_vec,
+                                    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs2_vec,
+                                    double current_time,
+                                    double new_time,
+                                    int cycle_num);
+
+    /*!
+     * Compute source terms for the second order system arising from the first-order solution.
+     */
+    void computeCouplingSourceTerms(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+                                    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs2_vec,
+                                    double current_time,
+                                    double new_time,
+                                    int cycle_num);
+
     void resetSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
                             const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs1_vec,
                             const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol2_vec,

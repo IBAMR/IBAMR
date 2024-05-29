@@ -40,9 +40,123 @@
 #include "ibamr/namespaces.h" // IWYU pragma: keep
 
 // FORTRAN ROUTINES
+#if (NDIM == 2)
+#define COPY_STAGGERED_DATA_FC IBAMR_FC_FUNC(copy_staggered_data_2d, COPY_STAGGERED_DATA_2D)
+#define COPY_CELL_DATA_FC IBAMR_FC_FUNC(copy_cell_data_2d, COPY_CELL_DATA_2D)
+#define ACOUSTIC_MOMENTUM_COUPLING_FC IBAMR_FC_FUNC(acoustic_momentum_coupling_2d, ACOUSTIC_MOMENTUM_COUPLING_2D)
+#define ACOUSTIC_MASS_COUPLING_FC IBAMR_FC_FUNC(acoustic_mass_coupling_2d, ACOUSTIC_MASS_COUPLING_2D)
+#endif
+
+#if (NDIM == 3)
+#define COPY_STAGGERED_DATA_FC IBAMR_FC_FUNC(copy_staggered_data_3d, COPY_STAGGERED_DATA_3D)
+#define COPY_CELL_DATA_FC IBAMR_FC_FUNC(copy_cell_data_3d, COPY_CELL_DATA_3D)
+#define ACOUSTIC_MOMENTUM_COUPLING_FC IBAMR_FC_FUNC(acoustic_momentum_coupling_3d, ACOUSTIC_MOMENTUM_COUPLING_3D)
+#define ACOUSTIC_MASS_COUPLING_FC IBAMR_FC_FUNC(acoustic_mass_coupling_3d, ACOUSTIC_MASS_COUPLING_3D)
+#endif
 
 extern "C"
 {
+    void COPY_STAGGERED_DATA_FC(const double* U0,
+                                const double* U1,
+#if (NDIM == 3)
+                                const double* U2,
+#endif
+                                const int& U_gcw,
+                                double* V0,
+                                double* V1,
+#if (NDIM == 3)
+                                double* V2,
+#endif
+                                const int& V_gcw,
+                                const int& ilower0,
+                                const int& iupper0,
+                                const int& ilower1,
+                                const int& iupper1
+#if (NDIM == 3)
+                                ,
+                                const int& ilower2,
+                                const int& iupper2
+#endif
+    );
+
+    void COPY_CELL_DATA_FC(const double* U,
+                           const int& U_gcw,
+                           double* V,
+                           const int& V_gcw,
+                           const int& ilower0,
+                           const int& iupper0,
+                           const int& ilower1,
+                           const int& iupper1
+#if (NDIM == 3)
+                           ,
+                           const int& ilower2,
+                           const int& iupper2
+#endif
+
+    );
+
+    void ACOUSTIC_MOMENTUM_COUPLING_FC(const double* U0_real,
+                                       const double* U1_real,
+#if (NDIM == 3)
+                                       const double* U2_real,
+#endif
+                                       const int& U_real_gcw,
+                                       const double* U0_imag,
+                                       const double* U1_imag,
+#if (NDIM == 3)
+                                       const double* U2_imag,
+#endif
+                                       const int& U_imag_gcw,
+                                       const double* rho0,
+                                       const double* rho1,
+#if (NDIM == 3)
+                                       const double* rho2,
+#endif
+                                       const int& rho_gcw,
+                                       double* f0,
+                                       double* f1,
+#if (NDIM == 3)
+                                       double* f2,
+#endif
+                                       const int& f_gcw,
+                                       const int& ilower0,
+                                       const int& iupper0,
+                                       const int& ilower1,
+                                       const int& iupper1,
+#if (NDIM == 3)
+                                       const int& ilower2,
+                                       const int& iupper2,
+#endif
+                                       const double* dx);
+
+    void ACOUSTIC_MASS_COUPLING_FC(const double* U0_real,
+                                   const double* U1_real,
+#if (NDIM == 3)
+                                   const double* U2_real,
+#endif
+                                   const int& U_real_gcw,
+                                   const double* U0_imag,
+                                   const double* U1_imag,
+#if (NDIM == 3)
+                                   const double* U2_imag,
+#endif
+                                   const int& U_imag_gcw,
+                                   const double* p_real,
+                                   const int& p_real_gcw,
+                                   const double* p_imag,
+                                   const int& p_imag_gcw,
+                                   const double& sound_speed,
+                                   double* m,
+                                   const int& m_gcw,
+                                   const int& ilower0,
+                                   const int& iupper0,
+                                   const int& ilower1,
+                                   const int& iupper1,
+#if (NDIM == 3)
+                                   const int& ilower2,
+                                   const int& iupper2,
+#endif
+                                   const double* dx);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -109,6 +223,164 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
     krylov_solver->setOperator(new VCSCViscousDilatationalOperator(solver_object_name + "::vc_viscous_dil_operator"));
     return krylov_solver;
 }
+
+void
+copy_to_comps_side(int sol_idx, int real_idx, int imag_idx, Pointer<PatchHierarchy<NDIM> > hierarchy)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double> > sol_data = patch->getPatchData(sol_idx);
+            Pointer<SideData<NDIM, double> > real_data = patch->getPatchData(real_idx);
+            Pointer<SideData<NDIM, double> > imag_data = patch->getPatchData(imag_idx);
+
+            const Box<NDIM>& patch_box = patch->getBox();
+
+            const int U_gcw = (sol_data->getGhostCellWidth()).max();
+            const int V_real_gcw = (real_data->getGhostCellWidth()).max();
+            const int V_imag_gcw = (imag_data->getGhostCellWidth()).max();
+
+            const double* U0_real = sol_data->getPointer(0, REAL);
+            const double* U1_real = sol_data->getPointer(1, REAL);
+#if (NDIM == 3)
+            const double* U2_real = sol_data->getPointer(2, REAL);
+#endif
+            const double* U0_imag = sol_data->getPointer(0, IMAG);
+            const double* U1_imag = sol_data->getPointer(1, IMAG);
+#if (NDIM == 3)
+            const double* U2_imag = sol_data->getPointer(2, IMAG);
+#endif
+
+            double* V0_real = real_data->getPointer(0, 0);
+            double* V1_real = real_data->getPointer(1, 0);
+#if (NDIM == 3)
+            double* V2_real = real_data->getPointer(2, 0);
+#endif
+            double* V0_imag = imag_data->getPointer(0, 0);
+            double* V1_imag = imag_data->getPointer(1, 0);
+#if (NDIM == 3)
+            double* V2_imag = imag_data->getPointer(2, 0);
+#endif
+
+            COPY_STAGGERED_DATA_FC(U0_real,
+                                   U1_real,
+#if (NDIM == 3)
+                                   U2_real,
+#endif
+                                   U_gcw,
+                                   V0_real,
+                                   V1_real,
+#if (NDIM == 3)
+                                   V2_real,
+#endif
+                                   V_real_gcw,
+                                   patch_box.lower(0),
+                                   patch_box.upper(0),
+                                   patch_box.lower(1),
+                                   patch_box.upper(1)
+#if (NDIM == 3)
+                                       ,
+                                   patch_box.lower(2),
+                                   patch_box.upper(2)
+#endif
+            );
+
+            COPY_STAGGERED_DATA_FC(U0_imag,
+                                   U1_imag,
+#if (NDIM == 3)
+                                   U2_imag,
+#endif
+                                   U_gcw,
+                                   V0_imag,
+                                   V1_imag,
+#if (NDIM == 3)
+                                   V2_imag,
+#endif
+                                   V_imag_gcw,
+                                   patch_box.lower(0),
+                                   patch_box.upper(0),
+                                   patch_box.lower(1),
+                                   patch_box.upper(1)
+#if (NDIM == 3)
+                                       ,
+                                   patch_box.lower(2),
+                                   patch_box.upper(2)
+#endif
+            );
+        }
+    }
+    return;
+
+} // copy_to_comps_side
+
+void
+copy_to_comps_cell(int sol_idx, int real_idx, int imag_idx, Pointer<PatchHierarchy<NDIM> > hierarchy)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<CellData<NDIM, double> > sol_data = patch->getPatchData(sol_idx);
+            Pointer<CellData<NDIM, double> > real_data = patch->getPatchData(real_idx);
+            Pointer<CellData<NDIM, double> > imag_data = patch->getPatchData(imag_idx);
+
+            const Box<NDIM>& patch_box = patch->getBox();
+
+            const int U_gcw = (sol_data->getGhostCellWidth()).max();
+            const int V_real_gcw = (real_data->getGhostCellWidth()).max();
+            const int V_imag_gcw = (imag_data->getGhostCellWidth()).max();
+
+            const double* U_real = sol_data->getPointer(REAL);
+            const double* U_imag = sol_data->getPointer(IMAG);
+
+            double* V_real = real_data->getPointer(0);
+            double* V_imag = imag_data->getPointer(0);
+
+            COPY_CELL_DATA_FC(U_real,
+                              U_gcw,
+                              V_real,
+                              V_real_gcw,
+                              patch_box.lower(0),
+                              patch_box.upper(0),
+                              patch_box.lower(1),
+                              patch_box.upper(1)
+#if (NDIM == 3)
+                                  ,
+                              patch_box.lower(2),
+                              patch_box.upper(2)
+#endif
+            );
+
+            COPY_CELL_DATA_FC(U_imag,
+                              U_gcw,
+                              V_imag,
+                              V_imag_gcw,
+                              patch_box.lower(0),
+                              patch_box.upper(0),
+                              patch_box.lower(1),
+                              patch_box.upper(1)
+#if (NDIM == 3)
+                                  ,
+                              patch_box.lower(2),
+                              patch_box.upper(2)
+#endif
+            );
+        }
+    }
+
+    return;
+} // copy_to_comps_cell
 
 } // namespace
 
@@ -1235,11 +1507,17 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchy(const double current_ti
     // Update the solvers and operators to take into account new state variables
     updateOperatorsAndSolvers(current_time, new_time, cycle_num);
 
-    // Setup the solution and right-hand-side vectors.
-    setupSolverVectors(d_sol1_vec, d_rhs1_vec, d_sol2_vec, d_rhs2_vec, current_time, new_time, cycle_num);
+    // Setup the solution and right-hand-side vector for the 1st order system.
+    setupSolverVectorsFOSystem(d_sol1_vec, d_rhs1_vec, current_time, new_time, cycle_num);
 
     // Solve for u1(n+1), p1(n+1)
     d_first_order_solver->solveSystem(*d_sol1_vec, *d_rhs1_vec);
+
+    // Compute src terms for the 2nd order system due to 1st order
+    // computeCouplingSourceTerms(d_sol1_vec, d_rhs2_vec, current_time, new_time, cycle_num);
+
+    // Setup the remainder of the solution and right-hand-side vector for the 2nd order system.
+    setupSolverVectorsSOSystem(d_sol2_vec, d_rhs2_vec, current_time, new_time, cycle_num);
 
     // Solve for u2(n+1), p2(n+1).
     d_stokes_solver->solveSystem(*d_sol2_vec, *d_rhs2_vec);
@@ -2397,29 +2675,18 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
 } // updateOperatorsAndSolvers
 
 void
-AcousticStreamingHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
-                                                         const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs1_vec,
-                                                         const Pointer<SAMRAIVectorReal<NDIM, double> >& sol2_vec,
-                                                         const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs2_vec,
-                                                         const double current_time,
-                                                         const double new_time,
-                                                         const int cycle_num)
+AcousticStreamingHierarchyIntegrator::setupSolverVectorsFOSystem(Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+                                                                 Pointer<SAMRAIVectorReal<NDIM, double> >& rhs1_vec,
+                                                                 double current_time,
+                                                                 double new_time,
+                                                                 int cycle_num)
 {
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
     // Account for body forcing terms.
     if (d_F1_fcn)
     {
         d_F1_fcn->setDataOnPatchHierarchy(d_F1_scratch_idx, d_F1_var, d_hierarchy, new_time);
         d_hier_sc_data_ops->add(
             rhs1_vec->getComponentDescriptorIndex(0), rhs1_vec->getComponentDescriptorIndex(0), d_F1_scratch_idx);
-    }
-    if (d_F2_fcn)
-    {
-        d_F2_fcn->setDataOnPatchHierarchy(d_F2_scratch_idx, d_F2_var, d_hierarchy, new_time);
-        d_hier_sc_data_ops->add(
-            rhs2_vec->getComponentDescriptorIndex(0), rhs2_vec->getComponentDescriptorIndex(0), d_F2_scratch_idx);
     }
 
     // Account for mass source/sink terms.
@@ -2429,10 +2696,257 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVec
         d_hier_cc_data_ops->add(
             rhs1_vec->getComponentDescriptorIndex(1), rhs1_vec->getComponentDescriptorIndex(1), d_Q1_new_idx);
     }
+
+    // Set solution components to equal most recent approximations to u(n+1) and
+    // p(n+1).
+    d_hier_sc_data_ops->copyData(sol1_vec->getComponentDescriptorIndex(0), d_U1_new_idx);
+    d_hier_cc_data_ops->copyData(sol1_vec->getComponentDescriptorIndex(1), d_P1_new_idx);
+
+    // Synchronize solution and right-hand-side data before solve for the second order system.
+    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
+
+    SynchronizationTransactionComponent sol1_synch_transaction =
+        SynchronizationTransactionComponent(sol1_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
+    d_side_synch1_op->resetTransactionComponent(sol1_synch_transaction);
+    d_side_synch1_op->synchronizeData(current_time);
+    SynchronizationTransactionComponent rhs1_synch_transaction =
+        SynchronizationTransactionComponent(rhs1_vec->getComponentDescriptorIndex(0), d_F_coarsen_type);
+    d_side_synch1_op->resetTransactionComponent(rhs1_synch_transaction);
+    d_side_synch1_op->synchronizeData(current_time);
+    SynchronizationTransactionComponent default_synch1_transaction =
+        SynchronizationTransactionComponent(d_U1_scratch_idx, d_U_coarsen_type);
+    d_side_synch1_op->resetTransactionComponent(default_synch1_transaction);
+
+    return;
+} // setupSolverVectorsFOSystem
+
+void
+AcousticStreamingHierarchyIntegrator::computeCouplingSourceTerms(Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
+                                                                 Pointer<SAMRAIVectorReal<NDIM, double> >& rhs2_vec,
+                                                                 double /*current_time*/,
+                                                                 double new_time,
+                                                                 int /*cycle_num*/)
+{
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const IntVector<NDIM> side_ghosts = SIDEG;
+    const IntVector<NDIM> cell_ghosts = CELLG;
+
+    Pointer<SideVariable<NDIM, double> > U1_sol_var = sol1_vec->getComponentVariable(0);
+    const int U1_sol_idx = sol1_vec->getComponentDescriptorIndex(0);
+    const int U1_real_idx = var_db->registerVariableAndContext(
+        U1_sol_var, var_db->getContext(d_object_name + "::COUPLING_REAL"), side_ghosts);
+    const int U1_imag_idx = var_db->registerVariableAndContext(
+        U1_sol_var, var_db->getContext(d_object_name + "::COUPLING_IMAG"), side_ghosts);
+
+    Pointer<CellVariable<NDIM, double> > p1_sol_var = sol1_vec->getComponentVariable(1);
+    const int p1_sol_idx = sol1_vec->getComponentDescriptorIndex(1);
+    const int p1_real_idx = var_db->registerVariableAndContext(
+        p1_sol_var, var_db->getContext(d_object_name + "::COUPLING_REAL"), cell_ghosts);
+    const int p1_imag_idx = var_db->registerVariableAndContext(
+        p1_sol_var, var_db->getContext(d_object_name + "::COUPLING_IMAG"), cell_ghosts);
+
+    // Allocate data and copy components
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_hierarchy->getPatchLevel(ln)->allocatePatchData(U1_real_idx, new_time);
+        d_hierarchy->getPatchLevel(ln)->allocatePatchData(U1_imag_idx, new_time);
+        d_hierarchy->getPatchLevel(ln)->allocatePatchData(p1_real_idx, new_time);
+        d_hierarchy->getPatchLevel(ln)->allocatePatchData(p1_imag_idx, new_time);
+    }
+    copy_to_comps_side(U1_sol_idx, U1_real_idx, U1_imag_idx, d_hierarchy);
+    copy_to_comps_cell(p1_sol_idx, p1_real_idx, p1_imag_idx, d_hierarchy);
+
+    // Setup  boundary condition objects that specify homogeneous
+    // Neumann (constant extrapolation) boundary conditions for p1 components.
+    LocationIndexRobinBcCoefs<NDIM> p1_bc_coefs(d_object_name + "::p1_coupling_bc_coefs", Pointer<Database>(nullptr));
+    for (unsigned int d = 0; d < NDIM; ++d)
+    {
+        p1_bc_coefs.setBoundarySlope(2 * d, 0.0);
+        p1_bc_coefs.setBoundarySlope(2 * d + 1, 0.0);
+    }
+
+    // Set hierarchy ghost filling objects and fill ghost cells.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> comp_transactions(4);
+    comp_transactions[0] = InterpolationTransactionComponent(
+        U1_real_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_U1_bc_coefs[REAL]);
+    comp_transactions[1] = InterpolationTransactionComponent(
+        U1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_U1_bc_coefs[IMAG]);
+    comp_transactions[2] = InterpolationTransactionComponent(
+        p1_real_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, &p1_bc_coefs);
+    comp_transactions[3] = InterpolationTransactionComponent(
+        p1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, &p1_bc_coefs);
+
+    Pointer<HierarchyGhostCellInterpolation> comp_fill_op = new HierarchyGhostCellInterpolation();
+    comp_fill_op->initializeOperatorState(comp_transactions, d_hierarchy);
+    comp_fill_op->fillData(new_time);
+
+    // Compute the forcing term for the RHS of second order system arising from the first order system:
+    // f1 = - < div . (rho (U1 x U1))>
+    // f2 =  < div . (rho1 U1)>
+    // Note that we are removing the -ve sign in f2 because the second order system considers -div (rho0 U2)
+    // as the continuity equation.
+    int f_idx = rhs2_vec->getComponentDescriptorIndex(0);
+    int m_idx = rhs2_vec->getComponentDescriptorIndex(1);
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_idx);
+            Pointer<CellData<NDIM, double> > m_data = patch->getPatchData(m_idx);
+            Pointer<SideData<NDIM, double> > U1_real_data = patch->getPatchData(U1_real_idx);
+            Pointer<SideData<NDIM, double> > U1_imag_data = patch->getPatchData(U1_imag_idx);
+            Pointer<SideData<NDIM, double> > p1_real_data = patch->getPatchData(p1_real_idx);
+            Pointer<SideData<NDIM, double> > p1_imag_data = patch->getPatchData(p1_imag_idx);
+            Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
+
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const double* const dx = pgeom->getDx();
+
+            const int U_real_gcw = (U1_real_data->getGhostCellWidth()).max();
+            const int U_imag_gcw = (U1_imag_data->getGhostCellWidth()).max();
+            const int p_real_gcw = (U1_real_data->getGhostCellWidth()).max();
+            const int p_imag_gcw = (U1_imag_data->getGhostCellWidth()).max();
+            const int f_gcw = (f_data->getGhostCellWidth()).max();
+            const int m_gcw = (m_data->getGhostCellWidth()).max();
+            const int rho_gcw = (rho_data->getGhostCellWidth()).max();
+
+            const double* U0_real = U1_real_data->getPointer(0, 0);
+            const double* U1_real = U1_real_data->getPointer(1, 0);
+#if (NDIM == 3)
+            const double* U2_real = U1_real_data->getPointer(2, 0);
+#endif
+
+            const double* U0_imag = U1_imag_data->getPointer(0, 0);
+            const double* U1_imag = U1_imag_data->getPointer(1, 0);
+#if (NDIM == 3)
+            const double* U2_imag = U1_imag_data->getPointer(2, 0);
+#endif
+
+            const double* rho0 = rho_data->getPointer(0, 0);
+            const double* rho1 = rho_data->getPointer(1, 0);
+#if (NDIM == 3)
+            const double* rho2 = rho_data->getPointer(2, 0);
+#endif
+
+            const double* p_real = p1_real_data->getPointer(0);
+            const double* p_imag = p1_imag_data->getPointer(0);
+
+            double* f0 = f_data->getPointer(0, 0);
+            double* f1 = f_data->getPointer(1, 0);
+#if (NDIM == 3)
+            double* f2 = f_data->getPointer(2, 0);
+#endif
+
+            double* m = m_data->getPointer(0);
+
+            ACOUSTIC_MOMENTUM_COUPLING_FC(U0_real,
+                                          U1_real,
+#if (NDIM == 3)
+                                          U2_real,
+#endif
+                                          U_real_gcw,
+                                          U0_imag,
+                                          U1_imag,
+#if (NDIM == 3)
+                                          U2_imag,
+#endif
+                                          U_imag_gcw,
+                                          rho0,
+                                          rho1,
+#if (NDIM == 3)
+                                          rho2,
+#endif
+                                          rho_gcw,
+                                          f0,
+                                          f1,
+#if (NDIM == 3)
+                                          f2,
+#endif
+                                          f_gcw,
+                                          patch_box.lower(0),
+                                          patch_box.upper(0),
+                                          patch_box.lower(1),
+                                          patch_box.upper(1),
+#if (NDIM == 3)
+                                          patch_box.lower(2),
+                                          patch_box.upper(2),
+#endif
+                                          dx);
+
+            ACOUSTIC_MASS_COUPLING_FC(U0_real,
+                                      U1_real,
+#if (NDIM == 3)
+                                      U2_real,
+#endif
+                                      U_real_gcw,
+                                      U0_imag,
+                                      U1_imag,
+#if (NDIM == 3)
+                                      U2_imag,
+#endif
+                                      U_imag_gcw,
+                                      p_real,
+                                      p_real_gcw,
+                                      p_imag,
+                                      p_imag_gcw,
+                                      d_sound_speed,
+                                      m,
+                                      m_gcw,
+                                      patch_box.lower(0),
+                                      patch_box.upper(0),
+                                      patch_box.lower(1),
+                                      patch_box.upper(1),
+#if (NDIM == 3)
+                                      patch_box.lower(2),
+                                      patch_box.upper(2),
+#endif
+                                      dx);
+        }
+    }
+
+    // Deallocate the temporary variable.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        d_hierarchy->getPatchLevel(ln)->deallocatePatchData(U1_real_idx);
+        d_hierarchy->getPatchLevel(ln)->deallocatePatchData(U1_imag_idx);
+        d_hierarchy->getPatchLevel(ln)->deallocatePatchData(p1_real_idx);
+        d_hierarchy->getPatchLevel(ln)->deallocatePatchData(p1_imag_idx);
+    }
+    var_db->removePatchDataIndex(U1_real_idx);
+    var_db->removePatchDataIndex(U1_imag_idx);
+    var_db->removePatchDataIndex(p1_real_idx);
+    var_db->removePatchDataIndex(p1_imag_idx);
+
+    return;
+} // computeCouplingSourceTerms
+
+void
+AcousticStreamingHierarchyIntegrator::setupSolverVectorsSOSystem(Pointer<SAMRAIVectorReal<NDIM, double> >& sol2_vec,
+                                                                 Pointer<SAMRAIVectorReal<NDIM, double> >& rhs2_vec,
+                                                                 double current_time,
+                                                                 double new_time,
+                                                                 int cycle_num)
+{
+    // Account for body forcing terms.
+    if (d_F2_fcn)
+    {
+        d_F2_fcn->setDataOnPatchHierarchy(d_F2_scratch_idx, d_F2_var, d_hierarchy, new_time);
+        d_hier_sc_data_ops->add(
+            rhs2_vec->getComponentDescriptorIndex(0), rhs2_vec->getComponentDescriptorIndex(0), d_F2_scratch_idx);
+    }
+
+    // Account for mass source/sink terms.
     if (d_Q2_fcn)
     {
         d_Q2_fcn->setDataOnPatchHierarchy(d_Q2_new_idx, d_Q2_var, d_hierarchy, new_time);
-        d_hier_cc_data_ops->add(
+        d_hier_cc_data_ops->subtract(
             rhs2_vec->getComponentDescriptorIndex(1), rhs2_vec->getComponentDescriptorIndex(1), d_Q2_new_idx);
     }
 
@@ -2451,25 +2965,11 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVec
 
     // Set solution components to equal most recent approximations to u(n+1) and
     // p(n+1).
-    d_hier_sc_data_ops->copyData(sol1_vec->getComponentDescriptorIndex(0), d_U1_new_idx);
-    d_hier_cc_data_ops->copyData(sol1_vec->getComponentDescriptorIndex(1), d_P1_new_idx);
     d_hier_sc_data_ops->copyData(sol2_vec->getComponentDescriptorIndex(0), d_U2_new_idx);
     d_hier_cc_data_ops->copyData(sol2_vec->getComponentDescriptorIndex(1), d_P2_new_idx);
 
     // Synchronize solution and right-hand-side data before solve for the second order system.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
-
-    SynchronizationTransactionComponent sol1_synch_transaction =
-        SynchronizationTransactionComponent(sol1_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
-    d_side_synch1_op->resetTransactionComponent(sol1_synch_transaction);
-    d_side_synch1_op->synchronizeData(current_time);
-    SynchronizationTransactionComponent rhs1_synch_transaction =
-        SynchronizationTransactionComponent(rhs1_vec->getComponentDescriptorIndex(0), d_F_coarsen_type);
-    d_side_synch1_op->resetTransactionComponent(rhs1_synch_transaction);
-    d_side_synch1_op->synchronizeData(current_time);
-    SynchronizationTransactionComponent default_synch1_transaction =
-        SynchronizationTransactionComponent(d_U1_scratch_idx, d_U_coarsen_type);
-    d_side_synch1_op->resetTransactionComponent(default_synch1_transaction);
 
     SynchronizationTransactionComponent sol2_synch_transaction =
         SynchronizationTransactionComponent(sol2_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
@@ -2484,7 +2984,7 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVec
     d_side_synch2_op->resetTransactionComponent(default_synch2_transaction);
 
     return;
-} // setupSolverVectors
+} // setupSolverVectorsSOSystem
 
 void
 AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
@@ -2495,9 +2995,6 @@ AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
                                                          const double /*new_time*/,
                                                          const int /*cycle_num*/)
 {
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-
     // Synchronize solution data after solve.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
     SynchronizationTransactionComponent sol1_synch_transaction =
@@ -2544,8 +3041,16 @@ AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
     }
     if (d_Q2_fcn)
     {
-        d_hier_cc_data_ops->subtract(
+        d_hier_cc_data_ops->add(
             rhs2_vec->getComponentDescriptorIndex(1), rhs2_vec->getComponentDescriptorIndex(1), d_Q2_new_idx);
+    }
+
+    // Remove the Brinkman term
+    const bool has_brinkman = d_brinkman_force.size();
+    if (has_brinkman)
+    {
+        d_hier_sc_data_ops->subtract(
+            rhs2_vec->getComponentDescriptorIndex(0), rhs2_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
     }
 
     return;
