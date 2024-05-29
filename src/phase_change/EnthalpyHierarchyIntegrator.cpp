@@ -748,6 +748,9 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
         d_hier_cc_data_ops->copyData(d_lf_pre_idx, lf_new_idx);
         computeLiquidFraction(lf_new_idx, h_new_idx, H_new_idx);
 
+        // extrapolate the liquid fraction to gas region.
+        extrapolateLiquidFractionToGasRegion(lf_new_idx);
+
         // Update specific heat
         const double apply_time = new_time;
         for (unsigned k = 0; k < d_reset_Cp_fcns.size(); ++k)
@@ -804,8 +807,8 @@ EnthalpyHierarchyIntegrator::integrateHierarchy(const double current_time, const
     // Compute the source term for Div U equation.
     computeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
 
-    // extrapolate the liquid fraction to gas region.
-    extrapolateLiquidFractionToGasRegion(lf_new_idx);
+    // // extrapolate the liquid fraction to gas region.
+    // extrapolateLiquidFractionToGasRegion(lf_new_idx);
 
     // Execute any registered callbacks.
     executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
@@ -1369,6 +1372,9 @@ EnthalpyHierarchyIntegrator::extrapolateLiquidFractionToGasRegion(int lf_new_idx
         d_hier_cc_data_ops->copyData(d_lf_extrap_scratch_idx, d_lf_extrap_new_idx);
         d_hier_cc_data_ops->copyData(d_lf_extrap_current_idx, d_lf_extrap_new_idx);
     }
+
+    // Synchronizing liquid fraction.
+    d_hier_cc_data_ops->copyData(lf_new_idx, d_lf_extrap_new_idx);
 
     return;
 }
