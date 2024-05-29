@@ -1552,6 +1552,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::resetSolverVectors(
             rhs_vec->getComponentDescriptorIndex(1), rhs_vec->getComponentDescriptorIndex(1), d_Q_new_idx);
     }
 
+    // Remove the Brinkman term.
     d_hier_sc_data_ops->subtract(
         rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
 
