@@ -281,6 +281,14 @@ SAMRAIGhostDataAccumulator::SAMRAIGhostDataAccumulator(Pointer<BasePatchHierarch
             }
         }
     } // loop over levels
+
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_global_dof_idx);
+    }
+    var_db->removePatchDataIndex(d_global_dof_idx);
+    d_global_dof_idx = IBTK::invalid_index;
     IBTK_TIMER_STOP(t_constructor);
 }
 
@@ -352,14 +360,10 @@ SAMRAIGhostDataAccumulator::~SAMRAIGhostDataAccumulator()
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        if (d_global_dof_idx != IBTK::invalid_index && level->checkAllocated(d_global_dof_idx))
-            level->deallocatePatchData(d_global_dof_idx);
-        if (d_local_dof_idx != IBTK::invalid_index && level->checkAllocated(d_local_dof_idx))
-            level->deallocatePatchData(d_local_dof_idx);
+        level->deallocatePatchData(d_local_dof_idx);
     }
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     var_db->removePatchDataIndex(d_local_dof_idx);
-    var_db->removePatchDataIndex(d_global_dof_idx);
 }
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
