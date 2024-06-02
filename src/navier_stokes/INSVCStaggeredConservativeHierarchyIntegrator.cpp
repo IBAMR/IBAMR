@@ -997,7 +997,9 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(scratch_idxs, d_integrator_time);
+        if (!level->checkAllocated(d_U_scratch_idx)) level->allocatePatchData(d_U_scratch_idx, d_integrator_time);
+        if (!level->checkAllocated(d_P_scratch_idx)) level->allocatePatchData(d_P_scratch_idx, d_integrator_time);
+        if (!level->checkAllocated(d_pressure_D_idx)) level->allocatePatchData(d_pressure_D_idx, d_integrator_time);
     }
 
     // Setup the regrid Poisson solver.

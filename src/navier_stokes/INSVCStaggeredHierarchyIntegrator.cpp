@@ -1751,7 +1751,7 @@ INSVCStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointe
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(d_Omega_idx, error_data_time);
+            if (!level->checkAllocated(d_Omega_idx)) level->allocatePatchData(d_Omega_idx, error_data_time);
             level->allocatePatchData(d_U_scratch_idx, error_data_time);
         }
 
