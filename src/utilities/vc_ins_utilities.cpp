@@ -726,7 +726,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
             int ls_gas_idx = ls_gas_new_is_allocated ? ls_gas_new_idx : ls_gas_current_idx;
 
             IntVector<NDIM> cell_ghosts = 1;
-            int d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
+            d_ls_gas_scratch_idx = var_db->registerVariableAndContext(
                 d_ls_gas_var, var_db->getContext(d_object_name + "::LS_GAS_SCRATCH"), cell_ghosts);
 
 #if !defined(NDEBUG)

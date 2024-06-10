@@ -433,7 +433,6 @@ main(int argc, char* argv[])
                 pout << "\nWriting visualization files...\n\n";
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                out << "\nWriting visualization files...\n\n";
             }
             if (dump_restart_data && (iteration_num % restart_dump_interval == 0 || last_step))
             {
