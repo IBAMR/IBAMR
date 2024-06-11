@@ -13,7 +13,7 @@
 
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_PROGRAMS = free_falling_cyl_cib rotating_barge_cib check_hydro_force high_density_droplet
+EXTRA_PROGRAMS = free_falling_cyl_cib rotating_barge_cib check_hydro_force high_density_droplet water_entry_circular_cylinder
 
 # this test needs some extra input files, so make SOURCE_DIR available:
 free_falling_cyl_cib_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
@@ -32,6 +32,10 @@ check_hydro_force_SOURCES = check_hydro_force.cpp
 high_density_droplet_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 high_density_droplet_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 high_density_droplet_SOURCES = high_density_droplet.cpp
+
+water_entry_circular_cylinder_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+water_entry_circular_cylinder_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+water_entry_circular_cylinder_SOURCES = water_entry_circular_cylinder.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
