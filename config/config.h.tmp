@@ -26,7 +26,6 @@
 // Ultimately, all IBAMR macros will be aliases of the IBTK macros
 #include <ibtk/config.h>
 
-#include <ibamr/ibamr_macros.h>
 #include <ibamr/ibamr_utilities.h>
 
 // This header is a stub defined to improve compatibility with the new CMake

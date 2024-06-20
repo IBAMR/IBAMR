@@ -199,5 +199,17 @@
 /* Version number of package */
 #undef VERSION
 
+/* Major version of IBTK. */
+#undef VERSION_MAJOR
+
+/* Minor version of IBTK. */
+#undef VERSION_MINOR
+
+/* Subminor version of IBTK. */
+#undef VERSION_SUBMINOR
+
 /* Include the new configuration file. */
 #include <ibtk/config.h>
+
+/* Version check macro. */
+#define IBTK_VERSION_GTE(major, minor, subminor) ((IBTK_VERSION_MAJOR * 10000 + IBTK_VERSION_MINOR * 100 + IBTK_VERSION_SUBMINOR) >= (major)*10000 + (minor)*100 + (subminor))
