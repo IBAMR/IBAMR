@@ -1,0 +1,3 @@
+Fixed: Fixed issue with time-dependent boundary value updates for plotting. Before, only the intial boundary values were used. Now they update appropriately in time. 
+
+(Cole Gruninger, 2024/06/26)
