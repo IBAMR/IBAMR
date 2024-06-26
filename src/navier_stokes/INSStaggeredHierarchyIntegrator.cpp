@@ -2044,7 +2044,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                    getVelocityBoundaryConditions());
             Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_bdry_fill->initializeOperatorState(comp, d_hierarchy);
-            hier_bdry_fill->fillData(0.0);
+            hier_bdry_fill->fillData(d_integrator_time);
         }
 
         // synch both the src and dst data:
@@ -2076,7 +2076,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                    nullptr);
             Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
             hier_bdry_fill->initializeOperatorState(comp, d_hierarchy);
-            hier_bdry_fill->fillData(0.0);
+            hier_bdry_fill->fillData(d_integrator_time);
         }
 
         // synch both the src and dst data:
