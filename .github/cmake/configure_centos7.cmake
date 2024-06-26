@@ -25,7 +25,7 @@ SET(CMAKE_Fortran_COMPILER "/usr/bin/gfortran" CACHE STRING "Fortran Compiler")
 
 SET(CMAKE_C_FLAGS "-O1" CACHE STRING "C flags")
 SET(CMAKE_CXX_FLAGS "-O1" CACHE STRING "C++ flags")
-SET(CMAKE_Fortran_FLAGS "-O3" CACHE STRING "Fortran flags")
+SET(CMAKE_Fortran_FLAGS "-O3 -Wno-unused-parameter -Wno-compare-reals" CACHE STRING "Fortran flags")
 SET(CMAKE_INSTALL_PREFIX "/ibamr" CACHE PATH "Install destination")
 SET(SAMRAI_ROOT "/samrai" CACHE PATH "Location of SAMRAI")
 SET(PETSC_ROOT "/petsc/" CACHE PATH "Location of PETSc")

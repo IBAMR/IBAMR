@@ -26,7 +26,7 @@ SET(CMAKE_Fortran_COMPILER "/usr/lib64/mpich/bin/mpifort" CACHE STRING "Fortran 
 SET(CMAKE_C_FLAGS "-O1 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized"
   CACHE STRING "C flags")
 SET(CMAKE_CXX_FLAGS "-O1 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized" CACHE STRING "C++ flags")
-SET(CMAKE_Fortran_FLAGS "-O3" CACHE STRING "Fortran flags")
+SET(CMAKE_Fortran_FLAGS "-O3 -Wno-unused-parameter -Wno-compare-reals" CACHE STRING "Fortran flags")
 SET(CMAKE_INSTALL_PREFIX "/ibamr" CACHE PATH "Install destination")
 SET(SAMRAI_ROOT "/samrai" CACHE PATH "Location of SAMRAI")
 SET(PETSC_ROOT "/petsc/" CACHE PATH "Location of PETSc")
