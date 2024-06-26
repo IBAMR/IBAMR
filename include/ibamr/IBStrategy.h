@@ -532,7 +532,8 @@ protected:
         const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
         const std::string& coarsen_name = "NO_COARSEN",
         const std::string& refine_name = "NO_REFINE",
-        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL));
+        SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL),
+        const bool register_for_restart = true);
 
     /*!
      * Register a variable with the integrator that may not be maintained from
@@ -545,7 +546,8 @@ protected:
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
                           const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL),
+                          const bool register_for_restart = true);
 
     /*!
      * Register a ghost cell-filling refine algorithm.
