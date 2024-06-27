@@ -28,7 +28,7 @@ SET(CMAKE_Fortran_COMPILER "/petsc/bin/mpifort" CACHE STRING "Fortran Compiler")
 # libMesh uses std::iterator, which is deprecated, so turn off Wdeprecated-declarations
 SET(CMAKE_C_FLAGS "-O0 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations" CACHE STRING "C flags")
 SET(CMAKE_CXX_FLAGS "-O0 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations" CACHE STRING "C++ flags")
-SET(CMAKE_Fortran_FLAGS "-O0" CACHE STRING "Fortran flags")
+SET(CMAKE_Fortran_FLAGS "-O0 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" CACHE STRING "Fortran flags")
 
 SET(CMAKE_INSTALL_PREFIX "/ibamr" CACHE PATH "Install destination")
 

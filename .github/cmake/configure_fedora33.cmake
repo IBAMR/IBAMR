@@ -23,6 +23,6 @@ SET(HDF5_ROOT "$ENV{HDF5_DIR}" CACHE PATH "Location of HDF5 binaries")
 SET(CMAKE_C_FLAGS "-O1 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized -Wno-deprecated-declarations"
   CACHE STRING "C flags")
 SET(CMAKE_CXX_FLAGS "-O1 -Wall -Wextra -Wpedantic -Werror -Wno-maybe-uninitialized -Wno-deprecated-declarations" CACHE STRING "C++ flags")
-SET(CMAKE_Fortran_FLAGS "-O3" CACHE STRING "Fortran flags")
+SET(CMAKE_Fortran_FLAGS "-O3 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" CACHE STRING "Fortran flags")
 
 INCLUDE("${CMAKE_CURRENT_LIST_DIR}/configure_common.cmake")
