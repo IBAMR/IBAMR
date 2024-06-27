@@ -411,15 +411,33 @@ main(int argc, char* argv[])
         level_set_solid_ops->registerPhysicalBoundaryCondition(phi_bc_coef);
         level_set_gas_ops->registerPhysicalBoundaryCondition(phi_bc_coef);
 
-        // Initialize objects
+        // Class GravityForcing can be utilized to apply the gravitational force $ \rho g $
+        // using the density field, which includes all three phases: liquid, gas, and solid;
+        // or using the flow density field, which includes only liquid and gas phases
+        // and excludes the solid phase.
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        Pointer<CartGridFunction> grav_force =
-            new IBAMR::VCINSUtilities::GravityForcing("GravityForcing",
-                                                      adv_diff_integrator,
-                                                      phi_var_gas,
-                                                      app_initializer->getComponentDatabase("FlowGravityForcing"),
-                                                      grav_const);
+        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
+        Pointer<CartGridFunction> grav_force;
+        if (grav_type == "FULL")
+        {
+            grav_force =
+                new IBAMR::VCINSUtilities::GravityForcing("FullGravityForcing", navier_stokes_integrator, grav_const);
+        }
+        else if (grav_type == "FLOW")
+        {
+            grav_force =
+                new IBAMR::VCINSUtilities::GravityForcing("FlowGravityForcing",
+                                                          adv_diff_integrator,
+                                                          phi_var_gas,
+                                                          app_initializer->getComponentDatabase("FlowGravityForcing"),
+                                                          grav_const);
+        }
+        else
+        {
+            TBOX_ERROR("Unsupported GRAV_TYPE specified: " << grav_type << "\n"
+                                                           << "Valid options are: FLOW, FULL");
+        }
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
