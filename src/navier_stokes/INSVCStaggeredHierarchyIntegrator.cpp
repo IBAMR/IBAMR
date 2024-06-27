@@ -1758,7 +1758,7 @@ INSVCStaggeredHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointe
         d_hier_math_ops->curl(d_Omega_idx, d_Omega_var, d_U_scratch_idx, d_U_var, d_U_bdry_bc_fill_op, error_data_time);
         tagCellsByVorticityMagnitude(level_number, d_Omega_idx, tag_index);
 
-        for (int ln = 0; ln < d_hierarchy->getFinestLevelNumber(); ++ln)
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(d_U_scratch_idx);
