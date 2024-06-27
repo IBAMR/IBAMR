@@ -133,7 +133,6 @@ main(int argc, char* argv[])
         app_initializer.setNull();
 
         // Write out initial visualization data.
-        int iteration_num = time_integrator->getIntegratorStep();
         double loop_time = time_integrator->getIntegratorTime();
 
         // Main time step loop.
@@ -141,14 +140,11 @@ main(int argc, char* argv[])
         double dt = 0.0;
         while (!IBTK::rel_equal_eps(loop_time, loop_time_end) && time_integrator->stepsRemaining())
         {
-            iteration_num = time_integrator->getIntegratorStep();
             loop_time = time_integrator->getIntegratorTime();
 
             dt = time_integrator->getMaximumTimeStepSize();
             time_integrator->advanceHierarchy(dt);
             loop_time += dt;
-
-            iteration_num += 1;
         }
 
         Pointer<CellVariable<NDIM, double> > s_var = polymericStressForcing->getVariable();

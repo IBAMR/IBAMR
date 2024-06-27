@@ -187,7 +187,7 @@ main(int argc, char* argv[])
         if (dst_var_type == "NODE" && src_var_type == "SIDE")
         {
             hier_math_ops.curl(
-                curl_u_idx, curl_u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, NULL, synch_src_cf_interface, 0.0);
+                curl_u_idx, curl_u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, NULL, 0.0, synch_src_cf_interface);
         }
         else
         {

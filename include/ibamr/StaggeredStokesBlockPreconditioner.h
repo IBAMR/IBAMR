@@ -112,7 +112,7 @@ public:
      * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
-     * \param U_bc_coefs  IBTK::Vector of pointers to objects that can set the Robin boundary
+     * \param U_bc_coefs  vector of pointers to objects that can set the Robin boundary
      *condition coefficients for the velocity
      * \param P_bc_coef   Pointer to object that can set the Robin boundary condition
      *coefficients

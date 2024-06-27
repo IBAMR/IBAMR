@@ -169,11 +169,11 @@ main(int argc, char* argv[])
         else
         {
             // Allocate data as normal.
-            c_cache = std::move(fill_data("cell", c_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
-            n_cache = std::move(fill_data("node", n_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
-            s_cache = std::move(fill_data("side", s_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
-            e_cache = std::move(fill_data("edge", e_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
-            f_cache = std::move(fill_data("face", f_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
+            c_cache = fill_data("cell", c_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
+            n_cache = fill_data("node", n_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
+            s_cache = fill_data("side", s_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
+            e_cache = fill_data("edge", e_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
+            f_cache = fill_data("face", f_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
         }
 
         // Write restart files if we need to
