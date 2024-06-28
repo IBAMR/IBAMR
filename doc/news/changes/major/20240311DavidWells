@@ -1,4 +1,0 @@
-Improved: Many quantities which did not need to be in the restart database have been removed from it.
-This decreases the size of the restart files by over 50%.
-<br>
-(David Wells, 2024/03/11)

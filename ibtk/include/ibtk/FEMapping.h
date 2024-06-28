@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2023 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -138,7 +138,7 @@ public:
      */
     static std::unique_ptr<FEMapping<dim, spacedim> > build(const key_type key, const FEUpdateFlags update_flags);
 
-    virtual ~FEMapping<dim, spacedim>() = default;
+    virtual ~FEMapping() = default;
 
 protected:
     /*!

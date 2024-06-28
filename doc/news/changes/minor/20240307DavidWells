@@ -1,4 +1,0 @@
-Improved: Added a 'make indent' target under CMake for automatically formatting
-all source code. This check is also run by the CI.
-
-(David Wells, 2024/03/07)

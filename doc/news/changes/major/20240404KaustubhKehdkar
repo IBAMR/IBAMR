@@ -1,7 +1,0 @@
-Enhancement: Remove the volume shift algorithm and replace it with a volume redistribution algorithm in the RelaxationLSMethod class.
-
-New: Introduce a new LevelSetUtilities class to provide implementations of helper functions for enforcing mass/volume conservation across phases. This class also includes implementations of SetLSProperties (to set or reset the level set after reinitialization) and TagLSRefinementCells (to tag cells for grid refinement based on the level set). These additions reduce duplicated codes in multiphase examples.
-
-Enhancement: Spiliting BrinkmanPenalization into normal and tangential components near the solid interface.
-
-(Amneet Bhalla, Kaustubh Khedkar, and Ramakrishnan Thirumalaisamy, 2024/04/04)

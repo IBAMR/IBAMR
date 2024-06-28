@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2021 by the IBAMR developers
+## Copyright (c) 2020 - 2024 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -38,7 +38,7 @@ IBAMR_ADD_EXAMPLE(
   OUTPUT_DIRECTORY
     "${CMAKE_BINARY_DIR}/examples/complex_fluids/ex2"
   OUTPUT_NAME
-    main2d
+    convergence_tester2d
   EXAMPLE_GROUP
     examples-complex_fluids
   SOURCES

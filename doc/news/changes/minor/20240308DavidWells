@@ -1,4 +1,0 @@
-Fixed: Fixed a compatibility problem where IBAMR didn't compile correctly with
-older versions HDF5 which use MPI.
-
-(David Wells, 2024/03/08)
