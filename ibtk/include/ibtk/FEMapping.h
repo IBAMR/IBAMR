@@ -138,7 +138,7 @@ public:
      */
     static std::unique_ptr<FEMapping<dim, spacedim> > build(const key_type key, const FEUpdateFlags update_flags);
 
-    virtual ~FEMapping<dim, spacedim>() = default;
+    virtual ~FEMapping() = default;
 
 protected:
     /*!
