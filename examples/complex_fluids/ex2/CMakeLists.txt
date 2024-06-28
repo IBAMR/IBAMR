@@ -38,7 +38,7 @@ IBAMR_ADD_EXAMPLE(
   OUTPUT_DIRECTORY
     "${CMAKE_BINARY_DIR}/examples/complex_fluids/ex2"
   OUTPUT_NAME
-    main2d
+    convergence_tester2d
   EXAMPLE_GROUP
     examples-complex_fluids
   SOURCES
