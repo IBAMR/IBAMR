@@ -1,0 +1,79 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: The complex fluid solver has been revamped to allow for more flexible
+specifications of fluid models. The class CFRelaxationOperator has been
+replaced with CFStrategy, in which users can specify both a relaxation function
+and a conformation-to-stress conversion function. Additional solver options
+have also been added to CFUpperConvectiveOperator.
+<br>
+(Aaron Barrett, 2024/02/01)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+New: Implementations of AllenCahn and enthalpy methods for the simulation of phase change problems with volume change.
+
+(Ramakrishnan Thirumalaisamy, 2024/01/30)
+</li>
+<li>
+Improved: Many quantities which did not need to be in the restart database have been removed from it.
+This decreases the size of the restart files by over 50%.
+<br>
+(David Wells, 2024/03/11)
+</li>
+<li>
+Enhancement: Remove the volume shift algorithm and replace it with a volume redistribution algorithm in the RelaxationLSMethod class.
+<br>
+(Amneet Bhalla, Kaustubh Khedkar, and Ramakrishnan Thirumalaisamy, 2024/04/04)
+</li>
+<li>
+New: Introduce a new LevelSetUtilities class to provide implementations of helper functions for enforcing mass/volume conservation across phases. This class also includes implementations of SetLSProperties (to set or reset the level set after reinitialization) and TagLSRefinementCells (to tag cells for grid refinement based on the level set). These additions reduce duplicated codes in multiphase examples.
+<br>
+(Amneet Bhalla, Kaustubh Khedkar, and Ramakrishnan Thirumalaisamy, 2024/04/04)
+</li>
+<li>
+Enhancement: Splitting BrinkmanPenalization into normal and tangential components near the solid interface.
+<br>
+(Amneet Bhalla, Kaustubh Khedkar, and Ramakrishnan Thirumalaisamy, 2024/04/04)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+New: Implementations of composite 6/5 and 5/4 B-spline kernels.
+
+(Boyce Griffith, 2024/01/29)
+</li>
+<li>
+Bug fix: Fixed masking function for StaggeredPhysicalBoundaryHelper.
+
+(Aaron Barrett, 2024/03/01)
+</li>
+<li>
+Improved: Added a 'make indent' target under CMake for automatically formatting
+all source code. This check is also run by the CI.
+
+(David Wells, 2024/03/07)
+</li>
+<li>
+Fixed: Fixed a compatibility problem where IBAMR didn't compile correctly with
+older versions HDF5 which use MPI.
+
+(David Wells, 2024/03/08)
+</li>
+<li>
+Enhancement: The new header vc_ins_utilities.h sets fluid properties such as density and viscosity for both two-phase and three-phase flows throughout the entire domain. Additionally, this class provides implementations for gravity force calculations in two-phase and three-phase flows.
+
+(Ramakrishnan Thirumalaisamy, 2024/04/22)
+</li>
+<li>
+Improved: Classes derived from INSHierarchyIntegrator only compute the
+vorticity when they need to instead of at the end of every time step.
+<br>
+(David Wells, 2024/05/15)
+</li>
+</ol>

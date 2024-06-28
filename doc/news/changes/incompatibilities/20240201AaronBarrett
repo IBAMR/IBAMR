@@ -1,7 +1,0 @@
-Changed: The complex fluid solver has been revamped to allow for more flexible
-specifications of fluid models. The class CFRelaxationOperator has been
-replaced with CFStrategy, in which users can specify both a relaxation function
-and a conformation-to-stress conversion function. Additional solver options
-have also been added to CFUpperConvectiveOperator.
-<br>
-(Aaron Barrett, 2024/02/01)
