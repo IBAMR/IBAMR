@@ -22,9 +22,9 @@ fi
 
 FILES="
   $(echo attest configure.ac ./ibtk/configure.ac CMakeLists.txt)
-  $(find -L ./include ./ibtk/include ./src ./ibtk/src ./cmake ./config ./.github | egrep '\.(m|py|pl|h|am|ac|m4|cpp|i|txt)$')
-  $(find -L ./tests ./examples ./ibtk/examples ./scripts | egrep '\.(m|py|pl|h|am|ac|m4|cpp|i)$')
-  $(find -L ./doc ./scripts ./m4 ./ibtk/m4 ./lib ./ibtk/lib | egrep '\.(m|py|pl|h|am|ac|m4|cpp|i|txt)$')
+  $(find -L ./include ./ibtk/include ./src ./ibtk/src ./cmake ./config ./.github |  grep -E '\.(m|py|pl|h|am|ac|m4|cpp|i|txt)$')
+  $(find -L ./tests ./examples ./ibtk/examples ./scripts |  grep -E '\.(m|py|pl|h|am|ac|m4|cpp|i)$')
+  $(find -L ./doc ./scripts ./m4 ./ibtk/m4 ./lib ./ibtk/lib |  grep -E '\.(m|py|pl|h|am|ac|m4|cpp|i|txt)$')
 "
 FILES=$(echo $FILES | xargs realpath | sort -u)
 
@@ -41,14 +41,14 @@ for FILE in $FILES ; do
   # copyright year. let's err on the safe side and take the last
   # 3 commits.)
   last_year=`git log -n 3 --date=short --format="format:%cd %s" $FILE | \
-             egrep -i -v "update.*copyright|copyright.*update" | \
+              grep -E -i -v "update.*copyright|copyright.*update" | \
              head -n 1 | \
              perl -p -e 's/^(\d\d\d\d)-.*/\1/g;'`
 
   # get the first year this file was modified from the actual
   # file. this may predate the git log if the file was copied
   # from elsewhere
-  first_year=`cat $FILE | egrep 'Copyright \(C\) [0-9]{4}' | \
+  first_year=`cat $FILE |  grep -E 'Copyright \(C\) [0-9]{4}' | \
               perl -p -e "s/.*Copyright \(C\) (\d{4}).*/\1/g;"`
 
   echo "Processing $FILE: ${first_year} - ${last_year}"
