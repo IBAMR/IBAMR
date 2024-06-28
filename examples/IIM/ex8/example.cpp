@@ -433,8 +433,6 @@ main(int argc, char* argv[])
         H0 = input_db->getDouble("H0");
         const double n_cycles = input_db->getDouble("NCYCLE");
 
-        libMesh::RealVectorValue extrusion_vec = { 0, 0, L };
-
         ReplicatedMesh tube_lower_mesh(init.comm(), NDIM);
 
         string tube_elem_type = input_db->getString("TUBE_ELEM_TYPE");
