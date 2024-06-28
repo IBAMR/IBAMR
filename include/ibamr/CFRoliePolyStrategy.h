@@ -15,6 +15,7 @@
 
 #ifndef included_CFRoliePolyStrategy
 #define included_CFRoliePolyStrategy
+
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include <ibamr/config.h>
