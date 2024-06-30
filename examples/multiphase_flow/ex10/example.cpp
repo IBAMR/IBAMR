@@ -404,12 +404,37 @@ main(int argc, char* argv[])
         // Initialize objects
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        Pointer<CartGridFunction> grav_force =
-            new IBAMR::VCINSUtilities::GravityForcing("GravityForcing",
-                                                      adv_diff_integrator,
-                                                      phi_var_gas,
-                                                      app_initializer->getComponentDatabase("FlowGravityForcing"),
-                                                      grav_const);
+        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
+        Pointer<CartGridFunction> grav_force;
+        if (grav_type == "FULL")
+        {
+            grav_force = new IBAMR::VCINSUtilities::GravityForcing("FullGravityForcing",
+                                                                   navier_stokes_integrator,
+                                                                   grav_const);
+        }
+        else if (grav_type == "FLOW")
+        {
+            grav_force = new IBAMR::VCINSUtilities::GravityForcing("FlowGravityForcing",
+                                                                   adv_diff_integrator,
+                                                                   phi_var_gas,
+                                                                   app_initializer->getComponentDatabase("FlowGravityForcing"),
+                                                                   grav_const);
+        }
+        else
+        {
+            TBOX_ERROR("Unsupported GRAV_TYPE specified: " << grav_type << "\n"
+                                                           << "Valid options are: FLOW, FULL");
+        }
+
+        // // Initialize objects
+        // std::vector<double> grav_const(NDIM);
+        // input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
+        // Pointer<CartGridFunction> grav_force =
+        //     new IBAMR::VCINSUtilities::GravityForcing("GravityForcing",
+        //                                               adv_diff_integrator,
+        //                                               phi_var_gas,
+        //                                               app_initializer->getComponentDatabase("FlowGravityForcing"),
+        //                                               grav_const);
 
         Pointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
