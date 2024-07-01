@@ -284,6 +284,7 @@ enum TimeSteppingType
 {
     ADAMS_BASHFORTH,
     BACKWARD_EULER,
+    BDF2,
     FORWARD_EULER,
     MIDPOINT_RULE,
     TRAPEZOIDAL_RULE,
@@ -298,6 +299,7 @@ string_to_enum<TimeSteppingType>(const std::string& val)
 {
     if (strcasecmp(val.c_str(), "ADAMS_BASHFORTH") == 0) return ADAMS_BASHFORTH;
     if (strcasecmp(val.c_str(), "BACKWARD_EULER") == 0) return BACKWARD_EULER;
+    if (strcasecmp(val.c_str(), "BDF2") == 0) return BDF2;
     if (strcasecmp(val.c_str(), "FORWARD_EULER") == 0) return FORWARD_EULER;
     if (strcasecmp(val.c_str(), "MIDPOINT_RULE") == 0) return MIDPOINT_RULE;
     if (strcasecmp(val.c_str(), "TRAPEZOIDAL_RULE") == 0) return TRAPEZOIDAL_RULE;
@@ -314,6 +316,7 @@ enum_to_string<TimeSteppingType>(TimeSteppingType val)
 {
     if (val == ADAMS_BASHFORTH) return "ADAMS_BASHFORTH";
     if (val == BACKWARD_EULER) return "BACKWARD_EULER";
+    if (val == BDF2) return "BDF2";
     if (val == FORWARD_EULER) return "FORWARD_EULER";
     if (val == MIDPOINT_RULE) return "MIDPOINT_RULE";
     if (val == TRAPEZOIDAL_RULE) return "TRAPEZOIDAL_RULE";
@@ -328,6 +331,7 @@ is_multistep_time_stepping_type(TimeSteppingType val)
     switch (val)
     {
     case ADAMS_BASHFORTH:
+    case BDF2:
         return true;
     case BACKWARD_EULER:
     case FORWARD_EULER:
@@ -339,6 +343,18 @@ is_multistep_time_stepping_type(TimeSteppingType val)
         return false;
     }
 } // is_multistep_time_stepping_type
+
+inline bool
+is_bdf_time_stepping_type(TimeSteppingType val)
+{
+    switch (val)
+    {
+    case BDF2:
+        return true;
+    default:
+        return false;
+    }
+} // is_bdf_time_stepping_type
 
 /*!
  * \brief Enumerated type for different types of traction boundary conditions.

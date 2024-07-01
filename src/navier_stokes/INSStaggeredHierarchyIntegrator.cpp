@@ -475,6 +475,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     switch (d_viscous_time_stepping_type)
     {
     case BACKWARD_EULER:
+    case BDF2:
     case FORWARD_EULER:
     case TRAPEZOIDAL_RULE:
         break;
@@ -482,7 +483,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
         TBOX_ERROR(d_object_name << "::INSStaggeredHierarchyIntegrator():\n"
                                  << "  unsupported viscous time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type) << " \n"
-                                 << "  valid choices are: BACKWARD_EULER, FORWARD_EULER, "
+                                 << "  valid choices are: BACKWARD_EULER, BDF2, FORWARD_EULER, "
                                     "TRAPEZOIDAL_RULE\n");
     }
     switch (d_convective_time_stepping_type)
@@ -573,6 +574,7 @@ INSStaggeredHierarchyIntegrator::INSStaggeredHierarchyIntegrator(std::string obj
     d_F_var = INSHierarchyIntegrator::d_F_var;
     d_Q_var = INSHierarchyIntegrator::d_Q_var;
     d_N_old_var = new SideVariable<NDIM, double>(d_object_name + "::N_old");
+    d_U_old_var = new SideVariable<NDIM, double>(d_object_name + "::U_old");
 
     // with our convention fine_boundary_represents_var = false means that will
     // use a conforming discretization (the solution, with bilinear/trilinear
@@ -897,13 +899,27 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
 
     // We need previous values of N for Adams-Bashforth so keep it in the
     // restart database.
-    registerVariable(d_N_old_current_idx,
-                     d_N_old_new_idx,
-                     d_N_old_scratch_idx,
-                     d_N_old_var,
-                     side_ghosts,
-                     d_N_coarsen_type,
-                     d_N_refine_type);
+    if (is_multistep_time_stepping_type(d_convective_time_stepping_type))
+    {
+        registerVariable(d_N_old_current_idx,
+                         d_N_old_new_idx,
+                         d_N_old_scratch_idx,
+                         d_N_old_var,
+                         side_ghosts,
+                         d_N_coarsen_type,
+                         d_N_refine_type);
+    }
+
+    if (is_multistep_time_stepping_type(d_viscous_time_stepping_type))
+    {
+        registerVariable(d_U_old_current_idx,
+                         d_U_old_new_idx,
+                         d_U_old_scratch_idx,
+                         d_U_old_var,
+                         side_ghosts,
+                         d_U_coarsen_type,
+                         d_U_refine_type);
+    }
 
     registerVariable(d_U_nc_idx, d_U_nc_var, no_ghosts, getPlotContext());
     d_plot_indices.push_back(d_U_nc_idx);
@@ -1129,37 +1145,68 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
     const double rho = d_problem_coefs.getRho();
     const double mu = d_problem_coefs.getMu();
     const double lambda = d_problem_coefs.getLambda();
-    double K_rhs = 0.0;
-    switch (d_viscous_time_stepping_type)
+    if (is_multistep_time_stepping_type(d_viscous_time_stepping_type))
     {
-    case BACKWARD_EULER:
-        K_rhs = 0.0;
-        break;
-    case FORWARD_EULER:
-        K_rhs = 1.0;
-        break;
-    case TRAPEZOIDAL_RULE:
-        K_rhs = 0.5;
-        break;
-    default:
-        TBOX_ERROR("this statment should not be reached");
+        const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
+        switch (d_viscous_time_stepping_type)
+        {
+        case BDF2:
+        {
+            if (getIntegratorStep() == 0)
+            {
+                d_hier_sc_data_ops->scale(U_rhs_idx, rho / dt, d_U_current_idx);
+            }
+            else
+            {
+                const double omega = getTimeStepSizeRatio();
+                const double a1 = (1.0 + omega) * rho / dt;
+                const double a2 = -(omega * omega / (1.0 + omega)) * rho / dt;
+                d_hier_sc_data_ops->linearSum(U_rhs_idx, a1, d_U_current_idx, a2, d_U_old_current_idx);
+            }
+            break;
+        }
+        default:
+            TBOX_ERROR("this statement should not be reached");
+        }
+        d_hier_sc_data_ops->copyData(d_U_old_new_idx, d_U_current_idx);
     }
-    PoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
-    U_rhs_problem_coefs.setCConstant((rho / dt) - K_rhs * lambda);
-    U_rhs_problem_coefs.setDConstant(+K_rhs * mu);
-    const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
-    const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
-    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ nullptr,
-                                                              d_U_scratch_idx,
-                                                              /*P_data_idx*/ -1,
-                                                              /*homogeneous_bc*/ false);
-    d_U_bdry_bc_fill_op->fillData(current_time);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
-                                                              /*P_bc_coef*/ nullptr);
-    d_hier_math_ops->laplace(
-        U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
+    else
+    {
+        double K1_rhs = 1.0, K2_rhs = 0.0;
+        switch (d_viscous_time_stepping_type)
+        {
+        case BACKWARD_EULER:
+            K1_rhs = 1.0;
+            K2_rhs = 0.0;
+            break;
+        case FORWARD_EULER:
+            K1_rhs = 1.0;
+            K2_rhs = 1.0;
+            break;
+        case TRAPEZOIDAL_RULE:
+            K1_rhs = 1.0;
+            K2_rhs = 0.5;
+            break;
+        default:
+            TBOX_ERROR("this statment should not be reached");
+        }
+        PoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
+        U_rhs_problem_coefs.setCConstant(K1_rhs * rho / dt - K2_rhs * lambda);
+        U_rhs_problem_coefs.setDConstant(K2_rhs * mu);
+        const int U_rhs_idx = d_U_rhs_vec->getComponentDescriptorIndex(0);
+        const Pointer<SideVariable<NDIM, double> > U_rhs_var = d_U_rhs_vec->getComponentVariable(0);
+        d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_current_idx);
+        StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_U_bc_coefs,
+                                                                  /*P_bc_coef*/ nullptr,
+                                                                  d_U_scratch_idx,
+                                                                  /*P_data_idx*/ -1,
+                                                                  /*homogeneous_bc*/ false);
+        d_U_bdry_bc_fill_op->fillData(current_time);
+        StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs,
+                                                                  /*P_bc_coef*/ nullptr);
+        d_hier_math_ops->laplace(
+            U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
+    }
     d_hier_sc_data_ops->copyData(d_U_src_idx,
                                  d_U_scratch_idx,
                                  /*interior_only*/ false);
@@ -1235,7 +1282,10 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         d_convective_op->setSolutionTime(current_time);
         d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
-        d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
+        if (is_multistep_time_stepping_type(d_convective_time_stepping_type))
+        {
+            d_hier_sc_data_ops->copyData(d_N_old_new_idx, N_idx);
+        }
         if (convective_time_stepping_type == FORWARD_EULER)
         {
             d_hier_sc_data_ops->axpy(d_rhs_vec->getComponentDescriptorIndex(0),
@@ -1440,15 +1490,28 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
             d_convective_op->setSolutionTime(apply_time);
             d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
         }
+
         const int N_idx = d_N_vec->getComponentDescriptorIndex(0);
         if (convective_time_stepping_type == ADAMS_BASHFORTH)
         {
 #if !defined(NDEBUG)
             TBOX_ASSERT(cycle_num == 0);
 #endif
-            const double omega = dt / d_dt_previous[0];
-            d_hier_sc_data_ops->linearSum(N_idx, 1.0 + 0.5 * omega, N_idx, -0.5 * omega, d_N_old_current_idx);
+            const double omega = getTimeStepSizeRatio();
+            double beta1, beta2;
+            if (is_bdf_time_stepping_type(d_viscous_time_stepping_type))
+            {
+                beta1 = 1.0 + omega;
+                beta2 = -omega;
+            }
+            else
+            {
+                beta1 = 1.0 + 0.5 * omega;
+                beta2 = -0.5 * omega;
+            }
+            d_hier_sc_data_ops->linearSum(N_idx, beta1, N_idx, beta2, d_N_old_current_idx);
         }
+
         if (convective_time_stepping_type == ADAMS_BASHFORTH || convective_time_stepping_type == MIDPOINT_RULE)
         {
             d_hier_sc_data_ops->axpy(
@@ -1464,7 +1527,16 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
     // Account for body forcing terms.
     if (d_F_fcn)
     {
-        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, half_time);
+        double data_time;
+        if (is_bdf_time_stepping_type(d_viscous_time_stepping_type))
+        {
+            data_time = new_time;
+        }
+        else
+        {
+            data_time = half_time;
+        }
+        d_F_fcn->setDataOnPatchHierarchy(d_F_scratch_idx, d_F_var, d_hierarchy, data_time);
         d_hier_sc_data_ops->add(
             rhs_vec->getComponentDescriptorIndex(0), rhs_vec->getComponentDescriptorIndex(0), d_F_scratch_idx);
     }
@@ -1472,15 +1544,40 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
     // Account for internal source/sink distributions.
     if (d_Q_fcn)
     {
-        d_Q_fcn->setDataOnPatchHierarchy(d_Q_current_idx, d_Q_var, d_hierarchy, current_time);
-        d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
-        d_hier_cc_data_ops->linearSum(d_Q_scratch_idx, 0.5, d_Q_current_idx, 0.5, d_Q_new_idx);
-        d_Q_bdry_bc_fill_op->fillData(half_time);
+        if (is_bdf_time_stepping_type(d_viscous_time_stepping_type))
+        {
+            d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
+            d_hier_cc_data_ops->copyData(d_Q_scratch_idx, d_Q_new_idx);
+            d_Q_bdry_bc_fill_op->fillData(new_time);
+        }
+        else
+        {
+            d_Q_fcn->setDataOnPatchHierarchy(d_Q_current_idx, d_Q_var, d_hierarchy, current_time);
+            d_Q_fcn->setDataOnPatchHierarchy(d_Q_new_idx, d_Q_var, d_hierarchy, new_time);
+            d_hier_cc_data_ops->linearSum(d_Q_scratch_idx, 0.5, d_Q_current_idx, 0.5, d_Q_new_idx);
+            d_Q_bdry_bc_fill_op->fillData(half_time);
+        }
 
         // Account for momentum loss at sources/sinks.
         if (d_use_div_sink_drag_term && !d_creeping_flow)
         {
-            d_hier_sc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
+            if (is_bdf_time_stepping_type(d_viscous_time_stepping_type))
+            {
+                if (cycle_num == 0)
+                {
+                    const double omega = getTimeStepSizeRatio();
+                    d_hier_sc_data_ops->linearSum(
+                        d_U_scratch_idx, 1.0 + omega, d_U_current_idx, -omega, d_U_old_current_idx);
+                }
+                else
+                {
+                    d_hier_sc_data_ops->copyData(d_U_scratch_idx, d_U_new_idx);
+                }
+            }
+            else
+            {
+                d_hier_sc_data_ops->linearSum(d_U_scratch_idx, 0.5, d_U_current_idx, 0.5, d_U_new_idx);
+            }
             computeDivSourceTerm(d_F_div_idx, d_Q_scratch_idx, d_U_scratch_idx);
             d_hier_sc_data_ops->scale(d_F_div_idx, rho, d_F_div_idx);
         }
@@ -1781,71 +1878,14 @@ INSStaggeredHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<Ba
         level->allocatePatchData(scratch_data, init_data_time);
         if (old_level) old_level->allocatePatchData(scratch_data, init_data_time);
 
-        // Set the indicator data to equal "0" in each patch of the new patch
-        // level, and initialize values of U to cause floating point errors if
-        // we fail to re-initialize it properly.
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        // Apply divergence and curl preserving prolongation to all stored velocity fields.
+        std::vector<int> U_idxs = { d_U_current_idx };
+        if (d_U_old_current_idx != IBTK::invalid_index)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-
-            Pointer<SideData<NDIM, double> > indicator_data = patch->getPatchData(d_indicator_idx);
-            indicator_data->fillAll(0.0);
-
-            Pointer<SideData<NDIM, double> > U_current_data = patch->getPatchData(d_U_current_idx);
-            Pointer<SideData<NDIM, double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-            Pointer<SideData<NDIM, double> > U_src_data = patch->getPatchData(d_U_src_idx);
-            U_current_data->fillAll(std::numeric_limits<double>::quiet_NaN());
-            U_regrid_data->fillAll(std::numeric_limits<double>::quiet_NaN());
-            U_src_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+            U_idxs.push_back(d_U_old_current_idx);
         }
-
-        if (old_level)
-        {
-            // Set the indicator data to equal "1" on each patch of the old
-            // patch level and reset U.
-            for (PatchLevel<NDIM>::Iterator p(old_level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = old_level->getPatch(p());
-
-                Pointer<SideData<NDIM, double> > indicator_data = patch->getPatchData(d_indicator_idx);
-                indicator_data->fillAll(1.0);
-
-                Pointer<SideData<NDIM, double> > U_current_data = patch->getPatchData(d_U_current_idx);
-                Pointer<SideData<NDIM, double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
-                Pointer<SideData<NDIM, double> > U_src_data = patch->getPatchData(d_U_src_idx);
-                U_regrid_data->copy(*U_current_data);
-                U_src_data->copy(*U_current_data);
-            }
-
-            // Create a communications schedule to copy data from the old patch
-            // level to the new patch level.
-            //
-            // Note that this will set the indicator data to equal "1" at each
-            // location in the new patch level that is a copy of a location from
-            // the old patch level.
-            RefineAlgorithm<NDIM> copy_data;
-            copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, nullptr);
-            copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, nullptr);
-            copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, nullptr);
-            ComponentSelector bc_fill_data;
-            bc_fill_data.setFlag(d_U_regrid_idx);
-            bc_fill_data.setFlag(d_U_src_idx);
-            CartSideRobinPhysBdryOp phys_bdry_bc_op(bc_fill_data, d_U_bc_coefs, false);
-            copy_data.createSchedule(level, old_level, &phys_bdry_bc_op)->fillData(init_data_time);
-        }
-
-        // Setup the divergence- and curl-preserving prolongation refine
-        // algorithm and refine the velocity data.
-        RefineAlgorithm<NDIM> fill_div_free_prolongation;
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-        fill_div_free_prolongation.registerRefine(d_U_current_idx, d_U_current_idx, d_U_regrid_idx, nullptr);
-        Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, d_U_refine_type);
-        Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
-        CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
-        CartSideDoubleDivPreservingRefine div_preserving_op(
-            d_U_regrid_idx, d_U_src_idx, d_indicator_idx, refine_op, coarsen_op, init_data_time, &phys_bdry_bc_op);
-        fill_div_free_prolongation.createSchedule(level, old_level, level_number - 1, hierarchy, &div_preserving_op)
-            ->fillData(init_data_time);
+        for (auto U_idx : U_idxs)
+            applyDivergencePreservingProlongation(U_idx, level_number, level, old_level, hierarchy, init_data_time);
 
         // Free scratch data.
         level->deallocatePatchData(scratch_data);
@@ -2287,27 +2327,43 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
     const double rho = d_problem_coefs.getRho();
     const double mu = d_problem_coefs.getMu();
     const double lambda = d_problem_coefs.getLambda();
-    double K = 0.0;
+    double K1 = 1.0, K2 = 0.0;
+    const double omega = getTimeStepSizeRatio();
     switch (d_viscous_time_stepping_type)
     {
     case BACKWARD_EULER:
-        K = 1.0;
+        K1 = 1.0;
+        K2 = 1.0;
+        break;
+    case BDF2:
+        if (getIntegratorStep() == 0)
+        {
+            K1 = 1.0;
+            K2 = 1.0;
+        }
+        else
+        {
+            K1 = (1.0 + 2.0 * omega) / (1.0 + omega);
+            K2 = 1.0;
+        }
         break;
     case FORWARD_EULER:
-        K = 0.0;
+        K1 = 1.0;
+        K2 = 0.0;
         break;
     case TRAPEZOIDAL_RULE:
-        K = 0.5;
+        K1 = 1.0;
+        K2 = 0.5;
         break;
     default:
         TBOX_ERROR("this statment should not be reached");
     }
     PoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
-    U_problem_coefs.setCConstant((rho / dt) + K * lambda);
-    U_problem_coefs.setDConstant(-K * mu);
+    U_problem_coefs.setCConstant(K1 * rho / dt + K2 * lambda);
+    U_problem_coefs.setDConstant(-K2 * mu);
     PoissonSpecifications P_problem_coefs(d_object_name + "::P_problem_coefs");
     P_problem_coefs.setCZero();
-    P_problem_coefs.setDConstant(rho == 0.0 ? -1.0 : -1.0 / rho);
+    P_problem_coefs.setDConstant(rho == 0.0 ? -1.0 : -1.0 / (K1 * rho));
 
     // Ensure that solver components are appropriately reinitialized when the
     // time step size changes.
@@ -2773,6 +2829,89 @@ INSStaggeredHierarchyIntegrator::getConvectiveTimeSteppingType(const int cycle_n
     }
     return convective_time_stepping_type;
 } // getConvectiveTimeSteppingType
+
+double
+INSStaggeredHierarchyIntegrator::getTimeStepSizeRatio() const
+{
+    if (getIntegratorStep() == 0)
+    {
+        return 1.0;
+    }
+    else
+    {
+        return d_current_dt / d_dt_previous[0];
+    }
+}
+
+void
+INSStaggeredHierarchyIntegrator::applyDivergencePreservingProlongation(const int U_idx,
+                                                                       const int level_number,
+                                                                       Pointer<PatchLevel<NDIM> > level,
+                                                                       Pointer<PatchLevel<NDIM> > old_level,
+                                                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                                       const double init_data_time) const
+{
+    // Set the indicator data to equal "0" in each patch of the new patch level, and initialize values of U to cause
+    // floating point errors if we fail to re-initialize it properly.
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+        Pointer<SideData<NDIM, double> > indicator_data = patch->getPatchData(d_indicator_idx);
+        indicator_data->fillAll(0.0);
+
+        Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_idx);
+        Pointer<SideData<NDIM, double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+        Pointer<SideData<NDIM, double> > U_src_data = patch->getPatchData(d_U_src_idx);
+        U_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+        U_regrid_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+        U_src_data->fillAll(std::numeric_limits<double>::quiet_NaN());
+    }
+
+    if (old_level)
+    {
+        // Set the indicator data to equal "1" on each patch of the old patch level and reset U.
+        for (PatchLevel<NDIM>::Iterator p(old_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = old_level->getPatch(p());
+
+            Pointer<SideData<NDIM, double> > indicator_data = patch->getPatchData(d_indicator_idx);
+            indicator_data->fillAll(1.0);
+
+            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_idx);
+            Pointer<SideData<NDIM, double> > U_regrid_data = patch->getPatchData(d_U_regrid_idx);
+            Pointer<SideData<NDIM, double> > U_src_data = patch->getPatchData(d_U_src_idx);
+            U_regrid_data->copy(*U_data);
+            U_src_data->copy(*U_data);
+        }
+
+        // Create a communications schedule to copy data from the old patch level to the new patch level.
+        //
+        // Note that this will set the indicator data to equal "1" at each location in the new patch level that is a
+        // copy of a location from the old patch level.
+        RefineAlgorithm<NDIM> copy_data;
+        copy_data.registerRefine(d_U_regrid_idx, d_U_regrid_idx, d_U_regrid_idx, nullptr);
+        copy_data.registerRefine(d_U_src_idx, d_U_src_idx, d_U_src_idx, nullptr);
+        copy_data.registerRefine(d_indicator_idx, d_indicator_idx, d_indicator_idx, nullptr);
+        ComponentSelector bc_fill_data;
+        bc_fill_data.setFlag(d_U_regrid_idx);
+        bc_fill_data.setFlag(d_U_src_idx);
+        CartSideRobinPhysBdryOp phys_bdry_bc_op(bc_fill_data, d_U_bc_coefs, false);
+        copy_data.createSchedule(level, old_level, &phys_bdry_bc_op)->fillData(init_data_time);
+    }
+
+    // Setup the divergence- and curl-preserving prolongation refine algorithm and refine the velocity data.
+    RefineAlgorithm<NDIM> fill_div_free_prolongation;
+    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    fill_div_free_prolongation.registerRefine(U_idx, U_idx, d_U_regrid_idx, nullptr);
+    Pointer<RefineOperator<NDIM> > refine_op = grid_geom->lookupRefineOperator(d_U_var, d_U_refine_type);
+    Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
+    CartSideRobinPhysBdryOp phys_bdry_bc_op(d_U_regrid_idx, d_U_bc_coefs, false);
+    CartSideDoubleDivPreservingRefine div_preserving_op(
+        d_U_regrid_idx, d_U_src_idx, d_indicator_idx, refine_op, coarsen_op, init_data_time, &phys_bdry_bc_op);
+    fill_div_free_prolongation.createSchedule(level, old_level, level_number - 1, hierarchy, &div_preserving_op)
+        ->fillData(init_data_time);
+}
 
 //////////////////////////////////////////////////////////////////////////////
 
