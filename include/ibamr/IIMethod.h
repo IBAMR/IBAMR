@@ -34,6 +34,7 @@
 #include "libmesh/enum_quadrature_type.h"
 #include "libmesh/vector_value.h"
 
+#include <deque>
 #include <limits>
 #include <memory>
 #include <set>
@@ -113,6 +114,7 @@ public:
     static const std::string TAU_IN_SYSTEM_NAME;
     static const std::string TAU_OUT_SYSTEM_NAME;
     static const std::string VELOCITY_SYSTEM_NAME;
+    static const std::string VELOCITY_OLD_SYSTEM_NAME;
     static const std::string WSS_IN_SYSTEM_NAME;
     static const std::string WSS_OUT_SYSTEM_NAME;
     static const std::array<std::string, NDIM> VELOCITY_JUMP_SYSTEM_NAME;
@@ -372,6 +374,15 @@ public:
     void calculateInterfacialFluidForces(int p_data_idx, double data_time);
 
     /*!
+     * Indicate that multistep time stepping will be used.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    void setUseMultistepTimeStepping(int n_steps = 1) override;
+
+
+    /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
@@ -388,6 +399,13 @@ public:
      * trapezoidal rule.
      */
     void trapezoidalStep(double current_time, double new_time) override;
+
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the standard
+     * 2nd-order Adams-Bashforth rule.
+     */
+    void AB2Step(double current_time, double new_time) override;
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
@@ -634,13 +652,13 @@ protected:
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
-    std::vector<libMesh::System*> d_X_systems, d_U_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
+    std::vector<libMesh::System*> d_X_systems, d_U_systems,d_U_old_systems, d_U_n_systems, d_U_t_systems, d_F_systems, d_P_jump_systems,
         d_WSS_in_systems, d_WSS_out_systems, d_P_in_systems, d_P_out_systems, d_TAU_in_systems, d_TAU_out_systems;
     std::vector<std::array<libMesh::System*, NDIM> > d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
-        d_X_IB_ghost_vecs;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs, d_U_half_vecs;
+        d_X_IB_ghost_vecs,d_half_X_vecs ;
+    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs,d_U_old_vecs,d_U_old_updated_vecs, d_U_half_vecs ,d_smoothed_normal,d_smoothed_normal_ghost;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
     std::vector<std::array<libMesh::PetscVector<double>*, NDIM> > d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
@@ -737,6 +755,11 @@ protected:
      */
     std::string d_libmesh_restart_file_extension = "xdr";
 
+    /*!
+     * Data related to multi-step time stepping.
+     */
+    int d_multistep_n_steps = 0;
+    std::deque<double> d_dt_old;
 private:
     /*!
      * \brief Default constructor.

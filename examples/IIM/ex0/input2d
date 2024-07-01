@@ -108,6 +108,7 @@ IBHierarchyIntegrator {
    dt_max              = DT
    error_on_dt_change  = ERROR_ON_DT_CHANGE
    enable_logging      = ENABLE_LOGGING
+   time_stepping_type = "BDF2"
 }
 
 IIMethod {
@@ -169,6 +170,7 @@ INSStaggeredHierarchyIntegrator {
    output_Omega                  = OUTPUT_OMEGA
    output_Div_U                  = OUTPUT_DIV_U
    enable_logging                = ENABLE_LOGGING
+   viscous_time_stepping_type = "BDF2"
 }
 
 Main {
