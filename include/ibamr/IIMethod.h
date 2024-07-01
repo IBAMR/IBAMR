@@ -657,8 +657,8 @@ protected:
     std::vector<std::array<libMesh::System*, NDIM> > d_DU_jump_systems;
     std::vector<libMesh::PetscVector<double>*> d_F_half_vecs, d_F_IB_ghost_vecs;
     std::vector<libMesh::PetscVector<double>*> d_X_current_vecs, d_X_new_vecs, d_X_half_vecs, d_X0_vecs,
-        d_X_IB_ghost_vecs,d_half_X_vecs ;
-    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs,d_U_old_vecs,d_U_old_updated_vecs, d_U_half_vecs ,d_smoothed_normal,d_smoothed_normal_ghost;
+        d_X_IB_ghost_vecs ;
+    std::vector<libMesh::PetscVector<double>*> d_U_current_vecs, d_U_new_vecs,d_U_old_vecs,d_U_old_updated_vecs, d_U_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_n_current_vecs, d_U_n_new_vecs, d_U_n_half_vecs;
     std::vector<libMesh::PetscVector<double>*> d_U_t_current_vecs, d_U_t_new_vecs, d_U_t_half_vecs;
     std::vector<std::array<libMesh::PetscVector<double>*, NDIM> > d_DU_jump_half_vecs, d_DU_jump_IB_ghost_vecs;
