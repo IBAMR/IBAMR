@@ -137,7 +137,7 @@ static Timer* t_begin_data_redistribution;
 static Timer* t_end_data_redistribution;
 static Timer* t_apply_gradient_detector;
 // Version of IIMethod restart file data.
-static const int IIM_VERSION = 3;
+static const int IIM_VERSION = 4;
 
 std::string
 libmesh_restart_file_name(const std::string& restart_dump_dirname,
@@ -146,7 +146,7 @@ libmesh_restart_file_name(const std::string& restart_dump_dirname,
                           const std::string& extension)
 {
     std::ostringstream file_name_prefix;
-    file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "." << std::setw(6)
+    file_name_prefix << restart_dump_dirname << "/libmesh_data_iimethod_part_" << part << "." << std::setw(6)
                      << std::setfill('0') << std::right << time_step_number << "." << extension;
     return file_name_prefix.str();
 }

@@ -2784,6 +2784,18 @@ IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_dat
     return *d_prolongation_schedules[key];
 } // getProlongationSchedule
 
+std::string
+IBFEMethod::libmesh_restart_file_name(const std::string& restart_dump_dirname,
+                                      unsigned int time_step_number,
+                                      unsigned int part,
+                                      const std::string& extension)
+{
+    std::ostringstream file_name_prefix;
+    file_name_prefix << restart_dump_dirname << "/libmesh_data_ibfemethod_part_" << part << "." << std::setw(6)
+                     << std::setfill('0') << std::right << time_step_number << "." << extension;
+    return file_name_prefix.str();
+}
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
