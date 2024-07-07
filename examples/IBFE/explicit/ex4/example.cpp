@@ -35,6 +35,7 @@
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
 #include <ibamr/IBFECentroidPostProcessor.h>
 #include <ibamr/IBFEMethod.h>
+#include <ibamr/IBImplicitHierarchyIntegrator.h>
 #include <ibamr/INSCollocatedHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
 
@@ -70,6 +71,7 @@ coordinate_mapping_function(libMesh::Point& X, const libMesh::Point& s, void* /*
 static double c1_s = 0.05;
 static double p0_s = 0.0;
 static double beta_s = 0.0;
+
 void
 PK1_dev_stress_function(TensorValue<double>& PP,
                         const TensorValue<double>& FF,
@@ -81,7 +83,10 @@ PK1_dev_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = 2.0 * c1_s * FF;
+    const auto CC = FF.transpose() * FF;
+    const auto I1 = CC.tr();
+    const auto dI1_bar_dFF = pow(FF.det(), -2.0 / 3.0) * (FF - I1 / 3.0 * tensor_inverse_transpose(FF, NDIM));
+    PP = 2.0 * c1_s * dI1_bar_dFF;
     return;
 } // PK1_dev_stress_function
 
@@ -96,7 +101,9 @@ PK1_dil_stress_function(TensorValue<double>& PP,
                         double /*time*/,
                         void* /*ctx*/)
 {
-    PP = 2.0 * (-p0_s + beta_s * log(FF.det())) * tensor_inverse_transpose(FF, NDIM);
+    const auto FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
+    const auto J = FF.det();
+    PP = beta_s * J * log(J) * FF_inv_trans;
     return;
 } // PK1_dil_stress_function
 } // namespace ModelData
@@ -268,13 +275,26 @@ main(int argc, char* argv[])
                            /*register_for_restart*/ true,
                            restart_read_dirname,
                            restart_restore_num);
-        Pointer<IBExplicitHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator;
+        const string ib_time_stepping_type =
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("ib_time_stepping_type", "EXPLICIT");
+        if (ib_time_stepping_type == "EXPLICIT")
+        {
+            time_integrator =
+                new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                                  app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                                  ib_method_ops,
+                                                  navier_stokes_integrator);
+        }
+        else
+        {
+            time_integrator =
+                new IBImplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                                  app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                                  ib_method_ops,
+                                                  navier_stokes_integrator);
+        }
         time_integrator->registerLoadBalancer(load_balancer);
-
         Pointer<StandardTagAndInitialize<NDIM> > error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
@@ -436,7 +456,11 @@ main(int argc, char* argv[])
 #endif
                 }
             }
-            time_integrator->setMarkers(positions);
+            if (ib_time_stepping_type == "EXPLICIT")
+            {
+                Pointer<IBExplicitHierarchyIntegrator> explicit_time_integrator = time_integrator;
+                explicit_time_integrator->setMarkers(positions);
+            }
         }
 
         // Write out initial visualization data.
@@ -451,9 +475,10 @@ main(int argc, char* argv[])
                     equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                 time_integrator->setupPlotData();
                 visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                if (use_markers)
+                if (use_markers && ib_time_stepping_type == "EXPLICIT")
                 {
-                    time_integrator->writeMarkerPlotData(iteration_num, loop_time);
+                    Pointer<IBExplicitHierarchyIntegrator> explicit_time_integrator = time_integrator;
+                    explicit_time_integrator->writeMarkerPlotData(iteration_num, loop_time);
                 }
                 if (NDIM < 3 && input_db->getBoolWithDefault("save_extra_partitioning", false))
                 {
@@ -492,8 +517,8 @@ main(int argc, char* argv[])
             pout << "At beginning of timestep # " << iteration_num << "\n";
             pout << "Simulation time is " << loop_time << "\n";
 
-            dt = time_integrator->getMaximumTimeStepSize();
-            time_integrator->advanceHierarchy(dt);
+            const auto dt_max = time_integrator->getMaximumTimeStepSize();
+            dt = time_integrator->advanceHierarchy(dt_max);
             loop_time += dt;
 
             pout << "\n";
@@ -516,9 +541,10 @@ main(int argc, char* argv[])
                         equation_systems->get_system(ib_method_ops->getCurrentCoordinatesSystemName());
                     time_integrator->setupPlotData();
                     visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
-                    if (use_markers)
+                    if (use_markers && ib_time_stepping_type == "EXPLICIT")
                     {
-                        time_integrator->writeMarkerPlotData(iteration_num, loop_time);
+                        Pointer<IBExplicitHierarchyIntegrator> explicit_time_integrator = time_integrator;
+                        explicit_time_integrator->writeMarkerPlotData(iteration_num, loop_time);
                     }
                     if (NDIM < 3 && input_db->getBoolWithDefault("save_extra_partitioning", false))
                     {
