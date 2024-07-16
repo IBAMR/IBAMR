@@ -629,7 +629,7 @@ public:
     /*!
      * Indicate that multistep time stepping will be used.
      *
-     * @n_previous_steps  number of previous solution values that can be used by the multistep scheme
+     * @param[in] n_previous_steps Number of previous solution values that can be used by the multistep scheme.
      */
     void setUseMultistepTimeStepping(int n_previous_steps = 1) override;
 
