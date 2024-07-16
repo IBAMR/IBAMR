@@ -629,7 +629,7 @@ public:
     /*!
      * Indicate that multistep time stepping will be used.
      */
-    void setUseMultistepTimeStepping(int n_steps = 1) override;
+    void setUseMultistepTimeStepping(int n_previous_steps = 1) override;
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -1098,7 +1098,7 @@ protected:
     /*!
      * Data related to multistep time stepping.
      */
-    int d_multistep_n_steps = 0;
+    int d_multistep_n_previous_steps = 0;
     std::deque<double> d_dt_old;
 
 private:
