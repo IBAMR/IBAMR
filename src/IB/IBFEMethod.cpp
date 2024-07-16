@@ -770,9 +770,9 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void
-IBFEMethod::setUseMultistepTimeStepping(const int n_steps)
+IBFEMethod::setUseMultistepTimeStepping(const unsigned int n_previous_steps)
 {
-    d_multistep_n_previous_steps = n_steps;
+    d_multistep_n_previous_steps = n_previous_steps;
     return;
 } // setUseMultistepTimeStepping
 
