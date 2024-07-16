@@ -153,7 +153,7 @@ IBExplicitHierarchyIntegrator::preprocessIntegrateHierarchy(const double current
                                  << "  unsupported time stepping type: "
                                  << enum_to_string<TimeSteppingType>(d_time_stepping_type) << "\n"
                                  << "  supported time stepping types are: FORWARD_EULER, BACKWARD_EULER, BDF2, "
-                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE, ADAMS_BASHFORTH\n");
+                                    "MIDPOINT_RULE, TRAPEZOIDAL_RULE\n");
     }
 
     // Compute an initial prediction of the updated positions of the Lagrangian
