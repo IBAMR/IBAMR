@@ -283,8 +283,10 @@ public:
      *
      * A default implementation is provided that emits an unrecoverable
      * exception.
+     *
+     * @param[in] n_previous_steps Number of previous solution values that can be used by the multistep scheme.
      */
-    virtual void setUseMultistepTimeStepping(int n_steps = 1);
+    virtual void setUseMultistepTimeStepping(unsigned int n_previous_steps = 1);
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler

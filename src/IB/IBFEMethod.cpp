@@ -631,12 +631,12 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
     if (d_Q_vecs) vecs.push_back(d_Q_vecs->get("half"));
     batch_vec_ghost_update(vecs, INSERT_VALUES, SCATTER_FORWARD);
 
-    if (d_multistep_n_steps > 0)
+    if (d_multistep_n_previous_steps > 0)
     {
-        TBOX_ASSERT(d_multistep_n_steps == 1);
+        TBOX_ASSERT(d_multistep_n_previous_steps == 1);
         d_U_vecs->copy("current", { "old" });
         d_dt_old.push_front(new_time - current_time);
-        if (d_dt_old.size() > static_cast<size_t>(d_multistep_n_steps)) d_dt_old.pop_back();
+        if (d_dt_old.size() > static_cast<size_t>(d_multistep_n_previous_steps)) d_dt_old.pop_back();
     }
 
     d_X_vecs->copy("new", { "solution", "current" });
@@ -770,9 +770,9 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void
-IBFEMethod::setUseMultistepTimeStepping(const int n_steps)
+IBFEMethod::setUseMultistepTimeStepping(const unsigned int n_previous_steps)
 {
-    d_multistep_n_steps = n_steps;
+    d_multistep_n_previous_steps = n_previous_steps;
     return;
 } // setUseMultistepTimeStepping
 

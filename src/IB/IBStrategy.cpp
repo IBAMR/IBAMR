@@ -181,9 +181,8 @@ IBStrategy::updateFixedLEOperators()
 } // updateFixedLEOperators
 
 void
-IBStrategy::setUseMultistepTimeStepping(const int n_steps)
+IBStrategy::setUseMultistepTimeStepping(const unsigned int /*n_previous_steps*/)
 {
-    TBOX_ASSERT(n_steps > 0);
     TBOX_ERROR("IBStrategy::setUseMultistepTimeStepping(): unimplemented\n");
     return;
 } // setUseMultistepTimeStepping
