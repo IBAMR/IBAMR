@@ -85,20 +85,20 @@ public:
     SAMRAI::tbox::Pointer<ConvectiveOperator>
     allocateOperator(const std::string& operator_type,
                      const std::string& operator_object_name,
-                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                      ConvectiveDifferencingType difference_form,
-                     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) const;
+                     const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs) const;
 
     /*!
      * Typedef for functions to construct cell-centered ConvectiveOperators.
      */
     using OperatorMaker = SAMRAI::tbox::Pointer<ConvectiveOperator> (*)(
         const std::string& operator_object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
         ConvectiveDifferencingType difference_form,
-        const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+        const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs);
 
     /*!
      * Register a operator factory function with the operator manager class.

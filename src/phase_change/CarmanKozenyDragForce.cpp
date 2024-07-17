@@ -57,8 +57,8 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC //////////////////////////////////////
 CarmanKozenyDragForce::CarmanKozenyDragForce(std::string object_name,
-                                             Pointer<CellVariable<NDIM, double> > H_var,
-                                             Pointer<CellVariable<NDIM, double> > lf_var,
+                                             Pointer<CellVariableNd<double> > H_var,
+                                             Pointer<CellVariableNd<double> > lf_var,
                                              Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                              Pointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
                                              Pointer<Database> input_db,
@@ -99,16 +99,16 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
     // Ghost fill the heaviside and liquid fraction values.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int H_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
     const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getScratchContext());
 
     const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
     const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    Pointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
 
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> phi_transaction_comps(2);
@@ -136,25 +136,25 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
     hier_bdry_fill->fillData(time);
 
     // Set the rigid body velocity in u_idx
-    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
+    for (PatchLevelNd::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = finest_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
 
-        Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
-        Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-        Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_ins_idx);
+        Pointer<CellDataNd<double> > H_data = patch->getPatchData(H_scratch_idx);
+        Pointer<CellDataNd<double> > lf_data = patch->getPatchData(lf_scratch_idx);
+        Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+        Pointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
+        Pointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+            for (BoxNd::Iterator it(SideGeometryNd::toSideBox(patch_box, axis)); it; it++)
             {
-                SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                SideIndexNd s_i(it(), axis, SideIndexNd::Lower);
 
                 const double H_lower = (*H_data)(s_i.toCell(0));
                 const double H_upper = (*H_data)(s_i.toCell(1));
@@ -209,14 +209,14 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int H_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
     const int H_scratch_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getScratchContext());
 
     const int lf_new_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getNewContext());
     const int lf_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_var, d_adv_diff_solver->getScratchContext());
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    Pointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
     // Ghost fill the level set values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -245,26 +245,26 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
     hier_bdry_fill->fillData(time);
 
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
-    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
+    Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    for (PatchLevelNd::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = finest_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
 
-        Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
-        Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
-        Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-        Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_ins_idx);
+        Pointer<CellDataNd<double> > H_data = patch->getPatchData(H_scratch_idx);
+        Pointer<CellDataNd<double> > lf_data = patch->getPatchData(lf_scratch_idx);
+        Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+        Pointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
+        Pointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+            for (BoxNd::Iterator it(SideGeometryNd::toSideBox(patch_box, axis)); it; it++)
             {
-                SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                SideIndexNd s_i(it(), axis, SideIndexNd::Lower);
 
                 const double H_lower = (*H_data)(s_i.toCell(0));
                 const double H_upper = (*H_data)(s_i.toCell(1));

@@ -54,7 +54,7 @@ PartitioningBox::PartitioningBox(const Point& bottom_point, const Point& top_poi
     }
 } // PartitioningBox
 
-PartitioningBox::PartitioningBox(const CartesianPatchGeometry<NDIM>& patch)
+PartitioningBox::PartitioningBox(const CartesianPatchGeometryNd& patch)
 {
     std::copy(patch.getXLower(), patch.getXLower() + NDIM, d_bounding_points.first.data());
     std::copy(patch.getXUpper(), patch.getXUpper() + NDIM, d_bounding_points.second.data());
@@ -82,15 +82,15 @@ PartitioningBox::volume() const
     return vol;
 } // volume
 
-PartitioningBoxes::PartitioningBoxes(const PatchHierarchy<NDIM>& hierarchy)
+PartitioningBoxes::PartitioningBoxes(const PatchHierarchyNd& hierarchy)
 {
     std::vector<IBTK::PartitioningBox> boxes;
     const int finest_level = hierarchy.getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > level = hierarchy.getPatchLevel(finest_level);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevelNd> level = hierarchy.getPatchLevel(finest_level);
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        const Patch<NDIM>& patch = *level->getPatch(p());
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geometry = patch.getPatchGeometry();
+        const PatchNd& patch = *level->getPatch(p());
+        Pointer<CartesianPatchGeometryNd> patch_geometry = patch.getPatchGeometry();
         boxes.emplace_back(*patch_geometry);
     }
 

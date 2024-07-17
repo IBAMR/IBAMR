@@ -74,7 +74,7 @@ public:
      */
     AdvDiffStochasticForcing(std::string object_name,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
+                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > C_var,
                              const AdvDiffSemiImplicitHierarchyIntegrator* adv_diff_solver);
 
     /*!
@@ -98,8 +98,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = IBTK::invalid_level_number,
@@ -109,12 +109,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
 
     //\}
 
@@ -156,7 +156,7 @@ private:
      * Pointer to the concentration variable associated with this source term
      * generator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_C_var;
 
     /*!
      * Concentration-dependent flux scaling function.
@@ -186,10 +186,10 @@ private:
      * stochastic fluxes.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_C_cc_var;
     int d_C_current_cc_idx = IBTK::invalid_index, d_C_half_cc_idx = IBTK::invalid_index,
         d_C_new_cc_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_F_sc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_F_sc_var;
     int d_F_sc_idx = IBTK::invalid_index;
     std::vector<int> d_F_sc_idxs;
 };

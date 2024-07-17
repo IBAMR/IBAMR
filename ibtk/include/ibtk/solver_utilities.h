@@ -54,7 +54,7 @@ reportPETScSNESConvergedReason(const std::string& object_name, const SNESConverg
  *
  * \note Hypre can use 64 bit indices, but SAMRAI IntVectors are always 32.
  */
-std::array<HYPRE_Int, NDIM> hypre_array(const SAMRAI::hier::Index<NDIM>& index);
+std::array<HYPRE_Int, NDIM> hypre_array(const SAMRAI::hier::IndexNd& index);
 
 /*!
  * \brief Copy data from a vector of Hypre vectors to SAMRAI cell centered data with depth equal to number of Hypre
@@ -64,9 +64,9 @@ std::array<HYPRE_Int, NDIM> hypre_array(const SAMRAI::hier::Index<NDIM>& index);
  * \param[in] vectors Vector of Hypre data to copy.
  * \param[in] box Box over which to copy.
  */
-void copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
+void copyFromHypre(SAMRAI::pdat::CellDataNd<double>& dst_data,
                    const std::vector<HYPRE_StructVector>& vectors,
-                   const SAMRAI::hier::Box<NDIM>& box);
+                   const SAMRAI::hier::BoxNd& box);
 
 /*!
  * \brief Copy data from a Hypre vector to SAMRAI side centered data.
@@ -78,9 +78,8 @@ void copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
  * \param[in] vector Vector of Hypre data to copy
  * \param[in] box Box over which to copy.
  */
-void copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
-                   HYPRE_SStructVector vector,
-                   const SAMRAI::hier::Box<NDIM>& box);
+void
+copyFromHypre(SAMRAI::pdat::SideDataNd<double>& dst_data, HYPRE_SStructVector vector, const SAMRAI::hier::BoxNd& box);
 
 /*!
  * \brief Copy data from SAMRAI cell centered data to Hypre vectors.
@@ -90,8 +89,8 @@ void copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
  * \param[in] box Box over which to copy.
  */
 void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-                 SAMRAI::pdat::CellData<NDIM, double>& src_data,
-                 const SAMRAI::hier::Box<NDIM>& box);
+                 SAMRAI::pdat::CellDataNd<double>& src_data,
+                 const SAMRAI::hier::BoxNd& box);
 
 /*!
  * \brief Copy data from SAMRAI side centered data to a Hypre vector.
@@ -103,9 +102,8 @@ void copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
  * \param[in] src_data Reference to side centered data to be copied.
  * \param[in] box Box over which to copy.
  */
-void copyToHypre(HYPRE_SStructVector& vector,
-                 SAMRAI::pdat::SideData<NDIM, double>& src_data,
-                 const SAMRAI::hier::Box<NDIM>& box);
+void
+copyToHypre(HYPRE_SStructVector& vector, SAMRAI::pdat::SideDataNd<double>& src_data, const SAMRAI::hier::BoxNd& box);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

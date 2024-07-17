@@ -52,7 +52,7 @@ LSInitStrategy::~LSInitStrategy()
 } // ~LSInitStrategy
 
 void
-LSInitStrategy::registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef)
+LSInitStrategy::registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrategyNd* robin_bc_coef)
 {
     d_bc_coef = robin_bc_coef;
     return;

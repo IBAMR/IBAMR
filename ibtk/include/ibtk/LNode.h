@@ -65,8 +65,8 @@ public:
     LNode(int lagrangian_nidx = -1,
           int global_petsc_nidx = -1,
           int local_petsc_nidx = -1,
-          const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
-          const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset = SAMRAI::hier::IntVector<NDIM>(0),
+          const SAMRAI::hier::IntVectorNd& initial_periodic_offset = SAMRAI::hier::IntVectorNd(0),
+          const SAMRAI::hier::IntVectorNd& current_periodic_offset = SAMRAI::hier::IntVectorNd(0),
           const Vector& initial_periodic_displacement = Vector::Zero(),
           const Vector& current_periodic_displacement = Vector::Zero(),
           const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data =
@@ -82,7 +82,7 @@ public:
     /*!
      * \brief Constructor that unpacks data from an input stream.
      */
-    LNode(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset);
+    LNode(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVectorNd& offset);
 
     /*!
      * \brief Destructor.
@@ -160,15 +160,15 @@ public:
      * \brief Indicate that the LNode object has been shifted across a periodic
      * boundary.
      */
-    void registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement) override;
+    void registerPeriodicShift(const SAMRAI::hier::IntVectorNd& offset, const Vector& displacement) override;
 
     /*!
      * \brief Copy data from the source.
      *
      * \note The cell index of the destination object is src_index + src_offset.
      */
-    void copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
-                        const SAMRAI::hier::IntVector<NDIM>& src_offset,
+    void copySourceItem(const SAMRAI::hier::IndexNd& src_index,
+                        const SAMRAI::hier::IntVectorNd& src_offset,
                         const LNodeIndex& src_item) override;
 
     /*!
@@ -185,8 +185,7 @@ public:
     /*!
      * \brief Unpack data from the input stream.
      */
-    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                              const SAMRAI::hier::IntVector<NDIM>& offset) override;
+    virtual void unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVectorNd& offset) override;
 
 private:
     /*!

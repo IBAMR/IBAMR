@@ -109,7 +109,7 @@ template <class T>
 void
 LTransaction<T>::unpackStream(AbstractStream& stream)
 {
-    static const IntVector<NDIM> periodic_offset = 0;
+    static const IntVectorNd periodic_offset = 0;
     int num_items;
     stream >> num_items;
     d_dst_item_set.resize(num_items);

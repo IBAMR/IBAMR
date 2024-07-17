@@ -98,7 +98,7 @@ namespace IBTK
 bool
 PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
 {
-    const BoundaryLookupTable<NDIM>* const bdry_lookup_table = BoundaryLookupTable<NDIM>::getLookupTable();
+    const BoundaryLookupTableNd* const bdry_lookup_table = BoundaryLookupTableNd::getLookupTable();
 
     if (codim == NDIM) return bdry_lookup_table->isLower(loc, codim, direction);
 
@@ -137,7 +137,7 @@ PhysicalBoundaryUtilities::isLower(int loc, int codim, int direction)
 bool
 PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
 {
-    const BoundaryLookupTable<NDIM>* const bdry_lookup_table = BoundaryLookupTable<NDIM>::getLookupTable();
+    const BoundaryLookupTableNd* const bdry_lookup_table = BoundaryLookupTableNd::getLookupTable();
 
     if (codim == NDIM) return bdry_lookup_table->isUpper(loc, codim, direction);
 
@@ -173,36 +173,36 @@ PhysicalBoundaryUtilities::isUpper(int loc, int codim, int direction)
     return false;
 } // isUpper
 
-Array<BoundaryBox<NDIM> >
-PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const Patch<NDIM>& patch)
+Array<BoundaryBoxNd>
+PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(const PatchNd& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(1);
 } // getPhysicalBoundaryCodim1Boxes
 
-Array<BoundaryBox<NDIM> >
-PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const Patch<NDIM>& patch)
+Array<BoundaryBoxNd>
+PhysicalBoundaryUtilities::getPhysicalBoundaryCodim2Boxes(const PatchNd& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(2);
 } // getPhysicalBoundaryCodim2Boxes
 
-Array<BoundaryBox<NDIM> >
-PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const Patch<NDIM>& patch)
+Array<BoundaryBoxNd>
+PhysicalBoundaryUtilities::getPhysicalBoundaryCodim3Boxes(const PatchNd& patch)
 {
     return patch.getPatchGeometry()->getCodimensionBoundaries(3);
 } // getPhysicalBoundaryCodim3Boxes
 
-BoundaryBox<NDIM>
-PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox<NDIM>& bdry_box, const Patch<NDIM>& patch)
+BoundaryBoxNd
+PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBoxNd& bdry_box, const PatchNd& patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bdry_box.getBoundaryType() == 1);
 #endif
     // Trim a boundary box so it does not stick out past the corners of a patch.
-    const Box<NDIM>& b_box = bdry_box.getBox();
-    const Box<NDIM>& patch_box = patch.getBox();
+    const BoxNd& b_box = bdry_box.getBox();
+    const BoxNd& patch_box = patch.getBox();
     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
 
-    Box<NDIM> trimmed_b_box = b_box;
+    BoxNd trimmed_b_box = b_box;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d != bdry_normal_axis)
@@ -211,18 +211,18 @@ PhysicalBoundaryUtilities::trimBoundaryCodim1Box(const BoundaryBox<NDIM>& bdry_b
             trimmed_b_box.upper()[d] = std::min(b_box.upper()[d], patch_box.upper()[d]);
         }
     }
-    const BoundaryBox<NDIM> trimmed_bdry_box(trimmed_b_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
+    const BoundaryBoxNd trimmed_bdry_box(trimmed_b_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
     return trimmed_bdry_box;
 } // trimBoundaryCodim1Box
 
-Box<NDIM>
-PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(const BoundaryBox<NDIM>& bdry_box)
+BoxNd
+PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(const BoundaryBoxNd& bdry_box)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bdry_box.getBoundaryType() == 1);
 #endif
     // Make surface box on boundary.
-    Box<NDIM> side_bdry_box = bdry_box.getBox();
+    BoxNd side_bdry_box = bdry_box.getBox();
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
     const bool bdry_lower_side = (location_index % 2) == 0;

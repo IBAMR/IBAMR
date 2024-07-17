@@ -73,12 +73,12 @@ public:
      * This method copies the body force calculated a \textit{piori} on the  patch interior passed to this method.
      */
     virtual void setDataOnPatch(const int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
                                 const double data_time,
                                 const bool initial_time = false,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level =
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>(NULL));
 
 }; // CartGridBodyForce
 

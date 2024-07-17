@@ -607,17 +607,16 @@ public:
      *
      * \return A pointer to the data manager instance.
      */
-    static FEDataManager*
-    getManager(std::shared_ptr<FEData> fe_data,
-               const std::string& name,
-               const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
-               const int max_levels,
-               const InterpSpec& default_interp_spec,
-               const SpreadSpec& default_spread_spec,
-               const WorkloadSpec& default_workload_spec,
-               const SAMRAI::hier::IntVector<NDIM>& min_ghost_width = SAMRAI::hier::IntVector<NDIM>(0),
-               std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
-               bool register_for_restart = true);
+    static FEDataManager* getManager(std::shared_ptr<FEData> fe_data,
+                                     const std::string& name,
+                                     const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                                     const int max_levels,
+                                     const InterpSpec& default_interp_spec,
+                                     const SpreadSpec& default_spread_spec,
+                                     const WorkloadSpec& default_workload_spec,
+                                     const SAMRAI::hier::IntVectorNd& min_ghost_width = SAMRAI::hier::IntVectorNd(0),
+                                     std::shared_ptr<SAMRAIDataCache> eulerian_data_cache = nullptr,
+                                     bool register_for_restart = true);
 
     /*!
      * Deallocate all of the FEDataManager instances.
@@ -680,12 +679,12 @@ public:
      * tag cells for refinement to create the initial hierarchy then use
      * applyGradientDetector, which does not use the stored patch hierarchy.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > getPatchHierarchy() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> getPatchHierarchy() const;
 
     /*!
      * Get the coarsest patch level number on which elements are assigned.
@@ -701,7 +700,7 @@ public:
      * \return The ghost cell width used for quantities that are to be
      * interpolated from the Cartesian grid to the FE mesh.
      */
-    const SAMRAI::hier::IntVector<NDIM>& getGhostCellWidth() const;
+    const SAMRAI::hier::IntVectorNd& getGhostCellWidth() const;
 
     /*!
      * \return The specifications of the scheme used for interpolating from the
@@ -924,16 +923,15 @@ public:
      * information on how to assemble RHS vectors in this case, see the
      * documentation of the function apply_transposed_constraint_matrix().
      */
-    void
-    interpWeighted(int f_data_idx,
-                   libMesh::NumericVector<double>& F,
-                   libMesh::NumericVector<double>& X,
-                   const std::string& system_name,
-                   const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
-                       std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-                   double fill_data_time = 0.0,
-                   bool close_F = true,
-                   bool close_X = true);
+    void interpWeighted(int f_data_idx,
+                        libMesh::NumericVector<double>& F,
+                        libMesh::NumericVector<double>& X,
+                        const std::string& system_name,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
+                            std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >(),
+                        double fill_data_time = 0.0,
+                        bool close_F = true,
+                        bool close_X = true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using a
@@ -942,17 +940,16 @@ public:
      * the interpolated quantity at the quadrature points to the nodes. Here, the
      * basis functions of the deformational field is used as the filter.
      */
-    void
-    interpWeighted(int f_data_idx,
-                   libMesh::NumericVector<double>& F,
-                   libMesh::NumericVector<double>& X,
-                   const std::string& system_name,
-                   const InterpSpec& interp_spec,
-                   const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
-                       std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
-                   double fill_data_time = 0.0,
-                   bool close_F = true,
-                   bool close_X = true);
+    void interpWeighted(int f_data_idx,
+                        libMesh::NumericVector<double>& F,
+                        libMesh::NumericVector<double>& X,
+                        const std::string& system_name,
+                        const InterpSpec& interp_spec,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
+                            std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >(),
+                        double fill_data_time = 0.0,
+                        bool close_F = true,
+                        bool close_X = true);
 
     /*!
      * \brief Interpolate a value from the Cartesian grid to the FE mesh using
@@ -962,8 +959,8 @@ public:
                 libMesh::NumericVector<double>& F,
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >(),
                 double fill_data_time = 0.0,
                 bool close_X = true);
 
@@ -976,8 +973,8 @@ public:
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
                 const InterpSpec& interp_spec,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >(),
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
+                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >(),
                 double fill_data_time = 0.0,
                 bool close_X = true);
 
@@ -1066,7 +1063,7 @@ public:
      * main documentation of this class for information on how this is
      * computed) to the <code>d_workload_idx</code> cell variable.
      */
-    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                              const int workload_data_idx,
                              const int coarsest_ln = invalid_level_number,
                              const int finest_ln = invalid_level_number);
@@ -1093,7 +1090,7 @@ public:
      * SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector() and is
      * only meant to be called from IBAMR::IBFEMethod::applyGradientDetector().
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -1127,7 +1124,7 @@ public:
      * infinity) since we are guaranteed, by the previous assumptions, that
      * that data must also lie on the lower face of a neighboring patch.
      */
-    static void zeroExteriorValues(const SAMRAI::geom::CartesianPatchGeometry<NDIM>& patch_geom,
+    static void zeroExteriorValues(const SAMRAI::geom::CartesianPatchGeometryNd& patch_geom,
                                    const std::vector<double>& X_qp,
                                    std::vector<double>& F_qp,
                                    int n_vars);
@@ -1143,7 +1140,7 @@ protected:
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
                   WorkloadSpec default_workload_spec,
-                  SAMRAI::hier::IntVector<NDIM> ghost_width,
+                  SAMRAI::hier::IntVectorNd ghost_width,
                   std::shared_ptr<SAMRAIDataCache> eulerian_data_cache,
                   std::shared_ptr<FEData> fe_data,
                   bool register_for_restart = true);
@@ -1292,7 +1289,7 @@ private:
     /*!
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
 
     /*!
      * Maximum possible level number in the patch hierarchy.
@@ -1314,7 +1311,7 @@ private:
      * cell variable used to keep track of the count of the quadrature points in
      * each cell.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_qp_count_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_qp_count_var;
     int d_qp_count_idx;
 
     /*!
@@ -1342,7 +1339,7 @@ private:
      * SAMRAI::hier::IntVector object which determines the required ghost cell
      * width of this class.
      */
-    const SAMRAI::hier::IntVector<NDIM> d_ghost_width;
+    const SAMRAI::hier::IntVectorNd d_ghost_width;
 
     /*!
      * SAMRAI::hier::IntVector object which determines how many ghost cells we
@@ -1354,7 +1351,7 @@ private:
      * @note At the present time this is always 1, which matches the
      * assumption made by IBTK::LEInteractor::getMinimumGhostWidth().
      */
-    const SAMRAI::hier::IntVector<NDIM> d_associated_elem_ghost_width = SAMRAI::hier::IntVector<NDIM>(1);
+    const SAMRAI::hier::IntVectorNd d_associated_elem_ghost_width = SAMRAI::hier::IntVectorNd(1);
 
     /*!
      * Data to manage mappings between mesh elements and grid patches.

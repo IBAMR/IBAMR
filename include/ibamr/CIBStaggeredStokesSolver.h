@@ -77,8 +77,8 @@ public:
     /*!
      * Initialize the solver before solving the system of equations.
      */
-    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                                       const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * Deallocate the solver when hierarchy changes.
@@ -91,8 +91,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise.
      */
-    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                             SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -116,8 +116,8 @@ public:
      * \param p_bc_coef Pointer to object that can set the Robin boundary condition
      * coefficients for the pressure.
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef) override;
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& u_bc_coefs,
+                                    SAMRAI::solv::RobinBcCoefStrategyNd* p_bc_coef) override;
 
     /*!
      * \brief Set the StaggeredStokesPhysicalBoundaryHelper object to be used
@@ -177,12 +177,12 @@ private:
     SAMRAI::tbox::Pointer<IBAMR::CIBSaddlePointSolver> d_sp_solver;
 
     // Patch data to support delta function.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_wide_u_var, d_wide_f_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_wide_u_var, d_wide_f_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_wide_ctx;
     int d_wide_u_idx = IBTK::invalid_index, d_wide_f_idx = IBTK::invalid_index;
 
     // SVR for holding widened u/f.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x_wide, d_b_wide;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x_wide, d_b_wide;
 
     // Bools to control initialization and deallocation
     bool d_is_initialized = false, d_reinitializing_solver = false;

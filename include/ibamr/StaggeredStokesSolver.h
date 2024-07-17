@@ -87,8 +87,8 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& U_bc_coefs,
+                                    SAMRAI::solv::RobinBcCoefStrategyNd* P_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
@@ -99,10 +99,10 @@ public:
 protected:
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_U_problem_coefs;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_U_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_U_bc_coefs;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_P_bc_coef;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
+    SAMRAI::solv::LocationIndexRobinBcCoefsNd d_default_U_bc_coef;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_U_bc_coefs;
+    SAMRAI::solv::LocationIndexRobinBcCoefsNd d_default_P_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategyNd* d_P_bc_coef;
 
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;

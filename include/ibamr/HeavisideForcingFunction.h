@@ -37,8 +37,8 @@ public:
      */
     HeavisideForcingFunction(const std::string& object_name,
                              SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
-                             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > U_adv_var);
+                             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > H_var,
+                             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > U_adv_var);
 
     /*!
      * \brief Empty destructor.
@@ -59,8 +59,8 @@ public:
      * \see setDataOnPatch
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
@@ -70,11 +70,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        Pointer<SAMRAI::hier::VariableNd> var,
+                        Pointer<PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL)) override;
+                        Pointer<PatchLevelNd> patch_level = Pointer<PatchLevelNd>(NULL)) override;
 
     //\}
 
@@ -102,12 +102,12 @@ private:
     /*!
      * Liquid fraction variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_H_var;
 
     /*!
      * Advection velocity variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_adv_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > d_U_adv_var;
 };
 } // namespace IBAMR
 

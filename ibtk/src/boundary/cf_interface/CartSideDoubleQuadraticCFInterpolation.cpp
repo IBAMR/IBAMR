@@ -142,7 +142,7 @@ static const int GHOST_WIDTH_TO_FILL = 1;
 CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
 {
     // Setup scratch variables.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     Pointer<VariableContext> context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
     if (var_db->checkVariableExists(d_sc_indicator_var->getName()))
     {
@@ -163,15 +163,15 @@ CartSideDoubleQuadraticCFInterpolation::~CartSideDoubleQuadraticCFInterpolation(
 } // ~CartSideDoubleQuadraticCFInterpolation
 
 void
-CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(Patch<NDIM>& /*patch*/,
+CartSideDoubleQuadraticCFInterpolation::setPhysicalBoundaryConditions(PatchNd& /*patch*/,
                                                                       const double /*fill_time*/,
-                                                                      const IntVector<NDIM>& /*ghost_width_to_fill*/)
+                                                                      const IntVectorNd& /*ghost_width_to_fill*/)
 {
     // intentionally blank
     return;
 } // setPhysicalBoundaryConditions
 
-IntVector<NDIM>
+IntVectorNd
 CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
 {
 #if !defined(NDEBUG)
@@ -181,20 +181,20 @@ CartSideDoubleQuadraticCFInterpolation::getRefineOpStencilWidth() const
 } // getRefineOpStencilWidth
 
 void
-CartSideDoubleQuadraticCFInterpolation::preprocessRefine(Patch<NDIM>& /*fine*/,
-                                                         const Patch<NDIM>& /*coarse*/,
-                                                         const Box<NDIM>& /*fine_box*/,
-                                                         const IntVector<NDIM>& /*ratio*/)
+CartSideDoubleQuadraticCFInterpolation::preprocessRefine(PatchNd& /*fine*/,
+                                                         const PatchNd& /*coarse*/,
+                                                         const BoxNd& /*fine_box*/,
+                                                         const IntVectorNd& /*ratio*/)
 {
     // intentionally blank
     return;
 } // preprocessRefine
 
 void
-CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
-                                                          const Patch<NDIM>& coarse,
-                                                          const Box<NDIM>& fine_box,
-                                                          const IntVector<NDIM>& ratio)
+CartSideDoubleQuadraticCFInterpolation::postprocessRefine(PatchNd& fine,
+                                                          const PatchNd& coarse,
+                                                          const BoxNd& fine_box,
+                                                          const IntVectorNd& ratio)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -217,23 +217,22 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
         // patch hierarchy.
         const int patch_num = fine.getPatchNumber();
         const int fine_patch_level_num = fine.getPatchLevelNumber();
-        Pointer<PatchLevel<NDIM> > fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
+        Pointer<PatchLevelNd> fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
         TBOX_ASSERT(&fine == fine_level->getPatch(patch_num).getPointer());
     }
 #endif
     // Get the co-dimension 1 cf boundary boxes.
     const int patch_num = fine.getPatchNumber();
     const int fine_patch_level_num = fine.getPatchLevelNumber();
-    const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes =
-        d_cf_boundary[fine_patch_level_num].getBoundaries(patch_num, 1);
+    const Array<BoundaryBoxNd>& cf_bdry_codim1_boxes = d_cf_boundary[fine_patch_level_num].getBoundaries(patch_num, 1);
     if (cf_bdry_codim1_boxes.size() == 0) return;
 
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(patch_data_index);
-        Pointer<SideData<NDIM, double> > cdata = coarse.getPatchData(patch_data_index);
-        Pointer<SideData<NDIM, int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
+        Pointer<SideDataNd<double> > fdata = fine.getPatchData(patch_data_index);
+        Pointer<SideDataNd<double> > cdata = coarse.getPatchData(patch_data_index);
+        Pointer<SideDataNd<int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
@@ -258,14 +257,14 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(Patch<NDIM>& fine,
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
 #endif
         const int data_depth = fdata->getDepth();
-        const IntVector<NDIM> ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom_fine = fine.getPatchGeometry();
-        const Box<NDIM>& patch_box_fine = fine.getBox();
-        const Box<NDIM>& patch_box_crse = coarse.getBox();
+        const IntVectorNd ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
+        Pointer<CartesianPatchGeometryNd> pgeom_fine = fine.getPatchGeometry();
+        const BoxNd& patch_box_fine = fine.getBox();
+        const BoxNd& patch_box_crse = coarse.getBox();
         for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
         {
-            const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
-            const Box<NDIM> bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
+            const BoundaryBoxNd& bdry_box = cf_bdry_codim1_boxes[k];
+            const BoxNd bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
             const unsigned int location_index = bdry_box.getLocationIndex();
             const int* const indicator0 = indicator_data->getPointer(0);
             const int* const indicator1 = indicator_data->getPointer(1);
@@ -369,7 +368,7 @@ CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const ComponentSelec
 } // setPatchDataIndices
 
 void
-CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -379,21 +378,21 @@ CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy
     const int finest_level_number = d_hierarchy->getFinestLevelNumber();
 
     d_cf_boundary.resize(finest_level_number + 1);
-    const IntVector<NDIM>& max_ghost_width = GHOST_WIDTH_TO_FILL;
+    const IntVectorNd& max_ghost_width = GHOST_WIDTH_TO_FILL;
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
+        d_cf_boundary[ln] = CoarseFineBoundaryNd(*d_hierarchy, ln, max_ghost_width);
     }
 
-    Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+    Pointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+    Pointer<RefineOperatorNd> refine_op = nullptr;
     refine_alg->registerRefine(d_sc_indicator_idx, // destination
                                d_sc_indicator_idx, // source
                                d_sc_indicator_idx, // temporary work space
                                refine_op);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_sc_indicator_idx))
         {
             level->allocatePatchData(d_sc_indicator_idx, 0.0);
@@ -402,10 +401,10 @@ CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy
         {
             level->setTime(0.0, d_sc_indicator_idx);
         }
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
+            Pointer<PatchNd> patch = level->getPatch(p());
+            Pointer<SideDataNd<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
         }
@@ -423,9 +422,9 @@ CartSideDoubleQuadraticCFInterpolation::clearPatchHierarchy()
 } // clearPatchHierarchy
 
 void
-CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch<NDIM>& patch,
-                                                               const IntVector<NDIM>& ratio,
-                                                               const IntVector<NDIM>& /*ghost_width_to_fill*/)
+CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(PatchNd& patch,
+                                                               const IntVectorNd& ratio,
+                                                               const IntVectorNd& /*ghost_width_to_fill*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hierarchy);
@@ -442,14 +441,14 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch<NDIM>& patc
     {
         const int patch_num = patch.getPatchNumber();
         const int patch_level_num = patch.getPatchLevelNumber();
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(patch_level_num);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(patch_level_num);
         TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
     }
 #endif
     // Get the co-dimension 1 cf boundary boxes.
     const int patch_num = patch.getPatchNumber();
     const int patch_level_num = patch.getPatchLevelNumber();
-    const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num].getBoundaries(patch_num, 1);
+    const Array<BoundaryBoxNd>& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num].getBoundaries(patch_num, 1);
     const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
 
     // Check to see if there are any co-dimension 1 coarse-fine boundary boxes
@@ -459,10 +458,10 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch<NDIM>& patc
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        Pointer<SideData<NDIM, double> > data = patch.getPatchData(patch_data_index);
-        SideData<NDIM, double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
+        Pointer<SideDataNd<double> > data = patch.getPatchData(patch_data_index);
+        SideDataNd<double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
         data_copy.copyOnBox(*data, data->getGhostBox());
-        Pointer<SideData<NDIM, int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
+        Pointer<SideDataNd<int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(data);
         TBOX_ASSERT(indicator_data);
@@ -485,13 +484,13 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(Patch<NDIM>& patc
         TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
 #endif
         const int data_depth = data->getDepth();
-        const IntVector<NDIM> ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
-        const Box<NDIM>& patch_box = patch.getBox();
+        const IntVectorNd ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
+        Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+        const BoxNd& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {
-            const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
-            const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+            const BoundaryBoxNd& bdry_box = cf_bdry_codim1_boxes[k];
+            const BoxNd bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
             const unsigned int location_index = bdry_box.getLocationIndex();
             const int* const indicator0 = indicator_data->getPointer(0);
             const int* const indicator1 = indicator_data->getPointer(1);

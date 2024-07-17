@@ -33,10 +33,10 @@ public:
     /*!
      * \brief Class constructor.
      */
-    BoussinesqForcing(Pointer<SAMRAI::hier::Variable<NDIM> > T_var,
+    BoussinesqForcing(Pointer<SAMRAI::hier::VariableNd> T_var,
                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
-                      SAMRAI::tbox::Pointer<CellVariable<NDIM, double> > ls_inner_solid_var,
-                      SAMRAI::tbox::Pointer<CellVariable<NDIM, double> > ls_outer_solid_var,
+                      SAMRAI::tbox::Pointer<CellVariableNd<double> > ls_inner_solid_var,
+                      SAMRAI::tbox::Pointer<CellVariableNd<double> > ls_outer_solid_var,
                       Pointer<Database> input_db);
 
     /*!
@@ -60,8 +60,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 Pointer<SAMRAI::hier::VariableNd> var,
+                                 Pointer<PatchHierarchyNd> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -71,11 +71,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        Pointer<SAMRAI::hier::VariableNd> var,
+                        Pointer<PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL));
+                        Pointer<PatchLevelNd> patch_level = Pointer<PatchLevelNd>(NULL));
 
     //\}
 
@@ -103,7 +103,7 @@ private:
     /*
      * Pointer to the non-dimensional temperature.
      */
-    Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
+    Pointer<SAMRAI::pdat::CellVariableNd<double> > d_T_var;
 
     /*
      * Pointer to the adv-diff solver.
@@ -113,12 +113,12 @@ private:
     /*
      * Vector storing the pointer to level set variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_ls_solid_vars;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > > d_ls_solid_vars;
 
     /*
      * A variable and index to store the sum of mask functions i.e., \f$ \sum \chi_i\f$
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_chi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_chi_var;
     int d_chi_idx = IBTK::invalid_index;
 
     /*

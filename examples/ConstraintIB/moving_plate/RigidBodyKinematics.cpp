@@ -34,7 +34,7 @@ namespace IBAMR
 RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
                                          Pointer<Database> input_db,
                                          LDataManager* l_data_manager,
-                                         Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                         Pointer<PatchHierarchyNd> patch_hierarchy,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_kinematics_data(),
@@ -90,7 +90,7 @@ RigidBodyKinematics::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 void
-RigidBodyKinematics::setImmersedBodyLayout(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/)
+RigidBodyKinematics::setImmersedBodyLayout(Pointer<PatchHierarchyNd> /*patch_hierarchy*/)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();

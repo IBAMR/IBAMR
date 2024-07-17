@@ -190,8 +190,8 @@ build_local_marker_cloud(DBfile* dbfile,
 void
 build_local_curv_block(DBfile* dbfile,
                        std::string& dirname,
-                       const IntVector<NDIM>& nelem_in,
-                       const IntVector<NDIM>& periodic,
+                       const IntVectorNd& nelem_in,
+                       const IntVectorNd& periodic,
                        const double* const X,
                        const int nvars,
                        const std::vector<std::string>& varnames,
@@ -203,7 +203,7 @@ build_local_curv_block(DBfile* dbfile,
                        const double simulation_time)
 {
     // Check for co-dimension 1 or 2 data.
-    IntVector<NDIM> nelem, degenerate;
+    IntVectorNd nelem, degenerate;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (nelem_in(d) == 1)
@@ -693,7 +693,7 @@ LSiloDataWriter::~LSiloDataWriter()
 } // ~LSiloDataWriter
 
 void
-LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -865,8 +865,8 @@ LSiloDataWriter::registerMarkerCloud(const std::string& name,
 
 void
 LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
-                                                 const IntVector<NDIM>& nelem,
-                                                 const IntVector<NDIM>& periodic,
+                                                 const IntVectorNd& nelem,
+                                                 const IntVectorNd& periodic,
                                                  const int first_lag_idx,
                                                  const int level_number)
 {
@@ -931,8 +931,8 @@ LSiloDataWriter::registerLogicallyCartesianBlock(const std::string& name,
 
 void
 LSiloDataWriter::registerLogicallyCartesianMultiblock(const std::string& name,
-                                                      const std::vector<IntVector<NDIM> >& nelem,
-                                                      const std::vector<IntVector<NDIM> >& periodic,
+                                                      const std::vector<IntVectorNd>& nelem,
+                                                      const std::vector<IntVectorNd>& periodic,
                                                       const std::vector<int>& first_lag_idx,
                                                       const int level_number)
 {
@@ -1320,8 +1320,8 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             // Add the local blocks to the local DBfile.
             for (int block = 0; block < d_nblocks[ln]; ++block)
             {
-                const IntVector<NDIM>& nelem = d_block_nelems[ln][block];
-                const IntVector<NDIM>& periodic = d_block_periodic[ln][block];
+                const IntVectorNd& nelem = d_block_nelems[ln][block];
+                const IntVectorNd& periodic = d_block_periodic[ln][block];
                 const int ntot = nelem.getProduct();
 
                 std::string dirname = "level_" + std::to_string(ln) + "_block_" + std::to_string(block);
@@ -1365,8 +1365,8 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
             {
                 for (int block = 0; block < d_mb_nblocks[ln][mb]; ++block)
                 {
-                    const IntVector<NDIM>& nelem = d_mb_nelems[ln][mb][block];
-                    const IntVector<NDIM>& periodic = d_mb_periodic[ln][mb][block];
+                    const IntVectorNd& nelem = d_mb_nelems[ln][mb][block];
+                    const IntVectorNd& periodic = d_mb_periodic[ln][mb][block];
                     const int ntot = nelem.getProduct();
 
                     std::string dirname =
@@ -2140,7 +2140,7 @@ LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
 
     for (int block = 0; block < d_nblocks[level_number]; ++block)
     {
-        const IntVector<NDIM>& nelem = d_block_nelems[level_number][block];
+        const IntVectorNd& nelem = d_block_nelems[level_number][block];
         const int ntot = nelem.getProduct();
         const int first_lag_idx = d_block_first_lag_idx[level_number][block];
         ref_is_idxs.reserve(ref_is_idxs.size() + ntot);
@@ -2155,7 +2155,7 @@ LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
     {
         for (int block = 0; block < d_mb_nblocks[level_number][mb]; ++block)
         {
-            const IntVector<NDIM>& nelem = d_mb_nelems[level_number][mb][block];
+            const IntVectorNd& nelem = d_mb_nelems[level_number][mb][block];
             const int ntot = nelem.getProduct();
             const int first_lag_idx = d_mb_first_lag_idx[level_number][mb][block];
             ref_is_idxs.reserve(ref_is_idxs.size() + ntot);

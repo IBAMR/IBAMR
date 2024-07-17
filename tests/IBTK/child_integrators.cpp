@@ -93,17 +93,17 @@ protected:
     {
         plog << d_object_name << ": initializeCompositeHierarchyDataSpecialized()\n";
     }
-    void initializeLevelDataSpecialized(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    void initializeLevelDataSpecialized(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
                                         int /*level_number*/,
                                         double /*init_data_time*/,
                                         bool /*can_be_refined*/,
                                         bool /*initial_time*/,
-                                        Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                        Pointer<BasePatchLevelNd> /*old_level*/,
                                         bool /*allocate_data*/) override
     {
         plog << d_object_name << ": initializeLevelDataSpecialized()\n";
     }
-    void resetHierarchyConfigurationSpecialized(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+    void resetHierarchyConfigurationSpecialized(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
                                                 int /*coarsest_level*/,
                                                 int /*finest_level*/) override
     {
@@ -113,7 +113,7 @@ protected:
     {
         plog << d_object_name << ": putToDatabaseSpecialized()\n";
     }
-    void addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/, const int /*workload_data_idx*/) override
+    void addWorkloadEstimate(Pointer<PatchHierarchyNd> /*hierarchy*/, const int /*workload_data_idx*/) override
     {
         plog << d_object_name << ": addWorkloadEstimate()\n";
     }
@@ -205,22 +205,22 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
         // Configure the IB solver.
         Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
@@ -230,7 +230,7 @@ main(int argc, char* argv[])
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

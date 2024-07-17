@@ -61,7 +61,7 @@ MaterialPointSpec::Factory::setStreamableClassID(const int class_id)
 } // setStreamableClassID
 
 Pointer<Streamable>
-MaterialPointSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+MaterialPointSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd& /*offset*/)
 {
     Pointer<MaterialPointSpec> ret_val = new MaterialPointSpec();
     stream.unpack(&ret_val->d_point_idx, 1);

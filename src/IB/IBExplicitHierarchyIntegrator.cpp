@@ -162,7 +162,7 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
 {
     IBHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const double half_time = current_time + 0.5 * (new_time - current_time);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                    d_ins_hier_integrator->getCurrentContext());
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
@@ -368,7 +368,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
                                                              const bool skip_synchronize_new_state_data,
                                                              const int num_cycles)
 {
-    auto ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(d_u_var, d_hierarchy, true);
+    auto ops = HierarchyDataOpsManagerNd::getManager()->getOperationsDouble(d_u_var, d_hierarchy, true);
 
     auto velocity_ghost_update = [&](const std::vector<int>& indices)
     {
@@ -392,7 +392,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
     // Update the marker points, should they exist:
     if (d_markers && !d_marker_velocities_set)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                        d_ins_hier_integrator->getCurrentContext());
         // Clear any ghost data outside the domain:
@@ -406,7 +406,7 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
     }
 
     // The last thing we need to do (before we really postprocess) is update the structure velocity:
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                    d_ins_hier_integrator->getCurrentContext());
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
@@ -469,8 +469,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
 } // postprocessIntegrateHierarchy
 
 void
-IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                             Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> hierarchy,
+                                                             Pointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -509,7 +509,7 @@ IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>&
     // Ensure that whichever patch data indices we need to exist are present.
     if (d_u_half_idx == IBTK::invalid_index)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         d_u_half_idx = var_db->registerClonedPatchDataIndex(getVelocityVariable(), d_u_idx);
         d_ib_data.setFlag(d_u_half_idx);
     }

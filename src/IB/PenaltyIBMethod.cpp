@@ -364,11 +364,11 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
 } // computeLagrangianForce
 
 void
-PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                          Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
+                                          Pointer<GriddingAlgorithmNd> gridding_alg,
                                           int u_data_idx,
-                                          const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                          const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                          const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                          const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                           int integrator_step,
                                           double init_data_time,
                                           bool initial_time)
@@ -413,12 +413,12 @@ PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarc
 } // initializePatchHierarchy
 
 void
-PenaltyIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+PenaltyIBMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool can_be_refined,
                                      bool initial_time,
-                                     Pointer<BasePatchLevel<NDIM> > old_level,
+                                     Pointer<BasePatchLevelNd> old_level,
                                      bool allocate_data)
 {
     IBMethod::initializeLevelData(

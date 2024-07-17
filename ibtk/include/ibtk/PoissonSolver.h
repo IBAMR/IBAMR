@@ -74,7 +74,7 @@ public:
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition
      *coefficients
      */
-    virtual void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef);
+    virtual void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategyNd* bc_coef);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -87,7 +87,7 @@ public:
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs);
 
 protected:
     // Specialized solver initialization.
@@ -95,8 +95,8 @@ protected:
 
     // Problem specification.
     SAMRAI::solv::PoissonSpecifications d_poisson_spec = SAMRAI::solv::PoissonSpecifications("");
-    std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > d_default_bc_coef;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategyNd> d_default_bc_coef;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_bc_coefs;
 
 private:
     /*!

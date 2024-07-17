@@ -142,7 +142,7 @@ static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream, 
     U_max_norm_stream;
 
 void postprocess_data(Pointer<Database> input_db,
-                      Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                      Pointer<PatchHierarchyNd> patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -309,22 +309,22 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
         // Configure the IBFE solver.
         TetherData tether_data(input_db);
         void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
@@ -355,8 +355,8 @@ main(int argc, char* argv[])
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -387,7 +387,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -532,7 +532,7 @@ main(int argc, char* argv[])
 
 void
 postprocess_data(Pointer<Database> input_db,
-                 Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                 Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,

@@ -211,7 +211,7 @@ private:
          * the data stream.
          */
         SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                             const SAMRAI::hier::IntVector<NDIM>& offset) override;
+                                                             const SAMRAI::hier::IntVectorNd& offset) override;
 
     private:
         /*!

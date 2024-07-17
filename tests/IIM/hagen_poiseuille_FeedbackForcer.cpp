@@ -31,7 +31,7 @@ smooth_kernel(const double r)
 hagen_poiseuille_FeedbackForcer::hagen_poiseuille_FeedbackForcer(const double height,
                                                                  const double diameter,
                                                                  const INSHierarchyIntegrator* fluid_solver,
-                                                                 const Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+                                                                 const Pointer<PatchHierarchyNd> patch_hierarchy)
     : d_H(height), d_D(diameter), d_fluid_solver(fluid_solver), d_patch_hierarchy(patch_hierarchy)
 {
     // intentionally blank
@@ -52,13 +52,13 @@ hagen_poiseuille_FeedbackForcer::isTimeDependent() const
 
 void
 hagen_poiseuille_FeedbackForcer::setDataOnPatch(const int data_idx,
-                                                Pointer<hier::Variable<NDIM> > /*var*/,
-                                                Pointer<Patch<NDIM> > patch,
+                                                Pointer<hier::VariableNd> /*var*/,
+                                                Pointer<PatchNd> patch,
                                                 const double /*data_time*/,
                                                 const bool initial_time,
-                                                Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                                Pointer<PatchLevelNd> /*patch_level*/)
 {
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
+    Pointer<SideDataNd<double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data);
 #endif
@@ -68,28 +68,28 @@ hagen_poiseuille_FeedbackForcer::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.25 * rho / dt : 0.0;
-    Pointer<SideData<NDIM, double> > U_current_data =
+    Pointer<SideDataNd<double> > U_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<SideData<NDIM, double> > U_new_data =
+    Pointer<SideDataNd<double> > U_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_current_data);
 #endif
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const BoxNd& patch_box = patch->getBox();
+    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry = d_patch_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometryNd> grid_geometry = d_patch_hierarchy->getGridGeometry();
     const double* const dx_coarsest = grid_geometry->getDx();
     double dx_finest[NDIM];
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
-    const IntVector<NDIM>& finest_ratio = d_patch_hierarchy->getPatchLevel(finest_ln)->getRatio();
+    const IntVectorNd& finest_ratio = d_patch_hierarchy->getPatchLevel(finest_ln)->getRatio();
     for (int d = 0; d < NDIM; ++d)
     {
         dx_finest[d] = dx_coarsest[d] / static_cast<double>(finest_ratio(d));
     }
-    const Box<NDIM> domain_box = Box<NDIM>::refine(grid_geometry->getPhysicalDomain()[0], pgeom->getRatio());
+    const BoxNd domain_box = BoxNd::refine(grid_geometry->getPhysicalDomain()[0], pgeom->getRatio());
 
     // Clamp the velocity along the top/bottom of the domain (but not in the
     // interior of the structure).
@@ -101,7 +101,7 @@ hagen_poiseuille_FeedbackForcer::setDataOnPatch(const int data_idx,
         const bool is_lower = side == 0;
         if (pgeom->getTouchesRegularBoundary(axis, side))
         {
-            Box<NDIM> bdry_box = domain_box;
+            BoxNd bdry_box = domain_box;
             if (side == 0)
             {
                 bdry_box.upper(axis) = domain_box.lower(axis) + offset;
@@ -113,10 +113,10 @@ hagen_poiseuille_FeedbackForcer::setDataOnPatch(const int data_idx,
             bdry_box = bdry_box * patch_box;
             for (int component = 0; component < NDIM; ++component)
             {
-                for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box, component)); b; b++)
+                for (BoxNd::Iterator b(SideGeometryNd::toSideBox(bdry_box, component)); b; b++)
                 {
-                    const hier::Index<NDIM>& i = b();
-                    const SideIndex<NDIM> i_s(i, component, SideIndex<NDIM>::Lower);
+                    const hier::IndexNd& i = b();
+                    const SideIndexNd i_s(i, component, SideIndexNd::Lower);
                     const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                     const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;
                     const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;

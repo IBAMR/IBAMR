@@ -103,8 +103,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& y) override;
 
     //\}
 

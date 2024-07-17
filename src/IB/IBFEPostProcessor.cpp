@@ -152,7 +152,7 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMesh::FEFamily var_fe_family,
     libMesh::Order var_fe_order,
-    Pointer<hier::Variable<NDIM> > var,
+    Pointer<hier::VariableNd> var,
     Pointer<VariableContext> ctx,
     const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction)
 {
@@ -171,7 +171,7 @@ IBFEPostProcessor::registerInterpolatedScalarEulerianVariable(
     const std::string& var_name,
     libMesh::FEFamily var_fe_family,
     libMesh::Order var_fe_order,
-    Pointer<hier::Variable<NDIM> > var,
+    Pointer<hier::VariableNd> var,
     Pointer<VariableContext> ctx,
     const HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
     const FEDataManager::InterpSpec& interp_spec)
@@ -220,7 +220,7 @@ IBFEPostProcessor::postProcessData(const double data_time)
 void
 IBFEPostProcessor::interpolateVariables(const double data_time)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = d_fe_data_manager->getPatchHierarchy();
+    Pointer<PatchHierarchyNd> hierarchy = d_fe_data_manager->getPatchHierarchy();
     const int coarsest_ln = d_fe_data_manager->getCoarsestPatchLevelNumber();
     const int finest_ln = d_fe_data_manager->getFinestPatchLevelNumber();
 
@@ -235,8 +235,8 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
         if (data_idx < 0 || scratch_idx < 0)
         {
             TBOX_ASSERT(data_idx < 0 || scratch_idx < 0);
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-            Pointer<hier::Variable<NDIM> > data_var = d_scalar_interp_vars[k];
+            VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+            Pointer<hier::VariableNd> data_var = d_scalar_interp_vars[k];
             Pointer<VariableContext> data_ctx = d_scalar_interp_ctxs[k];
             data_idx = var_db->mapVariableAndContextToIndex(data_var, data_ctx);
             TBOX_ASSERT(data_idx >= 0);
@@ -251,7 +251,7 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
     }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         for (unsigned int k = 0; k < num_eulerian_vars; ++k)
         {
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];
@@ -279,7 +279,7 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
     // Deallocate Eulerian scratch space.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         for (unsigned int k = 0; k < num_eulerian_vars; ++k)
         {
             const int scratch_idx = d_scalar_interp_scratch_idxs[k];

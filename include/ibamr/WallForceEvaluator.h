@@ -60,7 +60,7 @@ class WallForceEvaluator : public IBLagrangianForceStrategy
 public:
     // Constructor.
     WallForceEvaluator(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                       SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
+                       SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry);
 
     // Register a WallForceFcnPtr to be used by all walls.
     void registerWallForceFcn(Wall::WallForceFcnPtr wall_force_fcn);
@@ -72,7 +72,7 @@ public:
     void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
                                 SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                 SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                 const int level_number,
                                 const double data_time,
                                 IBTK::LDataManager* const l_data_manager) override;
@@ -91,7 +91,7 @@ private:
     std::vector<Wall> d_walls_vec;
 
     // grid geometry, used when making walls:
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geometry;
 };
 } // namespace IBAMR
 

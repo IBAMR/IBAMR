@@ -229,21 +229,21 @@ compute_displaced_area(node_set& nodes, const IBFEMethod* const ib_method_ops, E
 }
 
 double
-compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_idx, const int wgt_sc_idx)
+compute_inflow_flux(const Pointer<PatchHierarchyNd> hierarchy, const int U_idx, const int wgt_sc_idx)
 {
     double Q_in = 0.0;
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<PatchNd> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
-                Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_idx);
-                Pointer<SideData<NDIM, double> > wgt_sc_data = patch->getPatchData(wgt_sc_idx);
-                const Box<NDIM>& patch_box = patch->getBox();
+                Pointer<SideDataNd<double> > U_data = patch->getPatchData(U_idx);
+                Pointer<SideDataNd<double> > wgt_sc_data = patch->getPatchData(wgt_sc_idx);
+                const BoxNd& patch_box = patch->getBox();
                 const double* const x_lower = pgeom->getXLower();
                 const double* const dx = pgeom->getDx();
                 double dV = 1.0;
@@ -261,12 +261,12 @@ compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_
                     {
                         n[d] = axis == d ? +1.0 : 0.0;
                     }
-                    Box<NDIM> side_box = patch_box;
+                    BoxNd side_box = patch_box;
                     side_box.lower(axis) = patch_box.lower(axis);
                     side_box.upper(axis) = patch_box.lower(axis);
-                    for (Box<NDIM>::Iterator b(side_box); b; b++)
+                    for (BoxNd::Iterator b(side_box); b; b++)
                     {
-                        const hier::Index<NDIM>& i = b();
+                        const hier::IndexNd& i = b();
                         for (int d = 0; d < NDIM; ++d)
                         {
                             X[d] = x_lower[d] +
@@ -274,7 +274,7 @@ compute_inflow_flux(const Pointer<PatchHierarchy<NDIM> > hierarchy, const int U_
                         }
                         if (X[0] >= 0.5 && X[0] <= 1.5)
                         {
-                            const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                            const SideIndexNd i_s(i, axis, SideIndexNd::Lower);
                             if ((*wgt_sc_data)(i_s) > std::numeric_limits<double>::epsilon())
                             {
                                 double dA = n[axis] * dV / dx[axis];
@@ -482,22 +482,22 @@ main(int argc, char** argv)
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Configure the IBFE solver.
         IBFEMethod::LagBodyForceFcnData block_tether_force_data(block_tether_force_function);
@@ -536,8 +536,8 @@ main(int argc, char** argv)
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -568,7 +568,7 @@ main(int argc, char** argv)
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -624,7 +624,7 @@ main(int argc, char** argv)
 
             dt = time_integrator->getMaximumTimeStepSize();
 
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
             const int U_current_idx = var_db->mapVariableAndContextToIndex(
                 navier_stokes_integrator->getVelocityVariable(), navier_stokes_integrator->getCurrentContext());
             const int wgt_sc_idx = navier_stokes_integrator->getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();

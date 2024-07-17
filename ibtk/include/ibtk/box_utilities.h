@@ -32,7 +32,7 @@ namespace IBTK
  * returned set of boxes is formed by merging boxes in @p boxes along
  * their longest edges.
  */
-std::vector<SAMRAI::hier::Box<NDIM> > merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& boxes);
+std::vector<SAMRAI::hier::BoxNd> merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::BoxNd>& boxes);
 } // namespace IBTK
 
 #endif

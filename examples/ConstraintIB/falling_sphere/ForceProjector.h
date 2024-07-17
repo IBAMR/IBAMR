@@ -57,7 +57,7 @@ public:
      */
     ForceProjector(const std::string& object_name,
                    IBTK::LDataManager* lag_data_manager,
-                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                    const std::string solver_type = "STAGGERED");
 
@@ -131,7 +131,7 @@ private:
     /*!
      * Pointer to Patch Hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_patch_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_patch_hierarchy;
 
     /*!
      * Fluid solver type.
@@ -146,7 +146,7 @@ private:
     /*!
      *  Variables and variable context associated with calculating Eulerian force.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_body_force_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_body_force_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_body_force_context;
     int d_body_force_idx;
 

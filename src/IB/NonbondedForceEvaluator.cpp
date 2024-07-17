@@ -54,7 +54,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 NonbondedForceEvaluator::NonbondedForceEvaluator(Pointer<Database> input_db,
-                                                 Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+                                                 Pointer<CartesianGridGeometryNd> grid_geometry)
     : d_grid_geometry(grid_geometry)
 {
     // get interaction radius
@@ -145,13 +145,13 @@ void
 NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
                                                 Pointer<LData> X_data,
                                                 Pointer<LData> /*U_data*/,
-                                                const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                const Pointer<PatchHierarchyNd> hierarchy,
                                                 const int level_number,
                                                 const double /*data_time*/,
                                                 LDataManager* const l_data_manager)
 {
     // Get grid geometry and relevant lower and upper limits.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
 
     // These will only work if the domain is a single box.
@@ -160,17 +160,17 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
     const double* const x_upper = grid_geom->getXUpper();
 
     // we will grow the search box by interaction_radius + 2.0*regrid_alpha
-    IntVector<NDIM> grow_amount(static_cast<int>(ceil(d_interaction_radius + 2.0 * d_regrid_alpha)));
+    IntVectorNd grow_amount(static_cast<int>(ceil(d_interaction_radius + 2.0 * d_regrid_alpha)));
     const int lag_node_idx_current_idx = l_data_manager->getLNodePatchDescriptorIndex();
 
     // iterate through levels.
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<PatchNd> patch = level->getPatch(p());
         Pointer<LNodeSetData> current_idx_data = patch->getPatchData(lag_node_idx_current_idx);
-        const Box<NDIM>& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const BoxNd& patch_box = patch->getBox();
+        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
 
         std::vector<int> cell_offset(NDIM);
@@ -180,20 +180,20 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
         for (LNodeSetData::CellIterator cit(patch_box); cit; cit++)
         {
             // get list of particles in this cell
-            const hier::Index<NDIM>& first_cell_idx = *cit;
+            const hier::IndexNd& first_cell_idx = *cit;
             LNodeSet* const mstr_node_set = current_idx_data->getItem(first_cell_idx);
             if (mstr_node_set)
             {
-                Box<NDIM> search_box(first_cell_idx, first_cell_idx);
+                BoxNd search_box(first_cell_idx, first_cell_idx);
                 // loop over neighboring cells, up to interaction_radius +
                 // 2*regrid_alpha away.
-                for (LNodeSetData::CellIterator scit(Box<NDIM>::grow(search_box, grow_amount)); scit; scit++)
+                for (LNodeSetData::CellIterator scit(BoxNd::grow(search_box, grow_amount)); scit; scit++)
                 {
                     // loop over particles in the neighbor cell, adding up
                     // forces onto the particle in the "master" cell At this
                     // point we know both cells, need to figure out periodic
                     // additions.
-                    const hier::Index<NDIM>& search_cell_idx = *scit;
+                    const hier::IndexNd& search_cell_idx = *scit;
 
                     // search across periodic boundaries.
                     for (int k = 0; k < NDIM; ++k)

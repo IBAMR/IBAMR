@@ -108,7 +108,7 @@ static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream, 
     U_max_norm_stream;
 
 void postprocess_data(tbox::Pointer<tbox::Database> input_db,
-                      tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                      tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
                       tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -258,23 +258,22 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_ops,
                                               navier_stokes_integrator);
-        tbox::Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        tbox::Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        tbox::Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        tbox::Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        tbox::Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        tbox::Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        tbox::Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        tbox::Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        tbox::Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        tbox::Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        tbox::Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Configure the IBFE solver.
         TetherData tether_data(input_db);
@@ -318,8 +317,8 @@ main(int argc, char* argv[])
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -350,7 +349,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        tbox::Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        tbox::Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -495,7 +494,7 @@ main(int argc, char* argv[])
 
 void
 postprocess_data(tbox::Pointer<tbox::Database> input_db,
-                 tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+                 tbox::Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
                  tbox::Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,

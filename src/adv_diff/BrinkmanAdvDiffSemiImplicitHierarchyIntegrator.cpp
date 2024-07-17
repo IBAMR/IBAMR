@@ -112,27 +112,25 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::BrinkmanAdvDiffSemiImplicitHiera
 } // BrinkmanAdvDiffSemiImplicitHierarchyIntegrator
 
 void
-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
-    Pointer<PatchHierarchy<NDIM> > hierarchy,
-    Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> hierarchy,
+                                                                              Pointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
     d_hierarchy = hierarchy;
     d_gridding_alg = gridding_alg;
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
 
     // Obtain the Hierarchy data operations objects.
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    d_hier_fc_data_ops =
-        hier_ops_manager->getOperationsDouble(new FaceVariable<NDIM, double>("fc_var"), hierarchy, true);
+    HierarchyDataOpsManagerNd* hier_ops_manager = HierarchyDataOpsManagerNd::getManager();
+    d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(new FaceVariableNd<double>("fc_var"), hierarchy, true);
 
     // Register additional variables required for present time stepping algorithm.
-    const IntVector<NDIM> side_ghosts = SIDEG;
-    const IntVector<NDIM> no_ghosts = 0;
+    const IntVectorNd side_ghosts = SIDEG;
+    const IntVectorNd no_ghosts = 0;
     for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellDataFactory<NDIM, double> > Q_factory = Q_var->getPatchDataFactory();
+        Pointer<CellDataFactoryNd<double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
         // Variables required for Brinkman penalization
@@ -140,16 +138,13 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
             d_brinkman_penalization && d_brinkman_penalization->hasBrinkmanBoundaryCondition(Q_var);
         if (apply_brinkman)
         {
-            Pointer<CellVariable<NDIM, double> > Cb_var =
-                new CellVariable<NDIM, double>(Q_var->getName() + "::Cb", Q_depth);
-            Pointer<CellVariable<NDIM, double> > Cb_rhs_var =
-                new CellVariable<NDIM, double>(Q_var->getName() + "::Cb_RHS", Q_depth);
-            Pointer<SideVariable<NDIM, double> > Db_var =
-                new SideVariable<NDIM, double>(Q_var->getName() + "::Db", Q_depth);
-            Pointer<SideVariable<NDIM, double> > Db_rhs_var =
-                new SideVariable<NDIM, double>(Q_var->getName() + "::Db_RHS", Q_depth);
-            Pointer<CellVariable<NDIM, double> > Fb_var =
-                new CellVariable<NDIM, double>(Q_var->getName() + "::Fb", Q_depth);
+            Pointer<CellVariableNd<double> > Cb_var = new CellVariableNd<double>(Q_var->getName() + "::Cb", Q_depth);
+            Pointer<CellVariableNd<double> > Cb_rhs_var =
+                new CellVariableNd<double>(Q_var->getName() + "::Cb_RHS", Q_depth);
+            Pointer<SideVariableNd<double> > Db_var = new SideVariableNd<double>(Q_var->getName() + "::Db", Q_depth);
+            Pointer<SideVariableNd<double> > Db_rhs_var =
+                new SideVariableNd<double>(Q_var->getName() + "::Db_RHS", Q_depth);
+            Pointer<CellVariableNd<double> > Fb_var = new CellVariableNd<double>(Q_var->getName() + "::Fb", Q_depth);
             d_Q_Cb_map[Q_var] = Cb_var;
             d_Q_Cb_rhs_map[Q_var] = Cb_rhs_var;
             d_Q_Db_map[Q_var] = Db_var;
@@ -191,7 +186,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
     const bool initial_time = IBTK::rel_equal_eps(d_integrator_time, d_start_time);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
     // Indicate that all solvers need to be reinitialized if the current
     // timestep size is different from the previous one.
@@ -207,7 +202,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
     }
@@ -245,13 +240,13 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
-        Pointer<CellVariable<NDIM, double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        Pointer<SideVariable<NDIM, double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-        Pointer<SideVariable<NDIM, double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
+        Pointer<CellVariableNd<double> > Q_var = *cit;
+        Pointer<CellVariableNd<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        Pointer<SideVariableNd<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
+        Pointer<SideVariableNd<double> > D_rhs_var = d_diffusion_coef_rhs_map[D_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
-        const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
+        const std::vector<RobinBcCoefStrategyNd*>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
         const int Q_current_idx = var_db->mapVariableAndContextToIndex(Q_var, getCurrentContext());
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
@@ -279,7 +274,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
                                          << "  valid choice is BACKWARD_EULER.\n");
             }
 
-            Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
+            Pointer<FaceVariableNd<double> > u_var = d_Q_u_map[Q_var];
             if (u_var)
             {
                 TBOX_ERROR("Advection velocity for "
@@ -305,11 +300,11 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
                      << "Applying Brinkman penalization for variable number " << l << "\n";
             }
 
-            Pointer<CellVariable<NDIM, double> > Cb_var = d_Q_Cb_map[Q_var];
-            Pointer<CellVariable<NDIM, double> > Cb_rhs_var = d_Q_Cb_rhs_map[Q_var];
-            Pointer<SideVariable<NDIM, double> > Db_var = d_Q_Db_map[Q_var];
-            Pointer<SideVariable<NDIM, double> > Db_rhs_var = d_Q_Db_rhs_map[Q_var];
-            Pointer<CellVariable<NDIM, double> > Fb_var = d_Q_Fb_map[Q_var];
+            Pointer<CellVariableNd<double> > Cb_var = d_Q_Cb_map[Q_var];
+            Pointer<CellVariableNd<double> > Cb_rhs_var = d_Q_Cb_rhs_map[Q_var];
+            Pointer<SideVariableNd<double> > Db_var = d_Q_Db_map[Q_var];
+            Pointer<SideVariableNd<double> > Db_rhs_var = d_Q_Db_rhs_map[Q_var];
+            Pointer<CellVariableNd<double> > Fb_var = d_Q_Fb_map[Q_var];
             int Cb_current_idx = IBTK::invalid_index, Cb_rhs_scratch_idx = IBTK::invalid_index;
             int Db_current_idx = IBTK::invalid_index, Db_rhs_scratch_idx = IBTK::invalid_index;
 
@@ -456,11 +451,11 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::preprocessIntegrateHierarchy(con
         }
 
         // Account for the convective difference term.
-        Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
+        Pointer<FaceVariableNd<double> > u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
-            Pointer<CellVariable<NDIM, double> > N_var = d_Q_N_map[Q_var];
-            Pointer<CellVariable<NDIM, double> > N_old_var = d_Q_N_old_map[Q_var];
+            Pointer<CellVariableNd<double> > N_var = d_Q_N_map[Q_var];
+            Pointer<CellVariableNd<double> > N_old_var = d_Q_N_old_map[Q_var];
             TimeSteppingType convective_time_stepping_type = d_Q_convective_time_stepping_type[Q_var];
             if (getIntegratorStep() == 0 && is_multistep_time_stepping_type(convective_time_stepping_type))
             {
@@ -521,7 +516,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
     AdvDiffHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
     // Check to make sure that the number of cycles is what we expect it to be.
     const int expected_num_cycles = getNumberOfCycles();
@@ -565,13 +560,13 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
     unsigned int l = 0;
     for (auto cit = d_Q_var.begin(); cit != d_Q_var.end(); ++cit, ++l)
     {
-        Pointer<CellVariable<NDIM, double> > Q_var = *cit;
-        Pointer<CellVariable<NDIM, double> > F_var = d_Q_F_map[Q_var];
-        Pointer<CellVariable<NDIM, double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
-        Pointer<SideVariable<NDIM, double> > D_var = d_Q_diffusion_coef_variable[Q_var];
+        Pointer<CellVariableNd<double> > Q_var = *cit;
+        Pointer<CellVariableNd<double> > F_var = d_Q_F_map[Q_var];
+        Pointer<CellVariableNd<double> > Q_rhs_var = d_Q_Q_rhs_map[Q_var];
+        Pointer<SideVariableNd<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
         TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
         const double lambda = d_Q_damping_coef[Q_var];
-        const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
+        const std::vector<RobinBcCoefStrategyNd*>& Q_bc_coef = d_Q_bc_coef[Q_var];
 
         const int Q_scratch_idx = var_db->mapVariableAndContextToIndex(Q_var, getScratchContext());
         const int Q_new_idx = var_db->mapVariableAndContextToIndex(Q_var, getNewContext());
@@ -595,13 +590,13 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
             TBOX_ASSERT(d_Q_damping_coef[Q_var] == 0.0);
 #endif
             TimeSteppingType diffusion_time_stepping_type = d_Q_diffusion_time_stepping_type[Q_var];
-            const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coef = d_Q_bc_coef[Q_var];
-            Pointer<SideVariable<NDIM, double> > D_var = d_Q_diffusion_coef_variable[Q_var];
-            Pointer<CellVariable<NDIM, double> > Cb_var = d_Q_Cb_map[Q_var];
-            Pointer<CellVariable<NDIM, double> > Cb_rhs_var = d_Q_Cb_rhs_map[Q_var];
-            Pointer<SideVariable<NDIM, double> > Db_var = d_Q_Db_map[Q_var];
-            Pointer<SideVariable<NDIM, double> > Db_rhs_var = d_Q_Db_rhs_map[Q_var];
-            Pointer<CellVariable<NDIM, double> > Fb_var = d_Q_Fb_map[Q_var];
+            const std::vector<RobinBcCoefStrategyNd*>& Q_bc_coef = d_Q_bc_coef[Q_var];
+            Pointer<SideVariableNd<double> > D_var = d_Q_diffusion_coef_variable[Q_var];
+            Pointer<CellVariableNd<double> > Cb_var = d_Q_Cb_map[Q_var];
+            Pointer<CellVariableNd<double> > Cb_rhs_var = d_Q_Cb_rhs_map[Q_var];
+            Pointer<SideVariableNd<double> > Db_var = d_Q_Db_map[Q_var];
+            Pointer<SideVariableNd<double> > Db_rhs_var = d_Q_Db_rhs_map[Q_var];
+            Pointer<CellVariableNd<double> > Fb_var = d_Q_Fb_map[Q_var];
             int Cb_new_idx = IBTK::invalid_index, Cb_scratch_idx = IBTK::invalid_index;
             int Db_new_idx = IBTK::invalid_index, Db_scratch_idx = IBTK::invalid_index;
 
@@ -746,9 +741,9 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::integrateHierarchySpecialized(co
         }
 
         // Account for the convective difference term.
-        Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
-        Pointer<CellVariable<NDIM, double> > N_var = d_Q_N_map[Q_var];
-        Pointer<CellVariable<NDIM, double> > N_old_var = d_Q_N_old_map[Q_var];
+        Pointer<FaceVariableNd<double> > u_var = d_Q_u_map[Q_var];
+        Pointer<CellVariableNd<double> > N_var = d_Q_N_map[Q_var];
+        Pointer<CellVariableNd<double> > N_old_var = d_Q_N_old_map[Q_var];
         TimeSteppingType convective_time_stepping_type = UNKNOWN_TIME_STEPPING_TYPE;
         if (u_var)
         {
@@ -949,22 +944,22 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
 
     // Determine the CFL number.
     double cfl_max = 0.0;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     for (const auto& u_var : d_u_var)
     {
         const int u_new_idx = var_db->mapVariableAndContextToIndex(u_var, getNewContext());
-        PatchFaceDataOpsReal<NDIM, double> patch_fc_ops;
+        PatchFaceDataOpsRealNd<double> patch_fc_ops;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                Pointer<PatchNd> patch = level->getPatch(p());
+                const BoxNd& patch_box = patch->getBox();
+                const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double dx_min = *(std::min_element(dx, dx + NDIM));
-                Pointer<FaceData<NDIM, double> > u_fc_new_data = patch->getPatchData(u_new_idx);
+                Pointer<FaceDataNd<double> > u_fc_new_data = patch->getPatchData(u_new_idx);
                 double u_max = 0.0;
                 u_max = patch_fc_ops.maxNorm(u_fc_new_data, patch_box);
                 cfl_max = std::max(cfl_max, u_max * dt / dx_min);
@@ -991,7 +986,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::registerBrinkmanAdvDiffBcHelper(
 
 void
 BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::setTransportQuantityTimeIndependent(
-    Pointer<CellVariable<NDIM, double> > Q_var,
+    Pointer<CellVariableNd<double> > Q_var,
     bool Q_time_independent)
 {
     d_Q_time_independent[Q_var] = Q_time_independent;
@@ -999,7 +994,7 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::setTransportQuantityTimeIndepend
 } // setBrinkmanTimeIndepedent
 
 void
-BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDIM, double> > Q_var,
+BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariableNd<double> > Q_var,
                                                                             bool output_Q)
 {
 #if !defined(NDEBUG)

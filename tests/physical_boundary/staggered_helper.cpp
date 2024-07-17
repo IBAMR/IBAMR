@@ -57,20 +57,20 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -88,7 +88,7 @@ main(int argc, char* argv[])
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
         // Create boundary conditions object
-        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, nullptr);
+        std::vector<RobinBcCoefStrategyNd*> bc_coefs(NDIM, nullptr);
         for (int d = 0; d < NDIM; ++d)
         {
             std::string bc_coef_name = "bc_" + std::to_string(d);
@@ -96,27 +96,27 @@ main(int argc, char* argv[])
         }
 
         // Create side centered variable
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<SideVariable<NDIM, double> > s0_var = new SideVariable<NDIM, double>("s0_v");
-        Pointer<SideVariable<NDIM, double> > s1_var = new SideVariable<NDIM, double>("s1_v");
-        Pointer<SideVariable<NDIM, int> > mask_var = new SideVariable<NDIM, int>("mask");
+        Pointer<SideVariableNd<double> > s0_var = new SideVariableNd<double>("s0_v");
+        Pointer<SideVariableNd<double> > s1_var = new SideVariableNd<double>("s1_v");
+        Pointer<SideVariableNd<int> > mask_var = new SideVariableNd<int>("mask");
         const int gcw = 1;
         const int s0_idx = var_db->registerVariableAndContext(s0_var, context, gcw);
         const int s1_idx = var_db->registerVariableAndContext(s1_var, context, gcw);
         const int mask_idx = var_db->registerVariableAndContext(mask_var, context);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(s0_idx);
             level->allocatePatchData(s1_idx);
             level->allocatePatchData(mask_idx);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > s0_data = patch->getPatchData(s0_idx);
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<SideDataNd<double> > s0_data = patch->getPatchData(s0_idx);
                 s0_data->fillAll(std::numeric_limits<double>::quiet_NaN());
-                Pointer<SideData<NDIM, double> > s1_data = patch->getPatchData(s1_idx);
+                Pointer<SideDataNd<double> > s1_data = patch->getPatchData(s1_idx);
                 s1_data->fillAll(0.0);
             }
         }
@@ -127,18 +127,18 @@ main(int argc, char* argv[])
         plog << "Testing masking function\n";
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > s0_data = patch->getPatchData(s0_idx);
-                Pointer<SideData<NDIM, double> > s1_data = patch->getPatchData(s1_idx);
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<SideDataNd<double> > s0_data = patch->getPatchData(s0_idx);
+                Pointer<SideDataNd<double> > s1_data = patch->getPatchData(s1_idx);
                 phys_bc_helper.copyDataAtDirichletBoundaries(s0_data, s1_data, patch);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (SideIterator<NDIM> si(patch->getBox(), axis); si; si++)
+                    for (SideIteratorNd si(patch->getBox(), axis); si; si++)
                     {
-                        const SideIndex<NDIM>& idx = si();
+                        const SideIndexNd& idx = si();
                         if (!std::isnan((*s0_data)(idx)))
                             pout << "Copied value on index " << idx << " and axis " << axis << "\n";
                     }
@@ -150,16 +150,16 @@ main(int argc, char* argv[])
         phys_bc_helper.setupMaskingFunction(mask_idx, coarsest_ln, finest_ln);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, int> > mask_data = patch->getPatchData(mask_idx);
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<SideDataNd<int> > mask_data = patch->getPatchData(mask_idx);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (SideIterator<NDIM> si(patch->getBox(), axis); si; si++)
+                    for (SideIteratorNd si(patch->getBox(), axis); si; si++)
                     {
-                        const SideIndex<NDIM>& idx = si();
+                        const SideIndexNd& idx = si();
                         if ((*mask_data)(idx) == 1)
                             pout << "Cell " << idx << " and axis " << axis << " touches boundary\n";
                     }
@@ -169,7 +169,7 @@ main(int argc, char* argv[])
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(mask_idx);
             level->deallocatePatchData(s1_idx);
             level->deallocatePatchData(s0_idx);

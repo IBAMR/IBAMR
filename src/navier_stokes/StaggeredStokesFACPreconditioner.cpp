@@ -71,8 +71,8 @@ StaggeredStokesFACPreconditioner::setComponentsHaveNullspace(const bool has_velo
 } // setComponentsHaveNullspace
 
 void
-StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                     RobinBcCoefStrategy<NDIM>* P_bc_coef)
+StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& U_bc_coefs,
+                                                     RobinBcCoefStrategyNd* P_bc_coef)
 {
     StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;

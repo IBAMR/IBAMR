@@ -58,7 +58,7 @@ IBSourceSpec::Factory::setStreamableClassID(const int class_id)
 } // setStreamableClassID
 
 Pointer<Streamable>
-IBSourceSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+IBSourceSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd& /*offset*/)
 {
     Pointer<IBSourceSpec> ret_val = new IBSourceSpec();
     stream.unpack(&ret_val->d_master_idx, 1);

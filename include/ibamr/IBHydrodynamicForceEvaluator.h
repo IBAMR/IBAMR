@@ -170,7 +170,7 @@ public:
      */
     void registerStructure(IBTK::Vector3d& box_X_lower,
                            IBTK::Vector3d& box_X_upper,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                            const IBTK::Vector3d& box_vel = IBTK::Vector3d::Zero(),
                            int strct_id = 0);
 
@@ -189,7 +189,7 @@ public:
      */
     void updateStructureDomain(const IBTK::Vector3d& box_vel_new,
                                double dt,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                int strct_id = 0);
 
     /*!
@@ -228,9 +228,9 @@ public:
      */
 
     void computeLaggedMomentumIntegral(int u_old_idx,
-                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef =
-                                           std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>());
+                                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& u_src_bc_coef =
+                                           std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>());
 
     /*!
      * \brief Update the new momenta of the bodies within the structure.
@@ -267,11 +267,11 @@ public:
     virtual void computeHydrodynamicForce(int u_idx,
                                           int p_idx,
                                           int f_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                           double dt,
-                                          const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef =
-                                              std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef = NULL);
+                                          const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& u_src_bc_coef =
+                                              std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>(),
+                                          SAMRAI::solv::RobinBcCoefStrategyNd* p_src_bc_coef = NULL);
 
     /*!
      * \brief Postprocess data for the next timestep.
@@ -288,8 +288,8 @@ public:
      *
      * \param strct_id A unique integer id to associate with an integration domain.
      */
-    void registerStructurePlotData(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_data_writer,
-                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    void registerStructurePlotData(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriterNd> visit_data_writer,
+                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                    int strct_id = 0);
 
     /*!
@@ -297,7 +297,7 @@ public:
      *
      * \param strct_id A unique integer id to associate with an integration domain
      */
-    void updateStructurePlotData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+    void updateStructurePlotData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                  int strct_id = 0);
 
 private:
@@ -324,30 +324,30 @@ private:
     /*!
      * \brief Reset weight of the cell face to face area.
      */
-    void resetFaceAreaWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void resetFaceAreaWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy);
 
     /*!
      * \brief Reset weight of the cell face to cell volume.
      */
-    void resetFaceVolWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void resetFaceVolWeight(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy);
 
     /*!
      * \brief Allocate and fill velocity and pressure patch data.
      */
     void fillPatchData(const int u_src_idx,
                        const int p_src_idx,
-                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                       const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef,
-                       SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                       const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& u_src_bc_coef,
+                       SAMRAI::solv::RobinBcCoefStrategyNd* p_src_bc_coef,
                        const double fill_time);
 
     /*!
      * \brief Compute the physical coordinate of a given side index
      */
     void getPhysicalCoordinateFromSideIndex(IBTK::Vector3d& side_coord,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                                            const SAMRAI::pdat::SideIndex<NDIM> side_idx,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                            const SAMRAI::pdat::SideIndexNd side_idx,
                                             const int axis);
 
     /*!
@@ -368,8 +368,8 @@ private:
     /*!
      * \brief Fluid velocity and pressure with appropriate ghost width.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_p_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_p_var;
     int d_u_idx, d_p_idx;
 
     /*!

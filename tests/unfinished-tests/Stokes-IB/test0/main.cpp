@@ -66,7 +66,7 @@
 class StokesIBSolver : public IBAMR::StaggeredStokesSolver
 {
 public:
-    StokesIBSolver(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+    StokesIBSolver(Pointer<PatchHierarchyNd> patch_hierarchy,
                    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op,
                    Pointer<StaggeredStokesFACPreconditioner> fac_pc,
                    Pointer<IBMethod> ib_method_ops)
@@ -87,7 +87,7 @@ public:
         d_max_iterations = 1000;
 
         d_finest_ln = d_hierarchy->getFinestLevelNumber();
-        d_hier_velocity_data_ops = new HierarchySideDataOpsReal<NDIM, double>(d_hierarchy, 0, d_finest_ln);
+        d_hier_velocity_data_ops = new HierarchySideDataOpsRealNd<double>(d_hierarchy, 0, d_finest_ln);
         return;
 
     } // StokesIBSolver
@@ -141,8 +141,7 @@ public:
         return;
     } // setPhysicalBoundaryHelper
 
-    void setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                            RobinBcCoefStrategy<NDIM>* P_bc_coef)
+    void setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& U_bc_coefs, RobinBcCoefStrategyNd* P_bc_coef)
     {
         StaggeredStokesSolver::setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
         d_stokes_op->setPhysicalBcCoefs(U_bc_coefs, P_bc_coef);
@@ -168,7 +167,7 @@ public:
         {
             for (int ln = 0; ln <= d_finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
                 if (!level->checkAllocated(d_u_idx)) level->allocatePatchData(d_u_idx);
                 if (!level->checkAllocated(d_f_idx)) level->allocatePatchData(d_f_idx);
             }
@@ -253,9 +252,9 @@ public:
 
         // Initialize Stokes op and IB FAC pc
         {
-            Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+            Pointer<SAMRAIVectorRealNd<double> > u_p;
             PETScSAMRAIVectorReal::getSAMRAIVector(x, &u_p);
-            Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+            Pointer<SAMRAIVectorRealNd<double> > f_g;
             PETScSAMRAIVectorReal::getSAMRAIVector(b, &f_g);
             d_stokes_op->initializeOperatorState(*u_p, *f_g);
             d_fac_pc->initializeSolverState(*u_p, *f_g);
@@ -287,8 +286,7 @@ public:
         return;
     } // deallocateSolverState
 
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& /*x*/,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& /*b*/)
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& /*x*/, SAMRAI::solv::SAMRAIVectorRealNd<double>& /*b*/)
     {
         // intentionally left blank.
         return false;
@@ -300,7 +298,7 @@ public:
         Vec petsc_b;
         VecDuplicate(b, &petsc_b);
         VecCopy(b, petsc_b);
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+        Pointer<SAMRAIVectorRealNd<double> > f_g;
         PETScSAMRAIVectorReal::getSAMRAIVector(petsc_b, &f_g);
 
         d_stokes_op->setHomogeneousBc(false);
@@ -309,7 +307,7 @@ public:
 
         KSPSolve(d_petsc_ksp, petsc_b, petsc_x);
 
-        Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+        Pointer<SAMRAIVectorRealNd<double> > u_p;
         PETScSAMRAIVectorReal::getSAMRAIVector(petsc_x, &u_p);
         d_stokes_op->imposeSolBcs(*u_p);
 
@@ -319,7 +317,7 @@ public:
     } // solveSystem
 
 private:
-    Pointer<PatchHierarchy<NDIM> > d_hierarchy;
+    Pointer<PatchHierarchyNd> d_hierarchy;
     Pointer<StaggeredStokesOperator> d_stokes_op;
     Pointer<StaggeredStokesIBLevelRelaxationFACOperator> d_fac_op;
     Pointer<StaggeredStokesFACPreconditioner> d_fac_pc;
@@ -337,9 +335,9 @@ private:
     int d_u_idx, d_f_idx;
     int d_u_dof_idx, d_p_dof_idx;
     int d_finest_ln;
-    RefineAlgorithm<NDIM> d_ghost_fill_alg;
-    Pointer<RefineSchedule<NDIM> > d_ghost_fill_schd;
-    Pointer<HierarchySideDataOpsReal<NDIM, double> > d_hier_velocity_data_ops;
+    RefineAlgorithmNd d_ghost_fill_alg;
+    Pointer<RefineScheduleNd> d_ghost_fill_schd;
+    Pointer<HierarchySideDataOpsRealNd<double> > d_hier_velocity_data_ops;
 
     static PetscErrorCode matApply(Mat A, Vec x, Vec y)
     {
@@ -347,9 +345,9 @@ private:
         MatShellGetContext(A, &p_ctx);
         StokesIBSolver* solver = static_cast<StokesIBSolver*>(p_ctx);
 
-        Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+        Pointer<SAMRAIVectorRealNd<double> > u_p;
         PETScSAMRAIVectorReal::getSAMRAIVector(x, &u_p);
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+        Pointer<SAMRAIVectorRealNd<double> > f_g;
         PETScSAMRAIVectorReal::getSAMRAIVector(y, &f_g);
 
         const int u_idx = u_p->getComponentDescriptorIndex(0);
@@ -368,8 +366,8 @@ private:
         solver->d_hier_velocity_data_ops->scale(solver->d_u_idx, -0.5, u_idx);
         solver->d_ghost_fill_schd->fillData(half_time);
         solver->d_ib_ops->interpolateLinearizedVelocity(solver->d_u_idx,
-                                                        std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                                        std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                                                        std::vector<Pointer<CoarsenScheduleNd> >(),
+                                                        std::vector<Pointer<RefineScheduleNd> >(),
                                                         half_time);
         solver->d_ib_ops->computeLinearizedResidual(X0, X);
 
@@ -377,7 +375,7 @@ private:
         solver->d_ib_ops->computeLinearizedLagrangianForce(X, half_time);
         solver->d_hier_velocity_data_ops->setToScalar(solver->d_f_idx, 0.0);
         solver->d_ib_ops->spreadLinearizedForce(
-            solver->d_f_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+            solver->d_f_idx, NULL, std::vector<Pointer<RefineScheduleNd> >(), half_time);
         solver->d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, solver->d_f_idx);
         PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
         PetscFunctionReturn(0);
@@ -388,17 +386,17 @@ private:
         void* p_ctx;
         MatShellGetContext(A, &p_ctx);
         StokesIBSolver* solver = static_cast<StokesIBSolver*>(p_ctx);
-        Pointer<PatchLevel<NDIM> > finest_level = solver->d_hierarchy->getPatchLevel(solver->d_finest_ln);
+        Pointer<PatchLevelNd> finest_level = solver->d_hierarchy->getPatchLevel(solver->d_finest_ln);
 
-        Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+        Pointer<SAMRAIVectorRealNd<double> > u_p;
         PETScSAMRAIVectorReal::getSAMRAIVector(x, &u_p);
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+        Pointer<SAMRAIVectorRealNd<double> > f_g;
         PETScSAMRAIVectorReal::getSAMRAIVector(y, &f_g);
         const int u_idx = u_p->getComponentDescriptorIndex(0);
         const int p_idx = u_p->getComponentDescriptorIndex(1);
         const int f_u_idx = f_g->getComponentDescriptorIndex(0);
 
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_g_duplicate = f_g->cloneVector("");
+        Pointer<SAMRAIVectorRealNd<double> > f_g_duplicate = f_g->cloneVector("");
         f_g_duplicate->allocateVectorData();
         f_g_duplicate->setToScalar(0.0);
         const int f_u_dup_idx = f_g_duplicate->getComponentDescriptorIndex(0);
@@ -409,9 +407,9 @@ private:
         StaggeredStokesPETScVecUtilities::copyToPatchLevelVec(
             right, u_idx, solver->d_u_dof_idx, p_idx, solver->d_p_dof_idx, finest_level);
         MatMult(solver->d_SAJ, right, left);
-        Pointer<RefineSchedule<NDIM> > ghost_fill_sched =
+        Pointer<RefineScheduleNd> ghost_fill_sched =
             StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(f_u_dup_idx, g_p_dup_idx, finest_level);
-        Pointer<RefineSchedule<NDIM> > data_synch_sched =
+        Pointer<RefineScheduleNd> data_synch_sched =
             StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(f_u_dup_idx, g_p_dup_idx, finest_level);
         StaggeredStokesPETScVecUtilities::copyFromPatchLevelVec(left,
                                                                 f_u_dup_idx,
@@ -441,9 +439,9 @@ private:
         void* ctx;
         PCShellGetContext(pc, &ctx);
         StokesIBSolver* solver = static_cast<StokesIBSolver*>(ctx);
-        Pointer<SAMRAIVectorReal<NDIM, double> > f_g;
+        Pointer<SAMRAIVectorRealNd<double> > f_g;
         PETScSAMRAIVectorReal::getSAMRAIVector(x, &f_g);
-        Pointer<SAMRAIVectorReal<NDIM, double> > u_p;
+        Pointer<SAMRAIVectorRealNd<double> > u_p;
         PETScSAMRAIVectorReal::getSAMRAIVector(y, &u_p);
         solver->d_fac_pc->solveSystem(*u_p, *f_g);
         PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
@@ -455,16 +453,16 @@ private:
 void buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
                                          Mat& SAJ_fine,
                                          std::vector<std::vector<int> > num_dofs_per_proc,
-                                         Pointer<SideVariable<NDIM, double> > u_var,
-                                         Pointer<CellVariable<NDIM, double> > p_var,
+                                         Pointer<SideVariableNd<double> > u_var,
+                                         Pointer<CellVariableNd<double> > p_var,
                                          const int u_idx,
                                          const int p_idx,
                                          const int u_dof_index_idx,
                                          const int p_dof_index_idx,
-                                         Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                                         Pointer<HierarchySideDataOpsReal<NDIM, double> > hier_velocity_data_ops,
-                                         Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_pressure_data_ops,
-                                         IntVector<NDIM> gcw);
+                                         Pointer<PatchHierarchyNd> patch_hierarchy,
+                                         Pointer<HierarchySideDataOpsRealNd<double> > hier_velocity_data_ops,
+                                         Pointer<HierarchyCellDataOpsRealNd<double> > hier_pressure_data_ops,
+                                         IntVectorNd gcw);
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -526,22 +524,22 @@ main(int argc, char* argv[])
                                                        ib_method_ops,
                                                        navier_stokes_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
@@ -571,8 +569,8 @@ main(int argc, char* argv[])
         // navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -603,10 +601,10 @@ main(int argc, char* argv[])
         }
 
         LDataManager* lag_data_manager = ib_method_ops->getLDataManager();
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
@@ -653,11 +651,11 @@ main(int argc, char* argv[])
 
         // Compute u and p DOFs per processor.
         std::vector<std::vector<int> > num_dofs_per_proc;
-        Pointer<SideVariable<NDIM, int> > u_dof_index_var = new SideVariable<NDIM, int>("u_dof_index");
+        Pointer<SideVariableNd<int> > u_dof_index_var = new SideVariableNd<int>("u_dof_index");
         ;
-        Pointer<CellVariable<NDIM, int> > p_dof_index_var = new CellVariable<NDIM, int>("p_dof_index");
-        const IntVector<NDIM> ib_ghosts = ib_method_ops->getMinimumGhostCellWidth();
-        const IntVector<NDIM> no_ghosts = 0;
+        Pointer<CellVariableNd<int> > p_dof_index_var = new CellVariableNd<int>("p_dof_index");
+        const IntVectorNd ib_ghosts = ib_method_ops->getMinimumGhostCellWidth();
+        const IntVectorNd no_ghosts = 0;
         const int u_dof_index_idx =
             var_db->registerVariableAndContext(u_dof_index_var, time_integrator->getScratchContext(), ib_ghosts);
         const int p_dof_index_idx =
@@ -668,7 +666,7 @@ main(int argc, char* argv[])
         num_dofs_per_proc.resize(finest_ln + 1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
 
             level->allocatePatchData(u_dof_index_idx, current_time);
             level->allocatePatchData(p_dof_index_idx, current_time);
@@ -725,10 +723,10 @@ main(int argc, char* argv[])
         MatPtAP(A, J, MAT_INITIAL_MATRIX, 1.0, &SAJ);
 
         // Compute the scale for the spreading operator.
-        Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
+        Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+        Pointer<CartesianGridGeometryNd> grid_geom = patch_hierarchy->getGridGeometry();
         const double* const dx0 = grid_geom->getDx();
-        IntVector<NDIM> ratio = finest_level->getRatio();
+        IntVectorNd ratio = finest_level->getRatio();
         double spread_scale = -0.25 * (dt);
         for (unsigned d = 0; d < NDIM; ++d) spread_scale *= ratio(d) / dx0[d];
         MatScale(SAJ, spread_scale);
@@ -737,10 +735,10 @@ main(int argc, char* argv[])
         // Create variables for velocity, force, pressure and incompressibility.
         Pointer<VariableContext> ib_ctx = var_db->getContext("ib_ctx");
         Pointer<VariableContext> ins_ctx = var_db->getContext("ins_ctx");
-        Pointer<SideVariable<NDIM, double> > u_var = new SideVariable<NDIM, double>("u_var");
-        Pointer<SideVariable<NDIM, double> > f_var = new SideVariable<NDIM, double>("f_var");
-        Pointer<CellVariable<NDIM, double> > p_var = new CellVariable<NDIM, double>("p_var");
-        Pointer<CellVariable<NDIM, double> > g_var = new CellVariable<NDIM, double>("g_var");
+        Pointer<SideVariableNd<double> > u_var = new SideVariableNd<double>("u_var");
+        Pointer<SideVariableNd<double> > f_var = new SideVariableNd<double>("f_var");
+        Pointer<CellVariableNd<double> > p_var = new CellVariableNd<double>("p_var");
+        Pointer<CellVariableNd<double> > g_var = new CellVariableNd<double>("g_var");
         const int u_ib_idx = var_db->registerVariableAndContext(u_var, ib_ctx, lag_data_manager->getGhostCellWidth());
         const int f_ib_idx = var_db->registerVariableAndContext(f_var, ib_ctx, lag_data_manager->getGhostCellWidth());
         const int u_ins_idx = var_db->registerVariableAndContext(u_var, ins_ctx, 1);
@@ -748,24 +746,24 @@ main(int argc, char* argv[])
         const int p_ins_idx = var_db->registerVariableAndContext(p_var, ins_ctx, 1);
         const int g_ins_idx = var_db->registerVariableAndContext(g_var, ins_ctx, 1);
 
-        Pointer<HierarchySideDataOpsReal<NDIM, double> > hier_velocity_data_ops =
-            new HierarchySideDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
-        Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_pressure_data_ops =
-            new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
+        Pointer<HierarchySideDataOpsRealNd<double> > hier_velocity_data_ops =
+            new HierarchySideDataOpsRealNd<double>(patch_hierarchy, coarsest_ln, finest_ln);
+        Pointer<HierarchyCellDataOpsRealNd<double> > hier_pressure_data_ops =
+            new HierarchyCellDataOpsRealNd<double>(patch_hierarchy, coarsest_ln, finest_ln);
 
         Pointer<HierarchyMathOps> hier_math_ops = time_integrator->getHierarchyMathOps();
         const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
         const int wgt_sc_idx = hier_math_ops->getSideWeightPatchDescriptorIndex();
 
         // Setup Eulerian vectors used in solving the linear implicit IB equations.
-        Pointer<SAMRAIVectorReal<NDIM, double> > eul_sol_vec =
-            new SAMRAIVectorReal<NDIM, double>("eul_sol_vec", patch_hierarchy, coarsest_ln, finest_ln);
+        Pointer<SAMRAIVectorRealNd<double> > eul_sol_vec =
+            new SAMRAIVectorRealNd<double>("eul_sol_vec", patch_hierarchy, coarsest_ln, finest_ln);
         eul_sol_vec->addComponent(u_var, u_ins_idx, wgt_sc_idx, hier_velocity_data_ops);
         eul_sol_vec->addComponent(p_var, p_ins_idx, wgt_cc_idx, hier_pressure_data_ops);
         eul_sol_vec->allocateVectorData();
 
-        Pointer<SAMRAIVectorReal<NDIM, double> > eul_rhs_vec =
-            new SAMRAIVectorReal<NDIM, double>("eul_rhs_vec", patch_hierarchy, coarsest_ln, finest_ln);
+        Pointer<SAMRAIVectorRealNd<double> > eul_rhs_vec =
+            new SAMRAIVectorRealNd<double>("eul_rhs_vec", patch_hierarchy, coarsest_ln, finest_ln);
         eul_rhs_vec->addComponent(f_var, f_ins_idx, wgt_sc_idx, hier_velocity_data_ops);
         eul_rhs_vec->addComponent(g_var, g_ins_idx, wgt_cc_idx, hier_pressure_data_ops);
         eul_rhs_vec->allocateVectorData();
@@ -797,21 +795,19 @@ main(int argc, char* argv[])
         navier_stokes_integrator->resetSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, 0);
 
         // Interpolate the Eulerian velocity to the curvilinear mesh.
-        RefineAlgorithm<NDIM> ghost_fill_alg;
+        RefineAlgorithmNd ghost_fill_alg;
         ghost_fill_alg.registerRefine(u_ib_idx, u_ib_idx, u_ib_idx, NULL);
-        Pointer<RefineSchedule<NDIM> > ghost_fill_schd =
+        Pointer<RefineScheduleNd> ghost_fill_schd =
             ghost_fill_alg.createSchedule(patch_hierarchy->getPatchLevel(finest_ln));
 
-        Pointer<SideVariable<NDIM, double> > vel_var = navier_stokes_integrator->getVelocityVariable();
+        Pointer<SideVariableNd<double> > vel_var = navier_stokes_integrator->getVelocityVariable();
         Pointer<VariableContext> current_ctx = navier_stokes_integrator->getCurrentContext();
         const int u_current_idx = var_db->mapVariableAndContextToIndex(vel_var, current_ctx);
 
         hier_velocity_data_ops->linearSum(u_ib_idx, 0.5, u_current_idx, 0.5, u_ins_idx);
         ghost_fill_schd->fillData(new_time);
-        ib_method_ops->interpolateVelocity(u_ib_idx,
-                                           std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                           std::vector<Pointer<RefineSchedule<NDIM> > >(),
-                                           half_time);
+        ib_method_ops->interpolateVelocity(
+            u_ib_idx, std::vector<Pointer<CoarsenScheduleNd> >(), std::vector<Pointer<RefineScheduleNd> >(), half_time);
 
         // Compute the final value of the updated positions of the Lagrangian
         // structure.
@@ -889,39 +885,39 @@ void
 buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
                                     Mat& SAJ_fine,
                                     std::vector<std::vector<int> > num_dofs_per_proc,
-                                    Pointer<SideVariable<NDIM, double> > u_var,
-                                    Pointer<CellVariable<NDIM, double> > /*p_var*/,
+                                    Pointer<SideVariableNd<double> > u_var,
+                                    Pointer<CellVariableNd<double> > /*p_var*/,
                                     const int u_idx,
                                     const int p_idx,
                                     const int u_dof_index_idx,
                                     const int p_dof_index_idx,
-                                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                                    Pointer<HierarchySideDataOpsReal<NDIM, double> > hier_velocity_data_ops,
-                                    Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_pressure_data_ops,
-                                    IntVector<NDIM> gcw)
+                                    Pointer<PatchHierarchyNd> patch_hierarchy,
+                                    Pointer<HierarchySideDataOpsRealNd<double> > hier_velocity_data_ops,
+                                    Pointer<HierarchyCellDataOpsRealNd<double> > hier_pressure_data_ops,
+                                    IntVectorNd gcw)
 {
     // Level info.
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
-    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    Pointer<PatchLevelNd> coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
+    Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
 
     // Get the transfer operators.
-    Pointer<CartesianGridGeometry<NDIM> > geometry = patch_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometryNd> geometry = patch_hierarchy->getGridGeometry();
     IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen(gcw));
                   geometry->addSpatialRefineOperator(new CartSideDoubleRT0Refine()));
 
-    Pointer<RefineOperator<NDIM> > prolongation_op = geometry->lookupRefineOperator(u_var, "RT0_REFINE");
-    Pointer<CoarsenOperator<NDIM> > restriction_op = geometry->lookupCoarsenOperator(u_var, "RT0_COARSEN");
+    Pointer<RefineOperatorNd> prolongation_op = geometry->lookupRefineOperator(u_var, "RT0_REFINE");
+    Pointer<CoarsenOperatorNd> restriction_op = geometry->lookupCoarsenOperator(u_var, "RT0_COARSEN");
 
     // Define the prolongation and refine algorithms
-    Pointer<RefineAlgorithm<NDIM> > prolongation_refine_algorithm = new RefineAlgorithm<NDIM>();
-    Pointer<CoarsenAlgorithm<NDIM> > restriction_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
+    Pointer<RefineAlgorithmNd> prolongation_refine_algorithm = new RefineAlgorithmNd();
+    Pointer<CoarsenAlgorithmNd> restriction_coarsen_algorithm = new CoarsenAlgorithmNd();
     prolongation_refine_algorithm->registerRefine(u_idx, u_idx, u_idx, prolongation_op, NULL);
     restriction_coarsen_algorithm->registerCoarsen(u_idx, u_idx, restriction_op, NULL);
-    Pointer<RefineSchedule<NDIM> > prolongation_schedule = prolongation_refine_algorithm->createSchedule(
-        finest_level, Pointer<PatchLevel<NDIM> >(), coarsest_ln, patch_hierarchy, NULL);
-    Pointer<CoarsenSchedule<NDIM> > restriction_schedule =
+    Pointer<RefineScheduleNd> prolongation_schedule = prolongation_refine_algorithm->createSchedule(
+        finest_level, Pointer<PatchLevelNd>(), coarsest_ln, patch_hierarchy, NULL);
+    Pointer<CoarsenScheduleNd> restriction_schedule =
         restriction_coarsen_algorithm->createSchedule(coarsest_level, finest_level);
 
     // Get DOFs info at the coarse and fine levels.
@@ -945,13 +941,13 @@ buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
     VecCreateMPI(PETSC_COMM_WORLD, n_local_finest, n_total_finest, &Y);
 
     // Utility schedules for copying to and from PETSc and SAMRAI vectors.
-    Pointer<RefineSchedule<NDIM> > ghost_fill_sched_coarse =
+    Pointer<RefineScheduleNd> ghost_fill_sched_coarse =
         StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(u_idx, p_idx, coarsest_level);
-    Pointer<RefineSchedule<NDIM> > ghost_fill_sched_fine =
+    Pointer<RefineScheduleNd> ghost_fill_sched_fine =
         StaggeredStokesPETScVecUtilities::constructGhostFillSchedule(u_idx, p_idx, finest_level);
-    Pointer<RefineSchedule<NDIM> > data_synch_sched_coarse =
+    Pointer<RefineScheduleNd> data_synch_sched_coarse =
         StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, coarsest_level);
-    Pointer<RefineSchedule<NDIM> > data_synch_sched_fine =
+    Pointer<RefineScheduleNd> data_synch_sched_fine =
         StaggeredStokesPETScVecUtilities::constructDataSynchSchedule(u_idx, p_idx, finest_level);
 
     // Construct the basis vecs and do matrix-free operations on them to

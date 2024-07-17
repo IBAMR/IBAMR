@@ -45,7 +45,7 @@ struct WaveGenerationData
     /*
      * Pointer to the level set variable representing the wave interface.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_phi_var;
 
     /*
      *  Pointer to phi variable's new context.
@@ -81,7 +81,7 @@ struct WaveDampingData
     /*
      * Pointer to the level set variable representing the wave interface.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_phi_var;
 
     /*
      *  Pointer to phi variable's new context.

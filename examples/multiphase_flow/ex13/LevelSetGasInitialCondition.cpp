@@ -45,11 +45,11 @@ LevelSetGasInitialCondition::isTimeDependent() const
 
 void
 LevelSetGasInitialCondition::setDataOnPatch(const int data_idx,
-                                            Pointer<Variable<NDIM> > /*var*/,
-                                            Pointer<Patch<NDIM> > patch,
+                                            Pointer<VariableNd> /*var*/,
+                                            Pointer<PatchNd> patch,
                                             const double /*data_time*/,
                                             const bool initial_time,
-                                            Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                            Pointer<PatchLevelNd> /*patch_level*/)
 {
     // Set the level set function throughout the domain
     if (initial_time)
@@ -59,17 +59,17 @@ LevelSetGasInitialCondition::setDataOnPatch(const int data_idx,
             TBOX_ERROR("Presently not implemented for NDIM != 3");
         }
 
-        Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(data_idx);
-        const Box<NDIM>& patch_box = patch->getBox();
-        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        Pointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
+        const BoxNd& patch_box = patch->getBox();
+        for (BoxNd::Iterator it(patch_box); it; it++)
         {
-            CellIndex<NDIM> ci(it());
+            CellIndexNd ci(it());
 
             // Get physical coordinates
             IBTK::Vector coord = IBTK::Vector::Zero();
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+            const hier::IndexNd& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
             for (int d = 0; d < NDIM; ++d)
             {

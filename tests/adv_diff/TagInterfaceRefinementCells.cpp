@@ -24,7 +24,7 @@
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 TagInterfaceRefinementCells::TagInterfaceRefinementCells(Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                         Pointer<CellVariable<NDIM, double> > scalar_var,
+                                                         Pointer<CellVariableNd<double> > scalar_var,
                                                          double tag_min_val,
                                                          double tag_max_val)
     : d_adv_diff_solver(adv_diff_solver),
@@ -36,7 +36,7 @@ TagInterfaceRefinementCells::TagInterfaceRefinementCells(Pointer<AdvDiffHierarch
 } // TagInterfaceRefinementCells
 
 void
-callTagInterfaceRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+callTagInterfaceRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchyNd> hierarchy,
                                                 const int level_number,
                                                 const double /*error_data_time*/,
                                                 const int tag_index,
@@ -51,22 +51,22 @@ callTagInterfaceRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 
     // Get the current level set information
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int scalar_current_idx = var_db->mapVariableAndContextToIndex(
         ptr_tagger->d_scalar_var, ptr_tagger->d_adv_diff_solver->getCurrentContext());
 
     // Tag cells based on the value of the level set variable
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_index);
-        Pointer<CellData<NDIM, double> > scalar_data = patch->getPatchData(scalar_current_idx);
+        Pointer<PatchNd> patch = level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<CellDataNd<int> > tags_data = patch->getPatchData(tag_index);
+        Pointer<CellDataNd<double> > scalar_data = patch->getPatchData(scalar_current_idx);
 
-        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        for (CellIteratorNd ic(patch_box); ic; ic++)
         {
-            const hier::Index<NDIM>& i = ic();
+            const hier::IndexNd& i = ic();
             const double scalar = (*scalar_data)(i);
 
             // if (scalar >= ptr_tagger->d_tag_min_val && scalar <= ptr_tagger->d_tag_max_val)

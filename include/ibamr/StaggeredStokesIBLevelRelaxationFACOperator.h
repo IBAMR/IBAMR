@@ -209,9 +209,9 @@ public:
      * \brief Compute the composite-grid residual on the specified range of
      * levels of the patch hierarchy.
      */
-    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void computeResidual(SAMRAI::solv::SAMRAIVectorRealNd<double>& residual,
+                         const SAMRAI::solv::SAMRAIVectorRealNd<double>& solution,
+                         const SAMRAI::solv::SAMRAIVectorRealNd<double>& rhs,
                          int coarsest_level_num,
                          int finest_level_num) override;
 
@@ -229,8 +229,8 @@ public:
      *being
      *performed
      */
-    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    void smoothError(SAMRAI::solv::SAMRAIVectorRealNd<double>& error,
+                     const SAMRAI::solv::SAMRAIVectorRealNd<double>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
@@ -242,8 +242,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorRealNd<double>& solution,
+                                            const SAMRAI::solv::SAMRAIVectorRealNd<double>& rhs,
                                             int coarsest_reset_ln,
                                             int finest_reset_ln) override;
 
@@ -312,8 +312,8 @@ private:
      */
     std::vector<std::vector<int> > d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, int> > d_p_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<int> > d_u_dof_index_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<int> > d_p_dof_index_var;
 
     /*
      * The time stepping type.
@@ -341,8 +341,8 @@ private:
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<std::array<SAMRAI::hier::BoxListNd, NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxListNd> > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBAMR
 

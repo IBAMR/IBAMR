@@ -35,15 +35,15 @@
 #include <ibtk/app_namespaces.h>
 
 std::unique_ptr<SnapshotCache> fill_data(const std::string& test_name,
-                                         Pointer<Variable<NDIM> > var,
-                                         Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                         Pointer<VariableNd> var,
+                                         Pointer<PatchHierarchyNd> hierarchy,
                                          Pointer<muParserCartGridFunction> fcn,
                                          const std::set<double>& time_pts,
                                          bool register_for_restart);
 
-void test_data(Pointer<Variable<NDIM> > var,
+void test_data(Pointer<VariableNd> var,
                const std::unique_ptr<SnapshotCache>& snapshot_cache,
-               Pointer<PatchHierarchy<NDIM> > new_hierarchy,
+               Pointer<PatchHierarchyNd> new_hierarchy,
                Pointer<muParserCartGridFunction> fcn,
                const std::set<double>& interp_pts,
                const std::string& refine_type,
@@ -70,34 +70,32 @@ main(int argc, char* argv[])
         // start by setting up the same half-dozen objects.
         // Note we generate two patch hierarchies. We want to test our code that interpolates snapshots from one
         // hierarchy onto a different hierarchy.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > old_patch_hierarchy =
-            new PatchHierarchy<NDIM>("OldPatchHierarchy", grid_geometry);
-        Pointer<PatchHierarchy<NDIM> > new_patch_hierarchy =
-            new PatchHierarchy<NDIM>("NewPatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > old_error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchyNd> old_patch_hierarchy = new PatchHierarchyNd("OldPatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchyNd> new_patch_hierarchy = new PatchHierarchyNd("NewPatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> old_error_detector = new StandardTagAndInitializeNd(
             "OldStandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("OldStandardTagAndInitialize"));
-        Pointer<StandardTagAndInitialize<NDIM> > new_error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<StandardTagAndInitializeNd> new_error_detector = new StandardTagAndInitializeNd(
             "NewStandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("NewStandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > old_gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("OldGriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        old_error_detector,
-                                        box_generator,
-                                        load_balancer);
-        Pointer<GriddingAlgorithm<NDIM> > new_gridding_alg =
-            new GriddingAlgorithm<NDIM>("NewGriddingAlg",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        new_error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> old_gridding_algorithm =
+            new GriddingAlgorithmNd("OldGriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    old_error_detector,
+                                    box_generator,
+                                    load_balancer);
+        Pointer<GriddingAlgorithmNd> new_gridding_alg =
+            new GriddingAlgorithmNd("NewGriddingAlg",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    new_error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Generate the two grids.
-        std::array<std::pair<Pointer<GriddingAlgorithm<NDIM> >, Pointer<PatchHierarchy<NDIM> > >, 2> grid_hier_pairs = {
+        std::array<std::pair<Pointer<GriddingAlgorithmNd>, Pointer<PatchHierarchyNd> >, 2> grid_hier_pairs = {
             std::make_pair(old_gridding_algorithm, old_patch_hierarchy),
             std::make_pair(new_gridding_alg, new_patch_hierarchy)
         };
@@ -127,18 +125,18 @@ main(int argc, char* argv[])
         bool register_for_restart = input_db->getBool("register_for_restart");
 
         // First fill in the data
-        Pointer<CellVariable<NDIM, double> > c_var = new CellVariable<NDIM, double>("c_var");
+        Pointer<CellVariableNd<double> > c_var = new CellVariableNd<double>("c_var");
         std::unique_ptr<SnapshotCache> c_cache = nullptr;
-        Pointer<NodeVariable<NDIM, double> > n_var = new NodeVariable<NDIM, double>("n_var");
+        Pointer<NodeVariableNd<double> > n_var = new NodeVariableNd<double>("n_var");
         std::unique_ptr<SnapshotCache> n_cache = nullptr;
-        Pointer<SideVariable<NDIM, double> > s_var = new SideVariable<NDIM, double>("s_var");
+        Pointer<SideVariableNd<double> > s_var = new SideVariableNd<double>("s_var");
         std::unique_ptr<SnapshotCache> s_cache = nullptr;
-        Pointer<EdgeVariable<NDIM, double> > e_var = new EdgeVariable<NDIM, double>("e_var");
+        Pointer<EdgeVariableNd<double> > e_var = new EdgeVariableNd<double>("e_var");
         std::unique_ptr<SnapshotCache> e_cache = nullptr;
-        Pointer<FaceVariable<NDIM, double> > f_var = new FaceVariable<NDIM, double>("face");
+        Pointer<FaceVariableNd<double> > f_var = new FaceVariableNd<double>("face");
         std::unique_ptr<SnapshotCache> f_cache = nullptr;
 
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
+        auto var_db = VariableDatabaseNd::getDatabase();
         var_db->registerVariableAndContext(c_var, var_db->getContext("ctx"), 1);
         var_db->registerVariableAndContext(c_var, var_db->getContext("err"));
         var_db->registerVariableAndContext(n_var, var_db->getContext("ctx"), 1);
@@ -199,19 +197,19 @@ main(int argc, char* argv[])
 
 std::unique_ptr<SnapshotCache>
 fill_data(const std::string& test_name,
-          Pointer<Variable<NDIM> > var,
-          Pointer<PatchHierarchy<NDIM> > hierarchy,
+          Pointer<VariableNd> var,
+          Pointer<PatchHierarchyNd> hierarchy,
           Pointer<muParserCartGridFunction> fcn,
           const std::set<double>& time_pts,
           bool register_for_restart)
 {
     // Actually do the test.
     // Create the index that we fill with data
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = VariableDatabaseNd::getDatabase();
     int var_idx = var_db->registerVariableAndContext(var, var_db->getContext("ctx"), 1 /*ghosts*/);
 
     // Create a SnapshotCache to store snapshots on the "old" hierarchy.
-    Pointer<GridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<GridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     std::unique_ptr<SnapshotCache> snapshot_cache(
         new SnapshotCache(test_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart));
 
@@ -221,7 +219,7 @@ fill_data(const std::string& test_name,
         // Allocate patch data
         for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
             level->allocatePatchData(var_idx, t);
         }
         // Fill in patch data
@@ -230,7 +228,7 @@ fill_data(const std::string& test_name,
         snapshot_cache->storeSnapshot(var_idx, t, hierarchy);
         for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(var_idx);
         }
     }
@@ -239,9 +237,9 @@ fill_data(const std::string& test_name,
 }
 
 void
-test_data(Pointer<Variable<NDIM> > var,
+test_data(Pointer<VariableNd> var,
           const std::unique_ptr<SnapshotCache>& snapshot_cache,
-          Pointer<PatchHierarchy<NDIM> > new_hierarchy,
+          Pointer<PatchHierarchyNd> new_hierarchy,
           Pointer<muParserCartGridFunction> fcn,
           const std::set<double>& interp_pts,
           const std::string& refine_type,
@@ -249,20 +247,20 @@ test_data(Pointer<Variable<NDIM> > var,
 {
     // Actually do the test.
     // Create the index that we fill with data
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = VariableDatabaseNd::getDatabase();
     int var_idx = var_db->registerVariableAndContext(var, var_db->getContext("ctx"), 1 /*ghosts*/);
     int err_idx = var_db->registerVariableAndContext(var, var_db->getContext("err"));
 
     // Create a SnapshotCache to store snapshots on the "old" hierarchy.
-    auto hier_math_ops = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops = hier_math_ops->getOperationsDouble(var, new_hierarchy);
+    auto hier_math_ops = HierarchyDataOpsManagerNd::getManager();
+    Pointer<HierarchyDataOpsRealNd<double> > hier_data_ops = hier_math_ops->getOperationsDouble(var, new_hierarchy);
 
     // Interpolate those values to other points on the "new" hierarchy
     for (const auto& t : interp_pts)
     {
         for (int ln = 0; ln <= new_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = new_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = new_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(err_idx, t);
             level->allocatePatchData(var_idx, t);
         }
@@ -277,7 +275,7 @@ test_data(Pointer<Variable<NDIM> > var,
 
         for (int ln = 0; ln <= new_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = new_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = new_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(err_idx);
             level->deallocatePatchData(var_idx);
         }

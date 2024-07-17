@@ -37,7 +37,7 @@ public:
      * \brief Constructor.
      */
     UFunction(const std::string& object_name,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
+              SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometryNd> grid_geom,
               SAMRAI::tbox::Pointer<Database> input_db)
         : CartGridFunction(object_name),
           d_object_name(object_name),
@@ -78,13 +78,13 @@ public:
      * Set the data on the patch interior to some initial values.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > /*var*/,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> /*var*/,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
                         const double /*data_time*/,
                         const bool /*initial_time*/,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > /*level*/)
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> /*level*/)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceData<NDIM, double> > u_data = patch->getPatchData(data_idx);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> > u_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(u_data);
 #endif
@@ -98,9 +98,9 @@ public:
         }
         else if (d_init_type == "VORTEX")
         {
-            const SAMRAI::hier::Box<NDIM>& patch_box = patch->getBox();
-            const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            const SAMRAI::hier::BoxNd& patch_box = patch->getBox();
+            const SAMRAI::hier::IndexNd& patch_lower = patch_box.lower();
+            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
             const double* const x_lower = pgeom->getXLower();
             const double* const dx = pgeom->getDx();
@@ -109,10 +109,10 @@ public:
 
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (SAMRAI::pdat::FaceIterator<NDIM> it(patch_box, axis); it; it++)
+                for (SAMRAI::pdat::FaceIteratorNd it(patch_box, axis); it; it++)
                 {
-                    const SAMRAI::pdat::FaceIndex<NDIM>& i = it();
-                    const SAMRAI::hier::Index<NDIM>& cell_idx = i.toCell(1);
+                    const SAMRAI::pdat::FaceIndexNd& i = it();
+                    const SAMRAI::hier::IndexNd& cell_idx = i.toCell(1);
 
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -192,7 +192,7 @@ private:
     /*
      * The grid geometry.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
 
     /*
      * The center of the initial data.

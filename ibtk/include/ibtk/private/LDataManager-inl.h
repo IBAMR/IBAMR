@@ -30,7 +30,7 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-inline const SAMRAI::hier::IntVector<NDIM>&
+inline const SAMRAI::hier::IntVectorNd&
 LDataManager::getGhostCellWidth() const
 {
     return d_ghost_width;

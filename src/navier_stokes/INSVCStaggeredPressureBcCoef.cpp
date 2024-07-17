@@ -57,11 +57,11 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSVCStaggeredPressureBcCoef::INSVCStaggeredPressureBcCoef(const INSVCStaggeredHierarchyIntegrator* fluid_solver,
-                                                           const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                           const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
                                                            const TractionBcType traction_bc_type,
                                                            const bool homogeneous_bc)
     : d_fluid_solver(fluid_solver),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)),
+      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(nullptr)),
       d_mu_interp_type(VC_HARMONIC_INTERP)
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
@@ -132,7 +132,7 @@ INSVCStaggeredPressureBcCoef::clearTargetPressurePatchDataIndex()
 } // clearTargetPressurePatchDataIndex
 
 void
-INSVCStaggeredPressureBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSVCStaggeredPressureBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -192,12 +192,12 @@ INSVCStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                         Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                         Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                         const Pointer<Variable<NDIM> >& variable,
-                                         const Patch<NDIM>& patch,
-                                         const BoundaryBox<NDIM>& bdry_box,
+INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
+                                         Pointer<ArrayDataNd<double> >& bcoef_data,
+                                         Pointer<ArrayDataNd<double> >& gcoef_data,
+                                         const Pointer<VariableNd>& variable,
+                                         const PatchNd& patch,
+                                         const BoundaryBoxNd& bdry_box,
                                          double /*fill_time*/) const
 {
 #if !defined(NDEBUG)
@@ -208,7 +208,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     TBOX_ASSERT(acoef_data);
     TBOX_ASSERT(bcoef_data);
 #endif
-    Box<NDIM> bc_coef_box = acoef_data->getBox();
+    BoxNd bc_coef_box = acoef_data->getBox();
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
@@ -225,7 +225,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideData<NDIM, double> > u_target_data;
+    Pointer<SideDataNd<double> > u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -233,12 +233,12 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_target_data);
 #endif
-    Pointer<SideData<NDIM, double> > u_current_data =
+    Pointer<SideDataNd<double> > u_current_data =
         patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
 #endif
-    const Box<NDIM> ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
+    const BoxNd ghost_box = u_target_data->getGhostBox() * u_current_data->getGhostBox();
     for (unsigned int d = 0; d < NDIM; ++d)
     {
         if (d != bdry_normal_axis)
@@ -255,7 +255,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     Array<double> A_scale = d_fluid_solver->getScalingFactor();
     const double p_scale = A_scale[patch.getPatchLevelNumber()];
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
-    Pointer<CellData<NDIM, double> > mu_data;
+    Pointer<CellDataNd<double> > mu_data;
     if (!d_fluid_solver->muIsConstant())
     {
         const int mu_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
@@ -265,11 +265,11 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
         mu_data = patch.getPatchData(mu_idx);
     }
 
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
-    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    for (BoxNd::Iterator it(bc_coef_box); it; it++)
     {
-        const hier::Index<NDIM>& i = it();
+        const hier::IndexNd& i = it();
         double dummy_val = std::numeric_limits<double>::quiet_NaN();
         double& alpha = acoef_data ? (*acoef_data)(i, 0) : dummy_val;
         double& beta = bcoef_data ? (*bcoef_data)(i, 0) : dummy_val;
@@ -299,7 +299,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 #endif
                 // Place i_i in the interior cell abutting the boundary, and
                 // place i_g in the ghost cell abutting the boundary.
-                hier::Index<NDIM> i_i(i), i_g(i);
+                hier::IndexNd i_i(i), i_g(i);
                 if (is_lower)
                 {
                     i_g(bdry_normal_axis) -= 1;
@@ -350,7 +350,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 // p^{n+1/2} = mu*du_n/dx_n^{n} + mu*du_n/dx_n^{n+1} - g^{n+1/2}.
                 static const int NVALS = 3;
                 double u_current[NVALS], u_new[NVALS];
-                SideIndex<NDIM> i_s(i_i, bdry_normal_axis, is_lower ? SideIndex<NDIM>::Lower : SideIndex<NDIM>::Upper);
+                SideIndexNd i_s(i_i, bdry_normal_axis, is_lower ? SideIndexNd::Lower : SideIndexNd::Upper);
                 for (int k = 0; k < NVALS; ++k, i_s(bdry_normal_axis) += (is_lower ? 1 : -1))
                 {
                     u_current[k] = (*u_current_data)(i_s);
@@ -392,7 +392,7 @@ INSVCStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+IntVectorNd
 INSVCStaggeredPressureBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
@@ -401,10 +401,10 @@ INSVCStaggeredPressureBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
-    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVectorNd ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVectorNd::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 } // numberOfExtensionsFillable

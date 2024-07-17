@@ -118,8 +118,8 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef) override;
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& U_bc_coefs,
+                                    SAMRAI::solv::RobinBcCoefStrategyNd* P_bc_coef) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -138,8 +138,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -158,8 +158,8 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullspace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > U_vec,
-                          SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > P_vec);
+    void correctNullspace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > U_vec,
+                          SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
@@ -169,9 +169,9 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver;
 
     // Hierarchy data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_velocity_data_ops, d_pressure_data_ops;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsRealNd<double> > d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx = IBTK::invalid_index, d_pressure_wgt_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 

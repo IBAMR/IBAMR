@@ -114,8 +114,7 @@ GeneralSolver::getHierarchyMathOps() const
 } // getHierarchyMathOps
 
 void
-GeneralSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& /*u*/,
-                                     const SAMRAIVectorReal<NDIM, double>& /*r*/)
+GeneralSolver::initializeSolverState(const SAMRAIVectorRealNd<double>& /*u*/, const SAMRAIVectorRealNd<double>& /*r*/)
 {
     d_is_initialized = true;
     return;

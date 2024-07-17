@@ -94,9 +94,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void
-    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -114,7 +113,7 @@ public:
     /*!
      * \brief Register liquid fraction variable \f$ \varphi \f$.
      */
-    void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+    void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > lf_var,
                                         const bool output_lf_var = true) override;
 
     /*!
@@ -131,13 +130,13 @@ public:
      * Set an object to provide boundary conditions for  \f$ \varphi \f$ variable,
      * that has been registered with the hierarchy integrator.
      */
-    void setLiquidFractionPhysicalBcCoef(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
-                                         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef);
+    void setLiquidFractionPhysicalBcCoef(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > lf_var,
+                                         SAMRAI::solv::RobinBcCoefStrategyNd* lf_bc_coef);
 
     /*!
      * Return a \f$ \varphi \f$ boundary condition object.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getLiquidFractionPhysicalBcCoef();
+    SAMRAI::solv::RobinBcCoefStrategyNd* getLiquidFractionPhysicalBcCoef();
 
     /*!
      * Get the convective operator being used by this solver class for Allen-Cahn equation.
@@ -146,8 +145,8 @@ public:
      * function will initialize a default convective operator.
      */
     SAMRAI::tbox::Pointer<CellConvectiveOperator>
-    getAllenCahnEquationConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
-                                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var);
+    getAllenCahnEquationConvectiveOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > lf_var,
+                                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > H_var);
 
     /*!
      * Write out specialized object state to the given database.
@@ -231,35 +230,34 @@ private:
      * Get the solver for the Allen-Cahn equation.
      */
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
-    getAllenCahnEquationHelmholtzSolver(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
+    getAllenCahnEquationHelmholtzSolver(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > lf_var);
 
     /*!
      * Get the operator to use to evaluate the right-hand side of the Allen-Cahn equation.
      */
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
-    getAllenCahnEquationHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
+    getAllenCahnEquationHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > lf_var);
 
     /*!
      * Solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_F_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_lf_diffusion_coef_var,
-        d_lf_diffusion_coef_rhs_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_H_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_N_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_N_old_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_rhs_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_C_var, d_lf_temp_rhs_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_g_firstder_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_g_secondder_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_q_firstder_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_chemical_potential_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_lf_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_u_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_lf_N_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_interp_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_H_interp_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_flux_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_lf_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_lf_diffusion_coef_var, d_lf_diffusion_coef_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_lf_H_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_lf_N_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_lf_N_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_lf_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_lf_C_var, d_lf_temp_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_g_firstder_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_g_secondder_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_q_firstder_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_chemical_potential_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_grad_lf_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_Div_u_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_T_lf_N_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > d_lf_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > d_H_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > d_lf_flux_var;
 
     /*!
      * Cartgrid functions to be used to set the Allen-Cahn equation source term.
@@ -270,7 +268,7 @@ private:
     /*!
      * Boundary condition object for \f$ \varphi \f$.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
+    SAMRAI::solv::RobinBcCoefStrategyNd* d_lf_bc_coef = nullptr;
 
     /*!
      * Convective operator and difference type for the Allen-Cahn equation.
@@ -290,7 +288,7 @@ private:
     SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> d_lf_rhs_op = nullptr;
     SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_lf_solver = nullptr;
     bool d_lf_solver_needs_init, d_lf_rhs_op_needs_init;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_lf_sol, d_lf_rhs;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_lf_sol, d_lf_rhs;
 
     TimeSteppingType d_lf_diffusion_time_stepping_type = d_default_diffusion_time_stepping_type;
     TimeSteppingType d_lf_convective_time_stepping_type = d_default_convective_time_stepping_type;

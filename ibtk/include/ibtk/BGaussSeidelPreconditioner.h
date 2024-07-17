@@ -168,8 +168,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -208,8 +207,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -290,8 +289,8 @@ private:
      * SAMRAI::solv::SAMRAIVectorReal objects to correspond to each of the
      * components.
      */
-    static std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >
-    getComponentVectors(SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > x);
+    static std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > >
+    getComponentVectors(SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > x);
 
     /*!
      * The component preconditioners.

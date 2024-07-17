@@ -122,22 +122,22 @@ main(int argc, char* argv[])
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Set up the fluid solver.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -147,8 +147,8 @@ main(int argc, char* argv[])
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         time_integrator->registerPressureInitialConditions(p_init);
 
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -176,16 +176,16 @@ main(int argc, char* argv[])
         }
 
         // Setup the advected and diffused quantity.
-        Pointer<CellVariable<NDIM, double> > U_adv_diff_var = new CellVariable<NDIM, double>("U_adv_diff", NDIM);
+        Pointer<CellVariableNd<double> > U_adv_diff_var = new CellVariableNd<double>("U_adv_diff", NDIM);
         adv_diff_integrator->registerTransportedQuantity(U_adv_diff_var);
         adv_diff_integrator->setDiffusionCoefficient(U_adv_diff_var,
                                                      input_db->getDouble("MU") / input_db->getDouble("RHO"));
         adv_diff_integrator->setInitialConditions(U_adv_diff_var, u_init);
 
-        Pointer<FaceVariable<NDIM, double> > u_adv_var = time_integrator->getAdvectionVelocityVariable();
+        Pointer<FaceVariableNd<double> > u_adv_var = time_integrator->getAdvectionVelocityVariable();
         adv_diff_integrator->setAdvectionVelocity(U_adv_diff_var, u_adv_var);
 
-        vector<RobinBcCoefStrategy<NDIM>*> U_adv_diff_bc_coefs(NDIM);
+        vector<RobinBcCoefStrategyNd*> U_adv_diff_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -207,7 +207,7 @@ main(int argc, char* argv[])
 
         if (input_db->keyExists("AdvDiffForcingFunction"))
         {
-            Pointer<CellVariable<NDIM, double> > F_adv_diff_var = new CellVariable<NDIM, double>("F_adv_diff_", NDIM);
+            Pointer<CellVariableNd<double> > F_adv_diff_var = new CellVariableNd<double>("F_adv_diff_", NDIM);
             Pointer<CartGridFunction> F_adv_diff_fcn = new muParserCartGridFunction(
                 "F_adv_diff_fcn", app_initializer->getComponentDatabase("AdvDiffForcingFunction"), grid_geometry);
             adv_diff_integrator->registerSourceTerm(F_adv_diff_var);
@@ -216,7 +216,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -293,10 +293,10 @@ main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
-        const Pointer<Variable<NDIM> > p_var = time_integrator->getPressureVariable();
+        const Pointer<VariableNd> u_var = time_integrator->getVelocityVariable();
+        const Pointer<VariableNd> p_var = time_integrator->getPressureVariable();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, time_integrator->getCurrentContext());
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, time_integrator->getCurrentContext());
@@ -316,15 +316,15 @@ main(int argc, char* argv[])
         p_init->setDataOnPatchHierarchy(p_cloned_idx, p_var, patch_hierarchy, loop_time - 0.5 * dt);
         u_init->setDataOnPatchHierarchy(U_adv_diff_cloned_idx, U_adv_diff_var, patch_hierarchy, loop_time);
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-        HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchySideDataOpsRealNd<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy);
         hier_math_ops.setPatchHierarchy(patch_hierarchy);
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        Pointer<CellVariable<NDIM, double> > u_cc_var = u_var;
+        Pointer<CellVariableNd<double> > u_cc_var = u_var;
         if (u_cc_var)
         {
             hier_cc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
@@ -334,7 +334,7 @@ main(int argc, char* argv[])
                  << "  max-norm: " << hier_cc_data_ops.maxNorm(u_idx, wgt_cc_idx) << "\n";
         }
 
-        Pointer<SideVariable<NDIM, double> > u_sc_var = u_var;
+        Pointer<SideVariableNd<double> > u_sc_var = u_var;
         if (u_sc_var)
         {
             hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);

@@ -46,7 +46,7 @@
 #include "RigidBodyKinematics.h"
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchyNd> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  LDataManager* l_data_manager,
                  const int iteration_num,
@@ -114,23 +114,23 @@ main(int argc, char* argv[])
                                               ib_method_ops,
                                               navier_stokes_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
@@ -155,8 +155,8 @@ main(int argc, char* argv[])
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -187,7 +187,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
@@ -249,13 +249,13 @@ main(int argc, char* argv[])
         input_db->printClassData(plog);
 
         // Get velocity and pressure variables from integrator
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
+        const Pointer<VariableNd> u_var = navier_stokes_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
 
-        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        const Pointer<VariableNd> p_var = navier_stokes_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
 
@@ -384,7 +384,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+output_data(Pointer<PatchHierarchyNd> patch_hierarchy,
             Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
             LDataManager* l_data_manager,
             const int iteration_num,
@@ -401,7 +401,7 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));

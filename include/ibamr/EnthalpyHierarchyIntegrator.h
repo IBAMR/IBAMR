@@ -89,9 +89,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void
-    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -119,7 +118,7 @@ public:
     /*!
      * Set boundary conditions for \f$ h \f$ variable.
      */
-    void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* h_bc_coef);
+    void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategyNd* h_bc_coef);
 
     /*!
      * Write out specialized object state to the given database.
@@ -201,12 +200,12 @@ private:
     /*!
      * Solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_h_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_grad_T_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_pre_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_dh_dT_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_h_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_grad_T_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_T_pre_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_dh_dT_var;
 
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_h_bc_coef = nullptr;
+    SAMRAI::solv::RobinBcCoefStrategyNd* d_h_bc_coef = nullptr;
 
     /*!
      * Patch data descriptor indices for all "state" variables managed by the

@@ -79,10 +79,10 @@ namespace IBAMR
 
 namespace
 {
-inline Box<NDIM>
-compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
+inline BoxNd
+compute_tangential_extension(const BoxNd& box, const int data_axis)
 {
-    Box<NDIM> extended_box = box;
+    BoxNd extended_box = box;
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
@@ -91,15 +91,14 @@ compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
-    Mat& mat,
-    const PoissonSpecifications& u_problem_coefs,
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-    double data_time,
-    const std::vector<int>& num_dofs_per_proc,
-    int u_dof_index_idx,
-    int p_dof_index_idx,
-    Pointer<PatchLevel<NDIM> > patch_level)
+StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
+                                                                 const PoissonSpecifications& u_problem_coefs,
+                                                                 const std::vector<RobinBcCoefStrategyNd*>& u_bc_coefs,
+                                                                 double data_time,
+                                                                 const std::vector<int>& num_dofs_per_proc,
+                                                                 int u_dof_index_idx,
+                                                                 int p_dof_index_idx,
+                                                                 Pointer<PatchLevelNd> patch_level)
 {
     int ierr;
     if (mat)
@@ -110,8 +109,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
     // Setup the finite difference stencils.
     static const int uu_stencil_sz = 2 * NDIM + 1;
-    std::array<hier::Index<NDIM>, uu_stencil_sz> uu_stencil(
-        array_constant<hier::Index<NDIM>, uu_stencil_sz>(hier::Index<NDIM>(0)));
+    std::array<hier::IndexNd, uu_stencil_sz> uu_stencil(array_constant<hier::IndexNd, uu_stencil_sz>(hier::IndexNd(0)));
     for (unsigned int axis = 0, uu_stencil_index = 1; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++uu_stencil_index)
@@ -120,9 +118,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int up_stencil_sz = 2;
-    std::array<std::array<hier::Index<NDIM>, up_stencil_sz>, NDIM> up_stencil(
-        array_constant<std::array<hier::Index<NDIM>, up_stencil_sz>, NDIM>(
-            array_constant<hier::Index<NDIM>, up_stencil_sz>(hier::Index<NDIM>(0))));
+    std::array<std::array<hier::IndexNd, up_stencil_sz>, NDIM> up_stencil(
+        array_constant<std::array<hier::IndexNd, up_stencil_sz>, NDIM>(
+            array_constant<hier::IndexNd, up_stencil_sz>(hier::IndexNd(0))));
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side)
@@ -131,8 +129,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
     }
     static const int pu_stencil_sz = 2 * NDIM;
-    std::array<hier::Index<NDIM>, pu_stencil_sz> pu_stencil(
-        array_constant<hier::Index<NDIM>, pu_stencil_sz>(hier::Index<NDIM>(0)));
+    std::array<hier::IndexNd, pu_stencil_sz> pu_stencil(array_constant<hier::IndexNd, pu_stencil_sz>(hier::IndexNd(0)));
     for (unsigned int axis = 0, pu_stencil_index = 0; axis < NDIM; ++axis)
     {
         for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
@@ -150,18 +147,18 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
     // Determine the non-zero structure of the matrix.
     std::vector<int> d_nnz(nlocal, 0), o_nnz(nlocal, 0);
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevelNd::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<PatchNd> patch = patch_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<SideDataNd<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellDataNd<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+            for (BoxNd::Iterator b(SideGeometryNd::toSideBox(patch_box, axis)); b; b++)
             {
-                const CellIndex<NDIM>& ic = b();
-                const SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
+                const CellIndexNd& ic = b();
+                const SideIndexNd is(ic, axis, SideIndexNd::Lower);
                 const int u_dof_index = (*u_dof_index_data)(is);
                 if (UNLIKELY(ilower > u_dof_index || u_dof_index >= iupper)) continue;
                 const int u_local_idx = u_dof_index - ilower;
@@ -197,9 +194,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 o_nnz[u_local_idx] = std::min(ntotal - nlocal, o_nnz[u_local_idx]);
             }
         }
-        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        for (BoxNd::Iterator b(CellGeometryNd::toCellBox(patch_box)); b; b++)
         {
-            const CellIndex<NDIM>& ic = b();
+            const CellIndexNd& ic = b();
             const int p_dof_index = (*p_dof_index_data)(ic);
             if (UNLIKELY(ilower > p_dof_index || p_dof_index >= iupper)) continue;
             const int p_local_idx = p_dof_index - ilower;
@@ -208,8 +205,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             {
                 for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
                 {
-                    const int pu_dof_index = (*u_dof_index_data)(
-                        SideIndex<NDIM>(ic + pu_stencil[pu_stencil_index], axis, SideIndex<NDIM>::Lower));
+                    const int pu_dof_index =
+                        (*u_dof_index_data)(SideIndexNd(ic + pu_stencil[pu_stencil_index], axis, SideIndexNd::Lower));
                     if (LIKELY(pu_dof_index >= ilower && pu_dof_index < iupper))
                     {
                         d_nnz[p_local_idx] += 1;
@@ -249,17 +246,17 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
     // Set the matrix coefficients.
     const double C = u_problem_coefs.getCConstant();
     const double D = u_problem_coefs.getDConstant();
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevelNd::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = patch_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
 
-        const IntVector<NDIM> no_ghosts(0);
-        SideData<NDIM, double> uu_matrix_coefs(patch_box, uu_stencil_sz, no_ghosts);
-        SideData<NDIM, double> up_matrix_coefs(patch_box, up_stencil_sz, no_ghosts);
-        CellData<NDIM, double> pu_matrix_coefs(patch_box, pu_stencil_sz, no_ghosts);
+        const IntVectorNd no_ghosts(0);
+        SideDataNd<double> uu_matrix_coefs(patch_box, uu_stencil_sz, no_ghosts);
+        SideDataNd<double> up_matrix_coefs(patch_box, up_stencil_sz, no_ghosts);
+        CellDataNd<double> pu_matrix_coefs(patch_box, pu_stencil_sz, no_ghosts);
 
         // Compute all matrix coefficients, including those on the physical
         // boundary; however, do not yet take physical boundary conditions into
@@ -297,12 +294,12 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
 
         // Data structures required to set physical boundary conditions.
-        const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+        const Array<BoundaryBoxNd> physical_codim1_boxes =
             PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
         const int n_physical_codim1_boxes = physical_codim1_boxes.size();
         const double* const patch_x_lower = pgeom->getXLower();
         const double* const patch_x_upper = pgeom->getXUpper();
-        const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
+        const IntVectorNd& ratio_to_level_zero = pgeom->getRatio();
         Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -326,23 +323,23 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         {
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
-                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const BoundaryBoxNd& bdry_box = physical_codim1_boxes[n];
                 const unsigned int location_index = bdry_box.getLocationIndex();
                 const unsigned int bdry_normal_axis = location_index / 2;
                 const bool is_lower = location_index % 2 == 0;
 
                 if (bdry_normal_axis == axis) continue;
 
-                const Box<NDIM> bc_fill_box =
-                    pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-                const BoundaryBox<NDIM> trimmed_bdry_box =
+                const BoxNd bc_fill_box =
+                    pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVectorNd(1));
+                const BoundaryBoxNd trimmed_bdry_box =
                     PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-                const Box<NDIM> bc_coef_box = compute_tangential_extension(
+                const BoxNd bc_coef_box = compute_tangential_extension(
                     PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > gcoef_data;
+                Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                Pointer<ArrayDataNd<double> > gcoef_data;
 
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct
@@ -355,12 +352,12 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 }
                 shifted_patch_x_lower[axis] -= 0.5 * dx[axis];
                 shifted_patch_x_upper[axis] -= 0.5 * dx[axis];
-                patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                         touches_regular_bdry,
-                                                                         touches_periodic_bdry,
-                                                                         dx,
-                                                                         shifted_patch_x_lower.data(),
-                                                                         shifted_patch_x_upper.data()));
+                patch->setPatchGeometry(new CartesianPatchGeometryNd(ratio_to_level_zero,
+                                                                     touches_regular_bdry,
+                                                                     touches_periodic_bdry,
+                                                                     dx,
+                                                                     shifted_patch_x_lower.data(),
+                                                                     shifted_patch_x_upper.data()));
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
@@ -379,9 +376,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
-                for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+                for (BoxNd::Iterator bc(bc_coef_box); bc; bc++)
                 {
-                    const hier::Index<NDIM>& i = bc();
+                    const hier::IndexNd& i = bc();
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
                     const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
@@ -389,7 +386,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 #if !defined(NDEBUG)
                     TBOX_ASSERT((velocity_bc || traction_bc) && !(velocity_bc && traction_bc));
 #endif
-                    hier::Index<NDIM> i_intr = i;
+                    hier::IndexNd i_intr = i;
                     if (is_lower)
                     {
                         i_intr(bdry_normal_axis) += 0;
@@ -398,7 +395,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                     {
                         i_intr(bdry_normal_axis) -= 1;
                     }
-                    const SideIndex<NDIM> i_s(i_intr, axis, SideIndex<NDIM>::Lower);
+                    const SideIndexNd i_s(i_intr, axis, SideIndexNd::Lower);
 
                     if (velocity_bc)
                     {
@@ -448,22 +445,22 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         {
             for (int n = 0; n < n_physical_codim1_boxes; ++n)
             {
-                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const BoundaryBoxNd& bdry_box = physical_codim1_boxes[n];
                 const unsigned int location_index = bdry_box.getLocationIndex();
                 const unsigned int bdry_normal_axis = location_index / 2;
                 const bool is_lower = location_index % 2 == 0;
 
                 if (bdry_normal_axis != axis) continue;
 
-                const Box<NDIM> bc_fill_box =
-                    pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVector<NDIM>(1));
-                const BoundaryBox<NDIM> trimmed_bdry_box =
+                const BoxNd bc_fill_box =
+                    pgeom->getBoundaryFillBox(bdry_box, patch_box, /* ghost_width_to_fill */ IntVectorNd(1));
+                const BoundaryBoxNd trimmed_bdry_box =
                     PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-                const Box<NDIM> bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
+                const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-                Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                Pointer<ArrayData<NDIM, double> > gcoef_data;
+                Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                Pointer<ArrayDataNd<double> > gcoef_data;
 
                 // Set the boundary condition coefficients.
                 static const bool homogeneous_bc = true;
@@ -479,10 +476,10 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 
                 // Modify the matrix coefficients to account for homogeneous
                 // boundary conditions.
-                for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+                for (BoxNd::Iterator bc(bc_coef_box); bc; bc++)
                 {
-                    const hier::Index<NDIM>& i = bc();
-                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                    const hier::IndexNd& i = bc();
+                    const SideIndexNd i_s(i, axis, SideIndexNd::Lower);
                     const double& a = (*acoef_data)(i, 0);
                     const double& b = (*bcoef_data)(i, 0);
                     const bool velocity_bc = (a == 1.0 || IBTK::rel_equal_eps(a, 1.0));
@@ -529,14 +526,14 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
         }
 
         // Set matrix coefficients.
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<SideDataNd<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellDataNd<int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, axis)); b; b++)
+            for (BoxNd::Iterator b(SideGeometryNd::toSideBox(patch_box, axis)); b; b++)
             {
-                const CellIndex<NDIM>& ic = b();
-                const SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
+                const CellIndexNd& ic = b();
+                const SideIndexNd is(ic, axis, SideIndexNd::Lower);
                 const int u_dof_index = (*u_dof_index_data)(is);
                 if (UNLIKELY(ilower > u_dof_index || u_dof_index >= iupper)) continue;
 
@@ -565,9 +562,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
             }
         }
 
-        for (Box<NDIM>::Iterator b(CellGeometry<NDIM>::toCellBox(patch_box)); b; b++)
+        for (BoxNd::Iterator b(CellGeometryNd::toCellBox(patch_box)); b; b++)
         {
-            const CellIndex<NDIM>& ic = b();
+            const CellIndexNd& ic = b();
             const int p_dof_index = (*p_dof_index_data)(ic);
             if (UNLIKELY(ilower > p_dof_index || p_dof_index >= iupper)) continue;
 
@@ -580,8 +577,8 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
                 for (int side = 0; side <= 1; ++side, ++pu_stencil_index)
                 {
                     p_mat_vals[pu_stencil_index] = pu_matrix_coefs(ic, pu_stencil_index);
-                    p_mat_cols[pu_stencil_index] = (*u_dof_index_data)(
-                        SideIndex<NDIM>(ic + pu_stencil[pu_stencil_index], axis, SideIndex<NDIM>::Lower));
+                    p_mat_cols[pu_stencil_index] =
+                        (*u_dof_index_data)(SideIndexNd(ic + pu_stencil[pu_stencil_index], axis, SideIndexNd::Lower));
                 }
             }
             p_mat_vals[pu_stencil_sz] = 0.0;
@@ -603,13 +600,13 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(
 void
 StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<std::set<int> >& is_overlap,
                                                                    std::vector<std::set<int> >& is_nonoverlap,
-                                                                   const IntVector<NDIM>& box_size,
-                                                                   const IntVector<NDIM>& overlap_size,
+                                                                   const IntVectorNd& box_size,
+                                                                   const IntVectorNd& overlap_size,
                                                                    const std::vector<int>& /*num_dofs_per_proc*/,
                                                                    int u_dof_index_idx,
                                                                    int p_dof_index_idx,
-                                                                   Pointer<PatchLevel<NDIM> > patch_level,
-                                                                   Pointer<CoarseFineBoundary<NDIM> > /*cf_boundary*/)
+                                                                   Pointer<PatchLevelNd> patch_level,
+                                                                   Pointer<CoarseFineBoundaryNd> /*cf_boundary*/)
 {
     // Clear previously stored index sets.
     for (auto& k : is_overlap)
@@ -625,62 +622,62 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
 
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SideVariable<NDIM, int> > patch_num_var = new SideVariable<NDIM, int>(
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    Pointer<SideVariableNd<int> > patch_num_var = new SideVariableNd<int>(
         "StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains()::"
         "patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    Pointer<SideVariable<NDIM, bool> > u_mastr_loc_var = new SideVariable<NDIM, bool>(
+    Pointer<SideVariableNd<bool> > u_mastr_loc_var = new SideVariableNd<bool>(
         "StaggeredStokesPETScMatUtilities::"
         "constructPatchLevelASMSubdomains()::u_"
         "mastr_loc_var");
     static const int u_mastr_loc_idx = var_db->registerPatchDataIndex(u_mastr_loc_var);
     patch_level->allocatePatchData(u_mastr_loc_idx);
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevelNd::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<PatchNd> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        Pointer<SideDataNd<int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideDataNd<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         patch_num_data->fillAll(patch_num);
         u_mastr_loc_data->fillAll(false);
     }
 
     // Synchronize the patch number at patch boundaries to determine which patch
     // owns a given DOF along patch boundaries.
-    RefineAlgorithm<NDIM> bdry_synch_alg;
+    RefineAlgorithmNd bdry_synch_alg;
     bdry_synch_alg.registerRefine(patch_num_idx, patch_num_idx, patch_num_idx, nullptr, new SideSynchCopyFillPattern());
     bdry_synch_alg.createSchedule(patch_level)->fillData(0.0);
 
     // For a single patch in a periodic domain, the far side DOFs are not master.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_level->getGridGeometry();
-    IntVector<NDIM> periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
-    const BoxArray<NDIM>& domain_boxes = patch_level->getPhysicalDomain();
+    Pointer<CartesianGridGeometryNd> grid_geom = patch_level->getGridGeometry();
+    IntVectorNd periodic_shift = grid_geom->getPeriodicShift(patch_level->getRatio());
+    const BoxArrayNd& domain_boxes = patch_level->getPhysicalDomain();
 #if !defined(NDEBUG)
     TBOX_ASSERT(domain_boxes.size() == 1);
 #endif
-    const hier::Index<NDIM>& domain_upper = domain_boxes[0].upper();
+    const hier::IndexNd& domain_upper = domain_boxes[0].upper();
 
     // Determine the number of local DOFs.
     int local_dof_count = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevelNd::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+        Pointer<PatchNd> patch = patch_level->getPatch(p());
         const int patch_num = patch->getPatchNumber();
-        const Box<NDIM>& patch_box = patch->getBox();
-        const IntVector<NDIM> patch_size = patch_box.numberCells();
+        const BoxNd& patch_box = patch->getBox();
+        const IntVectorNd patch_size = patch_box.numberCells();
 
-        Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<SideData<NDIM, int> > patch_num_data = patch->getPatchData(patch_num_idx);
-        Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        Pointer<SideDataNd<int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<SideDataNd<int> > patch_num_data = patch->getPatchData(patch_num_idx);
+        Pointer<SideDataNd<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
         for (unsigned int component_axis = 0; component_axis < NDIM; ++component_axis)
         {
             const int upper_domain_side_idx = domain_upper(component_axis) + 1;
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(patch_box, component_axis)); b; b++)
+            for (BoxNd::Iterator b(SideGeometryNd::toSideBox(patch_box, component_axis)); b; b++)
             {
-                const CellIndex<NDIM>& i = b();
-                const SideIndex<NDIM> is(i, component_axis, SideIndex<NDIM>::Lower);
+                const CellIndexNd& i = b();
+                const SideIndexNd is(i, component_axis, SideIndexNd::Lower);
                 bool fully_periodic_patch_in_axis =
                     periodic_shift(component_axis) && (patch_size(component_axis) == periodic_shift(component_axis));
                 bool periodic_image = fully_periodic_patch_in_axis && (i(component_axis) == upper_domain_side_idx);
@@ -691,17 +688,17 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
                 }
             }
         }
-        local_dof_count += CellGeometry<NDIM>::toCellBox(patch_box).size();
+        local_dof_count += CellGeometryNd::toCellBox(patch_box).size();
     }
 
     // Determine the subdomains associated with this processor.
     const int n_local_patches = patch_level->getProcessorMapping().getNumberOfLocalIndices();
-    std::vector<std::vector<Box<NDIM> > > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
+    std::vector<std::vector<BoxNd> > overlap_boxes(n_local_patches), nonoverlap_boxes(n_local_patches);
     int patch_counter = 0, subdomain_counter = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, ++patch_counter)
+    for (PatchLevelNd::Iterator p(patch_level); p; p++, ++patch_counter)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<PatchNd> patch = patch_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
         IndexUtilities::partitionPatchBox(
             overlap_boxes[patch_counter], nonoverlap_boxes[patch_counter], patch_box, box_size, overlap_size);
         subdomain_counter += overlap_boxes[patch_counter].size();
@@ -712,18 +709,18 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
     // Fill in the IS'es.
     int nonoverlap_dof_counter = 0;
     subdomain_counter = 0, patch_counter = 0;
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++, ++patch_counter)
+    for (PatchLevelNd::Iterator p(patch_level); p; p++, ++patch_counter)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Box<NDIM> side_patch_box[NDIM];
+        Pointer<PatchNd> patch = patch_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        BoxNd side_patch_box[NDIM];
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            side_patch_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+            side_patch_box[axis] = SideGeometryNd::toSideBox(patch_box, axis);
         }
-        Pointer<SideData<NDIM, bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
-        Pointer<SideData<NDIM, int> > u_dof_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<CellData<NDIM, int> > p_dof_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<SideDataNd<bool> > u_mastr_loc_data = patch->getPatchData(u_mastr_loc_idx);
+        Pointer<SideDataNd<int> > u_dof_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellDataNd<int> > p_dof_data = patch->getPatchData(p_dof_index_idx);
 #if !defined(NDEBUG)
         {
             const int u_data_depth = u_dof_data->getDepth();
@@ -738,19 +735,19 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
         for (int k = 0; k < n_patch_subdomains; ++k, ++subdomain_counter)
         {
             // The nonoverlapping subdomains.
-            const Box<NDIM>& sub_box = nonoverlap_boxes[patch_counter][k];
-            Box<NDIM> side_sub_box[NDIM];
+            const BoxNd& sub_box = nonoverlap_boxes[patch_counter][k];
+            BoxNd side_sub_box[NDIM];
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                side_sub_box[axis] = SideGeometry<NDIM>::toSideBox(sub_box, axis);
+                side_sub_box[axis] = SideGeometryNd::toSideBox(sub_box, axis);
             }
 
             // Get the local DOFs.
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator b(side_sub_box[axis]); b; b++)
+                for (BoxNd::Iterator b(side_sub_box[axis]); b; b++)
                 {
-                    const SideIndex<NDIM> i_s(b(), axis, SideIndex<NDIM>::Lower);
+                    const SideIndexNd i_s(b(), axis, SideIndexNd::Lower);
                     const bool at_upper_subdomain_bdry = (i_s(axis) == side_sub_box[axis].upper(axis));
                     const bool at_upper_patch_bdry = (i_s(axis) == side_patch_box[axis].upper(axis));
                     if (!at_upper_subdomain_bdry || (at_upper_patch_bdry && (*u_mastr_loc_data)(i_s)))
@@ -760,9 +757,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
                     }
                 }
             }
-            for (Box<NDIM>::Iterator b(sub_box); b; b++)
+            for (BoxNd::Iterator b(sub_box); b; b++)
             {
-                const CellIndex<NDIM>& i = b();
+                const CellIndexNd& i = b();
                 const int dof_idx = (*p_dof_data)(i);
                 if (dof_idx >= 0) is_nonoverlap[subdomain_counter].insert(dof_idx);
             }
@@ -770,26 +767,26 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(std::vector<s
             nonoverlap_dof_counter += n_nonoverlap;
 
             // The overlapping subdomains.
-            const Box<NDIM>& overlap_sub_box = overlap_boxes[patch_counter][k];
-            Box<NDIM> side_overlap_sub_box[NDIM];
+            const BoxNd& overlap_sub_box = overlap_boxes[patch_counter][k];
+            BoxNd side_overlap_sub_box[NDIM];
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                side_overlap_sub_box[axis] = SideGeometry<NDIM>::toSideBox(overlap_sub_box, axis);
+                side_overlap_sub_box[axis] = SideGeometryNd::toSideBox(overlap_sub_box, axis);
             }
 
             // Get the overlap DOFs.
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator b(side_overlap_sub_box[axis]); b; b++)
+                for (BoxNd::Iterator b(side_overlap_sub_box[axis]); b; b++)
                 {
-                    const SideIndex<NDIM> i_s(b(), axis, SideIndex<NDIM>::Lower);
+                    const SideIndexNd i_s(b(), axis, SideIndexNd::Lower);
                     const int dof_idx = (*u_dof_data)(i_s);
                     if (dof_idx >= 0) is_overlap[subdomain_counter].insert(dof_idx);
                 }
             }
-            for (Box<NDIM>::Iterator b(overlap_sub_box); b; b++)
+            for (BoxNd::Iterator b(overlap_sub_box); b; b++)
             {
-                const CellIndex<NDIM>& i = b();
+                const CellIndexNd& i = b();
                 const int dof_idx = (*p_dof_data)(i);
                 if (dof_idx >= 0) is_overlap[subdomain_counter].insert(dof_idx);
             }
@@ -812,7 +809,7 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     const std::vector<int>& num_dofs_per_proc,
     int u_dof_index_idx,
     int p_dof_index_idx,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level)
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level)
 {
     // Destroy the previously stored IS'es
     for (auto& k : is_field)
@@ -839,18 +836,18 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
     const int first_local_dof = std::accumulate(num_dofs_per_proc.begin(), num_dofs_per_proc.begin() + mpi_rank, 0);
     const int last_local_dof = first_local_dof + n_local_dofs;
 
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevelNd::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Box<NDIM> side_patch_box[NDIM];
+        Pointer<PatchNd> patch = patch_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        BoxNd side_patch_box[NDIM];
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            side_patch_box[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+            side_patch_box[axis] = SideGeometryNd::toSideBox(patch_box, axis);
         }
 
-        Pointer<SideData<NDIM, int> > u_dof_data = patch->getPatchData(u_dof_index_idx);
-        Pointer<CellData<NDIM, int> > p_dof_data = patch->getPatchData(p_dof_index_idx);
+        Pointer<SideDataNd<int> > u_dof_data = patch->getPatchData(u_dof_index_idx);
+        Pointer<CellDataNd<int> > p_dof_data = patch->getPatchData(p_dof_index_idx);
 #if !defined(NDEBUG)
         const int u_data_depth = u_dof_data->getDepth();
         const int p_data_depth = p_dof_data->getDepth();
@@ -861,10 +858,10 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
         // Get the local velocity DOFs.
         for (int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box<NDIM>::Iterator b(side_patch_box[axis]); b; b++)
+            for (BoxNd::Iterator b(side_patch_box[axis]); b; b++)
             {
-                const CellIndex<NDIM>& i = b();
-                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                const CellIndexNd& i = b();
+                const SideIndexNd i_s(i, axis, SideIndexNd::Lower);
                 const int dof_idx = (*u_dof_data)(i_s);
                 if (dof_idx >= first_local_dof && dof_idx < last_local_dof)
                 {
@@ -874,9 +871,9 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelFields(
         }
 
         // Get the local pressure DOFs.
-        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        for (BoxNd::Iterator b(patch_box); b; b++)
         {
-            const CellIndex<NDIM>& i = b();
+            const CellIndexNd& i = b();
             const int dof_idx = (*p_dof_data)(i);
             if (dof_idx >= first_local_dof && dof_idx < last_local_dof)
             {
@@ -896,8 +893,8 @@ StaggeredStokesPETScMatUtilities::constructProlongationOp(Mat& mat,
                                                           int p_dof_index_idx,
                                                           const std::vector<int>& num_fine_dofs_per_proc,
                                                           const std::vector<int>& num_coarse_dofs_per_proc,
-                                                          Pointer<PatchLevel<NDIM> > fine_patch_level,
-                                                          Pointer<PatchLevel<NDIM> > coarse_patch_level,
+                                                          Pointer<PatchLevelNd> fine_patch_level,
+                                                          Pointer<PatchLevelNd> coarse_patch_level,
                                                           const AO& coarse_level_ao,
                                                           const int u_coarse_ao_offset,
                                                           const int p_coarse_ao_offset)

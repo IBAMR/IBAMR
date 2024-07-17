@@ -63,7 +63,7 @@ public:
      */
     LSLocateFluidInterface(const std::string& object_name,
                            SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
                            FilmInterface init_film,
                            CircularInterface init_circle);
 
@@ -109,7 +109,7 @@ private:
     /*!
      * Level set variable
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_var;
 
     /*!
      * Initial level set information.

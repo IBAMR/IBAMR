@@ -390,14 +390,14 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
         // Get grid-info
         Vec* vx;
         VecNestGetSubVecs(x, nullptr, &vx);
-        Pointer<SAMRAIVectorReal<NDIM, double> > vx0;
+        Pointer<SAMRAIVectorRealNd<double> > vx0;
         IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = vx0->getPatchHierarchy();
+        Pointer<PatchHierarchyNd> patch_hierarchy = vx0->getPatchHierarchy();
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
-        Pointer<PatchLevel<NDIM> > struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
-        const IntVector<NDIM>& ratio = struct_patch_level->getRatio();
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
+        Pointer<PatchLevelNd> struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
+        const IntVectorNd& ratio = struct_patch_level->getRatio();
+        Pointer<CartesianGridGeometryNd> grid_geom = patch_hierarchy->getGridGeometry();
         const double* dx0 = grid_geom->getDx();
         const double* X_upper = grid_geom->getXUpper();
         const double* X_lower = grid_geom->getXLower();

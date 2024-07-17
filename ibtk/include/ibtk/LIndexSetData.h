@@ -58,7 +58,7 @@ public:
      * interior of the index space and the ghosts vector describes the ghost
      * nodes in each coordinate direction.
      */
-    LIndexSetData(SAMRAI::hier::Box<NDIM> box, SAMRAI::hier::IntVector<NDIM> ghosts);
+    LIndexSetData(SAMRAI::hier::BoxNd box, SAMRAI::hier::IntVectorNd ghosts);
 
     /*!
      * The virtual destructor for an LIndexSetData object.
@@ -68,8 +68,8 @@ public:
     /*!
      * \brief Update the cached indexing data.
      */
-    void cacheLocalIndices(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                           const SAMRAI::hier::IntVector<NDIM>& periodic_shift);
+    void cacheLocalIndices(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                           const SAMRAI::hier::IntVectorNd& periodic_shift);
 
     /*!
      * \return A constant reference to the set of Lagrangian data indices that

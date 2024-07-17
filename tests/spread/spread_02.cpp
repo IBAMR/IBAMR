@@ -163,13 +163,12 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry, false);
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
 
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -210,20 +209,20 @@ main(int argc, char** argv)
                                               ib_method_ops,
                                               navier_stokes_integrator,
                                               false);
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         time_integrator->registerVisItDataWriter(visit_data_writer);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer,
-                                        false);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer,
+                                    false);
 
         ib_method_ops->initializeFEEquationSystems();
         ib_method_ops->initializeFEData();
@@ -235,8 +234,8 @@ main(int argc, char** argv)
         if (IBTK_MPI::getNodes() != 1) time_integrator->regridHierarchy();
 
         // Now for the actual test. Set up a new variable containing ghost data:
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const Pointer<SAMRAI::hier::Variable<NDIM> > f_var = time_integrator->getBodyForceVariable();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+        const Pointer<SAMRAI::hier::VariableNd> f_var = time_integrator->getBodyForceVariable();
         const Pointer<VariableContext> f_ghost_ctx = var_db->getContext("f_ghost");
 
         int n_ghosts = input_db->keyExists("IB_DELTA_FUNCTION") ?
@@ -250,12 +249,12 @@ main(int argc, char** argv)
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(f_ghost_idx);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_ghost_idx);
                 f_data->fillAll(0.0);
             }
         }
@@ -322,9 +321,8 @@ main(int argc, char** argv)
         if (IBTK_MPI::getNodes() != 1)
         {
             // partitioning is only relevant when there are multiple processors
-            Pointer<PatchLevel<NDIM> > patch_level =
-                patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
-            const BoxArray<NDIM> boxes = patch_level->getBoxes();
+            Pointer<PatchLevelNd> patch_level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+            const BoxArrayNd boxes = patch_level->getBoxes();
             plog << "hierarchy boxes:\n";
             for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
             // rank is only relevant when there are multiple processors
@@ -346,8 +344,8 @@ main(int argc, char** argv)
         // The rest is just bookkeeping and some visualization.
 
         // convert SC to CC for plotting purposes:
-        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc", NDIM);
-        const int f_ghost_cc_idx = var_db->registerVariableAndContext(f_cc_var, f_ghost_ctx, IntVector<NDIM>(0));
+        Pointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc", NDIM);
+        const int f_ghost_cc_idx = var_db->registerVariableAndContext(f_cc_var, f_ghost_ctx, IntVectorNd(0));
         visit_data_writer->registerPlotQuantity("f_ghost", "VECTOR", f_ghost_cc_idx);
 
         for (unsigned int d = 0; d < NDIM; ++d)
@@ -358,12 +356,12 @@ main(int argc, char** argv)
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         // This is what we get for SAMRAI inventing its own type system and then
         // only half-implementing it
-        Pointer<SideVariable<NDIM, double> > temp = f_var;
+        Pointer<SideVariableNd<double> > temp = f_var;
         TBOX_ASSERT(temp);
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(f_ghost_cc_idx, 0.0);
         }
 
@@ -381,16 +379,16 @@ main(int argc, char** argv)
 
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
                 bool printed_value = false;
                 std::ostringstream patch_out;
                 patch_out << "patch number " << p() << '\n';
                 patch_out.precision(16);
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
-                const Box<NDIM> patch_box = patch->getBox();
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_ghost_idx);
+                const BoxNd patch_box = patch->getBox();
 
                 // same as SideData::print, but elides values close to 1.
                 for (int axis = 0; axis < NDIM; ++axis)
@@ -399,8 +397,8 @@ main(int argc, char** argv)
                     for (int d = 0; d < f_data->getDepth(); ++d)
                     {
                         patch_out << "Array depth = " << d << std::endl;
-                        const ArrayData<NDIM, double>& data = f_data->getArrayData(axis);
-                        for (SideIterator<NDIM> i(patch_box, axis); i; i++)
+                        const ArrayDataNd<double>& data = f_data->getArrayData(axis);
+                        for (SideIteratorNd i(patch_box, axis); i; i++)
                         {
                             const double value = data(i(), d);
                             if (std::abs(value - 1.0) > 1e-2)

@@ -33,9 +33,9 @@
 namespace IBTK
 {
 SnapshotCache::SnapshotCache(std::string object_name,
-                             Pointer<Variable<NDIM> > var,
+                             Pointer<VariableNd> var,
                              Pointer<Database> input_db,
-                             Pointer<GridGeometry<NDIM> > grid_geom,
+                             Pointer<GridGeometryNd> grid_geom,
                              bool register_for_restart)
     : d_object_name(std::move(object_name)), d_snapshot_var(var)
 {
@@ -44,7 +44,7 @@ SnapshotCache::SnapshotCache(std::string object_name,
     if (input_db)
         if (input_db->keyExists("gcw")) input_db->getIntegerArray("gcw", &d_gcw[0], NDIM);
 
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = VariableDatabaseNd::getDatabase();
     d_ctx = var_db->getContext(d_object_name + "::context");
     d_snapshot_idx = var_db->registerVariableAndContext(d_snapshot_var, d_ctx, d_gcw);
 
@@ -71,17 +71,17 @@ SnapshotCache::clearSnapshots()
     // Deallocate all patch data.
     for (auto& snapshot : d_snapshots)
     {
-        Pointer<PatchHierarchy<NDIM> > hierarchy = snapshot.second;
+        Pointer<PatchHierarchyNd> hierarchy = snapshot.second;
         for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
             if (level->checkAllocated(d_snapshot_idx)) level->deallocatePatchData(d_snapshot_idx);
         }
     }
 
     // Clear snapshots
     d_snapshots.clear();
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = VariableDatabaseNd::getDatabase();
     var_db->removePatchDataIndex(d_snapshot_idx);
     d_snapshot_var = nullptr;
     d_snapshot_idx = IBTK::invalid_index;
@@ -101,10 +101,10 @@ SnapshotCache::getSnapshot(double time, double tol)
 }
 
 void
-SnapshotCache::storeSnapshot(const int u_idx, const double time, Pointer<PatchHierarchy<NDIM> > hierarchy)
+SnapshotCache::storeSnapshot(const int u_idx, const double time, Pointer<PatchHierarchyNd> hierarchy)
 {
     // Create a snapshot of the patch hierarchy.
-    Pointer<PatchHierarchy<NDIM> > snapshot_hierarchy = hierarchy->makeRefinedPatchHierarchy(
+    Pointer<PatchHierarchyNd> snapshot_hierarchy = hierarchy->makeRefinedPatchHierarchy(
         d_object_name + "::SnapshotHierarchy_" + std::to_string(d_snapshots.size()),
         1 /*ratio*/,
         false /*register_for_restart*/);
@@ -113,17 +113,17 @@ SnapshotCache::storeSnapshot(const int u_idx, const double time, Pointer<PatchHi
     int finest_ln = snapshot_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > snapshot_level = snapshot_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> snapshot_level = snapshot_hierarchy->getPatchLevel(ln);
         if (!snapshot_level->checkAllocated(d_snapshot_idx)) snapshot_level->allocatePatchData(d_snapshot_idx, time);
         // We've allocated data, now copy it
         // Note these levels should cover the same space, so we shouldn't need to have a refine operator.
-        Pointer<PatchLevel<NDIM> > old_level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> old_level = hierarchy->getPatchLevel(ln);
         {
             // First fill in from the snapshot hierarchy
-            Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
-            Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+            Pointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+            Pointer<RefineOperatorNd> refine_op = nullptr;
             refine_alg->registerRefine(d_snapshot_idx, u_idx, u_idx, refine_op);
-            Pointer<RefineSchedule<NDIM> > schedule = refine_alg->createSchedule(snapshot_level, old_level);
+            Pointer<RefineScheduleNd> schedule = refine_alg->createSchedule(snapshot_level, old_level);
             schedule->fillData(time);
         }
     }
@@ -154,7 +154,7 @@ SnapshotCache::putToDatabase(Pointer<Database> db)
 }
 
 void
-SnapshotCache::getFromRestart(Pointer<GridGeometry<NDIM> > grid_geom)
+SnapshotCache::getFromRestart(Pointer<GridGeometryNd> grid_geom)
 {
     Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
     Pointer<Database> db;
@@ -175,8 +175,8 @@ SnapshotCache::getFromRestart(Pointer<GridGeometry<NDIM> > grid_geom)
     for (unsigned int i = 0; i < num_snapshots_stored; ++i)
     {
         const double time = db->getDouble("time_" + std::to_string(i));
-        Pointer<PatchHierarchy<NDIM> > hierarchy =
-            new PatchHierarchy<NDIM>(d_object_name + "::SnapshotHierarchy_" + std::to_string(i), grid_geom, false);
+        Pointer<PatchHierarchyNd> hierarchy =
+            new PatchHierarchyNd(d_object_name + "::SnapshotHierarchy_" + std::to_string(i), grid_geom, false);
         hierarchy->getFromDatabase(db->getDatabase("snapshot_hierarchy_" + std::to_string(i)), comp_selector);
         d_snapshots.push_back(std::make_pair(time, hierarchy));
     }

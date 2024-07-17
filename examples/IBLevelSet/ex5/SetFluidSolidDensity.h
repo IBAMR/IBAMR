@@ -39,7 +39,7 @@ class HierarchyMathOps;
  *
  */
 void callSetFluidSolidDensityCallbackFunction(int rho_idx,
-                                              SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
+                                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> rho_var,
                                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                               const int cycle_num,
                                               const double time,
@@ -68,7 +68,7 @@ public:
      * Set the density based on the current level set information
      */
     void setDensityPatchData(int rho_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> rho_var,
                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                              const int cycle_num,
                              const double time,

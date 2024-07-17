@@ -158,8 +158,8 @@ public:
      * \param p_bc_coef   Pointer to object that can set the Robin boundary
      * condition coefficients for the pressure.
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& u_bc_coefs,
+                            SAMRAI::solv::RobinBcCoefStrategyNd* p_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify

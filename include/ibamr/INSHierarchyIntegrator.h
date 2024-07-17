@@ -165,7 +165,7 @@ public:
      *
      * \see IBTK::muParserRobinBcCoefs
      */
-    void registerPhysicalBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs);
+    void registerPhysicalBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs);
 
     /*!
      * Get a vector of pointers to the velocity boundary condition specification
@@ -173,14 +173,14 @@ public:
      *
      * \note Implementations may return a vector of NULL pointers.
      */
-    virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getVelocityBoundaryConditions() const;
+    virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& getVelocityBoundaryConditions() const;
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.
      *
      * \note Implementations may return a NULL pointer.
      */
-    virtual SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPressureBoundaryConditions() const;
+    virtual SAMRAI::solv::RobinBcCoefStrategyNd* getPressureBoundaryConditions() const;
 
     /*!
      * Supply initial conditions for the velocity field.
@@ -218,29 +218,29 @@ public:
     /*!
      * Return a pointer to the fluid velocity variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVelocityVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> getVelocityVariable() const;
 
     /*!
      * Return a pointer to the fluid pressure state variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getPressureVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> getPressureVariable() const;
 
     /*!
      * Return a pointer to the body force variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getBodyForceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> getBodyForceVariable() const;
 
     /*!
      * Return a pointer to the source strength variable.
      *
      * @deprecated Use getVelocityDivergenceVariable() instead.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> getFluidSourceVariable() const;
 
     /*!
      * Return a pointer to the variable that specifies the divergence of the velocity.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVelocityDivergenceVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> getVelocityDivergenceVariable() const;
 
     /*!
      * Return a pointer to a fluid velocity variable that can be used to advect
@@ -250,19 +250,19 @@ public:
      * data for this variable are allocated only when an advection-diffusion
      * solver is registered with the Navier-Stokes solver.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > getAdvectionVelocityVariable() const;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > getAdvectionVelocityVariable() const;
 
     /*!
      * Get a vector of pointers to the intermediate velocity boundary condition
      * specification objects.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> getIntermediateVelocityBoundaryConditions() const;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> getIntermediateVelocityBoundaryConditions() const;
 
     /*!
      * Get a pointer to the projection Poisson problem boundary condition
      * specification object.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getProjectionBoundaryConditions() const;
+    SAMRAI::solv::RobinBcCoefStrategyNd* getProjectionBoundaryConditions() const;
 
     /*!
      * \brief Set the convective operator type to be used by the solver.
@@ -404,10 +404,10 @@ protected:
      */
     INSHierarchyIntegrator(std::string object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> U_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> P_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> F_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> Q_var,
                            bool register_for_restart);
 
     /*!
@@ -418,16 +418,16 @@ protected:
      */
     INSHierarchyIntegrator(std::string object_name,
                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > U_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> U_var,
                            std::string U_default_coarsen_type,
                            std::string U_default_refine_type,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > P_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> P_var,
                            std::string P_default_coarsen_type,
                            std::string P_default_refine_type,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > F_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> F_var,
                            std::string F_default_coarsen_type,
                            std::string F_default_refine_type,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Q_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> Q_var,
                            std::string Q_default_coarsen_type,
                            std::string Q_default_refine_type,
                            bool register_for_restart);
@@ -467,12 +467,12 @@ protected:
     /*!
      * Determine the largest stable timestep on an individual patch level.
      */
-    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level) const;
+    double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> level) const;
 
     /*!
      * Determine the largest stable timestep on an individual patch.
      */
-    virtual double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const = 0;
+    virtual double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch) const = 0;
 
     /*!
      * Write out specialized object state to the given database.
@@ -512,7 +512,7 @@ protected:
      * capability for quantities transported by the fluid velocity field.
      */
     std::vector<SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> > d_adv_diff_hier_integrators;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_U_adv_diff_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > d_U_adv_diff_var;
 
     /*!
      * Current CFL number.
@@ -574,19 +574,19 @@ protected:
     /*!
      * Fluid solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_U_var;
     std::string d_U_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_U_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_P_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_P_var;
     std::string d_P_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_P_refine_type = "LINEAR_REFINE";
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_F_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_F_var;
     std::string d_F_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_F_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_Q_var;
     std::string d_Q_coarsen_type = "CONSERVATIVE_COARSEN";
     std::string d_Q_refine_type = "CONSTANT_REFINE";
 
@@ -595,11 +595,11 @@ protected:
      * fluid source/sink distributions.
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U_init, d_P_init;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_bc_coefs;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
+    SAMRAI::solv::LocationIndexRobinBcCoefsNd d_default_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_bc_coefs, d_U_bc_coefs, d_U_star_bc_coefs;
     TractionBcType d_traction_bc_type = TRACTION;
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P_bc_coef;
-    std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategy<NDIM> > d_Phi_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategyNd* d_P_bc_coef;
+    std::unique_ptr<SAMRAI::solv::RobinBcCoefStrategyNd> d_Phi_bc_coef;
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_F_fcn, d_Q_fcn;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_U_bdry_bc_fill_op, d_P_bdry_bc_fill_op,
         d_Q_bdry_bc_fill_op, d_no_fill_op;

@@ -62,25 +62,25 @@ struct CircularInterface
 CircularInterface circle;
 
 void
-calculate_distance_analytically(Pointer<PatchHierarchy<NDIM> > patch_hierarchy, int E_idx)
+calculate_distance_analytically(Pointer<PatchHierarchyNd> patch_hierarchy, int E_idx)
 {
     int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+            const hier::IndexNd& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, double> > E_data = patch->getPatchData(E_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            Pointer<CellDataNd<double> > E_data = patch->getPatchData(E_idx);
+            for (BoxNd::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                CellIndexNd ci(it());
 
                 // Get physical coordinates
                 IBTK::Vector coord = IBTK::Vector::Zero();
@@ -191,32 +191,32 @@ main(int argc, char* argv[])
         }
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               navier_stokes_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           navier_stokes_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Create level sets for solid interface.
         const string& ls_name_solid = "level_set_solid";
-        Pointer<CellVariable<NDIM, double> > phi_var_solid = new CellVariable<NDIM, double>(ls_name_solid);
+        Pointer<CellVariableNd<double> > phi_var_solid = new CellVariableNd<double>(ls_name_solid);
 
         // Create level sets for gas/liquid interface.
         const double fluid_height = input_db->getDouble("GAS_LS_INIT");
         const string& ls_name_gas = "level_set_gas";
-        Pointer<CellVariable<NDIM, double> > phi_var_gas = new CellVariable<NDIM, double>(ls_name_gas);
+        Pointer<CellVariableNd<double> > phi_var_gas = new CellVariableNd<double>(ls_name_gas);
         Pointer<RelaxationLSMethod> level_set_gas_ops =
             new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
         LSLocateGasInterface setLSLocateGasInterface(
@@ -241,15 +241,15 @@ main(int argc, char* argv[])
             phi_var_gas, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // Setup the advected and diffused fluid quantities.
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
-        Pointer<hier::Variable<NDIM> > rho_var;
+        Pointer<CellVariableNd<double> > mu_var = new CellVariableNd<double>("mu");
+        Pointer<hier::VariableNd> rho_var;
         if (conservative_form)
         {
-            rho_var = new SideVariable<NDIM, double>("rho");
+            rho_var = new SideVariableNd<double>("rho");
         }
         else
         {
-            rho_var = new CellVariable<NDIM, double>("rho");
+            rho_var = new CellVariableNd<double>("rho");
         }
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
         navier_stokes_integrator->registerViscosityVariable(mu_var);
@@ -292,8 +292,8 @@ main(int argc, char* argv[])
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -319,7 +319,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        RobinBcCoefStrategyNd* rho_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -327,7 +327,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategyNd* mu_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(
@@ -335,7 +335,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+        RobinBcCoefStrategyNd* phi_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -346,26 +346,26 @@ main(int argc, char* argv[])
 
         // LS reinit boundary conditions, which is set to be the same as the BCs
         // for advection
-        RobinBcCoefStrategy<NDIM>* ls_reinit_bcs = phi_bc_coef;
+        RobinBcCoefStrategyNd* ls_reinit_bcs = phi_bc_coef;
         level_set_gas_ops->registerPhysicalBoundaryCondition(ls_reinit_bcs);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         navier_stokes_integrator->registerVisItDataWriter(visit_data_writer);
 
         // Initialize hierarchy configuration and data on all patches.
         navier_stokes_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Compute distance function.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<CellVariable<NDIM, double> > d_var = new CellVariable<NDIM, double>("distance", 1);
-        const IntVector<NDIM> no_width = 0;
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+        Pointer<CellVariableNd<double> > d_var = new CellVariableNd<double>("distance", 1);
+        const IntVectorNd no_width = 0;
         Pointer<VariableContext> main_ctx = var_db->getContext("Main");
         const int d_idx = var_db->registerVariableAndContext(d_var, main_ctx, no_width);
         int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(d_idx, 0.0);
         }
         calculate_distance_analytically(patch_hierarchy, d_idx);
@@ -373,7 +373,7 @@ main(int argc, char* argv[])
         // Copy the distance function into level set of solid.
         int phi_solid_idx =
             var_db->mapVariableAndContextToIndex(phi_var_solid, adv_diff_integrator->getCurrentContext());
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, hier_finest_ln);
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, hier_finest_ln);
         hier_cc_data_ops.copyData(phi_solid_idx, d_idx);
 
         // Deallocate initialization objects.

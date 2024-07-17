@@ -87,7 +87,7 @@ PK1_dil_stress_function(TensorValue<double>& PP,
 using namespace ModelData;
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchyNd> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
@@ -232,22 +232,22 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Configure the IBFE solver.
         IBFEMethod::PK1StressFcnData PK1_dev_stress_data(PK1_dev_stress_function);
@@ -286,7 +286,7 @@ main(int argc, char* argv[])
                                                   std::vector<SystemData>(),
                                                   &PK1_dil_stress_fcn_data);
 
-        Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        Pointer<hier::VariableNd> p_var = navier_stokes_integrator->getPressureVariable();
         Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
         HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
             /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
@@ -317,7 +317,7 @@ main(int argc, char* argv[])
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
@@ -338,7 +338,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -458,7 +458,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+output_data(Pointer<PatchHierarchyNd> patch_hierarchy,
             Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
             Mesh& mesh,
             EquationSystems* equation_systems,
@@ -476,7 +476,7 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(navier_stokes_integrator->getVelocityVariable(),
                                                            navier_stokes_integrator->getCurrentContext()));

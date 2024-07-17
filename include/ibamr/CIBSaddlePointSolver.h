@@ -161,8 +161,8 @@ public:
      * \param p_bc_coef   Pointer to object that can set the Robin boundary
      * condition coefficients for the pressure.
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& u_bc_coefs,
+                            SAMRAI::solv::RobinBcCoefStrategyNd* p_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
@@ -296,8 +296,8 @@ private:
     /*!
      * \brief Initialize the Stokes solver needed in the preconditioning step.
      */
-    void initializeStokesSolver(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& sol_vec,
-                                const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs_vec);
+    void initializeStokesSolver(const SAMRAI::solv::SAMRAIVectorRealNd<double>& sol_vec,
+                                const SAMRAI::solv::SAMRAIVectorRealNd<double>& rhs_vec);
 
     /*!
      * \brief Routine to setup KSP object.
@@ -377,15 +377,15 @@ private:
     bool d_normalize_spread_force = false;
 
     // Velocity BCs and cached communication operators for interpolation operation.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_u_bc_coefs;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPatternNd> d_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Nullspace vectors for LInv
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nul_vecs;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U_nul_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > > d_nul_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > > d_U_nul_vecs;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have

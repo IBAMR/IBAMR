@@ -43,8 +43,8 @@ main()
     {
         const double x_lo[NDIM] = { 0.0, 1.0 };
         const double x_up[NDIM] = { 1.0, 3.0 };
-        SAMRAI::geom::CartesianPatchGeometry<NDIM> patch_geo(
-            SAMRAI::hier::IntVector<NDIM>(1), bdry_data, bdry_data, dx, x_lo, x_up);
+        SAMRAI::geom::CartesianPatchGeometryNd patch_geo(
+            SAMRAI::hier::IntVectorNd(1), bdry_data, bdry_data, dx, x_lo, x_up);
 
         std::vector<double> coordinates{
             0.0, 0.0, // outside patch
@@ -69,8 +69,8 @@ main()
         const double x_lo[NDIM] = { 0.0, 1.0, 2.0 };
         const double x_up[NDIM] = { 1.0, 3.0, 6.0 };
 
-        SAMRAI::geom::CartesianPatchGeometry<NDIM> patch_geo(
-            SAMRAI::hier::IntVector<NDIM>(1), bdry_data, bdry_data, dx, x_lo, x_up);
+        SAMRAI::geom::CartesianPatchGeometryNd patch_geo(
+            SAMRAI::hier::IntVectorNd(1), bdry_data, bdry_data, dx, x_lo, x_up);
 
         std::vector<double> coordinates{
             0.0, 0.0, 0.0, // outside patch

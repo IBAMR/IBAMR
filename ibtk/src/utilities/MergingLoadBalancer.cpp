@@ -36,44 +36,44 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 void
-MergingLoadBalancer::loadBalanceBoxes(hier::BoxArray<NDIM>& out_boxes,
+MergingLoadBalancer::loadBalanceBoxes(hier::BoxArrayNd& out_boxes,
                                       hier::ProcessorMapping& mapping,
-                                      const hier::BoxList<NDIM>& in_boxes,
-                                      const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
+                                      const hier::BoxListNd& in_boxes,
+                                      const tbox::Pointer<hier::PatchHierarchyNd> hierarchy,
                                       int level_number,
-                                      const hier::BoxArray<NDIM>& physical_domain,
-                                      const hier::IntVector<NDIM>& ratio_to_hierarchy_level_zero,
-                                      const hier::IntVector<NDIM>& min_size,
-                                      const hier::IntVector<NDIM>& max_size,
-                                      const hier::IntVector<NDIM>& cut_factor,
-                                      const hier::IntVector<NDIM>& bad_interval) const
+                                      const hier::BoxArrayNd& physical_domain,
+                                      const hier::IntVectorNd& ratio_to_hierarchy_level_zero,
+                                      const hier::IntVectorNd& min_size,
+                                      const hier::IntVectorNd& max_size,
+                                      const hier::IntVectorNd& cut_factor,
+                                      const hier::IntVectorNd& bad_interval) const
 {
-    mesh::LoadBalancer<NDIM>::loadBalanceBoxes(out_boxes,
-                                               mapping,
-                                               in_boxes,
-                                               hierarchy,
-                                               level_number,
-                                               physical_domain,
-                                               ratio_to_hierarchy_level_zero,
-                                               min_size,
-                                               max_size,
-                                               cut_factor,
-                                               bad_interval);
+    mesh::LoadBalancerNd::loadBalanceBoxes(out_boxes,
+                                           mapping,
+                                           in_boxes,
+                                           hierarchy,
+                                           level_number,
+                                           physical_domain,
+                                           ratio_to_hierarchy_level_zero,
+                                           min_size,
+                                           max_size,
+                                           cut_factor,
+                                           bad_interval);
 
     // pairs of processors and boxes
-    std::vector<std::pair<int, hier::Box<NDIM> > > new_boxes;
+    std::vector<std::pair<int, hier::BoxNd> > new_boxes;
 
     const int n_nodes = IBTK_MPI::getNodes();
     for (int r = 0; r < n_nodes; ++r)
     {
         // get all boxes on processor r.
-        std::vector<hier::Box<NDIM> > boxes;
+        std::vector<hier::BoxNd> boxes;
         for (int i = 0; i < out_boxes.size(); ++i)
             if (mapping.getProcessorAssignment(i) == r) boxes.push_back(out_boxes[i]);
 
         // populate new_boxes with merged boxes.
         const auto merged_boxes = IBTK::merge_boxes_by_longest_edge(boxes);
-        for (const hier::Box<NDIM>& box : merged_boxes) new_boxes.emplace_back(r, box);
+        for (const hier::BoxNd& box : merged_boxes) new_boxes.emplace_back(r, box);
     }
 
     // Overwrite what the parent class did with the merged boxes.

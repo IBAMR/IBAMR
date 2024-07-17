@@ -44,50 +44,48 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LSetDataFactory<T>::LSetDataFactory(IntVector<NDIM> ghosts)
-    : IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >(std::move(ghosts))
+LSetDataFactory<T>::LSetDataFactory(IntVectorNd ghosts) : IndexDataFactoryNd<LSet<T>, CellGeometryNd>(std::move(ghosts))
 {
     // intentionally blank
     return;
 } // LSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> >
-LSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
+Pointer<PatchDataFactoryNd>
+LSetDataFactory<T>::cloneFactory(const IntVectorNd& ghosts)
 {
     return new LSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> >
-LSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
+Pointer<PatchDataNd>
+LSetDataFactory<T>::allocate(const BoxNd& box, Pointer<Arena> pool) const
 {
     if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
-    PatchData<NDIM>* pd =
-        new (pool) LSetData<T>(box, IndexDataFactory<NDIM, LSet<T>, CellGeometry<NDIM> >::getGhostCellWidth());
-    return Pointer<PatchData<NDIM> >(pd, pool);
+    PatchDataNd* pd = new (pool) LSetData<T>(box, IndexDataFactoryNd<LSet<T>, CellGeometryNd>::getGhostCellWidth());
+    return Pointer<PatchDataNd>(pd, pool);
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> >
-LSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
+Pointer<PatchDataNd>
+LSetDataFactory<T>::allocate(const PatchNd& patch, Pointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
 
 template <class T>
 size_t
-LSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
+LSetDataFactory<T>::getSizeOfMemory(const BoxNd& /*box*/) const
 {
     return Arena::align(sizeof(LSetData<T>));
 } // getSizeOfMemory
 
 template <class T>
 bool
-LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
+LSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactoryNd>& dst_pdf) const
 {
     Pointer<LSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;

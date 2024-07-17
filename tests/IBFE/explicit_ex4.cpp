@@ -317,12 +317,12 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
 
         Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -361,16 +361,16 @@ main(int argc, char** argv)
                                               navier_stokes_integrator);
         time_integrator->registerLoadBalancer(load_balancer);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Configure the IBFE solver.
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
@@ -417,8 +417,8 @@ main(int argc, char** argv)
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -495,7 +495,7 @@ main(int argc, char** argv)
                                                   vector<SystemData>(),
                                                   &PK1_dil_stress_fcn_data);
 
-        Pointer<hier::Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
+        Pointer<hier::VariableNd> p_var = navier_stokes_integrator->getPressureVariable();
         Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
         HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
             /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
@@ -767,10 +767,10 @@ main(int argc, char** argv)
 
         if (input_db->getBoolWithDefault("log_scratch_partitioning", false))
         {
-            Pointer<PatchHierarchy<NDIM> > scratch_hier = ib_method_ops->getScratchHierarchy();
+            Pointer<PatchHierarchyNd> scratch_hier = ib_method_ops->getScratchHierarchy();
             TBOX_ASSERT(scratch_hier);
-            Pointer<PatchLevel<NDIM> > patch_level = scratch_hier->getPatchLevel(scratch_hier->getFinestLevelNumber());
-            const BoxArray<NDIM> boxes = patch_level->getBoxes();
+            Pointer<PatchLevelNd> patch_level = scratch_hier->getPatchLevel(scratch_hier->getFinestLevelNumber());
+            const BoxArrayNd boxes = patch_level->getBoxes();
             plog << "Scratch hierarchy boxes:\n";
             for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';
         }

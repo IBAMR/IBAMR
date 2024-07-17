@@ -34,7 +34,7 @@ public:
      * \brief Class constructor.
      */
     LevelSetInitialConditionEgg(const std::string& object_name,
-                                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
+                                const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom,
                                 const IBTK::VectorNd& origin);
 
     /*!
@@ -58,11 +58,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        Pointer<SAMRAI::hier::VariableNd> var,
+                        Pointer<PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL)) override;
+                        Pointer<PatchLevelNd> patch_level = Pointer<PatchLevelNd>(NULL)) override;
 
     //\}
 
@@ -91,7 +91,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
 
     /*!
      * Origin of geometry.

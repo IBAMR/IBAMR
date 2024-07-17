@@ -404,7 +404,7 @@ ConstraintIBMethod::~ConstraintIBMethod()
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_fluidSolve_cib_idx)) level->deallocatePatchData(d_u_fluidSolve_cib_idx);
         if (!d_rho_is_const && level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
     }
@@ -489,30 +489,30 @@ ConstraintIBMethod::calculateEulerianMomentum()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    SAMRAIVectorReal<NDIM, double> wgt_sc("sc_wgt_original", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> wgt_sc("sc_wgt_original", d_hierarchy, coarsest_ln, finest_ln);
     wgt_sc.addComponent(getHierarchyMathOps()->getSideWeightVariable(),
                         getHierarchyMathOps()->getSideWeightPatchDescriptorIndex());
 
     for (int active = 0; active < NDIM; ++active)
     {
-        Pointer<SAMRAIVectorReal<NDIM, double> > wgt_sc_active = wgt_sc.cloneVector("");
+        Pointer<SAMRAIVectorRealNd<double> > wgt_sc_active = wgt_sc.cloneVector("");
         wgt_sc_active->allocateVectorData();
-        wgt_sc_active->copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&wgt_sc, false));
+        wgt_sc_active->copyVector(Pointer<SAMRAIVectorRealNd<double> >(&wgt_sc, false));
 
         // Zero out components other than active dimension.
         const int wgt_sc_active_idx = wgt_sc_active->getComponentDescriptorIndex(0);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<SideDataNd<double> > wgt_sc_active_data = patch->getPatchData(wgt_sc_active_idx);
                 for (int d = 0; d < NDIM; ++d)
                 {
                     if (d != active)
                     {
-                        ArrayData<NDIM, double>& arraydata = wgt_sc_active_data->getArrayData(d);
+                        ArrayDataNd<double>& arraydata = wgt_sc_active_data->getArrayData(d);
                         arraydata.fill(0.0);
                     }
                 }
@@ -553,7 +553,7 @@ ConstraintIBMethod::registerEulerianVariables()
     IBMethod::registerEulerianVariables();
 
     // Register a scratch fluid velocity variable with appropriate IB-width.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     d_u_fluidSolve_var = d_ib_solver->getVelocityVariable();
     Pointer<VariableContext> u_new_ctx = d_ib_solver->getNewContext();
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
@@ -564,10 +564,10 @@ ConstraintIBMethod::registerEulerianVariables()
     // Initialize  variables & variable contexts associated with projection step.
     if (d_needs_div_free_projection)
     {
-        d_u_var = new SideVariable<NDIM, double>(d_object_name + "::u");
-        d_Div_u_var = new CellVariable<NDIM, double>(d_object_name + "::Div_u");
-        d_phi_var = new CellVariable<NDIM, double>(d_object_name + "::phi");
-        const IntVector<NDIM> cell_ghosts = CELLG;
+        d_u_var = new SideVariableNd<double>(d_object_name + "::u");
+        d_Div_u_var = new CellVariableNd<double>(d_object_name + "::Div_u");
+        d_phi_var = new CellVariableNd<double>(d_object_name + "::phi");
+        const IntVectorNd cell_ghosts = CELLG;
         d_phi_idx = var_db->registerVariableAndContext(d_phi_var, d_scratch_context, cell_ghosts);
         d_Div_u_scratch_idx = var_db->registerVariableAndContext(d_Div_u_var, d_scratch_context, cell_ghosts);
     }
@@ -614,7 +614,7 @@ ConstraintIBMethod::registerEulerianVariables()
 #if !defined(NDEBUG)
             TBOX_ASSERT(d_rho_ins_idx >= 0);
 #endif
-            d_rho_var = new SideVariable<NDIM, double>(d_object_name + "::rho");
+            d_rho_var = new SideVariableNd<double>(d_object_name + "::rho");
             d_rho_scratch_idx =
                 var_db->registerVariableAndContext(d_rho_var, d_scratch_context, getMinimumGhostCellWidth());
         }
@@ -627,10 +627,10 @@ void
 ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
     // Obtain the Hierarchy data operations objects
-    HierarchyDataOpsManager<NDIM>* hier_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-    Pointer<CellVariable<NDIM, double> > cc_var = new CellVariable<NDIM, double>("cc_var");
+    HierarchyDataOpsManagerNd* hier_ops_manager = HierarchyDataOpsManagerNd::getManager();
+    Pointer<CellVariableNd<double> > cc_var = new CellVariableNd<double>("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    Pointer<SideVariable<NDIM, double> > sc_var = new SideVariable<NDIM, double>("sc_var");
+    Pointer<SideVariableNd<double> > sc_var = new SideVariableNd<double>("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
     d_wgt_cc_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     d_wgt_sc_idx = getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
@@ -899,7 +899,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     double domain_length[NDIM];
@@ -907,7 +907,7 @@ ConstraintIBMethod::calculateCOMandMOIOfStructures()
     {
         domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
     }
-    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    const IntVectorNd& periodic_shift = grid_geom->getPeriodicShift();
 
     // Zero out the COM vector.
     for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
@@ -1384,9 +1384,9 @@ ConstraintIBMethod::calculateVolumeElement()
 
     // Initialize variables and variable contexts associated with Eulerian
     // tracking of the Lagrangian points.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const IntVector<NDIM> cell_ghosts = 0;
-    Pointer<CellVariable<NDIM, int> > vol_cc_var = new CellVariable<NDIM, int>(d_object_name + "::vol_cc_var");
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    const IntVectorNd cell_ghosts = 0;
+    Pointer<CellVariableNd<int> > vol_cc_var = new CellVariableNd<int>(d_object_name + "::vol_cc_var");
     const int vol_cc_scratch_idx = var_db->registerVariableAndContext(vol_cc_var, d_scratch_context, cell_ghosts);
 
     const int coarsest_ln = 0;
@@ -1394,12 +1394,12 @@ ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(vol_cc_scratch_idx, 0.0);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CellData<NDIM, int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+            Pointer<PatchNd> patch = level->getPatch(p());
+            Pointer<CellDataNd<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
             vol_cc_scratch_idx_data->fill(0, 0);
         }
     }
@@ -1411,7 +1411,7 @@ ConstraintIBMethod::calculateVolumeElement()
 
         // Get LData corresponding to the present position of the structures.
         const boost::multi_array_ref<double, 2>& X_data = *d_l_data_manager->getLData("X", ln)->getLocalFormVecArray();
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
 
         // Get structures on this level.
         const std::vector<int> structIDs = d_l_data_manager->getLagrangianStructureIDs(ln);
@@ -1433,15 +1433,15 @@ ConstraintIBMethod::calculateVolumeElement()
             const int location_struct_handle =
                 find_struct_handle_position(d_ib_kinematics.begin(), d_ib_kinematics.end(), ptr_ib_kinematics);
 
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                Pointer<CartesianGridGeometry<NDIM> > ggeom = level->getGridGeometry();
-                const IntVector<NDIM>& ratio = level->getRatio();
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<CellDataNd<int> > vol_cc_scratch_idx_data = patch->getPatchData(vol_cc_scratch_idx);
+                Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+                Pointer<CartesianGridGeometryNd> ggeom = level->getGridGeometry();
+                const IntVectorNd& ratio = level->getRatio();
                 const double* const dx = pgeom->getDx();
-                const Box<NDIM>& patch_box = patch->getBox();
+                const BoxNd& patch_box = patch->getBox();
 #if (NDIM == 2)
                 const double patch_cell_vol = dx[0] * dx[1];
 #endif
@@ -1460,13 +1460,13 @@ ConstraintIBMethod::calculateVolumeElement()
                     {
                         const int local_idx = node_idx->getLocalPETScIndex();
                         const double* const X = &X_data[local_idx][0];
-                        const CellIndex<NDIM> Lag2Eul_cellindex = IndexUtilities::getCellIndex(X, ggeom, ratio);
+                        const CellIndexNd Lag2Eul_cellindex = IndexUtilities::getCellIndex(X, ggeom, ratio);
 
                         (*vol_cc_scratch_idx_data)(Lag2Eul_cellindex)++;
                     }
                 } // on a patch
 
-                for (CellData<NDIM, int>::Iterator it(patch_box); it; it++)
+                for (CellDataNd<int>::Iterator it(patch_box); it; it++)
                 {
                     if ((*vol_cc_scratch_idx_data)(*it)) d_structure_vol[location_struct_handle] += patch_cell_vol;
 
@@ -1515,7 +1515,7 @@ ConstraintIBMethod::calculateVolumeElement()
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(vol_cc_scratch_idx)) level->deallocatePatchData(vol_cc_scratch_idx);
     }
     var_db->removePatchDataIndex(vol_cc_scratch_idx);
@@ -1950,7 +1950,7 @@ ConstraintIBMethod::applyProjection()
     scratch_idxs.setFlag(d_Div_u_scratch_idx);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_FuRMoRP_new_time);
     }
 
@@ -1960,10 +1960,10 @@ ConstraintIBMethod::applyProjection()
                                d_Div_u_var, // dst
                                +1.0,        // alpha
                                d_u_fluidSolve_idx,
-                               Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
-                               d_no_fill_op,                                             // src_bdry_fill
-                               d_FuRMoRP_new_time,                                       // src_bdry_fill_time
-                               U_current_cf_bdry_synch);                                 // src_cf_bdry_synch
+                               Pointer<SideVariableNd<double> >(d_u_fluidSolve_var), // src
+                               d_no_fill_op,                                         // src_bdry_fill
+                               d_FuRMoRP_new_time,                                   // src_bdry_fill_time
+                               U_current_cf_bdry_synch);                             // src_cf_bdry_synch
 
     if (d_do_log)
     {
@@ -1984,10 +1984,10 @@ ConstraintIBMethod::applyProjection()
     const double Div_u_mean = (1.0 / d_volume) * d_hier_cc_data_ops->integral(d_Div_u_scratch_idx, d_wgt_cc_idx);
     d_hier_cc_data_ops->addScalar(d_Div_u_scratch_idx, d_Div_u_scratch_idx, -Div_u_mean);
 
-    SAMRAIVectorReal<NDIM, double> sol_vec(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> sol_vec(d_object_name + "::sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     sol_vec.addComponent(d_phi_var, d_phi_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
-    SAMRAIVectorReal<NDIM, double> rhs_vec(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> rhs_vec(d_object_name + "::rhs_vec", d_hierarchy, coarsest_ln, finest_ln);
     rhs_vec.addComponent(d_Div_u_var, d_Div_u_scratch_idx, d_wgt_cc_idx, d_hier_cc_data_ops);
 
     // Setup the Poisson solver.
@@ -2050,22 +2050,22 @@ ConstraintIBMethod::applyProjection()
     if (!d_rho_is_const)
     {
         getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_u_var),
+                                    Pointer<SideVariableNd<double> >(d_u_var),
                                     U_scratch_cf_bdry_synch,
                                     d_rho_scratch_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_rho_var),
+                                    Pointer<SideVariableNd<double> >(d_rho_var),
                                     d_phi_idx,
                                     d_phi_var,
                                     d_no_fill_op,
                                     d_FuRMoRP_new_time,
                                     1.0,
                                     d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_u_var));
+                                    Pointer<SideVariableNd<double> >(d_u_var));
     }
     else
     {
         getHierarchyMathOps()->grad(d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_u_var),
+                                    Pointer<SideVariableNd<double> >(d_u_var),
                                     U_scratch_cf_bdry_synch,
                                     -1.0 / d_rho_fluid,
                                     d_phi_idx,
@@ -2074,13 +2074,13 @@ ConstraintIBMethod::applyProjection()
                                     d_FuRMoRP_new_time,
                                     1.0,
                                     d_u_fluidSolve_idx,
-                                    Pointer<SideVariable<NDIM, double> >(d_u_var));
+                                    Pointer<SideVariableNd<double> >(d_u_var));
     }
 
     // Update pressure p = p + phi/dt
-    const Pointer<Variable<NDIM> > p_var = d_ib_solver->getPressureVariable();
+    const Pointer<VariableNd> p_var = d_ib_solver->getPressureVariable();
     const Pointer<VariableContext> p_ctx = d_ib_solver->getNewContext();
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
     const double dt = d_FuRMoRP_new_time - d_FuRMoRP_current_time;
     d_hier_cc_data_ops->axpy(p_idx, 1.0 / dt, d_phi_idx, p_idx);
@@ -2094,10 +2094,10 @@ ConstraintIBMethod::applyProjection()
                                    d_Div_u_var, // dst
                                    +1.0,        // alpha
                                    d_u_fluidSolve_idx,
-                                   Pointer<SideVariable<NDIM, double> >(d_u_fluidSolve_var), // src
-                                   d_no_fill_op,                                             // src_bdry_fill
-                                   d_FuRMoRP_new_time,                                       // src_bdry_fill_time
-                                   U_current_cf_bdry_synch);                                 // src_cf_bdry_synch
+                                   Pointer<SideVariableNd<double> >(d_u_fluidSolve_var), // src
+                                   d_no_fill_op,                                         // src_bdry_fill
+                                   d_FuRMoRP_new_time,                                   // src_bdry_fill_time
+                                   U_current_cf_bdry_synch);                             // src_cf_bdry_synch
 
         const double Div_u_norm_1 = d_hier_cc_data_ops->L1Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
         const double Div_u_norm_2 = d_hier_cc_data_ops->L2Norm(d_Div_u_scratch_idx, d_wgt_cc_idx);
@@ -2111,7 +2111,7 @@ ConstraintIBMethod::applyProjection()
     // Deallocate scratch data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(scratch_idxs);
     }
 
@@ -2349,17 +2349,17 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
-    SAMRAIVectorReal<NDIM, double> u_from(d_object_name + "from", d_hierarchy, coarsest_ln, finest_ln);
-    SAMRAIVectorReal<NDIM, double> u_to(d_object_name + "to", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> u_from(d_object_name + "from", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> u_to(d_object_name + "to", d_hierarchy, coarsest_ln, finest_ln);
 
     u_from.addComponent(d_u_fluidSolve_var, copy_from_idx, d_wgt_sc_idx);
     u_to.addComponent(d_u_fluidSolve_var, copy_to_idx, d_wgt_sc_idx);
 
-    u_to.copyVector(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_from, false));
+    u_to.copyVector(Pointer<SAMRAIVectorRealNd<double> >(&u_from, false));
 
     using InterpolationTransactionComponent = IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps;
@@ -2369,7 +2369,7 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
                                                 SIDE_DATA_COARSEN_TYPE,
                                                 BDRY_EXTRAP_TYPE,
                                                 CONSISTENT_TYPE_2_BDRY,
-                                                std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr),
+                                                std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>(NDIM, nullptr),
                                                 nullptr);
     transaction_comps.push_back(component);
 
@@ -2390,7 +2390,7 @@ ConstraintIBMethod::copyDensityVariable(int copy_from_idx, int copy_to_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(copy_to_idx)) level->allocatePatchData(copy_to_idx);
     }
 
@@ -2442,8 +2442,8 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     // zero-out the scratch variable, spread to it and then add the correction
     // to u_ins. This assumes that the structure is away from the physical
     // domain.
-    SAMRAIVectorReal<NDIM, double> u_cib(d_object_name + "cib", d_hierarchy, coarsest_ln, finest_ln);
-    SAMRAIVectorReal<NDIM, double> u_ins(d_object_name + "ins", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> u_cib(d_object_name + "cib", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> u_ins(d_object_name + "ins", d_hierarchy, coarsest_ln, finest_ln);
 
     u_cib.addComponent(d_u_fluidSolve_var, d_u_fluidSolve_cib_idx, d_wgt_sc_idx);
     u_ins.addComponent(d_u_fluidSolve_var, d_u_fluidSolve_idx, d_wgt_sc_idx);
@@ -2451,8 +2451,7 @@ ConstraintIBMethod::spreadCorrectedLagrangianVelocity()
     u_cib.setToScalar(0.0);
     d_l_data_manager->spread(d_u_fluidSolve_cib_idx, F_data, X_data, d_u_phys_bdry_op);
 
-    u_ins.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&u_ins, false),
-              Pointer<SAMRAIVectorReal<NDIM, double> >(&u_cib, false));
+    u_ins.add(Pointer<SAMRAIVectorRealNd<double> >(&u_ins, false), Pointer<SAMRAIVectorRealNd<double> >(&u_cib, false));
 
     return;
 } // spreadCorrectedLagrangianVelocity

@@ -70,16 +70,15 @@ VCSCViscousPETScLevelSolver::~VCSCViscousPETScLevelSolver()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorReal<NDIM, double>& x,
-                                                              const SAMRAIVectorReal<NDIM, double>& /*b*/)
+VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRealNd<double>& x,
+                                                              const SAMRAIVectorRealNd<double>& /*b*/)
 {
     // Allocate DOF index data.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<SideDataFactory<NDIM, double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    Pointer<SideDataFactoryNd<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     const int depth = x_fac->getDefaultDepth();
-    Pointer<SideDataFactory<NDIM, int> > dof_index_fac =
-        var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
+    Pointer<SideDataFactoryNd<int> > dof_index_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
     dof_index_fac->setDefaultDepth(depth);
     if (!d_level->checkAllocated(d_dof_index_idx)) d_level->allocatePatchData(d_dof_index_idx);
     PETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_dof_index_idx, d_level);
@@ -115,21 +114,21 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
 void
 VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                           Vec& petsc_b,
-                                          SAMRAIVectorReal<NDIM, double>& x,
-                                          SAMRAIVectorReal<NDIM, double>& b)
+                                          SAMRAIVectorRealNd<double>& x,
+                                          SAMRAIVectorRealNd<double>& b)
 {
     if (d_initial_guess_nonzero) copyToPETScVec(petsc_x, x);
     const bool level_zero = (d_level_num == 0);
     const int x_idx = x.getComponentDescriptorIndex(0);
     const int b_idx = b.getComponentDescriptorIndex(0);
     const auto b_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(b_idx);
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-        Pointer<SideData<NDIM, double> > x_data = patch->getPatchData(x_idx);
-        Pointer<SideData<NDIM, double> > b_data = patch->getPatchData(b_idx);
-        Pointer<SideData<NDIM, double> > b_adj_data = patch->getPatchData(b_adj_idx);
+        Pointer<PatchNd> patch = d_level->getPatch(p());
+        Pointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
+        Pointer<SideDataNd<double> > x_data = patch->getPatchData(x_idx);
+        Pointer<SideDataNd<double> > b_data = patch->getPatchData(b_idx);
+        Pointer<SideDataNd<double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)
@@ -143,8 +142,8 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
                                                                        d_homogeneous_bc,
                                                                        d_mu_interp_type);
         }
-        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM> >() :
+        const Array<BoundaryBoxNd>& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBoxNd>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1, d_mu_interp_type);
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_cf_bdry)

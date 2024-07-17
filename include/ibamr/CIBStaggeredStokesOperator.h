@@ -83,8 +83,8 @@ public:
      * \note CIBStaggeredStokesOperator requires a different communication pattern than StaggeredStokes operator.  In
      * particular, CIBStaggeredStokesOperator needs ghost cells to be filled in corners and (in 3D) edges.
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorRealNd<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by

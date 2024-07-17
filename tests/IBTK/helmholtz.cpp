@@ -58,45 +58,45 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Create variables and register them with the variable database.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         Pointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc");
-        Pointer<CellVariable<NDIM, double> > f_cc_var = new CellVariable<NDIM, double>("f_cc");
-        Pointer<CellVariable<NDIM, double> > e_cc_var = new CellVariable<NDIM, double>("e_cc");
-        Pointer<CellVariable<NDIM, double> > r_cc_var = new CellVariable<NDIM, double>("r_cc");
+        Pointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc");
+        Pointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc");
+        Pointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc");
+        Pointer<CellVariableNd<double> > r_cc_var = new CellVariableNd<double>("r_cc");
 
-        Pointer<SideVariable<NDIM, double> > D_coef_sc_var = new SideVariable<NDIM, double>("D_coef_sc");
-        Pointer<CellVariable<NDIM, double> > C_coef_var = new CellVariable<NDIM, double>("C_coef");
+        Pointer<SideVariableNd<double> > D_coef_sc_var = new SideVariableNd<double>("D_coef_sc");
+        Pointer<CellVariableNd<double> > C_coef_var = new CellVariableNd<double>("C_coef");
 
-        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVector<NDIM>(1));
+        const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVectorNd(1));
         const int u_ex_idx =
-            var_db->registerVariableAndContext(u_cc_var, var_db->getContext("U::EXACT"), IntVector<NDIM>(1));
-        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVector<NDIM>(1));
-        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVector<NDIM>(1));
-        const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVector<NDIM>(1));
+            var_db->registerVariableAndContext(u_cc_var, var_db->getContext("U::EXACT"), IntVectorNd(1));
+        const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVectorNd(1));
+        const int e_cc_idx = var_db->registerVariableAndContext(e_cc_var, ctx, IntVectorNd(1));
+        const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVectorNd(1));
 
-        const int C_coef_idx = var_db->registerVariableAndContext(C_coef_var, ctx, IntVector<NDIM>(1));
-        const int D_coef_sc_idx = var_db->registerVariableAndContext(D_coef_sc_var, ctx, IntVector<NDIM>(1));
+        const int C_coef_idx = var_db->registerVariableAndContext(C_coef_var, ctx, IntVectorNd(1));
+        const int D_coef_sc_idx = var_db->registerVariableAndContext(D_coef_sc_var, ctx, IntVectorNd(1));
 
         // Register variables for plotting.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
@@ -121,7 +121,7 @@ main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
@@ -135,10 +135,10 @@ main(int argc, char* argv[])
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         const int h_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        SAMRAIVectorReal<NDIM, double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        SAMRAIVectorReal<NDIM, double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorRealNd<double> u_vec("u", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorRealNd<double> f_vec("f", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorRealNd<double> e_vec("e", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
+        SAMRAIVectorRealNd<double> r_vec("r", patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
         u_vec.addComponent(u_cc_var, u_cc_idx, h_cc_idx);
         f_vec.addComponent(f_cc_var, f_cc_idx, h_cc_idx);
@@ -171,9 +171,9 @@ main(int argc, char* argv[])
             D_fcn.setDataOnPatchHierarchy(D_coef_sc_idx, D_coef_sc_var, patch_hierarchy, 0.0);
         }
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(
             patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
-        HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(
+        HierarchySideDataOpsRealNd<double> hier_sc_data_ops(
             patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
         // Setup the Poisson solver.
@@ -182,7 +182,7 @@ main(int argc, char* argv[])
         const bool D_is_const = input_db->getBool("D_IS_CONST");
         const bool C_is_var = input_db->getBool("C_IS_VAR");
 
-        RobinBcCoefStrategy<NDIM>* bc_coef =
+        RobinBcCoefStrategyNd* bc_coef =
             new muParserRobinBcCoefs("u_bc_coef", app_initializer->getComponentDatabase("UBcCoefs"), grid_geometry);
 
         const double K = 1.0;
@@ -236,8 +236,8 @@ main(int argc, char* argv[])
         poisson_solver->solveSystem(u_vec, f_vec);
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&e_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&u_vec, false));
+        e_vec.subtract(Pointer<SAMRAIVectorRealNd<double> >(&e_vec, false),
+                       Pointer<SAMRAIVectorRealNd<double> >(&u_vec, false));
 
         const double Linf_norm = e_vec.maxNorm();
         const double L1_norm = e_vec.L1Norm();
@@ -255,8 +255,8 @@ main(int argc, char* argv[])
 
         // Compute the residual and print residual norms.
         laplace_op.apply(u_vec, r_vec);
-        r_vec.subtract(Pointer<SAMRAIVectorReal<NDIM, double> >(&f_vec, false),
-                       Pointer<SAMRAIVectorReal<NDIM, double> >(&r_vec, false));
+        r_vec.subtract(Pointer<SAMRAIVectorRealNd<double> >(&f_vec, false),
+                       Pointer<SAMRAIVectorRealNd<double> >(&r_vec, false));
         pout << "|r|_oo = " << r_vec.maxNorm() << "\n";
         pout << "|r|_2  = " << r_vec.L2Norm() << "\n";
         pout << "|r|_1  = " << r_vec.L1Norm() << "\n";
@@ -265,21 +265,21 @@ main(int argc, char* argv[])
         // are covered by finer grid patches) to equal zero.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber() - 1; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            BoxArray<NDIM> refined_region_boxes;
-            Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            BoxArrayNd refined_region_boxes;
+            Pointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > e_cc_data = patch->getPatchData(e_cc_idx);
-                Pointer<CellData<NDIM, double> > r_cc_data = patch->getPatchData(r_cc_idx);
+                Pointer<PatchNd> patch = level->getPatch(p());
+                const BoxNd& patch_box = patch->getBox();
+                Pointer<CellDataNd<double> > e_cc_data = patch->getPatchData(e_cc_idx);
+                Pointer<CellDataNd<double> > r_cc_data = patch->getPatchData(r_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
-                    const Box<NDIM> refined_box = refined_region_boxes[i];
-                    const Box<NDIM> intersection = Box<NDIM>::grow(patch_box, 1) * refined_box;
+                    const BoxNd refined_box = refined_region_boxes[i];
+                    const BoxNd intersection = BoxNd::grow(patch_box, 1) * refined_box;
                     if (!intersection.empty())
                     {
                         e_cc_data->fillAll(0.0, intersection);

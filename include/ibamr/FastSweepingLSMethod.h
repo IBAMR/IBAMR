@@ -101,9 +101,9 @@ private:
     /*!
      * \brief Do one fast sweep over a patch.
      */
-    void fastSweep(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                   const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                   const SAMRAI::hier::Box<NDIM>& domain_box) const;
+    void fastSweep(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > dist_data,
+                   const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                   const SAMRAI::hier::BoxNd& domain_box) const;
 
     /*!
      * Read input values from a given database.

@@ -31,7 +31,7 @@ namespace IBTK
  * Refine operators must implement five methods to be valid extensions of RefineOperator. We must also register the new
  * refine operator with the GridGeometry before we can use it.
  */
-class TotalAmountRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class TotalAmountRefine : public SAMRAI::xfer::RefineOperatorNd
 {
 public:
     /*!
@@ -47,7 +47,7 @@ public:
     /*!
      * \brief Returns true if the refinement operation matches the given variable and operation name.
      */
-    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd>& var,
                             const std::string& op_name) const override;
     /*!
      * \brief Returns the operator name.
@@ -63,18 +63,18 @@ public:
     /*!
      * \brief Return the stencil width of the operator.
      */
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const override;
+    SAMRAI::hier::IntVectorNd getStencilWidth() const override;
 
     /*!
      * \brief Refine the source component into the destination component in the box fine_box. Note the coarse patch is
      * gaurenteed to have sufficient data for the stencil width of the operator.
      */
-    void refine(SAMRAI::hier::Patch<NDIM>& fine,
-                const SAMRAI::hier::Patch<NDIM>& coarse,
+    void refine(SAMRAI::hier::PatchNd& fine,
+                const SAMRAI::hier::PatchNd& coarse,
                 const int dst_component,
                 const int src_component,
-                const SAMRAI::hier::Box<NDIM>& fine_box,
-                const SAMRAI::hier::IntVector<NDIM>& ratio) const override;
+                const SAMRAI::hier::BoxNd& fine_box,
+                const SAMRAI::hier::IntVectorNd& ratio) const override;
 
 private:
     static std::string s_object_name;
@@ -87,7 +87,7 @@ private:
  * Coarsen operators must implement five methods to be valid extensions of CoarsenOperator. We must also register the
  * new coarsen operator with the GridGeometry before we can use it.
  */
-class TotalAmountCoarsen : public SAMRAI::xfer::CoarsenOperator<NDIM>
+class TotalAmountCoarsen : public SAMRAI::xfer::CoarsenOperatorNd
 {
 public:
     /*!
@@ -103,7 +103,7 @@ public:
     /*!
      * \brief Returns true if the coarsening operation matches the given variable and operation name.
      */
-    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd>& var,
                              const std::string& op_name) const override;
 
     /*!
@@ -120,18 +120,18 @@ public:
     /*!
      * \brief Return the stencil width of the operator.
      */
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const override;
+    SAMRAI::hier::IntVectorNd getStencilWidth() const override;
 
     /*!
      * \brief Coarsen the source component on the fine patch to the destination component on the coarse patch. The fine
      * patch is guaranteed to contain sufficient ghost cell width for the stencil width of the operator.
      */
-    void coarsen(SAMRAI::hier::Patch<NDIM>& coarse,
-                 const SAMRAI::hier::Patch<NDIM>& fine,
+    void coarsen(SAMRAI::hier::PatchNd& coarse,
+                 const SAMRAI::hier::PatchNd& fine,
                  const int dst_component,
                  const int src_component,
-                 const SAMRAI::hier::Box<NDIM>& coarse_box,
-                 const SAMRAI::hier::IntVector<NDIM>& ratio) const override;
+                 const SAMRAI::hier::BoxNd& coarse_box,
+                 const SAMRAI::hier::IntVectorNd& ratio) const override;
 
 private:
     static std::string s_object_name;

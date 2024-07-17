@@ -78,7 +78,7 @@ public:
      *
      * \param x value where the Jacobian is to be evaluated
      */
-    void formJacobian(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u) override;
+    void formJacobian(SAMRAI::solv::SAMRAIVectorRealNd<double>& u) override;
 
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
@@ -86,7 +86,7 @@ public:
      * \note This member function returns a NULL pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const override;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getBaseVector() const override;
 
     //\}
 
@@ -117,8 +117,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& y) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -152,8 +151,8 @@ public:
      *
      * \note The default implementation is empty.
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorRealNd<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -204,7 +203,7 @@ private:
     SAMRAI::tbox::Pointer<GeneralOperator> d_F;
     SAMRAI::tbox::Pointer<PETScNewtonKrylovSolver> d_nonlinear_solver;
     Mat d_petsc_jac = nullptr;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_op_u, d_op_x, d_op_y;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_op_u, d_op_x, d_op_y;
     Vec d_petsc_u = nullptr, d_petsc_x = nullptr, d_petsc_y = nullptr;
     std::string d_options_prefix;
 };

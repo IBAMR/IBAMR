@@ -33,8 +33,8 @@ namespace IBTK
 inline LNodeIndex::LNodeIndex(const int lagrangian_nidx,
                               const int global_petsc_nidx,
                               const int local_petsc_nidx,
-                              const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset,
-                              const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset,
+                              const SAMRAI::hier::IntVectorNd& initial_periodic_offset,
+                              const SAMRAI::hier::IntVectorNd& current_periodic_offset,
                               const Vector& initial_periodic_displacement,
                               const Vector& current_periodic_displacement)
     : d_lagrangian_nidx(lagrangian_nidx),
@@ -62,7 +62,7 @@ inline LNodeIndex::LNodeIndex(const LNodeIndex& from)
     return;
 } // LNodeIndex
 
-inline LNodeIndex::LNodeIndex(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
+inline LNodeIndex::LNodeIndex(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVectorNd& offset)
     : d_lagrangian_nidx(-1),
       d_global_petsc_nidx(-1),
       d_local_petsc_nidx(-1),
@@ -131,20 +131,20 @@ LNodeIndex::setLocalPETScIndex(const int local_petsc_nidx)
 } // setLocalPETScIndex
 
 inline void
-LNodeIndex::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement)
+LNodeIndex::registerPeriodicShift(const SAMRAI::hier::IntVectorNd& offset, const Vector& displacement)
 {
     d_offset += offset;
     d_displacement += displacement;
     return;
 } // registerPeriodicShift
 
-inline const SAMRAI::hier::IntVector<NDIM>&
+inline const SAMRAI::hier::IntVectorNd&
 LNodeIndex::getInitialPeriodicOffset() const
 {
     return d_offset_0;
 } // getInitialPeriodicOffset
 
-inline const SAMRAI::hier::IntVector<NDIM>&
+inline const SAMRAI::hier::IntVectorNd&
 LNodeIndex::getPeriodicOffset() const
 {
     return d_offset;
@@ -163,8 +163,8 @@ LNodeIndex::getPeriodicDisplacement() const
 } // getPeriodicDisplacement
 
 inline void
-LNodeIndex::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index*/,
-                           const SAMRAI::hier::IntVector<NDIM>& /*src_offset*/,
+LNodeIndex::copySourceItem(const SAMRAI::hier::IndexNd& /*src_index*/,
+                           const SAMRAI::hier::IntVectorNd& /*src_offset*/,
                            const LNodeIndex& src_item)
 {
     assignThatToThis(src_item);
@@ -192,7 +192,7 @@ LNodeIndex::packStream(SAMRAI::tbox::AbstractStream& stream)
 } // packStream
 
 inline void
-LNodeIndex::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& /*offset*/)
+LNodeIndex::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVectorNd& /*offset*/)
 {
     stream.unpack(&d_lagrangian_nidx, 1);
     stream.unpack(&d_global_petsc_nidx, 1);

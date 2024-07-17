@@ -181,7 +181,7 @@ get_data_time_str(const double data_time, const double current_time, const doubl
  * Get the smallest cell width on the specified level. This operation is
  * collective.
  */
-double get_min_patch_dx(const SAMRAI::hier::PatchLevel<NDIM>& patch_level);
+double get_min_patch_dx(const SAMRAI::hier::PatchLevelNd& patch_level);
 
 template <class T, unsigned N>
 inline std::array<T, N>
@@ -342,7 +342,7 @@ static const int invalid_index = -1;
  * Deallocate a SAMRAIVectorReal.
  */
 inline void
-deallocate_vector_data(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+deallocate_vector_data(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
                        int coarsest_ln = invalid_level_number,
                        int finest_ln = invalid_level_number)
 {
@@ -373,7 +373,7 @@ deallocate_vector_data(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
  * Free the components of a SAMRAIVectorReal.
  */
 inline void
-free_vector_components(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+free_vector_components(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
                        int coarsest_ln = invalid_level_number,
                        int finest_ln = invalid_level_number)
 {

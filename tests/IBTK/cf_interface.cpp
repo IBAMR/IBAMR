@@ -53,27 +53,27 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
         // Create cell-centered and node-centered quantities, and initialize them with a function read from the input
         // file
-        Pointer<Variable<NDIM> > Q_var;
+        Pointer<VariableNd> Q_var;
         if (input_db->getString("CENTERING").compare("CELL") == 0)
-            Q_var = new CellVariable<NDIM, double>("Q");
+            Q_var = new CellVariableNd<double>("Q");
         else if (input_db->getString("CENTERING").compare("SIDE") == 0)
-            Q_var = new SideVariable<NDIM, double>("Q");
+            Q_var = new SideVariableNd<double>("Q");
 
         auto Q_fcn = [](const VectorNd& x) -> double
         {
@@ -82,9 +82,9 @@ main(int argc, char* argv[])
             return val;
         };
 
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
+        auto var_db = VariableDatabaseNd::getDatabase();
         // Total amount patch indices. Note we need a single ghost cell width on the cell centered quantity.
-        const int Q_idx = var_db->registerVariableAndContext(Q_var, var_db->getContext("CTX"), IntVector<NDIM>(1));
+        const int Q_idx = var_db->registerVariableAndContext(Q_var, var_db->getContext("CTX"), IntVectorNd(1));
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
         int tag_buffer = 1;
@@ -101,28 +101,28 @@ main(int argc, char* argv[])
         int coarsest_ln = 0, finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_idx);
         }
 
         // Fill in initial data
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double* const xlow = pgeom->getXLower();
-                const hier::Index<NDIM>& idx_low = patch->getBox().lower();
-                Pointer<CellData<NDIM, double> > Q_cc_data = patch->getPatchData(Q_idx);
-                Pointer<SideData<NDIM, double> > Q_sc_data = patch->getPatchData(Q_idx);
+                const hier::IndexNd& idx_low = patch->getBox().lower();
+                Pointer<CellDataNd<double> > Q_cc_data = patch->getPatchData(Q_idx);
+                Pointer<SideDataNd<double> > Q_sc_data = patch->getPatchData(Q_idx);
                 if (Q_cc_data)
                 {
-                    for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+                    for (CellIteratorNd ci(patch->getBox()); ci; ci++)
                     {
-                        const CellIndex<NDIM>& idx = ci();
+                        const CellIndexNd& idx = ci();
                         VectorNd x;
                         for (int d = 0; d < NDIM; ++d)
                             x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
@@ -133,9 +133,9 @@ main(int argc, char* argv[])
                 {
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for (SideIterator<NDIM> si(patch->getBox(), axis); si; si++)
+                        for (SideIteratorNd si(patch->getBox(), axis); si; si++)
                         {
-                            const SideIndex<NDIM>& idx = si();
+                            const SideIndexNd& idx = si();
                             VectorNd x;
                             for (int d = 0; d < NDIM; ++d)
                                 x[d] = xlow[d] +
@@ -159,20 +159,19 @@ main(int argc, char* argv[])
 
         {
             int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double* const xlow = pgeom->getXLower();
-                const hier::Index<NDIM>& idx_low = patch->getBox().lower();
-                Pointer<CellData<NDIM, double> > Q_cc_data = patch->getPatchData(Q_idx);
-                Pointer<SideData<NDIM, double> > Q_sc_data = patch->getPatchData(Q_idx);
-                IntVector<NDIM> ghost_cells =
-                    Q_cc_data ? Q_cc_data->getGhostCellWidth() : Q_sc_data->getGhostCellWidth();
+                const hier::IndexNd& idx_low = patch->getBox().lower();
+                Pointer<CellDataNd<double> > Q_cc_data = patch->getPatchData(Q_idx);
+                Pointer<SideDataNd<double> > Q_sc_data = patch->getPatchData(Q_idx);
+                IntVectorNd ghost_cells = Q_cc_data ? Q_cc_data->getGhostCellWidth() : Q_sc_data->getGhostCellWidth();
                 // Only print ghost cells on the left side.
-                Box<NDIM> ghost_box = patch->getBox();
+                BoxNd ghost_box = patch->getBox();
                 ghost_box.upper(0) = ghost_box.lower(0) + (ghost_cells(0) - 1);
                 ghost_box.shift(0, -ghost_cells(0));
 
@@ -186,9 +185,9 @@ main(int argc, char* argv[])
 
                 if (Q_cc_data)
                 {
-                    for (CellIterator<NDIM> ci(ghost_box); ci; ci++)
+                    for (CellIteratorNd ci(ghost_box); ci; ci++)
                     {
-                        const CellIndex<NDIM>& idx = ci();
+                        const CellIndexNd& idx = ci();
                         VectorNd x;
                         for (int d = 0; d < NDIM; ++d)
                             x[d] = xlow[d] + dx[d] * (static_cast<double>(idx(d) - idx_low(d)) + 0.5);
@@ -205,9 +204,9 @@ main(int argc, char* argv[])
                 {
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for (SideIterator<NDIM> si(ghost_box, axis); si; si++)
+                        for (SideIteratorNd si(ghost_box, axis); si; si++)
                         {
-                            const SideIndex<NDIM>& idx = si();
+                            const SideIndexNd& idx = si();
                             VectorNd x;
                             for (int d = 0; d < NDIM; ++d)
                                 x[d] = xlow[d] +
@@ -228,7 +227,7 @@ main(int argc, char* argv[])
         // Deallocate patch data
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_idx);
         }
 

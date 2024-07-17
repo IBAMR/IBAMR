@@ -107,10 +107,10 @@ public:
      * \brief Class constructor.
      */
     AdvDiffWavePropConvectiveOperator(std::string object_name,
-                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                       const ConvectiveDifferencingType difference_form,
-                                      std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> conc_bc_coefs);
+                                      std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> conc_bc_coefs);
     /*!
      * \brief Destructor.
      */
@@ -121,10 +121,10 @@ public:
      */
     static SAMRAI::tbox::Pointer<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       const ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& conc_bc_coefs)
+                      const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& conc_bc_coefs)
     {
         return new AdvDiffWavePropConvectiveOperator(object_name, Q_var, input_db, difference_form, conc_bc_coefs);
     }
@@ -164,8 +164,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorRealNd<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -207,22 +207,22 @@ private:
     AdvDiffWavePropConvectiveOperator& operator=(const AdvDiffWavePropConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg_Q;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds_Q;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_ghostfill_alg_Q;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_ghostfill_strategy_Q;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_ghostfill_scheds_Q;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithmNd> d_coarsen_alg_Q;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> > d_coarsen_scheds_Q;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> d_ghostfill_alg_Q;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategyNd> d_ghostfill_strategy_Q;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> > d_ghostfill_scheds_Q;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_Q_var;
     int d_Q_scratch_idx = 0;
 
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_conc_bc_coefs;
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_conc_bc_coefs;
     // Reconstruction Order (2*k-1)
     // Currently only available for k=3
     int d_k = 3;

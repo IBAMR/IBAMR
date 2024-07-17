@@ -53,7 +53,7 @@ public:
      * \brief The only constructor of this class.
      */
     FESurfaceDistanceEvaluator(std::string object_name,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                const libMesh::Mesh& mesh,
                                const libMesh::BoundaryMesh& bdry_mesh,
                                const int gcw = 1,
@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Get the map maintaining triangle-cell intersection and neighbors.
      */
-    const std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>&
+    const std::map<SAMRAI::pdat::CellIndexNd, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>&
     getNeighborIntersectionsMap();
 
     /*!
@@ -89,7 +89,7 @@ public:
      * \brief Update the sign of the distance function away from the finite element mesh.
      */
     void updateSignAwayFromInterface(int d_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                      double large_distance = s_large_distance);
 
     /*!
@@ -171,7 +171,7 @@ private:
     /*!
      * Pointer to Patch Hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_patch_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_patch_hierarchy;
 
     /*!
      * Volume mesh object
@@ -208,7 +208,7 @@ private:
      * and its neighboring cells within the ghost cell width. Note that the elements contained in thie
      * map belong to the original solid mesh.
      */
-    std::map<SAMRAI::pdat::CellIndex<NDIM>, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>
+    std::map<SAMRAI::pdat::CellIndexNd, std::set<const libMesh::Elem*>, IBTK::CellIndexFortranOrder>
         d_cell_elem_neighbor_map;
 
     /*!
@@ -228,7 +228,7 @@ private:
     /*!
      * Object to create a bounding box for sign update sweeping algorithm.
      */
-    SAMRAI::hier::Box<NDIM> d_large_struct_box;
+    SAMRAI::hier::BoxNd d_large_struct_box;
 };
 
 } // namespace IBAMR

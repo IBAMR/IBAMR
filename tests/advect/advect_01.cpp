@@ -93,7 +93,7 @@ main(int argc, char* argv[])
         Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor = new AdvectorExplicitPredictorPatchOps(
             "AdvectorExplicitPredictorPatchOps",
             app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops =
             new AdvectorPredictorCorrectorHyperbolicPatchOps(
@@ -101,32 +101,32 @@ main(int argc, char* argv[])
                 app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"),
                 explicit_predictor,
                 grid_geometry);
-        Pointer<HyperbolicLevelIntegrator<NDIM> > hyp_level_integrator =
-            new HyperbolicLevelIntegrator<NDIM>("HyperbolicLevelIntegrator",
-                                                app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
-                                                hyp_patch_ops,
-                                                true,
-                                                using_refined_timestepping);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               hyp_level_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
-        Pointer<TimeRefinementIntegrator<NDIM> > time_integrator =
-            new TimeRefinementIntegrator<NDIM>("TimeRefinementIntegrator",
-                                               app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
-                                               patch_hierarchy,
-                                               hyp_level_integrator,
-                                               gridding_algorithm);
+        Pointer<HyperbolicLevelIntegratorNd> hyp_level_integrator =
+            new HyperbolicLevelIntegratorNd("HyperbolicLevelIntegrator",
+                                            app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
+                                            hyp_patch_ops,
+                                            true,
+                                            using_refined_timestepping);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           hyp_level_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
+        Pointer<TimeRefinementIntegratorNd> time_integrator =
+            new TimeRefinementIntegratorNd("TimeRefinementIntegrator",
+                                           app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
+                                           patch_hierarchy,
+                                           hyp_level_integrator,
+                                           gridding_algorithm);
 
         // Setup the advection velocity.
         const bool u_is_div_free = main_db->getBoolWithDefault("u_is_div_free", false);
@@ -138,7 +138,7 @@ main(int argc, char* argv[])
         {
             output << "advection velocity u is NOT discretely divergence free.\n";
         }
-        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("u");
+        Pointer<FaceVariableNd<double> > u_var = new FaceVariableNd<double>("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         hyp_patch_ops->registerAdvectionVelocity(u_var);
         hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
@@ -150,9 +150,9 @@ main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         output << "solving the advection equation in "
                << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
+        Pointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
-        LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
+        LocationIndexRobinBcCoefsNd physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
         hyp_patch_ops->registerTransportedQuantity(Q_var);
         hyp_patch_ops->setAdvectionVelocity(Q_var, u_var);
@@ -202,7 +202,7 @@ main(int argc, char* argv[])
                << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
                << "Computing error norms.\n\n";
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         const Pointer<VariableContext> Q_ctx = hyp_level_integrator->getCurrentContext();
         const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
         const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
@@ -220,7 +220,7 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(Q_idx, Q_idx, Q_cloned_idx);
         output << "Error in " << Q_var->getName() << " at time " << loop_time << ":\n"
                << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(Q_idx, wgt_idx) << "\n"

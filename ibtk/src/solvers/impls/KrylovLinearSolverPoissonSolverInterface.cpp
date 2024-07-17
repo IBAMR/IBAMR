@@ -57,7 +57,7 @@ KrylovLinearSolverPoissonSolverInterface::setPoissonSpecifications(const Poisson
 } // setPoissonSpecifications
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategyNd* bc_coef)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)
@@ -72,7 +72,7 @@ KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoef(RobinBcCoefStrategy<
 } // setPhysicalBcCoef
 
 void
-KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+KrylovLinearSolverPoissonSolverInterface::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& bc_coefs)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)

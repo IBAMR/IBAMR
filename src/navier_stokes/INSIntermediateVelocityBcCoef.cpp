@@ -50,9 +50,9 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
-                                                             const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                             const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
                                                              const bool homogeneous_bc)
-    : d_comp_idx(comp_idx), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
+    : d_comp_idx(comp_idx), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(nullptr))
 {
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);
@@ -60,7 +60,7 @@ INSIntermediateVelocityBcCoef::INSIntermediateVelocityBcCoef(const int comp_idx,
 } // INSIntermediateVelocityBcCoef
 
 void
-INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSIntermediateVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
@@ -120,12 +120,12 @@ INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                          Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                          Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                          const Pointer<Variable<NDIM> >& variable,
-                                          const Patch<NDIM>& patch,
-                                          const BoundaryBox<NDIM>& bdry_box,
+INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
+                                          Pointer<ArrayDataNd<double> >& bcoef_data,
+                                          Pointer<ArrayDataNd<double> >& gcoef_data,
+                                          const Pointer<VariableNd>& variable,
+                                          const PatchNd& patch,
+                                          const BoundaryBoxNd& bdry_box,
                                           double fill_time) const
 {
 #if !defined(NDEBUG)
@@ -140,7 +140,7 @@ INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& aco
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+IntVectorNd
 INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
@@ -149,10 +149,10 @@ INSIntermediateVelocityBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
-    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVectorNd ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVectorNd::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 } // numberOfExtensionsFillable

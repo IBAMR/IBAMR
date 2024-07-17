@@ -74,19 +74,19 @@ main(int argc, char** argv)
     Pointer<Database> input_db = app_initializer->getInputDatabase();
     const int N = input_db->getInteger("N");
 
-    IntVector<NDIM> ratio(2);
+    IntVectorNd ratio(2);
     // Set up ctor arguments:
-    IntVector<NDIM> lower(0);
-    IntVector<NDIM> upper(ratio(0) * N);
-    Box<NDIM> patch_box(lower, upper);
-    std::vector<Box<NDIM> > nonoverlapping_patch_boxes;
+    IntVectorNd lower(0);
+    IntVectorNd upper(ratio(0) * N);
+    BoxNd patch_box(lower, upper);
+    std::vector<BoxNd> nonoverlapping_patch_boxes;
     {
-        IntVector<NDIM> mid(ratio(0) * N / 2);
+        IntVectorNd mid(ratio(0) * N / 2);
         nonoverlapping_patch_boxes.emplace_back(lower, mid);
         nonoverlapping_patch_boxes.emplace_back(mid, upper);
     }
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry =
-        new CartesianGridGeometry<NDIM>("CartesianGridGeometry", input_db->getDatabase("CartesianGeometry"), true);
+    Pointer<CartesianGridGeometryNd> grid_geometry =
+        new CartesianGridGeometryNd("CartesianGridGeometry", input_db->getDatabase("CartesianGeometry"), true);
 
     std::ofstream output("output");
     {

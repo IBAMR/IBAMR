@@ -43,24 +43,24 @@ CartGridBodyForce::isTimeDependent() const
 
 void
 CartGridBodyForce::setDataOnPatch(const int data_idx,
-                                  Pointer<Variable<NDIM> > var,
-                                  Pointer<Patch<NDIM> > patch,
+                                  Pointer<VariableNd> var,
+                                  Pointer<PatchNd> patch,
                                   const double /*data_time*/,
                                   const bool /*initial_time*/,
-                                  Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                  Pointer<PatchLevelNd> /*patch_level*/)
 {
 #ifdef DEBUG_CHECK_ASSERTIONS
     TBOX_ASSERT(!patch.isNull());
     TBOX_ASSERT(!var.isNull());
 #endif
 
-    Pointer<SideVariable<NDIM, double> > copy_to_sc_var = var;
-    Pointer<CellVariable<NDIM, double> > copy_to_cc_var = var;
+    Pointer<SideVariableNd<double> > copy_to_sc_var = var;
+    Pointer<CellVariableNd<double> > copy_to_cc_var = var;
 
     if (!copy_to_sc_var.isNull())
     {
-        Pointer<SideData<NDIM, double> > copy_to_sc_data = patch->getPatchData(data_idx);
-        const Pointer<SideData<NDIM, double> > copy_from_sc_data = patch->getPatchData(d_body_force_idx);
+        Pointer<SideDataNd<double> > copy_to_sc_data = patch->getPatchData(data_idx);
+        const Pointer<SideDataNd<double> > copy_from_sc_data = patch->getPatchData(d_body_force_idx);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!copy_to_sc_data.isNull());
@@ -71,8 +71,8 @@ CartGridBodyForce::setDataOnPatch(const int data_idx,
     }
     else if (!copy_to_cc_var.isNull())
     {
-        Pointer<CellData<NDIM, double> > copy_to_cc_data = patch->getPatchData(data_idx);
-        const Pointer<CellData<NDIM, double> > copy_from_cc_data = patch->getPatchData(d_body_force_idx);
+        Pointer<CellDataNd<double> > copy_to_cc_data = patch->getPatchData(data_idx);
+        const Pointer<CellDataNd<double> > copy_from_cc_data = patch->getPatchData(d_body_force_idx);
 
 #ifdef DEBUG_CHECK_ASSERTIONS
         TBOX_ASSERT(!copy_to_cc_data.isNull());

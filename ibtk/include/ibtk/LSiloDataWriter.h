@@ -86,7 +86,7 @@ public:
     /*!
      * \brief Reset the patch hierarchy over which operations occur.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy);
 
     /*!
      * \brief Reset range of patch levels over which operations occur.
@@ -112,8 +112,8 @@ public:
      * block of indices must be registered on only \em one MPI process.
      */
     void registerLogicallyCartesianBlock(const std::string& name,
-                                         const SAMRAI::hier::IntVector<NDIM>& nelem,
-                                         const SAMRAI::hier::IntVector<NDIM>& periodic,
+                                         const SAMRAI::hier::IntVectorNd& nelem,
+                                         const SAMRAI::hier::IntVectorNd& periodic,
                                          int first_lag_idx,
                                          int level_number);
 
@@ -125,8 +125,8 @@ public:
      * block of indices must be registered on only \em one MPI process.
      */
     void registerLogicallyCartesianMultiblock(const std::string& name,
-                                              const std::vector<SAMRAI::hier::IntVector<NDIM> >& nelem,
-                                              const std::vector<SAMRAI::hier::IntVector<NDIM> >& periodic,
+                                              const std::vector<SAMRAI::hier::IntVectorNd>& nelem,
+                                              const std::vector<SAMRAI::hier::IntVectorNd>& periodic,
                                               const std::vector<int>& first_lag_idx,
                                               int level_number);
 
@@ -266,7 +266,7 @@ private:
     /*
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = 0, d_finest_ln = 0;
 
     /*
@@ -281,8 +281,8 @@ private:
      */
     std::vector<int> d_nblocks;
     std::vector<std::vector<std::string> > d_block_names;
-    std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > d_block_nelems;
-    std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > d_block_periodic;
+    std::vector<std::vector<SAMRAI::hier::IntVectorNd> > d_block_nelems;
+    std::vector<std::vector<SAMRAI::hier::IntVectorNd> > d_block_periodic;
     std::vector<std::vector<int> > d_block_first_lag_idx;
 
     /*
@@ -292,8 +292,8 @@ private:
     std::vector<int> d_nmbs;
     std::vector<std::vector<std::string> > d_mb_names;
     std::vector<std::vector<int> > d_mb_nblocks;
-    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_nelems;
-    std::vector<std::vector<std::vector<SAMRAI::hier::IntVector<NDIM> > > > d_mb_periodic;
+    std::vector<std::vector<std::vector<SAMRAI::hier::IntVectorNd> > > d_mb_nelems;
+    std::vector<std::vector<std::vector<SAMRAI::hier::IntVectorNd> > > d_mb_periodic;
     std::vector<std::vector<std::vector<int> > > d_mb_first_lag_idx;
 
     /*
