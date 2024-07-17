@@ -308,18 +308,12 @@ IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
     BOOST_WITH_MULTI_ARRAY)
   CHECK_CXX_SOURCE_COMPILES(
     "
-  #include <boost/math/special_functions/round.hpp>
-  int main() {}
-  "
-    BOOST_WITH_ROUND)
-  CHECK_CXX_SOURCE_COMPILES(
-    "
   #include <boost/math/tools/roots.hpp>
   int main() {}
   "
     BOOST_WITH_ROOTS)
   SET(CMAKE_CXX_FLAGS ${_old_cxx_flags})
-  IF(NOT "${BOOST_WITH_MULTI_ARRAY}" OR NOT "${BOOST_WITH_ROUND}" OR NOT "${BOOST_WITH_ROOTS}")
+  IF(NOT "${BOOST_WITH_MULTI_ARRAY}" OR NOT "${BOOST_WITH_ROOTS}")
     MESSAGE(FATAL_ERROR "The provided boost installation does not include at least one required boost header.")
   ENDIF()
 ELSE()
