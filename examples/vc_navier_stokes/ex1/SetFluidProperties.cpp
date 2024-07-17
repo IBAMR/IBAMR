@@ -27,7 +27,7 @@
 
 void
 callSetFluidDensityCallbackFunction(int rho_idx,
-                                    Pointer<Variable<NDIM> > rho_var,
+                                    Pointer<VariableNd> rho_var,
                                     Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                     const int cycle_num,
                                     const double time,
@@ -46,7 +46,7 @@ callSetFluidDensityCallbackFunction(int rho_idx,
 
 void
 callSetFluidViscosityCallbackFunction(int mu_idx,
-                                      Pointer<Variable<NDIM> > mu_var,
+                                      Pointer<VariableNd> mu_var,
                                       Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                       const int cycle_num,
                                       const double time,
@@ -83,7 +83,7 @@ SetFluidProperties::~SetFluidProperties()
 
 void
 SetFluidProperties::setDensityPatchData(int rho_idx,
-                                        Pointer<Variable<NDIM> > rho_var,
+                                        Pointer<VariableNd> rho_var,
                                         Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                         const int /*cycle_num*/,
                                         const double time,
@@ -91,7 +91,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                                         const double /*new_time*/)
 {
     // Set the density based on the function specified in the input file
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     d_rho_fcn->setDataOnPatchHierarchy(rho_idx, rho_var, patch_hierarchy, time);
 
     return;
@@ -99,7 +99,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
 
 void
 SetFluidProperties::setViscosityPatchData(int mu_idx,
-                                          Pointer<Variable<NDIM> > mu_var,
+                                          Pointer<VariableNd> mu_var,
                                           Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                           const int /*cycle_num*/,
                                           const double time,
@@ -107,7 +107,7 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
                                           const double /*new_time*/)
 {
     // Set the viscosity based on the function specified in the input file
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     d_mu_fcn->setDataOnPatchHierarchy(mu_idx, mu_var, patch_hierarchy, time);
 
     return;

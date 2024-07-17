@@ -41,24 +41,24 @@ CFRoliePolyStrategy::CFRoliePolyStrategy(const std::string& object_name, Pointer
 
 void
 CFRoliePolyStrategy::computeStress(int sig_idx,
-                                   Pointer<CellVariable<NDIM, double> > /*sig_var*/,
-                                   Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                   Pointer<CellVariableNd<double> > /*sig_var*/,
+                                   Pointer<PatchHierarchyNd> hierarchy,
                                    double /*data_time*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchNd> patch = level->getPatch(p());
 
-            Pointer<CellData<NDIM, double> > sig_data = patch->getPatchData(sig_idx);
+            Pointer<CellDataNd<double> > sig_data = patch->getPatchData(sig_idx);
 
-            for (CellIterator<NDIM> ci(sig_data->getGhostBox()); ci; ci++)
+            for (CellIteratorNd ci(sig_data->getGhostBox()); ci; ci++)
             {
-                const CellIndex<NDIM>& idx = ci();
+                const CellIndexNd& idx = ci();
                 (*sig_data)(idx, 0) = d_viscosity / d_lambda_d * ((*sig_data)(idx, 0) - 1.0);
                 (*sig_data)(idx, 1) = d_viscosity / d_lambda_d * ((*sig_data)(idx, 0) - 1.0);
                 (*sig_data)(idx, 2) = d_viscosity / d_lambda_d * ((*sig_data)(idx, 0));
@@ -69,28 +69,28 @@ CFRoliePolyStrategy::computeStress(int sig_idx,
 
 void
 CFRoliePolyStrategy::computeRelaxation(const int R_idx,
-                                       Pointer<CellVariable<NDIM, double> > /*R_var*/,
+                                       Pointer<CellVariableNd<double> > /*R_var*/,
                                        int C_idx,
-                                       Pointer<CellVariable<NDIM, double> > /*C_var*/,
+                                       Pointer<CellVariableNd<double> > /*C_var*/,
                                        TensorEvolutionType evolve_type,
-                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                       Pointer<PatchHierarchyNd> hierarchy,
                                        double /*data_time*/)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchNd> patch = level->getPatch(p());
 
-            Pointer<CellData<NDIM, double> > R_data = patch->getPatchData(R_idx);
-            Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(C_idx);
+            Pointer<CellDataNd<double> > R_data = patch->getPatchData(R_idx);
+            Pointer<CellDataNd<double> > C_data = patch->getPatchData(C_idx);
 
-            for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+            for (CellIteratorNd ci(patch->getBox()); ci; ci++)
             {
-                const CellIndex<NDIM>& idx = ci();
+                const CellIndexNd& idx = ci();
                 MatrixNd mat = convert_to_conformation_tensor(*C_data, idx, evolve_type);
                 MatrixNd eye = MatrixNd::Identity();
                 mat = -1.0 / d_lambda_d * (mat - eye) -

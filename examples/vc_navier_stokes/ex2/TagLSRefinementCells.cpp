@@ -25,7 +25,7 @@
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void
-callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchyNd> hierarchy,
                                          const int level_number,
                                          const double /*error_data_time*/,
                                          const int tag_index,
@@ -42,22 +42,22 @@ callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchy<NDIM> 
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 
     // Get the current level set information
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int ls_current_idx = var_db->mapVariableAndContextToIndex(
         ptr_ls_tagger->d_ls_gas_var, ptr_ls_tagger->d_adv_diff_solver->getCurrentContext());
 
     // Tag cells based on the value of the level set variable
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_index);
-        Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(ls_current_idx);
+        Pointer<PatchNd> patch = level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<CellDataNd<int> > tags_data = patch->getPatchData(tag_index);
+        Pointer<CellDataNd<double> > ls_data = patch->getPatchData(ls_current_idx);
 
-        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        for (CellIteratorNd ic(patch_box); ic; ic++)
         {
-            const hier::Index<NDIM>& i = ic();
+            const hier::IndexNd& i = ic();
             const double dist = (*ls_data)(i);
             if (dist - ptr_ls_tagger->d_tag_value <= ptr_ls_tagger->d_tag_abs_thresh)
             {

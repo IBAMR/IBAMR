@@ -97,8 +97,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -138,8 +137,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -277,7 +276,7 @@ private:
     PETScPCLSWrapper& operator=(const PETScPCLSWrapper& that) = delete;
 
     const PC d_petsc_pc;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x, d_b;
     Vec d_petsc_x = nullptr, d_petsc_b = nullptr;
 };
 } // namespace IBTK

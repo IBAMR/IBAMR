@@ -50,7 +50,7 @@ public:
      */
     LSLocateGasInterface(const std::string& object_name,
                          SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
                          const double greater_x_column,
                          const double less_z_column);
 
@@ -96,7 +96,7 @@ private:
     /*!
      * Level set variable
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_var;
 
     /*!
      * Initial level set information.

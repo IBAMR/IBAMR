@@ -203,8 +203,8 @@ CIBMobilitySolver::setVelocityPoissonSpecifications(const PoissonSpecifications&
 } // setVelocityPoissonSpecifications
 
 void
-CIBMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                      RobinBcCoefStrategy<NDIM>* p_bc_coef)
+CIBMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& u_bc_coefs,
+                                      RobinBcCoefStrategyNd* p_bc_coef)
 {
     if (d_mobility_solver_type == KRYLOV)
     {

@@ -34,7 +34,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    BoussinesqForcing(Pointer<Variable<NDIM> > T_var,
+    BoussinesqForcing(Pointer<VariableNd> T_var,
                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
                       int gamma);
 
@@ -59,8 +59,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 Pointer<Variable<NDIM> > var,
-                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 Pointer<VariableNd> var,
+                                 Pointer<PatchHierarchyNd> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -70,11 +70,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        Pointer<VariableNd> var,
+                        Pointer<PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL));
+                        Pointer<PatchLevelNd> patch_level = Pointer<PatchLevelNd>(NULL));
 
     //\}
 
@@ -85,7 +85,7 @@ private:
 
     BoussinesqForcing& operator=(const BoussinesqForcing& that);
 
-    Pointer<Variable<NDIM> > d_T_var;
+    Pointer<VariableNd> d_T_var;
     Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
     double d_gamma;
 };

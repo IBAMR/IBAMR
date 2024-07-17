@@ -52,7 +52,7 @@ namespace VCINSUtilities
  */
 
 void callSetDensityCallbackFunction(int rho_idx,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> rho_var,
                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                     const int cycle_num,
                                     const double time,
@@ -68,7 +68,7 @@ void callSetDensityCallbackFunction(int rho_idx,
  */
 
 void callSetViscosityCallbackFunction(int mu_idx,
-                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> mu_var,
                                       SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                       const int cycle_num,
                                       const double time,
@@ -92,7 +92,7 @@ public:
      */
     SetFluidProperties(const std::string& object_name,
                        SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
                        const double rho_liquid,
                        const double rho_gas,
                        const double mu_liquid,
@@ -114,8 +114,8 @@ public:
      */
     SetFluidProperties(const std::string& object_name,
                        SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_gas_var,
-                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_gas_var,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_solid_var,
                        const double rho_liquid,
                        const double rho_gas,
                        const double rho_solid,
@@ -135,7 +135,7 @@ public:
      * Set the density based on the current level set information.
      */
     inline void setDensityPatchData(int rho_idx,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> rho_var,
                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                     const int cycle_num,
                                     const double time,
@@ -158,7 +158,7 @@ public:
      * Set the viscosity based on the current level set information.
      */
     inline void setViscosityPatchData(int mu_idx,
-                                      SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> mu_var,
                                       SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                       const int cycle_num,
                                       const double time,
@@ -197,7 +197,7 @@ private:
      * Set the density based on the current level set information for two-phase flows.
      */
     void setDensityPatchData2PhaseFlows(int rho_idx,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> rho_var,
                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                         const int cycle_num,
                                         const double time,
@@ -208,7 +208,7 @@ private:
      * Set the density based on the current level set information for three-phase flows.
      */
     void setDensityPatchData3PhaseFlows(int rho_idx,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
+                                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> rho_var,
                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                         const int cycle_num,
                                         const double time,
@@ -219,7 +219,7 @@ private:
      * Set the viscosity based on the current level set information for two-phase flows.
      */
     void setViscosityPatchData2PhaseFlows(int mu_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> mu_var,
                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                           const int cycle_num,
                                           const double time,
@@ -230,7 +230,7 @@ private:
      * Set the viscosity based on the current level set information for three-phase flows.
      */
     void setViscosityPatchData3PhaseFlows(int mu_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> mu_var,
                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                           const int cycle_num,
                                           const double time,
@@ -250,7 +250,7 @@ private:
     /*!
      * Level set variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var, d_ls_solid_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_gas_var, d_ls_solid_var;
 
     /*!
      * Density.
@@ -309,7 +309,7 @@ public:
      */
     GravityForcing(const std::string& object_name,
                    SAMRAI::tbox::Pointer<AdvDiffHierarchyIntegrator> adv_diff_hierarchy_integrator,
-                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_gas_var,
+                   SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_gas_var,
                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                    std::vector<double> grav_const);
 
@@ -334,8 +334,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -345,12 +345,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
 
     //\}
 
@@ -373,7 +373,7 @@ private:
     /*!
      * Level set variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_gas_var;
 
     /*!
      * Vector to store the acceleration due to gravity.

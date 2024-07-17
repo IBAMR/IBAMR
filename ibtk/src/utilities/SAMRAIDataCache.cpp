@@ -68,7 +68,7 @@ can_convert_to(const SAMRAI::tbox::Pointer<T>& t)
 
 template <typename FactoryType>
 std::pair</*depth*/ int, /*ghost_width*/ int>
-get_characteristics(Pointer<PatchDescriptor<NDIM> > patch_descriptor, const int idx)
+get_characteristics(Pointer<PatchDescriptorNd> patch_descriptor, const int idx)
 {
     Pointer<FactoryType> pdat_fac = patch_descriptor->getPatchDataFactory(idx);
     const int depth = pdat_fac->getDefaultDepth();
@@ -83,8 +83,8 @@ template <typename T>
 inline bool
 get_data_characteristics(const int idx, int& depth, int& ghost_width)
 {
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > var;
+    auto var_db = VariableDatabaseNd::getDatabase();
+    Pointer<VariableNd> var;
     var_db->mapIndexToVariable(idx, var);
     auto patch_descriptor = var_db->getPatchDescriptor();
 
@@ -93,50 +93,50 @@ get_data_characteristics(const int idx, int& depth, int& ghost_width)
     // TODO: Make this more generic and extensible.
     bool convertable = false;
     std::pair<int, int> characteristics;
-    if (can_convert_to<CellVariable<NDIM, T> >(var))
+    if (can_convert_to<CellVariableNd<T> >(var))
     {
         convertable = true;
-        characteristics = get_characteristics<CellDataFactory<NDIM, T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<CellDataFactoryNd<T> >(patch_descriptor, idx);
     }
-    else if (can_convert_to<EdgeVariable<NDIM, T> >(var))
+    else if (can_convert_to<EdgeVariableNd<T> >(var))
     {
         convertable = true;
-        characteristics = get_characteristics<EdgeDataFactory<NDIM, T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<EdgeDataFactoryNd<T> >(patch_descriptor, idx);
     }
-    else if (can_convert_to<FaceVariable<NDIM, T> >(var))
+    else if (can_convert_to<FaceVariableNd<T> >(var))
     {
         convertable = true;
-        characteristics = get_characteristics<FaceDataFactory<NDIM, T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<FaceDataFactoryNd<T> >(patch_descriptor, idx);
     }
-    else if (can_convert_to<NodeVariable<NDIM, T> >(var))
+    else if (can_convert_to<NodeVariableNd<T> >(var))
     {
         convertable = true;
-        characteristics = get_characteristics<NodeDataFactory<NDIM, T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<NodeDataFactoryNd<T> >(patch_descriptor, idx);
     }
-    else if (can_convert_to<OuteredgeVariable<NDIM, T> >(var))
+    else if (can_convert_to<OuteredgeVariableNd<T> >(var))
     {
         convertable = true;
-        characteristics = get_characteristics<OuteredgeDataFactory<NDIM, T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<OuteredgeDataFactoryNd<T> >(patch_descriptor, idx);
     }
-    else if (can_convert_to<OuterfaceVariable<NDIM, T> >(var))
+    else if (can_convert_to<OuterfaceVariableNd<T> >(var))
     {
         convertable = true;
-        characteristics = get_characteristics<OuterfaceDataFactory<NDIM, T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<OuterfaceDataFactoryNd<T> >(patch_descriptor, idx);
     }
-    else if (can_convert_to<OuternodeVariable<NDIM, T> >(var))
+    else if (can_convert_to<OuternodeVariableNd<T> >(var))
     {
         convertable = true;
-        characteristics = get_characteristics<OuternodeDataFactory<NDIM, T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<OuternodeDataFactoryNd<T> >(patch_descriptor, idx);
     }
-    else if (can_convert_to<OutersideVariable<NDIM, T> >(var))
+    else if (can_convert_to<OutersideVariableNd<T> >(var))
     {
         convertable = true;
-        characteristics = get_characteristics<OutersideDataFactory<NDIM, T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<OutersideDataFactoryNd<T> >(patch_descriptor, idx);
     }
-    else if (can_convert_to<SideVariable<NDIM, T> >(var))
+    else if (can_convert_to<SideVariableNd<T> >(var))
     {
         convertable = true;
-        characteristics = get_characteristics<SideDataFactory<NDIM, T> >(patch_descriptor, idx);
+        characteristics = get_characteristics<SideDataFactoryNd<T> >(patch_descriptor, idx);
     }
     depth = characteristics.first;
     ghost_width = characteristics.second;
@@ -149,7 +149,7 @@ get_data_characteristics(const int idx, int& depth, int& ghost_width)
 SAMRAIDataCache::~SAMRAIDataCache()
 {
     setPatchHierarchy(nullptr);
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    auto var_db = VariableDatabaseNd::getDatabase();
     for (auto cloned_idx : d_all_cloned_patch_data_idxs)
     {
         var_db->removePatchDataIndex(cloned_idx);
@@ -157,7 +157,7 @@ SAMRAIDataCache::~SAMRAIDataCache()
 }
 
 void
-SAMRAIDataCache::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+SAMRAIDataCache::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
 {
     if (hierarchy != d_hierarchy && d_hierarchy && (d_coarsest_ln != IBTK::invalid_level_number) &&
         (d_finest_ln != IBTK::invalid_level_number))
@@ -167,7 +167,7 @@ SAMRAIDataCache::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
         {
             for (auto ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(cloned_idx)) level->deallocatePatchData(cloned_idx);
             }
         }
@@ -192,12 +192,12 @@ SAMRAIDataCache::resetLevels(const int coarsest_ln, const int finest_ln)
         {
             for (auto ln = d_coarsest_ln; ln < coarsest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(cloned_idx)) level->deallocatePatchData(cloned_idx);
             }
             for (auto ln = finest_ln + 1; ln <= d_finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(cloned_idx)) level->deallocatePatchData(cloned_idx);
             }
         }
@@ -233,8 +233,8 @@ SAMRAIDataCache::lookupCachedPatchDataIndex(const int idx)
     auto it = d_available_data_idx_map.find(data_descriptor);
     if (it == d_available_data_idx_map.end())
     {
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<Variable<NDIM> > var;
+        auto var_db = VariableDatabaseNd::getDatabase();
+        Pointer<VariableNd> var;
         var_db->mapIndexToVariable(idx, var);
         cloned_idx = var_db->registerClonedPatchDataIndex(var, idx);
         d_all_cloned_patch_data_idxs.insert(cloned_idx);
@@ -253,7 +253,7 @@ SAMRAIDataCache::lookupCachedPatchDataIndex(const int idx)
     // Allocate data if needed.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(cloned_idx)) level->allocatePatchData(cloned_idx);
     }
     return cloned_idx;
@@ -287,10 +287,10 @@ SAMRAIDataCache::key_type
 SAMRAIDataCache::construct_data_descriptor(const int idx)
 {
     // TODO: Make this more generic and extensible.
-    Pointer<Variable<NDIM> > var;
-    auto var_db = VariableDatabase<NDIM>::getDatabase();
+    Pointer<VariableNd> var;
+    auto var_db = VariableDatabaseNd::getDatabase();
     var_db->mapIndexToVariable(idx, var);
-    Variable<NDIM>& var_ref = *var;
+    VariableNd& var_ref = *var;
     const std::type_index var_type_id = typeid(var_ref);
     int depth = 0, ghost_width = 0;
     bool convertable = get_data_characteristics<double>(idx, depth, ghost_width) ||

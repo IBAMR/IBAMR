@@ -33,7 +33,7 @@
  * RobinBcCoefStrategy that is used to specify velocity boundary conditions that
  * are determined by a circulation model.
  */
-class VelocityBcCoefs : public RobinBcCoefStrategy<NDIM>
+class VelocityBcCoefs : public RobinBcCoefStrategyNd
 {
 public:
     /*!
@@ -56,19 +56,19 @@ public:
      * \brief Function to fill arrays of Robin boundary condition coefficients
      * at a patch boundary.
      */
-    void setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                    Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                    Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                    const Pointer<hier::Variable<NDIM> >& variable,
-                    const Patch<NDIM>& patch,
-                    const BoundaryBox<NDIM>& bdry_box,
+    void setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
+                    Pointer<ArrayDataNd<double> >& bcoef_data,
+                    Pointer<ArrayDataNd<double> >& gcoef_data,
+                    const Pointer<hier::VariableNd>& variable,
+                    const PatchNd& patch,
+                    const BoundaryBoxNd& bdry_box,
                     double fill_time) const;
 
     /*
      * \brief Return how many cells past the edge or corner of the patch the
      * object can fill.
      */
-    IntVector<NDIM> numberOfExtensionsFillable() const;
+    IntVectorNd numberOfExtensionsFillable() const;
 
     //\}
 

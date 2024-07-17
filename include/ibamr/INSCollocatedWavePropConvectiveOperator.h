@@ -74,7 +74,7 @@ public:
     INSCollocatedWavePropConvectiveOperator(std::string object_name,
                                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                             ConvectiveDifferencingType difference_form,
-                                            std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
+                                            std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> bc_coefs);
 
     /*!
      * \brief Destructor.
@@ -88,7 +88,7 @@ public:
     allocate_operator(const std::string& object_name,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
-                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+                      const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs)
     {
         return new INSCollocatedWavePropConvectiveOperator(object_name, input_db, difference_form, bc_coefs);
     } // allocate_operator
@@ -133,8 +133,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorRealNd<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -178,17 +178,17 @@ private:
     INSCollocatedWavePropConvectiveOperator& operator=(const INSCollocatedWavePropConvectiveOperator& that) = delete;
 
     // Cached communications operators.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_bc_coefs;
     std::string d_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_U_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_U_var;
     int d_U_scratch_idx = IBTK::invalid_index;
 
     // Reconstruction order (2*k-1)

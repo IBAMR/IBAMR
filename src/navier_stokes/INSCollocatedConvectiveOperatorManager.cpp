@@ -88,7 +88,7 @@ INSCollocatedConvectiveOperatorManager::allocateOperator(const std::string& oper
                                                          const std::string& operator_object_name,
                                                          Pointer<Database> input_db,
                                                          const ConvectiveDifferencingType difference_form,
-                                                         const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs) const
+                                                         const std::vector<RobinBcCoefStrategyNd*>& bc_coefs) const
 {
     auto it = d_operator_maker_map.find(operator_type);
     if (it == d_operator_maker_map.end())

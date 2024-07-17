@@ -46,7 +46,7 @@ namespace IBAMR
 StaggeredStokesSolver::StaggeredStokesSolver()
     : d_U_problem_coefs("U_problem_coefs"),
       d_default_U_bc_coef("default_U_bc_coef", Pointer<Database>(nullptr)),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_U_bc_coef)),
+      d_U_bc_coefs(std::vector<RobinBcCoefStrategyNd*>(NDIM, &d_default_U_bc_coef)),
       d_default_P_bc_coef("default_P_bc_coef", Pointer<Database>(nullptr)),
       d_P_bc_coef(&d_default_P_bc_coef)
 {
@@ -62,7 +62,7 @@ StaggeredStokesSolver::StaggeredStokesSolver()
     }
 
     // Initialize the boundary conditions objects.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_U_bc_coef), &d_default_P_bc_coef);
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategyNd*>(NDIM, &d_default_U_bc_coef), &d_default_P_bc_coef);
     return;
 } // StaggeredStokesSolver()
 
@@ -83,8 +83,8 @@ StaggeredStokesSolver::setComponentsHaveNullspace(const bool has_velocity_nullsp
 } // setComponentsHaveNullspace
 
 void
-StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                          RobinBcCoefStrategy<NDIM>* P_bc_coef)
+StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& U_bc_coefs,
+                                          RobinBcCoefStrategyNd* P_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);

@@ -192,7 +192,7 @@ PETScLevelSolver::getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains,
 
 void
 PETScLevelSolver::setNullspace(bool contains_constant_vec,
-                               const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
+                               const std::vector<Pointer<SAMRAIVectorRealNd<double> > >& nullspace_basis_vecs)
 {
     LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
@@ -200,7 +200,7 @@ PETScLevelSolver::setNullspace(bool contains_constant_vec,
 } // setNullspace
 
 bool
-PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+PETScLevelSolver::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -244,8 +244,7 @@ PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
 } // solveSystem
 
 void
-PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                        const SAMRAIVectorReal<NDIM, double>& b)
+PETScLevelSolver::initializeSolverState(const SAMRAIVectorRealNd<double>& x, const SAMRAIVectorRealNd<double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -257,7 +256,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
+    const Pointer<PatchHierarchyNd>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -313,7 +312,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     d_level = d_hierarchy->getPatchLevel(d_level_num);
     if (d_level_num > 0)
     {
-        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVectorNd(1));
     }
 
     // Setup data cache.

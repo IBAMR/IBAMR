@@ -101,8 +101,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = IBTK::invalid_level_number,
@@ -112,12 +112,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
 
     //\}
 
@@ -183,16 +183,16 @@ private:
      * stochastic stresses.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_W_cc_var;
     int d_W_cc_idx = IBTK::invalid_index;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_W_nc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariableNd<double> > d_W_nc_var;
     int d_W_nc_idx = IBTK::invalid_index;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariable<NDIM, double> > d_W_ec_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariableNd<double> > d_W_ec_var;
     int d_W_ec_idx = IBTK::invalid_index;
     std::vector<int> d_W_ec_idxs;
 #endif

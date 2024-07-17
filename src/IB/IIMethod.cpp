@@ -364,14 +364,14 @@ IIMethod::getSurfaceForceIntegral(const unsigned int part) const
     return d_lag_surface_force_integral[part];
 } // getSurfaceForceIntegral
 
-const IntVector<NDIM>&
+const IntVectorNd&
 IIMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
 void
-IIMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IIMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithmNd> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -641,7 +641,7 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
     if (d_compute_fluid_traction)
     {
         // Evaluate the fluid forces on the interface.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         const int p_data_idx = var_db->mapVariableAndContextToIndex(getINSHierarchyIntegrator()->getPressureVariable(),
                                                                     getINSHierarchyIntegrator()->getScratchContext());
         calculateInterfacialFluidForces(p_data_idx, d_new_time); // TODO: Should this be half_time?
@@ -778,8 +778,8 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
 
 void
 IIMethod::interpolateVelocity(const int u_data_idx,
-                              const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                              const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                              const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
+                              const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                               const double data_time)
 {
     if (!d_use_velocity_jump_conditions && d_use_u_interp_correction)
@@ -991,19 +991,18 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         VectorValue<double> U, WSS_in, WSS_out, U_n, U_t, n;
         std::array<VectorValue<double>, 2> dx_dxi;
 
-        Pointer<PatchLevel<NDIM> > level =
-            d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
         int local_patch_num = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
             const std::vector<Elem*>& patch_elems =
                 d_fe_data_managers[part]->getActivePatchElementMap()[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
             const double* const patch_x_lower = patch_geom->getXLower();
@@ -1165,18 +1164,18 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             //
             // NOTE: Values are interpolated only to those quadrature points
             // that are within the patch interior.
-            const Box<NDIM>& interp_box = patch->getBox();
-            Pointer<PatchData<NDIM> > u_data = patch->getPatchData(u_data_idx);
+            const BoxNd& interp_box = patch->getBox();
+            Pointer<PatchDataNd> u_data = patch->getPatchData(u_data_idx);
 
-            const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(u_ghost_num));
+            const BoxNd ghost_box = BoxNd::grow(patch->getBox(), IntVectorNd(u_ghost_num));
 
-            Pointer<CellData<NDIM, double> > u_cc_data = u_data;
+            Pointer<CellDataNd<double> > u_cc_data = u_data;
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
-            Pointer<SideData<NDIM, double> > u_sc_data = u_data;
+            Pointer<SideDataNd<double> > u_sc_data = u_data;
             if (u_sc_data && !d_use_u_interp_correction)
             {
                 LEInteractor::interpolate(
@@ -1190,7 +1189,7 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 LEInteractor::interpolate(
                     U_out_qp, NDIM, x_out_qp, NDIM, u_sc_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 
-                const IntVector<NDIM>& u_gcw = u_sc_data->getGhostCellWidth();
+                const IntVectorNd& u_gcw = u_sc_data->getGhostCellWidth();
                 const int u_depth = u_sc_data->getDepth();
                 TBOX_ASSERT(u_depth == 1);
 
@@ -1199,21 +1198,21 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 for (unsigned int k = 0; k < n_qpoints_patch; ++k)
                 {
                     const double* const x = &x_qp[NDIM * k];
-                    const hier::Index<NDIM> i = IndexUtilities::getCellIndex(x, patch_geom, patch_box);
+                    const hier::IndexNd i = IndexUtilities::getCellIndex(x, patch_geom, patch_box);
                     if (interp_box.contains(i)) local_indices.push_back(k);
                     // Some kind of assertation can be applied here using the indices of the cells away from the
                     // interfce
                 }
                 if (local_indices.empty()) continue;
-                hier::Index<NDIM> ic_lower, ic_upper, ic_center;
+                hier::IndexNd ic_lower, ic_upper, ic_center;
                 std::array<std::array<double, 2>, NDIM> w, wr;
                 std::vector<double> U_axis(n_qpoints_patch, 0.0);
                 std::vector<double> U_axis_o(n_qpoints_patch, 0.0);
-                Box<NDIM> side_boxes[NDIM];
+                BoxNd side_boxes[NDIM];
 
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
-                    side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
+                    side_boxes[axis] = SideGeometryNd::toSideBox(patch_box, axis);
                 }
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -1227,8 +1226,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                     x_lower_axis[axis] -= 0.5 * patch_dx[axis];
                     x_upper_axis[axis] += 0.5 * patch_dx[axis];
 
-                    const hier::Index<NDIM>& ilower = side_boxes[axis].lower();
-                    const hier::Index<NDIM>& iupper = side_boxes[axis].upper();
+                    const hier::IndexNd& ilower = side_boxes[axis].lower();
+                    const hier::IndexNd& iupper = side_boxes[axis].upper();
 
                     typedef boost::multi_array_types::extent_range range;
                     boost::const_multi_array_ref<double, NDIM> u_sc_data_array(
@@ -1295,13 +1294,13 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 
                         for (int d = 0; d < NDIM; ++d) norm_vec(d) = n_qp[s * NDIM + d];
 
-                        Box<NDIM> stencil_box(ic_lower, ic_upper);
+                        BoxNd stencil_box(ic_lower, ic_upper);
 
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            for (BoxIterator<NDIM> b(stencil_box); b; b++)
+                            for (BoxIteratorNd b(stencil_box); b; b++)
                             {
-                                const hier::Index<NDIM>& ic = b();
+                                const hier::IndexNd& ic = b();
                                 for (int j = 0; j < NDIM; ++j) wrc(j) = wr[j][ic_upper[j] - ic[j]];
 #if (NDIM == 2)
                                 interpCoeff[ic[0]][ic[1]][d] = (norm_vec * wrc) * norm_vec(d);
@@ -1314,9 +1313,9 @@ IIMethod::interpolateVelocity(const int u_data_idx,
 
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            for (BoxIterator<NDIM> b(stencil_box); b; b++)
+                            for (BoxIteratorNd b(stencil_box); b; b++)
                             {
-                                const hier::Index<NDIM>& ic = b();
+                                const hier::IndexNd& ic = b();
                                 for (int j = 0; j < NDIM; ++j) du_jump(j) = DU_jump_qp[d][s * NDIM + j];
 #if (NDIM == 2)
                                 coeff_vec =
@@ -1338,9 +1337,9 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                         // Accumulate the value of U at the current location.
                         U_axis[s] = 0.0;
 
-                        for (BoxIterator<NDIM> b(stencil_box); b; b++)
+                        for (BoxIteratorNd b(stencil_box); b; b++)
                         {
-                            const hier::Index<NDIM>& ic = b();
+                            const hier::IndexNd& ic = b();
 #if (NDIM == 2)
 
                             U_axis[s] +=
@@ -1709,22 +1708,21 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
     VectorValue<double> n, N, x, X;
 
-    Pointer<PatchLevel<NDIM> > level =
-        d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
+    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<PatchNd> patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1871,7 +1869,7 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
             qp_offset += n_qp;
         }
 
-        const Box<NDIM>& interp_box = patch->getBox();
+        const BoxNd& interp_box = patch->getBox();
         std::vector<int> local_indices;
         local_indices.clear();
         const int upper_bound = n_qp_patch;
@@ -1881,7 +1879,7 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
         for (unsigned int k = 0; k < n_qp_patch; ++k)
         {
             const double* const XX = &x_qp[NDIM * k];
-            const hier::Index<NDIM> i = IndexUtilities::getCellIndex(XX, patch_geom, interp_box);
+            const hier::IndexNd i = IndexUtilities::getCellIndex(XX, patch_geom, interp_box);
             if (interp_box.contains(i)) local_indices.push_back(k);
         }
 
@@ -2008,7 +2006,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         INSERT_VALUES,
         SCATTER_FORWARD);
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
+    Pointer<PatchHierarchyNd> patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
     NumericVector<double>* P_in_vec = d_P_in_half_vecs[part];
     NumericVector<double>* P_out_vec = d_P_out_half_vecs[part];
@@ -2088,24 +2086,23 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     std::vector<double> P_i_qp, P_o_qp, P_in_qp, P_out_qp, P_jump_qp, N_qp;
     std::array<VectorValue<double>, 2> dx_dxi;
 
-    Pointer<PatchLevel<NDIM> > level =
-        d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
+    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     VectorValue<double> tau1, tau2, n;
     X_ghost_vec->close();
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<PatchNd> patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         const double* const x_lower = pgeom->getXLower();
         const double* const x_upper = pgeom->getXUpper();
 
@@ -2259,11 +2256,11 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         // Note: Values are interpolated only to those quadrature points that
         // are within the patch interior
 
-        const Box<NDIM>& interp_box = patch->getBox();
+        const BoxNd& interp_box = patch->getBox();
 
-        Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_data_idx);
+        Pointer<CellDataNd<double> > p_data = patch->getPatchData(p_data_idx);
 
-        const Box<NDIM> ghost_box = Box<NDIM>::grow(patch->getBox(), IntVector<NDIM>(p_ghost_num));
+        const BoxNd ghost_box = BoxNd::grow(patch->getBox(), IntVectorNd(p_ghost_num));
 
         LEInteractor::interpolate(P_i_qp, 1, x_in_qp, NDIM, p_data, patch, ghost_box, d_default_interp_spec.kernel_fcn);
 
@@ -2279,18 +2276,18 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         for (unsigned int k = 0; k < n_qp_patch; ++k)
         {
             const double* const xx = &x_qp[NDIM * k];
-            const hier::Index<NDIM> i = IndexUtilities::getCellIndex(xx, patch_geom, interp_box);
+            const hier::IndexNd i = IndexUtilities::getCellIndex(xx, patch_geom, interp_box);
             if (interp_box.contains(i)) local_indices.push_back(k);
 
             const double* const x_i = &x_in_qp[NDIM * k];
-            const hier::Index<NDIM> ip = IndexUtilities::getCellIndex(
+            const hier::IndexNd ip = IndexUtilities::getCellIndex(
                 x_i, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
             if (!ghost_box.contains(ip) && interp_box.contains(i))
                 TBOX_ERROR(d_object_name << "::IIMethod():\n"
                                          << " the pressure interpolation ghost width hasn't beeen properly set"
                                          << std::endl);
             const double* const x_o = &x_out_qp[NDIM * k];
-            const hier::Index<NDIM> op = IndexUtilities::getCellIndex(
+            const hier::IndexNd op = IndexUtilities::getCellIndex(
                 x_o, x_lower_ghost, x_upper_ghost, patch_geom->getDx(), ghost_box.lower(), ghost_box.upper());
             if (!ghost_box.contains(op) && interp_box.contains(i))
                 TBOX_ERROR(d_object_name << "::IIMethod():\n"
@@ -2398,10 +2395,10 @@ IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time
 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const auto p_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_p_scratch_idx);
-    RefineAlgorithm<NDIM> ghost_fill_alg_p;
+    RefineAlgorithmNd ghost_fill_alg_p;
     // TODO: Can we cache this algorithm/schedule?
     ghost_fill_alg_p.registerRefine(p_scratch_data_idx, p_data_idx, p_scratch_data_idx, NULL);
-    Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
+    Pointer<RefineScheduleNd> ghost_fill_schd_p =
         ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
 
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -2901,7 +2898,7 @@ IIMethod::computeLagrangianForce(const double data_time)
 void
 IIMethod::spreadForce(const int f_data_idx,
                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                      const std::vector<Pointer<RefineScheduleNd> >& /*f_prolongation_scheds*/,
                       const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
@@ -3020,7 +3017,7 @@ IIMethod::initializeFEEquationSystems()
     // parts and the Cartesian grid.
     d_equation_systems.resize(d_num_parts, nullptr);
     d_fe_data_managers.resize(d_num_parts, nullptr);
-    IntVector<NDIM> min_ghost_width(0);
+    IntVectorNd min_ghost_width(0);
     if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -3043,7 +3040,7 @@ IIMethod::initializeFEEquationSystems()
                                                              d_default_workload_spec,
                                                              min_ghost_width,
                                                              d_eulerian_data_cache);
-        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
+        d_ghosts = IntVectorNd::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
         d_fe_data_managers[part]->setCurrentCoordinatesSystemName(COORDS_SYSTEM_NAME);
         if (from_restart)
         {
@@ -3235,17 +3232,17 @@ IIMethod::initializeFEData()
 void
 IIMethod::registerEulerianVariables()
 {
-    d_p_var = new CellVariable<NDIM, double>(d_object_name + "::p");
+    d_p_var = new CellVariableNd<double>(d_object_name + "::p");
     registerVariable(d_p_scratch_idx, d_p_var, d_ghosts);
     return;
 } // registerEulerianVariables
 
 void
-IIMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                   Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+IIMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
+                                   Pointer<GriddingAlgorithmNd> gridding_alg,
                                    int /*u_data_idx*/,
-                                   const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                   const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                   const std::vector<Pointer<CoarsenScheduleNd> >& /*u_synch_scheds*/,
+                                   const std::vector<Pointer<RefineScheduleNd> >& /*u_ghost_fill_scheds*/,
                                    int /*integrator_step*/,
                                    double /*init_data_time*/,
                                    bool /*initial_time*/)
@@ -3268,7 +3265,7 @@ IIMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // initializePatchHierarchy
 
 void
-IIMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+IIMethod::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer, int workload_data_idx)
 {
     IBAMR_DEPRECATED_MEMBER_FUNCTION1("IIMethod", "registerLoadBalancer");
     TBOX_ASSERT(load_balancer);
@@ -3279,7 +3276,7 @@ IIMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int w
 } // registerLoadBalancer
 
 void
-IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+IIMethod::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
 {
     IBAMR_TIMER_START(t_add_workload_estimate);
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3291,8 +3288,8 @@ IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const in
 } // addWorkloadEstimate
 
 void
-IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IIMethod::beginDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
+                                  Pointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // intentionally blank
@@ -3301,8 +3298,7 @@ IIMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
 } // beginDataRedistribution
 
 void
-IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IIMethod::endDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/, Pointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     if (d_is_initialized)
@@ -3317,12 +3313,12 @@ IIMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
 } // endDataRedistribution
 
 void
-IIMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IIMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
                               int /*level_number*/,
                               double /*init_data_time*/,
                               bool /*can_be_refined*/,
                               bool /*initial_time*/,
-                              Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                              Pointer<BasePatchLevelNd> /*old_level*/,
                               bool /*allocate_data*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3333,7 +3329,7 @@ IIMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 } // initializeLevelData
 
 void
-IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarchy,
                                       int /*coarsest_level*/,
                                       int /*finest_level*/)
 {
@@ -3346,7 +3342,7 @@ IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarc
 } // resetHierarchyConfiguration
 
 void
-IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IIMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> base_hierarchy,
                                 int level_number,
                                 double error_data_time,
                                 int tag_index,
@@ -3354,7 +3350,7 @@ IIMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarch
                                 bool uses_richardson_extrapolation_too)
 {
     IBAMR_TIMER_START(t_apply_gradient_detector);
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    Pointer<PatchHierarchyNd> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -3394,7 +3390,7 @@ namespace
 {
 struct IndexOrder
 {
-    inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
+    inline bool operator()(const SAMRAI::hier::IndexNd& lhs, const SAMRAI::hier::IndexNd& rhs) const
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -3483,50 +3479,48 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
     VectorValue<double> n, jn;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    const IntVector<NDIM>& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+    const IntVectorNd& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        std::array<Box<NDIM>, NDIM> side_ghost_boxes;
+        const Pointer<PatchNd> patch = level->getPatch(p());
+        Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
+        const BoxNd& patch_box = patch->getBox();
+        const CellIndexNd& patch_lower = patch_box.lower();
+        std::array<BoxNd, NDIM> side_ghost_boxes;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            side_ghost_boxes[d] = SideGeometry<NDIM>::toSideBox(f_data->getGhostBox(), d);
+            side_ghost_boxes[d] = SideGeometryNd::toSideBox(f_data->getGhostBox(), d);
         }
 
-        Box<NDIM> side_boxes[NDIM];
+        BoxNd side_boxes[NDIM];
         for (int d = 0; d < NDIM; ++d)
         {
-            side_boxes[d] = SideGeometry<NDIM>::toSideBox(patch_box, d);
+            side_boxes[d] = SideGeometryNd::toSideBox(patch_box, d);
         }
 
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
-        std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
+        std::array<std::map<hier::IndexNd, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
             intersection_ref_coords;
-        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
-            intersection_normals;
+        std::array<std::map<hier::IndexNd, std::vector<VectorValue<double> >, IndexOrder>, NDIM> intersection_normals;
 
-        std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_u_points,
+        std::array<std::map<hier::IndexNd, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_u_points,
             intersection_u_ref_coords;
-        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
-            intersection_u_normals;
+        std::array<std::map<hier::IndexNd, std::vector<VectorValue<double> >, IndexOrder>, NDIM> intersection_u_normals;
 
-        std::array<std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM>, NDIM>
+        std::array<std::array<std::map<hier::IndexNd, std::vector<libMesh::Point>, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_points, intersectionSide_u_ref_coords;
-        std::array<std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>, NDIM>
+        std::array<std::array<std::map<hier::IndexNd, std::vector<VectorValue<double> >, IndexOrder>, NDIM>, NDIM>
             intersectionSide_u_normals;
 
         // Loop over the elements.
@@ -3597,25 +3591,25 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                 }
                 elem->point(k) = x;
             }
-            Box<NDIM> box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
-                          IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
-            box.grow(IntVector<NDIM>(1));
+            BoxNd box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
+                      IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
+            box.grow(IntVectorNd(1));
             box = box * patch_box;
 
             // Loop over coordinate directions and look for intersections with
             // the background fluid grid.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Box<NDIM> extended_box = patch_box;
-                extended_box.grow(IntVector<NDIM>(1));
-                Box<NDIM> extended_side_box = patch_box;
-                extended_side_box.grow(IntVector<NDIM>(2));
+                BoxNd extended_box = patch_box;
+                extended_box.grow(IntVectorNd(1));
+                BoxNd extended_side_box = patch_box;
+                extended_side_box.grow(IntVectorNd(2));
                 if (patch_geom->getTouchesRegularBoundary(axis, 1)) extended_box.upper(axis) += 1;
 
-                Box<NDIM> side_u_boxes[NDIM];
+                BoxNd side_u_boxes[NDIM];
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    side_u_boxes[d] = SideGeometry<NDIM>::toSideBox(extended_side_box, d);
+                    side_u_boxes[d] = SideGeometryNd::toSideBox(extended_side_box, d);
                 }
 
                 // Setup a unit vector pointing in the coordinate direction of
@@ -3624,7 +3618,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                 q(axis) = 1.0;
 
                 // Loop over the relevant range of indices.
-                Box<NDIM> axis_box = box;
+                BoxNd axis_box = box;
                 axis_box.lower(axis) = 0;
                 axis_box.upper(axis) = 0;
 
@@ -3632,9 +3626,9 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                 for (unsigned int d = 0; d < NDIM; ++d)
                     for (unsigned int l = 0; l < NDIM - 1; ++l) SideDim[d][l] = (d + l + 1) % NDIM;
 
-                for (BoxIterator<NDIM> b(axis_box); b; b++)
+                for (BoxIteratorNd b(axis_box); b; b++)
                 {
-                    const hier::Index<NDIM>& i_c = b();
+                    const hier::IndexNd& i_c = b();
                     libMesh::Point r;
                     std::array<libMesh::Point, NDIM - 1> rs;
 
@@ -3680,7 +3674,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             const libMesh::Point x = r + intersections[k].first * q;
                             const libMesh::Point& xi = intersections[k].second;
-                            SideIndex<NDIM> i_s(i_c, axis, 0);
+                            SideIndexNd i_s(i_c, axis, 0);
                             i_s(axis) =
                                 static_cast<int>(std::round((x(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
                             if (extended_box.contains(i_s))
@@ -3707,7 +3701,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                 bool found_same_intersection_point = false;
                                 for (int shift = -1; shift <= 1; ++shift)
                                 {
-                                    SideIndex<NDIM> i_s_prime = i_s;
+                                    SideIndexNd i_s_prime = i_s;
                                     i_s_prime(axis) += shift;
                                     const std::vector<libMesh::Point>& candidate_coords =
                                         intersection_points[axis][i_s_prime];
@@ -3757,11 +3751,11 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                         {
                             libMesh::Point xu = r + intersections[k].first * q;
                             const libMesh::Point& xui = intersections[k].second;
-                            SideIndex<NDIM> i_s_um(i_c, axis, 0);
-                            hier::Index<NDIM> i_c_neighbor = i_c;
+                            SideIndexNd i_s_um(i_c, axis, 0);
+                            hier::IndexNd i_c_neighbor = i_c;
                             i_c_neighbor(axis) += 1;
 
-                            SideIndex<NDIM> i_s_up(i_c_neighbor, axis, 0);
+                            SideIndexNd i_s_up(i_c_neighbor, axis, 0);
                             i_s_up(axis) = static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis] + 0.5)) +
                                            patch_lower[axis];
                             i_s_um(axis) = static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
@@ -3786,7 +3780,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
                                 for (int shift = -1; shift <= 1; ++shift)
                                 {
-                                    SideIndex<NDIM> i_s_prime = i_s_um;
+                                    SideIndexNd i_s_prime = i_s_um;
                                     i_s_prime(axis) += shift;
                                     const std::vector<libMesh::Point>& candidate_coords =
                                         intersection_u_points[axis][i_s_prime];
@@ -3858,18 +3852,18 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                             {
                                 libMesh::Point xu = rs[j] + intersectionsSide[j][k].first * q;
                                 const libMesh::Point& xui = intersectionsSide[j][k].second;
-                                SideIndex<NDIM> i_s_up;
-                                SideIndex<NDIM> i_s_um;
+                                SideIndexNd i_s_up;
+                                SideIndexNd i_s_um;
 
                                 if (xu(axis) - x_lower[axis] > 0.0)
                                 {
                                     if (fmod(xu(axis) - x_lower[axis], dx[axis]) >= 0.5 * dx[axis])
                                     {
-                                        SideIndex<NDIM> i_side_um(i_c, SideDim[axis][j], 0);
-                                        hier::Index<NDIM> i_c_neighbor = i_c;
+                                        SideIndexNd i_side_um(i_c, SideDim[axis][j], 0);
+                                        hier::IndexNd i_c_neighbor = i_c;
                                         i_c_neighbor(axis) += 1;
 
-                                        SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[axis][j], 0);
+                                        SideIndexNd i_side_up(i_c_neighbor, SideDim[axis][j], 0);
 
                                         i_side_up(axis) =
                                             static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis])) +
@@ -3882,10 +3876,10 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     }
                                     else if (fmod((xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis])
                                     {
-                                        SideIndex<NDIM> i_side_up(i_c, SideDim[axis][j], 0);
-                                        hier::Index<NDIM> i_c_neighbor = i_c;
+                                        SideIndexNd i_side_up(i_c, SideDim[axis][j], 0);
+                                        hier::IndexNd i_c_neighbor = i_c;
                                         i_c_neighbor(axis) -= 1;
-                                        SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[axis][j], 0);
+                                        SideIndexNd i_side_um(i_c_neighbor, SideDim[axis][j], 0);
                                         i_side_up(axis) =
                                             static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
                                             patch_lower[axis];
@@ -3904,11 +3898,11 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                 {
                                     if (fmod(fabs(xu(axis) - x_lower[axis]), dx[axis]) < 0.5 * dx[axis])
                                     {
-                                        SideIndex<NDIM> i_side_um(i_c, SideDim[axis][j], 0);
-                                        hier::Index<NDIM> i_c_neighbor = i_c;
+                                        SideIndexNd i_side_um(i_c, SideDim[axis][j], 0);
+                                        hier::IndexNd i_c_neighbor = i_c;
                                         i_c_neighbor(axis) += 1;
 
-                                        SideIndex<NDIM> i_side_up(i_c_neighbor, SideDim[axis][j], 0);
+                                        SideIndexNd i_side_up(i_c_neighbor, SideDim[axis][j], 0);
 
                                         i_side_up(axis) =
                                             static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis])) +
@@ -3921,10 +3915,10 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
                                     }
                                     else
                                     {
-                                        SideIndex<NDIM> i_side_up(i_c, SideDim[axis][j], 0);
-                                        hier::Index<NDIM> i_c_neighbor = i_c;
+                                        SideIndexNd i_side_up(i_c, SideDim[axis][j], 0);
+                                        hier::IndexNd i_c_neighbor = i_c;
                                         i_c_neighbor(axis) -= 1;
-                                        SideIndex<NDIM> i_side_um(i_c_neighbor, SideDim[axis][j], 0);
+                                        SideIndexNd i_side_um(i_c_neighbor, SideDim[axis][j], 0);
                                         i_side_up(axis) =
                                             static_cast<int>(std::round((xu(axis) - x_lower[axis]) / dx[axis] - 0.5)) +
                                             patch_lower[axis];
@@ -3961,7 +3955,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
                                     for (int shift = -1; shift <= 1; ++shift)
                                     {
-                                        SideIndex<NDIM> i_s_prime = i_s_um;
+                                        SideIndexNd i_s_prime = i_s_um;
                                         i_s_prime(SideDim[axis][j]) += shift;
                                         const std::vector<libMesh::Point>& candidate_coords =
                                             intersectionSide_u_points[j][axis][i_s_prime];
@@ -4045,8 +4039,8 @@ IIMethod::checkDoubleCountingIntersection(const int axis,
                                           const libMesh::VectorValue<double>& n,
                                           const libMesh::Point& x,
                                           const libMesh::Point& xi,
-                                          const SideIndex<NDIM>& i_s,
-                                          const SideIndex<NDIM>& i_s_prime,
+                                          const SideIndexNd& i_s,
+                                          const SideIndexNd& i_s_prime,
                                           const std::vector<libMesh::Point>& candidate_coords,
                                           const std::vector<libMesh::Point>& candidate_ref_coords,
                                           const std::vector<libMesh::VectorValue<double> >& candidate_normals)

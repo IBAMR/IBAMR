@@ -93,10 +93,10 @@ static const int Q_MIN_GCW = 2;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffCUIConvectiveOperator::AdvDiffCUIConvectiveOperator(std::string object_name,
-                                                           Pointer<CellVariable<NDIM, double> > Q_var,
+                                                           Pointer<CellVariableNd<double> > Q_var,
                                                            Pointer<Database> input_db,
                                                            const ConvectiveDifferencingType difference_form,
-                                                           std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
+                                                           std::vector<RobinBcCoefStrategyNd*> bc_coefs)
     : CellConvectiveOperator(std::move(object_name), Q_var, Q_MIN_GCW, input_db, difference_form, std::move(bc_coefs))
 {
     // intentionally blank
@@ -104,31 +104,31 @@ AdvDiffCUIConvectiveOperator::AdvDiffCUIConvectiveOperator(std::string object_na
 } // AdvDiffCUIConvectiveOperator
 
 void
-AdvDiffCUIConvectiveOperator::interpolateToFaceOnPatch(FaceData<NDIM, double>& q_interp_data,
-                                                       const CellData<NDIM, double>& Q_cell_data,
-                                                       const FaceData<NDIM, double>& u_data,
-                                                       const Patch<NDIM>& patch)
+AdvDiffCUIConvectiveOperator::interpolateToFaceOnPatch(FaceDataNd<double>& q_interp_data,
+                                                       const CellDataNd<double>& Q_cell_data,
+                                                       const FaceDataNd<double>& u_data,
+                                                       const PatchNd& patch)
 {
     const auto& patch_box = patch.getBox();
     const auto& patch_lower = patch_box.lower();
     const auto& patch_upper = patch_box.upper();
 
-    const IntVector<NDIM>& Q_cell_data_gcw = Q_cell_data.getGhostCellWidth();
+    const IntVectorNd& Q_cell_data_gcw = Q_cell_data.getGhostCellWidth();
 #if !defined(NDEBUG)
     TBOX_ASSERT(Q_cell_data_gcw.min() == Q_cell_data_gcw.max());
 #endif
-    const IntVector<NDIM>& u_data_gcw = u_data.getGhostCellWidth();
+    const IntVectorNd& u_data_gcw = u_data.getGhostCellWidth();
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_data_gcw.min() == u_data_gcw.max());
 #endif
-    const IntVector<NDIM>& q_interp_data_gcw = q_interp_data.getGhostCellWidth();
+    const IntVectorNd& q_interp_data_gcw = q_interp_data.getGhostCellWidth();
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_interp_data_gcw.min() == q_interp_data_gcw.max());
 #endif
-    const CellData<NDIM, double>& Q0_data = Q_cell_data;
-    CellData<NDIM, double> Q1_data(patch_box, 1, Q_cell_data_gcw);
+    const CellDataNd<double>& Q0_data = Q_cell_data;
+    CellDataNd<double> Q1_data(patch_box, 1, Q_cell_data_gcw);
 #if (NDIM == 3)
-    CellData<NDIM, double> Q2_data(patch_box, 1, Q_cell_data_gcw);
+    CellDataNd<double> Q2_data(patch_box, 1, Q_cell_data_gcw);
 #endif
 
     // Interpolate from cell centers to cell faces.

@@ -482,14 +482,14 @@ IBFEMethod::registerDirectForcingKinematics(const Pointer<IBFEDirectForcingKinem
     return;
 } // registerDirectForcingKinematics
 
-const IntVector<NDIM>&
+const IntVectorNd&
 IBFEMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
 void
-IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithmNd> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -528,7 +528,7 @@ IBFEMethod::getMaxPointDisplacement() const
     }
     // That's right: SAMRAI doesn't define BasePatchLevel::getPatch() making
     // this interface always require a cast
-    return max_displacement / get_min_patch_dx(dynamic_cast<const PatchLevel<NDIM>&>(
+    return max_displacement / get_min_patch_dx(dynamic_cast<const PatchLevelNd&>(
                                   *d_hierarchy->getPatchLevel(getFinestPatchLevelNumber())));
 } // getMaxPointDisplacement
 
@@ -570,7 +570,7 @@ IBFEMethod::preprocessIntegrateData(double current_time, double new_time, int nu
     bool do_reinit_element_mappings = false;
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        const double patch_dx = get_min_patch_dx(dynamic_cast<const PatchLevel<NDIM>&>(
+        const double patch_dx = get_min_patch_dx(dynamic_cast<const PatchLevelNd&>(
             *d_hierarchy->getPatchLevel(d_active_fe_data_managers[part]->getFinestPatchLevelNumber())));
         // To avoid allocating an extra vector we abuse "new" for a moment since
         // it gets overwritten below anyway
@@ -653,8 +653,8 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
 
 void
 IBFEMethod::interpolateVelocity(const int u_data_idx,
-                                const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                 const double data_time)
 {
     IBAMR_TIMER_START(t_interpolate_velocity);
@@ -696,7 +696,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     batch_vec_ghost_update(X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // Build the right-hand-sides to compute the interpolated data.
-    std::vector<Pointer<RefineSchedule<NDIM> > > no_fill(u_ghost_fill_scheds.size());
+    std::vector<Pointer<RefineScheduleNd> > no_fill(u_ghost_fill_scheds.size());
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         if (d_part_is_active[part])
@@ -936,7 +936,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
 void
 IBFEMethod::spreadForce(const int f_data_idx,
                         RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                        const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                        const std::vector<Pointer<RefineScheduleNd> >& /*f_prolongation_scheds*/,
                         const double data_time)
 {
     IBAMR_TIMER_START(t_spread_force);
@@ -950,7 +950,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     batch_vec_ghost_update({ X_IB_ghost_vecs, F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // set up a new data index for computing forces on the active hierarchy.
-    Pointer<PatchHierarchy<NDIM> > hierarchy =
+    Pointer<PatchHierarchyNd> hierarchy =
         d_use_scratch_hierarchy ? d_secondary_hierarchy->getSecondaryHierarchy() : d_hierarchy;
     // get the data cache that is associated with whatever hierarchy we are
     // actually performing spreading operations on.
@@ -960,9 +960,9 @@ IBFEMethod::spreadForce(const int f_data_idx,
     const auto f_scratch_data_idx = data_cache->getCachedPatchDataIndex(f_data_idx);
     const auto f_prolong_scratch_data_idx = data_cache->getCachedPatchDataIndex(f_data_idx);
     // zero data.
-    Pointer<hier::Variable<NDIM> > f_var;
-    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
-    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy, true);
+    Pointer<hier::VariableNd> f_var;
+    VariableDatabaseNd::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
+    auto f_active_data_ops = HierarchyDataOpsManagerNd::getManager()->getOperationsDouble(f_var, hierarchy, true);
     f_active_data_ops->resetLevels(0, getFinestPatchLevelNumber());
     f_active_data_ops->setToScalar(f_scratch_data_idx,
                                    0.0,
@@ -1010,11 +1010,11 @@ IBFEMethod::spreadForce(const int f_data_idx,
         for (int ln = getCoarsestPatchLevelNumber(); ln <= getFinestPatchLevelNumber(); ++ln)
         {
             f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_scratch_data_idx);
+                const Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<PatchDataNd> f_data = patch->getPatchData(f_scratch_data_idx);
                 f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
             }
         }
@@ -1028,8 +1028,8 @@ IBFEMethod::spreadForce(const int f_data_idx,
             // ghost region than the one required by this class. Hence, set the
             // ghost width by just picking whatever the data actually has at the
             // moment.
-            const Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            const IntVector<NDIM> gcw =
+            const Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+            const IntVectorNd gcw =
                 level->getPatchDescriptor()->getPatchDataFactory(f_scratch_data_idx)->getGhostCellWidth();
 
             // TODO - SAMRAIGhostDataAccumulator has not been tested with multiple levels
@@ -1045,7 +1045,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         getProlongationSchedule(coarse_ln, f_scratch_data_idx, f_prolong_scratch_data_idx).fillData(data_time);
 
         // Add the values prolonged from the coarser level onto the scratch index on the finer level.
-        auto f_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, hierarchy, true);
+        auto f_data_ops = HierarchyDataOpsManagerNd::getManager()->getOperationsDouble(f_var, hierarchy, true);
         f_data_ops->resetLevels(coarse_ln + 1, coarse_ln + 1);
         f_data_ops->add(f_scratch_data_idx, f_scratch_data_idx, f_prolong_scratch_data_idx);
     }
@@ -1057,7 +1057,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
         //
         // unlike the other data ops, this is always on the primary hierarchy
         auto f_primary_data_ops =
-            HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+            HierarchyDataOpsManagerNd::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
         {
             f_primary_data_ops->resetLevels(ln, ln);
@@ -1193,7 +1193,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 void
 IBFEMethod::spreadFluidSource(const int q_data_idx,
                               RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                              const std::vector<Pointer<RefineSchedule<NDIM> > >& /*q_prolongation_scheds*/,
+                              const std::vector<Pointer<RefineScheduleNd> >& /*q_prolongation_scheds*/,
                               const double data_time)
 {
     IBAMR_TIMER_START(t_spread_fluid_source);
@@ -1280,8 +1280,8 @@ IBFEMethod::setWorkloadSpec(const FEDataManager::WorkloadSpec& workload_spec, co
 void
 IBFEMethod::registerEulerianVariables()
 {
-    const IntVector<NDIM> ghosts = 1;
-    d_lagrangian_workload_var = new CellVariable<NDIM, double>(d_object_name + "::lagrangian_workload");
+    const IntVectorNd ghosts = 1;
+    d_lagrangian_workload_var = new CellVariableNd<double>(d_object_name + "::lagrangian_workload");
     registerVariable(d_lagrangian_workload_current_idx,
                      d_lagrangian_workload_new_idx,
                      d_lagrangian_workload_scratch_idx,
@@ -1295,11 +1295,11 @@ IBFEMethod::registerEulerianVariables()
 } // registerEulerianVariables
 
 void
-IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
+                                     Pointer<GriddingAlgorithmNd> gridding_alg,
                                      int /*u_data_idx*/,
-                                     const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
+                                     const std::vector<Pointer<CoarsenScheduleNd> >& /*u_synch_scheds*/,
+                                     const std::vector<Pointer<RefineScheduleNd> >& /*u_ghost_fill_scheds*/,
                                      int /*integrator_step*/,
                                      double /*init_data_time*/,
                                      bool /*initial_time*/)
@@ -1328,7 +1328,7 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // initializePatchHierarchy
 
 void
-IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+IBFEMethod::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer, int workload_data_idx)
 {
     IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBFEMethod", "registerLoadBalancer");
     TBOX_ASSERT(load_balancer);
@@ -1338,7 +1338,7 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int
 } // registerLoadBalancer
 
 void
-IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
 {
     IBAMR_TIMER_START(t_add_workload_estimate);
     const bool old_d_do_log = d_do_log;
@@ -1382,7 +1382,7 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
         const int current_rank = IBTK_MPI::getRank();
 
         std::vector<double> workload_per_processor(n_processes);
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, 0, hierarchy->getFinestLevelNumber());
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(hierarchy, 0, hierarchy->getFinestLevelNumber());
         workload_per_processor[current_rank] = hier_cc_data_ops.L1Norm(workload_data_idx, IBTK::invalid_index, true);
 
         const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
@@ -1441,8 +1441,8 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const 
 } // addWorkloadEstimate
 
 void
-IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                    Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
+                                    Pointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // clear some things that contain data specific to the current patch hierarchy
@@ -1457,12 +1457,12 @@ IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/
         {
             for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = d_secondary_hierarchy->getSecondaryHierarchy()->getPatchLevel(ln);
+                Pointer<PatchLevelNd> level = d_secondary_hierarchy->getSecondaryHierarchy()->getPatchLevel(ln);
                 if (!level->checkAllocated(d_lagrangian_workload_current_idx))
                     level->allocatePatchData(d_lagrangian_workload_current_idx);
             }
 
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+            HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(
                 d_secondary_hierarchy->getSecondaryHierarchy(),
                 0,
                 d_secondary_hierarchy->getSecondaryHierarchy()->getFinestLevelNumber());
@@ -1471,8 +1471,7 @@ IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/
         addWorkloadEstimate(d_secondary_hierarchy->getSecondaryHierarchy(), d_lagrangian_workload_current_idx);
 
         {
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
-                d_hierarchy, 0, d_hierarchy->getFinestLevelNumber());
+            HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(d_hierarchy, 0, d_hierarchy->getFinestLevelNumber());
             hier_cc_data_ops.setToScalar(d_lagrangian_workload_current_idx, 0.0);
         }
         for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
@@ -1487,8 +1486,8 @@ IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/
 } // beginDataRedistribution
 
 void
-IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                  Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBFEMethod::endDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
+                                  Pointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     // if we are not initialized then there is nothing to do
@@ -1547,7 +1546,7 @@ IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
             const int current_rank = IBTK_MPI::getRank();
             const auto right_padding = std::size_t(std::log10(n_processes)) + 1;
             std::vector<double> workload_per_processor(n_processes);
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(
+            HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(
                 d_secondary_hierarchy->getSecondaryHierarchy(),
                 0,
                 d_secondary_hierarchy->getSecondaryHierarchy()->getFinestLevelNumber());
@@ -1583,18 +1582,18 @@ IBFEMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
 } // endDataRedistribution
 
 void
-IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
                                 int /*level_number*/,
                                 double /*init_data_time*/,
                                 bool /*can_be_refined*/,
                                 bool /*initial_time*/,
-                                Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                Pointer<BasePatchLevelNd> /*old_level*/,
                                 bool /*allocate_data*/)
 {
 } // initializeLevelData
 
 void
-IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarchy,
                                         int /*coarsest_level*/,
                                         int /*finest_level*/)
 {
@@ -1607,7 +1606,7 @@ IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hiera
 } // resetHierarchyConfiguration
 
 void
-IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> base_hierarchy,
                                   int level_number,
                                   double error_data_time,
                                   int tag_index,
@@ -1626,7 +1625,7 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
         }
     }
 
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    Pointer<PatchHierarchyNd> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -1637,7 +1636,7 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierar
     // everything.
     if (d_use_scratch_hierarchy && hierarchy == d_secondary_hierarchy->getSecondaryHierarchy())
     {
-        HierarchyCellDataOpsInteger<NDIM> hier_cc_data_ops(hierarchy, level_number, level_number);
+        HierarchyCellDataOpsIntegerNd hier_cc_data_ops(hierarchy, level_number, level_number);
         hier_cc_data_ops.setToScalar(tag_index, 0);
     }
 
@@ -1679,7 +1678,7 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     return;
 } // putToDatabase
 
-SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> >
+SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd>
 IBFEMethod::getScratchHierarchy()
 {
     return d_secondary_hierarchy->getSecondaryHierarchy();
@@ -1721,7 +1720,7 @@ IBFEMethod::doInitializeFEEquationSystems()
     d_primary_fe_data_managers.resize(d_meshes.size());
     d_scratch_fe_data_managers.resize(d_meshes.size());
     d_active_fe_data_managers.resize(d_meshes.size());
-    IntVector<NDIM> min_ghost_width(0);
+    IntVectorNd min_ghost_width(0);
     if (!d_eulerian_data_cache) d_eulerian_data_cache = std::make_shared<SAMRAIDataCache>();
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
@@ -1754,7 +1753,7 @@ IBFEMethod::doInitializeFEEquationSystems()
         }
 
         d_active_fe_data_managers[part]->setLoggingEnabled(d_do_log);
-        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_active_fe_data_managers[part]->getGhostCellWidth());
+        d_ghosts = IntVectorNd::max(d_ghosts, d_active_fe_data_managers[part]->getGhostCellWidth());
 
         // Since the scratch and primary FEDataManagers use the same FEData
         // object we only have to do this assignment once
@@ -2055,7 +2054,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     assertStructureOnFinestLevel();
     const int level_num = d_primary_fe_data_managers[part]->getFinestPatchLevelNumber();
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
 
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
@@ -2149,15 +2148,15 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
     double P;
     std::vector<double> T_bdry, x_bdry;
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -2321,8 +2320,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
         // Spread the boundary forces to the grid.
         const std::string& spread_kernel_fcn = d_spread_spec[part].kernel_fcn;
-        const Box<NDIM> spread_box = patch->getBox();
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
+        const BoxNd spread_box = patch->getBox();
+        Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
 
         FEDataManager::zeroExteriorValues(*patch_geom, x_bdry, T_bdry, NDIM);
         LEInteractor::spread(f_data, T_bdry, NDIM, x_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
@@ -2435,28 +2434,28 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     IBTK::Point x_min, x_max;
     std::vector<std::vector<unsigned int> > side_dof_indices(NDIM);
     std::vector<libMesh::Point> intersection_ref_coords;
-    std::vector<SideIndex<NDIM> > intersection_indices;
+    std::vector<SideIndexNd> intersection_indices;
     std::vector<std::pair<double, libMesh::Point> > intersections;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    const IntVector<NDIM>& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+    const IntVectorNd& ratio = level->getRatio();
+    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const Pointer<PatchNd> patch = level->getPatch(p());
+        Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
+        const BoxNd& patch_box = patch->getBox();
+        const CellIndexNd& patch_lower = patch_box.lower();
+        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
-        SideData<NDIM, int> num_intersections(patch_box, 1, IntVector<NDIM>(0));
+        SideDataNd<int> num_intersections(patch_box, 1, IntVectorNd(0));
         num_intersections.fillAll(0);
 
         // Loop over the elements.
@@ -2506,9 +2505,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     }
                     side_elem->point(k) = x;
                 }
-                Box<NDIM> box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
-                              IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
-                box.grow(IntVector<NDIM>(1));
+                BoxNd box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
+                          IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
+                box.grow(IntVectorNd(1));
                 box = box * patch_box;
 
                 // Loop over coordinate directions and look for intersections
@@ -2523,12 +2522,12 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                     q(axis) = 1.0;
 
                     // Loop over the relevant range of indices.
-                    Box<NDIM> axis_box = box;
+                    BoxNd axis_box = box;
                     axis_box.lower(axis) = 0;
                     axis_box.upper(axis) = 0;
-                    for (BoxIterator<NDIM> b(axis_box); b; b++)
+                    for (BoxIteratorNd b(axis_box); b; b++)
                     {
-                        const hier::Index<NDIM>& i_c = b();
+                        const hier::IndexNd& i_c = b();
                         libMesh::Point r;
                         for (unsigned int d = 0; d < NDIM; ++d)
                         {
@@ -2545,7 +2544,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                         for (const auto& intersection : intersections)
                         {
                             const libMesh::Point x = r + intersection.first * q;
-                            SideIndex<NDIM> i_s(i_c, axis, 0);
+                            SideIndexNd i_s(i_c, axis, 0);
                             i_s(axis) = std::floor((x(axis) - x_lower[axis]) / dx[axis] + 0.5) + patch_lower[axis];
                             intersection_ref_coords.push_back(intersection.second);
                             intersection_indices.push_back(i_s);
@@ -2573,7 +2572,7 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 const size_t n_qp = intersection_ref_coords.size();
                 for (unsigned int qp = 0; qp < n_qp; ++qp)
                 {
-                    const SideIndex<NDIM>& i_s = intersection_indices[qp];
+                    const SideIndexNd& i_s = intersection_indices[qp];
                     const unsigned int axis = i_s.getAxis();
                     const libMesh::Point& X = q_point_face[qp];
                     const std::vector<double>& x_data = fe_interp_var_data[qp][X_sys_idx];
@@ -2738,46 +2737,46 @@ IBFEMethod::getFinestPatchLevelNumber() const
     return level_number;
 } // getFinestPatchLevelNumber
 
-SAMRAI::xfer::RefineSchedule<NDIM>&
+SAMRAI::xfer::RefineScheduleNd&
 IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_data_idx, const int fine_data_idx)
 {
     const auto key = std::make_pair(level_number, std::make_pair(coarse_data_idx, fine_data_idx));
     if (d_prolongation_schedules.count(key) == 0)
     {
-        Pointer<PatchHierarchy<NDIM> > hierarchy =
+        Pointer<PatchHierarchyNd> hierarchy =
             d_use_scratch_hierarchy ? d_secondary_hierarchy->getSecondaryHierarchy() : d_hierarchy;
-        Pointer<RefineAlgorithm<NDIM> > refine_algorithm = new RefineAlgorithm<NDIM>();
-        Pointer<RefineOperator<NDIM> > refine_op;
+        Pointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        Pointer<RefineOperatorNd> refine_op;
 
-        Pointer<hier::Variable<NDIM> > f_var;
-        VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(coarse_data_idx, f_var);
+        Pointer<hier::VariableNd> f_var;
+        VariableDatabaseNd::getDatabase()->mapIndexToVariable(coarse_data_idx, f_var);
         {
-            Pointer<hier::Variable<NDIM> > f_var_2;
-            VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(fine_data_idx, f_var_2);
+            Pointer<hier::VariableNd> f_var_2;
+            VariableDatabaseNd::getDatabase()->mapIndexToVariable(fine_data_idx, f_var_2);
             // These should be the same variable
             TBOX_ASSERT(&*f_var == &*f_var_2);
         }
 
-        Pointer<CellVariable<NDIM, double> > f_cc_var = f_var;
-        Pointer<SideVariable<NDIM, double> > f_sc_var = f_var;
+        Pointer<CellVariableNd<double> > f_cc_var = f_var;
+        Pointer<SideVariableNd<double> > f_sc_var = f_var;
         const bool cc_data = f_cc_var;
         const bool sc_data = f_sc_var;
         TBOX_ASSERT(cc_data || sc_data);
         if (cc_data)
         {
-            Pointer<CartesianGridGeometry<NDIM> > geometry = hierarchy->getGridGeometry();
+            Pointer<CartesianGridGeometryNd> geometry = hierarchy->getGridGeometry();
             refine_op = geometry->lookupRefineOperator(f_var, "CONSERVATIVE_LINEAR_REFINE");
         }
         else
             refine_op = new CartSideDoubleRT0Refine();
         TBOX_ASSERT(refine_op);
         refine_algorithm->registerRefine(fine_data_idx, coarse_data_idx, fine_data_idx, refine_op);
-        Pointer<PatchLevel<NDIM> > fine_level = hierarchy->getPatchLevel(level_number + 1);
+        Pointer<PatchLevelNd> fine_level = hierarchy->getPatchLevel(level_number + 1);
         // We can ignore the fifth argument since we don't need to deal with
         // forces outside the physical domain (this was handled previously by
         // f_phys_bdry_op). In particular we don't need it since we don't care
         // about ghost force values (they aren't used in the solver).
-        Pointer<RefineSchedule<NDIM> > schedule =
+        Pointer<RefineScheduleNd> schedule =
             refine_algorithm->createSchedule(fine_level, nullptr, level_number, hierarchy);
         d_prolongation_schedules[key] = schedule;
     }

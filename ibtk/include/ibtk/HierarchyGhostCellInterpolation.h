@@ -102,8 +102,8 @@ public:
             const std::string& coarsen_op_name = "NONE",
             const std::string& phys_bdry_extrap_type = "NONE",
             bool consistent_type_2_bdry = false,
-            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef = NULL,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = NULL,
+            SAMRAI::solv::RobinBcCoefStrategyNd* robin_bc_coef = NULL,
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPatternNd> fill_pattern = NULL,
             const std::string& phys_bdry_type = "LINEAR")
             : d_dst_data_idx(data_idx),
               d_src_data_idx(data_idx),
@@ -112,9 +112,9 @@ public:
               d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
-              d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1, robin_bc_coef) :
-                                               std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>()),
-              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>()),
+              d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>(1, robin_bc_coef) :
+                                               std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>()),
+              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPatternNd()),
               d_phys_bdry_type(phys_bdry_type)
         {
             // intentionally blank
@@ -131,8 +131,8 @@ public:
             const std::string& coarsen_op_name,
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
-            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = NULL,
+            const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& robin_bc_coefs,
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPatternNd> fill_pattern = NULL,
             const std::string& phys_bdry_type = "LINEAR")
             : d_dst_data_idx(data_idx),
               d_src_data_idx(data_idx),
@@ -142,7 +142,7 @@ public:
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coefs),
-              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>()),
+              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPatternNd()),
               d_phys_bdry_type(phys_bdry_type)
         {
             // intentionally blank
@@ -160,8 +160,8 @@ public:
             const std::string& coarsen_op_name,
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
-            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = NULL,
+            SAMRAI::solv::RobinBcCoefStrategyNd* robin_bc_coef,
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPatternNd> fill_pattern = NULL,
             const std::string& phys_bdry_type = "LINEAR")
             : d_dst_data_idx(dst_data_idx),
               d_src_data_idx(src_data_idx),
@@ -170,9 +170,9 @@ public:
               d_coarsen_op_name(coarsen_op_name),
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
-              d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(1, robin_bc_coef) :
-                                               std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>()),
-              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>()),
+              d_robin_bc_coefs(robin_bc_coef ? std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>(1, robin_bc_coef) :
+                                               std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>()),
+              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPatternNd()),
               d_phys_bdry_type(phys_bdry_type)
         {
             // intentionally blank
@@ -190,8 +190,8 @@ public:
             const std::string& coarsen_op_name,
             const std::string& phys_bdry_extrap_type,
             bool consistent_type_2_bdry,
-            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& robin_bc_coefs,
-            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > fill_pattern = NULL,
+            const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& robin_bc_coefs,
+            SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPatternNd> fill_pattern = NULL,
             const std::string& phys_bdry_type = "LINEAR")
             : d_dst_data_idx(dst_data_idx),
               d_src_data_idx(src_data_idx),
@@ -201,7 +201,7 @@ public:
               d_phys_bdry_extrap_type(phys_bdry_extrap_type),
               d_consistent_type_2_bdry(consistent_type_2_bdry),
               d_robin_bc_coefs(robin_bc_coefs),
-              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPattern<NDIM>()),
+              d_fill_pattern(fill_pattern ? fill_pattern : new SAMRAI::xfer::BoxGeometryFillPatternNd()),
               d_phys_bdry_type(phys_bdry_type)
         {
             // intentionally blank
@@ -270,8 +270,8 @@ public:
         std::string d_coarsen_op_name;
         std::string d_phys_bdry_extrap_type;
         bool d_consistent_type_2_bdry;
-        std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_robin_bc_coefs;
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPattern<NDIM> > d_fill_pattern;
+        std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_robin_bc_coefs;
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPatternNd> d_fill_pattern;
         std::string d_phys_bdry_type;
     };
 
@@ -296,7 +296,7 @@ public:
      * hierarchy.
      */
     void initializeOperatorState(InterpolationTransactionComponent transaction_comp,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  int coarsest_ln = invalid_level_number,
                                  int finest_ln = invalid_level_number);
 
@@ -306,7 +306,7 @@ public:
      * patch hierarchy.
      */
     void initializeOperatorState(const std::vector<InterpolationTransactionComponent>& transaction_comps,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  int coarsest_ln = invalid_level_number,
                                  int finest_ln = invalid_level_number);
 
@@ -323,7 +323,7 @@ public:
     /*!
      * \brief Reinitialize operator state following, e.g., a regridding operation.
      */
-    void reinitializeOperatorState(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void reinitializeOperatorState(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy);
 
     /*!
      * \brief Clear all cached data.
@@ -369,18 +369,18 @@ private:
     std::vector<InterpolationTransactionComponent> d_transaction_comps;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Cached communications algorithms and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
-    std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > d_coarsen_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithmNd> d_coarsen_alg;
+    std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategyNd> d_coarsen_strategy;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> > d_coarsen_scheds;
 
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_refine_alg;
-    std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_refine_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_refine_scheds;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> d_refine_alg;
+    std::unique_ptr<SAMRAI::xfer::RefinePatchStrategyNd> d_refine_strategy;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> > d_refine_scheds;
 
     // Cached coarse-fine boundary and physical boundary condition handlers.
     std::vector<SAMRAI::tbox::Pointer<CoarseFineBoundaryRefinePatchStrategy> > d_cf_bdry_ops;

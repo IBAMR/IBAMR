@@ -47,8 +47,8 @@ GravityForcing::isTimeDependent() const
 
 void
 GravityForcing::setDataOnPatchHierarchy(const int data_idx,
-                                        Pointer<Variable<NDIM> > /*var*/,
-                                        Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                        Pointer<VariableNd> /*var*/,
+                                        Pointer<PatchHierarchyNd> hierarchy,
                                         const double /*data_time*/,
                                         const bool /*initial_time*/,
                                         const int coarsest_ln_in,
@@ -65,18 +65,18 @@ GravityForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& box = patch->getBox();
-            Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
-            const Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_ins_idx);
+            Pointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& box = patch->getBox();
+            Pointer<SideDataNd<double> > f_data = patch->getPatchData(data_idx);
+            const Pointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(box, axis)); it; it++)
+                for (BoxNd::Iterator it(SideGeometryNd::toSideBox(box, axis)); it; it++)
                 {
-                    SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                    SideIndexNd s_i(it(), axis, SideIndexNd::Lower);
                     (*f_data)(s_i) = ((*rho_data)(s_i)) * d_grav_const[axis];
                 }
             }
@@ -87,15 +87,15 @@ GravityForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 GravityForcing::setDataOnPatch(const int data_idx,
-                               Pointer<Variable<NDIM> > /*var*/,
-                               Pointer<Patch<NDIM> > patch,
+                               Pointer<VariableNd> /*var*/,
+                               Pointer<PatchNd> patch,
                                const double /*data_time*/,
                                const bool initial_time,
-                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                               Pointer<PatchLevelNd> /*patch_level*/)
 {
     if (initial_time)
     {
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(data_idx);
+        Pointer<SideDataNd<double> > f_data = patch->getPatchData(data_idx);
         f_data->fillAll(0.0);
     }
     // Intentionally left blank

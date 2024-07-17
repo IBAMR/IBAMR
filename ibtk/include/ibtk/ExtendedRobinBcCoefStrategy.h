@@ -35,7 +35,7 @@ namespace IBTK
  * data descriptor indices that are required for filling, and the specification
  * of whether homogeneous or inhomogeneous boundary data should be set.
  */
-class ExtendedRobinBcCoefStrategy : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class ExtendedRobinBcCoefStrategy : public SAMRAI::solv::RobinBcCoefStrategyNd
 {
 public:
     /*!

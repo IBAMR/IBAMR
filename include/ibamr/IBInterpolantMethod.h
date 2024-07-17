@@ -126,7 +126,7 @@ public:
     virtual void
     registerVariableAndHierarchyIntegrator(const std::string& var_name,
                                            const int var_depth,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+                                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> variable,
                                            SAMRAI::tbox::Pointer<IBTK::HierarchyIntegrator> hier_integrator);
 
     /*!
@@ -174,13 +174,13 @@ public:
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
-    const SAMRAI::hier::IntVector<NDIM>& getMinimumGhostCellWidth() const override;
+    const SAMRAI::hier::IntVectorNd& getMinimumGhostCellWidth() const override;
 
     /*!
      * Setup the tag buffer.
      */
     void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
-                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const override;
+                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) const override;
 
     /*!
      * Method to prepare to advance data from current_time to new_time.
@@ -196,11 +196,11 @@ public:
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
-    void interpolateVelocity(
-        int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time) override;
+    void
+    interpolateVelocity(int u_data_idx,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
+                        double data_time) override;
 
     /*!
      * Interpolate the Eulerian quantities to the curvilinear mesh at the
@@ -256,11 +256,10 @@ public:
      * Spread the Lagrangian force to the Cartesian grid at the specified time
      * within the current time interval.
      */
-    void
-    spreadForce(int f_data_idx,
-                IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-                double data_time) override;
+    void spreadForce(int f_data_idx,
+                     IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                     const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
+                     double data_time) override;
 
     /*!
      * Spread Q on the Eulerian grid.
@@ -290,11 +289,11 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time) override;
@@ -303,22 +302,22 @@ public:
      * Add the estimated computational work from the current object per cell
      * into the specified <code>workload_data_idx</code>.
      */
-    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                              const int workload_data_idx) override;
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
      * hierarchy.
      */
-    void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
-    void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -326,12 +325,12 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> old_level,
                              bool allocate_data) override;
 
     /*!
@@ -339,7 +338,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                      int coarsest_level,
                                      int finest_level) override;
 
@@ -349,7 +348,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -403,8 +402,8 @@ protected:
      * Pointers to the patch hierarchy and gridding algorithm objects associated
      * with this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> d_gridding_alg;
 
     /*
      * The current time step interval.
@@ -434,12 +433,12 @@ protected:
     IBTK::LDataManager* d_l_data_manager;
     std::string d_interp_kernel_fcn = "IB_4", d_spread_kernel_fcn = "IB_4";
     bool d_error_if_points_leave_domain = false;
-    SAMRAI::hier::IntVector<NDIM> d_ghosts;
+    SAMRAI::hier::IntVectorNd d_ghosts;
 
     /*!
      * \brief Eulerian variables and their HierarchyIntegrators.
      */
-    std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_q_var;
+    std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> > d_q_var;
     std::map<std::string, int> d_q_depth;
     std::map<std::string, int> d_q_interp_idx;
     std::map<std::string, SAMRAI::tbox::Pointer<IBTK::HierarchyIntegrator> > d_q_hier_integrator;

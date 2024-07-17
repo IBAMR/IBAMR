@@ -38,19 +38,18 @@
  *
  */
 
-void
-callTagSolidLSRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                              const int level_number,
-                                              const double error_data_time,
-                                              const int tag_index,
-                                              const bool initial_time,
-                                              const bool uses_richardson_extrapolation_too,
-                                              void* ctx);
+void callTagSolidLSRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+                                                   const int level_number,
+                                                   const double error_data_time,
+                                                   const int tag_index,
+                                                   const bool initial_time,
+                                                   const bool uses_richardson_extrapolation_too,
+                                                   void* ctx);
 
 struct TagLSRefinementCells
 {
     TagLSRefinementCells(SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
                          double tag_value,
                          double tag_abs_thresh)
         : d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_tag_value(tag_value), d_tag_abs_thresh(tag_abs_thresh)
@@ -59,7 +58,7 @@ struct TagLSRefinementCells
     }
 
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_var;
     double d_tag_value;
     double d_tag_abs_thresh;
 };

@@ -37,8 +37,8 @@ namespace IBTK
 inline LNode::LNode(const int lagrangian_nidx,
                     const int global_petsc_nidx,
                     const int local_petsc_nidx,
-                    const SAMRAI::hier::IntVector<NDIM>& initial_periodic_offset,
-                    const SAMRAI::hier::IntVector<NDIM>& current_periodic_offset,
+                    const SAMRAI::hier::IntVectorNd& initial_periodic_offset,
+                    const SAMRAI::hier::IntVectorNd& current_periodic_offset,
                     const Vector& initial_periodic_displacement,
                     const Vector& current_periodic_displacement,
                     const std::vector<SAMRAI::tbox::Pointer<Streamable> >& node_data)
@@ -61,7 +61,7 @@ inline LNode::LNode(const LNode& from) : LNodeIndex(from), d_node_data(from.d_no
     return;
 } // LNode
 
-inline LNode::LNode(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
+inline LNode::LNode(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVectorNd& offset)
     : LNodeIndex(), d_node_data()
 {
     unpackStream(stream, offset);
@@ -86,7 +86,7 @@ LNode::operator=(const LNode& that)
 } // operator=
 
 inline void
-LNode::registerPeriodicShift(const SAMRAI::hier::IntVector<NDIM>& offset, const Vector& displacement)
+LNode::registerPeriodicShift(const SAMRAI::hier::IntVectorNd& offset, const Vector& displacement)
 {
     LNodeIndex::registerPeriodicShift(offset, displacement);
     for (const auto& node : d_node_data)
@@ -181,8 +181,8 @@ LNode::getNodeDataVector() const
 } // getNodeDataVector
 
 inline void
-LNode::copySourceItem(const SAMRAI::hier::Index<NDIM>& src_index,
-                      const SAMRAI::hier::IntVector<NDIM>& src_offset,
+LNode::copySourceItem(const SAMRAI::hier::IndexNd& src_index,
+                      const SAMRAI::hier::IntVectorNd& src_offset,
                       const LNodeIndex& src_item)
 {
     LNodeIndex::copySourceItem(src_index, src_offset, src_item);
@@ -209,7 +209,7 @@ LNode::packStream(SAMRAI::tbox::AbstractStream& stream)
 } // packStream
 
 inline void
-LNode::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
+LNode::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVectorNd& offset)
 {
     LNodeIndex::unpackStream(stream, offset);
     d_node_data.clear();

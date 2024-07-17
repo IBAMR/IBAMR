@@ -57,7 +57,7 @@ IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     // Allocate Eulerian scratch and new data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
@@ -145,7 +145,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     // "current" data (defined at time level n) or some other velocity field
     // here.  We use the "current" Lagrangian position data to define the
     // locations to where the velocities are interpolated.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
@@ -177,7 +177,7 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     // Deallocate Eulerian scratch data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
     }
@@ -201,8 +201,8 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
 } // postprocessIntegrateHierarchy
 
 void
-IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> hierarchy,
+                                                           Pointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

@@ -41,7 +41,7 @@ callForceProjectorCallBackFunction(const double current_time, const double new_t
 
 ForceProjector::ForceProjector(const std::string& object_name,
                                LDataManager* lag_data_manager,
-                               Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                               Pointer<PatchHierarchyNd> patch_hierarchy,
                                Pointer<Database> input_db,
                                const std::string solver_type)
     : d_object_name(object_name),
@@ -55,12 +55,12 @@ ForceProjector::ForceProjector(const std::string& object_name,
     d_rho_body = 1.0;
 
     // Initialize  variables & variable contexts associated with Eulerian forces.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     d_body_force_context = var_db->getContext(d_object_name + "::BODYFORCE");
     if (d_solver_type == "STAGGERED")
-        d_body_force_var = new SideVariable<NDIM, double>(d_object_name + "::BodyForce_sc_var");
+        d_body_force_var = new SideVariableNd<double>(d_object_name + "::BodyForce_sc_var");
     if (d_solver_type == "COLLOCATED")
-        d_body_force_var = new CellVariable<NDIM, double>(d_object_name + "::BodyForce_cc_var", NDIM);
+        d_body_force_var = new CellVariableNd<double>(d_object_name + "::BodyForce_cc_var", NDIM);
     d_body_force_idx = var_db->registerVariableAndContext(d_body_force_var, d_body_force_context, 0);
 
     getFromInput(input_db);
@@ -165,21 +165,21 @@ ForceProjector::calculateEulerianBodyForce(const double /*new_time*/, const doub
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_body_force_idx)) level->deallocatePatchData(d_body_force_idx);
         level->allocatePatchData(d_body_force_idx, current_time);
 
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchNd> patch = level->getPatch(p());
             if (d_solver_type == "STAGGERED")
             {
-                Pointer<SideData<NDIM, double> > body_force_data = patch->getPatchData(d_body_force_idx);
+                Pointer<SideDataNd<double> > body_force_data = patch->getPatchData(d_body_force_idx);
                 body_force_data->fill(0.0);
             }
             else if (d_solver_type == "COLLOCATED")
             {
-                Pointer<CellData<NDIM, double> > body_force_data = patch->getPatchData(d_body_force_idx);
+                Pointer<CellDataNd<double> > body_force_data = patch->getPatchData(d_body_force_idx);
                 body_force_data->fill(0.0);
             }
             else

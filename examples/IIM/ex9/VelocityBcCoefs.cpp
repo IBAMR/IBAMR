@@ -75,12 +75,12 @@ VelocityBcCoefs::~VelocityBcCoefs()
 } // ~VelocityBcCoefs
 
 void
-VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                            Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                            Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                            const Pointer<Variable<NDIM> >& /*variable*/,
-                            const Patch<NDIM>& patch,
-                            const BoundaryBox<NDIM>& bdry_box,
+VelocityBcCoefs::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
+                            Pointer<ArrayDataNd<double> >& bcoef_data,
+                            Pointer<ArrayDataNd<double> >& gcoef_data,
+                            const Pointer<VariableNd>& /*variable*/,
+                            const PatchNd& patch,
+                            const BoundaryBoxNd& bdry_box,
                             double fill_time) const
 {
     // bdry_box is for filling ghost data
@@ -98,15 +98,15 @@ VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
 #if !defined(NDEBUG)
     TBOX_ASSERT(!acoef_data.isNull());
 #endif
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const BoxNd& bc_coef_box = acoef_data->getBox();
 #if !defined(NDEBUG)
     TBOX_ASSERT(bcoef_data.isNull() || bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(gcoef_data.isNull() || bc_coef_box == gcoef_data->getBox());
 #endif
 
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const BoxNd& patch_box = patch.getBox();
+    const hier::IndexNd& patch_lower = patch_box.lower();
+    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower(); // pointer to lower coordinates of patch
 
@@ -122,10 +122,10 @@ VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     //    z_max = d_input_db->getDoubleWithDefault("Z_MAX", z_max);
 
     // Loops through cells of bc_coef_box, which is box over which we need BC's
-    for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+    for (BoxNd::Iterator bc(bc_coef_box); bc; bc++)
     {
-        const hier::Index<NDIM>& i = bc();
-        const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+        const hier::IndexNd& i = bc();
+        const SideIndexNd i_s(i, axis, SideIndexNd::Lower);
         double dummy;
         double& a = (!acoef_data.isNull() ? (*acoef_data)(i, 0) : dummy);
         double& b = (!bcoef_data.isNull() ? (*bcoef_data)(i, 0) : dummy);
@@ -222,7 +222,7 @@ VelocityBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+IntVectorNd
 VelocityBcCoefs::numberOfExtensionsFillable() const
 {
     return 128;

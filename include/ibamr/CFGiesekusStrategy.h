@@ -65,16 +65,16 @@ public:
     CFGiesekusStrategy(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     void computeRelaxation(int R_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > R_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > R_var,
                            int C_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > C_var,
+                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > C_var,
                            TensorEvolutionType evolve_type,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                            double data_time) override;
 
     void computeStress(int sig_idx,
-                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > sig_var,
-                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > sig_var,
+                       SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                        double data_time) override;
 
 private:

@@ -117,8 +117,8 @@ public:
      */
     void setNullspace(
         bool contains_constant_vec,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > >& nullspace_basis_vecs =
+            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > >()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -157,8 +157,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -201,8 +200,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -242,8 +241,8 @@ protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
-    virtual void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                                  const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
+    virtual void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                                                  const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) = 0;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -254,12 +253,12 @@ protected:
     /*!
      * \brief Copy a generic vector to the PETSc representation.
      */
-    virtual void copyToPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) = 0;
+    virtual void copyToPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorRealNd<double>& x) = 0;
 
     /*!
      * \brief Copy a generic vector from the PETSc representation.
      */
-    virtual void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x) = 0;
+    virtual void copyFromPETScVec(Vec& petsc_x, SAMRAI::solv::SAMRAIVectorRealNd<double>& x) = 0;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -268,8 +267,8 @@ protected:
      */
     virtual void setupKSPVecs(Vec& petsc_x,
                               Vec& petsc_b,
-                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
+                              SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                              SAMRAI::solv::SAMRAIVectorRealNd<double>& b) = 0;
 
     /*!
      * \brief Setup the solver nullspace (if any).
@@ -279,13 +278,13 @@ protected:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
 
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num = IBTK::invalid_level_number;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > d_level;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> d_level;
     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!
@@ -310,7 +309,7 @@ protected:
      */
     //\{
     Vec d_local_x, d_local_y;
-    SAMRAI::hier::IntVector<NDIM> d_box_size, d_overlap_size;
+    SAMRAI::hier::IntVectorNd d_box_size, d_overlap_size;
     int d_n_local_subdomains, d_n_subdomains_max;
     std::vector<IS> d_overlap_is, d_nonoverlap_is, d_local_overlap_is, d_local_nonoverlap_is;
     std::vector<VecScatter> d_restriction, d_prolongation;

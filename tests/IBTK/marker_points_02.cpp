@@ -76,36 +76,36 @@ main(int argc, char** argv)
     const bool from_restart = RestartManager::getManager()->isFromRestart();
 
     int u_idx = IBTK::invalid_index;
-    Pointer<hier::Variable<NDIM> > u_var;
+    Pointer<hier::VariableNd> u_var;
     if (set_velocity)
     {
         // Set up the velocity on the Cartesian grid:
-        u_var = new pdat::SideVariable<NDIM, double>("u_sc", 1);
+        u_var = new pdat::SideVariableNd<double>("u_sc", 1);
         const std::string kernel = test_db->getStringWithDefault("kernel", "PIECEWISE_LINEAR");
         const int ghost_width = LEInteractor::getMinimumGhostWidth(kernel);
 
-        auto* var_db = hier::VariableDatabase<NDIM>::getDatabase();
+        auto* var_db = hier::VariableDatabaseNd::getDatabase();
         tbox::Pointer<hier::VariableContext> ctx = var_db->getContext("context");
-        u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVector<NDIM>(ghost_width));
+        u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVectorNd(ghost_width));
     }
 
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
-        "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-    grid_geometry->addSpatialRefineOperator(new CartesianCellDoubleLinearRefine<NDIM>());
+    Pointer<CartesianGridGeometryNd> grid_geometry =
+        new CartesianGridGeometryNd("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+    grid_geometry->addSpatialRefineOperator(new CartesianCellDoubleLinearRefineNd());
     grid_geometry->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-    Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+    Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+    Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
         "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-    Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-    Pointer<LoadBalancer<NDIM> > load_balancer =
-        new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-    Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-        new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+    Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+    Pointer<LoadBalancerNd> load_balancer =
+        new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+    Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        new GriddingAlgorithmNd("GriddingAlgorithm",
+                                app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                error_detector,
+                                box_generator,
+                                load_balancer);
 
     // Initialize the AMR patch hierarchy.
     gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -142,16 +142,16 @@ main(int argc, char** argv)
     {
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            tbox::Pointer<hier::PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_idx, 0.0);
         }
-        HierarchySideDataOpsReal<NDIM, double> ops(patch_hierarchy);
+        HierarchySideDataOpsRealNd<double> ops(patch_hierarchy);
         ops.setToScalar(u_idx, std::numeric_limits<double>::quiet_NaN(), false);
         IBTK::muParserCartGridFunction u_fcn("u", test_db->getDatabase("u"), patch_hierarchy->getGridGeometry());
         u_fcn.setDataOnPatchHierarchy(u_idx, u_var, patch_hierarchy, 0.0);
 
         std::vector<std::unique_ptr<muParserRobinBcCoefs> > u_bc_coefs;
-        std::vector<RobinBcCoefStrategy<NDIM>*> u_bc_coef_ptrs;
+        std::vector<RobinBcCoefStrategyNd*> u_bc_coef_ptrs;
 
         if (test_db->keyExists("UBcCoefs_0"))
         {
@@ -181,8 +181,7 @@ main(int argc, char** argv)
     if (timestep)
     {
         // Pick CFL = 1.0 to simulate the largest marker point travel possible:
-        Pointer<PatchLevel<NDIM> > finest_level =
-            patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+        Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
         const double dx = get_min_patch_dx(*finest_level);
         const double U_MAX = 1.0;
         const double dt = dx / U_MAX;
@@ -302,7 +301,7 @@ main(int argc, char** argv)
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             int local_patch_num = 0;
-            Pointer<PatchLevel<NDIM> > current_level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> current_level = patch_hierarchy->getPatchLevel(ln);
             for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
             {
                 if (rank == current_level->getMappingForPatch(p))

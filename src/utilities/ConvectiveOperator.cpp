@@ -69,7 +69,7 @@ ConvectiveOperator::getConvectiveDifferencingType() const
 } // getConvectiveDifferencingType
 
 void
-ConvectiveOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+ConvectiveOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<double>& y)
 {
     // Get the vector components.
     const int Q_idx = x.getComponentDescriptorIndex(0);

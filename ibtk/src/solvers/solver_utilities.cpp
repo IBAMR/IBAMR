@@ -136,7 +136,7 @@ reportPETScSNESConvergedReason(const std::string& object_name, const SNESConverg
 } // reportPETScSNESConvergedReason
 
 std::array<HYPRE_Int, NDIM>
-hypre_array(const SAMRAI::hier::Index<NDIM>& index)
+hypre_array(const SAMRAI::hier::IndexNd& index)
 {
     std::array<HYPRE_Int, NDIM> result;
     for (unsigned int d = 0; d < NDIM; ++d) result[d] = index[d];
@@ -144,14 +144,14 @@ hypre_array(const SAMRAI::hier::Index<NDIM>& index)
 }
 
 void
-copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
+copyFromHypre(SAMRAI::pdat::CellDataNd<double>& dst_data,
               const std::vector<HYPRE_StructVector>& vectors,
-              const SAMRAI::hier::Box<NDIM>& box)
+              const SAMRAI::hier::BoxNd& box)
 {
     const bool copy_data = dst_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAI::pdat::CellData<NDIM, double> > dst_data_box(
-        copy_data ? new SAMRAI::pdat::CellData<NDIM, double>(box, dst_data.getDepth(), 0) : nullptr);
-    SAMRAI::pdat::CellData<NDIM, double>& hypre_data = copy_data ? *dst_data_box : dst_data;
+    std::unique_ptr<SAMRAI::pdat::CellDataNd<double> > dst_data_box(
+        copy_data ? new SAMRAI::pdat::CellDataNd<double>(box, dst_data.getDepth(), 0) : nullptr);
+    SAMRAI::pdat::CellDataNd<double>& hypre_data = copy_data ? *dst_data_box : dst_data;
     unsigned int depth = dst_data.getDepth();
 #ifndef NDEBUG
     TBOX_ASSERT(depth == vectors.size());
@@ -170,14 +170,12 @@ copyFromHypre(SAMRAI::pdat::CellData<NDIM, double>& dst_data,
 } // copyFromHypre
 
 void
-copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
-              HYPRE_SStructVector vector,
-              const SAMRAI::hier::Box<NDIM>& box)
+copyFromHypre(SAMRAI::pdat::SideDataNd<double>& dst_data, HYPRE_SStructVector vector, const SAMRAI::hier::BoxNd& box)
 {
     const bool copy_data = dst_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAI::pdat::SideData<NDIM, double> > dst_data_box(
-        copy_data ? new SAMRAI::pdat::SideData<NDIM, double>(box, 1, 0) : nullptr);
-    SAMRAI::pdat::SideData<NDIM, double>& hypre_data = copy_data ? *dst_data_box : dst_data;
+    std::unique_ptr<SAMRAI::pdat::SideDataNd<double> > dst_data_box(
+        copy_data ? new SAMRAI::pdat::SideDataNd<double>(box, 1, 0) : nullptr);
+    SAMRAI::pdat::SideDataNd<double>& hypre_data = copy_data ? *dst_data_box : dst_data;
     for (int var = 0; var < NDIM; ++var)
     {
         const unsigned int axis = var;
@@ -195,13 +193,13 @@ copyFromHypre(SAMRAI::pdat::SideData<NDIM, double>& dst_data,
 
 void
 copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
-            SAMRAI::pdat::CellData<NDIM, double>& src_data,
-            const SAMRAI::hier::Box<NDIM>& box)
+            SAMRAI::pdat::CellDataNd<double>& src_data,
+            const SAMRAI::hier::BoxNd& box)
 {
     const bool copy_data = src_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAI::pdat::CellData<NDIM, double> > src_data_box(
-        copy_data ? new SAMRAI::pdat::CellData<NDIM, double>(box, src_data.getDepth(), 0) : nullptr);
-    SAMRAI::pdat::CellData<NDIM, double>& hypre_data = copy_data ? *src_data_box : src_data;
+    std::unique_ptr<SAMRAI::pdat::CellDataNd<double> > src_data_box(
+        copy_data ? new SAMRAI::pdat::CellDataNd<double>(box, src_data.getDepth(), 0) : nullptr);
+    SAMRAI::pdat::CellDataNd<double>& hypre_data = copy_data ? *src_data_box : src_data;
     if (copy_data) hypre_data.copyOnBox(src_data, box);
     unsigned int depth = src_data.getDepth();
 #ifndef NDEBUG
@@ -217,14 +215,12 @@ copyToHypre(const std::vector<HYPRE_StructVector>& vectors,
 } // copyToHypre
 
 void
-copyToHypre(HYPRE_SStructVector& vector,
-            SAMRAI::pdat::SideData<NDIM, double>& src_data,
-            const SAMRAI::hier::Box<NDIM>& box)
+copyToHypre(HYPRE_SStructVector& vector, SAMRAI::pdat::SideDataNd<double>& src_data, const SAMRAI::hier::BoxNd& box)
 {
     const bool copy_data = src_data.getGhostBox() != box;
-    std::unique_ptr<SAMRAI::pdat::SideData<NDIM, double> > src_data_box(
-        copy_data ? new SAMRAI::pdat::SideData<NDIM, double>(box, 1, 0) : nullptr);
-    SAMRAI::pdat::SideData<NDIM, double>& hypre_data = copy_data ? *src_data_box : src_data;
+    std::unique_ptr<SAMRAI::pdat::SideDataNd<double> > src_data_box(
+        copy_data ? new SAMRAI::pdat::SideDataNd<double>(box, 1, 0) : nullptr);
+    SAMRAI::pdat::SideDataNd<double>& hypre_data = copy_data ? *src_data_box : src_data;
     if (copy_data) hypre_data.copyOnBox(src_data, box);
     for (int var = 0; var < NDIM; ++var)
     {

@@ -120,8 +120,8 @@ protected:
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
      */
-    void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                          const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverStateSpecialized(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                                          const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Copy solution and right-hand-side data to the PETSc
@@ -130,8 +130,8 @@ protected:
      */
     void setupKSPVecs(Vec& petsc_x,
                       Vec& petsc_b,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+                      SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                      SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
 private:
     /*!

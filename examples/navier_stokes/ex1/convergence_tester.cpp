@@ -86,28 +86,28 @@ main(int argc, char* argv[])
     }
 
     // Create major algorithm and data objects that comprise application.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = new CartesianGridGeometry<NDIM>(
-        "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+    Pointer<CartesianGridGeometryNd> grid_geom =
+        new CartesianGridGeometryNd("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
 
     // Initialize variables.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
     Pointer<VariableContext> current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
     Pointer<VariableContext> scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-    Pointer<SideVariable<NDIM, double> > U_var = new SideVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::U");
+    Pointer<SideVariableNd<double> > U_var = new SideVariableNd<double>("INSStaggeredHierarchyIntegrator::U");
     const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
     const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
     const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
 
-    Pointer<CellVariable<NDIM, double> > P_var = new CellVariable<NDIM, double>("INSStaggeredHierarchyIntegrator::P");
+    Pointer<CellVariableNd<double> > P_var = new CellVariableNd<double>("INSStaggeredHierarchyIntegrator::P");
     const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
     const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
     const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
 
     // Set up visualization plot file writer.
-    Pointer<VisItDataWriter<NDIM> > visit_data_writer =
-        new VisItDataWriter<NDIM>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+    Pointer<VisItDataWriterNd> visit_data_writer =
+        new VisItDataWriterNd("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
     visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
     visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
 
@@ -165,8 +165,8 @@ main(int argc, char* argv[])
         Pointer<HDFDatabase> coarse_hier_db = new HDFDatabase("coarse_hier_db");
         coarse_hier_db->open(coarse_file_name);
 
-        Pointer<PatchHierarchy<NDIM> > coarse_patch_hierarchy =
-            new PatchHierarchy<NDIM>("CoarsePatchHierarchy", grid_geom, false);
+        Pointer<PatchHierarchyNd> coarse_patch_hierarchy =
+            new PatchHierarchyNd("CoarsePatchHierarchy", grid_geom, false);
         coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
         const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
@@ -176,7 +176,7 @@ main(int argc, char* argv[])
         Pointer<HDFDatabase> fine_hier_db = new HDFDatabase("fine_hier_db");
         fine_hier_db->open(fine_file_name);
 
-        Pointer<PatchHierarchy<NDIM> > fine_patch_hierarchy = new PatchHierarchy<NDIM>(
+        Pointer<PatchHierarchyNd> fine_patch_hierarchy = new PatchHierarchyNd(
             "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
         fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
@@ -188,13 +188,13 @@ main(int argc, char* argv[])
         loop_time = fine_loop_time;
         pout << "     loop time = " << loop_time << endl;
 
-        Pointer<PatchHierarchy<NDIM> > coarsened_fine_patch_hierarchy =
+        Pointer<PatchHierarchyNd> coarsened_fine_patch_hierarchy =
             fine_patch_hierarchy->makeCoarsenedPatchHierarchy("CoarsenedFinePatchHierarchy", 2, false);
 
         // Setup hierarchy operations objects.
-        HierarchyCellDataOpsReal<NDIM, double> coarse_hier_cc_data_ops(
+        HierarchyCellDataOpsRealNd<double> coarse_hier_cc_data_ops(
             coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
-        HierarchySideDataOpsReal<NDIM, double> coarse_hier_sc_data_ops(
+        HierarchySideDataOpsRealNd<double> coarse_hier_sc_data_ops(
             coarse_patch_hierarchy, 0, coarse_patch_hierarchy->getFinestLevelNumber());
         HierarchyMathOps hier_math_ops("hier_math_ops", coarse_patch_hierarchy);
         hier_math_ops.setPatchHierarchy(coarse_patch_hierarchy);
@@ -205,7 +205,7 @@ main(int argc, char* argv[])
         // Allocate patch data.
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = coarse_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = coarse_patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(U_interp_idx, loop_time);
             level->allocatePatchData(P_interp_idx, loop_time);
             level->allocatePatchData(U_scratch_idx, loop_time);
@@ -214,7 +214,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = fine_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = fine_patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(U_interp_idx, loop_time);
             level->allocatePatchData(P_interp_idx, loop_time);
             level->allocatePatchData(U_scratch_idx, loop_time);
@@ -223,7 +223,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= coarsened_fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(U_idx, loop_time);
             level->allocatePatchData(P_idx, loop_time);
             level->allocatePatchData(U_interp_idx, loop_time);
@@ -235,11 +235,11 @@ main(int argc, char* argv[])
         // Synchronize the coarse hierarchy data.
         for (int ln = coarse_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
         {
-            Pointer<PatchLevel<NDIM> > coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
-            Pointer<PatchLevel<NDIM> > finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> coarser_level = coarse_patch_hierarchy->getPatchLevel(ln - 1);
+            Pointer<PatchLevelNd> finer_level = coarse_patch_hierarchy->getPatchLevel(ln);
 
-            CoarsenAlgorithm<NDIM> coarsen_alg;
-            Pointer<CoarsenOperator<NDIM> > coarsen_op;
+            CoarsenAlgorithmNd coarsen_alg;
+            Pointer<CoarsenOperatorNd> coarsen_op;
 
             coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -253,11 +253,11 @@ main(int argc, char* argv[])
         // Synchronize the fine hierarchy data.
         for (int ln = fine_patch_hierarchy->getFinestLevelNumber(); ln > 0; --ln)
         {
-            Pointer<PatchLevel<NDIM> > coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
-            Pointer<PatchLevel<NDIM> > finer_level = fine_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> coarser_level = fine_patch_hierarchy->getPatchLevel(ln - 1);
+            Pointer<PatchLevelNd> finer_level = fine_patch_hierarchy->getPatchLevel(ln);
 
-            CoarsenAlgorithm<NDIM> coarsen_alg;
-            Pointer<CoarsenOperator<NDIM> > coarsen_op;
+            CoarsenAlgorithmNd coarsen_alg;
+            Pointer<CoarsenOperatorNd> coarsen_op;
 
             coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
             coarsen_alg.registerCoarsen(U_idx, U_idx, coarsen_op);
@@ -271,16 +271,16 @@ main(int argc, char* argv[])
         // Coarsen data from the fine hierarchy to the coarsened fine hierarchy.
         for (int ln = 0; ln <= fine_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > src_level = fine_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> dst_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> src_level = fine_patch_hierarchy->getPatchLevel(ln);
 
-            Pointer<CoarsenOperator<NDIM> > coarsen_op;
-            for (PatchLevel<NDIM>::Iterator p(dst_level); p; p++)
+            Pointer<CoarsenOperatorNd> coarsen_op;
+            for (PatchLevelNd::Iterator p(dst_level); p; p++)
             {
-                Pointer<Patch<NDIM> > dst_patch = dst_level->getPatch(p());
-                Pointer<Patch<NDIM> > src_patch = src_level->getPatch(p());
-                const Box<NDIM>& coarse_box = dst_patch->getBox();
-                TBOX_ASSERT(Box<NDIM>::coarsen(src_patch->getBox(), 2) == coarse_box);
+                Pointer<PatchNd> dst_patch = dst_level->getPatch(p());
+                Pointer<PatchNd> src_patch = src_level->getPatch(p());
+                const BoxNd& coarse_box = dst_patch->getBox();
+                TBOX_ASSERT(BoxNd::coarsen(src_patch->getBox(), 2) == coarse_box);
 
                 coarsen_op = grid_geom->lookupCoarsenOperator(U_var, "CONSERVATIVE_COARSEN");
                 coarsen_op->coarsen(*dst_patch, *src_patch, U_interp_idx, U_idx, coarse_box, 2);
@@ -294,11 +294,11 @@ main(int argc, char* argv[])
         // the coarse patch hierarchy.
         for (int ln = 0; ln <= coarse_patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> dst_level = coarse_patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> src_level = coarsened_fine_patch_hierarchy->getPatchLevel(ln);
 
-            RefineAlgorithm<NDIM> refine_alg;
-            Pointer<RefineOperator<NDIM> > refine_op;
+            RefineAlgorithmNd refine_alg;
+            Pointer<RefineOperatorNd> refine_op;
 
             refine_op = grid_geom->lookupRefineOperator(U_var, "CONSERVATIVE_LINEAR_REFINE");
             refine_alg.registerRefine(U_interp_idx, U_interp_idx, U_scratch_idx, refine_op);

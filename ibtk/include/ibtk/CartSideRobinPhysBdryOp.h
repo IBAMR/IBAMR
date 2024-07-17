@@ -93,7 +93,7 @@ public:
      * or "QUADRATIC". Defaults to "LINEAR".
      */
     CartSideRobinPhysBdryOp(int patch_data_index,
-                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                            const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs,
                             bool homogeneous_bc = false,
                             std::string type = "LINEAR");
 
@@ -111,7 +111,7 @@ public:
      * or "QUADRATIC". Defaults to "LINEAR".
      */
     CartSideRobinPhysBdryOp(const std::set<int>& patch_data_indices,
-                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                            const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs,
                             bool homogeneous_bc = false,
                             std::string type = "LINEAR");
 
@@ -129,7 +129,7 @@ public:
      * or "QUADRATIC". Defaults to "LINEAR".
      */
     CartSideRobinPhysBdryOp(const SAMRAI::hier::ComponentSelector& patch_data_indices,
-                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                            const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs,
                             bool homogeneous_bc = false,
                             std::string type = "LINEAR");
 
@@ -155,16 +155,16 @@ public:
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
      * all registered scratch components.
      */
-    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+    void setPhysicalBoundaryConditions(SAMRAI::hier::PatchNd& patch,
                                        double fill_time,
-                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
+                                       const SAMRAI::hier::IntVectorNd& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
+    SAMRAI::hier::IntVectorNd getRefineOpStencilWidth() const override;
 
     //\}
 
@@ -179,9 +179,9 @@ public:
      * \param ghost_width_to_fill  Integer vector describing maximum ghost width to fill over
      * all registered scratch components.
      */
-    void accumulateFromPhysicalBoundaryData(SAMRAI::hier::Patch<NDIM>& patch,
+    void accumulateFromPhysicalBoundaryData(SAMRAI::hier::PatchNd& patch,
                                             double fill_time,
-                                            const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
+                                            const SAMRAI::hier::IntVectorNd& ghost_width_to_fill) override;
 
 protected:
 private:
@@ -209,33 +209,32 @@ private:
      * \brief Set the boundary conditions for normal components along the
      * co-dimension one boundary.
      */
-    void
-    fillGhostCellValuesCodim1Normal(int patch_data_idx,
-                                    const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
-                                    double fill_time,
-                                    const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-                                    SAMRAI::hier::Patch<NDIM>& patch,
-                                    bool adjoint_op);
+    void fillGhostCellValuesCodim1Normal(int patch_data_idx,
+                                         const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBoxNd>& physical_codim1_boxes,
+                                         double fill_time,
+                                         const SAMRAI::hier::IntVectorNd& ghost_width_to_fill,
+                                         SAMRAI::hier::PatchNd& patch,
+                                         bool adjoint_op);
 
     /*!
      * \brief Set the boundary conditions for transverse components along the
      * co-dimension one boundary.
      */
-    void fillGhostCellValuesCodim1Transverse(
-        int patch_data_idx,
-        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim1_boxes,
-        double fill_time,
-        const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-        SAMRAI::hier::Patch<NDIM>& patch,
-        bool adjoint_op);
+    void
+    fillGhostCellValuesCodim1Transverse(int patch_data_idx,
+                                        const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBoxNd>& physical_codim1_boxes,
+                                        double fill_time,
+                                        const SAMRAI::hier::IntVectorNd& ghost_width_to_fill,
+                                        SAMRAI::hier::PatchNd& patch,
+                                        bool adjoint_op);
 
     /*!
      * \brief Set the boundary conditions along the co-dimension two boundary.
      */
     void fillGhostCellValuesCodim2(int patch_data_idx,
-                                   const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim2_boxes,
-                                   const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-                                   const SAMRAI::hier::Patch<NDIM>& patch,
+                                   const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBoxNd>& physical_codim2_boxes,
+                                   const SAMRAI::hier::IntVectorNd& ghost_width_to_fill,
+                                   const SAMRAI::hier::PatchNd& patch,
                                    bool adjoint_op);
 
 #if (NDIM > 2)
@@ -243,9 +242,9 @@ private:
      * \brief Set the boundary conditions along the co-dimension three boundary.
      */
     void fillGhostCellValuesCodim3(int patch_data_idx,
-                                   const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBox<NDIM> >& physical_codim3_boxes,
-                                   const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill,
-                                   const SAMRAI::hier::Patch<NDIM>& patch,
+                                   const SAMRAI::tbox::Array<SAMRAI::hier::BoundaryBoxNd>& physical_codim3_boxes,
+                                   const SAMRAI::hier::IntVectorNd& ghost_width_to_fill,
+                                   const SAMRAI::hier::PatchNd& patch,
                                    bool adjoint_op);
 #endif
 

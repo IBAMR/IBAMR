@@ -22,7 +22,7 @@ int main(int argc, char **argv)
     const libMesh::Point point(1.0, 2.0, 3.0);
 #endif
 
-    SAMRAI::hier::VariableDatabase<NDIM>* var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
+    SAMRAI::hier::VariableDatabaseNd* var_db = SAMRAI::hier::VariableDatabaseNd::getDatabase();
     std::cout << "Number of contexts: " << var_db->getNumberOfRegisteredPatchDataIndices() << '\n';
 
     std::cout << "hello, world\n";

@@ -33,7 +33,7 @@
 #include <ibamr/app_namespaces.h>
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(Pointer<PatchHierarchyNd> patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> ins_integrator,
                  const int iteration_num,
                  const double loop_time,
@@ -109,22 +109,22 @@ main(int argc, char* argv[])
         adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -135,8 +135,8 @@ main(int argc, char* argv[])
         time_integrator->registerPressureInitialConditions(p_init);
 
         // Create boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -163,7 +163,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -274,20 +274,20 @@ main(int argc, char* argv[])
         }
 
         // Compute errors at the final time.
-        Pointer<CellVariable<NDIM, double> > s_var = polymericStressForcing->getVariable();
-        Pointer<CellVariable<NDIM, double> > sxx_var = new CellVariable<NDIM, double>("Sxx");
-        Pointer<CellVariable<NDIM, double> > syy_var = new CellVariable<NDIM, double>("Syy");
-        Pointer<CellVariable<NDIM, double> > sxy_var = new CellVariable<NDIM, double>("Sxy");
+        Pointer<CellVariableNd<double> > s_var = polymericStressForcing->getVariable();
+        Pointer<CellVariableNd<double> > sxx_var = new CellVariableNd<double>("Sxx");
+        Pointer<CellVariableNd<double> > syy_var = new CellVariableNd<double>("Syy");
+        Pointer<CellVariableNd<double> > sxy_var = new CellVariableNd<double>("Sxy");
         const Pointer<VariableContext> s_ctx = adv_diff_integrator->getCurrentContext();
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         const int s_idx = var_db->mapVariableAndContextToIndex(s_var, s_ctx);
         const int s_cloned_idx = var_db->registerClonedPatchDataIndex(s_var, s_idx);
         const int sxx_idx = var_db->registerVariableAndContext(sxx_var, s_ctx);
         const int syy_idx = var_db->registerVariableAndContext(syy_var, s_ctx);
         const int sxy_idx = var_db->registerVariableAndContext(sxy_var, s_ctx);
 
-        const Pointer<Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
+        const Pointer<VariableNd> u_var = time_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
@@ -313,21 +313,21 @@ main(int argc, char* argv[])
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-        HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchySideDataOpsRealNd<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         if (!using_exact_u) hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
         hier_cc_data_ops.subtract(s_idx, s_idx, s_cloned_idx);
 
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > s_data = patch->getPatchData(s_idx);
-                Pointer<CellData<NDIM, double> > sxx_data = patch->getPatchData(sxx_idx);
-                Pointer<CellData<NDIM, double> > syy_data = patch->getPatchData(syy_idx);
-                Pointer<CellData<NDIM, double> > sxy_data = patch->getPatchData(sxy_idx);
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<CellDataNd<double> > s_data = patch->getPatchData(s_idx);
+                Pointer<CellDataNd<double> > sxx_data = patch->getPatchData(sxx_idx);
+                Pointer<CellDataNd<double> > syy_data = patch->getPatchData(syy_idx);
+                Pointer<CellDataNd<double> > sxy_data = patch->getPatchData(sxy_idx);
 
                 sxx_data->copyDepth(0, *s_data, 0);
                 syy_data->copyDepth(0, *s_data, 1);
@@ -365,7 +365,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             if (!using_exact_u) level->deallocatePatchData(u_cloned_idx);
             level->deallocatePatchData(s_cloned_idx);
             level->deallocatePatchData(sxx_idx);
@@ -377,7 +377,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+output_data(Pointer<PatchHierarchyNd> patch_hierarchy,
             Pointer<INSHierarchyIntegrator> ins_integrator,
             const int iteration_num,
             const double loop_time,
@@ -391,7 +391,7 @@ output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     file_name += temp_buf;
     Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     ComponentSelector hier_data;
     hier_data.setFlag(var_db->mapVariableAndContextToIndex(ins_integrator->getVelocityVariable(),
                                                            ins_integrator->getCurrentContext()));

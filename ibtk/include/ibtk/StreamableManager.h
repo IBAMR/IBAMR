@@ -138,13 +138,13 @@ public:
      * \brief Unpack a Streamable object from the data stream.
      */
     SAMRAI::tbox::Pointer<Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                   const SAMRAI::hier::IntVector<NDIM>& offset);
+                                                   const SAMRAI::hier::IntVectorNd& offset);
 
     /*!
      * \brief Unpack a vector of Streamable objects from the data stream.
      */
     void unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                      const SAMRAI::hier::IntVector<NDIM>& offset,
+                      const SAMRAI::hier::IntVectorNd& offset,
                       std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
 
 protected:

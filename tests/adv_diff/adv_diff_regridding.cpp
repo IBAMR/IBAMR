@@ -83,22 +83,22 @@ main(int argc, char* argv[])
         Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Create an initial condition specification object.
         Pointer<CartGridFunction> Q_init = new muParserCartGridFunction(
@@ -108,8 +108,8 @@ main(int argc, char* argv[])
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Create boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        std::vector<RobinBcCoefStrategy<NDIM>*> Q_bc_coefs;
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        std::vector<RobinBcCoefStrategyNd*> Q_bc_coefs;
         if (periodic_shift.min() > 0)
         {
             Q_bc_coefs.push_back(nullptr);
@@ -121,20 +121,20 @@ main(int argc, char* argv[])
         }
 
         // Set up the advected and diffused quantity.
-        Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
+        Pointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
         time_integrator->registerTransportedQuantity(Q_var);
         time_integrator->setDiffusionCoefficient(Q_var, input_db->getDouble("DIFF_Q"));
         time_integrator->setInitialConditions(Q_var, Q_init);
         time_integrator->setPhysicalBcCoefs(Q_var, Q_bc_coefs);
 
-        Pointer<FaceVariable<NDIM, double> > u_adv_var = new FaceVariable<NDIM, double>("u_adv");
+        Pointer<FaceVariableNd<double> > u_adv_var = new FaceVariableNd<double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(u_adv_var, u_init);
         time_integrator->setAdvectionVelocity(Q_var, u_adv_var);
 
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F", 1);
+            Pointer<CellVariableNd<double> > F_var = new CellVariableNd<double>("F", 1);
             Pointer<CartGridFunction> F_fcn = new muParserCartGridFunction(
                 "F_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerSourceTerm(F_var);
@@ -150,7 +150,7 @@ main(int argc, char* argv[])
                                                                static_cast<void*>(&tagger));
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -227,7 +227,7 @@ main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
         const Pointer<VariableContext> Q_ctx = time_integrator->getCurrentContext();
         const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
@@ -247,7 +247,7 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(Q_cloned_idx, Q_idx, Q_cloned_idx);
         const double L1_norm = hier_cc_data_ops.L1Norm(Q_cloned_idx, wgt_cc_idx);
         const double L2_norm = hier_cc_data_ops.L2Norm(Q_cloned_idx, wgt_cc_idx);

@@ -116,7 +116,7 @@ namespace IBAMR
  *   entries - has the same default.</li>
  * </ul>
  */
-class IBStrategy : public SAMRAI::mesh::StandardTagAndInitStrategy<NDIM>, public SAMRAI::tbox::Serializable
+class IBStrategy : public SAMRAI::mesh::StandardTagAndInitStrategyNd, public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -154,7 +154,7 @@ public:
      * Return the number of ghost cells required by the Lagrangian-Eulerian
      * interaction routines.
      */
-    virtual const SAMRAI::hier::IntVector<NDIM>& getMinimumGhostCellWidth() const = 0;
+    virtual const SAMRAI::hier::IntVectorNd& getMinimumGhostCellWidth() const = 0;
 
     /*!
      * Setup the tag buffer.
@@ -163,7 +163,7 @@ public:
      * least the minimum ghost cell width.
      */
     virtual void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
-                                SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) const;
+                                SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) const;
 
     /*!
      * Inactivate a structure or part. Such a structure will be ignored by FSI
@@ -272,11 +272,11 @@ public:
      * Interpolate the Eulerian velocity to the curvilinear mesh at the
      * specified time within the current time interval.
      */
-    virtual void interpolateVelocity(
-        int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
-        double data_time) = 0;
+    virtual void
+    interpolateVelocity(int u_data_idx,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
+                        double data_time) = 0;
 
     /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
@@ -318,7 +318,7 @@ public:
     virtual void
     spreadForce(int f_data_idx,
                 IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
                 double data_time) = 0;
 
     /*!
@@ -342,11 +342,11 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void spreadFluidSource(
-        int q_data_idx,
-        IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& q_prolongation_scheds,
-        double data_time);
+    virtual void
+    spreadFluidSource(int q_data_idx,
+                      IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
+                      const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& q_prolongation_scheds,
+                      double data_time);
 
     /*!
      * Compute the pressures at the positions of any distributed internal fluid
@@ -354,11 +354,11 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void interpolatePressure(
-        int p_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& p_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& p_ghost_fill_scheds,
-        double data_time);
+    virtual void
+    interpolatePressure(int p_data_idx,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& p_synch_scheds,
+                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& p_ghost_fill_scheds,
+                        double data_time);
 
     /*!
      * Execute user-defined routines just before solving the fluid equations.
@@ -393,11 +393,11 @@ public:
      * An empty default implementation is provided.
      */
     virtual void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time);
@@ -411,7 +411,7 @@ public:
      * @deprecated This method is no longer necessary with the current
      * workload estimation scheme.
      */
-    virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
+    virtual void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancerNd> load_balancer,
                                       int workload_data_idx);
 
     /*!
@@ -420,7 +420,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    virtual void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                      const int workload_data_idx);
 
     /*!
@@ -429,8 +429,8 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    virtual void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                         SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg);
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
@@ -438,8 +438,8 @@ public:
      *
      * An empty default implementation is provided.
      */
-    virtual void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+    virtual void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg);
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -449,12 +449,12 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> old_level,
                              bool allocate_data) override;
 
     /*!
@@ -464,7 +464,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                      int coarsest_level,
                                      int finest_level) override;
 
@@ -476,7 +476,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -501,13 +501,13 @@ protected:
      * Return a pointer to the HierarchyDataOpsReal object associated with
      * velocity-like variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > getVelocityHierarchyDataOps() const;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsRealNd<double> > getVelocityHierarchyDataOps() const;
 
     /*!
      * Return a pointer to the HierarchyDataOpsReal object associated with
      * pressure-like variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > getPressureHierarchyDataOps() const;
+    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsRealNd<double> > getPressureHierarchyDataOps() const;
 
     /*!
      * Return a pointer to a HierarchyMathOps object.
@@ -528,8 +528,8 @@ protected:
         int& current_idx,
         int& new_idx,
         int& scratch_idx,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-        const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
+        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> variable,
+        const SAMRAI::hier::IntVectorNd& scratch_ghosts = SAMRAI::hier::IntVectorNd(0),
         const std::string& coarsen_name = "NO_COARSEN",
         const std::string& refine_name = "NO_REFINE",
         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<IBTK::CartGridFunction>(NULL),
@@ -543,8 +543,8 @@ protected:
      * deallocated after each time step.
      */
     void registerVariable(int& idx,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-                          const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> variable,
+                          const SAMRAI::hier::IntVectorNd& ghosts = SAMRAI::hier::IntVectorNd(0),
                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
                               SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL),
                           const bool register_for_restart = true);
@@ -554,46 +554,44 @@ protected:
      */
     void registerGhostfillRefineAlgorithm(
         const std::string& name,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > ghostfill_alg,
-        std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > ghostfill_patch_strategy = nullptr);
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> ghostfill_alg,
+        std::unique_ptr<SAMRAI::xfer::RefinePatchStrategyNd> ghostfill_patch_strategy = nullptr);
 
     /*!
      * Register a data-prolonging refine algorithm.
      */
     void registerProlongRefineAlgorithm(
         const std::string& name,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > prolong_alg,
-        std::unique_ptr<SAMRAI::xfer::RefinePatchStrategy<NDIM> > prolong_patch_strategy = nullptr);
+        SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> prolong_alg,
+        std::unique_ptr<SAMRAI::xfer::RefinePatchStrategyNd> prolong_patch_strategy = nullptr);
 
     /*!
      * Register a coarsen algorithm.
      */
-    void registerCoarsenAlgorithm(
-        const std::string& name,
-        SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > coarsen_alg,
-        std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > coarsen_patch_strategy = nullptr);
+    void
+    registerCoarsenAlgorithm(const std::string& name,
+                             SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithmNd> coarsen_alg,
+                             std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategyNd> coarsen_patch_strategy = nullptr);
 
     /*!
      * Get ghost cell-filling refine algorithm.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
-    getGhostfillRefineAlgorithm(const std::string& name) const;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> getGhostfillRefineAlgorithm(const std::string& name) const;
 
     /*!
      * Get data-prolonging refine algorithm.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> >
-    getProlongRefineAlgorithm(const std::string& name) const;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> getProlongRefineAlgorithm(const std::string& name) const;
 
     /*!
      * Get coarsen algorithm.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > getCoarsenAlgorithm(const std::string& name) const;
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithmNd> getCoarsenAlgorithm(const std::string& name) const;
 
     /*!
      * Get ghost cell-filling refine schedules.
      */
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >&
     getGhostfillRefineSchedules(const std::string& name) const;
 
     /*!
@@ -601,7 +599,7 @@ protected:
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >&
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >&
     getProlongRefineSchedules(const std::string& name) const;
 
     /*!
@@ -609,7 +607,7 @@ protected:
      *
      * \note These schedules are allocated only for level numbers >= 1.
      */
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > >&
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >&
     getCoarsenSchedules(const std::string& name) const;
 
     /*!

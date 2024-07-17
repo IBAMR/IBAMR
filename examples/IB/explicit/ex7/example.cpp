@@ -87,7 +87,7 @@ static double post_deflection_radius = 2.95e-3;       // maximum post deflection
 static double post_rotational_frequency = 1.0 / .006; // post rotational frequency [1/s]
 
 void
-update_target_points(const Pointer<PatchHierarchy<NDIM> >& hierarchy,
+update_target_points(const Pointer<PatchHierarchyNd>& hierarchy,
                      const LDataManager* const l_data_manager,
                      const double current_time,
                      const double dt)
@@ -215,22 +215,22 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Configure the IB solver.
         Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
@@ -255,8 +255,8 @@ main(int argc, char* argv[])
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -287,7 +287,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
@@ -299,7 +299,7 @@ main(int argc, char* argv[])
         if (simulate_dye_concentration_field)
         {
             // Setup the advected and diffused quantity.
-            Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
+            Pointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
             adv_diff_integrator->registerTransportedQuantity(Q_var);
             adv_diff_integrator->setDiffusionCoefficient(Q_var, input_db->getDouble("D"));
             if (input_db->keyExists("ConcentrationInitialConditions"))
@@ -308,9 +308,9 @@ main(int argc, char* argv[])
                     "Q_init", app_initializer->getComponentDatabase("ConcentrationInitialConditions"), grid_geometry);
                 adv_diff_integrator->setInitialConditions(Q_var, Q_init);
             }
-            Pointer<FaceVariable<NDIM, double> > u_adv_var = navier_stokes_integrator->getAdvectionVelocityVariable();
+            Pointer<FaceVariableNd<double> > u_adv_var = navier_stokes_integrator->getAdvectionVelocityVariable();
             adv_diff_integrator->setAdvectionVelocity(Q_var, u_adv_var);
-            std::unique_ptr<RobinBcCoefStrategy<NDIM> > Q_bc_coefs = nullptr;
+            std::unique_ptr<RobinBcCoefStrategyNd> Q_bc_coefs = nullptr;
             if (periodic_shift.min() == 0)
             {
                 Q_bc_coefs.reset(new muParserRobinBcCoefs(

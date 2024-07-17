@@ -174,7 +174,7 @@ LSet<T>::setDataSet(const typename LSet<T>::DataSet& set)
 } // setDataSet
 
 template <class T>
-inline const SAMRAI::hier::IntVector<NDIM>&
+inline const SAMRAI::hier::IntVectorNd&
 LSet<T>::getPeriodicOffset() const
 {
     return d_offset;
@@ -182,7 +182,7 @@ LSet<T>::getPeriodicOffset() const
 
 template <class T>
 inline void
-LSet<T>::setPeriodicOffset(const SAMRAI::hier::IntVector<NDIM>& offset)
+LSet<T>::setPeriodicOffset(const SAMRAI::hier::IntVectorNd& offset)
 {
     d_offset = offset;
     return;
@@ -190,8 +190,8 @@ LSet<T>::setPeriodicOffset(const SAMRAI::hier::IntVector<NDIM>& offset)
 
 template <class T>
 inline void
-LSet<T>::copySourceItem(const SAMRAI::hier::Index<NDIM>& /*src_index*/,
-                        const SAMRAI::hier::IntVector<NDIM>& src_offset,
+LSet<T>::copySourceItem(const SAMRAI::hier::IndexNd& /*src_index*/,
+                        const SAMRAI::hier::IntVectorNd& src_offset,
                         const LSet<T>& src_item)
 {
     d_set = src_item.d_set;
@@ -226,7 +226,7 @@ LSet<T>::packStream(SAMRAI::tbox::AbstractStream& stream)
 
 template <class T>
 inline void
-LSet<T>::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
+LSet<T>::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVectorNd& offset)
 {
     d_offset = offset;
     int num_idx;

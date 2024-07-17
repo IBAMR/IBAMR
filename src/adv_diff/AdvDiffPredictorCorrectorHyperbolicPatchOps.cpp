@@ -164,7 +164,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolic
     std::string object_name,
     Pointer<Database> input_db,
     Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom,
+    Pointer<CartesianGridGeometryNd> grid_geom,
     bool register_for_restart)
     : AdvectorPredictorCorrectorHyperbolicPatchOps(std::move(object_name),
                                                    input_db,
@@ -177,47 +177,47 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolic
 } // AdvDiffPredictorCorrectorHyperbolicPatchOps
 
 void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch<NDIM>& patch,
+AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(PatchNd& patch,
                                                                            const double /*time*/,
                                                                            const double dt,
                                                                            bool /*at_synchronization*/)
 {
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& ilower = patch_box.lower();
-    const hier::Index<NDIM>& iupper = patch_box.upper();
+    const BoxNd& patch_box = patch.getBox();
+    const hier::IndexNd& ilower = patch_box.lower();
+    const hier::IndexNd& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch.getPatchGeometry();
+    const Pointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellData<NDIM, double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        Pointer<FaceVariable<NDIM, double> > u_var = d_Q_u_map[Q_var];
+        Pointer<CellDataNd<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        Pointer<FaceVariableNd<double> > u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
             const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
             const bool u_is_div_free = d_u_is_div_free[u_var];
 
-            Pointer<FaceVariable<NDIM, double> > flux_integral_var = d_flux_integral_var[Q_var];
-            Pointer<FaceVariable<NDIM, double> > q_integral_var = d_q_integral_var[Q_var];
-            Pointer<FaceVariable<NDIM, double> > u_integral_var = d_u_integral_var[u_var];
+            Pointer<FaceVariableNd<double> > flux_integral_var = d_flux_integral_var[Q_var];
+            Pointer<FaceVariableNd<double> > q_integral_var = d_q_integral_var[Q_var];
+            Pointer<FaceVariableNd<double> > u_integral_var = d_u_integral_var[u_var];
 
-            Pointer<FaceData<NDIM, double> > flux_integral_data =
+            Pointer<FaceDataNd<double> > flux_integral_data =
                 (conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) :
-                                     Pointer<PatchData<NDIM> >(nullptr));
-            Pointer<FaceData<NDIM, double> > q_integral_data =
+                                     Pointer<PatchDataNd>(nullptr));
+            Pointer<FaceDataNd<double> > q_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(q_integral_var, getDataContext()) :
-                                                        Pointer<PatchData<NDIM> >(nullptr));
-            Pointer<FaceData<NDIM, double> > u_integral_data =
+                                                        Pointer<PatchDataNd>(nullptr));
+            Pointer<FaceDataNd<double> > u_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(u_integral_var, getDataContext()) :
-                                                        Pointer<PatchData<NDIM> >(nullptr));
+                                                        Pointer<PatchDataNd>(nullptr));
 
-            const IntVector<NDIM>& Q_data_ghost_cells = Q_data->getGhostCellWidth();
-            const IntVector<NDIM>& flux_integral_data_ghost_cells =
+            const IntVectorNd& Q_data_ghost_cells = Q_data->getGhostCellWidth();
+            const IntVectorNd& flux_integral_data_ghost_cells =
                 (flux_integral_data ? flux_integral_data->getGhostCellWidth() : 0);
-            const IntVector<NDIM>& q_integral_data_ghost_cells =
+            const IntVectorNd& q_integral_data_ghost_cells =
                 (q_integral_data ? q_integral_data->getGhostCellWidth() : 0);
-            const IntVector<NDIM>& u_integral_data_ghost_cells =
+            const IntVectorNd& u_integral_data_ghost_cells =
                 (u_integral_data ? u_integral_data->getGhostCellWidth() : 0);
 
             switch (d_Q_difference_form[Q_var])
@@ -327,11 +327,11 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
             }
             case ADVECTIVE:
             {
-                CellData<NDIM, double> N_data(patch_box, Q_data->getDepth(), 0);
+                CellDataNd<double> N_data(patch_box, Q_data->getDepth(), 0);
                 d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
-                PatchCellDataOpsReal<NDIM, double> patch_cc_data_ops;
+                PatchCellDataOpsRealNd<double> patch_cc_data_ops;
                 patch_cc_data_ops.scale(
-                    Q_data, -1.0 / (dt * dt), Pointer<CellData<NDIM, double> >(&N_data, false), patch_box);
+                    Q_data, -1.0 / (dt * dt), Pointer<CellDataNd<double> >(&N_data, false), patch_box);
                 break;
             }
             default:
@@ -355,7 +355,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
 } // conservativeDifferenceOnPatch
 
 void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const Pointer<PatchLevel<NDIM> >& level,
+AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const Pointer<PatchLevelNd>& level,
                                                                          double current_time,
                                                                          double /*dt*/,
                                                                          bool /*first_step*/,
@@ -369,7 +369,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const P
     {
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time);
         }
@@ -378,7 +378,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const P
 } // preprocessAdvanceLevelState
 
 void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const Pointer<PatchLevel<NDIM> >& level,
+AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const Pointer<PatchLevelNd>& level,
                                                                           double current_time,
                                                                           double dt,
                                                                           bool /*first_step*/,
@@ -392,7 +392,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const 
     {
         if (d_u_fcn[u_var] && d_u_fcn[u_var]->isTimeDependent())
         {
-            VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+            VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
             const int u_idx = var_db->mapVariableAndContextToIndex(u_var, d_integrator->getScratchContext());
             d_u_fcn[u_var]->setDataOnPatchLevel(u_idx, u_var, level, current_time + dt);
         }

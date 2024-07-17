@@ -46,22 +46,22 @@ CoarsenPatchStrategySet::~CoarsenPatchStrategySet()
     return;
 } // ~CoarsenPatchStrategySet
 
-IntVector<NDIM>
+IntVectorNd
 CoarsenPatchStrategySet::getCoarsenOpStencilWidth() const
 {
-    IntVector<NDIM> width = 0;
+    IntVectorNd width = 0;
     for (const auto& strategy : d_strategy_set)
     {
-        width = IntVector<NDIM>::max(width, strategy->getCoarsenOpStencilWidth());
+        width = IntVectorNd::max(width, strategy->getCoarsenOpStencilWidth());
     }
     return width;
 } // getCoarsenOpStencilWidth
 
 void
-CoarsenPatchStrategySet::preprocessCoarsen(Patch<NDIM>& coarse,
-                                           const Patch<NDIM>& fine,
-                                           const Box<NDIM>& coarse_box,
-                                           const IntVector<NDIM>& ratio)
+CoarsenPatchStrategySet::preprocessCoarsen(PatchNd& coarse,
+                                           const PatchNd& fine,
+                                           const BoxNd& coarse_box,
+                                           const IntVectorNd& ratio)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -71,10 +71,10 @@ CoarsenPatchStrategySet::preprocessCoarsen(Patch<NDIM>& coarse,
 } // preprocessCoarsen
 
 void
-CoarsenPatchStrategySet::postprocessCoarsen(Patch<NDIM>& coarse,
-                                            const Patch<NDIM>& fine,
-                                            const Box<NDIM>& coarse_box,
-                                            const IntVector<NDIM>& ratio)
+CoarsenPatchStrategySet::postprocessCoarsen(PatchNd& coarse,
+                                            const PatchNd& fine,
+                                            const BoxNd& coarse_box,
+                                            const IntVectorNd& ratio)
 {
     for (const auto& strategy : d_strategy_set)
     {

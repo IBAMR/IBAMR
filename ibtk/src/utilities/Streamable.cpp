@@ -35,7 +35,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-Streamable::registerPeriodicShift(const IntVector<NDIM>& /*offset*/, const Vector& /*displacement*/)
+Streamable::registerPeriodicShift(const IntVectorNd& /*offset*/, const Vector& /*displacement*/)
 {
     // intentionally blank
     return;

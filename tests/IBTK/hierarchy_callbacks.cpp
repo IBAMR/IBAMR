@@ -72,7 +72,7 @@ integrateHierarchyCallback(double /*current_time*/, double /*new_time*/, int /*c
 }
 
 void
-gradientDetectorCallback(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+gradientDetectorCallback(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
                          int /*level_num*/,
                          double /*error_data_time*/,
                          int /*tag_index*/,
@@ -84,7 +84,7 @@ gradientDetectorCallback(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
     if (test) pout << "Executing gradient detector callback\n";
 }
 void
-regridHierarchyCallback(Pointer<BasePatchHierarchy<NDIM> > /*hierarchy*/,
+regridHierarchyCallback(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
                         double /*data_time*/,
                         bool /*initial_time*/,
                         void* ctx)
@@ -139,25 +139,25 @@ main(int argc, char* argv[])
         Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Setup the advection velocity.
-        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("u");
+        Pointer<FaceVariableNd<double> > u_var = new FaceVariableNd<double>("u");
         Pointer<CartGridFunction> u_fcn = new muParserCartGridFunction(
             "UFunction", app_initializer->getComponentDatabase("UFunction"), grid_geometry);
         const bool u_is_div_free = true;
@@ -169,10 +169,10 @@ main(int argc, char* argv[])
         const ConvectiveDifferencingType difference_form =
             IBAMR::string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault(
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-        Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
+        Pointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
         Pointer<CartGridFunction> Q_init =
             new muParserCartGridFunction("QInit", app_initializer->getComponentDatabase("QInit"), grid_geometry);
-        LocationIndexRobinBcCoefs<NDIM> physical_bc_coef(
+        LocationIndexRobinBcCoefsNd physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
         const double kappa = app_initializer->getComponentDatabase("QInit")->getDouble("kappa");
         time_integrator->registerTransportedQuantity(Q_var);
@@ -194,7 +194,7 @@ main(int argc, char* argv[])
         time_integrator->registerRegridHierarchyCallback(regridHierarchyCallback, static_cast<void*>(&callbackObject));
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

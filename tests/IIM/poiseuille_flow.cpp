@@ -117,7 +117,7 @@ using namespace ModelData;
 
 static ofstream p_norm_stream;
 
-void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void postprocess_data(Pointer<PatchHierarchyNd> patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
@@ -125,12 +125,12 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       const double loop_time,
                       const string& data_dump_dirname);
 
-void compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void compute_velocity_profile(Pointer<PatchHierarchyNd> patch_hierarchy,
                               const int u_idx,
                               const double data_time,
                               const string& data_dump_dirname);
 
-void compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void compute_pressure_profile(Pointer<PatchHierarchyNd> patch_hierarchy,
                               const int p_idx,
                               const double data_time,
                               const string& data_dump_dirname);
@@ -296,22 +296,22 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Configure the IBFE solver.
         ib_method_ops->initializeFEEquationSystems();
@@ -338,7 +338,7 @@ main(int argc, char* argv[])
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
         // Create Eulerian boundary condition specification objects.
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(NULL));
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
         if (!periodic_domain)
         {
@@ -367,7 +367,7 @@ main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -443,10 +443,10 @@ main(int argc, char* argv[])
 
             //****** Check to see if the solution is reached steady state ***********//
 
-            Pointer<hier::Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
+            Pointer<hier::VariableNd> u_var = time_integrator->getVelocityVariable();
             Pointer<VariableContext> current_ctx = time_integrator->getCurrentContext();
 
-            const Pointer<hier::Variable<NDIM> > p_var = time_integrator->getPressureVariable();
+            const Pointer<hier::VariableNd> p_var = time_integrator->getPressureVariable();
             const Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
 
             // ************************************************************************//
@@ -504,16 +504,16 @@ main(int argc, char* argv[])
         pout << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
         hier_math_ops.resetLevels(finest_ln, finest_ln);
-        Pointer<hier::Variable<NDIM> > u_var = time_integrator->getVelocityVariable();
+        Pointer<hier::VariableNd> u_var = time_integrator->getVelocityVariable();
         const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
 
-        const Pointer<hier::Variable<NDIM> > p_var = time_integrator->getPressureVariable();
+        const Pointer<hier::VariableNd> p_var = time_integrator->getPressureVariable();
         const Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
@@ -536,7 +536,7 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_sc_idx = hier_math_ops.getSideWeightPatchDescriptorIndex();
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-        HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchySideDataOpsRealNd<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_sc_data_ops.subtract(u_idx, u_idx, u_cloned_idx);
         pout << std::setprecision(16) << "Error in u at time " << loop_time << ":\n"
              << "  L1-norm:  " << hier_sc_data_ops.L1Norm(u_idx, wgt_sc_idx) << "\n"
@@ -544,7 +544,7 @@ main(int argc, char* argv[])
              << "  L2-norm:  " << hier_sc_data_ops.L2Norm(u_idx, wgt_sc_idx) << "\n"
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(p_idx, p_idx, p_cloned_idx);
         pout << "Error in p at time " << loop_time - 0.5 * dt << ":\n"
              << "  L1-norm:  " << hier_cc_data_ops.L1Norm(p_idx, wgt_cc_idx) << "\n"
@@ -584,7 +584,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+compute_velocity_profile(Pointer<PatchHierarchyNd> patch_hierarchy,
                          const int u_idx,
                          const double /*data_time*/,
                          const string& /*data_dump_dirname*/)
@@ -604,57 +604,57 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     vector<double> pos_values;
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            Pointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
+            const CellIndexNd& patch_lower = patch_box.lower();
+            const CellIndexNd& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
 
             const double* const patch_dx = patch_geom->getDx();
 
             // Entire box containing the required data.
-            Box<NDIM> box(IndexUtilities::getCellIndex(
-                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
-                          IndexUtilities::getCellIndex(
-                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+            BoxNd box(IndexUtilities::getCellIndex(
+                          &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
+                      IndexUtilities::getCellIndex(
+                          &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
             // Part of the box on this patch
-            Box<NDIM> trim_box = patch_box * box;
-            BoxList<NDIM> iterate_box_list = trim_box;
+            BoxNd trim_box = patch_box * box;
+            BoxListNd iterate_box_list = trim_box;
 
             // Trim the box covered by the finer region
-            BoxList<NDIM> covered_boxes;
+            BoxListNd covered_boxes;
             if (ln < finest_ln)
             {
-                BoxArray<NDIM> refined_region_boxes;
-                Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+                BoxArrayNd refined_region_boxes;
+                Pointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
                 refined_region_boxes = next_finer_level->getBoxes();
                 refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
-                    const Box<NDIM> refined_box = refined_region_boxes[i];
-                    const Box<NDIM> covered_box = trim_box * refined_box;
+                    const BoxNd refined_box = refined_region_boxes[i];
+                    const BoxNd covered_box = trim_box * refined_box;
                     covered_boxes.unionBoxes(covered_box);
                 }
             }
             iterate_box_list.removeIntersections(covered_boxes);
 
             // Loop over the boxes and store the location and interpolated value.
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-            const Pointer<CellData<NDIM, double> > wgt_cc_data = patch->getPatchData(wgt_cc_idx);
+            Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+            const Pointer<CellDataNd<double> > wgt_cc_data = patch->getPatchData(wgt_cc_idx);
 
-            for (BoxList<NDIM>::Iterator lit(iterate_box_list); lit; lit++)
+            for (BoxListNd::Iterator lit(iterate_box_list); lit; lit++)
             {
-                const Box<NDIM>& iterate_box = *lit;
-                for (Box<NDIM>::Iterator bit(iterate_box); bit; bit++)
+                const BoxNd& iterate_box = *lit;
+                for (BoxNd::Iterator bit(iterate_box); bit; bit++)
                 {
-                    const CellIndex<NDIM>& lower_idx = *bit;
-                    // CellIndex<NDIM> upper_idx = lower_idx;
+                    const CellIndexNd& lower_idx = *bit;
+                    // CellIndexNd upper_idx = lower_idx;
                     // upper_idx(0) += 1;
                     const double yu = patch_x_lower[1] + patch_dx[1] * (lower_idx(1) - patch_lower(1) + 0.5);
                     const double xu = patch_x_lower[0] + patch_dx[0] * (lower_idx(0) - patch_lower(0));
@@ -687,11 +687,11 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                     }
 
                     //~ const double x1 = x0 + patch_dx[0];
-                    const double u0 = (*u_data)(SideIndex<NDIM>(lower_idx, 0, SideIndex<NDIM>::Lower));
-                    const double v0 = (*u_data)(SideIndex<NDIM>(lower_idx, 1, SideIndex<NDIM>::Lower));
+                    const double u0 = (*u_data)(SideIndexNd(lower_idx, 0, SideIndexNd::Lower));
+                    const double v0 = (*u_data)(SideIndexNd(lower_idx, 1, SideIndexNd::Lower));
 
                     //~ const double u1 =
-                    //~ (*u_data)(SideIndex<NDIM>(upper_idx, 0, SideIndex<NDIM>::Lower));
+                    //~ (*u_data)(SideIndexNd(upper_idx, 0, SideIndexNd::Lower));
                     //~ pos_values.push_back(y);
                     //~ pos_values.push_back(u0 + (u1 - u0) * (x_loc - x0) / (x1 - x0));
 
@@ -722,7 +722,7 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 } // compute_velocity_profile
 
 void
-compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+compute_pressure_profile(Pointer<PatchHierarchyNd> patch_hierarchy,
                          const int p_idx,
                          const double /*data_time*/,
                          const string& /*data_dump_dirname*/)
@@ -741,40 +741,40 @@ compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     int N_max = 0;
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const CellIndex<NDIM>& patch_lower = patch_box.lower();
-            const CellIndex<NDIM>& patch_upper = patch_box.upper();
+            Pointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
+            const CellIndexNd& patch_lower = patch_box.lower();
+            const CellIndexNd& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
 
             // Entire box containing the required data.
-            Box<NDIM> box(IndexUtilities::getCellIndex(
-                              &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
-                          IndexUtilities::getCellIndex(
-                              &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
+            BoxNd box(IndexUtilities::getCellIndex(
+                          &X_min[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper),
+                      IndexUtilities::getCellIndex(
+                          &X_max[0], patch_x_lower, patch_x_upper, patch_dx, patch_lower, patch_upper));
             // Part of the box on this patch
-            Box<NDIM> trim_box = patch_box * box;
-            BoxList<NDIM> iterate_box_list = trim_box;
+            BoxNd trim_box = patch_box * box;
+            BoxListNd iterate_box_list = trim_box;
 
             // Trim the box covered by the finer region
-            BoxList<NDIM> covered_boxes;
+            BoxListNd covered_boxes;
             if (ln < finest_ln)
             {
-                BoxArray<NDIM> refined_region_boxes;
-                Pointer<PatchLevel<NDIM> > next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+                BoxArrayNd refined_region_boxes;
+                Pointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
                 refined_region_boxes = next_finer_level->getBoxes();
                 refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
-                    const Box<NDIM> refined_box = refined_region_boxes[i];
-                    const Box<NDIM> covered_box = trim_box * refined_box;
+                    const BoxNd refined_box = refined_region_boxes[i];
+                    const BoxNd covered_box = trim_box * refined_box;
                     covered_boxes.unionBoxes(covered_box);
                 }
             }
@@ -782,14 +782,14 @@ compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 
             // Loop over the boxes and store the location and interpolated value.
             //~ Pointer<Data<NDIM, double> > p_data = patch->getPatchData(p_idx);
-            const Pointer<CellData<NDIM, double> > p_data = patch->getPatchData(p_idx);
-            const Pointer<CellData<NDIM, double> > wgt_cc_data = patch->getPatchData(wgt_cc_idx);
-            for (BoxList<NDIM>::Iterator lit(iterate_box_list); lit; lit++)
+            const Pointer<CellDataNd<double> > p_data = patch->getPatchData(p_idx);
+            const Pointer<CellDataNd<double> > wgt_cc_data = patch->getPatchData(wgt_cc_idx);
+            for (BoxListNd::Iterator lit(iterate_box_list); lit; lit++)
             {
-                const Box<NDIM>& iterate_box = *lit;
-                for (Box<NDIM>::Iterator bit(iterate_box); bit; bit++)
+                const BoxNd& iterate_box = *lit;
+                for (BoxNd::Iterator bit(iterate_box); bit; bit++)
                 {
-                    const CellIndex<NDIM>& cell_idx = *bit;
+                    const CellIndexNd& cell_idx = *bit;
 
                     const double y = patch_x_lower[1] + patch_dx[1] * (cell_idx(1) - patch_lower(1) + 0.5);
                     const double x = patch_x_lower[0] + patch_dx[0] * (cell_idx(0) - patch_lower(0) + 0.5);
@@ -838,7 +838,7 @@ compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
 } // compute_pressure_profile
 
 void
-postprocess_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+postprocess_data(Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
                  Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,

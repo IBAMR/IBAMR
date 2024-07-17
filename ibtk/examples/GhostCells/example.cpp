@@ -63,20 +63,20 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -92,20 +92,20 @@ main(int argc, char* argv[])
 
         // Create cell-centered and node-centered quantities, and initialize them with a function read from the input
         // file
-        Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
-        Pointer<NodeVariable<NDIM, double> > N_var = new NodeVariable<NDIM, double>("Q Node");
+        Pointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
+        Pointer<NodeVariableNd<double> > N_var = new NodeVariableNd<double>("Q Node");
 
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
+        auto var_db = VariableDatabaseNd::getDatabase();
         // Total amount patch indices. Note we need a single ghost cell width on the cell centered quantity.
         const int Q_tot_idx =
-            var_db->registerVariableAndContext(Q_var, var_db->getContext("Total Amount"), IntVector<NDIM>(1));
+            var_db->registerVariableAndContext(Q_var, var_db->getContext("Total Amount"), IntVectorNd(1));
         const int N_1_idx = var_db->registerVariableAndContext(N_var, var_db->getContext("Method 1"));
         const int N_2_idx = var_db->registerVariableAndContext(N_var, var_db->getContext("Method 2"));
         // Average amount patch index. Note we need a single ghost cell width.
         const int Q_avg_idx =
-            var_db->registerVariableAndContext(Q_var, var_db->getContext("Average Amount"), IntVector<NDIM>(1));
+            var_db->registerVariableAndContext(Q_var, var_db->getContext("Average Amount"), IntVectorNd(1));
         // Output some components
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = new VisItDataWriter<NDIM>(
+        Pointer<VisItDataWriterNd> visit_data_writer = new VisItDataWriterNd(
             "data writer", app_initializer->getComponentDatabase("Main")->getString("viz_dump_dirname"));
         visit_data_writer->registerPlotQuantity("Q_total", "SCALAR", Q_tot_idx);
         visit_data_writer->registerPlotQuantity("Q_avg", "SCALAR", Q_avg_idx);
@@ -116,7 +116,7 @@ main(int argc, char* argv[])
         int coarsest_ln = 0, finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_tot_idx);
             level->allocatePatchData(N_1_idx);
             level->allocatePatchData(N_2_idx);
@@ -130,17 +130,17 @@ main(int argc, char* argv[])
         // Note that CartGridFunction will fill in cell concentrations, we must manually convert this to cell amounts
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 double cell_volume = 1.0;
                 for (int d = 0; d < NDIM; ++d) cell_volume *= dx[d];
-                Pointer<CellData<NDIM, double> > Q_avg_data = patch->getPatchData(Q_avg_idx);
-                Pointer<CellData<NDIM, double> > Q_tot_data = patch->getPatchData(Q_tot_idx);
-                for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+                Pointer<CellDataNd<double> > Q_avg_data = patch->getPatchData(Q_avg_idx);
+                Pointer<CellDataNd<double> > Q_tot_data = patch->getPatchData(Q_tot_idx);
+                for (CellIteratorNd ci(patch->getBox()); ci; ci++)
                 {
                     (*Q_tot_data)(ci()) = (*Q_avg_data)(ci()) * cell_volume;
                 }
@@ -166,43 +166,43 @@ main(int argc, char* argv[])
         // We have ghost cells filled in. We need to convert back to cell totals. We then interpoate to the nodes
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 double cell_volume = 1.0;
                 for (int d = 0; d < NDIM; ++d) cell_volume *= dx[d];
-                Pointer<CellData<NDIM, double> > Q_tot_data = patch->getPatchData(Q_tot_idx);
-                Pointer<CellData<NDIM, double> > Q_avg_data = patch->getPatchData(Q_avg_idx);
+                Pointer<CellDataNd<double> > Q_tot_data = patch->getPatchData(Q_tot_idx);
+                Pointer<CellDataNd<double> > Q_avg_data = patch->getPatchData(Q_avg_idx);
                 // Note we loop over the ghost box to convert the ghost cells as well.
-                for (CellIterator<NDIM> ci(Q_tot_data->getGhostBox()); ci; ci++)
+                for (CellIteratorNd ci(Q_tot_data->getGhostBox()); ci; ci++)
                 {
-                    const CellIndex<NDIM>& idx = ci();
+                    const CellIndexNd& idx = ci();
                     (*Q_tot_data)(idx) = (*Q_avg_data)(idx)*cell_volume;
                 }
 
                 // Now interpolate to the nodes
-                Pointer<NodeData<NDIM, double> > Q_node_data = patch->getPatchData(N_1_idx);
-                for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
+                Pointer<NodeDataNd<double> > Q_node_data = patch->getPatchData(N_1_idx);
+                for (NodeIteratorNd ni(patch->getBox()); ni; ni++)
                 {
-                    const NodeIndex<NDIM>& idx = ni();
+                    const NodeIndexNd& idx = ni();
                     (*Q_node_data)(idx) = 0.0;
-                    const CellIndex<NDIM> c_idx(idx);
+                    const CellIndexNd c_idx(idx);
                     // We need neighboring cell indices
                     for (int i = 0; i < 2; ++i)
                         for (int j = 0; j < 2; ++j)
 #if (NDIM == 3)
                             for (int k = 0; k < 2; ++k)
 #endif
-                                (*Q_node_data)(idx) += 0.25 * (*Q_tot_data)(c_idx - IntVector<NDIM>(i,
-                                                                                                    j
+                                (*Q_node_data)(idx) += 0.25 * (*Q_tot_data)(c_idx - IntVectorNd(i,
+                                                                                                j
 #if (NDIM == 3)
-                                                                                                    ,
-                                                                                                    k
+                                                                                                ,
+                                                                                                k
 #endif
-                                                                                                    ));
+                                                                                                ));
                 }
             }
         }
@@ -218,15 +218,14 @@ main(int argc, char* argv[])
          * 3) Fill a coarsen schedule with the coarsen algorithm
          * 4) To actually coarsen data, use coarsen schedule -> coarsen data()
          */
-        Pointer<CoarsenOperator<NDIM> > coarsen_op =
-            grid_geometry->lookupCoarsenOperator(Q_var, "AMOUNT_CONSTANT_COARSEN");
-        Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
+        Pointer<CoarsenOperatorNd> coarsen_op = grid_geometry->lookupCoarsenOperator(Q_var, "AMOUNT_CONSTANT_COARSEN");
+        Pointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
         coarsen_alg->registerCoarsen(Q_tot_idx, Q_tot_idx, coarsen_op);
-        std::vector<Pointer<CoarsenSchedule<NDIM> > > coarsen_scheds(finest_ln + 1);
+        std::vector<Pointer<CoarsenScheduleNd> > coarsen_scheds(finest_ln + 1);
         for (int ln = coarsest_ln + 1; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = patch_hierarchy->getPatchLevel(ln - 1);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> coarser_level = patch_hierarchy->getPatchLevel(ln - 1);
             coarsen_scheds[ln] = coarsen_alg->createSchedule(coarser_level, level);
         }
         /* Set Refine Algorithms. This interpolates data onto finer grid
@@ -236,13 +235,13 @@ main(int argc, char* argv[])
          * 3) Fill a refine schedule with the refine algorithm
          * 4) Invoke fill data() inside refine schedule
          */
-        Pointer<RefineOperator<NDIM> > refine_op = grid_geometry->lookupRefineOperator(Q_var, "AMOUNT_CONSTANT_REFINE");
-        Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
+        Pointer<RefineOperatorNd> refine_op = grid_geometry->lookupRefineOperator(Q_var, "AMOUNT_CONSTANT_REFINE");
+        Pointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
         refine_alg->registerRefine(Q_tot_idx, Q_tot_idx, Q_tot_idx, refine_op);
-        std::vector<Pointer<RefineSchedule<NDIM> > > refine_scheds(finest_ln + 1);
+        std::vector<Pointer<RefineScheduleNd> > refine_scheds(finest_ln + 1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             refine_scheds[ln] = refine_alg->createSchedule(level, ln - 1, patch_hierarchy, nullptr);
         }
         // We refine data first, then coarsen
@@ -253,17 +252,17 @@ main(int argc, char* argv[])
         // We have ghost cells filled in. We need to convert back to cell totals. We then interpoate to the nodes
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > Q_tot_data = patch->getPatchData(Q_tot_idx);
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<CellDataNd<double> > Q_tot_data = patch->getPatchData(Q_tot_idx);
                 // Now interpolate to the nodes
-                Pointer<NodeData<NDIM, double> > Q_node_data = patch->getPatchData(N_2_idx);
-                for (NodeIterator<NDIM> ni(patch->getBox()); ni; ni++)
+                Pointer<NodeDataNd<double> > Q_node_data = patch->getPatchData(N_2_idx);
+                for (NodeIteratorNd ni(patch->getBox()); ni; ni++)
                 {
-                    const NodeIndex<NDIM>& idx = ni();
-                    const CellIndex<NDIM> c_idx(idx);
+                    const NodeIndexNd& idx = ni();
+                    const CellIndexNd c_idx(idx);
                     (*Q_node_data)(idx) = 0.0;
                     // We need neighboring cell indices
                     for (int i = 0; i < 2; ++i)
@@ -271,13 +270,13 @@ main(int argc, char* argv[])
 #if (NDIM == 3)
                             for (int k = 0; k < 2; ++k)
 #endif
-                                (*Q_node_data)(idx) += 0.25 * (*Q_tot_data)(c_idx - IntVector<NDIM>(i,
-                                                                                                    j
+                                (*Q_node_data)(idx) += 0.25 * (*Q_tot_data)(c_idx - IntVectorNd(i,
+                                                                                                j
 #if (NDIM == 3)
-                                                                                                    ,
-                                                                                                    k
+                                                                                                ,
+                                                                                                k
 #endif
-                                                                                                    ));
+                                                                                                ));
                 }
             }
         }
@@ -287,7 +286,7 @@ main(int argc, char* argv[])
         // Deallocate patch data
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_tot_idx);
             level->deallocatePatchData(N_1_idx);
             level->deallocatePatchData(N_2_idx);

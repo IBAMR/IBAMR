@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Register physical boundary condition for the level set.
      */
-    virtual void registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef);
+    virtual void registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrategyNd* robin_bc_coef);
 
     /*!
      * \brief Function specifying distance function near an interface.
@@ -136,7 +136,7 @@ protected:
     int d_reinit_interval = 0;
 
     // Boundary condition object for level set.
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategyNd* d_bc_coef;
 
     // Neighborhood locating functions.
     std::vector<LocateInterfaceNeighborhoodFcnPtr> d_locate_interface_fcns;

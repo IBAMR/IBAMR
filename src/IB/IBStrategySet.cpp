@@ -94,19 +94,19 @@ IBStrategySet::registerEulerianCommunicationAlgorithms()
     return;
 } // registerEulerianCommunicationAlgorithms
 
-const IntVector<NDIM>&
+const IntVectorNd&
 IBStrategySet::getMinimumGhostCellWidth() const
 {
-    static IntVector<NDIM> ghost_cell_width = 0;
+    static IntVectorNd ghost_cell_width = 0;
     for (const auto& strategy : d_strategy_set)
     {
-        ghost_cell_width = IntVector<NDIM>::max(ghost_cell_width, strategy->getMinimumGhostCellWidth());
+        ghost_cell_width = IntVectorNd::max(ghost_cell_width, strategy->getMinimumGhostCellWidth());
     }
     return ghost_cell_width;
 } // getMinimumGhostCellWidth
 
 void
-IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithmNd> gridding_alg) const
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -159,8 +159,8 @@ IBStrategySet::updateFixedLEOperators()
 
 void
 IBStrategySet::interpolateVelocity(int u_data_idx,
-                                   const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                   const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                   const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                   const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                    double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -213,7 +213,7 @@ IBStrategySet::computeLagrangianForce(double data_time)
 void
 IBStrategySet::spreadForce(int f_data_idx,
                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                           const std::vector<Pointer<RefineSchedule<NDIM> > >& f_prolongation_scheds,
+                           const std::vector<Pointer<RefineScheduleNd> >& f_prolongation_scheds,
                            double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -247,7 +247,7 @@ IBStrategySet::computeLagrangianFluidSource(double data_time)
 void
 IBStrategySet::spreadFluidSource(int q_data_idx,
                                  RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                                 const std::vector<Pointer<RefineSchedule<NDIM> > >& q_prolongation_scheds,
+                                 const std::vector<Pointer<RefineScheduleNd> >& q_prolongation_scheds,
                                  double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -259,8 +259,8 @@ IBStrategySet::spreadFluidSource(int q_data_idx,
 
 void
 IBStrategySet::interpolatePressure(int p_data_idx,
-                                   const std::vector<Pointer<CoarsenSchedule<NDIM> > >& p_synch_scheds,
-                                   const std::vector<Pointer<RefineSchedule<NDIM> > >& p_ghost_fill_scheds,
+                                   const std::vector<Pointer<CoarsenScheduleNd> >& p_synch_scheds,
+                                   const std::vector<Pointer<RefineScheduleNd> >& p_ghost_fill_scheds,
                                    double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -301,11 +301,11 @@ IBStrategySet::postprocessData()
 } // postprocessData
 
 void
-IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
+                                        Pointer<GriddingAlgorithmNd> gridding_alg,
                                         int u_data_idx,
-                                        const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                        const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                        const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                        const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                         int integrator_step,
                                         double init_data_time,
                                         bool initial_time)
@@ -325,7 +325,7 @@ IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy
 } // initializePatchHierarchy
 
 void
-IBStrategySet::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+IBStrategySet::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer, int workload_data_idx)
 {
     IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBStrategySet", "registerLoadBalancer");
     for (const auto& strategy : d_strategy_set)
@@ -336,7 +336,7 @@ IBStrategySet::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, 
 } // registerLoadBalancer
 
 void
-IBStrategySet::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+IBStrategySet::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -346,8 +346,7 @@ IBStrategySet::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, con
 } // addWorkloadEstimate
 
 void
-IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                       Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchyNd> hierarchy, Pointer<GriddingAlgorithmNd> gridding_alg)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -357,8 +356,7 @@ IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // beginDataRedistribution
 
 void
-IBStrategySet::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBStrategySet::endDataRedistribution(Pointer<PatchHierarchyNd> hierarchy, Pointer<GriddingAlgorithmNd> gridding_alg)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -368,12 +366,12 @@ IBStrategySet::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // endDataRedistribution
 
 void
-IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
                                    int level_number,
                                    double init_data_time,
                                    bool can_be_refined,
                                    bool initial_time,
-                                   Pointer<BasePatchLevel<NDIM> > old_level,
+                                   Pointer<BasePatchLevelNd> old_level,
                                    bool allocate_data)
 {
     for (const auto& strategy : d_strategy_set)
@@ -385,7 +383,7 @@ IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
 } // initializeLevelData
 
 void
-IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarchy,
                                            int coarsest_level,
                                            int finest_level)
 {
@@ -397,7 +395,7 @@ IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hi
 } // resetHierarchyConfiguration
 
 void
-IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchyNd> hierarchy,
                                      int level_number,
                                      double error_data_time,
                                      int tag_index,

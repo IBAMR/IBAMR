@@ -60,8 +60,8 @@ public:
      * \brief Constructor of the class.
      */
     CarmanKozenyDragForce(std::string object_name,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > H_var,
+                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > lf_var,
                           SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                           SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> fluid_solver,
                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
@@ -109,12 +109,12 @@ protected:
     /*!
      * \brief Heaviside variable defining the gas-pcm interface.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_H_var;
 
     /*!
      * \brief Liquid fraction variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_lf_var;
 
 private:
     /*!

@@ -166,10 +166,10 @@ private:
     /*!
      * \brief Do one relaxation step over a patch.
      */
-    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dt_data,
-               const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+    void relax(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > dist_data,
+               const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > dist_init_data,
+               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > dt_data,
+               const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
                const int iter) const;
 
     /*!
@@ -181,9 +181,9 @@ private:
     /*!
      * \brief Compute the hamiltonian of the indicator field field over a patch
      */
-    void computeHamiltonian(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_data,
-                            const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                            const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void computeHamiltonian(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > ham_data,
+                            const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > dist_data,
+                            const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch) const;
 
     /*!
      * \brief Apply the mass constraint over the hierarchy
@@ -197,11 +197,11 @@ private:
     /*!
      * \brief Apply the mass constraint over a patch
      */
-    void applyMassConstraint(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_copy_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > dist_init_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellData<NDIM, double> > ham_init_data,
-                             const SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const;
+    void applyMassConstraint(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > dist_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > dist_copy_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > dist_init_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > ham_init_data,
+                             const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch) const;
 
     /*
      * \brief Apply the volume redistribution algorithm over the hierarchy

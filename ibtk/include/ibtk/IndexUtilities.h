@@ -64,8 +64,8 @@ struct IndexOrder
     }
 };
 
-using IndexFortranOrder = struct IndexOrder<SAMRAI::hier::Index<NDIM> >;
-using CellIndexFortranOrder = struct IndexOrder<SAMRAI::pdat::CellIndex<NDIM> >;
+using IndexFortranOrder = struct IndexOrder<SAMRAI::hier::IndexNd>;
+using CellIndexFortranOrder = struct IndexOrder<SAMRAI::pdat::CellIndexNd>;
 
 /*!
  * \brief Class IndexUtilities is a utility class that defines simple functions
@@ -78,14 +78,12 @@ public:
     /*
      * \return The coarsened version of a cell-centered index.
      */
-    static SAMRAI::hier::Index<NDIM> coarsen(const SAMRAI::hier::Index<NDIM>& i_fine,
-                                             const SAMRAI::hier::Index<NDIM>& ratio);
+    static SAMRAI::hier::IndexNd coarsen(const SAMRAI::hier::IndexNd& i_fine, const SAMRAI::hier::IndexNd& ratio);
 
     /*
      * \return The refined version of a cell-centered index.
      */
-    static SAMRAI::hier::Index<NDIM> refine(const SAMRAI::hier::Index<NDIM>& i_coarsen,
-                                            const SAMRAI::hier::Index<NDIM>& ratio);
+    static SAMRAI::hier::IndexNd refine(const SAMRAI::hier::IndexNd& i_coarsen, const SAMRAI::hier::IndexNd& ratio);
 
     /*!
      * \return The cell index corresponding to location \p X relative
@@ -101,12 +99,12 @@ public:
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM> getCellIndex(const DoubleArray& X,
-                                                  const double* x_lower,
-                                                  const double* x_upper,
-                                                  const double* dx,
-                                                  const SAMRAI::hier::Index<NDIM>& ilower,
-                                                  const SAMRAI::hier::Index<NDIM>& iupper);
+    static SAMRAI::hier::IndexNd getCellIndex(const DoubleArray& X,
+                                              const double* x_lower,
+                                              const double* x_upper,
+                                              const double* dx,
+                                              const SAMRAI::hier::IndexNd& ilower,
+                                              const SAMRAI::hier::IndexNd& iupper);
 
     /*!
      * \return The cell index corresponding to location \p X relative
@@ -122,10 +120,10 @@ public:
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM>
+    static SAMRAI::hier::IndexNd
     getCellIndex(const DoubleArray& X,
-                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometry<NDIM> >& patch_geom,
-                 const SAMRAI::hier::Box<NDIM>& patch_box);
+                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometryNd>& patch_geom,
+                 const SAMRAI::hier::BoxNd& patch_box);
 
     /*!
      * \return The cell index corresponding to location \p X relative
@@ -135,10 +133,10 @@ public:
      * \see SAMRAI::geom::CartesianGridGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM>
+    static SAMRAI::hier::IndexNd
     getCellIndex(const DoubleArray& X,
-                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
-                 const SAMRAI::hier::IntVector<NDIM>& ratio);
+                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+                 const SAMRAI::hier::IntVectorNd& ratio);
 
     /*!
      * \return The cell index corresponding to location \p X relative to the
@@ -154,10 +152,10 @@ public:
      * \see SAMRAI::geom::CartesianGridGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::Index<NDIM>
+    static SAMRAI::hier::IndexNd
     getAssignedCellIndex(const DoubleArray& X,
-                         const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
-                         const SAMRAI::hier::IntVector<NDIM>& ratio);
+                         const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+                         const SAMRAI::hier::IntVectorNd& ratio);
 
     /*!
      * \return The spatial coordinate of the given cell center.
@@ -167,7 +165,7 @@ public:
      * @param cell_idx The CellIndex describing the current cell.
      */
     template <typename Vector>
-    static Vector getCellCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::CellIndex<NDIM>& cell_idx);
+    static Vector getCellCenter(const SAMRAI::hier::PatchNd& patch, const SAMRAI::pdat::CellIndexNd& cell_idx);
 
     /*!
      * \return The spatial coordinate of the given cell center.
@@ -176,8 +174,7 @@ public:
      *
      * @param cell_idx The CellIndex describing the current cell.
      */
-    static IBTK::VectorNd getCellCenter(const SAMRAI::hier::Patch<NDIM>& patch,
-                                        const SAMRAI::pdat::CellIndex<NDIM>& cell_idx);
+    static IBTK::VectorNd getCellCenter(const SAMRAI::hier::PatchNd& patch, const SAMRAI::pdat::CellIndexNd& cell_idx);
 
     /*!
      * \return The spatial coordinate of the given cell center.
@@ -189,9 +186,9 @@ public:
      * @param cell_idx The CellIndex describing the current cell.
      */
     template <typename Vector>
-    static Vector getCellCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
-                                const SAMRAI::hier::IntVector<NDIM>& ratio,
-                                const SAMRAI::pdat::CellIndex<NDIM>& cell_idx);
+    static Vector getCellCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+                                const SAMRAI::hier::IntVectorNd& ratio,
+                                const SAMRAI::pdat::CellIndexNd& cell_idx);
 
     /*!
      * \return The spatial coordinate of the given side center.
@@ -201,7 +198,7 @@ public:
      * @param side_idx The SideIndex describing the current side.
      */
     template <typename Vector>
-    static Vector getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch, const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
+    static Vector getSideCenter(const SAMRAI::hier::PatchNd& patch, const SAMRAI::pdat::SideIndexNd& side_idx);
 
     /*!
      * \return The spatial coordinate of the given side center.
@@ -210,8 +207,7 @@ public:
      *
      * @param side_idx The SideIndex describing the current side.
      */
-    static IBTK::VectorNd getSideCenter(const SAMRAI::hier::Patch<NDIM>& patch,
-                                        const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
+    static IBTK::VectorNd getSideCenter(const SAMRAI::hier::PatchNd& patch, const SAMRAI::pdat::SideIndexNd& side_idx);
 
     /*!
      * \return The spatial coordinate of the given side center.
@@ -223,9 +219,9 @@ public:
      * @param side_idx The SideIndex describing the current side.
      */
     template <typename Vector>
-    static Vector getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
-                                const SAMRAI::hier::IntVector<NDIM>& ratio,
-                                const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
+    static Vector getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+                                const SAMRAI::hier::IntVectorNd& ratio,
+                                const SAMRAI::pdat::SideIndexNd& side_idx);
 
     /*!
      * \return The spatial coordinate of the given side center.
@@ -236,10 +232,9 @@ public:
      *
      * @param side_idx The SideIndex describing the current side.
      */
-    static IBTK::VectorNd
-    getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> >& grid_geom,
-                  const SAMRAI::hier::IntVector<NDIM>& ratio,
-                  const SAMRAI::pdat::SideIndex<NDIM>& side_idx);
+    static IBTK::VectorNd getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+                                        const SAMRAI::hier::IntVectorNd& ratio,
+                                        const SAMRAI::pdat::SideIndexNd& side_idx);
 
     /*!
      * \brief Map (i,j,k,d) index for a DOF defined for a SAMRAI variable
@@ -272,13 +267,12 @@ public:
      * \return The linear mapping of an AMR index to a continuous non-negative
      * integer space.
      */
-    static int
-    mapIndexToInteger(const SAMRAI::hier::Index<NDIM>& i,
-                      const SAMRAI::hier::Index<NDIM>& domain_lower,
-                      const SAMRAI::hier::Index<NDIM>& num_cells,
-                      const int depth,
-                      const int offset = 0,
-                      const SAMRAI::hier::IntVector<NDIM>& periodic_shift = SAMRAI::hier::IntVector<NDIM>(0));
+    static int mapIndexToInteger(const SAMRAI::hier::IndexNd& i,
+                                 const SAMRAI::hier::IndexNd& domain_lower,
+                                 const SAMRAI::hier::IndexNd& num_cells,
+                                 const int depth,
+                                 const int offset = 0,
+                                 const SAMRAI::hier::IntVectorNd& periodic_shift = SAMRAI::hier::IntVectorNd(0));
 
     /*!
      * \brief Partition a patch box into subdomains of size \em box_size
@@ -291,11 +285,11 @@ public:
      * \note The overlap boxes are obtained from nonoverlap_boxes by growing
      * them suitably.
      */
-    static SAMRAI::hier::IntVector<NDIM> partitionPatchBox(std::vector<SAMRAI::hier::Box<NDIM> >& overlap_boxes,
-                                                           std::vector<SAMRAI::hier::Box<NDIM> >& nonoverlap_boxes,
-                                                           const SAMRAI::hier::Box<NDIM>& patch_box,
-                                                           const SAMRAI::hier::IntVector<NDIM>& box_size,
-                                                           const SAMRAI::hier::IntVector<NDIM>& overlap_size);
+    static SAMRAI::hier::IntVectorNd partitionPatchBox(std::vector<SAMRAI::hier::BoxNd>& overlap_boxes,
+                                                       std::vector<SAMRAI::hier::BoxNd>& nonoverlap_boxes,
+                                                       const SAMRAI::hier::BoxNd& patch_box,
+                                                       const SAMRAI::hier::IntVectorNd& box_size,
+                                                       const SAMRAI::hier::IntVectorNd& overlap_size);
 
 private:
     /*!

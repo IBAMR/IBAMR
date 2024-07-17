@@ -96,7 +96,7 @@ FACPreconditioner::setTimeInterval(const double current_time, const double new_t
 } // setTimeInterval
 
 bool
-FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+FACPreconditioner::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<double>& b)
 {
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -147,8 +147,8 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
 } // solveSystem
 
 void
-FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& solution,
-                                         const SAMRAIVectorReal<NDIM, double>& rhs)
+FACPreconditioner::initializeSolverState(const SAMRAIVectorRealNd<double>& solution,
+                                         const SAMRAIVectorRealNd<double>& rhs)
 {
     // Deallocate the solver state if the solver is already initialized.
     if (d_is_initialized)
@@ -262,9 +262,7 @@ FACPreconditioner::getFACPreconditionerStrategy() const
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
-                                           SAMRAIVectorReal<NDIM, double>& f,
-                                           int level_num)
+FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorRealNd<double>& u, SAMRAIVectorRealNd<double>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -294,9 +292,9 @@ FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
 } // FACVCycleNoPreSmoothing
 
 void
-FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
-                           SAMRAIVectorReal<NDIM, double>& f,
-                           SAMRAIVectorReal<NDIM, double>& r,
+FACPreconditioner::muCycle(SAMRAIVectorRealNd<double>& u,
+                           SAMRAIVectorRealNd<double>& f,
+                           SAMRAIVectorRealNd<double>& r,
                            int level_num,
                            int mu)
 {
@@ -324,9 +322,9 @@ FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
 } // muCycle
 
 void
-FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u,
-                          SAMRAIVectorReal<NDIM, double>& f,
-                          SAMRAIVectorReal<NDIM, double>& r,
+FACPreconditioner::FCycle(SAMRAIVectorRealNd<double>& u,
+                          SAMRAIVectorRealNd<double>& f,
+                          SAMRAIVectorRealNd<double>& r,
                           int level_num)
 {
     if (level_num == d_coarsest_ln)
@@ -354,9 +352,9 @@ FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u,
 } // FCycle
 
 void
-FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u,
-                            SAMRAIVectorReal<NDIM, double>& f,
-                            SAMRAIVectorReal<NDIM, double>& r,
+FACPreconditioner::FMGCycle(SAMRAIVectorRealNd<double>& u,
+                            SAMRAIVectorRealNd<double>& f,
+                            SAMRAIVectorRealNd<double>& r,
                             int level_num,
                             int mu)
 {

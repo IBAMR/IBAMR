@@ -100,34 +100,34 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector =
+            new StandardTagAndInitializeNd("StandardTagAndInitialize",
+                                           time_integrator,
+                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
         // Set up the advected and diffused quantity.
-        Pointer<CellVariable<NDIM, double> > C_var = new CellVariable<NDIM, double>("U");
+        Pointer<CellVariableNd<double> > C_var = new CellVariableNd<double>("U");
         time_integrator->registerTransportedQuantity(C_var);
         time_integrator->setDiffusionCoefficient(C_var, input_db->getDouble("KAPPA"));
-        RobinBcCoefStrategy<NDIM>* C_bc_coef = new muParserRobinBcCoefs(
+        RobinBcCoefStrategyNd* C_bc_coef = new muParserRobinBcCoefs(
             "C_bc_coef", app_initializer->getComponentDatabase("ConcentrationBcCoefs"), grid_geometry);
         time_integrator->setPhysicalBcCoef(C_var, C_bc_coef);
         Pointer<CartGridFunction> C_exact_soln = new muParserCartGridFunction(
             "C_exact_soln", app_initializer->getComponentDatabase("ConcentrationExactSolution"), grid_geometry);
 
-        Pointer<FaceVariable<NDIM, double> > u_adv_var = new FaceVariable<NDIM, double>("u_adv");
+        Pointer<FaceVariableNd<double> > u_adv_var = new FaceVariableNd<double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(
             u_adv_var,
@@ -135,7 +135,7 @@ main(int argc, char* argv[])
                 "u_fcn", app_initializer->getComponentDatabase("AdvectionVelocityFunction"), grid_geometry));
         time_integrator->setAdvectionVelocity(C_var, u_adv_var);
 
-        Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F");
+        Pointer<CellVariableNd<double> > F_var = new CellVariableNd<double>("F");
         time_integrator->registerSourceTerm(F_var);
         time_integrator->setSourceTermFunction(
             F_var,
@@ -144,7 +144,7 @@ main(int argc, char* argv[])
         time_integrator->setSourceTerm(C_var, F_var);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -221,7 +221,7 @@ main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
         const Pointer<VariableContext> C_ctx = time_integrator->getCurrentContext();
         const int C_idx = var_db->mapVariableAndContextToIndex(C_var, C_ctx);
@@ -241,7 +241,7 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         hier_cc_data_ops.subtract(C_idx, C_idx, C_cloned_idx);
         pout << "Error in U at time " << loop_time << ":\n"
              << "  L1-norm:  " << std::setprecision(10) << hier_cc_data_ops.L1Norm(C_idx, wgt_cc_idx) << "\n"

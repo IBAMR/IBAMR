@@ -36,7 +36,7 @@
  * \param ctx is the pointer to TagLSRefinementCells class object.
  */
 
-void callTagLSRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+void callTagLSRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                               const int level_number,
                                               const double error_data_time,
                                               const int tag_index,
@@ -47,7 +47,7 @@ void callTagLSRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier
 struct TagLSRefinementCells
 {
     SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_gas_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_gas_var;
     double d_tag_value;
     double d_tag_abs_thresh;
 };

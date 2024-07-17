@@ -95,7 +95,7 @@ enum HypreStructRelaxType
 
 struct IndexComp
 {
-    bool operator()(const hier::Index<NDIM>& lhs, const hier::Index<NDIM>& rhs) const
+    bool operator()(const hier::IndexNd& lhs, const hier::IndexNd& rhs) const
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -187,7 +187,7 @@ CCPoissonHypreLevelSolver::~CCPoissonHypreLevelSolver()
 } // ~CCPoissonHypreLevelSolver
 
 bool
-CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<double>& b)
 {
     IBTK_TIMER_START(t_solve_system);
 
@@ -221,8 +221,8 @@ CCPoissonHypreLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAI
 } // solveSystem
 
 void
-CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                                 const SAMRAIVectorReal<NDIM, double>& b)
+CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorRealNd<double>& x,
+                                                 const SAMRAIVectorRealNd<double>& b)
 {
     IBTK_TIMER_START(t_initialize_solver_state);
 
@@ -234,7 +234,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchy<NDIM> >& patch_hierarchy = x.getPatchHierarchy();
+    const Pointer<PatchHierarchyNd>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -292,13 +292,13 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
     d_level = d_hierarchy->getPatchLevel(d_level_num);
     if (d_level_num > 0)
     {
-        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVector<NDIM>(1));
+        d_cf_boundary = new CoarseFineBoundary<NDIM>(*d_hierarchy, d_level_num, IntVectorNd(1));
     }
 
     // Allocate and initialize the hypre data structures.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellDataFactory<NDIM, double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    Pointer<CellDataFactoryNd<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     d_depth = x_fac->getDefaultDepth();
     if (d_poisson_spec.dIsConstant())
     {
@@ -306,8 +306,8 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, do
     }
     else
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<SideDataFactory<NDIM, double> > pdat_factory =
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+        Pointer<SideDataFactoryNd<double> > pdat_factory =
             var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
 #if !defined(NDEBUG)
         TBOX_ASSERT(pdat_factory);
@@ -361,14 +361,14 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_level->getRatio();
-    const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift(ratio);
+    Pointer<CartesianGridGeometryNd> grid_geometry = d_hierarchy->getGridGeometry();
+    const IntVectorNd& ratio = d_level->getRatio();
+    const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
     HYPRE_StructGridCreate(communicator, NDIM, &d_grid);
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        const Box<NDIM>& patch_box = d_level->getPatch(p())->getBox();
+        const BoxNd& patch_box = d_level->getPatch(p())->getBox();
         std::array<HYPRE_Int, NDIM> lower = hypre_array(patch_box.lower());
         std::array<HYPRE_Int, NDIM> upper = hypre_array(patch_box.upper());
         HYPRE_StructGridSetExtents(d_grid, lower.data(), upper.data());
@@ -391,7 +391,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     {
         static const int stencil_sz = 2 * NDIM + 1;
         d_stencil_offsets.resize(stencil_sz);
-        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::IndexNd(0));
         for (unsigned int axis = 0, stencil_index = 1; axis < NDIM; ++axis)
         {
             for (int side = 0; side <= 1; ++side, ++stencil_index)
@@ -411,7 +411,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     {
         static const int stencil_sz = (NDIM == 2) ? 9 : 19;
         d_stencil_offsets.resize(stencil_sz);
-        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::Index<NDIM>(0));
+        std::fill(d_stencil_offsets.begin(), d_stencil_offsets.end(), hier::IndexNd(0));
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
@@ -489,18 +489,18 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
     std::vector<HYPRE_Int> stencil_indices(stencil_size);
     std::iota(stencil_indices.begin(), stencil_indices.end(), HYPRE_Int(0));
     std::vector<double> mat_vals(stencil_size, 0.0);
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        CellData<NDIM, double> matrix_coefs(patch_box, stencil_size, IntVector<NDIM>(0));
+        Pointer<PatchNd> patch = d_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        CellDataNd<double> matrix_coefs(patch_box, stencil_size, IntVectorNd(0));
         for (unsigned int k = 0; k < d_depth; ++k)
         {
             PoissonUtilities::computeMatrixCoefficients(
                 matrix_coefs, patch, d_stencil_offsets, d_poisson_spec, d_bc_coefs[k], d_solution_time);
-            for (Box<NDIM>::Iterator b(patch_box); b; b++)
+            for (BoxNd::Iterator b(patch_box); b; b++)
             {
-                hier::Index<NDIM> i = b();
+                hier::IndexNd i = b();
                 for (unsigned int j = 0; j < stencil_size; ++j)
                 {
                     mat_vals[j] = matrix_coefs(i, j);
@@ -523,19 +523,19 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
 void
 CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 {
-    static const IntVector<NDIM> no_ghosts = 0;
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    static const IntVectorNd no_ghosts = 0;
+    for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = d_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
 
         // Compute all matrix coefficients.
         //
         // NOTE: Here we assume that no flux boundary conditions are imposed at
         // the physical domain.
-        Pointer<CellData<NDIM, double> > C_data;
+        Pointer<CellDataNd<double> > C_data;
         if (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant())
         {
             C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
@@ -548,14 +548,14 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         }
         else
         {
-            C_data = new CellData<NDIM, double>(patch_box, 1, no_ghosts);
+            C_data = new CellDataNd<double>(patch_box, 1, no_ghosts);
             if (d_poisson_spec.cIsZero())
                 C_data->fill(0.0);
             else
                 C_data->fill(d_poisson_spec.getCConstant());
         }
 
-        Pointer<SideData<NDIM, double> > D_data;
+        Pointer<SideDataNd<double> > D_data;
         if (!d_poisson_spec.dIsConstant())
         {
             D_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
@@ -573,7 +573,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
         std::array<HYPRE_Int, stencil_size> stencil_indices;
         std::iota(stencil_indices.begin(), stencil_indices.end(), HYPRE_Int(0));
 
-        std::map<hier::Index<NDIM>, int, IndexComp> stencil_index_map;
+        std::map<hier::IndexNd, int, IndexComp> stencil_index_map;
         int stencil_index = 0;
 #if (NDIM == 3)
         for (int z_offset = -1; z_offset <= 1; ++z_offset)
@@ -589,10 +589,10 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     {
 #endif
 #if (NDIM == 2)
-                        const hier::Index<NDIM> i(x_offset, y_offset);
+                        const hier::IndexNd i(x_offset, y_offset);
 #endif
 #if (NDIM == 3)
-                        const hier::Index<NDIM> i(x_offset, y_offset, z_offset);
+                        const hier::IndexNd i(x_offset, y_offset, z_offset);
 #endif
                         stencil_index_map[i] = stencil_index++;
 #if (NDIM == 3)
@@ -604,10 +604,10 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
 
         // Set the matrix coefficients to correspond to a second-order accurate
         // finite difference stencil for the Laplace operator.
-        for (Box<NDIM>::Iterator b(patch_box); b; b++)
+        for (BoxNd::Iterator b(patch_box); b; b++)
         {
-            hier::Index<NDIM> i = b();
-            static const hier::Index<NDIM> i_stencil_center(0);
+            hier::IndexNd i = b();
+            static const hier::IndexNd i_stencil_center(0);
             const int stencil_center = stencil_index_map[i_stencil_center];
 
             std::vector<double> mat_vals(stencil_size, 0.0);
@@ -618,21 +618,21 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
             {
                 const double& h = dx[axis];
                 {
-                    hier::Index<NDIM> i_stencil_lower(0);
+                    hier::IndexNd i_stencil_lower(0);
                     --i_stencil_lower[axis];
                     const int stencil_lower = stencil_index_map[i_stencil_lower];
 
-                    const SideIndex<NDIM> ilower(i, axis, SideIndex<NDIM>::Lower);
+                    const SideIndexNd ilower(i, axis, SideIndexNd::Lower);
                     const double& D_lower = (*D_data)(ilower, axis);
                     mat_vals[stencil_lower] += D_lower / (h * h);
                     mat_vals[stencil_center] -= D_lower / (h * h);
                 }
                 {
-                    hier::Index<NDIM> i_stencil_upper(0);
+                    hier::IndexNd i_stencil_upper(0);
                     ++i_stencil_upper[axis];
                     const int stencil_upper = stencil_index_map[i_stencil_upper];
 
-                    const SideIndex<NDIM> iupper(i, axis, SideIndex<NDIM>::Upper);
+                    const SideIndexNd iupper(i, axis, SideIndexNd::Upper);
                     const double& D_upper = (*D_data)(iupper, axis);
                     mat_vals[stencil_upper] += D_upper / (h * h);
                     mat_vals[stencil_center] -= D_upper / (h * h);
@@ -661,12 +661,12 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     // Lower side fluxes.
                     if (!skip_lower_side_fluxes)
                     {
-                        const SideIndex<NDIM> ilower(i, norm_axis, SideIndex<NDIM>::Lower);
+                        const SideIndexNd ilower(i, norm_axis, SideIndexNd::Lower);
                         for (int norm_shift = -1; norm_shift <= 0; ++norm_shift)
                         {
                             for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                             {
-                                hier::Index<NDIM> i_stencil(0);
+                                hier::IndexNd i_stencil(0);
                                 i_stencil[norm_axis] += norm_shift;
                                 i_stencil[trans_axis] += trans_shift;
                                 const int stencil_index = stencil_index_map[i_stencil];
@@ -685,12 +685,12 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                     // Upper side fluxes.
                     if (!skip_upper_side_fluxes)
                     {
-                        const SideIndex<NDIM> iupper(i, norm_axis, SideIndex<NDIM>::Upper);
+                        const SideIndexNd iupper(i, norm_axis, SideIndexNd::Upper);
                         for (int norm_shift = 0; norm_shift <= 1; ++norm_shift)
                         {
                             for (int trans_shift = -1; trans_shift <= 1; trans_shift += 2)
                             {
-                                hier::Index<NDIM> i_stencil(0);
+                                hier::IndexNd i_stencil(0);
                                 i_stencil[norm_axis] += norm_shift;
                                 i_stencil[trans_axis] += trans_shift;
                                 const int stencil_index = stencil_index_map[i_stencil];
@@ -1012,30 +1012,30 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
 
     // Modify right-hand-side data to account for boundary conditions and copy
     // solution and right-hand-side data to hypre structures.
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = d_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
-        const Box<NDIM> x_ghost_box = Box<NDIM>::grow(patch_box, 1);
-        Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
+        const BoxNd x_ghost_box = BoxNd::grow(patch_box, 1);
+        Pointer<CellDataNd<double> > x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vecs, *x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
-        Pointer<CellData<NDIM, double> > b_data = patch->getPatchData(b_idx);
-        const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
-            level_zero ? Array<BoundaryBox<NDIM> >() :
+        Pointer<CellDataNd<double> > b_data = patch->getPatchData(b_idx);
+        const Array<BoundaryBoxNd>& type_1_cf_bdry =
+            level_zero ? Array<BoundaryBoxNd>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         const bool at_cf_bdry = type_1_cf_bdry.size() > 0;
         if (at_physical_bdry || at_cf_bdry)
         {
-            CellData<NDIM, double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
+            CellDataNd<double> b_adj_data(b_data->getBox(), b_data->getDepth(), b_data->getGhostCellWidth());
             b_adj_data.copy(*b_data);
             if (at_physical_bdry)
             {
@@ -1153,11 +1153,11 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     IBTK_TIMER_STOP(t_solve_system_hypre);
 
     // Pull the solution vector out of the hypre structures.
-    for (PatchLevel<NDIM>::Iterator p(d_level); p; p++)
+    for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = d_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > x_data = patch->getPatchData(x_idx);
+        Pointer<PatchNd> patch = d_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<CellDataNd<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vecs, patch_box);
     }
 

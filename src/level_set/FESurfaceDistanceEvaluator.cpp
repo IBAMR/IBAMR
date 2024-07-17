@@ -119,7 +119,7 @@ const double FESurfaceDistanceEvaluator::s_large_distance = 1234567.0;
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(std::string object_name,
-                                                       Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                                       Pointer<PatchHierarchyNd> patch_hierarchy,
                                                        const libMesh::Mesh& mesh,
                                                        const BoundaryMesh& bdry_mesh,
                                                        const int gcw,
@@ -177,11 +177,11 @@ FESurfaceDistanceEvaluator::mapIntersections()
 
     // Loop over patches on finest level, while keeping track of the local patch
     // indexing.
-    Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
+    Pointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(finest_ln);
     int local_patch_num = 0;
 
     // Desired ghost cell width.
-    IntVector<NDIM> ghost_width = d_gcw;
+    IntVectorNd ghost_width = d_gcw;
 
     // Compute a bounding box for the entire structure, relying on LibMesh
     // parallel decomposition.
@@ -224,9 +224,9 @@ FESurfaceDistanceEvaluator::mapIntersections()
     IBTK_MPI::maxReduction(elem_tr.data(), 3);
 
     // Structure bounding box, taking into account ghost cell width.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     const double* const dx0 = grid_geom->getDx();
-    const IntVector<NDIM>& level_ratio = level->getRatio();
+    const IntVectorNd& level_ratio = level->getRatio();
     double level_dx[NDIM] = { 0.0 };
     for (int d = 0; d < NDIM; ++d) level_dx[d] = dx0[d] / level_ratio(d);
 
@@ -238,28 +238,28 @@ FESurfaceDistanceEvaluator::mapIntersections()
         large_struct_bl[d] = elem_bl[d] - ((ghost_width[d] + 1) * level_dx[d]);
         large_struct_tr[d] = elem_tr[d] + ((ghost_width[d] + 1) * level_dx[d]);
     }
-    Box<NDIM> struct_box(IndexUtilities::getCellIndex(struct_bl.data(), grid_geom, level_ratio),
-                         IndexUtilities::getCellIndex(struct_tr.data(), grid_geom, level_ratio));
+    BoxNd struct_box(IndexUtilities::getCellIndex(struct_bl.data(), grid_geom, level_ratio),
+                     IndexUtilities::getCellIndex(struct_tr.data(), grid_geom, level_ratio));
 
     // Create a bounding box with some additional ghost cell width than the
     // given one to eliminate some corner cases that may show up in the sign
     // update sweeping algorithm.
-    d_large_struct_box = Box<NDIM>(IndexUtilities::getCellIndex(large_struct_bl.data(), grid_geom, level_ratio),
-                                   IndexUtilities::getCellIndex(large_struct_tr.data(), grid_geom, level_ratio));
+    d_large_struct_box = BoxNd(IndexUtilities::getCellIndex(large_struct_bl.data(), grid_geom, level_ratio),
+                               IndexUtilities::getCellIndex(large_struct_tr.data(), grid_geom, level_ratio));
 
     // Map the neighbor intersections.
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<const Elem*>& patch_elems = d_active_neighbor_patch_bdry_elem_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* patch_X_lower = patch_geom->getXLower();
-        const SAMRAI::hier::Index<NDIM>& patch_lower_index = patch_box.lower();
+        const SAMRAI::hier::IndexNd& patch_lower_index = patch_box.lower();
         const double* const patch_dx = patch_geom->getDx();
 
         // If the patch box doesn't intersect the structure box, no need to do
@@ -267,13 +267,13 @@ FESurfaceDistanceEvaluator::mapIntersections()
         if (!patch_box.intersects(struct_box)) continue;
 
         // Loop over cells
-        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        for (BoxNd::Iterator it(patch_box); it; it++)
         {
             // Get the coordinates/dimensions a box grown out of the cell
             // center of ci by the ghost cell width. This will ensure that we
             // capture not only the elements intersecting the cell, but also
             // the elements intersecting the neighbor.
-            CellIndex<NDIM> ci(it());
+            CellIndexNd ci(it());
             IBTK::Vector3d r_bl, r_tr;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -285,8 +285,8 @@ FESurfaceDistanceEvaluator::mapIntersections()
 
             // Do a simple bounding box check first, before carrying out expensive
             // checkIntersection routines.
-            Box<NDIM> ghost_box(IndexUtilities::getCellIndex(r_bl.data(), grid_geom, level_ratio),
-                                IndexUtilities::getCellIndex(r_tr.data(), grid_geom, level_ratio));
+            BoxNd ghost_box(IndexUtilities::getCellIndex(r_bl.data(), grid_geom, level_ratio),
+                            IndexUtilities::getCellIndex(r_tr.data(), grid_geom, level_ratio));
             if (!ghost_box.intersects(struct_box)) continue;
 
                 // Prepare the required vectors.
@@ -345,7 +345,7 @@ FESurfaceDistanceEvaluator::mapIntersections()
     return;
 } // mapIntersections
 
-const std::map<CellIndex<NDIM>, std::set<const Elem*>, CellIndexFortranOrder>&
+const std::map<CellIndexNd, std::set<const Elem*>, CellIndexFortranOrder>&
 FESurfaceDistanceEvaluator::getNeighborIntersectionsMap()
 {
     return d_cell_elem_neighbor_map;
@@ -361,22 +361,22 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
 
     // Loop over patches on finest level.
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(finest_ln);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(finest_ln);
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        const SAMRAI::hier::Index<NDIM>& patch_lower_index = patch_box.lower();
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        const SAMRAI::hier::IndexNd& patch_lower_index = patch_box.lower();
+        Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* patch_X_lower = patch_geom->getXLower();
         const double* const patch_dx = patch_geom->getDx();
-        Pointer<CellData<NDIM, double> > n_data = patch->getPatchData(n_idx);
-        Pointer<CellData<NDIM, double> > d_data = patch->getPatchData(d_idx);
+        Pointer<CellDataNd<double> > n_data = patch->getPatchData(n_idx);
+        Pointer<CellDataNd<double> > d_data = patch->getPatchData(d_idx);
 
         // Note that we only work with cells that satisfy the intersecting criteria.
-        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        for (BoxNd::Iterator it(patch_box); it; it++)
         {
-            CellIndex<NDIM> ci(it());
+            CellIndexNd ci(it());
             const bool contains_key = (d_cell_elem_neighbor_map.find(ci) != d_cell_elem_neighbor_map.end());
             if (contains_key)
             {
@@ -580,53 +580,53 @@ FESurfaceDistanceEvaluator::calculateSurfaceNormals()
 /////////////////////////////// STATIC ///////////////////////////////////////
 void
 FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
-                                                        Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                                                        Pointer<PatchHierarchyNd> patch_hierarchy,
                                                         double large_distance)
 {
     // Allocate scratch variable on the finest level.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<SAMRAI::hier::Variable<NDIM> > data_var;
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    Pointer<SAMRAI::hier::VariableNd> data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
-    Pointer<CellVariable<NDIM, double> > D_var = data_var;
+    Pointer<CellVariableNd<double> > D_var = data_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!D_var.isNull());
 #endif
-    static const IntVector<NDIM> cell_ghosts = 1;
+    static const IntVectorNd cell_ghosts = 1;
     const int D_iter_idx = var_db->registerVariableAndContext(
         D_var, var_db->getContext("FESurfaceDistanceEvaluator::updateSignAwayFromInterface::ITER"), cell_ghosts);
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(finest_ln);
+    Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(finest_ln);
     level->allocatePatchData(D_iter_idx, /*time*/ 0.0);
 
     // Copy d_idx to D_iter_idx.
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, finest_ln, finest_ln);
+    HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, finest_ln, finest_ln);
     hier_cc_data_ops.setToScalar(D_iter_idx,
                                  large_distance,
                                  /*interior_only*/ false);
     hier_cc_data_ops.copyData(D_iter_idx, D_idx);
 
     // Fill ghost cells.
-    RefineAlgorithm<NDIM> ghost_fill_alg;
+    RefineAlgorithmNd ghost_fill_alg;
     ghost_fill_alg.registerRefine(D_iter_idx, D_iter_idx, D_iter_idx, nullptr);
-    Pointer<RefineSchedule<NDIM> > ghost_fill_sched = ghost_fill_alg.createSchedule(level);
+    Pointer<RefineScheduleNd> ghost_fill_sched = ghost_fill_alg.createSchedule(level);
 
     int n_global_updates = 1;
     while (n_global_updates > 0)
     {
         ghost_fill_sched->fillData(/*time*/ 0.0);
         int n_local_updates = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
 
             // If the patch box doesn't intersect the structure box, no need to do
             // computations.
             if (!patch_box.intersects(d_large_struct_box)) continue;
 
-            const SAMRAI::hier::Index<NDIM>& patch_lower_index = patch_box.lower();
-            const SAMRAI::hier::Index<NDIM>& patch_upper_index = patch_box.upper();
-            Pointer<CellData<NDIM, double> > D_iter_data = patch->getPatchData(D_iter_idx);
+            const SAMRAI::hier::IndexNd& patch_lower_index = patch_box.lower();
+            const SAMRAI::hier::IndexNd& patch_upper_index = patch_box.upper();
+            Pointer<CellDataNd<double> > D_iter_data = patch->getPatchData(D_iter_idx);
             double* const D = D_iter_data->getPointer(0);
             const int D_ghosts = (D_iter_data->getGhostCellWidth()).max();
 
@@ -1343,17 +1343,17 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
     d_active_neighbor_patch_bdry_elem_map.clear();
 
     // Setup data structures used to assign elements to patches.
-    Pointer<PatchLevel<NDIM> > level = d_patch_hierarchy->getPatchLevel(level_number);
+    Pointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(level_number);
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
     d_active_neighbor_patch_bdry_elem_map.resize(num_local_patches);
-    IntVector<NDIM> ghost_width = d_gcw;
+    IntVectorNd ghost_width = d_gcw;
 
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         d_active_neighbor_patch_bdry_elem_map[local_patch_num] = std::vector<const Elem*>();
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         IBTK::Point x_lower;
         for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
         IBTK::Point x_upper;

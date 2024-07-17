@@ -86,7 +86,7 @@ public:
      * \brief Constructor of the class.
      */
     BrinkmanPenalizationRigidBodyDynamics(std::string object_name,
-                                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
+                                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_solid_var,
                                           SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                                           SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> fluid_solver,
                                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
@@ -323,7 +323,7 @@ protected:
     SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_fluid_solver;
 
     // Level set variable defining the solid.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_solid_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_solid_var;
 
     // Hydrodynamic force evaluator.
     SAMRAI::tbox::Pointer<IBAMR::IBHydrodynamicSurfaceForceEvaluator> d_hydro_force_eval;

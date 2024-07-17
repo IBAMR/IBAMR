@@ -312,7 +312,7 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
     std::string object_name,
     Pointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
-    std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
+    std::vector<RobinBcCoefStrategyNd*> bc_coefs)
     : ConvectiveOperator(std::move(object_name), difference_form), d_bc_coefs(std::move(bc_coefs))
 {
     if (d_difference_form != ADVECTIVE && d_difference_form != CONSERVATIVE && d_difference_form != SKEW_SYMMETRIC)
@@ -325,7 +325,7 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
             << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     Pointer<VariableContext> context = var_db->getContext("INSStaggeredUpwindConvectiveOperator::CONTEXT");
 
     if (input_db)
@@ -341,8 +341,8 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
     }
     else
     {
-        d_U_var = new SideVariable<NDIM, double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
+        d_U_var = new SideVariableNd<double>(U_var_name);
+        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVectorNd(GADVECTG));
     }
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_U_scratch_idx >= 0);
@@ -386,7 +386,7 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx);
     }
 
@@ -412,30 +412,30 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchNd> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            const Box<NDIM>& patch_box = patch->getBox();
-            const IntVector<NDIM>& patch_lower = patch_box.lower();
-            const IntVector<NDIM>& patch_upper = patch_box.upper();
+            const BoxNd& patch_box = patch->getBox();
+            const IntVectorNd& patch_lower = patch_box.lower();
+            const IntVectorNd& patch_upper = patch_box.upper();
 
-            Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
-            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            Pointer<SideDataNd<double> > N_data = patch->getPatchData(N_idx);
+            Pointer<SideDataNd<double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
-            const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
-            std::array<Box<NDIM>, NDIM> side_boxes;
-            std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_adv_data;
-            std::array<Pointer<FaceData<NDIM, double> >, NDIM> U_half_data;
+            const IntVectorNd ghosts = IntVectorNd(1);
+            std::array<BoxNd, NDIM> side_boxes;
+            std::array<Pointer<FaceDataNd<double> >, NDIM> U_adv_data;
+            std::array<Pointer<FaceDataNd<double> >, NDIM> U_half_data;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                side_boxes[axis] = SideGeometry<NDIM>::toSideBox(patch_box, axis);
-                U_adv_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
-                U_half_data[axis] = new FaceData<NDIM, double>(side_boxes[axis], 1, ghosts);
+                side_boxes[axis] = SideGeometryNd::toSideBox(patch_box, axis);
+                U_adv_data[axis] = new FaceDataNd<double>(side_boxes[axis], 1, ghosts);
+                U_half_data[axis] = new FaceDataNd<double>(side_boxes[axis], 1, ghosts);
             }
 #if (NDIM == 2)
             NAVIER_STOKES_INTERP_COMPS_FC(patch_lower(0),
@@ -515,12 +515,12 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
 #endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                const ArrayData<NDIM, double>& U_array_data = U_data->getArrayData(axis);
+                const ArrayDataNd<double>& U_array_data = U_data->getArrayData(axis);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    for (FaceIterator<NDIM> ic(side_boxes[axis], d); ic; ic++)
+                    for (FaceIteratorNd ic(side_boxes[axis], d); ic; ic++)
                     {
-                        const FaceIndex<NDIM>& i = ic();
+                        const FaceIndexNd& i = ic();
                         const double u_ADV = (*U_adv_data[axis])(i);
                         const double U_lower = U_array_data(i.toCell(0), 0);
                         const double U_upper = U_array_data(i.toCell(1), 0);
@@ -685,7 +685,7 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
     }
 
@@ -694,8 +694,8 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
 } // applyConvectiveOperator
 
 void
-INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                              const SAMRAIVectorReal<NDIM, double>& out)
+INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIVectorRealNd<double>& in,
+                                                              const SAMRAIVectorRealNd<double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 

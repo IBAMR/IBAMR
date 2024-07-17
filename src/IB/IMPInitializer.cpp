@@ -96,8 +96,8 @@ static const double POINT_FACTOR = 2.0;
 
 IMPInitializer::IMPInitializer(std::string object_name,
                                Pointer<Database> input_db,
-                               Pointer<PatchHierarchy<NDIM> > hierarchy,
-                               Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+                               Pointer<PatchHierarchyNd> hierarchy,
+                               Pointer<GriddingAlgorithmNd> gridding_alg)
     : d_object_name(std::move(object_name)),
       d_hierarchy(hierarchy),
       d_gridding_alg(gridding_alg),
@@ -138,13 +138,13 @@ IMPInitializer::registerMesh(MeshBase* mesh, int level_number)
     d_meshes[level_number].push_back(mesh);
 
     // Compute the Cartesian grid spacing on the specified level of the mesh.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
     const double* const dx0 = grid_geom->getDx();
     double dx[NDIM];
     std::copy(dx0, dx0 + NDIM, dx);
     for (int ln = 1; ln <= level_number; ++ln)
     {
-        const IntVector<NDIM> ratio = d_gridding_alg->getRatioToCoarserLevel(ln);
+        const IntVectorNd ratio = d_gridding_alg->getRatioToCoarserLevel(ln);
         for (unsigned int d = 0; d < NDIM; ++d) dx[d] /= static_cast<double>(ratio(d));
     }
     const double dx_min = *std::min_element(dx, dx + NDIM);
@@ -247,19 +247,19 @@ IMPInitializer::getLevelHasLagrangianData(const int level_number, const bool /*c
 } // getLevelHasLagrangianData
 
 bool
-IMPInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierarchy<NDIM> > hierarchy) const
+IMPInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierarchyNd> hierarchy) const
 {
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
 
     int point_outside = 0;
     for (unsigned int ln = 0; ln < d_num_vertex.size(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<PatchNd> patch = level->getPatch(p());
             std::vector<std::pair<int, int> > patch_vertices; // TODO do we need this call?
             getPatchVertices(patch_vertices, patch, ln, false);
             for (const auto& point_idx : patch_vertices)
@@ -289,7 +289,7 @@ IMPInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierarchy<NDIM
 }
 
 unsigned int
-IMPInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IMPInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchyNd> /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*init_data_time*/,
                                                    const bool /*can_be_refined*/,
@@ -299,7 +299,7 @@ IMPInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<
 }
 
 unsigned int
-IMPInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+IMPInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchyNd> hierarchy,
                                                   const int level_number,
                                                   const double /*init_data_time*/,
                                                   const bool can_be_refined,
@@ -308,10 +308,10 @@ IMPInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchy<N
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        Pointer<PatchNd> patch = level->getPatch(p());
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -348,7 +348,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                            const unsigned int local_index_offset,
                                            Pointer<LData> X_data,
                                            Pointer<LData> U_data,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                           const Pointer<PatchHierarchyNd> hierarchy,
                                            const int level_number,
                                            const double /*init_data_time*/,
                                            const bool can_be_refined,
@@ -356,7 +356,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                            LDataManager* const /*l_data_manager*/)
 {
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    Pointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     const double* const grid_x_lower = grid_geom->getXLower();
     const double* const grid_x_upper = grid_geom->getXUpper();
 
@@ -366,12 +366,12 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = invalid_index;
     int local_node_count = 0;
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    const IntVector<NDIM>& ratio = level->getRatio();
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    const IntVectorNd& ratio = level->getRatio();
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = level->getPatch(p());
+        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
 
         Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
 
@@ -388,7 +388,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 
             // Get the coordinates of the present vertex.
             const libMesh::Point& X = getVertexPosn(point_idx, level_number);
-            const CellIndex<NDIM> idx = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
+            const CellIndexNd idx = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
             for (int d = 0; d < NDIM; ++d)
             {
                 X_array[local_petsc_idx][d] = X(d);
@@ -417,7 +417,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                 index_data->appendItemPointer(idx, new LNodeSet());
             }
             LNodeSet* const node_set = index_data->getItem(idx);
-            static const IntVector<NDIM> periodic_offset(0);
+            static const IntVectorNd periodic_offset(0);
             static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
             Pointer<MaterialPointSpec> point_spec =
                 new MaterialPointSpec(lagrangian_idx,
@@ -450,7 +450,7 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 } // initializeDataOnPatchLevel
 
 void
-IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> > hierarchy,
+IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchyNd> hierarchy,
                                              const int level_number,
                                              const double /*error_data_time*/,
                                              const int tag_index)
@@ -458,15 +458,15 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
-    const IntVector<NDIM>& ratio = level->getRatio();
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+    const IntVectorNd& ratio = level->getRatio();
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<PatchNd> patch = level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
 
-        Pointer<CellData<NDIM, int> > tag_data = patch->getPatchData(tag_index);
+        Pointer<CellDataNd<int> > tag_data = patch->getPatchData(tag_index);
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -480,7 +480,7 @@ IMPInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchy<NDIM> 
             for (const auto& point_idx : patch_vertices)
             {
                 const libMesh::Point& X = getVertexPosn(point_idx, ln);
-                const CellIndex<NDIM> i = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
+                const CellIndexNd i = IndexUtilities::getCellIndex(&X(0), grid_geom, ratio);
                 if (patch_box.contains(i)) (*tag_data)(i) = 1;
             }
         }
@@ -554,7 +554,7 @@ IMPInitializer::initializeLSiloDataWriter(const int level_number)
 
 void
 IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
-                                 const Pointer<Patch<NDIM> > patch,
+                                 const Pointer<PatchNd> patch,
                                  const int level_number,
                                  const bool /*can_be_refined*/) const
 {
@@ -563,7 +563,7 @@ IMPInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertic
     //
     // NOTE: This is clearly not the best way to do this, but it will work for
     // now.
-    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
     const double* const patch_x_lower = patch_geom->getXLower();
     const double* const patch_x_upper = patch_geom->getXUpper();
 

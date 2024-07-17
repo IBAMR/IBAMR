@@ -36,22 +36,22 @@ namespace IBTK
 double
 InterpolationUtilities::interpolate(const vector<double>& X,
                                     const int data_idx,
-                                    Pointer<CellVariable<NDIM, double> > Q_var,
-                                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                                    const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                    Pointer<CellVariableNd<double> > Q_var,
+                                    Pointer<PatchHierarchyNd> patch_hierarchy,
+                                    const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
                                     const double data_time,
                                     const int depth)
 {
     double q_val = 0.0;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int data_idx_temp =
-        var_db->registerVariableAndContext(Q_var, var_db->getContext("Interpolation"), IntVector<NDIM>(3));
+        var_db->registerVariableAndContext(Q_var, var_db->getContext("Interpolation"), IntVectorNd(3));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(data_idx_temp);
     }
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy);
+    HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy);
     hier_cc_data_ops.copyData(data_idx_temp, data_idx);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
@@ -64,34 +64,34 @@ InterpolationUtilities::interpolate(const vector<double>& X,
     for (int ln = patch_hierarchy->getFinestLevelNumber(); ln >= 0 && !done; --ln)
     {
         // Start at the finest level...
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        CellIndex<NDIM> idx = IndexUtilities::getCellIndex(X, level->getGridGeometry(), level->getRatio());
-        for (PatchLevel<NDIM>::Iterator p(level); p && !done; p++)
+        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        CellIndexNd idx = IndexUtilities::getCellIndex(X, level->getGridGeometry(), level->getRatio());
+        for (PatchLevelNd::Iterator p(level); p && !done; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+            Pointer<PatchNd> patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
             const double* const dx = p_geom->getDx();
             const double* const x_lower = p_geom->getXLower();
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > S_data = patch->getPatchData(data_idx_temp);
+            const BoxNd& patch_box = patch->getBox();
+            Pointer<CellDataNd<double> > S_data = patch->getPatchData(data_idx_temp);
             if (patch_box.contains(idx))
             {
                 // Great. The patch is currently on this level
                 // Let's create a box that contains this data
-                Box<NDIM> box(idx, idx);
+                BoxNd box(idx, idx);
                 // Grow it by some number of grid cells
-                box.grow(IntVector<NDIM>(3));
+                box.grow(IntVectorNd(3));
                 // Loop through the box, make sure the point is located
                 // OUTSIDE the disk
                 std::vector<double> x(NDIM);
-                CellData<NDIM, int> i_data(box, 1, IntVector<NDIM>(0));
-                CellData<NDIM, double> si_data(box, NDIM + 1, IntVector<NDIM>(0));
+                CellDataNd<int> i_data(box, 1, IntVectorNd(0));
+                CellDataNd<double> si_data(box, NDIM + 1, IntVectorNd(0));
                 si_data.fillAll(std::numeric_limits<double>::signaling_NaN());
-                const CellIndex<NDIM> ci_l = patch_box.lower();
+                const CellIndexNd ci_l = patch_box.lower();
                 int num = 0;
-                for (CellIterator<NDIM> i(box); i; i++)
+                for (CellIteratorNd i(box); i; i++)
                 {
-                    CellIndex<NDIM> ci = i();
+                    CellIndexNd ci = i();
                     for (int d = 0; d < NDIM; ++d) x[d] = x_lower[d] + dx[d] * (ci(d) - ci_l(d) + 0.5);
                     double r = sqrt(x[0] * x[0] + x[1] * x[1]);
                     if (r > 1.0)
@@ -116,7 +116,7 @@ InterpolationUtilities::interpolate(const vector<double>& X,
     }
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(data_idx_temp);
     }
     q_val = IBTK_MPI::sumReduction(q_val);
@@ -126,22 +126,22 @@ InterpolationUtilities::interpolate(const vector<double>& X,
 double
 InterpolationUtilities::interpolateL2(const std::vector<double>& X,
                                       const int data_idx,
-                                      Pointer<CellVariable<NDIM, double> > Q_var,
-                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                      Pointer<CellVariableNd<double> > Q_var,
+                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                                      const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs,
                                       const double data_time,
                                       const int depth)
 {
     double q_val = 0.0;
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int data_idx_temp =
-        var_db->registerVariableAndContext(Q_var, var_db->getContext("Interpolation"), IntVector<NDIM>(3));
+        var_db->registerVariableAndContext(Q_var, var_db->getContext("Interpolation"), IntVectorNd(3));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(data_idx_temp);
     }
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy);
+    HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy);
     hier_cc_data_ops.copyData(data_idx_temp, data_idx);
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
@@ -154,32 +154,32 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
     for (int ln = patch_hierarchy->getFinestLevelNumber(); ln >= 0 && !done; --ln)
     {
         // Start at the finest level...
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        CellIndex<NDIM> idx = IndexUtilities::getCellIndex(X, level->getGridGeometry(), level->getRatio());
-        for (PatchLevel<NDIM>::Iterator p(level); p && !done; p++)
+        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        CellIndexNd idx = IndexUtilities::getCellIndex(X, level->getGridGeometry(), level->getRatio());
+        for (PatchLevelNd::Iterator p(level); p && !done; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > p_geom = patch->getPatchGeometry();
+            Pointer<PatchNd> patch = level->getPatch(p());
+            const Pointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
             const double* const dx = p_geom->getDx();
             const double* const x_lower = p_geom->getXLower();
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > S_data = patch->getPatchData(data_idx_temp);
+            const BoxNd& patch_box = patch->getBox();
+            Pointer<CellDataNd<double> > S_data = patch->getPatchData(data_idx_temp);
             if (patch_box.contains(idx))
             {
                 // Great. The patch is currently on this level
                 // Let's create a box that contains this data
-                Box<NDIM> box(idx, idx);
+                BoxNd box(idx, idx);
                 // Grow it by some number of grid cells
                 box.grow(2);
                 // Loop through the box, make sure the point is located
                 // OUTSIDE the disk
                 std::vector<double> x(NDIM);
-                CellData<NDIM, int> i_data(box, 1, IntVector<NDIM>(0));
-                const CellIndex<NDIM> ci_l = patch_box.lower();
+                CellDataNd<int> i_data(box, 1, IntVectorNd(0));
+                const CellIndexNd ci_l = patch_box.lower();
                 int num = 0;
-                for (CellIterator<NDIM> i(box); i; i++)
+                for (CellIteratorNd i(box); i; i++)
                 {
-                    CellIndex<NDIM> ci = i();
+                    CellIndexNd ci = i();
                     for (int d = 0; d < NDIM; ++d) x[d] = x_lower[d] + dx[d] * (ci(d) - ci_l(d) + 0.5);
                     double r = sqrt(x[0] * x[0] + x[1] * x[1]);
                     if (r > 1.0)
@@ -192,9 +192,9 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
                 VectorXd rhs = VectorXd::Zero(6);
                 VectorXd soln = VectorXd::Zero(6);
                 MatrixXd mat = MatrixXd::Zero(6, 6);
-                for (CellIterator<NDIM> i(box); i; i++)
+                for (CellIteratorNd i(box); i; i++)
                 {
-                    CellIndex<NDIM> ci = i();
+                    CellIndexNd ci = i();
                     if (i_data(ci) == 1)
                     {
                         for (int d = 0; d < NDIM; ++d) x[d] = x_lower[d] + dx[d] * (ci(d) - ci_l(d) + 0.5);
@@ -248,7 +248,7 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
 
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(data_idx_temp);
     }
     return q_val;
@@ -277,19 +277,19 @@ InterpolationUtilities::interpolate(const double& l, const std::vector<int>& i, 
 }
 
 double
-InterpolationUtilities::interpolate_in_boxes(const CellIndex<NDIM>& idx,
+InterpolationUtilities::interpolate_in_boxes(const CellIndexNd& idx,
                                              const std::vector<double>& X,
-                                             CellData<NDIM, int>& r_data,
-                                             CellData<NDIM, double>& q_data,
-                                             Pointer<CartesianPatchGeometry<NDIM> > pgeom,
-                                             const Box<NDIM>& pbox,
+                                             CellDataNd<int>& r_data,
+                                             CellDataNd<double>& q_data,
+                                             Pointer<CartesianPatchGeometryNd> pgeom,
+                                             const BoxNd& pbox,
                                              int dim,
                                              int cycle,
                                              std::vector<int>& completed_dims)
 {
     double q_val = 0.0;
     // form list of indices.
-    std::vector<CellIndex<NDIM> > idx_list;
+    std::vector<CellIndexNd> idx_list;
     std::vector<int> i_list;
     bool done = false;
     while (!done)
@@ -305,7 +305,7 @@ InterpolationUtilities::interpolate_in_boxes(const CellIndex<NDIM>& idx,
         int s = 1;
         while (idx_list.size() < 3)
         {
-            IntVector<NDIM> si(0);
+            IntVectorNd si(0);
             si(dim) = s;
             if (r_data(idx + si) == 1)
             {
@@ -344,9 +344,9 @@ InterpolationUtilities::interpolate_in_boxes(const CellIndex<NDIM>& idx,
     {
         std::vector<int> i_list;
         std::vector<double> y_data;
-        for (std::vector<CellIndex<NDIM> >::const_iterator cit = idx_list.begin(); cit != idx_list.end(); ++cit)
+        for (std::vector<CellIndexNd>::const_iterator cit = idx_list.begin(); cit != idx_list.end(); ++cit)
         {
-            const CellIndex<NDIM>& cidx = *cit;
+            const CellIndexNd& cidx = *cit;
             q_data(cidx, cycle + 1) = InterpolationUtilities::interpolate_in_boxes(
                 cidx, X, r_data, q_data, pgeom, pbox, dim + 1, cycle + 1, completed_dims);
             i_list.push_back(cidx(dim));
@@ -354,7 +354,7 @@ InterpolationUtilities::interpolate_in_boxes(const CellIndex<NDIM>& idx,
         }
         const double* dx = pgeom->getDx();
         const double* xlow = pgeom->getXLower();
-        const CellIndex<NDIM>& idxl = pbox.lower();
+        const CellIndexNd& idxl = pbox.lower();
         double xx = xlow[dim] + dx[dim] * (idx_list[0](dim) - idxl(dim) + 0.5);
         q_val = InterpolationUtilities::interpolate((X[dim] - xx) / dx[dim], i_list, y_data);
     }
@@ -362,15 +362,15 @@ InterpolationUtilities::interpolate_in_boxes(const CellIndex<NDIM>& idx,
     {
         std::vector<int> i_list;
         std::vector<double> y_data;
-        for (std::vector<CellIndex<NDIM> >::const_iterator cit = idx_list.begin(); cit != idx_list.end(); ++cit)
+        for (std::vector<CellIndexNd>::const_iterator cit = idx_list.begin(); cit != idx_list.end(); ++cit)
         {
-            const CellIndex<NDIM>& cidx = *cit;
+            const CellIndexNd& cidx = *cit;
             i_list.push_back(cidx(dim));
             y_data.push_back(q_data(cidx, cycle + 1));
         }
         const double* dx = pgeom->getDx();
         const double* xlow = pgeom->getXLower();
-        const CellIndex<NDIM>& idxl = pbox.lower();
+        const CellIndexNd& idxl = pbox.lower();
         double xx = xlow[dim] + dx[dim] * (idx_list[0](dim) - idxl(dim) + 0.5);
         q_val = InterpolationUtilities::interpolate((X[dim] - xx) / dx[dim], i_list, y_data);
     }

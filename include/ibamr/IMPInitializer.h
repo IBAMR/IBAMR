@@ -77,8 +77,8 @@ public:
      */
     IMPInitializer(std::string object_name,
                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg);
+                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                   SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg);
 
     /*!
      * \brief Destructor.
@@ -108,27 +108,25 @@ public:
      * \return A boolean value indicating whether or not all Lagrangian data is
      * within the computational domain specified by the patch hierarchy.
      */
-    bool
-    getIsAllLagrangianDataInDomain(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) const override;
+    bool getIsAllLagrangianDataInDomain(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy) const override;
 
     /*!
      * \return Determine the number of global nodes on the patch level.
      *
      * \return The number of global nodes on the specified level.
      */
-    unsigned int
-    computeGlobalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                       int level_number,
-                                       double init_data_time,
-                                       bool can_be_refined,
-                                       bool initial_time) override;
+    unsigned int computeGlobalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                                    int level_number,
+                                                    double init_data_time,
+                                                    bool can_be_refined,
+                                                    bool initial_time) override;
 
     /*!
      * \brief Determine the number of local nodes on the specified patch level.
      *
      * \return The number of local nodes on the specified level.
      */
-    unsigned int computeLocalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    unsigned int computeLocalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                                    int level_number,
                                                    double init_data_time,
                                                    bool can_be_refined,
@@ -156,7 +154,7 @@ public:
                                             unsigned int local_index_offset,
                                             SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                             SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                             int level_number,
                                             double init_data_time,
                                             bool can_be_refined,
@@ -172,7 +170,7 @@ public:
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
-    void tagCellsForInitialRefinement(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void tagCellsForInitialRefinement(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                       int level_number,
                                       double error_data_time,
                                       int tag_index) override;
@@ -232,7 +230,7 @@ private:
      * specified patch.
      */
     void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
                           int level_number,
                           bool can_be_refined) const;
 
@@ -263,8 +261,8 @@ private:
      * Patch hierarchy on which we are setting up data and corresponding
      * gridding algorithm.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > d_gridding_alg;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> d_gridding_alg;
     std::vector<bool> d_level_is_initialized;
 
     /*

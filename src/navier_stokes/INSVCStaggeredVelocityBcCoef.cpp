@@ -64,12 +64,10 @@ namespace IBAMR
 
 INSVCStaggeredVelocityBcCoef::INSVCStaggeredVelocityBcCoef(const unsigned int comp_idx,
                                                            const INSVCStaggeredHierarchyIntegrator* fluid_solver,
-                                                           const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                           const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
                                                            const TractionBcType traction_bc_type,
                                                            const bool homogeneous_bc)
-    : d_comp_idx(comp_idx),
-      d_fluid_solver(fluid_solver),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
+    : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(nullptr))
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);
@@ -139,7 +137,7 @@ INSVCStaggeredVelocityBcCoef::clearTargetPressurePatchDataIndex()
 } // clearTargetPressurePatchDataIndex
 
 void
-INSVCStaggeredVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSVCStaggeredVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -199,12 +197,12 @@ INSVCStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                         Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                         Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                         const Pointer<Variable<NDIM> >& variable,
-                                         const Patch<NDIM>& patch,
-                                         const BoundaryBox<NDIM>& bdry_box,
+INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
+                                         Pointer<ArrayDataNd<double> >& bcoef_data,
+                                         Pointer<ArrayDataNd<double> >& gcoef_data,
+                                         const Pointer<VariableNd>& variable,
+                                         const PatchNd& patch,
+                                         const BoundaryBoxNd& bdry_box,
                                          double fill_time) const
 {
 #if !defined(NDEBUG)
@@ -228,7 +226,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideData<NDIM, double> > u_target_data;
+    Pointer<SideDataNd<double> > u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -250,21 +248,21 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
     const bool is_lower = location_index % 2 == 0;
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const BoxNd& bc_coef_box = acoef_data->getBox();
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
-    const Box<NDIM>& ghost_box = u_target_data->getGhostBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const BoxNd& ghost_box = u_target_data->getGhostBox();
+    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
 #if (NDIM == 2)
-    Pointer<NodeData<NDIM, double> > mu_data;
+    Pointer<NodeDataNd<double> > mu_data;
 #elif (NDIM == 3)
-    Pointer<EdgeData<NDIM, double> > mu_data;
+    Pointer<EdgeDataNd<double> > mu_data;
 #endif
     if (!d_fluid_solver->muIsConstant())
     {
@@ -275,9 +273,9 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
 #endif
         mu_data = patch.getPatchData(mu_idx);
     }
-    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    for (BoxNd::Iterator it(bc_coef_box); it; it++)
     {
-        const hier::Index<NDIM>& i = it();
+        const hier::IndexNd& i = it();
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);
@@ -315,11 +313,11 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 {
                     // Compute the tangential derivative of the normal
                     // component of the velocity at the boundary.
-                    hier::Index<NDIM> i_lower(i), i_upper(i);
+                    hier::IndexNd i_lower(i), i_upper(i);
                     i_lower(d_comp_idx) = std::max(ghost_box.lower()(d_comp_idx), i(d_comp_idx) - 1);
                     i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
-                    const SideIndex<NDIM> i_s_lower(i_lower, bdry_normal_axis, SideIndex<NDIM>::Lower);
-                    const SideIndex<NDIM> i_s_upper(i_upper, bdry_normal_axis, SideIndex<NDIM>::Lower);
+                    const SideIndexNd i_s_lower(i_lower, bdry_normal_axis, SideIndexNd::Lower);
+                    const SideIndexNd i_s_upper(i_upper, bdry_normal_axis, SideIndexNd::Lower);
                     const double du_norm_dx_tan =
                         ((*u_target_data)(i_s_upper) - (*u_target_data)(i_s_lower)) / dx[d_comp_idx];
 
@@ -337,12 +335,12 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                         if (mu_data_exists)
                         {
 #if (NDIM == 2)
-                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+                            const ArrayDataNd<double>& mu_array_data = mu_data->getArrayData();
 
 #elif (NDIM == 3)
                             const int perp =
                                 2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
-                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
+                            const ArrayDataNd<double>& mu_array_data = mu_data->getArrayData(perp);
 #endif
                             mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
                         }
@@ -362,7 +360,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                 {
                     if (!d_fluid_solver->muIsConstant())
                     {
-                        hier::Index<NDIM> i_upper(i);
+                        hier::IndexNd i_upper(i);
                         i_upper(d_comp_idx) = std::min(ghost_box.upper()(d_comp_idx), i(d_comp_idx));
 
                         // In certain use cases with traction boundary
@@ -377,12 +375,12 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
                         if (mu_data_exists)
                         {
 #if (NDIM == 2)
-                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData();
+                            const ArrayDataNd<double>& mu_array_data = mu_data->getArrayData();
 
 #elif (NDIM == 3)
                             const int perp =
                                 2 * (bdry_normal_axis + d_comp_idx) % 3; // 2 if {0,1}, 1 if {0,2} and 0 if {1,2}
-                            const ArrayData<NDIM, double>& mu_array_data = mu_data->getArrayData(perp);
+                            const ArrayDataNd<double>& mu_array_data = mu_data->getArrayData(perp);
 #endif
                             mu = (mu_data->getGhostBox().contains(i)) ? mu_array_data(i_upper, 0) : -1.0e305;
                         }
@@ -415,7 +413,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoe
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+IntVectorNd
 INSVCStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
@@ -424,10 +422,10 @@ INSVCStaggeredVelocityBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
-    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVectorNd ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVectorNd::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 } // numberOfExtensionsFillable

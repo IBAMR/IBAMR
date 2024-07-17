@@ -80,7 +80,7 @@ VCSCViscousOperator::VCSCViscousOperator(std::string object_name, const bool hom
     : SCLaplaceOperator(std::move(object_name), homogeneous_bc)
 {
     // Setup the operator to use default vector-valued boundary conditions.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)));
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategyNd*>(NDIM, static_cast<RobinBcCoefStrategyNd*>(nullptr)));
 
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::VCSCViscousOperator::apply()");
@@ -101,7 +101,7 @@ VCSCViscousOperator::~VCSCViscousOperator()
 } // ~VCSCViscousOperator()
 
 void
-VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
+VCSCViscousOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<double>& y)
 {
     IBTK_TIMER_START(t_apply);
 
@@ -110,15 +110,15 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
+        Pointer<SideVariableNd<double> > x_sc_var = x.getComponentVariable(comp);
+        Pointer<SideVariableNd<double> > y_sc_var = y.getComponentVariable(comp);
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  encountered non-side centered vector components" << std::endl);
         }
-        Pointer<SideDataFactory<NDIM, double> > x_factory = x_sc_var->getPatchDataFactory();
-        Pointer<SideDataFactory<NDIM, double> > y_factory = y_sc_var->getPatchDataFactory();
+        Pointer<SideDataFactoryNd<double> > x_factory = x_sc_var->getPatchDataFactory();
+        Pointer<SideDataFactoryNd<double> > y_factory = y_sc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -163,9 +163,9 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > x_scratch_var = d_x->getComponentVariable(comp);
+        Pointer<SideVariableNd<double> > x_sc_var = x.getComponentVariable(comp);
+        Pointer<SideVariableNd<double> > y_sc_var = y.getComponentVariable(comp);
+        Pointer<SideVariableNd<double> > x_scratch_var = d_x->getComponentVariable(comp);
         const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         d_hier_math_ops->vc_laplace(y_idx,
@@ -174,9 +174,9 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
                                     beta,
                                     d_poisson_spec.getDPatchDataId(),
 #if (NDIM == 2)
-                                    Pointer<NodeVariable<NDIM, double> >(nullptr),
+                                    Pointer<NodeVariableNd<double> >(nullptr),
 #elif (NDIM == 3)
-                                    Pointer<EdgeVariable<NDIM, double> >(nullptr),
+                                    Pointer<EdgeVariableNd<double> >(nullptr),
 #endif
                                     x_scratch_idx,
                                     x_sc_var,
@@ -193,8 +193,8 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
 } // apply
 
 void
-VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                             const SAMRAIVectorReal<NDIM, double>& out)
+VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorRealNd<double>& in,
+                                             const SAMRAIVectorRealNd<double>& out)
 {
     IBTK_TIMER_START(t_initialize_operator_state);
 

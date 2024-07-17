@@ -149,7 +149,7 @@ STSMassFluxIntegrator::setConvectiveDerivativePatchDataIndex(int N_idx)
 } // setConvectiveDerivativePatchDataIndex
 
 void
-STSMassFluxIntegrator::setDensityBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_bc_coefs)
+STSMassFluxIntegrator::setDensityBoundaryConditions(const std::vector<RobinBcCoefStrategyNd*>& rho_bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(rho_bc_coefs.size() == NDIM);

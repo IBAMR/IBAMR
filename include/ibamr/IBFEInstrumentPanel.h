@@ -64,7 +64,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                             IBAMR::IBFEMethod* ib_method_ops,
                             double data_time);
 
@@ -171,7 +171,7 @@ private:
                                     std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_u_corr_map,
                                     std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_normal_map,
                                     std::vector<std::map<int, std::vector<double> > >& meter_JxW_map,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                     const IBFEMethod* ib_method_ops);
 
     /*!

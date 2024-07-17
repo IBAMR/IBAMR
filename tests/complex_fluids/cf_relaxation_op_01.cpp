@@ -73,20 +73,20 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
         Pointer<CFStrategy> cf_op;
         std::string relax_op = input_db->getString("RELAX_OP");
         if (relax_op == "OLDROYDB")
@@ -122,25 +122,25 @@ main(int argc, char* argv[])
             ++level_number;
         }
 
-        Pointer<CellVariable<NDIM, double> > c_var = new CellVariable<NDIM, double>("C", NDIM * (NDIM + 1) / 2);
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
+        Pointer<CellVariableNd<double> > c_var = new CellVariableNd<double>("C", NDIM * (NDIM + 1) / 2);
+        auto var_db = VariableDatabaseNd::getDatabase();
         int c_idx = var_db->registerVariableAndContext(c_var, var_db->getContext("CTX"));
         int r_idx = var_db->registerClonedPatchDataIndex(c_var, c_idx);
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(c_idx);
             level->allocatePatchData(r_idx);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > c_data = patch->getPatchData(c_idx);
-                const Box<NDIM>& box = patch->getBox();
+                Pointer<PatchNd> patch = level->getPatch(p());
+                Pointer<CellDataNd<double> > c_data = patch->getPatchData(c_idx);
+                const BoxNd& box = patch->getBox();
 
-                for (CellIterator<NDIM> ci(box); ci; ci++)
+                for (CellIteratorNd ci(box); ci; ci++)
                 {
-                    const CellIndex<NDIM>& idx = ci();
+                    const CellIndexNd& idx = ci();
                     switch (evolve_type)
                     {
                     case IBAMR::STANDARD:
@@ -188,17 +188,17 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& box = patch->getBox();
-                Pointer<CellData<NDIM, double> > exact_data = patch->getPatchData(c_idx);
-                Pointer<CellData<NDIM, double> > relax_data = patch->getPatchData(r_idx);
+                Pointer<PatchNd> patch = level->getPatch(p());
+                const BoxNd& box = patch->getBox();
+                Pointer<CellDataNd<double> > exact_data = patch->getPatchData(c_idx);
+                Pointer<CellDataNd<double> > relax_data = patch->getPatchData(r_idx);
 
-                for (CellIterator<NDIM> ci(box); ci; ci++)
+                for (CellIteratorNd ci(box); ci; ci++)
                 {
-                    const CellIndex<NDIM>& idx = ci();
+                    const CellIndexNd& idx = ci();
                     for (int d = 0; d < (NDIM * (NDIM + 1) / 2); ++d)
                     {
                         double relax_val = (*relax_data)(idx, d);
@@ -215,7 +215,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(c_idx);
             level->deallocatePatchData(r_idx);
         }

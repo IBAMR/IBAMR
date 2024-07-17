@@ -84,7 +84,7 @@ public:
      * \brief Setup the data needed to compute the beam forces on the specified
      * level of the patch hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool initial_time,
@@ -101,7 +101,7 @@ public:
                                          SAMRAI::tbox::Pointer<IBTK::LData> N_data,
                                          SAMRAI::tbox::Pointer<IBTK::LData> X_data,
                                          SAMRAI::tbox::Pointer<IBTK::LData> D_data,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                          int level_number,
                                          double data_time,
                                          IBTK::LDataManager* l_data_manager);
@@ -138,7 +138,7 @@ private:
      * Constant body force routines.
      */
     void computeLagrangianBodyForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                     int level_number,
                                     double data_time,
                                     IBTK::LDataManager* l_data_manager);

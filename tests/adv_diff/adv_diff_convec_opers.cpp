@@ -75,29 +75,29 @@ main(int argc, char* argv[])
 
         // Create major algorithm and data objects that comprise the
         // application.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        Pointer<LoadBalancerNd> load_balancer =
+            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+            new GriddingAlgorithmNd("GriddingAlgorithm",
+                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                    error_detector,
+                                    box_generator,
+                                    load_balancer);
 
-        Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriterNd> visit_writer = app_initializer->getVisItDataWriter();
 
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
+        auto var_db = VariableDatabaseNd::getDatabase();
         Pointer<VariableContext> var_ctx = var_db->getContext("Context");
-        Pointer<CellVariable<NDIM, double> > q_var = new CellVariable<NDIM, double>("CC_var");
-        Pointer<CellVariable<NDIM, double> > convec_var = new CellVariable<NDIM, double>("Convec var");
-        Pointer<CellVariable<NDIM, double> > exact_var = new CellVariable<NDIM, double>("Exact var");
-        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("U");
+        Pointer<CellVariableNd<double> > q_var = new CellVariableNd<double>("CC_var");
+        Pointer<CellVariableNd<double> > convec_var = new CellVariableNd<double>("Convec var");
+        Pointer<CellVariableNd<double> > exact_var = new CellVariableNd<double>("Exact var");
+        Pointer<FaceVariableNd<double> > u_var = new FaceVariableNd<double>("U");
 
         const int q_idx = var_db->registerVariableAndContext(q_var, var_ctx);
         const int convec_idx = var_db->registerVariableAndContext(convec_var, var_ctx);
@@ -117,8 +117,8 @@ main(int argc, char* argv[])
         Pointer<muParserCartGridFunction> exact_fcn =
             new muParserCartGridFunction("Exact", app_initializer->getComponentDatabase("Exact"), grid_geometry);
 
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        std::vector<RobinBcCoefStrategy<NDIM>*> q_bc_coefs(1);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        std::vector<RobinBcCoefStrategyNd*> q_bc_coefs(1);
         if (periodic_shift.min() > 0)
             q_bc_coefs[0] = nullptr;
         else
@@ -153,14 +153,14 @@ main(int argc, char* argv[])
         const int finest_level = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(q_idx, 0.0);
             level->allocatePatchData(convec_idx, 0.0);
             level->allocatePatchData(exact_idx, 0.0);
             level->allocatePatchData(u_idx, 0.0);
         }
 
-        solv::SAMRAIVectorReal<NDIM, double> q_vec("Q_vec", patch_hierarchy, 0, finest_level);
+        solv::SAMRAIVectorRealNd<double> q_vec("Q_vec", patch_hierarchy, 0, finest_level);
         q_vec.addComponent(q_var, q_idx);
 
         u_fcn->setDataOnPatchHierarchy(u_idx, u_var, patch_hierarchy, 0.0, false, 0, finest_level);
@@ -180,7 +180,7 @@ main(int argc, char* argv[])
             hier_math_ops.resetLevels(0, finest_level);
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, 0, finest_level);
+            HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, 0, finest_level);
             hier_cc_data_ops.subtract(exact_idx, convec_idx, exact_idx);
 
             pout << "Error using: " << convec_oper->getName() << ":\n"
@@ -196,7 +196,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(q_idx);
             level->deallocatePatchData(convec_idx);
             level->deallocatePatchData(exact_idx);

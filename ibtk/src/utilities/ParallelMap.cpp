@@ -128,7 +128,7 @@ ParallelMap::communicateData()
                 std::vector<int> keys_received(num_keys);
                 stream.unpack(&keys_received[0], num_keys);
                 std::vector<tbox::Pointer<Streamable> > data_items_received;
-                hier::IntVector<NDIM> offset = 0;
+                hier::IntVectorNd offset = 0;
                 streamable_manager->unpackStream(stream, offset, data_items_received);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(keys_received.size() == data_items_received.size());

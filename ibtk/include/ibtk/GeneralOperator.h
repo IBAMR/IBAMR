@@ -147,8 +147,7 @@ public:
      *
      * \see initializeOperatorState
      */
-    virtual void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                       SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) = 0;
+    virtual void apply(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& y) = 0;
 
     /*!
      * \brief Compute \f$z=F[x]+y\f$.
@@ -178,9 +177,9 @@ public:
      * \note A default implementation is provided which employs apply() and
      * SAMRAI::solv::SAMRAIVectorReal::add().
      */
-    virtual void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z);
+    virtual void applyAdd(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                          SAMRAI::solv::SAMRAIVectorRealNd<double>& y,
+                          SAMRAI::solv::SAMRAIVectorRealNd<double>& z);
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
@@ -212,8 +211,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    virtual void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out);
+    virtual void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& in,
+                                         const SAMRAI::solv::SAMRAIVectorRealNd<double>& out);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -241,7 +240,7 @@ public:
      *
      * \note A default implementation does not modify the RHS vector y.
      */
-    virtual void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y);
+    virtual void modifyRhsForBcs(SAMRAI::solv::SAMRAIVectorRealNd<double>& y);
 
     /*!
      * \brief Impose boudary conditions in the solution vector.
@@ -257,7 +256,7 @@ public:
      *
      * \note A default implementation does not modify the sol vector u.
      */
-    virtual void imposeSolBcs(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u);
+    virtual void imposeSolBcs(SAMRAI::solv::SAMRAIVectorRealNd<double>& u);
 
     //\}
 

@@ -28,16 +28,16 @@ namespace IBTK
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 double
-get_min_patch_dx(const PatchLevel<NDIM>& patch_level)
+get_min_patch_dx(const PatchLevelNd& patch_level)
 {
     double result = std::numeric_limits<double>::max();
 
     // Some processors might not have any patches so its easier to just quit
     // after one loop operation than to check
-    for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+    for (PatchLevelNd::Iterator p(patch_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = patch_level.getPatch(p());
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<PatchNd> patch = patch_level.getPatch(p());
+        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
         result = std::min(result, patch_dx_min);

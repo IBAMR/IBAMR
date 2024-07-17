@@ -240,7 +240,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
             if (main_db->keyExists("visit_number_procs_per_file"))
                 visit_number_procs_per_file = main_db->getInteger("visit_number_procs_per_file");
             d_visit_data_writer =
-                new VisItDataWriter<NDIM>("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
+                new VisItDataWriterNd("VisItDataWriter", d_viz_dump_dirname, visit_number_procs_per_file);
         }
 
         if (viz_writer == "Silo")
@@ -439,7 +439,7 @@ AppInitializer::getVizWriters() const
     return d_viz_writers;
 } // getVizDumpDirectory
 
-Pointer<VisItDataWriter<NDIM> >
+Pointer<VisItDataWriterNd>
 AppInitializer::getVisItDataWriter() const
 {
     return d_visit_data_writer;

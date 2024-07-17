@@ -77,8 +77,8 @@ KrylovLinearSolverStaggeredStokesSolverInterface::setComponentsHaveNullspace(con
 
 void
 KrylovLinearSolverStaggeredStokesSolverInterface::setPhysicalBcCoefs(
-    const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-    RobinBcCoefStrategy<NDIM>* P_bc_coef)
+    const std::vector<RobinBcCoefStrategyNd*>& U_bc_coefs,
+    RobinBcCoefStrategyNd* P_bc_coef)
 {
     auto p_this = dynamic_cast<KrylovLinearSolver*>(this);
 #if !defined(NDEBUG)

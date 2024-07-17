@@ -66,7 +66,7 @@ static const int EXTENSIONS_FILLABLE = 128;
 
 muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
                                            Pointer<Database> input_db,
-                                           Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+                                           Pointer<CartesianGridGeometryNd> grid_geom)
     : d_grid_geom(grid_geom)
 {
 #if !defined(NDEBUG)
@@ -283,17 +283,17 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
 } // muParserRobinBcCoefs
 
 void
-muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                 Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                 Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                 const Pointer<Variable<NDIM> >& /*variable*/,
-                                 const Patch<NDIM>& patch,
-                                 const BoundaryBox<NDIM>& bdry_box,
+muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
+                                 Pointer<ArrayDataNd<double> >& bcoef_data,
+                                 Pointer<ArrayDataNd<double> >& gcoef_data,
+                                 const Pointer<VariableNd>& /*variable*/,
+                                 const PatchNd& patch,
+                                 const BoundaryBoxNd& bdry_box,
                                  double fill_time) const
 {
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const BoxNd& patch_box = patch.getBox();
+    const hier::IndexNd& patch_lower = patch_box.lower();
+    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
@@ -301,10 +301,10 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     // Loop over the boundary box and set the coefficients.
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
-    const Box<NDIM>& bc_coef_box = (acoef_data ? acoef_data->getBox() :
-                                    bcoef_data ? bcoef_data->getBox() :
-                                    gcoef_data ? gcoef_data->getBox() :
-                                                 Box<NDIM>());
+    const BoxNd& bc_coef_box = (acoef_data ? acoef_data->getBox() :
+                                bcoef_data ? bcoef_data->getBox() :
+                                gcoef_data ? gcoef_data->getBox() :
+                                             BoxNd());
 #if !defined(NDEBUG)
     TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
@@ -315,9 +315,9 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     const mu::Parser& bcoef_parser = d_bcoef_parsers[location_index];
     const mu::Parser& gcoef_parser = d_gcoef_parsers[location_index];
     d_parser_time = fill_time;
-    for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+    for (BoxNd::Iterator b(bc_coef_box); b; b++)
     {
-        const hier::Index<NDIM>& i = b();
+        const hier::IndexNd& i = b();
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             if (d != bdry_normal_axis)
@@ -350,7 +350,7 @@ muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+IntVectorNd
 muParserRobinBcCoefs::numberOfExtensionsFillable() const
 {
     return EXTENSIONS_FILLABLE;
