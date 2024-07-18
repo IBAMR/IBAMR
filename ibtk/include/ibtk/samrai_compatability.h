@@ -16,12 +16,16 @@
 #ifndef included_IBTK_samrai_interface
 #define included_IBTK_samrai_interface
 
+#include <tbox/ConstPointer.h>
 #include <tbox/Pointer.h>
 
 namespace IBTK
 {
 template <class T>
 using SAMRAIPointer = SAMRAI::tbox::Pointer<T>;
+
+template <class T>
+using SAMRAIConstPointer = SAMRAI::tbox::ConstPointer<T>;
 
 template <class T, class... Args>
 inline SAMRAIPointer<T>
