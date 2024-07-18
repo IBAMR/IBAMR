@@ -180,7 +180,7 @@ main(int argc, char* argv[])
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
-        vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr));
+        vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, nullptr);
         SCLaplaceOperator laplace_op("laplace_op");
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoefs(bc_coefs);

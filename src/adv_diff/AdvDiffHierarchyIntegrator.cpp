@@ -330,8 +330,7 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(Pointer<CellVariable<NDI
     d_Q_is_diffusion_coef_variable[Q_var] = false;
     d_Q_damping_coef[Q_var] = 0.0;
     d_Q_init[Q_var] = nullptr;
-    d_Q_bc_coef[Q_var] =
-        std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr));
+    d_Q_bc_coef[Q_var] = std::vector<RobinBcCoefStrategy<NDIM>*>(Q_depth, nullptr);
     d_Q_reset_priority.push_back(std::numeric_limits<int>::max());
     d_Q_output[Q_var] = output_Q;
     return;

@@ -498,7 +498,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
       d_Q_coarsen_type(std::move(Q_default_coarsen_type)),
       d_Q_refine_type(std::move(Q_default_refine_type)),
       d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(nullptr)),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
+      d_bc_coefs(NDIM, nullptr)
 {
     // Set some default values.
     d_convective_op_input_db = new MemoryDatabase(d_object_name + "::convective_op_input_db");
