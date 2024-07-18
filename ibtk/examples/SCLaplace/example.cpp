@@ -60,7 +60,7 @@ main(int argc, char* argv[])
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
@@ -164,7 +164,7 @@ main(int argc, char* argv[])
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
-        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr));
         SCLaplaceOperator laplace_op("laplace op");
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoefs(bc_coefs);
@@ -180,9 +180,9 @@ main(int argc, char* argv[])
 
         // Interpolate the side-centered data to cell centers for output.
         static const bool synch_cf_interface = true;
-        hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, NULL, 0.0, synch_cf_interface);
+        hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, nullptr, 0.0, synch_cf_interface);
+        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, nullptr, 0.0, synch_cf_interface);
+        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, nullptr, 0.0, synch_cf_interface);
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.

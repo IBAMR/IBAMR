@@ -78,7 +78,7 @@ main(int argc, char* argv[])
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
@@ -159,7 +159,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else

@@ -436,7 +436,7 @@ main(int argc, char* argv[])
         ReplicatedMesh tube_lower_mesh(init.comm(), NDIM);
 
         string tube_elem_type = input_db->getString("TUBE_ELEM_TYPE");
-        tube_lower_mesh.read(input_db->getString("TUBE_LOWER_MESH_FILENAME"), NULL);
+        tube_lower_mesh.read(input_db->getString("TUBE_LOWER_MESH_FILENAME"), nullptr);
 
         using MeshTools::Modification::translate;
 
@@ -475,7 +475,7 @@ main(int argc, char* argv[])
         // ************************************************************************//
         ReplicatedMesh tube_upper_mesh(init.comm(), NDIM);
 
-        tube_upper_mesh.read(input_db->getString("TUBE_UPPER_MESH_FILENAME"), NULL);
+        tube_upper_mesh.read(input_db->getString("TUBE_UPPER_MESH_FILENAME"), nullptr);
 
         translate(tube_upper_mesh, 0, H0 - 1, 0);
 
@@ -779,7 +779,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -811,17 +811,17 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
-        std::unique_ptr<ExodusII_IO> exodus_tube_lower_io(uses_exodus ? new ExodusII_IO(tube_lower_mesh) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_tube_upper_io(uses_exodus ? new ExodusII_IO(tube_upper_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_tube_lower_io(uses_exodus ? new ExodusII_IO(tube_lower_mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_tube_upper_io(uses_exodus ? new ExodusII_IO(tube_upper_mesh) : nullptr);
 
         std::unique_ptr<ExodusII_IO> exodus_bndry_tube_lower_io(uses_exodus ? new ExodusII_IO(bndry_tube_lower_mesh) :
-                                                                              NULL);
+                                                                              nullptr);
         std::unique_ptr<ExodusII_IO> exodus_bndry_tube_upper_io(uses_exodus ? new ExodusII_IO(bndry_tube_upper_mesh) :
-                                                                              NULL);
-        std::unique_ptr<ExodusII_IO> exodus_bndry_line1_io(uses_exodus ? new ExodusII_IO(line1_mesh) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_bndry_line2_io(uses_exodus ? new ExodusII_IO(line2_mesh) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_bndry_line3_io(uses_exodus ? new ExodusII_IO(line3_mesh) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_bndry_line4_io(uses_exodus ? new ExodusII_IO(line4_mesh) : NULL);
+                                                                              nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_line1_io(uses_exodus ? new ExodusII_IO(line1_mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_line2_io(uses_exodus ? new ExodusII_IO(line2_mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_line3_io(uses_exodus ? new ExodusII_IO(line3_mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_line4_io(uses_exodus ? new ExodusII_IO(line4_mesh) : nullptr);
 
         ibfe_bndry_ops->initializeFEData();
 

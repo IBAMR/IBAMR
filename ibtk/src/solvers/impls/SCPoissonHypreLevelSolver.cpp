@@ -864,7 +864,7 @@ SCPoissonHypreLevelSolver::destroyHypreSolver()
         }
     }
 
-    // Set the solver and preconditioner pointers to NULL.
+    // Set the solver and preconditioner pointers to nullptr.
     d_solver = nullptr;
     d_precond = nullptr;
     return;

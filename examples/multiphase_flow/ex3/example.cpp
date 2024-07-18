@@ -261,7 +261,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -278,7 +278,7 @@ main(int argc, char* argv[])
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -286,7 +286,7 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(phi_var, phi_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("RhoBcCoefs"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -294,7 +294,7 @@ main(int argc, char* argv[])
             time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("MuBcCoefs"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(

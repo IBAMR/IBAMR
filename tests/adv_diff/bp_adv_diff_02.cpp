@@ -429,7 +429,7 @@ main(int argc, char* argv[])
 
         time_integrator->setInitialConditions(phi_solid_var, phi_solid_init);
 
-        RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -447,7 +447,7 @@ main(int argc, char* argv[])
             time_integrator->setInitialConditions(q_var, q_init);
         }
 
-        RobinBcCoefStrategy<NDIM>* q_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* q_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TransportedQuantityBcCoefs"))
         {
             q_bc_coef = new muParserRobinBcCoefs(

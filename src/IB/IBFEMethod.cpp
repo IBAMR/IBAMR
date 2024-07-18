@@ -2818,7 +2818,7 @@ IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
                                                       use_nodal_quadrature,
                                                       allow_rules_with_negative_weights);
 
-    // Initialize function data to NULL.
+    // Initialize function data to nullptr.
     d_lag_body_source_part.resize(n_parts, false);
     d_lag_body_source_fcn_data.resize(n_parts);
     d_direct_forcing_kinematics_data.resize(n_parts, Pointer<IBFEDirectForcingKinematics>(nullptr));

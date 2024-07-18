@@ -72,7 +72,8 @@ public:
      * some default memory pool.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(const SAMRAI::hier::Box<NDIM>& box, SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const override;
+    allocate(const SAMRAI::hier::Box<NDIM>& box,
+             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = nullptr) const override;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -82,7 +83,7 @@ public:
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
     allocate(const SAMRAI::hier::Patch<NDIM>& patch,
-             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const override;
+             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = nullptr) const override;
 
     /*!
      * Calculate the amount of memory needed to store the data object, including

@@ -166,7 +166,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
 
     /*!
      * \brief Function to Mask surface tension force to act only on the liquid-gas interface.

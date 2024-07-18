@@ -63,12 +63,12 @@ public:
     typedef void (*RigidVelFcn)(const double time, Eigen::Vector3d& rigid_vel);
     struct RigidKinematicsData
     {
-        RigidKinematicsData() : d_trans_vel_fcn(NULL), d_rot_vel_fcn(NULL)
+        RigidKinematicsData() : d_trans_vel_fcn(nullptr), d_rot_vel_fcn(nullptr)
         {
             return;
         } // RigidKinematicsData
 
-        RigidKinematicsData(RigidVelFcn trans_vel_fcn, RigidVelFcn rot_vel_fcn = NULL)
+        RigidKinematicsData(RigidVelFcn trans_vel_fcn, RigidVelFcn rot_vel_fcn = nullptr)
             : d_trans_vel_fcn(trans_vel_fcn), d_rot_vel_fcn(rot_vel_fcn)
         {
             return;
@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Set the COM translational and rotational velocity.
      */
-    void registerRigidBodyKinematics(RigidVelFcn tran_vel_fcn = NULL, RigidVelFcn rot_vel_fcn = NULL);
+    void registerRigidBodyKinematics(RigidVelFcn tran_vel_fcn = nullptr, RigidVelFcn rot_vel_fcn = nullptr);
 
     /*!
      * \brief Set kinematics velocity for the rigid body.

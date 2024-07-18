@@ -147,7 +147,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -183,7 +183,7 @@ main(int argc, char* argv[])
         RobinBcCoefStrategy<NDIM>* rho_bc_coef;
         if (periodic_shift.min() > 0)
         {
-            rho_bc_coef = NULL;
+            rho_bc_coef = nullptr;
         }
         else
         {
@@ -202,7 +202,7 @@ main(int argc, char* argv[])
         RobinBcCoefStrategy<NDIM>* mu_bc_coef;
         if (periodic_shift.min() > 0)
         {
-            mu_bc_coef = NULL;
+            mu_bc_coef = nullptr;
         }
         else
         {

@@ -423,7 +423,7 @@ main(int argc, char** argv)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -478,7 +478,7 @@ main(int argc, char** argv)
         ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
         std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
-                                                                         static_cast<void*>(NULL));
+                                                                         static_cast<void*>(nullptr));
         ib_post_processor->registerTensorVariable("sigma_dev",
                                                   MONOMIAL,
                                                   CONSTANT,
@@ -487,7 +487,7 @@ main(int argc, char** argv)
                                                   &PK1_dev_stress_fcn_data);
 
         std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
-                                                                         static_cast<void*>(NULL));
+                                                                         static_cast<void*>(nullptr));
         ib_post_processor->registerTensorVariable("sigma_dil",
                                                   MONOMIAL,
                                                   CONSTANT,

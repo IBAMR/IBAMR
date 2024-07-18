@@ -1923,7 +1923,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_default_quad_type.resize(d_num_parts, INVALID_Q_RULE);
     d_default_quad_order.resize(d_num_parts, INVALID_ORDER);
 
-    // Initialize function data to NULL.
+    // Initialize function data to nullptr.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
     d_initial_velocity_fcn_data.resize(d_num_parts);
     d_lag_surface_pressure_fcn_data.resize(d_num_parts);

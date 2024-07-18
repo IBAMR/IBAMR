@@ -330,7 +330,7 @@ apply_initial_jacobian(EquationSystems& es, const string& system_name)
     libmesh_assert_equal_to(system_name, "JacobianDeterminant");
     ExplicitSystem& system = es.get_system<ExplicitSystem>("JacobianDeterminant");
     es.parameters.set<Real>("time") = system.time = 0;
-    system.project_solution(initial_jacobian, NULL, es.parameters);
+    system.project_solution(initial_jacobian, nullptr, es.parameters);
 }
 
 } // namespace ModelData
@@ -403,7 +403,7 @@ main(int argc, char* argv[])
         D = input_db->getDouble("D");
         const double n_cycles = input_db->getDouble("NCYCLE");
         string beam_elem_type = input_db->getString("BEAM_ELEM_TYPE");
-        beam_mesh.read(input_db->getString("BEAM_MESH_FILENAME"), NULL);
+        beam_mesh.read(input_db->getString("BEAM_MESH_FILENAME"), nullptr);
 
         const auto node_end = beam_mesh.nodes_end();
         for (MeshBase::node_iterator n_it = beam_mesh.nodes_begin(); n_it != node_end; ++n_it)
@@ -582,7 +582,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -611,8 +611,8 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
-        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(boundary_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(boundary_mesh) : nullptr);
 
         ibfe_bndry_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);

@@ -83,7 +83,7 @@ public:
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
      * physical boundary conditions.
      *
-     * \note \a bc_coef may be NULL.  In this case, default boundary conditions
+     * \note \a bc_coef may be nullptr.  In this case, default boundary conditions
      * (as supplied to the class constructor) are employed.
      *
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition
@@ -95,7 +95,7 @@ public:
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
+     * \note Any of the elements of \a bc_coefs may be nullptr.  In this case,
      * default boundary conditions (as supplied to the class constructor) are
      * employed for that data depth.
      *

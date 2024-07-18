@@ -73,7 +73,7 @@ public:
      * \brief Return the vector where the Jacobian is evaluated.
      *
      * \note Implementations of this member function are permitted to return a
-     * NULL pointer if the operator is not initialized, or if formJacobian() has
+     * nullptr pointer if the operator is not initialized, or if formJacobian() has
      * not been called.
      */
     virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > getBaseVector() const = 0;

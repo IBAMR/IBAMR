@@ -78,7 +78,7 @@ public:
                                 const double data_time,
                                 const bool initial_time = false,
                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL));
+                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr));
 
 }; // CartGridBodyForce
 

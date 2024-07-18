@@ -169,7 +169,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -216,7 +216,7 @@ main(int argc, char* argv[])
             ib_method_ops->getLDataManager(),
             patch_hierarchy);
         ib_kinematics_op->registerRigidBodyKinematics(static_cast<RigidBodyKinematics::RigidVelFcn>(&COMTransVelocity),
-                                                      NULL);
+                                                      nullptr);
         ibkinematics_ops_vec.push_back(ib_kinematics_op);
 
         // register ConstraintIBKinematics objects with ConstraintIBMethod.

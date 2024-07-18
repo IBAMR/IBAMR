@@ -90,7 +90,7 @@ PETScSAMRAIVectorReal::restoreSAMRAIVector(
     TBOX_ASSERT(psv->d_samrai_vector.getPointer() == *samrai_vec);
 #endif
     psv->d_vector_checked_out_read_write = false;
-    *samrai_vec = NULL;
+    *samrai_vec = nullptr;
     int ierr = PetscObjectStateIncrease(reinterpret_cast<PetscObject>(petsc_vec));
     IBTK_CHKERRQ(ierr);
 }
@@ -127,7 +127,7 @@ PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(
     TBOX_ASSERT(psv->d_samrai_vector.getPointer() == *samrai_vec);
 #endif
     psv->d_vector_checked_out_read = false;
-    *samrai_vec = NULL;
+    *samrai_vec = nullptr;
 }
 
 inline void

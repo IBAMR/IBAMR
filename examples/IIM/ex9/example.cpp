@@ -638,11 +638,11 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
-        std::unique_ptr<ExodusII_IO> beam_io(uses_exodus ? new ExodusII_IO(beam_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> beam_io(uses_exodus ? new ExodusII_IO(beam_mesh) : nullptr);
 
         std::unique_ptr<ExodusII_IO> bndry_housing_io(uses_exodus ? new ExodusII_IO(*bndry_meshes[HOUSING_PART]) :
-                                                                    NULL);
-        std::unique_ptr<ExodusII_IO> bndry_beam_io(uses_exodus ? new ExodusII_IO(*bndry_meshes[BEAM_PART]) : NULL);
+                                                                    nullptr);
+        std::unique_ptr<ExodusII_IO> bndry_beam_io(uses_exodus ? new ExodusII_IO(*bndry_meshes[BEAM_PART]) : nullptr);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
