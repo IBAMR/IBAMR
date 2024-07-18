@@ -96,7 +96,7 @@ public:
      * \brief Constructor.
      */
     SCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                         std::string default_options_prefix);
 
     /*!
@@ -108,11 +108,11 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * SCPoissonPointRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                                        const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new SCPoissonPointRelaxationFACOperator(
+        SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_operator = new SCPoissonPointRelaxationFACOperator(
             object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
@@ -211,8 +211,8 @@ protected:
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    SAMRAIPointer<PoissonSolver> d_coarse_solver;
+    SAMRAIPointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Patch overlap data.
@@ -223,7 +223,7 @@ protected:
     /*
      * Dirichlet boundary condition utilities.
      */
-    SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAIPointer<StaggeredPhysicalBoundaryHelper> d_bc_helper;
     int d_mask_idx;
 
 private:

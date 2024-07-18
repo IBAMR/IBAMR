@@ -74,7 +74,7 @@ public:
      * \brief Class constructor.
      */
     INSCollocatedCenteredConvectiveOperator(std::string object_name,
-                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                             ConvectiveDifferencingType difference_form,
                                             const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs);
 
@@ -87,9 +87,9 @@ public:
      * \brief Static function to construct an
      * INSCollocatedCenteredConvectiveOperator.
      */
-    static SAMRAI::tbox::Pointer<ConvectiveOperator>
+    static IBTK::SAMRAIPointer<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs)
     {
@@ -181,21 +181,21 @@ private:
     INSCollocatedCenteredConvectiveOperator& operator=(const INSCollocatedCenteredConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithmNd> d_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> > d_coarsen_scheds;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> d_ghostfill_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategyNd> d_ghostfill_strategy;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> > d_ghostfill_scheds;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenAlgorithmNd> d_coarsen_alg;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> > d_coarsen_scheds;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineAlgorithmNd> d_ghostfill_alg;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefinePatchStrategyNd> d_ghostfill_strategy;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> > d_ghostfill_scheds;
     std::string d_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_U_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_U_var;
     int d_U_scratch_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > d_u_extrap_var, d_u_flux_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > d_u_extrap_var, d_u_flux_var;
     int d_u_extrap_idx = IBTK::invalid_index, d_u_flux_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR

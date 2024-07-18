@@ -103,7 +103,7 @@ public:
      * \brief Constructor of the class.
      */
     CIBMethod(std::string object_name,
-              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+              IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
               const int no_structures = 1,
               bool register_for_restart = true);
 
@@ -241,12 +241,12 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void initializeLevelData(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> old_level,
+                             IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> old_level,
                              bool allocate_data) override;
 
     /*!
@@ -259,11 +259,11 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg,
+        IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+        IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
+        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time) override;
@@ -274,8 +274,8 @@ public:
      */
     void
     interpolateVelocity(int u_data_idx,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
+                        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+                        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
                         double data_time) override;
 
     /*!
@@ -284,7 +284,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
+                     const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
                      double data_time) override;
 
     /*!
@@ -315,12 +315,12 @@ public:
      * \brief Register VisIt data writer to output data files that
      * may be postprocessed with the VisIt visualization tool.
      */
-    void registerVisItDataWriter(SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriterNd> visit_writer);
+    void registerVisItDataWriter(IBTK::SAMRAIPointer<SAMRAI::appu::VisItDataWriterNd> visit_writer);
 
     /*!
      * \brief Override the putToDatabase method of the base Serializable class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
     // \{
     // The following are the concrete implementation of CIBStrategy methods:
@@ -507,7 +507,7 @@ protected:
     /*!
      * Eulerian variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_eul_lambda_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_eul_lambda_var;
     int d_eul_lambda_idx = IBTK::invalid_index;
 
     /*!
@@ -519,7 +519,7 @@ protected:
      * The object used to write out data for postprocessing by the visIt
      * visualization tool.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriterNd> d_visit_writer;
+    IBTK::SAMRAIPointer<SAMRAI::appu::VisItDataWriterNd> d_visit_writer;
 
     /*!
      * Control printing of S[lambda]
@@ -544,7 +544,7 @@ private:
     /*!
      * \brief Set additional values from input database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Get values from restart file.
@@ -555,7 +555,7 @@ private:
      * \brief Compute center of mass of structures.
      */
     void computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& center_of_mass,
-                                std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
+                                std::vector<IBTK::SAMRAIPointer<IBTK::LData> >& X_data);
 
     /*!
      * \brief Set regularization weight for Lagrangian markers.

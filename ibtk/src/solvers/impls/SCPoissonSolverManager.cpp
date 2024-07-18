@@ -81,12 +81,12 @@ SCPoissonSolverManager::freeManager()
 
 namespace
 {
-Pointer<PoissonSolver>
+SAMRAIPointer<PoissonSolver>
 allocate_petsc_krylov_solver(const std::string& object_name,
-                             Pointer<Database> input_db,
+                             SAMRAIPointer<Database> input_db,
                              const std::string& default_options_prefix)
 {
-    Pointer<PETScKrylovPoissonSolver> krylov_solver =
+    SAMRAIPointer<PETScKrylovPoissonSolver> krylov_solver =
         new PETScKrylovPoissonSolver(object_name, input_db, default_options_prefix);
     krylov_solver->setOperator(new SCLaplaceOperator(object_name + "::laplace_operator"));
     return krylov_solver;
@@ -95,10 +95,10 @@ allocate_petsc_krylov_solver(const std::string& object_name,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<PoissonSolver>
+SAMRAIPointer<PoissonSolver>
 SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
                                        const std::string& solver_object_name,
-                                       Pointer<Database> solver_input_db,
+                                       SAMRAIPointer<Database> solver_input_db,
                                        const std::string& solver_default_options_prefix) const
 {
     auto it = d_solver_maker_map.find(solver_type);
@@ -110,33 +110,33 @@ SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
     return (it->second)(solver_object_name, solver_input_db, solver_default_options_prefix);
 } // allocateSolver
 
-Pointer<PoissonSolver>
+SAMRAIPointer<PoissonSolver>
 SCPoissonSolverManager::allocateSolver(const std::string& solver_type,
                                        const std::string& solver_object_name,
-                                       Pointer<Database> solver_input_db,
+                                       SAMRAIPointer<Database> solver_input_db,
                                        const std::string& solver_default_options_prefix,
                                        const std::string& precond_type,
                                        const std::string& precond_object_name,
-                                       Pointer<Database> precond_input_db,
+                                       SAMRAIPointer<Database> precond_input_db,
                                        const std::string& precond_default_options_prefix,
                                        const std::string& sub_precond_type,
                                        const std::string& sub_precond_object_name,
-                                       Pointer<Database> sub_precond_input_db,
+                                       SAMRAIPointer<Database> sub_precond_input_db,
                                        const std::string& sub_precond_default_options_prefix) const
 {
-    Pointer<PoissonSolver> solver =
+    SAMRAIPointer<PoissonSolver> solver =
         allocateSolver(solver_type, solver_object_name, solver_input_db, solver_default_options_prefix);
-    Pointer<KrylovLinearSolver> p_solver = solver;
+    SAMRAIPointer<KrylovLinearSolver> p_solver = solver;
     if (p_solver && !precond_type.empty())
     {
-        Pointer<PoissonSolver> precond = allocateSolver(precond_type,
-                                                        precond_object_name,
-                                                        precond_input_db,
-                                                        precond_default_options_prefix,
-                                                        sub_precond_type,
-                                                        sub_precond_object_name,
-                                                        sub_precond_input_db,
-                                                        sub_precond_default_options_prefix);
+        SAMRAIPointer<PoissonSolver> precond = allocateSolver(precond_type,
+                                                              precond_object_name,
+                                                              precond_input_db,
+                                                              precond_default_options_prefix,
+                                                              sub_precond_type,
+                                                              sub_precond_object_name,
+                                                              sub_precond_input_db,
+                                                              sub_precond_default_options_prefix);
         if (precond) p_solver->setPreconditioner(precond);
     }
     return solver;

@@ -34,7 +34,7 @@ public:
      * \brief Class constructor.
      */
     GravityForcing(const std::string& object_name,
-                   Pointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
+                   SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> ins_hierarchy_integrator,
                    std::vector<double> grav_const);
 
     /*!
@@ -58,8 +58,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 Pointer<VariableNd> var,
-                                 Pointer<PatchHierarchyNd> hierarchy,
+                                 SAMRAIPointer<VariableNd> var,
+                                 SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -69,11 +69,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<VariableNd> var,
-                        Pointer<PatchNd> patch,
+                        SAMRAIPointer<VariableNd> var,
+                        SAMRAIPointer<PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevelNd> patch_level = Pointer<PatchLevelNd>(NULL));
+                        SAMRAIPointer<PatchLevelNd> patch_level = SAMRAIPointer<PatchLevelNd>(NULL));
 
     //\}
 
@@ -85,7 +85,7 @@ private:
     GravityForcing& operator=(const GravityForcing& that);
 
     std::string d_object_name;
-    Pointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator;
+    SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> d_ins_hierarchy_integrator;
     std::vector<double> d_grav_const;
 };
 

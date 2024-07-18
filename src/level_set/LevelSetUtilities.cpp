@@ -36,10 +36,10 @@ namespace IBAMR
 namespace
 {
 std::vector<double>
-compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx, double ncells)
+compute_heaviside_integrals(SAMRAIPointer<HierarchyMathOps> hier_math_ops, int phi_idx, double ncells)
 {
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
-    Pointer<PatchHierarchyNd> patch_hier = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = hier_math_ops->getPatchHierarchy();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
     double vol_phase1 = 0.0;
@@ -47,17 +47,17 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
     double integral_delta = 0.0;
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> patch_level = patch_hier->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(patch_level); p; p++)
         {
-            Pointer<PatchNd> patch = patch_level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = patch_level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
 
-            Pointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_idx);
-            Pointer<CellDataNd<double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+            SAMRAIPointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_idx);
+            SAMRAIPointer<CellDataNd<double> > wgt_data = patch->getPatchData(wgt_cc_idx);
 
             // Get grid spacing information
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double cell_size = 1.0;
             for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
@@ -89,10 +89,10 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
 } // compute_heaviside_integrals
 
 std::vector<double>
-compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx, int psi_idx, double ncells)
+compute_heaviside_integrals(SAMRAIPointer<HierarchyMathOps> hier_math_ops, int phi_idx, int psi_idx, double ncells)
 {
     const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
-    Pointer<PatchHierarchyNd> patch_hier = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = hier_math_ops->getPatchHierarchy();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
     double vol_phase1 = 0.0;
@@ -101,18 +101,18 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
     double integral_delta = 0.0;
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> patch_level = patch_hier->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(patch_level); p; p++)
         {
-            Pointer<PatchNd> patch = patch_level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = patch_level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
 
-            Pointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_idx);
-            Pointer<CellDataNd<double> > psi_data = patch->getPatchData(psi_idx);
-            Pointer<CellDataNd<double> > wgt_data = patch->getPatchData(wgt_cc_idx);
+            SAMRAIPointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_idx);
+            SAMRAIPointer<CellDataNd<double> > psi_data = patch->getPatchData(psi_idx);
+            SAMRAIPointer<CellDataNd<double> > wgt_data = patch->getPatchData(wgt_cc_idx);
 
             // Get grid spacing information
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double cell_size = 1.0;
             for (int d = 0; d < NDIM; ++d) cell_size *= patch_dx[d];
@@ -153,7 +153,7 @@ compute_heaviside_integrals(Pointer<HierarchyMathOps> hier_math_ops, int phi_idx
 namespace LevelSetUtilities
 {
 void
-tagLSCells(Pointer<BasePatchHierarchyNd> hierarchy,
+tagLSCells(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
            const int level_number,
            const double /*error_data_time*/,
            const int tag_index,
@@ -184,13 +184,13 @@ tagLSCells(Pointer<BasePatchHierarchyNd> hierarchy,
     const double& tag_max_val = ls_tagger->getTagMaxValue();
 
     // Tag cells based on the value of the level set variable
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CellDataNd<int> > tags_data = patch->getPatchData(tag_index);
-        Pointer<CellDataNd<double> > ls_data = patch->getPatchData(ls_idx);
+        SAMRAIPointer<CellDataNd<int> > tags_data = patch->getPatchData(tag_index);
+        SAMRAIPointer<CellDataNd<double> > ls_data = patch->getPatchData(ls_idx);
 
         for (CellIteratorNd ic(patch_box); ic; ic++)
         {
@@ -208,9 +208,9 @@ tagLSCells(Pointer<BasePatchHierarchyNd> hierarchy,
 } // tagLSCells
 
 LevelSetMassLossFixer::LevelSetMassLossFixer(std::string object_name,
-                                             Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                                             std::vector<Pointer<CellVariableNd<double> > > ls_vars,
-                                             Pointer<Database> input_db,
+                                             SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                                             std::vector<SAMRAIPointer<CellVariableNd<double> > > ls_vars,
+                                             SAMRAIPointer<Database> input_db,
                                              bool register_for_restart)
     : d_object_name(std::move(object_name)),
       d_ls_container(adv_diff_integrator, ls_vars),
@@ -245,7 +245,7 @@ LevelSetMassLossFixer::~LevelSetMassLossFixer()
 } // ~LevelSetMassLossFixer
 
 void
-LevelSetMassLossFixer::putToDatabase(Pointer<Database> db)
+LevelSetMassLossFixer::putToDatabase(SAMRAIPointer<Database> db)
 {
     const LevelSetContainer& ls_container = getLevelSetContainer();
     db->putDouble("vol_init", d_vol_init);
@@ -268,7 +268,7 @@ LevelSetMassLossFixer::setInitialVolume(double v0)
 
 void
 SetLSProperties::setLSData(int ls_idx,
-                           SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                           IBTK::SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                            const int integrator_step,
                            const double current_time,
                            const bool initial_time,
@@ -293,14 +293,14 @@ fixMassLoss2PhaseFlows(double /*current_time*/,
     TBOX_ASSERT(mass_fixer);
 #endif
     const LevelSetContainer& ls_container = mass_fixer->getLevelSetContainer();
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = ls_container.getAdvDiffHierarchyIntegrator();
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = ls_container.getAdvDiffHierarchyIntegrator();
     const int integrator_step = adv_diff_integrator->getIntegratorStep();
     const int mass_correction_interval = mass_fixer->getCorrectionInterval();
 
     if (integrator_step % mass_correction_interval != 0) return;
 
-    Pointer<PatchHierarchyNd> patch_hier = adv_diff_integrator->getPatchHierarchy();
-    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = adv_diff_integrator->getPatchHierarchy();
+    SAMRAIPointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
     const double vol_target = mass_fixer->getTargetVolume();
@@ -361,14 +361,14 @@ fixMassLoss3PhaseFlows(double /*current_time*/,
     TBOX_ASSERT(mass_fixer);
 #endif
     const LevelSetContainer& ls_container = mass_fixer->getLevelSetContainer();
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = ls_container.getAdvDiffHierarchyIntegrator();
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = ls_container.getAdvDiffHierarchyIntegrator();
     const int integrator_step = adv_diff_integrator->getIntegratorStep();
     const int mass_correction_interval = mass_fixer->getCorrectionInterval();
 
     if (integrator_step % mass_correction_interval != 0) return;
 
-    Pointer<PatchHierarchyNd> patch_hier = adv_diff_integrator->getPatchHierarchy();
-    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = adv_diff_integrator->getPatchHierarchy();
+    SAMRAIPointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
     const double vol_target = mass_fixer->getTargetVolume();
@@ -423,9 +423,9 @@ std::vector<double>
 computeHeavisideIntegrals2PhaseFlows(const LevelSetContainer& lsc)
 {
     const double ncells = lsc.getInterfaceHalfWidth();
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc.getAdvDiffHierarchyIntegrator();
-    Pointer<PatchHierarchyNd> patch_hier = adv_diff_integrator->getPatchHierarchy();
-    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc.getAdvDiffHierarchyIntegrator();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = adv_diff_integrator->getPatchHierarchy();
+    SAMRAIPointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     // NOTE: In practice the level set mass is computed after integrating the hierarchy. Hence the application time
     // would be the new time and the variable context would be the current context.
@@ -443,9 +443,9 @@ std::vector<double>
 computeHeavisideIntegrals3PhaseFlows(const LevelSetContainer& lsc)
 {
     const double ncells = lsc.getInterfaceHalfWidth();
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc.getAdvDiffHierarchyIntegrator();
-    Pointer<PatchHierarchyNd> patch_hier = adv_diff_integrator->getPatchHierarchy();
-    Pointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = lsc.getAdvDiffHierarchyIntegrator();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = adv_diff_integrator->getPatchHierarchy();
+    SAMRAIPointer<HierarchyMathOps> hier_math_ops = adv_diff_integrator->getHierarchyMathOps();
 
     // NOTE: In practice the level set mass is computed after integrating the hierarchy. Hence the application time
     // would be the new time and the variable context would be the current context.
@@ -462,7 +462,7 @@ computeHeavisideIntegrals3PhaseFlows(const LevelSetContainer& lsc)
 
 void
 setLSDataPatchHierarchy(int ls_idx,
-                        Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                        SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                         const int integrator_step,
                         const double current_time,
                         const bool initial_time,
@@ -478,7 +478,7 @@ setLSDataPatchHierarchy(int ls_idx,
 ////////////////////////////// PROTECTED ///////////////////////////////////////
 
 void
-LevelSetMassLossFixer::getFromInput(Pointer<Database> input_db)
+LevelSetMassLossFixer::getFromInput(SAMRAIPointer<Database> input_db)
 {
     d_enable_logging = input_db->getBoolWithDefault("enable_logging", false);
     d_interval = input_db->getIntegerWithDefault("correction_interval", 1);
@@ -494,8 +494,8 @@ LevelSetMassLossFixer::getFromInput(Pointer<Database> input_db)
 void
 LevelSetMassLossFixer::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

@@ -88,8 +88,8 @@ public:
      * \brief Constructor
      */
     muParserRobinBcCoefs(const std::string& object_name,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom);
+                         SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                         SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom);
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -124,10 +124,10 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayDataNd<double> >& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayDataNd<double> >& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayDataNd<double> >& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd>& variable,
+    void setBcCoefs(SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& acoef_data,
+                    SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& bcoef_data,
+                    SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& gcoef_data,
+                    const SAMRAIPointer<SAMRAI::hier::VariableNd>& variable,
                     const SAMRAI::hier::PatchNd& patch,
                     const SAMRAI::hier::BoundaryBoxNd& bdry_box,
                     double fill_time = 0.0) const override;
@@ -204,7 +204,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
+    SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
 
     /*!
      * User-provided constants specified in the input file.

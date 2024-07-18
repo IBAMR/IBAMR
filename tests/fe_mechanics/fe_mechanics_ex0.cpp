@@ -216,7 +216,7 @@ main(int argc, char* argv[])
 
     // Since this is a test we do not want to print file names or line numbers
     // to output files:
-    Pointer<Logger::Appender> abort_append(new TestAppender());
+    SAMRAIPointer<Logger::Appender> abort_append(new TestAppender());
     Logger::getInstance()->setAbortAppender(abort_append);
 
     { // cleanup dynamically allocated objects prior to shutdown
@@ -224,8 +224,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -326,7 +326,7 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<FEMechanicsExplicitIntegrator> fem_solver =
+        SAMRAIPointer<FEMechanicsExplicitIntegrator> fem_solver =
             new FEMechanicsExplicitIntegrator("FEMechanicsExplicitIntegrator",
                                               app_initializer->getComponentDatabase("FEMechanicsExplicitIntegrator"),
                                               &mesh);

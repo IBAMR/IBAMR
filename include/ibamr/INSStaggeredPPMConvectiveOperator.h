@@ -69,7 +69,7 @@ public:
      * \brief Class constructor.
      */
     INSStaggeredPPMConvectiveOperator(std::string object_name,
-                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                      IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                       ConvectiveDifferencingType difference_form,
                                       std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> bc_coefs);
 
@@ -81,9 +81,9 @@ public:
     /*!
      * \brief Static function to construct an INSStaggeredPPMConvectiveOperator.
      */
-    static SAMRAI::tbox::Pointer<ConvectiveOperator>
+    static IBTK::SAMRAIPointer<ConvectiveOperator>
     allocate_operator(const std::string& object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                       ConvectiveDifferencingType difference_form,
                       const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs)
     {
@@ -175,20 +175,20 @@ private:
     INSStaggeredPPMConvectiveOperator& operator=(const INSStaggeredPPMConvectiveOperator& that) = delete;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
     std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_bc_coefs;
     std::string d_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_U_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_U_var;
     int d_U_scratch_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR

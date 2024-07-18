@@ -76,7 +76,7 @@ public:
                                                const std::vector<int>& num_dofs_per_proc,
                                                int u_dof_index_idx,
                                                int p_dof_index_idx,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level);
+                                               IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level);
 
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for
@@ -90,8 +90,8 @@ public:
                                      const std::vector<int>& num_dofs_per_proc,
                                      int u_dof_index_idx,
                                      int p_dof_index_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > cf_boundary);
+                                     IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level,
+                                     IBTK::SAMRAIPointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > cf_boundary);
 
     /*!
      * \brief Partition the patch level into subdomains suitable to be used for
@@ -102,7 +102,7 @@ public:
                                           const std::vector<int>& num_dofs_per_proc,
                                           int u_dof_index_idx,
                                           int p_dof_index_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level);
+                                          IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level);
 
     /*!
      * \brief Construct a parallel PETSc Mat object corresponding to data
@@ -115,8 +115,8 @@ public:
                                         int p_dof_index_idx,
                                         const std::vector<int>& num_fine_dofs_per_proc,
                                         const std::vector<int>& num_coarse_dofs_per_proc,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> fine_patch_level,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> coarse_patch_level,
+                                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> fine_patch_level,
+                                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> coarse_patch_level,
                                         const AO& coarse_level_ao,
                                         const int u_coarse_ao_offset,
                                         const int p_coarse_ao_offset);

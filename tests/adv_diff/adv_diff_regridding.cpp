@@ -60,8 +60,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -75,25 +75,25 @@ main(int argc, char* argv[])
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -101,10 +101,10 @@ main(int argc, char* argv[])
                                     load_balancer);
 
         // Create an initial condition specification object.
-        Pointer<CartGridFunction> Q_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> Q_init = new muParserCartGridFunction(
             "Q_init", app_initializer->getComponentDatabase("QInitialConditions"), grid_geometry);
 
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Create boundary condition specification objects (when necessary).
@@ -121,21 +121,21 @@ main(int argc, char* argv[])
         }
 
         // Set up the advected and diffused quantity.
-        Pointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
+        SAMRAIPointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
         time_integrator->registerTransportedQuantity(Q_var);
         time_integrator->setDiffusionCoefficient(Q_var, input_db->getDouble("DIFF_Q"));
         time_integrator->setInitialConditions(Q_var, Q_init);
         time_integrator->setPhysicalBcCoefs(Q_var, Q_bc_coefs);
 
-        Pointer<FaceVariableNd<double> > u_adv_var = new FaceVariableNd<double>("u_adv");
+        SAMRAIPointer<FaceVariableNd<double> > u_adv_var = new FaceVariableNd<double>("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(u_adv_var, u_init);
         time_integrator->setAdvectionVelocity(Q_var, u_adv_var);
 
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CellVariableNd<double> > F_var = new CellVariableNd<double>("F", 1);
-            Pointer<CartGridFunction> F_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CellVariableNd<double> > F_var = new CellVariableNd<double>("F", 1);
+            SAMRAIPointer<CartGridFunction> F_fcn = new muParserCartGridFunction(
                 "F_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerSourceTerm(F_var);
             time_integrator->setSourceTermFunction(F_var, F_fcn);
@@ -150,7 +150,7 @@ main(int argc, char* argv[])
                                                                static_cast<void*>(&tagger));
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -229,7 +229,7 @@ main(int argc, char* argv[])
 
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
-        const Pointer<VariableContext> Q_ctx = time_integrator->getCurrentContext();
+        const SAMRAIPointer<VariableContext> Q_ctx = time_integrator->getCurrentContext();
         const int Q_idx = var_db->mapVariableAndContextToIndex(Q_var, Q_ctx);
         const int Q_cloned_idx = var_db->registerClonedPatchDataIndex(Q_var, Q_idx);
 

@@ -92,10 +92,10 @@ public:
      * \brief Default constructor.
      */
     IBHydrodynamicSurfaceForceEvaluator(std::string object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_solid_var,
-                                        SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                        SAMRAI::tbox::Pointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL);
+                                        IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > ls_solid_var,
+                                        IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                        IBTK::SAMRAIPointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
+                                        IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db = NULL);
 
     /*!
      * \brief Virtual destructor.
@@ -166,12 +166,12 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
     /*!
      * Fill required patch data and ghost cells.
      */
-    void fillPatchData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+    void fillPatchData(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                        double fill_time,
                        bool use_current_ctx,
                        bool use_new_ctx);
@@ -184,17 +184,17 @@ private:
     /*!
      * \brief Level set variable for the immersed body
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_solid_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_solid_var;
 
     /*!
      * \brief Pointer to advection-diffusion solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
      * \brief Pointer to incompressible Navier-Stokes solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::INSHierarchyIntegrator> d_fluid_solver;
+    IBTK::SAMRAIPointer<IBAMR::INSHierarchyIntegrator> d_fluid_solver;
 
     /*!
      * \brief Level set patch data index.

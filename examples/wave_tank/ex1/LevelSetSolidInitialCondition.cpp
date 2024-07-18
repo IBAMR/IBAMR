@@ -44,11 +44,11 @@ LevelSetSolidInitialCondition::isTimeDependent() const
 
 void
 LevelSetSolidInitialCondition::setDataOnPatch(const int data_idx,
-                                              Pointer<VariableNd> /*var*/,
-                                              Pointer<PatchNd> patch,
+                                              SAMRAIPointer<VariableNd> /*var*/,
+                                              SAMRAIPointer<PatchNd> patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              Pointer<PatchLevelNd> /*patch_level*/)
+                                              SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
     // Set the level set function throughout the domain
     if (initial_time)
@@ -80,14 +80,14 @@ LevelSetSolidInitialCondition::setDataOnPatch(const int data_idx,
         const double b3 = BL(1) - m3 * BL(0);
 
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
         for (BoxNd::Iterator it(patch_box); it; it++)
         {
             CellIndexNd ci(it());
 
             // Get physical coordinates
             IBTK::Vector coord = IBTK::Vector::Zero();
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
             const hier::IndexNd& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();

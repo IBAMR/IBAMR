@@ -192,7 +192,7 @@ PETScLevelSolver::getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains,
 
 void
 PETScLevelSolver::setNullspace(bool contains_constant_vec,
-                               const std::vector<Pointer<SAMRAIVectorRealNd<double> > >& nullspace_basis_vecs)
+                               const std::vector<SAMRAIPointer<SAMRAIVectorRealNd<double> > >& nullspace_basis_vecs)
 {
     LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
     if (d_is_initialized) setupNullspace();
@@ -256,7 +256,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorRealNd<double>& x, con
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchyNd>& patch_hierarchy = x.getPatchHierarchy();
+    const SAMRAIPointer<PatchHierarchyNd>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -733,7 +733,7 @@ PETScLevelSolver::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-PETScLevelSolver::init(Pointer<Database> input_db, const std::string& default_options_prefix)
+PETScLevelSolver::init(SAMRAIPointer<Database> input_db, const std::string& default_options_prefix)
 {
     d_options_prefix = default_options_prefix;
     if (input_db)

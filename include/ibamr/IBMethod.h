@@ -95,7 +95,7 @@ public:
      * \brief Constructor.
      */
     IBMethod(std::string object_name,
-             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+             IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
              bool register_for_restart = true);
 
     /*!
@@ -106,17 +106,17 @@ public:
     /*!
      * Supply a Lagrangian force object.
      */
-    void registerIBLagrangianForceFunction(SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> ib_force_fcn);
+    void registerIBLagrangianForceFunction(IBTK::SAMRAIPointer<IBLagrangianForceStrategy> ib_force_fcn);
 
     /*!
      * Supply a Lagrangian source object.
      */
-    void registerIBLagrangianSourceFunction(SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> ib_source_fcn);
+    void registerIBLagrangianSourceFunction(IBTK::SAMRAIPointer<IBLagrangianSourceStrategy> ib_source_fcn);
 
     /*!
      * Supply a Lagrangian initialization object.
      */
-    void registerLInitStrategy(SAMRAI::tbox::Pointer<IBTK::LInitStrategy> l_initializer);
+    void registerLInitStrategy(IBTK::SAMRAIPointer<IBTK::LInitStrategy> l_initializer);
 
     /*!
      * Free references to Lagrangian initialization objects.
@@ -126,7 +126,7 @@ public:
     /*!
      * Supply a post processor object.
      */
-    void registerIBMethodPostProcessor(SAMRAI::tbox::Pointer<IBMethodPostProcessStrategy> post_processor);
+    void registerIBMethodPostProcessor(IBTK::SAMRAIPointer<IBMethodPostProcessStrategy> post_processor);
 
     /*!
      * Return a pointer to the Lagrangian data manager object.
@@ -136,13 +136,13 @@ public:
     /*!
      * Return a pointer to the instrumentation manager object.
      */
-    SAMRAI::tbox::Pointer<IBInstrumentPanel> getIBInstrumentPanel() const;
+    IBTK::SAMRAIPointer<IBInstrumentPanel> getIBInstrumentPanel() const;
 
     /*!
      * Register a Lagrangian Silo data writer so this class will write plot
      * files that may be postprocessed with the VisIt visualization tool.
      */
-    void registerLSiloDataWriter(SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
+    void registerLSiloDataWriter(IBTK::SAMRAIPointer<IBTK::LSiloDataWriter> silo_writer);
 
     /*!
      * Return the number of ghost cells required by the Lagrangian-Eulerian
@@ -154,7 +154,7 @@ public:
      * Setup the tag buffer.
      */
     void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
-                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) const override;
+                        IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) const override;
 
     /*!
      * Inactivate a structure/part. See IBAMR::IBStrategy::inactivateLagrangianStructure().
@@ -232,8 +232,8 @@ public:
      */
     void
     interpolateVelocity(int u_data_idx,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
+                        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+                        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
                         double data_time) override;
 
     /*!
@@ -243,8 +243,8 @@ public:
      */
     void interpolateLinearizedVelocity(
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
+        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
         double data_time) override;
 
     /*!
@@ -293,7 +293,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
+                     const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
                      double data_time) override;
 
     /*!
@@ -303,7 +303,7 @@ public:
     void spreadLinearizedForce(
         int f_data_idx,
         IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
+        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
         double data_time) override;
 
     /*!
@@ -334,7 +334,7 @@ public:
     void
     spreadFluidSource(int q_data_idx,
                       IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                      const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& q_prolongation_scheds,
+                      const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& q_prolongation_scheds,
                       double data_time) override;
 
     /*!
@@ -343,8 +343,8 @@ public:
      */
     void
     interpolatePressure(int p_data_idx,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& p_synch_scheds,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& p_ghost_fill_scheds,
+                        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> >& p_synch_scheds,
+                        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& p_ghost_fill_scheds,
                         double data_time) override;
 
     /*!
@@ -362,11 +362,11 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg,
+        IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+        IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
+        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time) override;
@@ -378,29 +378,29 @@ public:
      * @deprecated This method is no longer necessary with the current
      * workload estimation scheme.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancerNd> load_balancer,
+    void registerLoadBalancer(IBTK::SAMRAIPointer<SAMRAI::mesh::LoadBalancerNd> load_balancer,
                               int workload_data_idx) override;
 
     /*!
      * Add the estimated computational work from the current object per cell
      * into the specified <code>workload_data_idx</code>.
      */
-    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void addWorkloadEstimate(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                              const int workload_data_idx) override;
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
      * hierarchy.
      */
-    void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void beginDataRedistribution(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                 IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
-    void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void endDataRedistribution(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                               IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -408,12 +408,12 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void initializeLevelData(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> old_level,
+                             IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> old_level,
                              bool allocate_data) override;
 
     /*!
@@ -421,7 +421,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void resetHierarchyConfiguration(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                      int coarsest_level,
                                      int finest_level) override;
 
@@ -431,7 +431,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void applyGradientDetector(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -441,65 +441,62 @@ public:
     /*!
      * Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!
      * Get the current structure position data.
      */
-    void getPositionData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** X_data,
+    void getPositionData(std::vector<IBTK::SAMRAIPointer<IBTK::LData> >** X_data,
                          bool** X_needs_ghost_fill,
                          double data_time);
 
     /*!
      * Get the linearized structure position data.
      */
-    void getLinearizedPositionData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** X_data,
-                                   bool** X_needs_ghost_fill);
+    void getLinearizedPositionData(std::vector<IBTK::SAMRAIPointer<IBTK::LData> >** X_data, bool** X_needs_ghost_fill);
 
     /*!
      * Get the current interpolation/spreading position data.
      */
-    void getLECouplingPositionData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** X_LE_data,
+    void getLECouplingPositionData(std::vector<IBTK::SAMRAIPointer<IBTK::LData> >** X_LE_data,
                                    bool** X_LE_needs_ghost_fill,
                                    double data_time);
 
     /*!
      * Get the current structure velocity data.
      */
-    void getVelocityData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** U_data, double data_time);
+    void getVelocityData(std::vector<IBTK::SAMRAIPointer<IBTK::LData> >** U_data, double data_time);
 
     /*!
      * Get the linearized structure velocity data.
      */
-    void getLinearizedVelocityData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** U_data);
+    void getLinearizedVelocityData(std::vector<IBTK::SAMRAIPointer<IBTK::LData> >** U_data);
 
     /*!
      * Get the current structure force data.
      */
-    void getForceData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** F_data,
-                      bool** F_needs_ghost_fill,
-                      double data_time);
+    void
+    getForceData(std::vector<IBTK::SAMRAIPointer<IBTK::LData> >** F_data, bool** F_needs_ghost_fill, double data_time);
 
     /*!
      * Get the linearized structure force data.
      */
-    void getLinearizedForceData(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >** F_data, bool** F_needs_ghost_fill);
+    void getLinearizedForceData(std::vector<IBTK::SAMRAIPointer<IBTK::LData> >** F_data, bool** F_needs_ghost_fill);
 
     /*!
      * Interpolate the current and new data to obtain values at the midpoint of
      * the time interval.
      */
-    void reinitMidpointData(const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& current_data,
-                            const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& new_data,
-                            const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& half_data);
+    void reinitMidpointData(const std::vector<IBTK::SAMRAIPointer<IBTK::LData> >& current_data,
+                            const std::vector<IBTK::SAMRAIPointer<IBTK::LData> >& new_data,
+                            const std::vector<IBTK::SAMRAIPointer<IBTK::LData> >& half_data);
 
     /*!
      * Set the elements of the Lagrangian vector to zero at anchored nodes of
      * the curvilinear mesh.
      */
-    void
-    resetAnchorPointValues(std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > U_data, int coarsest_ln, int finest_ln);
+    void resetAnchorPointValues(std::vector<IBTK::SAMRAIPointer<IBTK::LData> > U_data, int coarsest_ln, int finest_ln);
 
     /*
      * PETSc function for evaluating Lagrangian force.
@@ -517,8 +514,8 @@ protected:
      * Pointers to the patch hierarchy and gridding algorithm objects associated
      * with this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> d_gridding_alg;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> d_gridding_alg;
 
     /*
      * The current time step interval.
@@ -548,10 +545,10 @@ protected:
     /*
      * Lagrangian variables.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data, d_X_jac_data,
+    std::vector<IBTK::SAMRAIPointer<IBTK::LData> > d_X_current_data, d_X_new_data, d_X_half_data, d_X_jac_data,
         d_X_LE_new_data, d_X_LE_half_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data, d_U_jac_data;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data, d_F_jac_data;
+    std::vector<IBTK::SAMRAIPointer<IBTK::LData> > d_U_current_data, d_U_new_data, d_U_half_data, d_U_jac_data;
+    std::vector<IBTK::SAMRAIPointer<IBTK::LData> > d_F_current_data, d_F_new_data, d_F_half_data, d_F_jac_data;
 
     /*
      * List of local indices of local anchor points.
@@ -565,25 +562,25 @@ protected:
      * Instrumentation (flow meter and pressure gauge) algorithms and data
      * structures.
      */
-    SAMRAI::tbox::Pointer<IBInstrumentPanel> d_instrument_panel;
+    IBTK::SAMRAIPointer<IBInstrumentPanel> d_instrument_panel;
     std::vector<double> d_total_flow_volume;
 
     /*
      * The specification and initialization information for the Lagrangian data
      * used by the integrator.
      */
-    SAMRAI::tbox::Pointer<IBTK::LInitStrategy> d_l_initializer;
+    IBTK::SAMRAIPointer<IBTK::LInitStrategy> d_l_initializer;
 
     /*
      * The force generators.
      */
-    SAMRAI::tbox::Pointer<IBLagrangianForceStrategy> d_ib_force_fcn;
+    IBTK::SAMRAIPointer<IBLagrangianForceStrategy> d_ib_force_fcn;
     bool d_ib_force_fcn_needs_init = true;
 
     /*
      * The source/sink generators.
      */
-    SAMRAI::tbox::Pointer<IBLagrangianSourceStrategy> d_ib_source_fcn;
+    IBTK::SAMRAIPointer<IBLagrangianSourceStrategy> d_ib_source_fcn;
     bool d_ib_source_fcn_needs_init = true;
     std::vector<std::vector<IBTK::Point> > d_X_src;
     std::vector<std::vector<double> > d_r_src, d_P_src, d_Q_src;
@@ -593,17 +590,17 @@ protected:
     /*
      * Post-processor object.
      */
-    SAMRAI::tbox::Pointer<IBMethodPostProcessStrategy> d_post_processor;
+    IBTK::SAMRAIPointer<IBMethodPostProcessStrategy> d_post_processor;
 
     /*
      * Visualization data writers.
      */
-    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
+    IBTK::SAMRAIPointer<IBTK::LSiloDataWriter> d_silo_writer;
 
     /*
      * Nonuniform load balancing data structures.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancerNd> d_load_balancer;
+    IBTK::SAMRAIPointer<SAMRAI::mesh::LoadBalancerNd> d_load_balancer;
     int d_workload_idx = IBTK::invalid_index;
 
     /*
@@ -665,7 +662,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

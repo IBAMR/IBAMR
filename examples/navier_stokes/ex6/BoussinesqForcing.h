@@ -34,8 +34,8 @@ public:
     /*!
      * \brief Class constructor.
      */
-    BoussinesqForcing(Pointer<VariableNd> T_var,
-                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
+    BoussinesqForcing(SAMRAIPointer<VariableNd> T_var,
+                      SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
                       int gamma);
 
     /*!
@@ -59,8 +59,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 Pointer<VariableNd> var,
-                                 Pointer<PatchHierarchyNd> hierarchy,
+                                 SAMRAIPointer<VariableNd> var,
+                                 SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = -1,
@@ -70,11 +70,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<VariableNd> var,
-                        Pointer<PatchNd> patch,
+                        SAMRAIPointer<VariableNd> var,
+                        SAMRAIPointer<PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevelNd> patch_level = Pointer<PatchLevelNd>(NULL));
+                        SAMRAIPointer<PatchLevelNd> patch_level = SAMRAIPointer<PatchLevelNd>(NULL));
 
     //\}
 
@@ -85,8 +85,8 @@ private:
 
     BoussinesqForcing& operator=(const BoussinesqForcing& that);
 
-    Pointer<VariableNd> d_T_var;
-    Pointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
+    SAMRAIPointer<VariableNd> d_T_var;
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
     double d_gamma;
 };
 

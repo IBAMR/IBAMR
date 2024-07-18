@@ -40,7 +40,7 @@ main(int argc, char* argv[])
     // Check if libMesh is initialized.
     TBOX_ASSERT(libMesh::initialized());
 #endif
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "ibtk_init.output");
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "ibtk_init.output");
     // Check whether MPI is initialized
     int test;
     MPI_Initialized(&test);

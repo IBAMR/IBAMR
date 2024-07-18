@@ -65,7 +65,7 @@ static const int SIDEG = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonPETScLevelSolver::SCPoissonPETScLevelSolver(const std::string& object_name,
-                                                     Pointer<Database> input_db,
+                                                     SAMRAIPointer<Database> input_db,
                                                      std::string default_options_prefix)
 {
     // Configure solver.
@@ -118,9 +118,10 @@ SCPoissonPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVectorRe
     // Allocate DOF index data.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<SideDataFactoryNd<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    SAMRAIPointer<SideDataFactoryNd<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     const int depth = x_fac->getDefaultDepth();
-    Pointer<SideDataFactoryNd<int> > dof_index_fac = var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
+    SAMRAIPointer<SideDataFactoryNd<int> > dof_index_fac =
+        var_db->getPatchDescriptor()->getPatchDataFactory(d_dof_index_idx);
     dof_index_fac->setDefaultDepth(depth);
     if (!d_level->checkAllocated(d_dof_index_idx)) d_level->allocatePatchData(d_dof_index_idx);
     PETScVecUtilities::constructPatchLevelDOFIndices(d_num_dofs_per_proc, d_dof_index_idx, d_level);
@@ -180,11 +181,11 @@ SCPoissonPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const auto b_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(b_idx);
     for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<PatchNd> patch = d_level->getPatch(p());
-        Pointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
-        Pointer<SideDataNd<double> > x_data = patch->getPatchData(x_idx);
-        Pointer<SideDataNd<double> > b_data = patch->getPatchData(b_idx);
-        Pointer<SideDataNd<double> > b_adj_data = patch->getPatchData(b_adj_idx);
+        SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
+        SAMRAIPointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<SideDataNd<double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SideDataNd<double> > b_data = patch->getPatchData(b_idx);
+        SAMRAIPointer<SideDataNd<double> > b_adj_data = patch->getPatchData(b_adj_idx);
         b_adj_data->copy(*b_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)

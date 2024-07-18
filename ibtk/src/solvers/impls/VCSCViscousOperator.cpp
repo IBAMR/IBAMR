@@ -110,15 +110,15 @@ VCSCViscousOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<dou
     TBOX_ASSERT(d_bc_coefs.size() == NDIM);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariableNd<double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariableNd<double> > y_sc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<SideVariableNd<double> > x_sc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<SideVariableNd<double> > y_sc_var = y.getComponentVariable(comp);
         if (!x_sc_var || !y_sc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  encountered non-side centered vector components" << std::endl);
         }
-        Pointer<SideDataFactoryNd<double> > x_factory = x_sc_var->getPatchDataFactory();
-        Pointer<SideDataFactoryNd<double> > y_factory = y_sc_var->getPatchDataFactory();
+        SAMRAIPointer<SideDataFactoryNd<double> > x_factory = x_sc_var->getPatchDataFactory();
+        SAMRAIPointer<SideDataFactoryNd<double> > y_factory = y_sc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -163,9 +163,9 @@ VCSCViscousOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<dou
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<SideVariableNd<double> > x_sc_var = x.getComponentVariable(comp);
-        Pointer<SideVariableNd<double> > y_sc_var = y.getComponentVariable(comp);
-        Pointer<SideVariableNd<double> > x_scratch_var = d_x->getComponentVariable(comp);
+        SAMRAIPointer<SideVariableNd<double> > x_sc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<SideVariableNd<double> > y_sc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<SideVariableNd<double> > x_scratch_var = d_x->getComponentVariable(comp);
         const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         d_hier_math_ops->vc_laplace(y_idx,
@@ -174,13 +174,13 @@ VCSCViscousOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<dou
                                     beta,
                                     d_poisson_spec.getDPatchDataId(),
 #if (NDIM == 2)
-                                    Pointer<NodeVariableNd<double> >(nullptr),
+                                    SAMRAIPointer<NodeVariableNd<double> >(nullptr),
 #elif (NDIM == 3)
-                                    Pointer<EdgeVariableNd<double> >(nullptr),
+                                    SAMRAIPointer<EdgeVariableNd<double> >(nullptr),
 #endif
                                     x_scratch_idx,
                                     x_sc_var,
-                                    Pointer<HierarchyGhostCellInterpolation>(nullptr),
+                                    SAMRAIPointer<HierarchyGhostCellInterpolation>(nullptr),
                                     d_solution_time,
                                     d_D_interp_type,
                                     d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() : -1);

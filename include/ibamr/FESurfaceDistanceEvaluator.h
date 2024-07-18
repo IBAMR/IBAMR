@@ -53,7 +53,7 @@ public:
      * \brief The only constructor of this class.
      */
     FESurfaceDistanceEvaluator(std::string object_name,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                               IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                const libMesh::Mesh& mesh,
                                const libMesh::BoundaryMesh& bdry_mesh,
                                const int gcw = 1,
@@ -89,7 +89,7 @@ public:
      * \brief Update the sign of the distance function away from the finite element mesh.
      */
     void updateSignAwayFromInterface(int d_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                                     IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                      double large_distance = s_large_distance);
 
     /*!
@@ -171,7 +171,7 @@ private:
     /*!
      * Pointer to Patch Hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_patch_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_patch_hierarchy;
 
     /*!
      * Volume mesh object

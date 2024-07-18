@@ -33,7 +33,7 @@ namespace IBAMR
  *
  * \param location_idx of the boundary at which the integral is evaluated
  */
-double computeNetInflowPhysicalBoundary(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+double computeNetInflowPhysicalBoundary(IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                         int u_idx,
                                         int bdry_loc_idx);
 } // namespace IBAMR

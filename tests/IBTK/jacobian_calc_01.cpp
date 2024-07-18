@@ -233,9 +233,9 @@ main(int argc, char** argv)
     LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     {
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         unsigned int test_n = 1;
         {

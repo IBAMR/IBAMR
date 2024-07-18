@@ -95,15 +95,15 @@ CCLaplaceOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<doubl
     TBOX_ASSERT(d_is_initialized);
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<CellVariableNd<double> > x_cc_var = x.getComponentVariable(comp);
-        Pointer<CellVariableNd<double> > y_cc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<CellVariableNd<double> > x_cc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<CellVariableNd<double> > y_cc_var = y.getComponentVariable(comp);
         if (!x_cc_var || !y_cc_var)
         {
             TBOX_ERROR(d_object_name << "::apply()\n"
                                      << "  encountered non-cell centered vector components" << std::endl);
         }
-        Pointer<CellDataFactoryNd<double> > x_factory = x_cc_var->getPatchDataFactory();
-        Pointer<CellDataFactoryNd<double> > y_factory = y_cc_var->getPatchDataFactory();
+        SAMRAIPointer<CellDataFactoryNd<double> > x_factory = x_cc_var->getPatchDataFactory();
+        SAMRAIPointer<CellDataFactoryNd<double> > y_factory = y_cc_var->getPatchDataFactory();
         TBOX_ASSERT(x_factory);
         TBOX_ASSERT(y_factory);
         const unsigned int x_depth = x_factory->getDefaultDepth();
@@ -141,8 +141,8 @@ CCLaplaceOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<doubl
     // Compute the action of the operator.
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        Pointer<CellVariableNd<double> > x_cc_var = x.getComponentVariable(comp);
-        Pointer<CellVariableNd<double> > y_cc_var = y.getComponentVariable(comp);
+        SAMRAIPointer<CellVariableNd<double> > x_cc_var = x.getComponentVariable(comp);
+        SAMRAIPointer<CellVariableNd<double> > y_cc_var = y.getComponentVariable(comp);
         const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         for (unsigned int l = 0; l < d_bc_coefs.size(); ++l)
@@ -156,7 +156,7 @@ CCLaplaceOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<doubl
                                      0.0,
                                      0.0,
                                      -1,
-                                     Pointer<CellVariableNd<double> >(nullptr),
+                                     SAMRAIPointer<CellVariableNd<double> >(nullptr),
                                      l,
                                      l);
         }

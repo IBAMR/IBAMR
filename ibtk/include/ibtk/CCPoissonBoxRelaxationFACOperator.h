@@ -114,7 +114,7 @@ public:
      * \brief Constructor.
      */
     CCPoissonBoxRelaxationFACOperator(const std::string& object_name,
-                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                      SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                       std::string default_options_prefix);
 
     /*!
@@ -126,11 +126,11 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * CCPoissonBoxRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                                        const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonBoxRelaxationFACOperator(
+        SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonBoxRelaxationFACOperator(
             object_name + "::CCPoissonBoxRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
@@ -259,7 +259,7 @@ private:
      */
     static void buildPatchLaplaceOperator(Mat& A,
                                           const SAMRAI::solv::PoissonSpecifications& poisson_spec,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                          SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                           const SAMRAI::hier::IntVectorNd& ghost_cell_width);
 
     /*!
@@ -267,9 +267,9 @@ private:
      * to a single patch with grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_aligned(Mat& A,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > C_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > D_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                                  SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > C_data,
+                                                  SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > D_data,
+                                                  SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                                   const SAMRAI::hier::IntVectorNd& ghost_cell_width);
 
     /*!
@@ -277,16 +277,16 @@ private:
      * to a single patch with non-grid aligned anisotropy.
      */
     static void buildPatchLaplaceOperator_nonaligned(Mat& A,
-                                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > C_data,
-                                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > D_data,
-                                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                                     SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > C_data,
+                                                     SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > D_data,
+                                                     SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                                      const SAMRAI::hier::IntVectorNd& ghost_cell_width);
 
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    SAMRAIPointer<PoissonSolver> d_coarse_solver;
+    SAMRAIPointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Mappings from patch indices to patch operators.

@@ -79,7 +79,7 @@ inline Vector
 IndexUtilities::getCellCenter(const SAMRAI::hier::PatchNd& patch, const SAMRAI::pdat::CellIndexNd& cell_idx)
 {
     const SAMRAI::hier::IndexNd& patch_lower = patch.getBox().lower();
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
+    SAMRAIPointer<SAMRAI::geom::CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
     const double* const x_lower = patch_geom->getXLower();
     Vector x_c;
@@ -98,7 +98,7 @@ IndexUtilities::getCellCenter(const SAMRAI::hier::PatchNd& patch, const SAMRAI::
 
 template <typename Vector>
 inline Vector
-IndexUtilities::getCellCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+IndexUtilities::getCellCenter(const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
                               const SAMRAI::hier::IntVectorNd& ratio,
                               const SAMRAI::pdat::CellIndexNd& cell_idx)
 {
@@ -129,7 +129,7 @@ inline Vector
 IndexUtilities::getSideCenter(const SAMRAI::hier::PatchNd& patch, const SAMRAI::pdat::SideIndexNd& side_idx)
 {
     const int axis = side_idx.getAxis();
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
+    SAMRAIPointer<SAMRAI::geom::CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
     const double* const patch_x_lower = patch_geom->getXLower();
     const SAMRAI::hier::BoxNd& patch_box = patch.getBox();
     const SAMRAI::hier::IndexNd& patch_lower_idx = patch_box.lower();
@@ -163,7 +163,7 @@ IndexUtilities::getSideCenter(const SAMRAI::hier::PatchNd& patch, const SAMRAI::
 
 template <typename Vector>
 inline Vector
-IndexUtilities::getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+IndexUtilities::getSideCenter(const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
                               const SAMRAI::hier::IntVectorNd& ratio,
                               const SAMRAI::pdat::SideIndexNd& side_idx)
 {
@@ -199,7 +199,7 @@ IndexUtilities::getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::Cartesia
 } // getSideCenter
 
 inline VectorNd
-IndexUtilities::getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+IndexUtilities::getSideCenter(const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
                               const SAMRAI::hier::IntVectorNd& ratio,
                               const SAMRAI::pdat::SideIndexNd& side_idx)
 {
@@ -209,7 +209,7 @@ IndexUtilities::getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::Cartesia
 template <class DoubleArray>
 inline SAMRAI::hier::IndexNd
 IndexUtilities::getCellIndex(const DoubleArray& X,
-                             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometryNd>& patch_geom,
+                             const SAMRAIPointer<SAMRAI::geom::CartesianPatchGeometryNd>& patch_geom,
                              const SAMRAI::hier::BoxNd& patch_box)
 {
 #if !defined(NDEBUG)
@@ -222,7 +222,7 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
 template <class DoubleArray>
 inline SAMRAI::hier::IndexNd
 IndexUtilities::getCellIndex(const DoubleArray& X,
-                             const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+                             const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
                              const SAMRAI::hier::IntVectorNd& ratio)
 {
 #if !defined(NDEBUG)
@@ -241,7 +241,7 @@ IndexUtilities::getCellIndex(const DoubleArray& X,
 template <class DoubleArray>
 inline SAMRAI::hier::IndexNd
 IndexUtilities::getAssignedCellIndex(const DoubleArray& X,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+                                     const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
                                      const SAMRAI::hier::IntVectorNd& ratio)
 {
     auto idx = getCellIndex(X, grid_geom, ratio);

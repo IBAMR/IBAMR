@@ -112,9 +112,9 @@ main(int argc, char** argv)
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
         std::vector<std::unique_ptr<ReplicatedMesh> > meshes;
@@ -227,14 +227,14 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry, false);
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
 
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -261,24 +261,24 @@ main(int argc, char** argv)
         {
             mesh_ptrs.emplace_back(mesh.get());
         }
-        Pointer<IBFEMethod> ib_method_ops =
+        SAMRAIPointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            mesh_ptrs,
                            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                            false);
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator,
                                               false);
 
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -319,8 +319,8 @@ main(int argc, char** argv)
 
         // Now for the actual test. Set up a new variable containing ghost data:
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        const Pointer<SAMRAI::hier::VariableNd> f_var = time_integrator->getBodyForceVariable();
-        const Pointer<VariableContext> f_ghost_ctx = var_db->getContext("f_ghost");
+        const SAMRAIPointer<SAMRAI::hier::VariableNd> f_var = time_integrator->getBodyForceVariable();
+        const SAMRAIPointer<VariableContext> f_ghost_ctx = var_db->getContext("f_ghost");
 
         int n_ghosts = input_db->keyExists("IB_DELTA_FUNCTION") ?
                            LEInteractor::getMinimumGhostWidth(input_db->getString("IB_DELTA_FUNCTION")) :
@@ -333,12 +333,12 @@ main(int argc, char** argv)
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(f_ghost_idx);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_ghost_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_ghost_idx);
                 f_data->fillAll(0.0);
             }
         }
@@ -404,11 +404,11 @@ main(int argc, char** argv)
             // computed by these two combined calls would be wrong.
             bdry_op->setPatchDataIndex(f_ghost_idx);
             const int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                const Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<PatchDataNd> f_data = patch->getPatchData(f_ghost_idx);
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(f_ghost_idx);
                 bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
             }
         }
@@ -416,7 +416,7 @@ main(int argc, char** argv)
         std::ostringstream out;
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
 
             // We don't need to print this if we are running in serial
             if (IBTK_MPI::getNodes() != 1)
@@ -429,8 +429,8 @@ main(int argc, char** argv)
                 std::ostringstream patch_out;
                 patch_out << "patch number " << p() << '\n';
                 patch_out.precision(16);
-                Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_ghost_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_ghost_idx);
                 const BoxNd patch_box = patch->getBox();
 
                 // same as SideData::print, but elides zero values. We don't

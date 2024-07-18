@@ -66,7 +66,7 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesBoxRelaxationFACOperator(const std::string& object_name,
-                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                             const std::string& default_options_prefix);
 
     /*!

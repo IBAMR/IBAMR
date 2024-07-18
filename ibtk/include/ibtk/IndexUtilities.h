@@ -120,10 +120,9 @@ public:
      * \see SAMRAI::geom::CartesianPatchGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::IndexNd
-    getCellIndex(const DoubleArray& X,
-                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometryNd>& patch_geom,
-                 const SAMRAI::hier::BoxNd& patch_box);
+    static SAMRAI::hier::IndexNd getCellIndex(const DoubleArray& X,
+                                              const SAMRAIPointer<SAMRAI::geom::CartesianPatchGeometryNd>& patch_geom,
+                                              const SAMRAI::hier::BoxNd& patch_box);
 
     /*!
      * \return The cell index corresponding to location \p X relative
@@ -133,10 +132,9 @@ public:
      * \see SAMRAI::geom::CartesianGridGeometry
      */
     template <class DoubleArray>
-    static SAMRAI::hier::IndexNd
-    getCellIndex(const DoubleArray& X,
-                 const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
-                 const SAMRAI::hier::IntVectorNd& ratio);
+    static SAMRAI::hier::IndexNd getCellIndex(const DoubleArray& X,
+                                              const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+                                              const SAMRAI::hier::IntVectorNd& ratio);
 
     /*!
      * \return The cell index corresponding to location \p X relative to the
@@ -154,7 +152,7 @@ public:
     template <class DoubleArray>
     static SAMRAI::hier::IndexNd
     getAssignedCellIndex(const DoubleArray& X,
-                         const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+                         const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
                          const SAMRAI::hier::IntVectorNd& ratio);
 
     /*!
@@ -186,7 +184,7 @@ public:
      * @param cell_idx The CellIndex describing the current cell.
      */
     template <typename Vector>
-    static Vector getCellCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+    static Vector getCellCenter(const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
                                 const SAMRAI::hier::IntVectorNd& ratio,
                                 const SAMRAI::pdat::CellIndexNd& cell_idx);
 
@@ -219,7 +217,7 @@ public:
      * @param side_idx The SideIndex describing the current side.
      */
     template <typename Vector>
-    static Vector getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+    static Vector getSideCenter(const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
                                 const SAMRAI::hier::IntVectorNd& ratio,
                                 const SAMRAI::pdat::SideIndexNd& side_idx);
 
@@ -232,7 +230,7 @@ public:
      *
      * @param side_idx The SideIndex describing the current side.
      */
-    static IBTK::VectorNd getSideCenter(const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
+    static IBTK::VectorNd getSideCenter(const SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd>& grid_geom,
                                         const SAMRAI::hier::IntVectorNd& ratio,
                                         const SAMRAI::pdat::SideIndexNd& side_idx);
 

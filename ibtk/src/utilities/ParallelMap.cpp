@@ -49,7 +49,7 @@ ParallelMap::operator=(const ParallelMap& that)
 } // operator=
 
 void
-ParallelMap::addItem(const int key, const tbox::Pointer<Streamable> item)
+ParallelMap::addItem(const int key, const SAMRAIPointer<Streamable> item)
 {
     d_pending_additions.insert(std::make_pair(key, item));
     return;
@@ -82,7 +82,7 @@ ParallelMap::communicateData()
         // Get the local values to send and determine the amount of data to be
         // broadcast by each process.
         std::vector<int> keys_to_send;
-        std::vector<tbox::Pointer<Streamable> > data_items_to_send;
+        std::vector<SAMRAIPointer<Streamable> > data_items_to_send;
         for (const auto& pending_addition : d_pending_additions)
         {
             keys_to_send.push_back(pending_addition.first);
@@ -127,7 +127,7 @@ ParallelMap::communicateData()
                 FixedSizedStream stream(&buffer[0], data_size);
                 std::vector<int> keys_received(num_keys);
                 stream.unpack(&keys_received[0], num_keys);
-                std::vector<tbox::Pointer<Streamable> > data_items_received;
+                std::vector<SAMRAIPointer<Streamable> > data_items_received;
                 hier::IntVectorNd offset = 0;
                 streamable_manager->unpackStream(stream, offset, data_items_received);
 #if !defined(NDEBUG)
@@ -188,7 +188,7 @@ ParallelMap::communicateData()
     return;
 } // communicateData
 
-const std::map<int, SAMRAI::tbox::Pointer<Streamable> >&
+const std::map<int, SAMRAIPointer<Streamable> >&
 ParallelMap::getMap() const
 {
     return d_map;

@@ -63,7 +63,7 @@ static Timer* t_initialize_level_data;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(Pointer<Database> input_db)
+IBKirchhoffRodForceGen::IBKirchhoffRodForceGen(SAMRAIPointer<Database> input_db)
 {
     // Initialize object with data read from the input database.
     getFromInput(input_db);
@@ -107,7 +107,7 @@ IBKirchhoffRodForceGen::setUniformBodyForce(IBTK::Vector F, int structure_id, in
 } // setUniformBodyForce
 
 void
-IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchyNd> hierarchy,
+IBKirchhoffRodForceGen::initializeLevelData(const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                             const int level_number,
                                             const double /*init_data_time*/,
                                             const bool /*initial_time*/,
@@ -122,7 +122,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchyNd> hier
 #endif
     int ierr;
 
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
 
     // Resize the vectors corresponding to data individually maintained for
     // separate levels of the patch hierarchy.
@@ -158,7 +158,7 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchyNd> hier
     material_params.clear();
 
     // The LMesh object provides the set of local Lagrangian nodes.
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_num);
+    const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(level_num);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Determine the "next" node indices for all rods associated with the
@@ -316,11 +316,11 @@ IBKirchhoffRodForceGen::initializeLevelData(const Pointer<PatchHierarchyNd> hier
 } // initializeLevelData
 
 void
-IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
-                                                        Pointer<LData> N_data,
-                                                        Pointer<LData> X_data,
-                                                        Pointer<LData> D_data,
-                                                        const Pointer<PatchHierarchyNd> hierarchy,
+IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(SAMRAIPointer<LData> F_data,
+                                                        SAMRAIPointer<LData> N_data,
+                                                        SAMRAIPointer<LData> X_data,
+                                                        SAMRAIPointer<LData> D_data,
+                                                        const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                         const int level_number,
                                                         const double data_time,
                                                         LDataManager* const l_data_manager)
@@ -526,7 +526,7 @@ IBKirchhoffRodForceGen::computeLagrangianForceAndTorque(Pointer<LData> F_data,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBKirchhoffRodForceGen::getFromInput(Pointer<Database> db)
+IBKirchhoffRodForceGen::getFromInput(SAMRAIPointer<Database> db)
 {
     if (db)
     {
@@ -536,8 +536,8 @@ IBKirchhoffRodForceGen::getFromInput(Pointer<Database> db)
 } // getFromInput
 
 void
-IBKirchhoffRodForceGen::computeLagrangianBodyForce(Pointer<LData> F_data,
-                                                   Pointer<PatchHierarchyNd> /*hierarchy*/,
+IBKirchhoffRodForceGen::computeLagrangianBodyForce(SAMRAIPointer<LData> F_data,
+                                                   SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                                    const int level_number,
                                                    const double /*data_time*/,
                                                    LDataManager* const l_data_manager)
@@ -545,7 +545,7 @@ IBKirchhoffRodForceGen::computeLagrangianBodyForce(Pointer<LData> F_data,
     if (d_uniform_body_force_data[level_number].empty()) return;
 
     double* const F_node = F_data->getLocalFormVecArray()->data();
-    SAMRAI::tbox::Pointer<LMesh> l_mesh = l_data_manager->getLMesh(level_number);
+    IBTK::SAMRAIPointer<LMesh> l_mesh = l_data_manager->getLMesh(level_number);
     for (const auto& n : l_mesh->getLocalNodes())
     {
         const auto lag_idx = n->getLagrangianIndex();

@@ -116,12 +116,12 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the operator.
      */
-    virtual void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+    virtual void setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Get the HierarchyMathOps object used by the operator.
      */
-    virtual SAMRAI::tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
+    virtual SAMRAIPointer<HierarchyMathOps> getHierarchyMathOps() const;
 
     /*!
      * \brief Compute \f$y=F[x]\f$.
@@ -297,7 +297,7 @@ protected:
            d_new_time = std::numeric_limits<double>::quiet_NaN();
 
     // Mathematical operators.
-    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
+    SAMRAIPointer<HierarchyMathOps> d_hier_math_ops;
     bool d_hier_math_ops_external = false;
 
     // Logging configuration.

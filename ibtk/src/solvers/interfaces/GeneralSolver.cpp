@@ -100,14 +100,14 @@ GeneralSolver::getDt() const
 } // getDt
 
 void
-GeneralSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+GeneralSolver::setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
 } // setHierarchyMathOps
 
-Pointer<HierarchyMathOps>
+SAMRAIPointer<HierarchyMathOps>
 GeneralSolver::getHierarchyMathOps() const
 {
     return d_hier_math_ops;

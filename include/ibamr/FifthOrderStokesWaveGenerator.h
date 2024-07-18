@@ -42,8 +42,7 @@ namespace IBAMR
 class FifthOrderStokesWaveGenerator : public StokesWaveGeneratorStrategy
 {
 public:
-    FifthOrderStokesWaveGenerator(const std::string& object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    FifthOrderStokesWaveGenerator(const std::string& object_name, IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * Get surface elevation at a specified horizontal position and time.

@@ -70,10 +70,10 @@ public:
      * \brief Constructor.
      */
     MarangoniSurfaceTensionForceFunction(const std::string& object_name,
-                                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                         IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                          AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> level_set_var,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> T_var,
+                                         IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> level_set_var,
+                                         IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> T_var,
                                          SAMRAI::solv::RobinBcCoefStrategyNd*& T_bc_coef);
 
     /*!
@@ -99,8 +99,8 @@ public:
      * \see setDataOnPatch
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
@@ -110,19 +110,19 @@ public:
      * Set the data on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level =
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
 
     /*!
      * \brief Callback function to compute the marangoni coefficient as a function of temperature and
      * multiply it with the F_data as F_data = marangoni_coef*F_data.
      */
     using ComputeMarangoniCoefPtr = void (*)(int F_idx,
-                                             SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                             IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                              int cycle_num,
                                              double time,
                                              double current_time,
@@ -167,25 +167,25 @@ private:
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchCell(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+    void setDataOnPatchCell(IBTK::SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > F_data,
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                             const double data_time,
                             const bool initial_time,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> level);
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level);
 
     /*!
      * Set the data on the patch interior.
      */
-    void setDataOnPatchSide(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > F_data,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+    void setDataOnPatchSide(IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > F_data,
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                             const double data_time,
                             const bool initial_time,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> level);
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level);
 
     /*!
      * Temperature variable and its patch data index.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_T_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_T_var;
     int d_T_idx = IBTK::invalid_index, d_F_cloned_idx = IBTK::invalid_index;
 
     /*!

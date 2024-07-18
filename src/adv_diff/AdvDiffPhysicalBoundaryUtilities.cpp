@@ -45,15 +45,15 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void
-AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellDataNd<double> > Q_data,
-                                                                Pointer<FaceDataNd<double> > u_ADV_data,
-                                                                Pointer<PatchNd> patch,
+AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(SAMRAIPointer<CellDataNd<double> > Q_data,
+                                                                SAMRAIPointer<FaceDataNd<double> > u_ADV_data,
+                                                                SAMRAIPointer<PatchNd> patch,
                                                                 const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
                                                                 const double fill_time,
                                                                 const bool inflow_boundaries_only,
                                                                 const bool homogeneous_bc)
 {
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     if (!pgeom->getTouchesRegularBoundary()) return;
     const Array<BoundaryBoxNd> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
@@ -95,9 +95,9 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Pointer<CellData
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
             if (bc_coefs[depth] == nullptr) continue;

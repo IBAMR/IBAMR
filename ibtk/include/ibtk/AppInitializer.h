@@ -56,7 +56,7 @@ public:
     /*!
      * Return a pointer to the input database.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> getInputDatabase();
+    SAMRAIPointer<SAMRAI::tbox::Database> getInputDatabase();
 
     /*!
      * Return a boolean value indicating whether this is a restarted run.
@@ -84,7 +84,7 @@ public:
      * database for the application, this method emits a warning message and
      * returns a NullDatabse.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> getRestartDatabase(bool suppress_warning = false);
+    SAMRAIPointer<SAMRAI::tbox::Database> getRestartDatabase(bool suppress_warning = false);
 
     /*!
      * Return initialization database for the requested solver component.  This
@@ -94,8 +94,8 @@ public:
      * If the requested component is not found in the input database, this
      * method emits a warning message and returns a NullDatabse.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> getComponentDatabase(const std::string& component_name,
-                                                                       bool suppress_warning = false);
+    SAMRAIPointer<SAMRAI::tbox::Database> getComponentDatabase(const std::string& component_name,
+                                                               bool suppress_warning = false);
 
     /*!
      * Return a boolean value indicating whether to write visualization data.
@@ -124,7 +124,7 @@ public:
      * If the application is not configured to use VisIt, a NULL pointer will be
      * returned.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriterNd> getVisItDataWriter() const;
+    SAMRAIPointer<SAMRAI::appu::VisItDataWriterNd> getVisItDataWriter() const;
 
     /*!
      * Return a VisIt data writer object to be used to output Lagrangian data.
@@ -132,7 +132,7 @@ public:
      * If the application is not configured to use VisIt, a NULL pointer will be
      * returned.
      */
-    SAMRAI::tbox::Pointer<LSiloDataWriter> getLSiloDataWriter() const;
+    SAMRAIPointer<LSiloDataWriter> getLSiloDataWriter() const;
 
     /*!
      * Return the ExodusII visualization file name.
@@ -218,7 +218,7 @@ private:
     /*!
      * The input database.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_input_db;
+    SAMRAIPointer<SAMRAI::tbox::Database> d_input_db;
 
     /*!
      * Restart settings.
@@ -233,8 +233,8 @@ private:
     int d_viz_dump_interval = 0;
     std::string d_viz_dump_dirname;
     std::vector<std::string> d_viz_writers;
-    SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriterNd> d_visit_data_writer;
-    SAMRAI::tbox::Pointer<LSiloDataWriter> d_silo_data_writer;
+    SAMRAIPointer<SAMRAI::appu::VisItDataWriterNd> d_visit_data_writer;
+    SAMRAIPointer<LSiloDataWriter> d_silo_data_writer;
     std::string d_exodus_filename = "output.ex2", d_gmv_filename = "output.gmv";
 
     /*!

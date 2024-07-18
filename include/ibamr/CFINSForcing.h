@@ -149,11 +149,11 @@ public:
      * tensor or square root or logarithm of the conformation tensor).
      */
     CFINSForcing(const std::string& object_name,
-                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                 SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn,
-                 SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry,
-                 SAMRAI::tbox::Pointer<IBAMR::AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
-                 SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriterNd> visit_data_writer);
+                 IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                 IBTK::SAMRAIPointer<IBTK::CartGridFunction> u_fcn,
+                 IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry,
+                 IBTK::SAMRAIPointer<IBAMR::AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
+                 IBTK::SAMRAIPointer<SAMRAI::appu::VisItDataWriterNd> visit_data_writer);
 
     /*!
      * \brief This constructor creates Variable and VariableContext objects for storing the viscoleastic stresses at the
@@ -163,11 +163,11 @@ public:
      * quantity being solved for (e.g. Conformation tensor or square root or logarithm of the conformation tensor).
      */
     CFINSForcing(const std::string& object_name,
-                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> app_initializer,
-                 const SAMRAI::tbox::Pointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
-                 SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry,
-                 SAMRAI::tbox::Pointer<IBAMR::AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
-                 SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriterNd> visit_data_writer);
+                 IBTK::SAMRAIPointer<SAMRAI::tbox::Database> app_initializer,
+                 const IBTK::SAMRAIPointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
+                 IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry,
+                 IBTK::SAMRAIPointer<IBAMR::AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
+                 IBTK::SAMRAIPointer<SAMRAI::appu::VisItDataWriterNd> visit_data_writer);
 
     /*!
      * \brief Deallocates draw data and deletes boundary conditions.
@@ -177,7 +177,7 @@ public:
     /*!
      * \brief This function returns a pointer to the cell variable that stores the viscoelastic stress.
      */
-    inline SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> getVariable()
+    inline IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> getVariable()
     {
         return d_C_cc_var;
     }
@@ -197,7 +197,7 @@ public:
      * \note This function only should be called when <code>fluid_model</code> is set to <code>USER_DEFINED</code> in
      * the input file.
      */
-    void registerCFStrategy(SAMRAI::tbox::Pointer<CFStrategy> rhs);
+    void registerCFStrategy(IBTK::SAMRAIPointer<CFStrategy> rhs);
 
     /*!
      * \name Methods to set patch data.
@@ -214,8 +214,8 @@ public:
      * \brief Compute the divergence of the stress tensor. Also sets up requested visualizations.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = IBTK::invalid_level_number,
@@ -225,19 +225,19 @@ public:
      * \brief Evaluate the divergence on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level =
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
 
     /*!
      * \brief Evaluate the divergence on the specified patch level.
      */
     void setDataOnPatchLevel(const int data_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> level,
+                             IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                             IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level,
                              const double data_time,
                              const bool initial_time) override;
     //\}
@@ -246,14 +246,14 @@ public:
      * \brief Check whether the provided patch index stores a positive definite tensor.
      */
     void checkPositiveDefinite(const int data_idx,
-                               const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                               const IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
                                const double data_time,
                                const bool initial_time);
 
     /*!
      * \brief Tag cells based on the specifications provided in the input database.
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void applyGradientDetector(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -264,12 +264,12 @@ public:
      * \brief Projects the symmetric tensor stored in data_idx to the nearest non negative matrix in the L2 norm.
      */
     void projectTensor(const int data_idx,
-                       const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                       const IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
                        const double data_time,
                        const bool initial_time,
                        const bool extended_box);
 
-    static void apply_gradient_detector_callback(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    static void apply_gradient_detector_callback(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                                  int level_number,
                                                  double error_data_time,
                                                  int tag_index,
@@ -282,22 +282,22 @@ public:
     /*!
      * \brief Return the advection diffusion integrator used to evolve the conformation tensor.
      */
-    inline SAMRAI::tbox::Pointer<AdvDiffSemiImplicitHierarchyIntegrator> getAdvDiffHierarchyIntegrator()
+    inline IBTK::SAMRAIPointer<AdvDiffSemiImplicitHierarchyIntegrator> getAdvDiffHierarchyIntegrator()
     {
         return d_adv_diff_integrator;
     }
 
 private:
-    void commonConstructor(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                           SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriterNd> visit_data_writer,
-                           SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry,
+    void commonConstructor(const IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                           IBTK::SAMRAIPointer<SAMRAI::appu::VisItDataWriterNd> visit_data_writer,
+                           IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry,
                            std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> vel_bcs);
 
     /*!
      * \brief Compute the determinant of the symmetric tensor stored in data_idx. Fills in d_max_det and d_min_det.
      */
     void findDeterminant(const int data_idx,
-                         const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
+                         const IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
                          const double data_time,
                          const bool initial_time);
 
@@ -305,8 +305,8 @@ private:
      * \brief Square the symmetric tensor stored in data_idx in place.
      */
     void squareMatrix(const int data_idx,
-                      const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                      const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                      const IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                      const IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                       const double data_time,
                       const bool initial_time,
                       const int coarsest_ln,
@@ -317,8 +317,8 @@ private:
      * \brief Exponentiate the symmetric tensor stored in data_idx in place.
      */
     void exponentiateMatrix(const int data_idx,
-                            const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                            const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                            const IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                            const IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                             const double data_time,
                             const bool initial_time,
                             const int coarsest_ln,
@@ -331,13 +331,13 @@ private:
     void setupPlotConformationTensor(int C_cc_idx);
 
     // Scratch variables
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_C_cc_var;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_C_cc_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_context;
     int d_C_scratch_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<IBTK::muParserCartGridFunction> d_init_conds;
+    IBTK::SAMRAIPointer<IBTK::muParserCartGridFunction> d_init_conds;
 
     // Draw Variables
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_conform_var_draw, d_stress_var_draw,
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_conform_var_draw, d_stress_var_draw,
         d_div_sig_var_draw;
     int d_conform_idx_draw = IBTK::invalid_index, d_stress_idx_draw = IBTK::invalid_index,
         d_div_sig_idx_draw = IBTK::invalid_index;
@@ -347,8 +347,8 @@ private:
     std::string d_fluid_model = "OLDROYDB", d_interp_type = "LINEAR";
     bool d_project_conform = true;
     TensorEvolutionType d_evolve_type = STANDARD;
-    SAMRAI::tbox::Pointer<AdvDiffSemiImplicitHierarchyIntegrator> d_adv_diff_integrator;
-    SAMRAI::tbox::Pointer<CFUpperConvectiveOperator> d_convec_oper;
+    IBTK::SAMRAIPointer<AdvDiffSemiImplicitHierarchyIntegrator> d_adv_diff_integrator;
+    IBTK::SAMRAIPointer<CFUpperConvectiveOperator> d_convec_oper;
 
     /**
      * Boundary conditions.
@@ -360,7 +360,7 @@ private:
      */
     std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_conc_bc_coefs_ptrs;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
 
     // Logging parameters
     double d_max_det = std::numeric_limits<double>::quiet_NaN(), d_min_det = std::numeric_limits<double>::quiet_NaN();
@@ -373,11 +373,11 @@ private:
     bool d_div_sig_rel_tag = false, d_div_sig_abs_tag = false;
 
     // Velocity information
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_u_fcn;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > d_u_var;
+    IBTK::SAMRAIPointer<IBTK::CartGridFunction> d_u_fcn;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > d_u_var;
 
     // Strategy for computing stress and relaxation.
-    SAMRAI::tbox::Pointer<CFStrategy> d_cf_strategy;
+    IBTK::SAMRAIPointer<CFStrategy> d_cf_strategy;
 };
 } // Namespace IBAMR
 #endif

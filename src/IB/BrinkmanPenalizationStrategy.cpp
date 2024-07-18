@@ -73,7 +73,7 @@ BrinkmanPenalizationStrategy::postprocessComputeBrinkmanPenalization(double /*cu
 } // postprocessComputeBrinkmanPenalization
 
 void
-BrinkmanPenalizationStrategy::putToDatabase(Pointer<Database> /*db*/)
+BrinkmanPenalizationStrategy::putToDatabase(SAMRAIPointer<Database> /*db*/)
 {
     return;
 } // putToDatabase

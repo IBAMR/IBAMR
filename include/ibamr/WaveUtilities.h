@@ -39,19 +39,19 @@ struct WaveGenerationData
     /*
      * Pointers to the fluid and advection-diffusion integrators.
      */
-    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
+    IBTK::SAMRAIPointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
+    IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
 
     /*
      * Pointer to the level set variable representing the wave interface.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_phi_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_phi_var;
 
     /*
      *  Pointer to phi variable's new context.
      *  \note We modify the phi value after the end of each timestep.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_phi_new_ctx;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_phi_new_ctx;
 
     /*
      * Start and end coordinates of the generation zone, and the damping coefficient.
@@ -75,19 +75,19 @@ struct WaveDampingData
     /*
      * Pointers to the fluid and advection-diffusion integrators.
      */
-    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
+    IBTK::SAMRAIPointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_ins_hier_integrator;
+    IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_hier_integrator;
 
     /*
      * Pointer to the level set variable representing the wave interface.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_phi_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_phi_var;
 
     /*
      *  Pointer to phi variable's new context.
      *  \note We modify the phi value after the end of each timestep.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_phi_new_ctx;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_phi_new_ctx;
 
     /*
      * Start and end coordinates of the damping zone, water depth, and damping coefficient.

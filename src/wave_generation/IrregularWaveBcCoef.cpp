@@ -53,8 +53,8 @@ static const unsigned SEED = 1234567;
 
 IrregularWaveBcCoef::IrregularWaveBcCoef(std::string object_name,
                                          const int comp_idx,
-                                         Pointer<Database> input_db,
-                                         Pointer<CartesianGridGeometryNd> grid_geom)
+                                         SAMRAIPointer<Database> input_db,
+                                         SAMRAIPointer<CartesianGridGeometryNd> grid_geom)
     : d_object_name(std::move(object_name)),
       d_comp_idx(comp_idx),
       d_muparser_bcs(d_object_name + "::muParser", input_db, grid_geom),
@@ -158,10 +158,10 @@ IrregularWaveBcCoef::~IrregularWaveBcCoef()
 } // ~IrregularWaveBcCoef
 
 void
-IrregularWaveBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
-                                Pointer<ArrayDataNd<double> >& bcoef_data,
-                                Pointer<ArrayDataNd<double> >& gcoef_data,
-                                const Pointer<VariableNd>& variable,
+IrregularWaveBcCoef::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                const SAMRAIPointer<VariableNd>& variable,
                                 const PatchNd& patch,
                                 const BoundaryBoxNd& bdry_box,
                                 double fill_time) const
@@ -169,7 +169,7 @@ IrregularWaveBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
     // Get pgeom info.
     const BoxNd& patch_box = patch.getBox();
     const SAMRAI::hier::IndexNd& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
@@ -250,9 +250,9 @@ IrregularWaveBcCoef::numberOfExtensionsFillable() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IrregularWaveBcCoef::getFromInput(Pointer<Database> input_db)
+IrregularWaveBcCoef::getFromInput(SAMRAIPointer<Database> input_db)
 {
-    Pointer<Database> wave_db = input_db->getDatabase("wave_parameters_db");
+    SAMRAIPointer<Database> wave_db = input_db->getDatabase("wave_parameters_db");
 #if !defined(NDEBUG)
     TBOX_ASSERT(input_db->isDatabase("wave_parameters_db"));
 #endif

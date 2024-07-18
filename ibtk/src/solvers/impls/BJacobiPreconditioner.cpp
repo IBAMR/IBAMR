@@ -42,7 +42,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 BJacobiPreconditioner::BJacobiPreconditioner(std::string object_name,
-                                             Pointer<Database> input_db,
+                                             SAMRAIPointer<Database> input_db,
                                              const std::string& /*default_options_prefix*/)
 {
     // Setup default options.
@@ -70,7 +70,8 @@ BJacobiPreconditioner::~BJacobiPreconditioner()
 } // ~BJacobiPreconditioner()
 
 void
-BJacobiPreconditioner::setComponentPreconditioner(Pointer<LinearSolver> preconditioner, const unsigned int component)
+BJacobiPreconditioner::setComponentPreconditioner(SAMRAIPointer<LinearSolver> preconditioner,
+                                                  const unsigned int component)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(preconditioner);
@@ -86,7 +87,7 @@ BJacobiPreconditioner::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRe
     const bool deallocate_after_solve = !d_is_initialized;
     if (deallocate_after_solve) initializeSolverState(x, b);
 
-    Pointer<PatchHierarchyNd> hierarchy = x.getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
 #if !defined(NDEBUG)
@@ -120,7 +121,7 @@ BJacobiPreconditioner::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRe
             b.getComponentVariable(comp), b.getComponentDescriptorIndex(comp), b.getControlVolumeIndex(comp));
 
         // Configure the component preconditioner.
-        Pointer<LinearSolver> pc_comp = d_pc_map[comp];
+        SAMRAIPointer<LinearSolver> pc_comp = d_pc_map[comp];
         pc_comp->setInitialGuessNonzero(d_initial_guess_nonzero);
         pc_comp->setMaxIterations(d_max_iterations);
         pc_comp->setAbsoluteTolerance(d_abs_residual_tol);
@@ -139,7 +140,7 @@ BJacobiPreconditioner::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRe
 void
 BJacobiPreconditioner::initializeSolverState(const SAMRAIVectorRealNd<double>& x, const SAMRAIVectorRealNd<double>& b)
 {
-    Pointer<PatchHierarchyNd> hierarchy = x.getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
 #if !defined(NDEBUG)

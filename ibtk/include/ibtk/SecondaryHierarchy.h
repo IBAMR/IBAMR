@@ -55,8 +55,8 @@ public:
      * gridding classes.
      */
     SecondaryHierarchy(std::string name,
-                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
-                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db);
+                       SAMRAIPointer<SAMRAI::tbox::Database> gridding_algorithm_db,
+                       SAMRAIPointer<SAMRAI::tbox::Database> load_balancer_db);
 
     /**
      * Reinitialize the secondary hierarchy by performing a copy of the
@@ -66,14 +66,14 @@ public:
      */
     void reinit(int coarsest_patch_level_number,
                 int finest_patch_level_number,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy);
+                SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy);
 
     /**
      * Reinitialize the secondary hierarchy based on a new patch hierarchy.
      */
     void reinit(int coarsest_patch_level_number,
                 int finest_patch_level_number,
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                 int workload_idx);
 
     /*!
@@ -108,12 +108,12 @@ public:
     /*!
      * Get a copy of the pointer to the primary hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> getPrimaryHierarchy();
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> getPrimaryHierarchy();
 
     /*!
      * Get a copy of the pointer to the primary hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> getSecondaryHierarchy();
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> getSecondaryHierarchy();
 
 protected:
     /**
@@ -124,12 +124,12 @@ protected:
     /*!
      * Pointer to the primary patch hierarchy (i.e., the one not by this class).
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_primary_hierarchy;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_primary_hierarchy;
 
     /*!
      * Pointer to the secondary patch hierarchy (i.e., the one managed by this class).
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_secondary_hierarchy;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_secondary_hierarchy;
 
     /**
      * Coarsest level on which there are patches with elements (i.e.,
@@ -157,7 +157,7 @@ protected:
      * @note this object has to be persistent since d_gridding_alg
      * requires it: see the note for that member object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::TagAndInitializeStrategyNd> d_error_detector;
+    SAMRAIPointer<SAMRAI::mesh::TagAndInitializeStrategyNd> d_error_detector;
 
     /**
      * Box generator.
@@ -165,7 +165,7 @@ protected:
      * @note this object has to be persistent since d_gridding_alg
      * requires it: see the note for that member object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::BoxGeneratorStrategyNd> d_box_generator;
+    SAMRAIPointer<SAMRAI::mesh::BoxGeneratorStrategyNd> d_box_generator;
 
     /**
      * Load balancer.
@@ -173,7 +173,7 @@ protected:
      * @note this object has to be persistent since d_scratch_gridding_alg
      * requires it: see the note for that member object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancerNd> d_load_balancer;
+    SAMRAIPointer<SAMRAI::mesh::LoadBalancerNd> d_load_balancer;
 
     /**
      * Gridding algorithm.
@@ -183,7 +183,7 @@ protected:
      * a restarted simulation without a corresponding entry in the restart
      * database.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> d_gridding_algorithm;
+    SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> d_gridding_algorithm;
 
     /*!
      * Refinement schedules for transferring data from the primary hierarchy to
@@ -193,7 +193,7 @@ protected:
      * @note this function assumes that only data on the finest level needs to
      * be transferred.
      */
-    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >
+    std::map<std::pair<int, std::pair<int, int> >, SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >
         d_transfer_forward_schedules;
 
     /*!
@@ -205,7 +205,7 @@ protected:
      * @note this function assumes that only data on the finest level needs to
      * be transferred.
      */
-    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >
+    std::map<std::pair<int, std::pair<int, int> >, SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >
         d_transfer_backward_schedules;
 
     /**

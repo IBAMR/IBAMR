@@ -105,8 +105,8 @@ public:
      * boundary locations where normal traction conditions are imposed. Values can also
      * be set where normal velocity boundary conditions, or both.
      */
-    void enforceDivergenceFreeConditionAtBoundary(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > u_data,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+    void enforceDivergenceFreeConditionAtBoundary(IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > u_data,
+                                                  IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                                   short int bdry_tag = NORMAL_TRACTION_BDRY) const;
 
     /*!

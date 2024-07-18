@@ -112,15 +112,15 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
-                                           Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                                           Pointer<CIBStrategy> cib_strategy,
-                                           Pointer<Database> input_db,
+                                           SAMRAIPointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                                           SAMRAIPointer<CIBStrategy> cib_strategy,
+                                           SAMRAIPointer<Database> input_db,
                                            std::string default_options_prefix,
                                            MPI_Comm petsc_comm)
     : d_object_name(std::move(object_name)),
       d_options_prefix(std::move(default_options_prefix)),
       d_petsc_comm(petsc_comm),
-      d_samrai_temp(2, Pointer<SAMRAIVectorRealNd<PetscScalar> >(nullptr)),
+      d_samrai_temp(2, SAMRAIPointer<SAMRAIVectorRealNd<PetscScalar> >(nullptr)),
       d_ins_integrator(navier_stokes_integrator),
       d_cib_strategy(cib_strategy)
 {
@@ -130,7 +130,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     // Create the Stokes solver (LInv) for the linear operator.
     // Create databases for setting up LInv solver.
     std::string stokes_solver_type = StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> stokes_solver_db = nullptr;
+    SAMRAIPointer<Database> stokes_solver_db = nullptr;
     if (input_db->keyExists("stokes_solver_type"))
     {
         stokes_solver_type = input_db->getString("stokes_solver_type");
@@ -146,7 +146,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     }
 
     std::string stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
-    Pointer<Database> stokes_precond_db = nullptr;
+    SAMRAIPointer<Database> stokes_precond_db = nullptr;
     if (input_db->keyExists("stokes_precond_type"))
     {
         stokes_precond_type = input_db->getString("stokes_precond_type");
@@ -162,7 +162,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     }
 
     std::string velocity_solver_type = IBTK::SCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> velocity_solver_db = nullptr;
+    SAMRAIPointer<Database> velocity_solver_db = nullptr;
     if (input_db->keyExists("velocity_solver_type"))
     {
         velocity_solver_type = input_db->getString("velocity_solver_type");
@@ -180,7 +180,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     }
 
     std::string velocity_precond_type = IBTK::SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> velocity_precond_db = nullptr;
+    SAMRAIPointer<Database> velocity_precond_db = nullptr;
     if (input_db->keyExists("velocity_precond_type"))
     {
         velocity_precond_type = input_db->getString("velocity_precond_type");
@@ -197,7 +197,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
 
     std::string pressure_solver_type = IBTK::CCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
     ;
-    Pointer<Database> pressure_solver_db = nullptr;
+    SAMRAIPointer<Database> pressure_solver_db = nullptr;
     if (input_db->keyExists("pressure_solver_type"))
     {
         pressure_solver_type = input_db->getString("pressure_solver_type");
@@ -215,7 +215,7 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     }
 
     std::string pressure_precond_type = IBTK::CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> pressure_precond_db = nullptr;
+    SAMRAIPointer<Database> pressure_precond_db = nullptr;
     if (input_db->keyExists("pressure_precond_type"))
     {
         pressure_precond_type = input_db->getString("pressure_precond_type");
@@ -269,10 +269,10 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
 
     // Register velocity and pressure solvers with LInv.
-    Pointer<IBTK::LinearSolver> p_stokes_linear_solver = d_LInv;
+    SAMRAIPointer<IBTK::LinearSolver> p_stokes_linear_solver = d_LInv;
     if (!p_stokes_linear_solver)
     {
-        Pointer<IBTK::NewtonKrylovSolver> p_stokes_newton_solver = d_LInv;
+        SAMRAIPointer<IBTK::NewtonKrylovSolver> p_stokes_newton_solver = d_LInv;
         if (p_stokes_newton_solver)
         {
             p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
@@ -280,10 +280,10 @@ KrylovMobilitySolver::KrylovMobilitySolver(std::string object_name,
     }
     if (p_stokes_linear_solver)
     {
-        Pointer<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
+        SAMRAIPointer<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
         if (!p_stokes_block_pc)
         {
-            Pointer<IBTK::KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
+            SAMRAIPointer<IBTK::KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
             if (p_stokes_krylov_solver)
             {
                 p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
@@ -369,7 +369,7 @@ KrylovMobilitySolver::getPETScKSP() const
     return d_petsc_ksp;
 } // getPETScKSP
 
-Pointer<StaggeredStokesSolver>
+SAMRAIPointer<StaggeredStokesSolver>
 KrylovMobilitySolver::getStokesSolver() const
 {
     return d_LInv;
@@ -413,7 +413,7 @@ KrylovMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd
 } // setPhysicalBcCoefs
 
 void
-KrylovMobilitySolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+KrylovMobilitySolver::setPhysicalBoundaryHelper(SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     d_LInv->setPhysicalBoundaryHelper(bc_helper);
 } // setPhysicalBoundaryHelper
@@ -469,7 +469,7 @@ KrylovMobilitySolver::initializeSolverState(Vec x, Vec b)
     Vec *vx, *vb;
     VecNestGetSubVecs(x, nullptr, &vx);
     VecNestGetSubVecs(b, nullptr, &vb);
-    Pointer<SAMRAIVectorRealNd<double> > vx0, vb0;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > vx0, vb0;
 
     // Create the RHS Vec to be used in the KSP object.
     VecDuplicate(vb[1], &d_petsc_b);
@@ -568,7 +568,7 @@ KrylovMobilitySolver::deallocateSolverState()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-KrylovMobilitySolver::getFromInput(Pointer<Database> input_db)
+KrylovMobilitySolver::getFromInput(SAMRAIPointer<Database> input_db)
 {
     if (input_db->keyExists("options_prefix")) d_options_prefix = input_db->getString("options_prefix");
     if (input_db->keyExists("max_iterations")) d_max_iterations = input_db->getInteger("max_iterations");
@@ -587,7 +587,7 @@ void
 KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorRealNd<double>& sol_vec,
                                              const SAMRAIVectorRealNd<double>& rhs_vec)
 {
-    Pointer<PatchHierarchyNd> patch_hier = sol_vec.getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = sol_vec.getPatchHierarchy();
     const int coarsest_ln = sol_vec.getCoarsestLevelNumber();
     const int finest_ln = sol_vec.getFinestLevelNumber();
 
@@ -629,14 +629,14 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorRealNd<double>& s
             d_U_nul_vecs[k]->setToScalar(0.0);
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevelNd> level = patch_hier->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = patch_hier->getPatchLevel(ln);
                 for (PatchLevelNd::Iterator p(level); p; p++)
                 {
-                    Pointer<PatchNd> patch = level->getPatch(p());
-                    Pointer<SideDataNd<double> > nul_data =
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                    SAMRAIPointer<SideDataNd<double> > nul_data =
                         patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                     nul_data->getArrayData(k).fillAll(1.0);
-                    Pointer<SideDataNd<double> > U_nul_data =
+                    SAMRAIPointer<SideDataNd<double> > U_nul_data =
                         patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                     U_nul_data->getArrayData(k).fillAll(1.0);
                 }
@@ -661,10 +661,10 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorRealNd<double>& s
     const int b_u_idx = rhs_vec.getComponentDescriptorIndex(0);
     const int b_p_idx = rhs_vec.getComponentDescriptorIndex(1);
 
-    Pointer<SideVariableNd<double> > x_u_sc_var = sol_vec.getComponentVariable(0);
-    Pointer<CellVariableNd<double> > x_p_cc_var = sol_vec.getComponentVariable(1);
-    Pointer<SideVariableNd<double> > b_u_sc_var = rhs_vec.getComponentVariable(0);
-    Pointer<CellVariableNd<double> > b_p_cc_var = rhs_vec.getComponentVariable(1);
+    SAMRAIPointer<SideVariableNd<double> > x_u_sc_var = sol_vec.getComponentVariable(0);
+    SAMRAIPointer<CellVariableNd<double> > x_p_cc_var = sol_vec.getComponentVariable(1);
+    SAMRAIPointer<SideVariableNd<double> > b_u_sc_var = rhs_vec.getComponentVariable(0);
+    SAMRAIPointer<CellVariableNd<double> > b_p_cc_var = rhs_vec.getComponentVariable(1);
 
     SAMRAIVectorRealNd<double> x_u_vec(d_object_name + "::x_u_vec", patch_hier, coarsest_ln, finest_ln);
     SAMRAIVectorRealNd<double> b_u_vec(d_object_name + "::b_u_vec", patch_hier, coarsest_ln, finest_ln);
@@ -866,7 +866,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     void* p_ctx;
     MatShellGetContext(A, &p_ctx);
     auto solver = static_cast<KrylovMobilitySolver*>(p_ctx);
-    Pointer<IBStrategy> ib_method_ops = solver->d_cib_strategy;
+    SAMRAIPointer<IBStrategy> ib_method_ops = solver->d_cib_strategy;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
@@ -889,7 +889,7 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
     solver->d_cib_strategy->setConstraintForce(x, half_time, gamma);
     ib_method_ops->spreadForce(solver->d_samrai_temp[0]->getComponentDescriptorIndex(0),
                                nullptr,
-                               std::vector<Pointer<RefineScheduleNd> >(),
+                               std::vector<SAMRAIPointer<RefineScheduleNd> >(),
                                half_time);
     if (solver->d_normalize_spread_force)
     {
@@ -920,8 +920,10 @@ KrylovMobilitySolver::MatVecMult_KMInv(Mat A, Vec x, Vec y)
 
     // 3b) Interpolate velocity
     solver->d_cib_strategy->setInterpolatedVelocityVector(y, half_time);
-    ib_method_ops->interpolateVelocity(
-        u_data_idx, std::vector<Pointer<CoarsenScheduleNd> >(), std::vector<Pointer<RefineScheduleNd> >(), half_time);
+    ib_method_ops->interpolateVelocity(u_data_idx,
+                                       std::vector<SAMRAIPointer<CoarsenScheduleNd> >(),
+                                       std::vector<SAMRAIPointer<RefineScheduleNd> >(),
+                                       half_time);
     solver->d_cib_strategy->getInterpolatedVelocity(y, half_time, beta);
 
     // 4) Regularize mobility.

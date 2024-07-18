@@ -84,8 +84,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 muParserCartGridFunction::muParserCartGridFunction(std::string object_name,
-                                                   Pointer<Database> input_db,
-                                                   Pointer<CartesianGridGeometryNd> grid_geom)
+                                                   SAMRAIPointer<Database> input_db,
+                                                   SAMRAIPointer<CartesianGridGeometryNd> grid_geom)
     : CartGridFunction(std::move(object_name)), d_grid_geom(grid_geom)
 {
 #if !defined(NDEBUG)
@@ -268,31 +268,31 @@ muParserCartGridFunction::isTimeDependent() const
 
 void
 muParserCartGridFunction::setDataOnPatch(const int data_idx,
-                                         Pointer<VariableNd> /*var*/,
-                                         Pointer<PatchNd> patch,
+                                         SAMRAIPointer<VariableNd> /*var*/,
+                                         SAMRAIPointer<PatchNd> patch,
                                          const double data_time,
                                          const bool /*initial_time*/,
-                                         Pointer<PatchLevelNd> /*level*/)
+                                         SAMRAIPointer<PatchLevelNd> /*level*/)
 {
     d_parser_time = data_time;
 
     const BoxNd& patch_box = patch->getBox();
     const hier::IndexNd& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
     const double* const XLower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
     // Set the data in the patch.
-    Pointer<PatchDataNd> data = patch->getPatchData(data_idx);
+    SAMRAIPointer<PatchDataNd> data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(data);
 #endif
-    Pointer<CellDataNd<double> > cc_data = data;
-    Pointer<FaceDataNd<double> > fc_data = data;
-    Pointer<NodeDataNd<double> > nc_data = data;
-    Pointer<SideDataNd<double> > sc_data = data;
-    Pointer<EdgeDataNd<double> > ec_data = data;
+    SAMRAIPointer<CellDataNd<double> > cc_data = data;
+    SAMRAIPointer<FaceDataNd<double> > fc_data = data;
+    SAMRAIPointer<NodeDataNd<double> > nc_data = data;
+    SAMRAIPointer<SideDataNd<double> > sc_data = data;
+    SAMRAIPointer<EdgeDataNd<double> > ec_data = data;
     if (cc_data)
     {
 #if !defined(NDEBUG)

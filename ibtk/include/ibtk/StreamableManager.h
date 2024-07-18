@@ -98,7 +98,7 @@ public:
      * same Streamable ID has been registered with the manager.  Every different
      * Streamable/StreamableFactory type \em must have a unique ID.
      */
-    bool checkFactoryRegistration(SAMRAI::tbox::Pointer<StreamableFactory> factory);
+    bool checkFactoryRegistration(SAMRAIPointer<StreamableFactory> factory);
 
     /*!
      * Register a StreamableFactory with the manager.
@@ -110,42 +110,42 @@ public:
      * streamable class registered with the manager, this method is collective on
      * all MPI processes!
      */
-    int registerFactory(SAMRAI::tbox::Pointer<StreamableFactory> factory);
+    int registerFactory(SAMRAIPointer<StreamableFactory> factory);
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
      * Streamable object to a buffer.
      */
-    size_t getDataStreamSize(SAMRAI::tbox::Pointer<Streamable> data_item) const;
+    size_t getDataStreamSize(SAMRAIPointer<Streamable> data_item) const;
 
     /*!
      * \brief Return an upper bound on the amount of space required to pack a
      * vector of Streamable objects to a buffer.
      */
-    size_t getDataStreamSize(const std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items) const;
+    size_t getDataStreamSize(const std::vector<SAMRAIPointer<Streamable> >& data_items) const;
 
     /*!
      * \brief Pack a Streamable object into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream, SAMRAI::tbox::Pointer<Streamable> data_item);
+    void packStream(SAMRAI::tbox::AbstractStream& stream, SAMRAIPointer<Streamable> data_item);
 
     /*!
      * \brief Pack a vector of Streamable objects into the output stream.
      */
-    void packStream(SAMRAI::tbox::AbstractStream& stream, std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
+    void packStream(SAMRAI::tbox::AbstractStream& stream, std::vector<SAMRAIPointer<Streamable> >& data_items);
 
     /*!
      * \brief Unpack a Streamable object from the data stream.
      */
-    SAMRAI::tbox::Pointer<Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                   const SAMRAI::hier::IntVectorNd& offset);
+    SAMRAIPointer<Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                           const SAMRAI::hier::IntVectorNd& offset);
 
     /*!
      * \brief Unpack a vector of Streamable objects from the data stream.
      */
     void unpackStream(SAMRAI::tbox::AbstractStream& stream,
                       const SAMRAI::hier::IntVectorNd& offset,
-                      std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items);
+                      std::vector<SAMRAIPointer<Streamable> >& data_items);
 
 protected:
     /*!
@@ -167,7 +167,7 @@ protected:
     static int createUniqueID();
 
 private:
-    using StreamableFactoryMap = std::map<int, SAMRAI::tbox::Pointer<StreamableFactory> >;
+    using StreamableFactoryMap = std::map<int, SAMRAIPointer<StreamableFactory> >;
 
     /*!
      * \brief Copy constructor.

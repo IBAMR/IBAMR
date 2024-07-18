@@ -307,7 +307,7 @@ FEData::getFromRestart()
 } // getFromRestart
 
 void
-FEData::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> /*db*/)
+FEData::putToDatabase(SAMRAIPointer<SAMRAI::tbox::Database> /*db*/)
 {
 } // putToDatabase
 
@@ -371,7 +371,7 @@ FEData::clearPatchHierarchyDependentData()
 SubdomainToPatchLevelTranslation::SubdomainToPatchLevelTranslation(
     const int max_level_number,
     const std::set<libMesh::subdomain_id_type>& subdomain_ids,
-    const Pointer<Database>& input_db)
+    const SAMRAIPointer<Database>& input_db)
     : d_max_level_number(max_level_number)
 {
     std::fill(d_fixed.begin(), d_fixed.end(), IBTK::invalid_level_number);
@@ -427,7 +427,7 @@ unsigned char FEDataManager::s_shutdown_priority = 200;
 FEDataManager*
 FEDataManager::getManager(std::shared_ptr<FEData> fe_data,
                           const std::string& name,
-                          const Pointer<Database>& input_db,
+                          const SAMRAIPointer<Database>& input_db,
                           const int max_levels,
                           const FEDataManager::InterpSpec& default_interp_spec,
                           const FEDataManager::SpreadSpec& default_spread_spec,
@@ -503,7 +503,7 @@ FEDataManager::getDofMapCache(unsigned int system_num)
 } // getDofMapCache
 
 void
-FEDataManager::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
+FEDataManager::setPatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
     // Reset the hierarchy.
     TBOX_ASSERT(hierarchy);
@@ -521,7 +521,7 @@ FEDataManager::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
     return;
 } // setPatchHierarchy
 
-Pointer<PatchHierarchyNd>
+SAMRAIPointer<PatchHierarchyNd>
 FEDataManager::getPatchHierarchy() const
 {
     return d_hierarchy;
@@ -626,7 +626,7 @@ FEDataManager::reinitElementMappings()
     // velocity at that point. Hence try to detect it by checking that all nodes
     // are on the interior of some patch (or outside the domain) at the moment.
     {
-        const Pointer<CartesianGridGeometryNd> hier_geom = d_hierarchy->getGridGeometry();
+        const SAMRAIPointer<CartesianGridGeometryNd> hier_geom = d_hierarchy->getGridGeometry();
         // TODO - we only support single box geometries right now
         TBOX_ASSERT(hier_geom);
         const double* const hier_x_lower = hier_geom->getXLower();
@@ -644,12 +644,12 @@ FEDataManager::reinitElementMappings()
         std::vector<dof_id_type> X_idxs;
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
             for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
             {
-                const Pointer<PatchNd> patch = level->getPatch(p());
-                const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* const patch_x_lower = patch_geom->getXLower();
                 const double* const patch_x_upper = patch_geom->getXUpper();
 
@@ -982,10 +982,10 @@ FEDataManager::spread(const int f_data_idx,
 
     // Determine the type of data centering.
     auto var_db = VariableDatabaseNd::getDatabase();
-    Pointer<hier::VariableNd> f_var;
+    SAMRAIPointer<hier::VariableNd> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<CellVariableNd<double> > f_cc_var = f_var;
-    Pointer<SideVariableNd<double> > f_sc_var = f_var;
+    SAMRAIPointer<CellVariableNd<double> > f_cc_var = f_var;
+    SAMRAIPointer<SideVariableNd<double> > f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
@@ -1056,7 +1056,7 @@ FEDataManager::spread(const int f_data_idx,
 
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
             // Spread from the nodes.
             for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
@@ -1066,8 +1066,8 @@ FEDataManager::spread(const int f_data_idx,
                 const size_t num_active_patch_nodes = patch_nodes.size();
                 if (!num_active_patch_nodes) continue;
 
-                const Pointer<PatchNd> patch = level->getPatch(p());
-                const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* const patch_x_lower = patch_geom->getXLower();
                 const double* const patch_x_upper = patch_geom->getXUpper();
                 std::array<bool, NDIM> touches_upper_regular_bdry;
@@ -1116,16 +1116,16 @@ FEDataManager::spread(const int f_data_idx,
                 //
                 // \todo Add warnings for FE structures with periodic boundaries.
                 const BoxNd spread_box = patch->getBox();
-                Pointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
+                SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
                 if (cc_data)
                 {
-                    Pointer<CellDataNd<double> > f_cc_data = f_data;
+                    SAMRAIPointer<CellDataNd<double> > f_cc_data = f_data;
                     LEInteractor::spread(
                         f_cc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
                 }
                 if (sc_data)
                 {
-                    Pointer<SideDataNd<double> > f_sc_data = f_data;
+                    SAMRAIPointer<SideDataNd<double> > f_sc_data = f_data;
                     LEInteractor::spread(
                         f_sc_data, F_x_dX_node, n_vars, X_node, NDIM, patch, spread_box, spread_spec.kernel_fcn);
                 }
@@ -1152,7 +1152,7 @@ FEDataManager::spread(const int f_data_idx,
         std::vector<double> F_JxW_qp, X_qp;
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
             // Spread from the nodes.
             for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
@@ -1162,8 +1162,8 @@ FEDataManager::spread(const int f_data_idx,
                 const size_t num_active_patch_elems = patch_elems.size();
                 if (!num_active_patch_elems) continue;
 
-                const Pointer<PatchNd> patch = level->getPatch(p());
-                const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
                 const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -1241,16 +1241,16 @@ FEDataManager::spread(const int f_data_idx,
                 // Spread values from the quadrature points to the Cartesian grid
                 // patch.
                 const BoxNd spread_box = patch->getBox();
-                Pointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
+                SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
                 if (cc_data)
                 {
-                    Pointer<CellDataNd<double> > f_cc_data = f_data;
+                    SAMRAIPointer<CellDataNd<double> > f_cc_data = f_data;
                     LEInteractor::spread(
                         f_cc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
                 }
                 if (sc_data)
                 {
-                    Pointer<SideDataNd<double> > f_sc_data = f_data;
+                    SAMRAIPointer<SideDataNd<double> > f_sc_data = f_data;
                     LEInteractor::spread(
                         f_sc_data, F_JxW_qp, n_vars, X_qp, NDIM, patch, spread_box, spread_spec.kernel_fcn);
                 }
@@ -1294,17 +1294,17 @@ FEDataManager::spread(const int f_data_idx,
 {
     // Determine the type of data centering.
     auto var_db = VariableDatabaseNd::getDatabase();
-    Pointer<hier::VariableNd> f_var;
+    SAMRAIPointer<hier::VariableNd> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<CellVariableNd<double> > f_cc_var = f_var;
-    Pointer<SideVariableNd<double> > f_sc_var = f_var;
+    SAMRAIPointer<CellVariableNd<double> > f_cc_var = f_var;
+    SAMRAIPointer<SideVariableNd<double> > f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
 
     // Make a copy of the Eulerian data.
     const auto f_copy_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
-    Pointer<HierarchyDataOpsRealNd<double> > f_data_ops =
+    SAMRAIPointer<HierarchyDataOpsRealNd<double> > f_data_ops =
         HierarchyDataOpsManagerNd::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_data_ops->resetLevels(0, d_hierarchy->getFinestLevelNumber());
     f_data_ops->swapData(f_copy_data_idx, f_data_idx);
@@ -1323,14 +1323,14 @@ FEDataManager::spread(const int f_data_idx,
         f_phys_bdry_op->setPatchDataIndex(f_data_idx);
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
             for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
             {
                 // If there are no elements on this patch then we can skip it
                 if (d_active_patch_elem_map[ln][local_patch_num].size() == 0) continue;
-                const Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
                 f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, fill_data_time, f_data->getGhostCellWidth());
             }
         }
@@ -1422,9 +1422,9 @@ FEDataManager::prolongData(const int f_data_idx,
     std::vector<SideIndexNd> intersection_indices;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         const IntVectorNd& ratio = level->getRatio();
-        const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+        const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
         int local_patch_num = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -1433,12 +1433,12 @@ FEDataManager::prolongData(const int f_data_idx,
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
+            const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
             if (!accumulate_on_grid) f_data->fillAll(0.0);
             const BoxNd& patch_box = patch->getBox();
             const CellIndexNd& patch_lower = patch_box.lower();
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_dx = patch_geom->getDx();
 
@@ -1698,7 +1698,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                               NumericVector<double>& F_vec,
                               NumericVector<double>& X_vec,
                               const std::string& system_name,
-                              const std::vector<Pointer<RefineScheduleNd> >& f_refine_scheds,
+                              const std::vector<SAMRAIPointer<RefineScheduleNd> >& f_refine_scheds,
                               const double fill_data_time,
                               const bool close_F,
                               const bool close_X)
@@ -1721,7 +1721,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                               NumericVector<double>& X_vec,
                               const std::string& system_name,
                               const FEDataManager::InterpSpec& interp_spec,
-                              const std::vector<Pointer<RefineScheduleNd> >& f_refine_scheds,
+                              const std::vector<SAMRAIPointer<RefineScheduleNd> >& f_refine_scheds,
                               const double fill_data_time,
                               const bool close_F,
                               const bool close_X)
@@ -1731,10 +1731,10 @@ FEDataManager::interpWeighted(const int f_data_idx,
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
     // Determine the type of data centering.
-    Pointer<hier::VariableNd> f_var;
+    SAMRAIPointer<hier::VariableNd> f_var;
     var_db->mapIndexToVariable(f_data_idx, f_var);
-    Pointer<CellVariableNd<double> > f_cc_var = f_var;
-    Pointer<SideVariableNd<double> > f_sc_var = f_var;
+    SAMRAIPointer<CellVariableNd<double> > f_cc_var = f_var;
+    SAMRAIPointer<SideVariableNd<double> > f_sc_var = f_var;
     const bool cc_data = f_cc_var;
     const bool sc_data = f_sc_var;
     TBOX_ASSERT(cc_data || sc_data);
@@ -1829,7 +1829,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         // compute the projection of the interpolated velocity field onto the FE basis functions.
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
             for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
             {
@@ -1838,8 +1838,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 const size_t num_active_patch_nodes = patch_nodes.size();
                 if (!num_active_patch_nodes) continue;
 
-                const Pointer<PatchNd> patch = level->getPatch(p());
-                const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* const patch_x_lower = patch_geom->getXLower();
                 const double* const patch_x_upper = patch_geom->getXUpper();
                 std::array<bool, NDIM> touches_upper_regular_bdry;
@@ -1891,16 +1891,16 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 // cell width of 1 to ensure that roundoff errors do not
                 // inadvertently exclude the selected points.
                 const BoxNd& interp_box = BoxNd::grow(patch->getBox(), IntVectorNd(1));
-                Pointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
+                SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
                 if (cc_data)
                 {
-                    Pointer<CellDataNd<double> > f_cc_data = f_data;
+                    SAMRAIPointer<CellDataNd<double> > f_cc_data = f_data;
                     LEInteractor::interpolate(
                         F_node, n_vars, X_node, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
                 }
                 if (sc_data)
                 {
-                    Pointer<SideDataNd<double> > f_sc_data = f_data;
+                    SAMRAIPointer<SideDataNd<double> > f_sc_data = f_data;
                     LEInteractor::interpolate(
                         F_node, n_vars, X_node, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
                 }
@@ -1944,7 +1944,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
         std::vector<libMesh::dof_id_type> dof_id_scratch;
         for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             int local_patch_num = 0;
             for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
             {
@@ -1953,8 +1953,8 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 const size_t num_active_patch_elems = patch_elems.size();
                 if (!num_active_patch_elems) continue;
 
-                const Pointer<PatchNd> patch = level->getPatch(p());
-                const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
                 const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -2017,16 +2017,16 @@ FEDataManager::interpWeighted(const int f_data_idx,
                 // NOTE: Values are interpolated only to those quadrature points
                 // that are within the patch interior.
                 const BoxNd& interp_box = patch->getBox();
-                Pointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
+                SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(f_data_idx);
                 if (cc_data)
                 {
-                    Pointer<CellDataNd<double> > f_cc_data = f_data;
+                    SAMRAIPointer<CellDataNd<double> > f_cc_data = f_data;
                     LEInteractor::interpolate(
                         F_qp, n_vars, X_qp, NDIM, f_cc_data, patch, interp_box, interp_spec.kernel_fcn);
                 }
                 if (sc_data)
                 {
-                    Pointer<SideDataNd<double> > f_sc_data = f_data;
+                    SAMRAIPointer<SideDataNd<double> > f_sc_data = f_data;
                     LEInteractor::interpolate(
                         F_qp, n_vars, X_qp, NDIM, f_sc_data, patch, interp_box, interp_spec.kernel_fcn);
                 }
@@ -2124,7 +2124,7 @@ FEDataManager::interp(const int f_data_idx,
                       NumericVector<double>& F_vec,
                       NumericVector<double>& X_vec,
                       const std::string& system_name,
-                      const std::vector<Pointer<RefineScheduleNd> >& f_refine_scheds,
+                      const std::vector<SAMRAIPointer<RefineScheduleNd> >& f_refine_scheds,
                       const double fill_data_time,
                       const bool close_X)
 {
@@ -2138,7 +2138,7 @@ FEDataManager::interp(const int f_data_idx,
                       NumericVector<double>& X_vec,
                       const std::string& system_name,
                       const FEDataManager::InterpSpec& interp_spec,
-                      const std::vector<Pointer<RefineScheduleNd> >& f_refine_scheds,
+                      const std::vector<SAMRAIPointer<RefineScheduleNd> >& f_refine_scheds,
                       const double fill_data_time,
                       const bool close_X)
 {
@@ -2238,9 +2238,9 @@ FEDataManager::restrictData(const int f_data_idx,
     std::vector<SideIndexNd> intersection_indices;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         const IntVectorNd& ratio = level->getRatio();
-        const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+        const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
         int local_patch_num = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -2249,11 +2249,11 @@ FEDataManager::restrictData(const int f_data_idx,
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
+            const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
             const BoxNd& patch_box = patch->getBox();
             const CellIndexNd& patch_lower = patch_box.lower();
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_dx = patch_geom->getDx();
             double dV = 1.0;
@@ -2493,7 +2493,7 @@ FEDataManager::updateSpreadQuadratureRule(std::unique_ptr<QBase>& qrule,
 }
 
 void
-FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy,
+FEDataManager::addWorkloadEstimate(SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                    const int workload_data_idx,
                                    const int coarsest_ln_in,
                                    const int finest_ln_in)
@@ -2526,9 +2526,9 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy,
         boost::multi_array<double, 2> X_node;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             const IntVectorNd& ratio = level->getRatio();
-            const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+            const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
             int local_patch_num = 0;
             for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
             {
@@ -2536,9 +2536,9 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy,
                 const size_t num_active_patch_elems = patch_elems.size();
                 if (!num_active_patch_elems) continue;
 
-                const Pointer<PatchNd> patch = level->getPatch(p());
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 const BoxNd& patch_box = patch->getBox();
-                Pointer<CellDataNd<double> > workload_data = patch->getPatchData(workload_data_idx);
+                SAMRAIPointer<CellDataNd<double> > workload_data = patch->getPatchData(workload_data_idx);
 
                 for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
                 {
@@ -2570,7 +2570,7 @@ FEDataManager::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy,
 } // addWorkloadEstimate
 
 void
-FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchyNd> hierarchy,
+FEDataManager::applyGradientDetector(const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                      const int level_number,
                                      const double /*error_data_time*/,
                                      const int tag_index,
@@ -2626,9 +2626,9 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchyNd> hierarc
         // quadrature points.
         boost::multi_array<double, 2> X_node;
         Point X_qp;
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_number);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_number);
         const IntVectorNd& ratio = level->getRatio();
-        const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+        const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
         int local_patch_num = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -2637,12 +2637,12 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchyNd> hierarc
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const Pointer<PatchNd> patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            Pointer<CellDataNd<int> > tag_data = patch->getPatchData(tag_index);
+            SAMRAIPointer<CellDataNd<int> > tag_data = patch->getPatchData(tag_index);
 
             for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
             {
@@ -2693,12 +2693,12 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchyNd> hierarc
         // correspond to all quadrature points on finer levels.
         for (int finer_ln = d_hierarchy->getFinestLevelNumber(); finer_ln > level_number; --finer_ln)
         {
-            Pointer<PatchLevelNd> finer_level = d_hierarchy->getPatchLevel(finer_ln);
+            SAMRAIPointer<PatchLevelNd> finer_level = d_hierarchy->getPatchLevel(finer_ln);
             const int coarser_ln = finer_ln - 1;
             TBOX_ASSERT(coarser_ln >= level_number);
-            Pointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(coarser_ln);
-            Pointer<CoarsenOperatorNd> coarsen_op = new CartesianCellDoubleWeightedAverageNd();
-            Pointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+            SAMRAIPointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(coarser_ln);
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = new CartesianCellDoubleWeightedAverageNd();
+            SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
             // Coarsen into the scratch index and then add that to the quadrature count.
             coarsen_alg->registerCoarsen(qp_scratch_idx, d_qp_count_idx, coarsen_op);
             coarsen_alg->createSchedule(coarser_level, finer_level)->coarsenData();
@@ -2708,13 +2708,13 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchyNd> hierarc
 
         // Tag cells for refinement whenever they contain element quadrature
         // points.
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_number);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_number);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            const Pointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<int> > tag_data = patch->getPatchData(tag_index);
-            Pointer<CellDataNd<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
+            SAMRAIPointer<CellDataNd<int> > tag_data = patch->getPatchData(tag_index);
+            SAMRAIPointer<CellDataNd<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
             for (CellIteratorNd b(patch_box); b; b++)
             {
                 const CellIndexNd& i_c = b();
@@ -2731,7 +2731,7 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchyNd> hierarc
 } // applyGradientDetector
 
 void
-FEDataManager::putToDatabase(Pointer<Database> db)
+FEDataManager::putToDatabase(SAMRAIPointer<Database> db)
 {
     IBTK_TIMER_START(t_put_to_database);
     d_fe_data->putToDatabase(db);
@@ -2796,10 +2796,10 @@ FEDataManager::zeroExteriorValues(const CartesianPatchGeometryNd& patch_geom,
 
 namespace
 {
-Pointer<Database>
-setup_fe_projector_db(const Pointer<Database>& input_db)
+SAMRAIPointer<Database>
+setup_fe_projector_db(const SAMRAIPointer<Database>& input_db)
 {
-    Pointer<Database> db;
+    SAMRAIPointer<Database> db;
     if (input_db->keyExists("FEProjector"))
     {
         db = input_db->getDatabase("FEProjector");
@@ -2817,7 +2817,7 @@ setup_fe_projector_db(const Pointer<Database>& input_db)
 // all warnings for the ctor
 IBTK_DISABLE_EXTRA_WARNINGS
 FEDataManager::FEDataManager(std::string object_name,
-                             const Pointer<Database>& input_db,
+                             const SAMRAIPointer<Database>& input_db,
                              const int max_levels,
                              FEDataManager::InterpSpec default_interp_spec,
                              FEDataManager::SpreadSpec default_spread_spec,
@@ -2943,7 +2943,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
     // 2. actually allocate the Eulerian data we keep
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_qp_count_idx)) level->allocatePatchData(d_qp_count_idx);
     }
 
@@ -2976,9 +2976,9 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         const IntVectorNd& ratio = level->getRatio();
-        const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+        const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
 
         // Determine the number of element quadrature points associated with
         // each Cartesian grid cell.
@@ -2986,13 +2986,13 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
         int local_patch_num = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
         {
-            const Pointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-            Pointer<CellDataNd<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
+            SAMRAIPointer<CellDataNd<double> > qp_count_data = patch->getPatchData(d_qp_count_idx);
 
             // nodal case:
             if (d_default_interp_spec.use_nodal_quadrature || d_default_spread_spec.use_nodal_quadrature)
@@ -3105,8 +3105,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     System& X_system = d_fe_data->d_es->get_system(getCurrentCoordinatesSystemName());
 
     // Setup data structures used to assign elements to patches.
-    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_number);
-    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+    SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_number);
+    const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
     std::vector<std::set<Elem*> > local_patch_elems(num_local_patches);
     active_patch_elems.resize(num_local_patches);
@@ -3128,8 +3128,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     double dx_0 = std::numeric_limits<double>::max();
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         dx_0 = std::min(dx_0, *std::min_element(pgeom->getDx(), pgeom->getDx() + NDIM));
     }
     dx_0 = IBTK_MPI::minReduction(dx_0);
@@ -3174,8 +3174,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         std::set<Elem*>& elems = local_patch_elems[local_patch_num];
-        Pointer<PatchNd> patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
         // TODO: reimplement this with an rtree description of SAMRAI's patches
         libMeshWrappers::BoundingBox patch_bbox;
@@ -3336,9 +3336,9 @@ FEDataManager::reinitializeIBGhostedDOFs(const std::string& system_name)
 void
 FEDataManager::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
 
-    Pointer<Database> db;
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

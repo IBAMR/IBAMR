@@ -27,7 +27,7 @@ LSLocateStructureInterface::LocateStructureMethod LSLocateStructureInterface::s_
 
 void
 callLSLocateStructureInterfaceCallbackFunction(int D_idx,
-                                               Pointer<HierarchyMathOps> hier_math_ops,
+                                               SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                double time,
                                                bool initial_time,
                                                void* ctx)
@@ -41,8 +41,8 @@ callLSLocateStructureInterfaceCallbackFunction(int D_idx,
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 LSLocateStructureInterface::LSLocateStructureInterface(const std::string& object_name,
-                                                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                       Pointer<CellVariableNd<double> > ls_var,
+                                                       SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                                       SAMRAIPointer<CellVariableNd<double> > ls_var,
                                                        LDataManager* lag_data_manager,
                                                        double vol_elem,
                                                        WedgeInterface* wedge)
@@ -72,7 +72,7 @@ LSLocateStructureInterface::~LSLocateStructureInterface()
 
 void
 LSLocateStructureInterface::setLevelSetPatchData(int D_idx,
-                                                 Pointer<HierarchyMathOps> hier_math_ops,
+                                                 SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                  double time,
                                                  bool initial_time)
 {
@@ -96,31 +96,31 @@ LSLocateStructureInterface::setLevelSetPatchData(int D_idx,
 
 void
 LSLocateStructureInterface::setLevelSetPatchDataBySpreading(int D_idx,
-                                                            Pointer<HierarchyMathOps> hier_math_ops,
+                                                            SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                             double /*time*/,
                                                             bool /*initial_time*/)
 {
     // In this version of this class, the initial level set location is set by spreading
     // from the Lagrangian structure
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     // Spread
-    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<SAMRAIPointer<LData> > X_data(finest_ln + 1, SAMRAIPointer<LData>(NULL));
     X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
-    std::vector<Pointer<LData> > lag_phi(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<SAMRAIPointer<LData> > lag_phi(finest_ln + 1, SAMRAIPointer<LData>(NULL));
     lag_phi[finest_ln] = d_lag_data_manager->getLData("PHI", finest_ln);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // Set D_idx to zero
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CellDataNd<double> > D_data = patch->getPatchData(D_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(D_idx);
             D_data->fill(0.0);
         }
 
@@ -131,7 +131,7 @@ LSLocateStructureInterface::setLevelSetPatchDataBySpreading(int D_idx,
         VecSet(petsc_vec, 1.0 * d_vol_elem);
     }
 
-    std::vector<Pointer<LData> > PHI_data(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<SAMRAIPointer<LData> > PHI_data(finest_ln + 1, SAMRAIPointer<LData>(NULL));
     PHI_data[finest_ln] = lag_phi[finest_ln];
     d_lag_data_manager->spread(D_idx, PHI_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
     return;
@@ -139,7 +139,7 @@ LSLocateStructureInterface::setLevelSetPatchDataBySpreading(int D_idx,
 
 void
 LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
-                                                           Pointer<HierarchyMathOps> hier_math_ops,
+                                                           SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                            double /*time*/,
                                                            bool /*initial_time*/)
 {
@@ -161,7 +161,7 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
     static const double cl = cos(d_wedge->wedge_angle);
 #endif
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -173,19 +173,19 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > D_data = patch->getPatchData(D_idx);
+            SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(D_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 CellIndexNd ci(it());
 
                 // Get physical coordinates
                 IBTK::Vector X = IBTK::Vector::Zero();
-                Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
                 const SAMRAI::hier::IndexNd& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();
@@ -247,14 +247,14 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
 } // setLevelSetPatchDataByGeometry
 
 double
-LSLocateStructureInterface::getMinimumWedgeCoord(Pointer<HierarchyMathOps> hier_math_ops)
+LSLocateStructureInterface::getMinimumWedgeCoord(SAMRAIPointer<HierarchyMathOps> hier_math_ops)
 {
     double wedge_min = 1.0e12;
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<SAMRAIPointer<LData> > X_data(finest_ln + 1, SAMRAIPointer<LData>(NULL));
     X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -263,7 +263,7 @@ LSLocateStructureInterface::getMinimumWedgeCoord(Pointer<HierarchyMathOps> hier_
 
         // Get pointer to LData
         boost::multi_array_ref<double, 2>& X_boost_data = *X_data[ln]->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_lag_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_lag_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)

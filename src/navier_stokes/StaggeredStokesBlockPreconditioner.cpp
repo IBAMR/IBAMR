@@ -72,7 +72,7 @@ StaggeredStokesBlockPreconditioner::needsVelocitySubdomainSolver() const
 } // needsVelocitySubdomainSolver
 
 void
-StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
+StaggeredStokesBlockPreconditioner::setVelocitySubdomainSolver(SAMRAIPointer<PoissonSolver> velocity_solver)
 {
     IBAMR_DO_ONCE(if (!needsVelocitySubdomainSolver()) {
         pout << d_object_name << "::setVelocitySubdomainSolver():\n"
@@ -98,7 +98,7 @@ StaggeredStokesBlockPreconditioner::needsPressureSubdomainSolver() const
 } // needsPressureSubdomainSolver
 
 void
-StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
+StaggeredStokesBlockPreconditioner::setPressureSubdomainSolver(SAMRAIPointer<PoissonSolver> pressure_solver)
 {
     IBAMR_DO_ONCE(if (!needsPressureSubdomainSolver()) {
         pout << d_object_name << "::setPressureSubdomainSolver():\n"
@@ -178,13 +178,13 @@ StaggeredStokesBlockPreconditioner::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorRealNd<double> > U_vec,
-                                                     Pointer<SAMRAIVectorRealNd<double> > P_vec)
+StaggeredStokesBlockPreconditioner::correctNullspace(SAMRAIPointer<SAMRAIVectorRealNd<double> > U_vec,
+                                                     SAMRAIPointer<SAMRAIVectorRealNd<double> > P_vec)
 {
     auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
-        const std::vector<Pointer<SAMRAIVectorRealNd<double> > >& U_nul_vecs =
+        const std::vector<SAMRAIPointer<SAMRAIVectorRealNd<double> > >& U_nul_vecs =
             p_velocity_solver->getNullspaceBasisVectors();
         if (!U_nul_vecs.empty())
         {

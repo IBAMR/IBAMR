@@ -60,41 +60,41 @@ main(int argc, char* argv[])
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
     {
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "rt0.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "rt0.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
                                     box_generator,
                                     load_balancer);
 
-        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
-        Pointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx);
-        Pointer<SideVariableNd<double> > exact_sc_var = new SideVariableNd<double>("exact_sc");
+        SAMRAIPointer<SideVariableNd<double> > exact_sc_var = new SideVariableNd<double>("exact_sc");
         const int exact_sc_idx = var_db->registerVariableAndContext(exact_sc_var, ctx);
         // u_cc_var is only for plotting (and testing): uncomment if output is desired
 // #define DO_PLOT
 #ifdef DO_PLOT
-        Pointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc", NDIM);
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx);
-        Pointer<CellVariableNd<double> > exact_cc_var = new CellVariableNd<double>("exact_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > exact_cc_var = new CellVariableNd<double>("exact_cc", NDIM);
         const int exact_cc_idx = var_db->registerVariableAndContext(exact_cc_var, ctx);
 #endif
 
@@ -110,7 +110,7 @@ main(int argc, char* argv[])
         const int finest_level = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_sc_idx, 0.0);
             level->allocatePatchData(exact_sc_idx, 0.0);
 #ifdef DO_PLOT
@@ -119,7 +119,7 @@ main(int argc, char* argv[])
 #endif
         }
 
-        Pointer<VisItDataWriterNd> visit_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_writer = app_initializer->getVisItDataWriter();
 
         // The rest is just book-keeping, this is the actual test:
         auto do_test = [&](const std::string& db_u_fcn_name, const int coarse_level_n)
@@ -133,17 +133,17 @@ main(int argc, char* argv[])
             u_vec.addComponent(u_sc_var, u_sc_idx);
 
             const int fine_level_n = coarse_level_n + 1;
-            Pointer<PatchLevelNd> level_0 = patch_hierarchy->getPatchLevel(coarse_level_n);
-            Pointer<PatchLevelNd> level_1 = patch_hierarchy->getPatchLevel(fine_level_n);
+            SAMRAIPointer<PatchLevelNd> level_0 = patch_hierarchy->getPatchLevel(coarse_level_n);
+            SAMRAIPointer<PatchLevelNd> level_1 = patch_hierarchy->getPatchLevel(fine_level_n);
 
             // there should only be one patch on each patch level
-            Pointer<SideDataNd<double> > u_sc_0_data = level_0->getPatch(0)->getPatchData(u_sc_idx);
-            Pointer<SideDataNd<double> > u_sc_1_data = level_1->getPatch(0)->getPatchData(u_sc_idx);
+            SAMRAIPointer<SideDataNd<double> > u_sc_0_data = level_0->getPatch(0)->getPatchData(u_sc_idx);
+            SAMRAIPointer<SideDataNd<double> > u_sc_1_data = level_1->getPatch(0)->getPatchData(u_sc_idx);
             const BoxNd patch_box_0 = level_0->getPatch(0)->getBox();
             const BoxNd patch_box_1 = level_1->getPatch(0)->getBox();
 
-            Pointer<SideDataNd<double> > exact_sc_0_data = level_0->getPatch(0)->getPatchData(exact_sc_idx);
-            Pointer<SideDataNd<double> > exact_sc_1_data = level_1->getPatch(0)->getPatchData(exact_sc_idx);
+            SAMRAIPointer<SideDataNd<double> > exact_sc_0_data = level_0->getPatch(0)->getPatchData(exact_sc_idx);
+            SAMRAIPointer<SideDataNd<double> > exact_sc_1_data = level_1->getPatch(0)->getPatchData(exact_sc_idx);
 
             const IntVectorNd ratio = level_1->getRatioToCoarserLevel();
             IBTK::CartSideDoubleRT0Refine refine_op;
@@ -151,8 +151,8 @@ main(int argc, char* argv[])
 
             solv::SAMRAIVectorRealNd<double> exact_vec("e", patch_hierarchy, coarse_level_n, fine_level_n);
             exact_vec.addComponent(exact_sc_var, exact_sc_idx);
-            exact_vec.subtract(Pointer<SAMRAIVectorRealNd<double> >(&u_vec, false),
-                               Pointer<SAMRAIVectorRealNd<double> >(&exact_vec, false));
+            exact_vec.subtract(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&u_vec, false),
+                               SAMRAIPointer<SAMRAIVectorRealNd<double> >(&exact_vec, false));
 
             pout << "test results for " << db_u_fcn_name << '\n';
             pout << "max norm of u_sc: " << u_vec.maxNorm() << '\n';

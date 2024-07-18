@@ -72,7 +72,7 @@ integrateHierarchyCallback(double /*current_time*/, double /*new_time*/, int /*c
 }
 
 void
-gradientDetectorCallback(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
+gradientDetectorCallback(SAMRAIPointer<BasePatchHierarchyNd> /*hierarchy*/,
                          int /*level_num*/,
                          double /*error_data_time*/,
                          int /*tag_index*/,
@@ -84,7 +84,7 @@ gradientDetectorCallback(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
     if (test) pout << "Executing gradient detector callback\n";
 }
 void
-regridHierarchyCallback(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
+regridHierarchyCallback(SAMRAIPointer<BasePatchHierarchyNd> /*hierarchy*/,
                         double /*data_time*/,
                         bool /*initial_time*/,
                         void* ctx)
@@ -117,9 +117,9 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -136,20 +136,20 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -157,8 +157,8 @@ main(int argc, char* argv[])
                                     load_balancer);
 
         // Setup the advection velocity.
-        Pointer<FaceVariableNd<double> > u_var = new FaceVariableNd<double>("u");
-        Pointer<CartGridFunction> u_fcn = new muParserCartGridFunction(
+        SAMRAIPointer<FaceVariableNd<double> > u_var = new FaceVariableNd<double>("u");
+        SAMRAIPointer<CartGridFunction> u_fcn = new muParserCartGridFunction(
             "UFunction", app_initializer->getComponentDatabase("UFunction"), grid_geometry);
         const bool u_is_div_free = true;
         time_integrator->registerAdvectionVelocity(u_var);
@@ -169,8 +169,8 @@ main(int argc, char* argv[])
         const ConvectiveDifferencingType difference_form =
             IBAMR::string_to_enum<ConvectiveDifferencingType>(main_db->getStringWithDefault(
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
-        Pointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
-        Pointer<CartGridFunction> Q_init =
+        SAMRAIPointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
+        SAMRAIPointer<CartGridFunction> Q_init =
             new muParserCartGridFunction("QInit", app_initializer->getComponentDatabase("QInit"), grid_geometry);
         LocationIndexRobinBcCoefsNd physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));
@@ -194,7 +194,7 @@ main(int argc, char* argv[])
         time_integrator->registerRegridHierarchyCallback(regridHierarchyCallback, static_cast<void*>(&callbackObject));
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

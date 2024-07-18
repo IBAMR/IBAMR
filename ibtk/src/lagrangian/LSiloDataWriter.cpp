@@ -627,7 +627,7 @@ LSiloDataWriter::LSiloDataWriter(std::string object_name, std::string dump_direc
       d_ucd_mesh_names(d_finest_ln + 1),
       d_ucd_mesh_vertices(d_finest_ln + 1),
       d_ucd_mesh_edge_maps(d_finest_ln + 1),
-      d_coords_data(d_finest_ln + 1, Pointer<LData>(nullptr)),
+      d_coords_data(d_finest_ln + 1, SAMRAIPointer<LData>(nullptr)),
       d_nvars(d_finest_ln + 1, 0),
       d_var_names(d_finest_ln + 1),
       d_var_start_depths(d_finest_ln + 1),
@@ -693,7 +693,7 @@ LSiloDataWriter::~LSiloDataWriter()
 } // ~LSiloDataWriter
 
 void
-LSiloDataWriter::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
+LSiloDataWriter::setPatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -1072,7 +1072,7 @@ LSiloDataWriter::registerUnstructuredMesh(const std::string& name,
 } // registerUnstructuredMesh
 
 void
-LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int level_number)
+LSiloDataWriter::registerCoordsData(SAMRAIPointer<LData> coords_data, const int level_number)
 {
     if (level_number < d_coarsest_ln || level_number > d_finest_ln)
     {
@@ -1088,7 +1088,9 @@ LSiloDataWriter::registerCoordsData(Pointer<LData> coords_data, const int level_
 } // registerCoordsData
 
 void
-LSiloDataWriter::registerVariableData(const std::string& var_name, Pointer<LData> var_data, const int level_number)
+LSiloDataWriter::registerVariableData(const std::string& var_name,
+                                      SAMRAIPointer<LData> var_data,
+                                      const int level_number)
 {
     const int start_depth = 0;
     const int var_depth = var_data->getDepth();
@@ -1098,7 +1100,7 @@ LSiloDataWriter::registerVariableData(const std::string& var_name, Pointer<LData
 
 void
 LSiloDataWriter::registerVariableData(const std::string& var_name,
-                                      Pointer<LData> var_data,
+                                      SAMRAIPointer<LData> var_data,
                                       const int start_depth,
                                       const int var_depth,
                                       const int level_number)
@@ -1971,7 +1973,7 @@ LSiloDataWriter::writePlotData(const int time_step_number, const double simulati
 } // writePlotData
 
 void
-LSiloDataWriter::putToDatabase(Pointer<Database> db)
+LSiloDataWriter::putToDatabase(SAMRAIPointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -2240,8 +2242,8 @@ LSiloDataWriter::buildVecScatters(AO& ao, const int level_number)
 void
 LSiloDataWriter::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

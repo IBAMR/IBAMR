@@ -36,7 +36,7 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBLevelSetMethod::IBLevelSetMethod(Pointer<IBStrategy> ib_method_ops, Pointer<IBStrategy> ibfe_method_ops)
+IBLevelSetMethod::IBLevelSetMethod(SAMRAIPointer<IBStrategy> ib_method_ops, SAMRAIPointer<IBStrategy> ibfe_method_ops)
     : d_ib_method_ops(ib_method_ops), d_ibfe_method_ops(ibfe_method_ops)
 {
     // intentionally blank
@@ -91,7 +91,7 @@ IBLevelSetMethod::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IBLevelSetMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithmNd> gridding_alg) const
+IBLevelSetMethod::setupTagBuffer(Array<int>& tag_buffer, SAMRAIPointer<GriddingAlgorithmNd> gridding_alg) const
 {
     if (d_ib_method_ops) d_ib_method_ops->setupTagBuffer(tag_buffer, gridding_alg);
     if (d_ibfe_method_ops) d_ibfe_method_ops->setupTagBuffer(tag_buffer, gridding_alg);
@@ -128,8 +128,8 @@ IBLevelSetMethod::updateFixedLEOperators()
 
 void
 IBLevelSetMethod::interpolateVelocity(int u_data_idx,
-                                      const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
-                                      const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
+                                      const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                      const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                       double data_time)
 {
     if (d_ib_method_ops)
@@ -174,7 +174,7 @@ IBLevelSetMethod::computeLagrangianForce(double data_time)
 void
 IBLevelSetMethod::spreadForce(int f_data_idx,
                               RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                              const std::vector<Pointer<RefineScheduleNd> >& f_prolongation_scheds,
+                              const std::vector<SAMRAIPointer<RefineScheduleNd> >& f_prolongation_scheds,
                               double data_time)
 {
     if (d_ib_method_ops) d_ib_method_ops->spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
@@ -202,7 +202,7 @@ IBLevelSetMethod::computeLagrangianFluidSource(double data_time)
 void
 IBLevelSetMethod::spreadFluidSource(int q_data_idx,
                                     RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                                    const std::vector<Pointer<RefineScheduleNd> >& q_prolongation_scheds,
+                                    const std::vector<SAMRAIPointer<RefineScheduleNd> >& q_prolongation_scheds,
                                     double data_time)
 {
     if (d_ib_method_ops)
@@ -214,8 +214,8 @@ IBLevelSetMethod::spreadFluidSource(int q_data_idx,
 
 void
 IBLevelSetMethod::interpolatePressure(int p_data_idx,
-                                      const std::vector<Pointer<CoarsenScheduleNd> >& p_synch_scheds,
-                                      const std::vector<Pointer<RefineScheduleNd> >& p_ghost_fill_scheds,
+                                      const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& p_synch_scheds,
+                                      const std::vector<SAMRAIPointer<RefineScheduleNd> >& p_ghost_fill_scheds,
                                       double data_time)
 {
     if (d_ib_method_ops)
@@ -250,11 +250,11 @@ IBLevelSetMethod::postprocessData()
 } // postprocessData
 
 void
-IBLevelSetMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
-                                           Pointer<GriddingAlgorithmNd> gridding_alg,
+IBLevelSetMethod::initializePatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                           SAMRAIPointer<GriddingAlgorithmNd> gridding_alg,
                                            int u_data_idx,
-                                           const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
-                                           const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
+                                           const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                           const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                            int integrator_step,
                                            double init_data_time,
                                            bool initial_time)
@@ -283,7 +283,7 @@ IBLevelSetMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
 } // initializePatchHierarchy
 
 void
-IBLevelSetMethod::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
+IBLevelSetMethod::addWorkloadEstimate(SAMRAIPointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
 {
     if (d_ib_method_ops) d_ib_method_ops->addWorkloadEstimate(hierarchy, workload_data_idx);
     if (d_ibfe_method_ops) d_ibfe_method_ops->addWorkloadEstimate(hierarchy, workload_data_idx);
@@ -291,8 +291,8 @@ IBLevelSetMethod::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const
 } // updateWorkloadEstimates
 
 void
-IBLevelSetMethod::beginDataRedistribution(Pointer<PatchHierarchyNd> hierarchy,
-                                          Pointer<GriddingAlgorithmNd> gridding_alg)
+IBLevelSetMethod::beginDataRedistribution(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                          SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_ib_method_ops) d_ib_method_ops->beginDataRedistribution(hierarchy, gridding_alg);
     if (d_ibfe_method_ops) d_ibfe_method_ops->beginDataRedistribution(hierarchy, gridding_alg);
@@ -300,7 +300,8 @@ IBLevelSetMethod::beginDataRedistribution(Pointer<PatchHierarchyNd> hierarchy,
 } // beginDataRedistribution
 
 void
-IBLevelSetMethod::endDataRedistribution(Pointer<PatchHierarchyNd> hierarchy, Pointer<GriddingAlgorithmNd> gridding_alg)
+IBLevelSetMethod::endDataRedistribution(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                        SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_ib_method_ops) d_ib_method_ops->endDataRedistribution(hierarchy, gridding_alg);
     if (d_ibfe_method_ops) d_ibfe_method_ops->endDataRedistribution(hierarchy, gridding_alg);
@@ -308,12 +309,12 @@ IBLevelSetMethod::endDataRedistribution(Pointer<PatchHierarchyNd> hierarchy, Poi
 } // endDataRedistribution
 
 void
-IBLevelSetMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
+IBLevelSetMethod::initializeLevelData(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                       int level_number,
                                       double init_data_time,
                                       bool can_be_refined,
                                       bool initial_time,
-                                      Pointer<BasePatchLevelNd> old_level,
+                                      SAMRAIPointer<BasePatchLevelNd> old_level,
                                       bool allocate_data)
 {
     if (d_ib_method_ops)
@@ -328,7 +329,7 @@ IBLevelSetMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
 } // initializeLevelData
 
 void
-IBLevelSetMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarchy,
+IBLevelSetMethod::resetHierarchyConfiguration(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                               int coarsest_level,
                                               int finest_level)
 {
@@ -338,7 +339,7 @@ IBLevelSetMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hier
 } // resetHierarchyConfiguration
 
 void
-IBLevelSetMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> hierarchy,
+IBLevelSetMethod::applyGradientDetector(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                         int level_number,
                                         double error_data_time,
                                         int tag_index,
@@ -356,7 +357,7 @@ IBLevelSetMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> hierarchy,
 } // applyGradientDetector
 
 void
-IBLevelSetMethod::putToDatabase(Pointer<Database> db)
+IBLevelSetMethod::putToDatabase(SAMRAIPointer<Database> db)
 {
     if (d_ib_method_ops) d_ib_method_ops->putToDatabase(db);
     if (d_ibfe_method_ops) d_ibfe_method_ops->putToDatabase(db);

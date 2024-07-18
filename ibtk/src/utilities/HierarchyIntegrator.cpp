@@ -95,7 +95,9 @@ const std::string HierarchyIntegrator::SYNCH_NEW_DATA_ALG = "SYNCH_NEW_DATA";
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+HierarchyIntegrator::HierarchyIntegrator(std::string object_name,
+                                         SAMRAIPointer<Database> input_db,
+                                         bool register_for_restart)
     : d_object_name(std::move(object_name))
 {
     auto set_timer = [&](const char* name) { return tbox::TimerManager::getManager()->getTimer(name); };
@@ -155,8 +157,8 @@ HierarchyIntegrator::getName() const
 } // getName
 
 void
-HierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
-                                              Pointer<GriddingAlgorithmNd> gridding_alg)
+HierarchyIntegrator::initializePatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                              SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_hierarchy_is_initialized || d_parent_integrator) return;
 
@@ -564,20 +566,20 @@ HierarchyIntegrator::updateWorkloadEstimates()
     return;
 } // updateWorkloadEstimates
 
-Pointer<PatchHierarchyNd>
+SAMRAIPointer<PatchHierarchyNd>
 HierarchyIntegrator::getPatchHierarchy() const
 {
     return d_hierarchy;
 } // getPatchHierarchy
 
-Pointer<GriddingAlgorithmNd>
+SAMRAIPointer<GriddingAlgorithmNd>
 HierarchyIntegrator::getGriddingAlgorithm() const
 {
     return d_gridding_alg;
 } // getGriddingAlgorithm
 
 void
-HierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer)
+HierarchyIntegrator::registerLoadBalancer(SAMRAIPointer<LoadBalancerNd> load_balancer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
@@ -603,7 +605,7 @@ HierarchyIntegrator::getWorkloadDataIndex() const
 }
 
 void
-HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriterNd> visit_writer)
+HierarchyIntegrator::registerVisItDataWriter(SAMRAIPointer<VisItDataWriterNd> visit_writer)
 {
     d_visit_writer = visit_writer;
     for (const auto& child_integrator : d_child_integrators)
@@ -613,7 +615,7 @@ HierarchyIntegrator::registerVisItDataWriter(Pointer<VisItDataWriterNd> visit_wr
     return;
 } // registerVisItDataWriter
 
-Pointer<VisItDataWriterNd>
+SAMRAIPointer<VisItDataWriterNd>
 HierarchyIntegrator::getVisItDataWriter() const
 {
     return d_visit_writer;
@@ -772,16 +774,16 @@ HierarchyIntegrator::initializeCompositeHierarchyData(double init_data_time, boo
 } // initializeCompositeHierarchyData
 
 void
-HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchyNd> base_hierarchy,
+HierarchyIntegrator::initializeLevelData(const SAMRAIPointer<BasePatchHierarchyNd> base_hierarchy,
                                          const int level_number,
                                          const double init_data_time,
                                          const bool can_be_refined,
                                          const bool initial_time,
-                                         const Pointer<BasePatchLevelNd> base_old_level,
+                                         const SAMRAIPointer<BasePatchLevelNd> base_old_level,
                                          const bool allocate_data)
 {
-    const Pointer<PatchHierarchyNd> hierarchy = base_hierarchy;
-    const Pointer<PatchLevelNd> old_level = base_old_level;
+    const SAMRAIPointer<PatchHierarchyNd> hierarchy = base_hierarchy;
+    const SAMRAIPointer<PatchLevelNd> old_level = base_old_level;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -796,7 +798,7 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchyNd> bas
     //
     // Since time gets set when we allocate data, re-stamp it to current time if
     // we don't need to allocate.
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     if (allocate_data)
     {
         level->allocatePatchData(d_current_data, init_data_time);
@@ -841,7 +843,7 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchyNd> bas
         for (const auto& var : d_state_variables)
         {
             const int var_current_idx = var_db->mapVariableAndContextToIndex(var, getCurrentContext());
-            Pointer<CartGridFunction> var_init = d_state_var_init_fcns[var];
+            SAMRAIPointer<CartGridFunction> var_init = d_state_var_init_fcns[var];
             if (var_init)
             {
                 var_init->setDataOnPatchLevel(var_current_idx, var, level, init_data_time, initial_time);
@@ -850,12 +852,12 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchyNd> bas
             {
                 for (PatchLevelNd::Iterator p(level); p; p++)
                 {
-                    Pointer<PatchNd> patch = level->getPatch(p());
-                    Pointer<CellDataNd<double> > var_current_cc_data = patch->getPatchData(var_current_idx);
-                    Pointer<EdgeDataNd<double> > var_current_ec_data = patch->getPatchData(var_current_idx);
-                    Pointer<FaceDataNd<double> > var_current_fc_data = patch->getPatchData(var_current_idx);
-                    Pointer<NodeDataNd<double> > var_current_nc_data = patch->getPatchData(var_current_idx);
-                    Pointer<SideDataNd<double> > var_current_sc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                    SAMRAIPointer<CellDataNd<double> > var_current_cc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<EdgeDataNd<double> > var_current_ec_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<FaceDataNd<double> > var_current_fc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<NodeDataNd<double> > var_current_nc_data = patch->getPatchData(var_current_idx);
+                    SAMRAIPointer<SideDataNd<double> > var_current_sc_data = patch->getPatchData(var_current_idx);
                     if (var_current_cc_data)
                         var_current_cc_data->fillAll(0.0);
                     else if (var_current_ec_data)
@@ -885,11 +887,11 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchyNd> bas
 } // initializeLevelData
 
 void
-HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarchyNd> base_hierarchy,
+HierarchyIntegrator::resetHierarchyConfiguration(const SAMRAIPointer<BasePatchHierarchyNd> base_hierarchy,
                                                  const int coarsest_level,
                                                  const int finest_level)
 {
-    const Pointer<PatchHierarchyNd> hierarchy = base_hierarchy;
+    const SAMRAIPointer<PatchHierarchyNd> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
@@ -932,7 +934,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     {
         for (int ln = coarsest_level; ln <= std::min(finest_level + 1, finest_hier_level); ++ln)
         {
-            Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
             d_ghostfill_scheds[ghostfill_alg.first][ln] = ghostfill_alg.second->createSchedule(
                 level, ln - 1, hierarchy, d_ghostfill_strategies[ghostfill_alg.first].get());
         }
@@ -944,9 +946,9 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
-            Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
             d_prolong_scheds[prolong_alg.first][ln] = prolong_alg.second->createSchedule(
-                level, Pointer<PatchLevelNd>(), ln - 1, hierarchy, d_prolong_strategies[prolong_alg.first].get());
+                level, SAMRAIPointer<PatchLevelNd>(), ln - 1, hierarchy, d_prolong_strategies[prolong_alg.first].get());
         }
     }
 
@@ -956,8 +958,8 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
     {
         for (int ln = std::max(coarsest_level, 1); ln <= std::min(finest_level + 1, finest_level); ++ln)
         {
-            Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevelNd> coarser_level = hierarchy->getPatchLevel(ln - 1);
+            SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> coarser_level = hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[coarsen_alg.first][ln] =
                 coarsen_alg.second->createSchedule(coarser_level, level, d_coarsen_strategies[coarsen_alg.first].get());
         }
@@ -978,7 +980,7 @@ HierarchyIntegrator::resetHierarchyConfiguration(const Pointer<BasePatchHierarch
 } // resetHierarchyConfiguration
 
 void
-HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchyNd> hierarchy,
+HierarchyIntegrator::applyGradientDetector(const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                            const int level_number,
                                            const double error_data_time,
                                            const int tag_index,
@@ -991,15 +993,15 @@ HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchyNd> h
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
 #endif
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
 
     // First untag all cells.
     if (!d_parent_integrator)
     {
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CellDataNd<int> > tags_data = patch->getPatchData(tag_index);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CellDataNd<int> > tags_data = patch->getPatchData(tag_index);
             tags_data->fillAll(0);
         }
     }
@@ -1020,25 +1022,25 @@ HierarchyIntegrator::applyGradientDetector(const Pointer<BasePatchHierarchyNd> h
     return;
 } // applyGradientDetector
 
-Pointer<VariableContext>
+SAMRAIPointer<VariableContext>
 HierarchyIntegrator::getCurrentContext() const
 {
     return d_current_context;
 } // getCurrentContext
 
-Pointer<VariableContext>
+SAMRAIPointer<VariableContext>
 HierarchyIntegrator::getNewContext() const
 {
     return d_new_context;
 } // getNewContext
 
-Pointer<VariableContext>
+SAMRAIPointer<VariableContext>
 HierarchyIntegrator::getScratchContext() const
 {
     return d_scratch_context;
 } // getScratchContext
 
-Pointer<VariableContext>
+SAMRAIPointer<VariableContext>
 HierarchyIntegrator::getPlotContext() const
 {
     return d_plot_context;
@@ -1052,7 +1054,7 @@ HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_ln, i
     if (finest_ln == invalid_level_number) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(data_idx)) return false;
     }
     return true;
@@ -1066,7 +1068,7 @@ HierarchyIntegrator::allocatePatchData(const int data_idx, const double data_tim
     if (finest_ln == invalid_level_number) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(data_idx)) level->allocatePatchData(data_idx, data_time);
     }
     return;
@@ -1080,13 +1082,13 @@ HierarchyIntegrator::deallocatePatchData(const int data_idx, int coarsest_ln, in
     if (finest_ln == invalid_level_number) finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(data_idx)) level->deallocatePatchData(data_idx);
     }
     return;
 } // deallocatePatchData
 
-Pointer<HierarchyMathOps>
+SAMRAIPointer<HierarchyMathOps>
 HierarchyIntegrator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
@@ -1096,11 +1098,11 @@ void
 HierarchyIntegrator::registerVariable(int& current_idx,
                                       int& new_idx,
                                       int& scratch_idx,
-                                      const Pointer<VariableNd> variable,
+                                      const SAMRAIPointer<VariableNd> variable,
                                       const IntVectorNd& scratch_ghosts,
                                       const std::string& coarsen_name,
                                       const std::string& refine_name,
-                                      Pointer<CartGridFunction> init_fcn,
+                                      SAMRAIPointer<CartGridFunction> init_fcn,
                                       const bool register_for_restart)
 {
 #if !defined(NDEBUG)
@@ -1135,9 +1137,9 @@ HierarchyIntegrator::registerVariable(int& current_idx,
     d_scratch_data.setFlag(scratch_idx);
 
     // Get the data transfer operators.
-    Pointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineOperatorNd> refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
-    Pointer<CoarsenOperatorNd> coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<RefineOperatorNd> refine_operator = grid_geom->lookupRefineOperator(variable, refine_name);
+    SAMRAIPointer<CoarsenOperatorNd> coarsen_operator = grid_geom->lookupCoarsenOperator(variable, coarsen_name);
 
     // Setup the refine algorithm used to fill data in new or modified patch
     // levels following a regrid operation.
@@ -1159,9 +1161,9 @@ HierarchyIntegrator::registerVariable(int& current_idx,
 
 void
 HierarchyIntegrator::registerVariable(int& idx,
-                                      const Pointer<VariableNd> variable,
+                                      const SAMRAIPointer<VariableNd> variable,
                                       const IntVectorNd& ghosts,
-                                      Pointer<VariableContext> ctx,
+                                      SAMRAIPointer<VariableContext> ctx,
                                       const bool register_for_restart)
 {
 #if !defined(NDEBUG)
@@ -1203,7 +1205,7 @@ HierarchyIntegrator::registerVariable(int& idx,
 } // registerVariable
 
 void
-HierarchyIntegrator::putToDatabase(Pointer<Database> db)
+HierarchyIntegrator::putToDatabase(SAMRAIPointer<Database> db)
 {
     db->putInteger("HIERARCHY_INTEGRATOR_VERSION", HIERARCHY_INTEGRATOR_VERSION);
     db->putDouble("d_integrator_time", d_integrator_time);
@@ -1315,7 +1317,7 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
 
             // If a variable is in the current context but not registered for
             // restarts, then it will not be allocated at this point, so
@@ -1323,9 +1325,9 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
             if (!level->checkAllocated(dst_idx)) level->allocatePatchData(dst_idx);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<PatchDataNd> src_data = patch->getPatchData(src_idx);
-                Pointer<PatchDataNd> dst_data = patch->getPatchData(dst_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchDataNd> src_data = patch->getPatchData(src_idx);
+                SAMRAIPointer<PatchDataNd> dst_data = patch->getPatchData(dst_idx);
 #if !defined(NDEBUG)
                 TBOX_ASSERT(src_data);
                 TBOX_ASSERT(dst_data);
@@ -1342,7 +1344,7 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->setTime(d_integrator_time, d_current_data);
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data);
@@ -1360,7 +1362,7 @@ HierarchyIntegrator::resetIntegratorToPreadvanceStateSpecialized()
     // data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_scratch_data);
         level->deallocatePatchData(d_new_data);
         level->setTime(d_integrator_time, d_current_data);
@@ -1401,12 +1403,12 @@ HierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(double /*init_d
 } // initializeLevelDataSpecialized
 
 void
-HierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchyNd> /*hierarchy*/,
+HierarchyIntegrator::initializeLevelDataSpecialized(const SAMRAIPointer<BasePatchHierarchyNd> /*hierarchy*/,
                                                     const int /*level_number*/,
                                                     const double /*init_data_time*/,
                                                     const bool /*can_be_refined*/,
                                                     const bool /*initial_time*/,
-                                                    const Pointer<BasePatchLevelNd> /*old_level*/,
+                                                    const SAMRAIPointer<BasePatchLevelNd> /*old_level*/,
                                                     const bool /*allocate_data*/)
 {
     // intentionally blank
@@ -1414,7 +1416,7 @@ HierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHiera
 } // initializeLevelDataSpecialized
 
 void
-HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchyNd> /*hierarchy*/,
+HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const SAMRAIPointer<BasePatchHierarchyNd> /*hierarchy*/,
                                                             const int /*coarsest_level*/,
                                                             const int /*finest_level*/)
 {
@@ -1423,7 +1425,7 @@ HierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePa
 } // resetHierarchyConfigurationSpecialized
 
 void
-HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchyNd> /*hierarchy*/,
+HierarchyIntegrator::applyGradientDetectorSpecialized(const SAMRAIPointer<BasePatchHierarchyNd> /*hierarchy*/,
                                                       const int /*level_number*/,
                                                       const double /*error_data_time*/,
                                                       const int /*tag_index*/,
@@ -1435,14 +1437,14 @@ HierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHie
 } // applyGradientDetectorSpecialized
 
 void
-HierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> /*db*/)
+HierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<Database> /*db*/)
 {
     // intentionally blank
     return;
 } // putToDatabaseSpecialized
 
 void
-HierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchyNd>, const int)
+HierarchyIntegrator::addWorkloadEstimate(SAMRAIPointer<PatchHierarchyNd>, const int)
 {
     // intentionally blank
     return;
@@ -1490,7 +1492,7 @@ HierarchyIntegrator::executePostprocessIntegrateHierarchyCallbackFcns(double cur
 } // executePostprocessIntegrateHierarchyCallbackFcns
 
 void
-HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<BasePatchHierarchyNd> hierarchy,
+HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                                               const int level_number,
                                                               const double error_data_time,
                                                               const int tag_index,
@@ -1513,7 +1515,7 @@ HierarchyIntegrator::executeApplyGradientDetectorCallbackFcns(const Pointer<Base
 } // executeApplyGradientDetectorCallbackFcns
 
 void
-HierarchyIntegrator::executeRegridHierarchyCallbackFcns(const Pointer<BasePatchHierarchyNd> hierarchy,
+HierarchyIntegrator::executeRegridHierarchyCallbackFcns(const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                                         const double data_time,
                                                         const bool initial_time)
 {
@@ -1527,7 +1529,7 @@ HierarchyIntegrator::executeRegridHierarchyCallbackFcns(const Pointer<BasePatchH
 
 void
 HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
-                                                      Pointer<RefineAlgorithmNd> ghostfill_alg,
+                                                      SAMRAIPointer<RefineAlgorithmNd> ghostfill_alg,
                                                       std::unique_ptr<RefinePatchStrategyNd> ghostfill_patch_strategy)
 {
 #if !defined(NDEBUG)
@@ -1539,7 +1541,7 @@ HierarchyIntegrator::registerGhostfillRefineAlgorithm(const std::string& name,
 
 void
 HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
-                                                    Pointer<RefineAlgorithmNd> prolong_alg,
+                                                    SAMRAIPointer<RefineAlgorithmNd> prolong_alg,
                                                     std::unique_ptr<RefinePatchStrategyNd> prolong_patch_strategy)
 {
 #if !defined(NDEBUG)
@@ -1551,7 +1553,7 @@ HierarchyIntegrator::registerProlongRefineAlgorithm(const std::string& name,
 
 void
 HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
-                                              Pointer<CoarsenAlgorithmNd> coarsen_alg,
+                                              SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg,
                                               std::unique_ptr<CoarsenPatchStrategyNd> coarsen_patch_strategy)
 {
 #if !defined(NDEBUG)
@@ -1561,7 +1563,7 @@ HierarchyIntegrator::registerCoarsenAlgorithm(const std::string& name,
     d_coarsen_strategies[name] = std::move(coarsen_patch_strategy);
 } // registerCoarsenAlgorithm
 
-Pointer<RefineAlgorithmNd>
+SAMRAIPointer<RefineAlgorithmNd>
 HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
 {
     auto alg_it = d_ghostfill_algs.find(name);
@@ -1571,7 +1573,7 @@ HierarchyIntegrator::getGhostfillRefineAlgorithm(const std::string& name) const
     return alg_it->second;
 } // getGhostfillRefineAlgorithm
 
-Pointer<RefineAlgorithmNd>
+SAMRAIPointer<RefineAlgorithmNd>
 HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
 {
     auto alg_it = d_prolong_algs.find(name);
@@ -1581,7 +1583,7 @@ HierarchyIntegrator::getProlongRefineAlgorithm(const std::string& name) const
     return alg_it->second;
 } // getProlongRefineAlgorithm
 
-Pointer<CoarsenAlgorithmNd>
+SAMRAIPointer<CoarsenAlgorithmNd>
 HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
 {
     auto alg_it = d_coarsen_algs.find(name);
@@ -1591,7 +1593,7 @@ HierarchyIntegrator::getCoarsenAlgorithm(const std::string& name) const
     return alg_it->second;
 } // getCoarsenAlgorithm
 
-const std::vector<Pointer<RefineScheduleNd> >&
+const std::vector<SAMRAIPointer<RefineScheduleNd> >&
 HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
 {
     auto sched_it = d_ghostfill_scheds.find(name);
@@ -1601,7 +1603,7 @@ HierarchyIntegrator::getGhostfillRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getGhostfillRefineSchedules
 
-const std::vector<Pointer<RefineScheduleNd> >&
+const std::vector<SAMRAIPointer<RefineScheduleNd> >&
 HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
 {
     auto sched_it = d_prolong_scheds.find(name);
@@ -1611,7 +1613,7 @@ HierarchyIntegrator::getProlongRefineSchedules(const std::string& name) const
     return sched_it->second;
 } // getProlongRefineSchedules
 
-const std::vector<Pointer<CoarsenScheduleNd> >&
+const std::vector<SAMRAIPointer<CoarsenScheduleNd> >&
 HierarchyIntegrator::getCoarsenSchedules(const std::string& name) const
 {
     auto sched_it = d_coarsen_scheds.find(name);
@@ -1644,8 +1646,8 @@ HierarchyIntegrator::registerParentHierarchyIntegrator(HierarchyIntegrator* pare
     return;
 } // registerParentHierarchyIntegrator
 
-Pointer<HierarchyMathOps>
-HierarchyIntegrator::buildHierarchyMathOps(Pointer<PatchHierarchyNd> hierarchy)
+SAMRAIPointer<HierarchyMathOps>
+HierarchyIntegrator::buildHierarchyMathOps(SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
     if (!d_parent_integrator)
     {
@@ -1664,7 +1666,7 @@ HierarchyIntegrator::buildHierarchyMathOps(Pointer<PatchHierarchyNd> hierarchy)
 } // buildHierarchyMathOps
 
 void
-HierarchyIntegrator::setupTagBuffer(Pointer<GriddingAlgorithmNd> gridding_alg)
+HierarchyIntegrator::setupTagBuffer(SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     Array<int> new_tag_buffer(std::max(finest_hier_ln, 1));
@@ -1683,7 +1685,7 @@ HierarchyIntegrator::setupTagBuffer(Pointer<GriddingAlgorithmNd> gridding_alg)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
+HierarchyIntegrator::getFromInput(SAMRAIPointer<Database> db, bool is_from_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -1722,8 +1724,8 @@ HierarchyIntegrator::getFromInput(Pointer<Database> db, bool is_from_restart)
 void
 HierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

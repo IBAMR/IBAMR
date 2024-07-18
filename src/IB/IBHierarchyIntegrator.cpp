@@ -89,21 +89,21 @@ IBHierarchyIntegrator::getTimeSteppingType() const
     return d_time_stepping_type;
 }
 
-Pointer<IBStrategy>
+SAMRAIPointer<IBStrategy>
 IBHierarchyIntegrator::getIBStrategy() const
 {
     return d_ib_method_ops;
 } // getIBStrategy
 
 void
-IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> f_fcn)
+IBHierarchyIntegrator::registerBodyForceFunction(SAMRAIPointer<CartGridFunction> f_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     if (d_body_force_fcn)
     {
-        Pointer<CartGridFunctionSet> p_body_force_fcn = d_body_force_fcn;
+        SAMRAIPointer<CartGridFunctionSet> p_body_force_fcn = d_body_force_fcn;
         if (!p_body_force_fcn)
         {
             pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
@@ -125,31 +125,31 @@ IBHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> f_fcn
 } // registerBodyForceFunction
 
 void
-IBHierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer)
+IBHierarchyIntegrator::registerLoadBalancer(SAMRAIPointer<LoadBalancerNd> load_balancer)
 {
     HierarchyIntegrator::registerLoadBalancer(load_balancer);
     return;
 } // registerLoadBalancer
 
-Pointer<VariableNd>
+SAMRAIPointer<VariableNd>
 IBHierarchyIntegrator::getVelocityVariable() const
 {
     return d_u_var;
 } // getVelocityVariable
 
-Pointer<VariableNd>
+SAMRAIPointer<VariableNd>
 IBHierarchyIntegrator::getPressureVariable() const
 {
     return d_p_var;
 } // getPressureVariable
 
-Pointer<VariableNd>
+SAMRAIPointer<VariableNd>
 IBHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_f_var;
 } // getBodyForceVariable
 
-Pointer<VariableNd>
+SAMRAIPointer<VariableNd>
 IBHierarchyIntegrator::getFluidSourceVariable() const
 {
     return d_q_var;
@@ -194,7 +194,7 @@ IBHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_time,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_scratch_data, current_time);
         level->allocatePatchData(d_new_data, new_time);
         level->allocatePatchData(d_ib_data, current_time);
@@ -239,7 +239,7 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_ib_data);
     }
 
@@ -275,8 +275,8 @@ IBHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
 }
 
 void
-IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> hierarchy,
-                                                     Pointer<GriddingAlgorithmNd> gridding_alg)
+IBHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                                     SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -331,15 +331,15 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> h
 
     // Create several communications algorithms, used in filling ghost cell data
     // and synchronizing data on the patch hierarchy.
-    Pointer<GeometryNd> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<GeometryNd> grid_geom = d_hierarchy->getGridGeometry();
 
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_u_var, getNewContext());
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(d_u_var, getScratchContext());
     const int p_new_idx = var_db->mapVariableAndContextToIndex(d_p_var, getNewContext());
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(d_p_var, getScratchContext());
 
-    Pointer<CellVariableNd<double> > u_cc_var = d_u_var;
-    Pointer<SideVariableNd<double> > u_sc_var = d_u_var;
+    SAMRAIPointer<CellVariableNd<double> > u_cc_var = d_u_var;
+    SAMRAIPointer<SideVariableNd<double> > u_sc_var = d_u_var;
     if (u_cc_var)
     {
         d_u_phys_bdry_op = new CartCellRobinPhysBdryOp(u_scratch_idx,
@@ -377,7 +377,7 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> h
 
     if (d_ib_method_ops->hasFluidSources())
     {
-        Pointer<CellVariableNd<double> > p_cc_var = d_p_var;
+        SAMRAIPointer<CellVariableNd<double> > p_cc_var = d_p_var;
         if (p_cc_var)
         {
             d_p_phys_bdry_op = new CartCellRobinPhysBdryOp(p_scratch_idx,
@@ -408,8 +408,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> h
         registerProlongRefineAlgorithm(d_object_name + "::q", d_q_prolong_alg);
     }
 
-    Pointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
-    Pointer<RefineOperatorNd> refine_op;
+    SAMRAIPointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+    SAMRAIPointer<RefineOperatorNd> refine_op;
     refine_op = grid_geom->lookupRefineOperator(d_u_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(u_scratch_idx, u_new_idx, u_scratch_idx, refine_op);
     refine_op = grid_geom->lookupRefineOperator(d_p_var, "LINEAR_REFINE");
@@ -439,8 +439,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> h
 } // initializeHierarchyIntegrator
 
 void
-IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
-                                                Pointer<GriddingAlgorithmNd> gridding_alg)
+IBHierarchyIntegrator::initializePatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                                SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_hierarchy_is_initialized) return;
 
@@ -462,7 +462,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierar
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, d_integrator_time);
         level->allocatePatchData(d_scratch_data, d_integrator_time);
     }
@@ -482,7 +482,7 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierar
                                               initial_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_scratch_data);
     }
@@ -527,9 +527,9 @@ IBHierarchyIntegrator::regridHierarchyEndSpecialized()
 } // regridHierarchyEndSpecialized
 
 IBHierarchyIntegrator::IBHierarchyIntegrator(const std::string& object_name,
-                                             Pointer<Database> input_db,
-                                             Pointer<IBStrategy> ib_method_ops,
-                                             Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                             SAMRAIPointer<Database> input_db,
+                                             SAMRAIPointer<IBStrategy> ib_method_ops,
+                                             SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator,
                                              bool register_for_restart)
     : HierarchyIntegrator(object_name, input_db, register_for_restart),
       d_ins_hier_integrator(ins_hier_integrator),
@@ -586,16 +586,16 @@ IBHierarchyIntegrator::atRegridPointSpecialized() const
 } // atRegridPointSpecialized
 
 void
-IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHierarchyNd> base_hierarchy,
+IBHierarchyIntegrator::initializeLevelDataSpecialized(const SAMRAIPointer<BasePatchHierarchyNd> base_hierarchy,
                                                       const int level_number,
                                                       const double init_data_time,
                                                       const bool can_be_refined,
                                                       const bool initial_time,
-                                                      const Pointer<BasePatchLevelNd> base_old_level,
+                                                      const SAMRAIPointer<BasePatchLevelNd> base_old_level,
                                                       const bool allocate_data)
 {
-    const Pointer<PatchHierarchyNd> hierarchy = base_hierarchy;
-    const Pointer<PatchLevelNd> old_level = base_old_level;
+    const SAMRAIPointer<PatchHierarchyNd> hierarchy = base_hierarchy;
+    const SAMRAIPointer<PatchLevelNd> old_level = base_old_level;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
@@ -613,11 +613,11 @@ IBHierarchyIntegrator::initializeLevelDataSpecialized(const Pointer<BasePatchHie
 } // initializeLevelDataSpecialized
 
 void
-IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<BasePatchHierarchyNd> base_hierarchy,
+IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const SAMRAIPointer<BasePatchHierarchyNd> base_hierarchy,
                                                               const int coarsest_level,
                                                               const int finest_level)
 {
-    const Pointer<PatchHierarchyNd> hierarchy = base_hierarchy;
+    const SAMRAIPointer<PatchHierarchyNd> hierarchy = base_hierarchy;
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((coarsest_level >= 0) && (coarsest_level <= finest_level) &&
@@ -643,7 +643,7 @@ IBHierarchyIntegrator::resetHierarchyConfigurationSpecialized(const Pointer<Base
 } // resetHierarchyConfigurationSpecialized
 
 void
-IBHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchHierarchyNd> hierarchy,
+IBHierarchyIntegrator::applyGradientDetectorSpecialized(const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                                         const int level_number,
                                                         const double error_data_time,
                                                         const int tag_index,
@@ -657,7 +657,7 @@ IBHierarchyIntegrator::applyGradientDetectorSpecialized(const Pointer<BasePatchH
 } // applyGradientDetectorSpecialized
 
 void
-IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+IBHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<Database> db)
 {
     db->putInteger("IB_HIERARCHY_INTEGRATOR_VERSION", IB_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_time_stepping_type", enum_to_string<TimeSteppingType>(d_time_stepping_type));
@@ -667,7 +667,7 @@ IBHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 } // putToDatabaseSpecialized
 
 void
-IBHierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
+IBHierarchyIntegrator::addWorkloadEstimate(SAMRAIPointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
 {
     d_ib_method_ops->addWorkloadEstimate(hierarchy, workload_data_idx);
     return;
@@ -676,7 +676,7 @@ IBHierarchyIntegrator::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+IBHierarchyIntegrator::getFromInput(SAMRAIPointer<Database> db, bool /*is_from_restart*/)
 {
     if (db->keyExists("regrid_cfl_interval")) d_regrid_fluid_cfl_interval = db->getDouble("regrid_cfl_interval");
     if (db->keyExists("regrid_fluid_cfl_interval"))
@@ -705,8 +705,8 @@ IBHierarchyIntegrator::getFromInput(Pointer<Database> db, bool /*is_from_restart
 void
 IBHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

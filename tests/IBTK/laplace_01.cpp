@@ -45,8 +45,8 @@ main(int argc, char* argv[])
     {
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         const bool test_copied_vector = input_db->getBoolWithDefault("test_copied_vector", false);
         const bool test_duplicated_vector = input_db->getBoolWithDefault("test_duplicated_vector", false);
         const bool test_standard_vector = !test_copied_vector && !test_duplicated_vector;
@@ -55,15 +55,15 @@ main(int argc, char* argv[])
         // application. These objects are configured from the input
         // database. Nearly all SAMRAI applications (at least those in IBAMR)
         // start by setting up the same half-dozen objects.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -72,15 +72,15 @@ main(int argc, char* argv[])
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
         // We create a variable for every vector we ultimately declare,
         // instead of creating and then cloning vectors. The rationale for
         // this is given below.
-        Pointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc");
-        Pointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc");
-        Pointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc");
-        Pointer<CellVariableNd<double> > f_approx_cc_var = new CellVariableNd<double>("f_approx_cc");
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc");
+        SAMRAIPointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc");
+        SAMRAIPointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc");
+        SAMRAIPointer<CellVariableNd<double> > f_approx_cc_var = new CellVariableNd<double>("f_approx_cc");
 
         // Internally, SAMRAI keeps track of variables (and their
         // corresponding vectors, data, etc.) by converting them to
@@ -106,7 +106,7 @@ main(int argc, char* argv[])
         // hierarchy.
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_cc_idx, 0.0);
             level->allocatePatchData(f_cc_idx, 0.0);
             level->allocatePatchData(e_cc_idx, 0.0);
@@ -210,16 +210,16 @@ main(int argc, char* argv[])
         // second argument to the constructor is false.
         if (test_copied_vector)
         {
-            e_vec.subtract(Pointer<SAMRAIVectorRealNd<double> >(&f_vec, false), f_copied);
+            e_vec.subtract(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&f_vec, false), f_copied);
         }
         else if (test_duplicated_vector)
         {
-            e_vec.subtract(Pointer<SAMRAIVectorRealNd<double> >(&f_vec, false), f_duplicated);
+            e_vec.subtract(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&f_vec, false), f_duplicated);
         }
         else
         {
-            e_vec.subtract(Pointer<SAMRAIVectorRealNd<double> >(&f_vec, false),
-                           Pointer<SAMRAIVectorRealNd<double> >(&f_standard, false));
+            e_vec.subtract(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&f_vec, false),
+                           SAMRAIPointer<SAMRAIVectorRealNd<double> >(&f_standard, false));
         }
         const double max_norm = e_vec.maxNorm();
         const double l2_norm = e_vec.L2Norm();
@@ -237,15 +237,15 @@ main(int argc, char* argv[])
         // on coarser levels which are covered by finer levels to zero.
         for (int ln = 0; ln < finest_level; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             BoxArrayNd refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
                 const PatchNd& patch = *level->getPatch(p());
                 const BoxNd& patch_box = patch.getBox();
-                Pointer<CellDataNd<double> > e_cc_data = patch.getPatchData(e_cc_idx);
+                SAMRAIPointer<CellDataNd<double> > e_cc_data = patch.getPatchData(e_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const BoxNd& refined_box = refined_region_boxes[i];

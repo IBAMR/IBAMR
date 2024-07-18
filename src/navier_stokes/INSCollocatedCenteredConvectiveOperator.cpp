@@ -284,7 +284,7 @@ static Timer* t_deallocate_operator_state;
 
 INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator(
     std::string object_name,
-    Pointer<Database> input_db,
+    SAMRAIPointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     const std::vector<RobinBcCoefStrategyNd*>& /*bc_coefs*/)
     : ConvectiveOperator(std::move(object_name), difference_form)
@@ -306,7 +306,7 @@ INSCollocatedCenteredConvectiveOperator::INSCollocatedCenteredConvectiveOperator
     }
 
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSCollocatedCenteredConvectiveOperator::CONTEXT");
+    SAMRAIPointer<VariableContext> context = var_db->getContext("INSCollocatedCenteredConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSCollocatedCenteredConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -388,7 +388,7 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_U_scratch_idx);
         level->allocatePatchData(d_u_extrap_idx);
         if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
@@ -396,9 +396,9 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
     }
 
     // Setup communications algorithm.
-    Pointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
-    Pointer<RefineOperatorNd> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+    SAMRAIPointer<RefineOperatorNd> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 
     // Extrapolate from cell centers to cell faces.
@@ -407,26 +407,26 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
         refine_alg->resetSchedule(d_ghostfill_scheds[ln]);
         d_ghostfill_scheds[ln]->fillData(d_solution_time);
         d_ghostfill_alg->resetSchedule(d_ghostfill_scheds[ln]);
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd& patch_lower = patch_box.lower();
             const IntVectorNd& patch_upper = patch_box.upper();
 
-            Pointer<CellDataNd<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > U_data = patch->getPatchData(d_U_scratch_idx);
             const IntVectorNd& U_data_gcw = U_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(U_data_gcw.min() == U_data_gcw.max());
 #endif
-            Pointer<FaceDataNd<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<FaceDataNd<double> > u_ADV_data = patch->getPatchData(d_u_idx);
             const IntVectorNd& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(u_ADV_data_gcw.min() == u_ADV_data_gcw.max());
 #endif
-            Pointer<FaceDataNd<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+            SAMRAIPointer<FaceDataNd<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
             const IntVectorNd& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(u_extrap_data_gcw.min() == u_extrap_data_gcw.max());
@@ -468,7 +468,7 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
             // the patch hierarchy.
             if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceDataNd<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                SAMRAIPointer<FaceDataNd<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVectorNd& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -533,26 +533,26 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Difference values on the patches.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd& patch_lower = patch_box.lower();
             const IntVectorNd& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            Pointer<CellDataNd<double> > N_data = patch->getPatchData(N_idx);
+            SAMRAIPointer<CellDataNd<double> > N_data = patch->getPatchData(N_idx);
             const IntVectorNd& N_data_gcw = N_data->getGhostCellWidth();
 
             if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceDataNd<double> > u_ADV_data = patch->getPatchData(d_u_idx);
+                SAMRAIPointer<FaceDataNd<double> > u_ADV_data = patch->getPatchData(d_u_idx);
                 const IntVectorNd& u_ADV_data_gcw = u_ADV_data->getGhostCellWidth();
-                Pointer<FaceDataNd<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
+                SAMRAIPointer<FaceDataNd<double> > u_extrap_data = patch->getPatchData(d_u_extrap_idx);
                 const IntVectorNd& u_extrap_data_gcw = u_extrap_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -602,7 +602,7 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
 
             if (d_difference_form == CONSERVATIVE)
             {
-                Pointer<FaceDataNd<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                SAMRAIPointer<FaceDataNd<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVectorNd& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -637,7 +637,7 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
 
             if (d_difference_form == SKEW_SYMMETRIC)
             {
-                Pointer<FaceDataNd<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
+                SAMRAIPointer<FaceDataNd<double> > u_flux_data = patch->getPatchData(d_u_flux_idx);
                 const IntVectorNd& u_flux_data_gcw = u_flux_data->getGhostCellWidth();
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
@@ -682,7 +682,7 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_U_scratch_idx);
         level->deallocatePatchData(d_u_extrap_idx);
         if (d_difference_form == CONSERVATIVE || d_difference_form == SKEW_SYMMETRIC)
@@ -712,10 +712,11 @@ INSCollocatedCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVec
 #else
     NULL_USE(out);
 #endif
-    Pointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup the coarsen algorithm, operator, and schedules.
-    Pointer<CoarsenOperatorNd> coarsen_op = grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
+    SAMRAIPointer<CoarsenOperatorNd> coarsen_op =
+        grid_geom->lookupCoarsenOperator(d_u_flux_var, "CONSERVATIVE_COARSEN");
     d_coarsen_alg = new CoarsenAlgorithmNd();
     if (d_difference_form == ADVECTIVE || d_difference_form == SKEW_SYMMETRIC)
         d_coarsen_alg->registerCoarsen(d_u_extrap_idx, d_u_extrap_idx, coarsen_op);
@@ -724,20 +725,20 @@ INSCollocatedCenteredConvectiveOperator::initializeOperatorState(const SAMRAIVec
     d_coarsen_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
         d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level);
     }
 
     // Setup the refine algorithm, operator, patch strategy, and schedules.
-    Pointer<RefineOperatorNd> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
+    SAMRAIPointer<RefineOperatorNd> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg = new RefineAlgorithmNd();
     d_ghostfill_alg->registerRefine(d_U_scratch_idx, in.getComponentDescriptorIndex(0), d_U_scratch_idx, refine_op);
     d_ghostfill_strategy = new CartExtrapPhysBdryOp(d_U_scratch_idx, d_bdry_extrap_type);
     d_ghostfill_scheds.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         d_ghostfill_scheds[ln] = d_ghostfill_alg->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy);
     }
 

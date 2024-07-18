@@ -464,7 +464,7 @@ static Timer* t_deallocate_integrator;
 
 AdvDiffConservativeMassScalarTransportRKIntegrator::AdvDiffConservativeMassScalarTransportRKIntegrator(
     std::string object_name,
-    Pointer<Database> input_db)
+    SAMRAIPointer<Database> input_db)
     : STSMassFluxIntegrator(object_name, input_db)
 {
     if (input_db)
@@ -536,7 +536,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::AdvDiffConservativeMassScala
     }
 
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    Pointer<VariableContext> context =
+    SAMRAIPointer<VariableContext> context =
         var_db->getContext("AdvDiffConservativeMassScalarTransportRKIntegrator::CONTEXT");
 
     const std::string V_var_name = "AdvDiffConservativeMassScalarTransportRKIntegrator::V";
@@ -881,37 +881,37 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
 
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd& patch_lower = patch_box.lower();
             const IntVectorNd& patch_upper = patch_box.upper();
 
-            Pointer<CellDataNd<double> > N_data = patch->getPatchData(d_N_idx);
-            Pointer<FaceDataNd<double> > V_adv_data = patch->getPatchData(d_V_composite_idx);
-            Pointer<CellDataNd<double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
-            Pointer<CellDataNd<double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
-            Pointer<CellDataNd<double> > R_new_data = patch->getPatchData(d_rho_new_idx);
-            Pointer<CellDataNd<double> > Q_pre_data = patch->getPatchData(d_Q_cc_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > N_data = patch->getPatchData(d_N_idx);
+            SAMRAIPointer<FaceDataNd<double> > V_adv_data = patch->getPatchData(d_V_composite_idx);
+            SAMRAIPointer<CellDataNd<double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
+            SAMRAIPointer<CellDataNd<double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > R_new_data = patch->getPatchData(d_rho_new_idx);
+            SAMRAIPointer<CellDataNd<double> > Q_pre_data = patch->getPatchData(d_Q_cc_scratch_idx);
 
-            Pointer<CellDataNd<double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
 
-            Pointer<CellDataNd<double> > E_data = patch->getPatchData(d_E_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > E_data = patch->getPatchData(d_E_scratch_idx);
 
             // Define variables that live on the "faces" of control
             // volumes centered about side-centered staggered velocity
             // components
             const IntVectorNd ghosts = IntVectorNd(1);
-            Pointer<FaceDataNd<double> > C_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
-            Pointer<FaceDataNd<double> > Q_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
-            Pointer<FaceDataNd<double> > R_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
-            Pointer<FaceDataNd<double> > P_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
+            SAMRAIPointer<FaceDataNd<double> > C_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
+            SAMRAIPointer<FaceDataNd<double> > Q_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
+            SAMRAIPointer<FaceDataNd<double> > R_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
+            SAMRAIPointer<FaceDataNd<double> > P_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
 
             std::vector<RobinBcCoefStrategyNd*> rho_cc_bc_coefs(1, d_rho_cc_bc_coefs);
 
@@ -931,8 +931,8 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
 
             if (d_gamma_cc_var)
             {
-                Pointer<CellDataNd<double> > C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
-                Pointer<CellDataNd<double> > C_new_data = patch->getPatchData(d_gamma_cc_new_idx);
+                SAMRAIPointer<CellDataNd<double> > C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
+                SAMRAIPointer<CellDataNd<double> > C_new_data = patch->getPatchData(d_gamma_cc_new_idx);
 
                 std::vector<RobinBcCoefStrategyNd*> gamma_cc_bc_coefs(1, d_gamma_cc_bc_coefs);
 
@@ -1001,7 +1001,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
 
                 if (d_gamma_cc_var)
                 {
-                    Pointer<CellDataNd<double> > C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
+                    SAMRAIPointer<CellDataNd<double> > C_pre_data = patch->getPatchData(d_gamma_cc_scratch_idx);
                     (*N_data)(ci) -= (*C_pre_data)(ci) * (*Q_pre_data)(ci) * (*E_data)(ci);
                 }
                 else
@@ -1061,12 +1061,12 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
-    Pointer<BasePatchHierarchyNd> base_hierarchy)
+    SAMRAIPointer<BasePatchHierarchyNd> base_hierarchy)
 {
     IBAMR_TIMER_START(t_initialize_integrator);
 
     // Get the hierarchy configuration.
-    Pointer<PatchHierarchyNd> hierarchy = base_hierarchy;
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = base_hierarchy;
     d_hierarchy = hierarchy;
 
     if (d_is_initialized) deallocateSTSIntegrator();
@@ -1133,7 +1133,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
     // Allocate data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_V_scratch_idx)) level->allocatePatchData(d_V_scratch_idx);
         if (!level->checkAllocated(d_V_composite_idx)) level->allocatePatchData(d_V_composite_idx);
         if (!level->checkAllocated(d_rho_scratch_idx)) level->allocatePatchData(d_rho_scratch_idx);
@@ -1186,7 +1186,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::deallocateSTSIntegrator()
     // Deallocate data.
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_V_scratch_idx)) level->deallocatePatchData(d_V_scratch_idx);
         if (level->checkAllocated(d_V_composite_idx)) level->deallocatePatchData(d_V_composite_idx);
         if (level->checkAllocated(d_rho_scratch_idx)) level->deallocatePatchData(d_rho_scratch_idx);
@@ -1311,7 +1311,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setTransportQuantityPatchDat
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::setMaterialPropertyVariable(
-    Pointer<CellVariableNd<double> > gamma_var)
+    SAMRAIPointer<CellVariableNd<double> > gamma_var)
 {
     d_gamma_cc_var = gamma_var;
     return;
@@ -1320,13 +1320,14 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setMaterialPropertyVariable(
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
-AdvDiffConservativeMassScalarTransportRKIntegrator::interpolateCellQuantity(Pointer<FaceDataNd<double> > Q_half_data,
-                                                                            Pointer<FaceDataNd<double> > U_adv_data,
-                                                                            const Pointer<CellDataNd<double> > Q_data,
-                                                                            const IntVectorNd& patch_lower,
-                                                                            const IntVectorNd& patch_upper,
-                                                                            const BoxNd& patch_box,
-                                                                            const LimiterType& convective_limiter)
+AdvDiffConservativeMassScalarTransportRKIntegrator::interpolateCellQuantity(
+    SAMRAIPointer<FaceDataNd<double> > Q_half_data,
+    SAMRAIPointer<FaceDataNd<double> > U_adv_data,
+    const SAMRAIPointer<CellDataNd<double> > Q_data,
+    const IntVectorNd& patch_lower,
+    const IntVectorNd& patch_upper,
+    const BoxNd& patch_box,
+    const LimiterType& convective_limiter)
 {
     const IntVectorNd& Q_data_gcw = Q_data->getGhostCellWidth();
     const IntVectorNd& U_adv_data_gcw = U_adv_data->getGhostCellWidth();
@@ -1461,17 +1462,17 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::interpolateCellQuantity(Poin
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::computeConvectiveDerivative(
-    Pointer<CellDataNd<double> > N_data,
-    Pointer<FaceDataNd<double> > P_half_data,
-    const Pointer<FaceDataNd<double> > U_adv_data,
-    const Pointer<FaceDataNd<double> > R_half_data,
-    const Pointer<FaceDataNd<double> > Q_half_data,
-    const Pointer<FaceDataNd<double> > G_half_data,
+    SAMRAIPointer<CellDataNd<double> > N_data,
+    SAMRAIPointer<FaceDataNd<double> > P_half_data,
+    const SAMRAIPointer<FaceDataNd<double> > U_adv_data,
+    const SAMRAIPointer<FaceDataNd<double> > R_half_data,
+    const SAMRAIPointer<FaceDataNd<double> > Q_half_data,
+    const SAMRAIPointer<FaceDataNd<double> > G_half_data,
     const BoxNd& patch_box,
     const double* const dx)
 {
     static const double dt = 1.0;
-    Pointer<FaceDataNd<double> > GQ_half_data = new FaceDataNd<double>(patch_box, 1, 1); // to store (G*Q)^n+half
+    SAMRAIPointer<FaceDataNd<double> > GQ_half_data = new FaceDataNd<double>(patch_box, 1, 1); // to store (G*Q)^n+half
     const IntVectorNd& U_adv_data_gcw = U_adv_data->getGhostCellWidth();
     const IntVectorNd& P_half_data_gcw = P_half_data->getGhostCellWidth();
     const IntVectorNd& R_half_data_gcw = R_half_data->getGhostCellWidth();
@@ -1630,18 +1631,19 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::computeConvectiveDerivative(
 } // computeConvectiveDerivative
 
 void
-AdvDiffConservativeMassScalarTransportRKIntegrator::computeDensityUpdate(Pointer<CellDataNd<double> > R_data,
-                                                                         const double& a0,
-                                                                         const Pointer<CellDataNd<double> > R0_data,
-                                                                         const double& a1,
-                                                                         const Pointer<CellDataNd<double> > R1_data,
-                                                                         const double& a2,
-                                                                         const Pointer<FaceDataNd<double> > U_adv_data,
-                                                                         const Pointer<FaceDataNd<double> > R_half_data,
-                                                                         const Pointer<CellDataNd<double> > S_data,
-                                                                         const BoxNd& patch_box,
-                                                                         const double& dt,
-                                                                         const double* const dx)
+AdvDiffConservativeMassScalarTransportRKIntegrator::computeDensityUpdate(
+    SAMRAIPointer<CellDataNd<double> > R_data,
+    const double& a0,
+    const SAMRAIPointer<CellDataNd<double> > R0_data,
+    const double& a1,
+    const SAMRAIPointer<CellDataNd<double> > R1_data,
+    const double& a2,
+    const SAMRAIPointer<FaceDataNd<double> > U_adv_data,
+    const SAMRAIPointer<FaceDataNd<double> > R_half_data,
+    const SAMRAIPointer<CellDataNd<double> > S_data,
+    const BoxNd& patch_box,
+    const double& dt,
+    const double* const dx)
 {
     const IntVectorNd& R_data_gcw = R_data->getGhostCellWidth();
     const IntVectorNd& R0_data_gcw = R0_data->getGhostCellWidth();
@@ -1726,11 +1728,11 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::computeDensityUpdate(Pointer
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::computeErrorOfMassConservationEquation(
-    Pointer<CellDataNd<double> > E_data,
-    const Pointer<CellDataNd<double> > Rnew_data,
-    const Pointer<CellDataNd<double> > Rold_data,
-    const Pointer<FaceDataNd<double> > U_adv_data,
-    const Pointer<FaceDataNd<double> > R_half_data,
+    SAMRAIPointer<CellDataNd<double> > E_data,
+    const SAMRAIPointer<CellDataNd<double> > Rnew_data,
+    const SAMRAIPointer<CellDataNd<double> > Rold_data,
+    const SAMRAIPointer<FaceDataNd<double> > U_adv_data,
+    const SAMRAIPointer<FaceDataNd<double> > R_half_data,
     const BoxNd& patch_box,
     const double& dt,
     const double* const dx)

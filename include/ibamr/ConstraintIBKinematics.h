@@ -60,7 +60,7 @@ public:
         /*!
          * \brief Constructor.
          */
-        StructureParameters(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, IBTK::LDataManager* l_data_manager);
+        StructureParameters(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db, IBTK::LDataManager* l_data_manager);
 
         /*!
          * \brief Lagrangian point to tag on this structure.
@@ -156,7 +156,7 @@ public:
      * \brief Constructor.
      */
     ConstraintIBKinematics(std::string object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                            IBTK::LDataManager* l_data_manager,
                            bool register_for_restart = true);
 
@@ -223,7 +223,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    virtual void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!

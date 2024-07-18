@@ -71,9 +71,9 @@ static const int IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION = 2;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBExplicitHierarchyIntegrator::IBExplicitHierarchyIntegrator(std::string object_name,
-                                                             Pointer<Database> input_db,
-                                                             Pointer<IBStrategy> ib_method_ops,
-                                                             Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                                             SAMRAIPointer<Database> input_db,
+                                                             SAMRAIPointer<IBStrategy> ib_method_ops,
+                                                             SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator,
                                                              bool register_for_restart)
     : IBHierarchyIntegrator(std::move(object_name), input_db, ib_method_ops, ins_hier_integrator, register_for_restart)
 {
@@ -469,8 +469,8 @@ IBExplicitHierarchyIntegrator::postprocessIntegrateHierarchy(const double curren
 } // postprocessIntegrateHierarchy
 
 void
-IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> hierarchy,
-                                                             Pointer<GriddingAlgorithmNd> gridding_alg)
+IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                                             SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -596,7 +596,7 @@ IBExplicitHierarchyIntegrator::regridHierarchyEndSpecialized()
 } // regridHierarchyEndSpecialized
 
 void
-IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<Database> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION", IB_EXPLICIT_HIERARCHY_INTEGRATOR_VERSION);
@@ -608,8 +608,8 @@ IBExplicitHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 void
 IBExplicitHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

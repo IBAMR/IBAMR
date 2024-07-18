@@ -33,7 +33,7 @@ namespace IBTK
 {
 template <typename TYPE>
 SAMRAIScopedVectorCopy<TYPE>::SAMRAIScopedVectorCopy(
-    const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> >& vector,
+    const SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> >& vector,
     const std::string& name)
     : SAMRAIScopedVectorCopy(checked_dereference(vector), name)
 {
@@ -44,7 +44,7 @@ SAMRAIScopedVectorCopy<TYPE>::SAMRAIScopedVectorCopy(const SAMRAI::solv::SAMRAIV
                                                      const std::string& name)
     : SAMRAIScopedVectorDuplicate<TYPE>(vector, name)
 {
-    this->d_vector->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> >(
+    this->d_vector->copyVector(SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> >(
                                    const_cast<SAMRAI::solv::SAMRAIVectorRealNd<TYPE>*>(&vector), false),
                                false);
 }

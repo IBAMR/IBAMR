@@ -57,23 +57,23 @@ static Timer* t_secondary_to_primary;
  */
 class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategyNd
 {
-    virtual void initializeLevelData(const tbox::Pointer<hier::BasePatchHierarchyNd> /*hierarchy*/,
+    virtual void initializeLevelData(const SAMRAIPointer<hier::BasePatchHierarchyNd> /*hierarchy*/,
                                      const int /*level_number*/,
                                      const double /*init_data_time*/,
                                      const bool /*can_be_refined*/,
                                      const bool /*initial_time*/,
-                                     const tbox::Pointer<hier::BasePatchLevelNd> /*old_level*/ = nullptr,
+                                     const SAMRAIPointer<hier::BasePatchLevelNd> /*old_level*/ = nullptr,
                                      const bool /*allocate_data*/ = true) override
     {
     }
 
-    virtual void resetHierarchyConfiguration(const tbox::Pointer<hier::BasePatchHierarchyNd> /*hierarchy*/,
+    virtual void resetHierarchyConfiguration(const SAMRAIPointer<hier::BasePatchHierarchyNd> /*hierarchy*/,
                                              const int /*coarsest_level*/,
                                              const int /*finest_level*/) override
     {
     }
 
-    virtual void applyGradientDetector(const SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    virtual void applyGradientDetector(const SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                        const int level_number,
                                        const double /*error_data_time*/,
                                        const int tag_index,
@@ -81,9 +81,9 @@ class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategyNd
                                        const bool /*uses_richardson_extrapolation_too*/) override
     {
         if (level_number == hierarchy->getFinestLevelNumber()) return;
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy = hierarchy;
+        SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy = hierarchy;
         TBOX_ASSERT(patch_hierarchy);
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+        SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
 
         if (!level->checkAllocated(tag_index)) level->allocatePatchData(tag_index, 0.0);
         HierarchyCellDataOpsIntegerNd hier_cc_data_ops(hierarchy, level_number, level_number);
@@ -96,7 +96,7 @@ class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategyNd
         // be tagged on this level, since we don't care about tagging in the
         // secondary hierarchy - just load balancing (but samrai requires we do
         // both simultaneously)
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> finer_level = hierarchy->getPatchLevel(level_number + 1);
+        SAMRAIPointer<SAMRAI::hier::PatchLevelNd> finer_level = hierarchy->getPatchLevel(level_number + 1);
         const auto& boxes = finer_level->getBoxes();
         for (int i = 0; i < boxes.getNumberOfBoxes(); ++i)
         {
@@ -112,9 +112,9 @@ class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategyNd
 
             for (SAMRAI::hier::PatchLevelNd::Iterator p(level); p; p++)
             {
-                const Pointer<PatchNd> patch = level->getPatch(p());
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 const BoxNd box = patch->getBox();
-                Pointer<CellDataNd<int> > tag_data = patch->getPatchData(tag_index);
+                SAMRAIPointer<CellDataNd<int> > tag_data = patch->getPatchData(tag_index);
 
                 // SAMRAI's intersection code is wrong and returns nonsense
                 // answers when the intersection should be empty
@@ -130,8 +130,8 @@ class CopyRefinementTags : public SAMRAI::mesh::StandardTagAndInitStrategyNd
 } // namespace
 
 SecondaryHierarchy::SecondaryHierarchy(std::string name,
-                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
-                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db)
+                                       SAMRAIPointer<SAMRAI::tbox::Database> gridding_algorithm_db,
+                                       SAMRAIPointer<SAMRAI::tbox::Database> load_balancer_db)
     : d_object_name(name),
       d_tag_strategy(std::unique_ptr<CopyRefinementTags>(new CopyRefinementTags())),
       d_eulerian_data_cache(std::make_shared<SAMRAIDataCache>())
@@ -143,7 +143,7 @@ SecondaryHierarchy::SecondaryHierarchy(std::string name,
                  t_secondary_to_primary = set_timer("IBTK::SecondaryHierarchy::transferSecondaryToPrimary()");)
 
     // IBAMR consistently uses applyGradientDetector for everything so do that too
-    Pointer<InputDatabase> database(new InputDatabase(d_object_name + ":: tag_db"));
+    SAMRAIPointer<InputDatabase> database(new InputDatabase(d_object_name + ":: tag_db"));
     database->putString("tagging_method", "GRADIENT_DETECTOR");
     d_error_detector = new StandardTagAndInitializeNd(d_object_name + "::tag", d_tag_strategy.get(), database);
     d_box_generator = new BergerRigoutsosNd();
@@ -167,7 +167,7 @@ SecondaryHierarchy::SecondaryHierarchy(std::string name,
 void
 SecondaryHierarchy::reinit(int coarsest_patch_level_number,
                            int finest_patch_level_number,
-                           Pointer<PatchHierarchyNd> patch_hierarchy)
+                           SAMRAIPointer<PatchHierarchyNd> patch_hierarchy)
 {
     IBTK_TIMER_START(t_reinit);
     d_coarsest_patch_level_number = coarsest_patch_level_number;
@@ -188,7 +188,7 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
 void
 SecondaryHierarchy::reinit(int coarsest_patch_level_number,
                            int finest_patch_level_number,
-                           Pointer<PatchHierarchyNd> patch_hierarchy,
+                           SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                            int workload_idx)
 {
     IBTK_TIMER_START(t_reinit);
@@ -209,13 +209,13 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
     // worry about boundary stuff
     for (int ln = 0; ln <= d_finest_patch_level_number; ++ln)
     {
-        Pointer<PatchLevelNd> old_level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> old_level = patch_hierarchy->getPatchLevel(ln);
         TBOX_ASSERT(old_level->checkAllocated(workload_idx));
-        Pointer<PatchLevelNd> new_level = new_secondary_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> new_level = new_secondary_hierarchy->getPatchLevel(ln);
         new_level->allocatePatchData(workload_idx);
 
-        Pointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
-        Pointer<RefineOperatorNd> refine_op = nullptr;
+        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
         refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
         auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level);
 
@@ -245,15 +245,15 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
     // for analysis purposes, also transfer the workload data to the new partitioning
     for (int ln = 0; ln <= d_finest_patch_level_number; ++ln)
     {
-        Pointer<PatchLevelNd> old_level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> old_level = patch_hierarchy->getPatchLevel(ln);
         TBOX_ASSERT(old_level->checkAllocated(workload_idx));
-        Pointer<PatchLevelNd> new_level = d_secondary_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> new_level = d_secondary_hierarchy->getPatchLevel(ln);
         if (!new_level->checkAllocated(workload_idx)) new_level->allocatePatchData(workload_idx);
         HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(d_secondary_hierarchy, ln, ln);
         hier_cc_data_ops.setToScalar(workload_idx, 0.0, false);
 
-        Pointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
-        Pointer<RefineOperatorNd> refine_op = nullptr;
+        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
         refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
         auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level);
         schedule->fillData(0.0);
@@ -273,11 +273,11 @@ SecondaryHierarchy::transferPrimaryToSecondary(const int level_number,
     const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
     if (d_transfer_forward_schedules.count(key) == 0)
     {
-        Pointer<PatchLevelNd> level = d_primary_hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevelNd> scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
+        SAMRAIPointer<PatchLevelNd> level = d_primary_hierarchy->getPatchLevel(level_number);
+        SAMRAIPointer<PatchLevelNd> scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
         if (!scratch_level->checkAllocated(scratch_data_idx)) scratch_level->allocatePatchData(scratch_data_idx, 0.0);
-        Pointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
-        Pointer<RefineOperatorNd> refine_op_f = nullptr;
+        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        SAMRAIPointer<RefineOperatorNd> refine_op_f = nullptr;
         refine_algorithm->registerRefine(scratch_data_idx, primary_data_idx, scratch_data_idx, refine_op_f);
         d_transfer_forward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", scratch_level, level, patch_strategy);
@@ -298,10 +298,10 @@ SecondaryHierarchy::transferSecondaryToPrimary(const int level_number,
     const auto key = std::make_pair(level_number, std::make_pair(primary_data_idx, scratch_data_idx));
     if (d_transfer_backward_schedules.count(key) == 0)
     {
-        Pointer<PatchLevelNd> level = d_primary_hierarchy->getPatchLevel(level_number);
-        Pointer<PatchLevelNd> scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
-        Pointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
-        Pointer<RefineOperatorNd> refine_op_b = nullptr;
+        SAMRAIPointer<PatchLevelNd> level = d_primary_hierarchy->getPatchLevel(level_number);
+        SAMRAIPointer<PatchLevelNd> scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
+        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        SAMRAIPointer<RefineOperatorNd> refine_op_b = nullptr;
         refine_algorithm->registerRefine(primary_data_idx, scratch_data_idx, primary_data_idx, refine_op_b);
         d_transfer_backward_schedules[key] =
             refine_algorithm->createSchedule("DEFAULT_FILL", level, scratch_level, patch_strategy);
@@ -316,13 +316,13 @@ SecondaryHierarchy::getSAMRAIDataCache()
     return d_eulerian_data_cache;
 }
 
-SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd>
+SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd>
 SecondaryHierarchy::getPrimaryHierarchy()
 {
     return d_primary_hierarchy;
 }
 
-SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd>
+SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd>
 SecondaryHierarchy::getSecondaryHierarchy()
 {
     return d_secondary_hierarchy;

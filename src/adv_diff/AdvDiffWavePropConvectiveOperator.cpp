@@ -113,8 +113,8 @@ namespace IBAMR
 {
 // Constructor
 AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(std::string object_name,
-                                                                     Pointer<CellVariableNd<double> > Q_var,
-                                                                     Pointer<Database> input_db,
+                                                                     SAMRAIPointer<CellVariableNd<double> > Q_var,
+                                                                     SAMRAIPointer<Database> input_db,
                                                                      const ConvectiveDifferencingType differencing_form,
                                                                      std::vector<RobinBcCoefStrategyNd*> conc_bc_coefs)
     : ConvectiveOperator(std::move(object_name), differencing_form),
@@ -146,7 +146,7 @@ AdvDiffWavePropConvectiveOperator::AdvDiffWavePropConvectiveOperator(std::string
 
     // Register some scratch variables
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONVEC_CONTEXT");
+    SAMRAIPointer<VariableContext> context = var_db->getContext(d_object_name + "::CONVEC_CONTEXT");
     d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_var, context, IntVectorNd(d_k + 1));
 
 } // Constructor
@@ -166,14 +166,15 @@ AdvDiffWavePropConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
                    << "  operator must be initialized prior to call to "
                       "applyConvectiveOperator\n");
     }
-    Pointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
     // Set up refine algorithms for Q and u.
-    Pointer<RefineAlgorithmNd> refine_alg_Q = new RefineAlgorithmNd();
-    Pointer<RefineOperatorNd> refine_op_Q = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
+    SAMRAIPointer<RefineAlgorithmNd> refine_alg_Q = new RefineAlgorithmNd();
+    SAMRAIPointer<RefineOperatorNd> refine_op_Q =
+        grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg_Q->registerRefine(d_Q_scratch_idx, Q_idx, d_Q_scratch_idx, refine_op_Q);
     // Set up coarsen algorithms for Q and u.
-    Pointer<CoarsenAlgorithmNd> coarsen_alg_Q = new CoarsenAlgorithmNd();
-    Pointer<CoarsenOperatorNd> coarsen_op_Q = grid_geom->lookupCoarsenOperator(d_Q_var, "CONSERVATIVE_COARSEN");
+    SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg_Q = new CoarsenAlgorithmNd();
+    SAMRAIPointer<CoarsenOperatorNd> coarsen_op_Q = grid_geom->lookupCoarsenOperator(d_Q_var, "CONSERVATIVE_COARSEN");
     coarsen_alg_Q->registerCoarsen(d_Q_scratch_idx, d_Q_scratch_idx, coarsen_op_Q);
     // Refine the data for Q and u
     d_ghostfill_scheds_Q.resize(d_finest_ln + 1);
@@ -182,12 +183,12 @@ AdvDiffWavePropConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
         refine_alg_Q->resetSchedule(d_ghostfill_scheds_Q[level_num]);
         d_ghostfill_scheds_Q[level_num]->fillData(d_solution_time);
         d_ghostfill_alg_Q->resetSchedule(d_ghostfill_scheds_Q[level_num]);
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CellDataNd<double> > Q_data = patch->getPatchData(d_Q_scratch_idx);
-            Pointer<FaceDataNd<double> > u_adv_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CellDataNd<double> > Q_data = patch->getPatchData(d_Q_scratch_idx);
+            SAMRAIPointer<FaceDataNd<double> > u_adv_data = patch->getPatchData(d_u_idx);
             AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(Q_data,
                                                                             u_adv_data,
                                                                             patch,
@@ -204,19 +205,19 @@ AdvDiffWavePropConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
 
     for (int level_num = d_coarsest_ln; level_num <= d_finest_ln; ++level_num)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
             const double* dx = p_geom->getDx();
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd patch_lower = patch_box.lower();
             const IntVectorNd patch_upper = patch_box.upper();
-            Pointer<CellDataNd<double> > Y_data = patch->getPatchData(Y_idx);
-            Pointer<CellDataNd<double> > Q_data_scr = patch->getPatchData(d_Q_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > Y_data = patch->getPatchData(Y_idx);
+            SAMRAIPointer<CellDataNd<double> > Q_data_scr = patch->getPatchData(d_Q_scratch_idx);
             const IntVectorNd Q_data_scr_gcw = Q_data_scr->getGhostCellWidth();
-            Pointer<FaceDataNd<double> > U_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<FaceDataNd<double> > U_data = patch->getPatchData(d_u_idx);
             const IntVectorNd U_data_gcw = U_data->getGhostCellWidth();
             const IntVectorNd Y_data_gcw = Y_data->getGhostCellWidth();
 #if (NDIM == 2)
@@ -285,8 +286,8 @@ AdvDiffWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
      * 3) Fill a coarsen schedule with the coarsen algorithm
      * 4) To actually coarsen data, use coarsen schedule -> coarsen data()
      */
-    Pointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
-    Pointer<CoarsenOperatorNd> coarsen_op_Q = grid_geom->lookupCoarsenOperator(d_Q_var, "CONSERVATIVE_COARSEN");
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CoarsenOperatorNd> coarsen_op_Q = grid_geom->lookupCoarsenOperator(d_Q_var, "CONSERVATIVE_COARSEN");
     // Step 1) and 2)
     d_coarsen_alg_Q = new CoarsenAlgorithmNd();
     d_coarsen_alg_Q->registerCoarsen(d_Q_scratch_idx, d_Q_scratch_idx, coarsen_op_Q);
@@ -294,8 +295,8 @@ AdvDiffWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
     // Step 3)
     for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
         d_coarsen_scheds_Q[ln] = d_coarsen_alg_Q->createSchedule(coarser_level, level);
     }
     /* Set Refine Algorithms. This interpolates data onto finer grid
@@ -307,7 +308,8 @@ AdvDiffWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
      */
     // Note we only set up refine algorithms for Q here because u has not been set
     // yet.
-    Pointer<RefineOperatorNd> refine_op_Q = grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
+    SAMRAIPointer<RefineOperatorNd> refine_op_Q =
+        grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
     d_ghostfill_alg_Q = new RefineAlgorithmNd();
     d_ghostfill_alg_Q->registerRefine(d_Q_scratch_idx, in.getComponentDescriptorIndex(0), d_Q_scratch_idx, refine_op_Q);
     if (d_outflow_bdry_extrap_type != "NONE")
@@ -315,14 +317,14 @@ AdvDiffWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorRea
     d_ghostfill_scheds_Q.resize(d_finest_ln + 1);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         d_ghostfill_scheds_Q[ln] =
             d_ghostfill_alg_Q->createSchedule(level, ln - 1, d_hierarchy, d_ghostfill_strategy_Q);
     }
     // Allocate Patch Data
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_Q_scratch_idx)) level->allocatePatchData(d_Q_scratch_idx);
     }
     d_is_initialized = true;
@@ -336,7 +338,7 @@ AdvDiffWavePropConvectiveOperator::deallocateOperatorState()
     // Deallocate scratch data
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_Q_scratch_idx))
         {
             level->deallocatePatchData(d_Q_scratch_idx);

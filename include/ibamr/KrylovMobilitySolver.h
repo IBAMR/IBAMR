@@ -67,9 +67,9 @@ public:
      * PETSc KSP solver framework.
      */
     KrylovMobilitySolver(std::string object_name,
-                         SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                         SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                         IBTK::SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                         IBTK::SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy,
+                         IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                          std::string default_options_prefix,
                          MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
@@ -97,7 +97,7 @@ public:
      * \brief Return the Stokes solver used in the preconditioner of the
      * solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> getStokesSolver() const;
+    IBTK::SAMRAIPointer<IBAMR::StaggeredStokesSolver> getStokesSolver() const;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -110,7 +110,7 @@ public:
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -218,7 +218,7 @@ private:
     /*!
      * \brief Get solver settings from the input file.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Initialize the Stokes solver needed in the mobility matrix.
@@ -286,11 +286,11 @@ private:
     Mat d_petsc_mat = nullptr;
 
     // Linear operator.
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<PetscScalar> > > d_samrai_temp;
-    SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
-    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
-    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_LInv;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<PetscScalar> > > d_samrai_temp;
+    IBTK::SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> d_ins_integrator;
+    IBTK::SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
+    IBTK::SAMRAIPointer<IBAMR::StaggeredStokesSolver> d_LInv;
+    IBTK::SAMRAIPointer<IBTK::PoissonSolver> d_velocity_solver, d_pressure_solver;
 
     // KSP options and settings.
     int d_max_iterations = 10000, d_current_iterations;
@@ -300,15 +300,15 @@ private:
     bool d_enable_logging = false;
 
     // Velocity BCs and cached communication operators for interpolation operation.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_u_bc_coefs;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPatternNd> d_fill_pattern;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::VariableFillPatternNd> d_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill;
 
     // Nullspace vectors for LInv
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > > d_nul_vecs;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > > d_U_nul_vecs;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > > d_nul_vecs;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > > d_U_nul_vecs;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have

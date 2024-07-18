@@ -34,7 +34,7 @@ public:
      * \brief Class constructor.
      */
     LevelSetInitialConditionTorus(const std::string& object_name,
-                                  const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom,
+                                  const IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom,
                                   const IBTK::VectorNd& origin,
                                   const IBTK::Vector2d& t);
 
@@ -64,11 +64,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::VariableNd> var,
-                        Pointer<PatchNd> patch,
+                        SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                        SAMRAIPointer<PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevelNd> patch_level = Pointer<PatchLevelNd>(NULL));
+                        SAMRAIPointer<PatchLevelNd> patch_level = SAMRAIPointer<PatchLevelNd>(NULL));
 
     //\}
 
@@ -97,7 +97,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
+    IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
 
     /*!
      * Origin of torus.

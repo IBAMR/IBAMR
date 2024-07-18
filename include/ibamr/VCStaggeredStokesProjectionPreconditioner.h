@@ -64,7 +64,7 @@ public:
      * \brief Class constructor
      */
     VCStaggeredStokesProjectionPreconditioner(const std::string& object_name,
-                                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                              IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                               const std::string& default_options_prefix);
 
     /*!
@@ -76,9 +76,9 @@ public:
      * \brief Static function to construct a
      * VCStaggeredStokesProjectionPreconditioner.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    static IBTK::SAMRAIPointer<StaggeredStokesSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
         return new VCStaggeredStokesProjectionPreconditioner(object_name, input_db, default_options_prefix);
@@ -183,10 +183,10 @@ private:
     operator=(const VCStaggeredStokesProjectionPreconditioner& that) = delete;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_Phi_var, d_F_Phi_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx, d_F_Phi_idx, d_velocity_D_cc_idx;
 };
 } // namespace IBAMR

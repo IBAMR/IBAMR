@@ -96,7 +96,7 @@ LData::LData(std::string name, Vec vec, std::vector<int> nonlocal_petsc_indices,
     return;
 } // LData
 
-LData::LData(Pointer<Database> db) : d_name(db->getString("d_name")), d_depth(db->getInteger("d_depth"))
+LData::LData(SAMRAIPointer<Database> db) : d_name(db->getString("d_name")), d_depth(db->getInteger("d_depth"))
 {
     int num_local_nodes = db->getInteger("num_local_nodes");
     int num_ghost_nodes = db->getInteger("num_ghost_nodes");
@@ -184,7 +184,7 @@ LData::resetData(Vec vec, const std::vector<int>& nonlocal_petsc_indices, const 
 } // resetData
 
 void
-LData::putToDatabase(Pointer<Database> db)
+LData::putToDatabase(SAMRAIPointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);

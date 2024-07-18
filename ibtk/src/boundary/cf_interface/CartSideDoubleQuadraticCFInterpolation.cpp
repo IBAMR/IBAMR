@@ -143,7 +143,7 @@ CartSideDoubleQuadraticCFInterpolation::CartSideDoubleQuadraticCFInterpolation()
 {
     // Setup scratch variables.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
+    SAMRAIPointer<VariableContext> context = var_db->getContext("CartSideDoubleQuadraticCFInterpolation::CONTEXT");
     if (var_db->checkVariableExists(d_sc_indicator_var->getName()))
     {
         d_sc_indicator_var = var_db->getVariable(d_sc_indicator_var->getName());
@@ -217,7 +217,7 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(PatchNd& fine,
         // patch hierarchy.
         const int patch_num = fine.getPatchNumber();
         const int fine_patch_level_num = fine.getPatchLevelNumber();
-        Pointer<PatchLevelNd> fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
+        SAMRAIPointer<PatchLevelNd> fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
         TBOX_ASSERT(&fine == fine_level->getPatch(patch_num).getPointer());
     }
 #endif
@@ -230,9 +230,9 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(PatchNd& fine,
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        Pointer<SideDataNd<double> > fdata = fine.getPatchData(patch_data_index);
-        Pointer<SideDataNd<double> > cdata = coarse.getPatchData(patch_data_index);
-        Pointer<SideDataNd<int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
+        SAMRAIPointer<SideDataNd<double> > fdata = fine.getPatchData(patch_data_index);
+        SAMRAIPointer<SideDataNd<double> > cdata = coarse.getPatchData(patch_data_index);
+        SAMRAIPointer<SideDataNd<int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(fdata);
         TBOX_ASSERT(cdata);
@@ -258,7 +258,7 @@ CartSideDoubleQuadraticCFInterpolation::postprocessRefine(PatchNd& fine,
 #endif
         const int data_depth = fdata->getDepth();
         const IntVectorNd ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
-        Pointer<CartesianPatchGeometryNd> pgeom_fine = fine.getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> pgeom_fine = fine.getPatchGeometry();
         const BoxNd& patch_box_fine = fine.getBox();
         const BoxNd& patch_box_crse = coarse.getBox();
         for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
@@ -368,7 +368,7 @@ CartSideDoubleQuadraticCFInterpolation::setPatchDataIndices(const ComponentSelec
 } // setPatchDataIndices
 
 void
-CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
+CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -384,15 +384,15 @@ CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy
         d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
     }
 
-    Pointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
-    Pointer<RefineOperatorNd> refine_op = nullptr;
+    SAMRAIPointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+    SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
     refine_alg->registerRefine(d_sc_indicator_idx, // destination
                                d_sc_indicator_idx, // source
                                d_sc_indicator_idx, // temporary work space
                                refine_op);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_sc_indicator_idx))
         {
             level->allocatePatchData(d_sc_indicator_idx, 0.0);
@@ -403,8 +403,8 @@ CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy
         }
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<SideDataNd<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<SideDataNd<int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
         }
@@ -441,7 +441,7 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(PatchNd& patch,
     {
         const int patch_num = patch.getPatchNumber();
         const int patch_level_num = patch.getPatchLevelNumber();
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(patch_level_num);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(patch_level_num);
         TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
     }
 #endif
@@ -458,10 +458,10 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(PatchNd& patch,
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        Pointer<SideDataNd<double> > data = patch.getPatchData(patch_data_index);
+        SAMRAIPointer<SideDataNd<double> > data = patch.getPatchData(patch_data_index);
         SideDataNd<double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
         data_copy.copyOnBox(*data, data->getGhostBox());
-        Pointer<SideDataNd<int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
+        SAMRAIPointer<SideDataNd<int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(data);
         TBOX_ASSERT(indicator_data);
@@ -485,7 +485,7 @@ CartSideDoubleQuadraticCFInterpolation::computeNormalExtension(PatchNd& patch,
 #endif
         const int data_depth = data->getDepth();
         const IntVectorNd ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
-        Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
         const BoxNd& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {

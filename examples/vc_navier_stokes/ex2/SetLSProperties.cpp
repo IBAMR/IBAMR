@@ -26,7 +26,7 @@
 
 void
 callSetLSCallbackFunction(int ls_idx,
-                          Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                          SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                           const int integrator_step,
                           const double current_time,
                           const bool initial_time,
@@ -44,7 +44,7 @@ callSetLSCallbackFunction(int ls_idx,
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 
-SetLSProperties::SetLSProperties(const std::string& object_name, Pointer<LSInitStrategy> ls_ops)
+SetLSProperties::SetLSProperties(const std::string& object_name, SAMRAIPointer<LSInitStrategy> ls_ops)
     : d_object_name(object_name), d_ls_ops(ls_ops)
 {
     // intentionally left blank
@@ -60,7 +60,7 @@ SetLSProperties::~SetLSProperties()
 
 void
 SetLSProperties::setLSPatchData(int ls_idx,
-                                SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
+                                IBTK::SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                 const int integrator_step,
                                 const double current_time,
                                 const bool initial_time,

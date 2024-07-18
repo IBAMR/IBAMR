@@ -162,7 +162,7 @@ compute_mu_harmonic_avg(const hier::IndexNd& i, const EdgeDataNd<double>& mu_dat
 } // compute_mu_harmonic_avg
 
 inline double
-get_mu_edge(const hier::IndexNd& i, const int perp, const Pointer<EdgeDataNd<double> > mu_data)
+get_mu_edge(const hier::IndexNd& i, const int perp, const SAMRAIPointer<EdgeDataNd<double> > mu_data)
 {
     const ArrayDataNd<double>& mu_array_data = mu_data->getArrayData(perp);
     return mu_array_data(i, /*depth*/ 0);
@@ -180,7 +180,7 @@ get_shift(int dir, int shift)
 
 void
 PoissonUtilities::computeMatrixCoefficients(CellDataNd<double>& matrix_coefficients,
-                                            Pointer<PatchNd> patch,
+                                            SAMRAIPointer<PatchNd> patch,
                                             const std::vector<hier::IndexNd>& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             RobinBcCoefStrategyNd* bc_coef,
@@ -193,7 +193,7 @@ PoissonUtilities::computeMatrixCoefficients(CellDataNd<double>& matrix_coefficie
 
 void
 PoissonUtilities::computeMatrixCoefficients(CellDataNd<double>& matrix_coefficients,
-                                            Pointer<PatchNd> patch,
+                                            SAMRAIPointer<PatchNd> patch,
                                             const std::vector<hier::IndexNd>& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
@@ -238,7 +238,7 @@ PoissonUtilities::computeMatrixCoefficients(CellDataNd<double>& matrix_coefficie
     SideDataNd<double> off_diagonal(patch_box, depth, IntVectorNd(0));
 
     ArrayDataBasicOpsNd<double> array_ops;
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Compute all off-diagonal matrix coefficients for all cell sides,
@@ -302,9 +302,9 @@ PoissonUtilities::computeMatrixCoefficients(CellDataNd<double>& matrix_coefficie
         const BoundaryBoxNd trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
@@ -397,7 +397,7 @@ PoissonUtilities::computeMatrixCoefficients(CellDataNd<double>& matrix_coefficie
 
 void
 PoissonUtilities::computeMatrixCoefficients(SideDataNd<double>& matrix_coefficients,
-                                            Pointer<PatchNd> patch,
+                                            SAMRAIPointer<PatchNd> patch,
                                             const std::vector<hier::IndexNd>& stencil,
                                             const PoissonSpecifications& poisson_spec,
                                             const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
@@ -452,7 +452,7 @@ PoissonUtilities::computeMatrixCoefficients(SideDataNd<double>& matrix_coefficie
     const Array<BoundaryBoxNd> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
@@ -515,9 +515,9 @@ PoissonUtilities::computeMatrixCoefficients(SideDataNd<double>& matrix_coefficie
             const BoxNd bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -629,9 +629,9 @@ PoissonUtilities::computeMatrixCoefficients(SideDataNd<double>& matrix_coefficie
             const BoundaryBoxNd trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
@@ -714,7 +714,7 @@ PoissonUtilities::computeMatrixCoefficients(SideDataNd<double>& matrix_coefficie
 void
 PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     SAMRAI::pdat::SideDataNd<double>& matrix_coefficients,
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+    SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
     const std::vector<std::map<hier::IndexNd, int, IndexFortranOrder> >& stencil_map_vec,
     const SAMRAI::solv::PoissonSpecifications& poisson_spec,
     double alpha,
@@ -734,13 +734,13 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     matrix_coefficients.fillAll(0.0);
 
     const bool C_is_varying = poisson_spec.cIsVariable();
-    Pointer<SideDataNd<double> > C_data = nullptr;
+    SAMRAIPointer<SideDataNd<double> > C_data = nullptr;
     if (C_is_varying) C_data = patch->getPatchData(poisson_spec.getCPatchDataId());
 
 #if (NDIM == 2)
-    Pointer<NodeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<NodeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #elif (NDIM == 3)
-    Pointer<EdgeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<EdgeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #endif
 
 #if !defined(NDEBUG)
@@ -756,7 +756,7 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
     const Array<BoundaryBoxNd> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
@@ -892,9 +892,9 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
             const BoxNd bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1011,9 +1011,9 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 
                 const BoxNd bc_coef_box = compute_tangential_extension(side_box, comp);
 
-                Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
                 // Temporarily reset the patch geometry object associated with the
                 // patch so that boundary conditions are set at the correct spatial
@@ -1141,9 +1141,9 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
             const BoundaryBoxNd trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             static const bool homogeneous_bc = true;
@@ -1227,7 +1227,7 @@ PoissonUtilities::computeVCSCViscousOpMatrixCoefficients(
 
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(CellDataNd<double>& rhs_data,
-                                              Pointer<PatchNd> patch,
+                                              SAMRAIPointer<PatchNd> patch,
                                               const PoissonSpecifications& poisson_spec,
                                               RobinBcCoefStrategyNd* bc_coef,
                                               double data_time,
@@ -1240,7 +1240,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellDataNd<double>& rhs_data,
 
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(CellDataNd<double>& rhs_data,
-                                              Pointer<PatchNd> patch,
+                                              SAMRAIPointer<PatchNd> patch,
                                               const PoissonSpecifications& poisson_spec,
                                               const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
                                               double data_time,
@@ -1260,7 +1260,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellDataNd<double>& rhs_data,
     {
         D_data.fillAll(poisson_spec.getDConstant());
     }
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Modify the rhs entries to account for inhomogeneous boundary conditions.
@@ -1272,9 +1272,9 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellDataNd<double>& rhs_data,
         const BoundaryBoxNd trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
         const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-        Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
         for (int d = 0; d < depth; ++d)
         {
@@ -1339,7 +1339,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(CellDataNd<double>& rhs_data,
 
 void
 PoissonUtilities::adjustRHSAtPhysicalBoundary(SideDataNd<double>& rhs_data,
-                                              Pointer<PatchNd> patch,
+                                              SAMRAIPointer<PatchNd> patch,
                                               const PoissonSpecifications& poisson_spec,
                                               const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
                                               double data_time,
@@ -1359,7 +1359,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideDataNd<double>& rhs_data,
     const Array<BoundaryBoxNd> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
@@ -1400,9 +1400,9 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideDataNd<double>& rhs_data,
             const BoxNd bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1501,9 +1501,9 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideDataNd<double>& rhs_data,
             const BoundaryBoxNd trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
@@ -1558,7 +1558,7 @@ PoissonUtilities::adjustRHSAtPhysicalBoundary(SideDataNd<double>& rhs_data,
 
 void
 PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideDataNd<double>& rhs_data,
-                                                           Pointer<PatchNd> patch,
+                                                           SAMRAIPointer<PatchNd> patch,
                                                            const PoissonSpecifications& poisson_spec,
                                                            double alpha,
                                                            const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
@@ -1571,9 +1571,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideDataNd<double>& r
 #endif
 
 #if (NDIM == 2)
-    Pointer<NodeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<NodeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #elif (NDIM == 3)
-    Pointer<EdgeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<EdgeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #endif
 
 #if !defined(NDEBUG)
@@ -1588,7 +1588,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideDataNd<double>& r
     const Array<BoundaryBoxNd> physical_codim1_boxes =
         PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const patch_x_lower = pgeom->getXLower();
     const double* const patch_x_upper = pgeom->getXUpper();
@@ -1629,9 +1629,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideDataNd<double>& r
             const BoxNd bc_coef_box = compute_tangential_extension(
                 PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-            Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
             // Temporarily reset the patch geometry object associated with the
             // patch so that boundary conditions are set at the correct spatial
@@ -1745,9 +1745,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideDataNd<double>& r
 
                 const BoxNd bc_coef_box = compute_tangential_extension(side_box, comp);
 
-                Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
                 // Temporarily reset the patch geometry object associated with the
                 // patch so that boundary conditions are set at the correct spatial
@@ -1861,9 +1861,9 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideDataNd<double>& r
             const BoundaryBoxNd trimmed_bdry_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
             const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-            Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-            Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+            SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
 
             // Set the boundary condition coefficients.
             auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coefs[axis]);
@@ -1939,7 +1939,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(SideDataNd<double>& r
 void
 PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellDataNd<double>& rhs_data,
                                                 const CellDataNd<double>& sol_data,
-                                                Pointer<PatchNd> patch,
+                                                SAMRAIPointer<PatchNd> patch,
                                                 const PoissonSpecifications& poisson_spec,
                                                 const Array<BoundaryBoxNd>& type1_cf_bdry)
 {
@@ -1955,7 +1955,7 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellDataNd<double>& rhs_data,
     {
         D_data.fillAll(poisson_spec.getDConstant());
     }
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Modify the rhs entries to account for coarse-fine interface boundary conditions.
@@ -1996,7 +1996,7 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(CellDataNd<double>& rhs_data,
 void
 PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideDataNd<double>& rhs_data,
                                                 const SideDataNd<double>& sol_data,
-                                                Pointer<PatchNd> patch,
+                                                SAMRAIPointer<PatchNd> patch,
                                                 const PoissonSpecifications& poisson_spec,
                                                 const Array<BoundaryBoxNd>& type1_cf_bdry)
 {
@@ -2010,7 +2010,7 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideDataNd<double>& rhs_data,
     }
     const BoxNd& patch_box = patch->getBox();
     const double D = poisson_spec.getDConstant();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Modify the rhs entries to account for coarse-fine interface boundary conditions.
@@ -2057,16 +2057,16 @@ PoissonUtilities::adjustRHSAtCoarseFineBoundary(SideDataNd<double>& rhs_data,
 void
 PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideDataNd<double>& rhs_data,
                                                              const SideDataNd<double>& sol_data,
-                                                             Pointer<PatchNd> patch,
+                                                             SAMRAIPointer<PatchNd> patch,
                                                              const PoissonSpecifications& poisson_spec,
                                                              double alpha,
                                                              const Array<BoundaryBoxNd>& type1_cf_bdry,
                                                              VCInterpType mu_interp_type)
 {
 #if (NDIM == 2)
-    Pointer<NodeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<NodeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #elif (NDIM == 3)
-    Pointer<EdgeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
+    SAMRAIPointer<EdgeDataNd<double> > mu_data = patch->getPatchData(poisson_spec.getDPatchDataId());
 #endif
 
 #if !defined(NDEBUG)
@@ -2082,7 +2082,7 @@ PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(SideDataNd<double>&
     const IntVectorNd ghost_width_to_fill(1);
 
     const BoxNd& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // Modify the rhs entries to account for inhomogeneous Dirichelt boundary

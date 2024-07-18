@@ -51,9 +51,9 @@ public:
      * \brief ctor. This is the only ctor for this object.
      */
     IBEELKinematics(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                     IBTK::LDataManager* l_data_manager,
-                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                     bool register_for_restart = true);
 
     /*!
@@ -91,7 +91,7 @@ public:
     /*!
      * \brief Override the ConstraintIBkinematics base class method.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
 private:
     /*!
@@ -117,7 +117,7 @@ private:
     /*!
      * \brief set eel body shape related data.
      */
-    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy);
+    void setImmersedBodyLayout(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy);
 
     /*!
      * \brief Set deformation kinematics velocity of the eel.

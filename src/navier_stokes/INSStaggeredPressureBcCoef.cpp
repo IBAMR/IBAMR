@@ -187,10 +187,10 @@ INSStaggeredPressureBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
-                                       Pointer<ArrayDataNd<double> >& bcoef_data,
-                                       Pointer<ArrayDataNd<double> >& gcoef_data,
-                                       const Pointer<VariableNd>& variable,
+INSStaggeredPressureBcCoef::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                       SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                       SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                       const SAMRAIPointer<VariableNd>& variable,
                                        const PatchNd& patch,
                                        const BoundaryBoxNd& bdry_box,
                                        double /*fill_time*/) const
@@ -220,7 +220,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data
     if (d_homogeneous_bc && gcoef_data) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideDataNd<double> > u_target_data;
+    SAMRAIPointer<SideDataNd<double> > u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -228,7 +228,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_target_data);
 #endif
-    Pointer<SideDataNd<double> > u_current_data =
+    SAMRAIPointer<SideDataNd<double> > u_current_data =
         patch.getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
@@ -248,7 +248,7 @@ INSStaggeredPressureBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data
     // normal traction boundary conditions are converted into Dirichlet
     // conditions for the pressure.
     const double mu = d_fluid_solver->getStokesSpecifications()->getMu();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (BoxNd::Iterator it(bc_coef_box); it; it++)
     {

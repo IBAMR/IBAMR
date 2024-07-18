@@ -86,7 +86,7 @@ public:
      *
      * \note A default empty implementation is provided.
      */
-    virtual void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    virtual void initializeLevelData(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool initial_time,
@@ -102,10 +102,10 @@ public:
      * \note A default implementation is provided that results in an assertion
      * failure.
      */
-    virtual void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                        SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    virtual void computeLagrangianForce(IBTK::SAMRAIPointer<IBTK::LData> F_data,
+                                        IBTK::SAMRAIPointer<IBTK::LData> X_data,
+                                        IBTK::SAMRAIPointer<IBTK::LData> U_data,
+                                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                         int level_number,
                                         double data_time,
                                         IBTK::LDataManager* l_data_manager);
@@ -121,7 +121,7 @@ public:
     virtual void
     computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
                                                    std::vector<int>& o_nnz,
-                                                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                                   IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                                    int level_number,
                                                    IBTK::LDataManager* l_data_manager);
 
@@ -138,10 +138,10 @@ public:
     virtual void computeLagrangianForceJacobian(Mat& J_mat,
                                                 MatAssemblyType assembly_type,
                                                 double X_coef,
-                                                SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                                                IBTK::SAMRAIPointer<IBTK::LData> X_data,
                                                 double U_coef,
-                                                SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                                IBTK::SAMRAIPointer<IBTK::LData> U_data,
+                                                IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                                 int level_number,
                                                 double data_time,
                                                 IBTK::LDataManager* l_data_manager);
@@ -153,9 +153,9 @@ public:
      * \note A default implementation is provided that results in an assertion
      * failure.
      */
-    virtual double computeLagrangianEnergy(SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                           SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    virtual double computeLagrangianEnergy(IBTK::SAMRAIPointer<IBTK::LData> X_data,
+                                           IBTK::SAMRAIPointer<IBTK::LData> U_data,
+                                           IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                            int level_number,
                                            double data_time,
                                            IBTK::LDataManager* l_data_manager);

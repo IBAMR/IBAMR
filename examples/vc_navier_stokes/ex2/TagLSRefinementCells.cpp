@@ -25,7 +25,7 @@
 /////////////////////////////// STATIC ///////////////////////////////////////
 
 void
-callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchyNd> hierarchy,
+callTagLSRefinementCellsCallbackFunction(const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                          const int level_number,
                                          const double /*error_data_time*/,
                                          const int tag_index,
@@ -47,13 +47,13 @@ callTagLSRefinementCellsCallbackFunction(const Pointer<BasePatchHierarchyNd> hie
         ptr_ls_tagger->d_ls_gas_var, ptr_ls_tagger->d_adv_diff_solver->getCurrentContext());
 
     // Tag cells based on the value of the level set variable
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CellDataNd<int> > tags_data = patch->getPatchData(tag_index);
-        Pointer<CellDataNd<double> > ls_data = patch->getPatchData(ls_current_idx);
+        SAMRAIPointer<CellDataNd<int> > tags_data = patch->getPatchData(tag_index);
+        SAMRAIPointer<CellDataNd<double> > ls_data = patch->getPatchData(ls_current_idx);
 
         for (CellIteratorNd ic(patch_box); ic; ic++)
         {

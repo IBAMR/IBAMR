@@ -65,7 +65,7 @@ public:
      */
     VCStaggeredStokesOperator(const std::string& object_name,
                               bool homogeneous_bc = true,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
+                              IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db = nullptr);
 
     /*!
      * \brief Destructor.

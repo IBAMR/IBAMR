@@ -41,8 +41,8 @@ callForceProjectorCallBackFunction(const double current_time, const double new_t
 
 ForceProjector::ForceProjector(const std::string& object_name,
                                LDataManager* lag_data_manager,
-                               Pointer<PatchHierarchyNd> patch_hierarchy,
-                               Pointer<Database> input_db,
+                               SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
+                               SAMRAIPointer<Database> input_db,
                                const std::string solver_type)
     : d_object_name(object_name),
       d_lag_data_manager(lag_data_manager),
@@ -77,7 +77,7 @@ ForceProjector::~ForceProjector()
 } //~ForceProjector
 
 void
-ForceProjector::getFromInput(Pointer<Database> input_db)
+ForceProjector::getFromInput(SAMRAIPointer<Database> input_db)
 {
     d_rho_fluid = input_db->getDoubleWithDefault("rho_fluid", d_rho_fluid);
     d_rho_body = input_db->getDoubleWithDefault("rho_body", d_rho_body);
@@ -138,7 +138,7 @@ ForceProjector::calculateLagrangianBodyForce(const double /*new_time*/, const do
 
         // Get ponter to LData corresponding to lagrangian force.
         boost::multi_array_ref<double, 2>& F_data = *d_lag_force[ln]->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_lag_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_lag_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         for (std::vector<LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -165,21 +165,21 @@ ForceProjector::calculateEulerianBodyForce(const double /*new_time*/, const doub
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_body_force_idx)) level->deallocatePatchData(d_body_force_idx);
         level->allocatePatchData(d_body_force_idx, current_time);
 
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             if (d_solver_type == "STAGGERED")
             {
-                Pointer<SideDataNd<double> > body_force_data = patch->getPatchData(d_body_force_idx);
+                SAMRAIPointer<SideDataNd<double> > body_force_data = patch->getPatchData(d_body_force_idx);
                 body_force_data->fill(0.0);
             }
             else if (d_solver_type == "COLLOCATED")
             {
-                Pointer<CellDataNd<double> > body_force_data = patch->getPatchData(d_body_force_idx);
+                SAMRAIPointer<CellDataNd<double> > body_force_data = patch->getPatchData(d_body_force_idx);
                 body_force_data->fill(0.0);
             }
             else
@@ -193,8 +193,8 @@ ForceProjector::calculateEulerianBodyForce(const double /*new_time*/, const doub
     } // all levels.
 
     // spread the lagrangian force from finest level to the finest level.
-    std::vector<Pointer<LData> > F_data(finest_ln + 1, Pointer<LData>(NULL));
-    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<SAMRAIPointer<LData> > F_data(finest_ln + 1, SAMRAIPointer<LData>(NULL));
+    std::vector<SAMRAIPointer<LData> > X_data(finest_ln + 1, SAMRAIPointer<LData>(NULL));
 
     // Fill in the above vectors at the finest level.
     F_data[finest_ln] = d_lag_force[finest_ln];

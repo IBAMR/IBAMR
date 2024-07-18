@@ -72,7 +72,7 @@ static const int NOGHOST = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 StaggeredStokesPETScLevelSolver::StaggeredStokesPETScLevelSolver(const std::string& object_name,
-                                                                 Pointer<Database> input_db,
+                                                                 SAMRAIPointer<Database> input_db,
                                                                  const std::string& default_options_prefix)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ false);
@@ -194,7 +194,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             int local_cf_bdry_box_size = 0;
             for (PatchLevelNd::Iterator p(d_level); p; p++)
             {
-                Pointer<PatchNd> patch = d_level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
                 const Array<BoundaryBoxNd>& type_1_cf_bdry = d_cf_boundary->getBoundaries(patch->getPatchNumber(),
                                                                                           /* boundary type */ 1);
                 local_cf_bdry_box_size += type_1_cf_bdry.size();
@@ -208,21 +208,21 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             if (!d_level->checkAllocated(d_u_nullspace_idx)) d_level->allocatePatchData(d_u_nullspace_idx);
             if (!d_level->checkAllocated(d_p_nullspace_idx)) d_level->allocatePatchData(d_p_nullspace_idx);
 
-            Pointer<SAMRAIVectorRealNd<double> > nullspace_vec =
+            SAMRAIPointer<SAMRAIVectorRealNd<double> > nullspace_vec =
                 new SAMRAIVectorRealNd<double>(d_object_name + "nullspace_vec", d_hierarchy, d_level_num, d_level_num);
             nullspace_vec->addComponent(d_u_nullspace_var, d_u_nullspace_idx);
             nullspace_vec->addComponent(d_p_nullspace_var, d_p_nullspace_idx);
             for (PatchLevelNd::Iterator p(d_level); p; p++)
             {
-                Pointer<PatchNd> patch = d_level->getPatch(p());
-                Pointer<SideDataNd<double> > u_patch_data = nullspace_vec->getComponentPatchData(0, *patch);
+                SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
+                SAMRAIPointer<SideDataNd<double> > u_patch_data = nullspace_vec->getComponentPatchData(0, *patch);
                 u_patch_data->fill(0.0);
-                Pointer<CellDataNd<double> > p_patch_data = nullspace_vec->getComponentPatchData(1, *patch);
+                SAMRAIPointer<CellDataNd<double> > p_patch_data = nullspace_vec->getComponentPatchData(1, *patch);
                 p_patch_data->fill(1.0);
             }
 
             LinearSolver::setNullspace(
-                /*const vec*/ false, std::vector<Pointer<SAMRAIVectorRealNd<double> > >(1, nullspace_vec));
+                /*const vec*/ false, std::vector<SAMRAIPointer<SAMRAIVectorRealNd<double> > >(1, nullspace_vec));
         }
     }
 
@@ -278,13 +278,13 @@ StaggeredStokesPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
     const auto h_adj_idx = d_cached_eulerian_data.getCachedPatchDataIndex(h_idx);
     for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<PatchNd> patch = d_level->getPatch(p());
-        Pointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
-        Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
-        Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_idx);
-        Pointer<CellDataNd<double> > h_data = patch->getPatchData(h_idx);
-        Pointer<SideDataNd<double> > f_adj_data = patch->getPatchData(f_adj_idx);
-        Pointer<CellDataNd<double> > h_adj_data = patch->getPatchData(h_adj_idx);
+        SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
+        SAMRAIPointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+        SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_idx);
+        SAMRAIPointer<CellDataNd<double> > h_data = patch->getPatchData(h_idx);
+        SAMRAIPointer<SideDataNd<double> > f_adj_data = patch->getPatchData(f_adj_idx);
+        SAMRAIPointer<CellDataNd<double> > h_adj_data = patch->getPatchData(h_adj_idx);
         f_adj_data->copy(*f_data);
         h_adj_data->copy(*h_data);
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();

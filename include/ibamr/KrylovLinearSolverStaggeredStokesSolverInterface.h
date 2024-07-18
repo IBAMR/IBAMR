@@ -102,7 +102,7 @@ public:
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
+    void setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
 private:
     /*!

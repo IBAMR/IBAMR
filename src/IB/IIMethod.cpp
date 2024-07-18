@@ -175,7 +175,7 @@ const std::array<std::string, NDIM> IIMethod::VELOCITY_JUMP_SYSTEM_NAME = { { "v
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IIMethod::IIMethod(const std::string& object_name,
-                   Pointer<Database> input_db,
+                   SAMRAIPointer<Database> input_db,
                    MeshBase* mesh,
                    int max_level_number,
                    bool register_for_restart,
@@ -193,7 +193,7 @@ IIMethod::IIMethod(const std::string& object_name,
 } // IIMethod
 
 IIMethod::IIMethod(const std::string& object_name,
-                   Pointer<Database> input_db,
+                   SAMRAIPointer<Database> input_db,
                    const std::vector<MeshBase*>& meshes,
                    int max_level_number,
                    bool register_for_restart,
@@ -371,7 +371,7 @@ IIMethod::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IIMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithmNd> gridding_alg) const
+IIMethod::setupTagBuffer(Array<int>& tag_buffer, SAMRAIPointer<GriddingAlgorithmNd> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -778,8 +778,8 @@ IIMethod::postprocessIntegrateData(double /*current_time*/, double /*new_time*/,
 
 void
 IIMethod::interpolateVelocity(const int u_data_idx,
-                              const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
-                              const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
+                              const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                              const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                               const double data_time)
 {
     if (!d_use_velocity_jump_conditions && d_use_u_interp_correction)
@@ -991,7 +991,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         VectorValue<double> U, WSS_in, WSS_out, U_n, U_t, n;
         std::array<VectorValue<double>, 2> dx_dxi;
 
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
+        SAMRAIPointer<PatchLevelNd> level =
+            d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
         int local_patch_num = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
         {
@@ -1000,9 +1001,9 @@ IIMethod::interpolateVelocity(const int u_data_idx,
                 d_fe_data_managers[part]->getActivePatchElementMap()[local_patch_num];
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
-            const Pointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
             const double* const patch_x_lower = patch_geom->getXLower();
@@ -1165,17 +1166,17 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             // NOTE: Values are interpolated only to those quadrature points
             // that are within the patch interior.
             const BoxNd& interp_box = patch->getBox();
-            Pointer<PatchDataNd> u_data = patch->getPatchData(u_data_idx);
+            SAMRAIPointer<PatchDataNd> u_data = patch->getPatchData(u_data_idx);
 
             const BoxNd ghost_box = BoxNd::grow(patch->getBox(), IntVectorNd(u_ghost_num));
 
-            Pointer<CellDataNd<double> > u_cc_data = u_data;
+            SAMRAIPointer<CellDataNd<double> > u_cc_data = u_data;
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
-            Pointer<SideDataNd<double> > u_sc_data = u_data;
+            SAMRAIPointer<SideDataNd<double> > u_sc_data = u_data;
             if (u_sc_data && !d_use_u_interp_correction)
             {
                 LEInteractor::interpolate(
@@ -1708,8 +1709,9 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
     std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
     VectorValue<double> n, N, x, X;
 
-    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
-    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+    SAMRAIPointer<PatchLevelNd> level =
+        d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
+    const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
     for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -1717,12 +1719,12 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
-        const Pointer<PatchNd> patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
         unsigned int n_qp_patch = 0;
         for (unsigned int e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -2006,7 +2008,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         INSERT_VALUES,
         SCATTER_FORWARD);
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_fe_data_managers[part]->getPatchHierarchy();
 
     NumericVector<double>* P_in_vec = d_P_in_half_vecs[part];
     NumericVector<double>* P_out_vec = d_P_out_half_vecs[part];
@@ -2086,8 +2088,9 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     std::vector<double> P_i_qp, P_o_qp, P_in_qp, P_out_qp, P_jump_qp, N_qp;
     std::array<VectorValue<double>, 2> dx_dxi;
 
-    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
-    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+    SAMRAIPointer<PatchLevelNd> level =
+        d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
+    const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     VectorValue<double> tau1, tau2, n;
     X_ghost_vec->close();
     int local_patch_num = 0;
@@ -2097,12 +2100,12 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
-        const Pointer<PatchNd> patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
-        const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         const double* const x_lower = pgeom->getXLower();
         const double* const x_upper = pgeom->getXUpper();
 
@@ -2258,7 +2261,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 
         const BoxNd& interp_box = patch->getBox();
 
-        Pointer<CellDataNd<double> > p_data = patch->getPatchData(p_data_idx);
+        SAMRAIPointer<CellDataNd<double> > p_data = patch->getPatchData(p_data_idx);
 
         const BoxNd ghost_box = BoxNd::grow(patch->getBox(), IntVectorNd(p_ghost_num));
 
@@ -2398,7 +2401,7 @@ IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time
     RefineAlgorithmNd ghost_fill_alg_p;
     // TODO: Can we cache this algorithm/schedule?
     ghost_fill_alg_p.registerRefine(p_scratch_data_idx, p_data_idx, p_scratch_data_idx, NULL);
-    Pointer<RefineScheduleNd> ghost_fill_schd_p =
+    SAMRAIPointer<RefineScheduleNd> ghost_fill_schd_p =
         ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
 
     for (unsigned part = 0; part < d_num_parts; ++part)
@@ -2898,7 +2901,7 @@ IIMethod::computeLagrangianForce(const double data_time)
 void
 IIMethod::spreadForce(const int f_data_idx,
                       RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                      const std::vector<Pointer<RefineScheduleNd> >& /*f_prolongation_scheds*/,
+                      const std::vector<SAMRAIPointer<RefineScheduleNd> >& /*f_prolongation_scheds*/,
                       const double data_time)
 {
     TBOX_ASSERT(MathUtilities<double>::equalEps(data_time, d_half_time));
@@ -3029,7 +3032,7 @@ IIMethod::initializeFEEquationSystems()
 
         // Create FE data managers.
         const std::string manager_name = "IIMethod FEDataManager::" + std::to_string(part);
-        Pointer<InputDatabase> fe_data_manager_db(new InputDatabase(manager_name + "::input_db"));
+        SAMRAIPointer<InputDatabase> fe_data_manager_db(new InputDatabase(manager_name + "::input_db"));
 
         d_fe_data_managers[part] = FEDataManager::getManager(fe_data,
                                                              manager_name,
@@ -3238,11 +3241,11 @@ IIMethod::registerEulerianVariables()
 } // registerEulerianVariables
 
 void
-IIMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
-                                   Pointer<GriddingAlgorithmNd> gridding_alg,
+IIMethod::initializePatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                   SAMRAIPointer<GriddingAlgorithmNd> gridding_alg,
                                    int /*u_data_idx*/,
-                                   const std::vector<Pointer<CoarsenScheduleNd> >& /*u_synch_scheds*/,
-                                   const std::vector<Pointer<RefineScheduleNd> >& /*u_ghost_fill_scheds*/,
+                                   const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& /*u_synch_scheds*/,
+                                   const std::vector<SAMRAIPointer<RefineScheduleNd> >& /*u_ghost_fill_scheds*/,
                                    int /*integrator_step*/,
                                    double /*init_data_time*/,
                                    bool /*initial_time*/)
@@ -3265,7 +3268,7 @@ IIMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
 } // initializePatchHierarchy
 
 void
-IIMethod::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer, int workload_data_idx)
+IIMethod::registerLoadBalancer(SAMRAIPointer<LoadBalancerNd> load_balancer, int workload_data_idx)
 {
     IBAMR_DEPRECATED_MEMBER_FUNCTION1("IIMethod", "registerLoadBalancer");
     TBOX_ASSERT(load_balancer);
@@ -3276,7 +3279,7 @@ IIMethod::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer, int worklo
 } // registerLoadBalancer
 
 void
-IIMethod::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
+IIMethod::addWorkloadEstimate(SAMRAIPointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
 {
     IBAMR_TIMER_START(t_add_workload_estimate);
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3288,8 +3291,8 @@ IIMethod::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int wor
 } // addWorkloadEstimate
 
 void
-IIMethod::beginDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
-                                  Pointer<GriddingAlgorithmNd> /*gridding_alg*/)
+IIMethod::beginDataRedistribution(SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
+                                  SAMRAIPointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // intentionally blank
@@ -3298,7 +3301,8 @@ IIMethod::beginDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
 } // beginDataRedistribution
 
 void
-IIMethod::endDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/, Pointer<GriddingAlgorithmNd> /*gridding_alg*/)
+IIMethod::endDataRedistribution(SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
+                                SAMRAIPointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     if (d_is_initialized)
@@ -3313,12 +3317,12 @@ IIMethod::endDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/, Pointer
 } // endDataRedistribution
 
 void
-IIMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
+IIMethod::initializeLevelData(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                               int /*level_number*/,
                               double /*init_data_time*/,
                               bool /*can_be_refined*/,
                               bool /*initial_time*/,
-                              Pointer<BasePatchLevelNd> /*old_level*/,
+                              SAMRAIPointer<BasePatchLevelNd> /*old_level*/,
                               bool /*allocate_data*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -3329,7 +3333,7 @@ IIMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
 } // initializeLevelData
 
 void
-IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarchy,
+IIMethod::resetHierarchyConfiguration(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                       int /*coarsest_level*/,
                                       int /*finest_level*/)
 {
@@ -3342,7 +3346,7 @@ IIMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarchy,
 } // resetHierarchyConfiguration
 
 void
-IIMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> base_hierarchy,
+IIMethod::applyGradientDetector(SAMRAIPointer<BasePatchHierarchyNd> base_hierarchy,
                                 int level_number,
                                 double error_data_time,
                                 int tag_index,
@@ -3350,7 +3354,7 @@ IIMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> base_hierarchy,
                                 bool uses_richardson_extrapolation_too)
 {
     IBAMR_TIMER_START(t_apply_gradient_detector);
-    Pointer<PatchHierarchyNd> hierarchy = base_hierarchy;
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -3364,7 +3368,7 @@ IIMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> base_hierarchy,
 } // applyGradientDetector
 
 void
-IIMethod::putToDatabase(Pointer<Database> db)
+IIMethod::putToDatabase(SAMRAIPointer<Database> db)
 {
     db->putInteger("IIM_VERSION", IIM_VERSION);
     return;
@@ -3479,9 +3483,9 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
     VectorValue<double> n, jn;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
-    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+    SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
     const IntVectorNd& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+    const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
     for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -3490,8 +3494,8 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<PatchNd> patch = level->getPatch(p());
-        Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
+        const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
         const BoxNd& patch_box = patch->getBox();
         const CellIndexNd& patch_lower = patch_box.lower();
         std::array<BoxNd, NDIM> side_ghost_boxes;
@@ -3506,7 +3510,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
             side_boxes[d] = SideGeometryNd::toSideBox(patch_box, d);
         }
 
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
@@ -4196,7 +4200,7 @@ IIMethod::initializeVelocity(const unsigned int part)
 
 void
 IIMethod::commonConstructor(const std::string& object_name,
-                            Pointer<Database> input_db,
+                            SAMRAIPointer<Database> input_db,
                             const std::vector<libMesh::MeshBase*>& meshes,
                             int max_level_number,
                             bool register_for_restart,
@@ -4331,7 +4335,7 @@ IIMethod::commonConstructor(const std::string& object_name,
 } // commonConstructor
 
 void
-IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+IIMethod::getFromInput(SAMRAIPointer<Database> db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
     if (db->isString("interp_delta_fcn"))
@@ -4466,8 +4470,8 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 void
 IIMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

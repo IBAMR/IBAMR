@@ -127,7 +127,7 @@ public:
      * \brief Constructor.
      */
     CCPoissonHypreLevelSolver(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                               const std::string& default_options_prefix);
 
     /*!
@@ -138,9 +138,9 @@ public:
     /*!
      * \brief Static function to construct a CCPoissonHypreLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                                        const std::string& default_options_prefix)
     {
         return new CCPoissonHypreLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
@@ -285,14 +285,14 @@ private:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
 
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num = IBTK::invalid_level_number;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> d_level;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+    SAMRAIPointer<SAMRAI::hier::PatchLevelNd> d_level;
+    SAMRAIPointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!
      * \name Problem specification.

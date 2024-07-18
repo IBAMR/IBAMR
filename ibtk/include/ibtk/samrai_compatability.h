@@ -16,6 +16,33 @@
 #ifndef included_IBTK_samrai_interface
 #define included_IBTK_samrai_interface
 
+#include <tbox/ConstPointer.h>
+#include <tbox/Pointer.h>
+
+namespace IBTK
+{
+template <class T>
+using SAMRAIPointer = SAMRAI::tbox::Pointer<T>;
+
+template <class T>
+using SAMRAIConstPointer = SAMRAI::tbox::ConstPointer<T>;
+
+template <class T, class... Args>
+inline SAMRAIPointer<T>
+make_samrai_shared(Args&&... args)
+{
+    return SAMRAIPointer<T>(new T(std::forward<Args>(args)...));
+}
+
+template <class T>
+inline SAMRAIPointer<T>
+make_samrai_shared(std::size_t N)
+{
+    return SAMRAIPointer<T>(new T[N]);
+}
+
+} // namespace IBTK
+
 namespace SAMRAI
 {
 namespace algs

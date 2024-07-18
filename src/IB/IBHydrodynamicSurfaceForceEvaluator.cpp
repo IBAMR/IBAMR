@@ -74,10 +74,10 @@ static const int GVISCOSITYG = 1;
 
 IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
     std::string object_name,
-    Pointer<CellVariableNd<double> > ls_solid_var,
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-    Pointer<INSHierarchyIntegrator> fluid_solver,
-    Pointer<Database> db)
+    SAMRAIPointer<CellVariableNd<double> > ls_solid_var,
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+    SAMRAIPointer<INSHierarchyIntegrator> fluid_solver,
+    SAMRAIPointer<Database> db)
     : d_object_name(std::move(object_name)),
       d_ls_solid_var(ls_solid_var),
       d_adv_diff_solver(adv_diff_solver),
@@ -98,21 +98,21 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ls_solid_var);
 #endif
-    Pointer<VariableContext> ls_ctx = var_db->getContext(d_object_name + "::ls_ctx");
+    SAMRAIPointer<VariableContext> ls_ctx = var_db->getContext(d_object_name + "::ls_ctx");
     d_ls_solid_idx = var_db->registerVariableAndContext(d_ls_solid_var, ls_ctx, IntVectorNd(GLEVELSETG));
 
-    Pointer<SideVariableNd<double> > u_var = d_fluid_solver->getVelocityVariable();
+    SAMRAIPointer<SideVariableNd<double> > u_var = d_fluid_solver->getVelocityVariable();
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_var);
 #endif
-    Pointer<VariableContext> u_ctx = var_db->getContext(d_object_name + "::u_ctx");
+    SAMRAIPointer<VariableContext> u_ctx = var_db->getContext(d_object_name + "::u_ctx");
     d_u_idx = var_db->registerVariableAndContext(u_var, u_ctx, IntVectorNd(GVELOCITYG));
 
-    Pointer<CellVariableNd<double> > p_var = d_fluid_solver->getPressureVariable();
+    SAMRAIPointer<CellVariableNd<double> > p_var = d_fluid_solver->getPressureVariable();
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_var);
 #endif
-    Pointer<VariableContext> p_ctx = var_db->getContext(d_object_name + "::p_ctx");
+    SAMRAIPointer<VariableContext> p_ctx = var_db->getContext(d_object_name + "::p_ctx");
     d_p_idx = var_db->registerVariableAndContext(p_var, p_ctx, IntVectorNd(GPRESSUREG));
 
     auto p_ins_hier_integrator = dynamic_cast<INSStaggeredHierarchyIntegrator*>(d_fluid_solver.getPointer());
@@ -128,10 +128,10 @@ IBHydrodynamicSurfaceForceEvaluator::IBHydrodynamicSurfaceForceEvaluator(
         d_mu_is_const = p_vc_ins_hier_integrator->muIsConstant();
         if (!d_mu_is_const)
         {
-            Pointer<CellVariableNd<double> > mu_adv_diff_var =
+            SAMRAIPointer<CellVariableNd<double> > mu_adv_diff_var =
                 p_vc_ins_hier_integrator->getTransportedViscosityVariable();
-            Pointer<CellVariableNd<double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
-            Pointer<VariableContext> mu_ctx = var_db->getContext(d_object_name + "::mu_ctx");
+            SAMRAIPointer<CellVariableNd<double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
+            SAMRAIPointer<VariableContext> mu_ctx = var_db->getContext(d_object_name + "::mu_ctx");
             if (mu_adv_diff_var)
             {
                 d_mu_idx = var_db->registerVariableAndContext(mu_adv_diff_var, mu_ctx, IntVectorNd(GVISCOSITYG));
@@ -224,7 +224,7 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
     }
 
     // Allocate required patch data
-    Pointer<PatchHierarchyNd> patch_hierarchy = d_fluid_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_fluid_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -255,21 +255,21 @@ IBHydrodynamicSurfaceForceEvaluator::computeHydrodynamicForceTorque(IBTK::Vector
         // Assumes that the structure is placed on the finest level
         if (ln < finest_ln) continue;
 
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double cell_vol = 1.0;
             for (unsigned int d = 0; d < NDIM; ++d) cell_vol *= patch_dx[d];
 
             // Get the required patch data
-            Pointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(d_ls_solid_idx);
-            Pointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
-            Pointer<CellDataNd<double> > p_data = patch->getPatchData(d_p_idx);
-            Pointer<CellDataNd<double> > mu_data;
+            SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(d_ls_solid_idx);
+            SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<CellDataNd<double> > p_data = patch->getPatchData(d_p_idx);
+            SAMRAIPointer<CellDataNd<double> > mu_data;
             if (!d_mu_is_const) mu_data = patch->getPatchData(d_mu_idx);
 
             auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
@@ -418,7 +418,7 @@ IBHydrodynamicSurfaceForceEvaluator::writeToFile(bool write_to_file)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchyNd> patch_hierarchy,
+IBHydrodynamicSurfaceForceEvaluator::fillPatchData(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                                    const double fill_time,
                                                    bool use_current_ctx,
                                                    bool use_new_ctx)
@@ -439,14 +439,14 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchyNd> pat
                                                            /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                            /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                            d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var),
-                                                           Pointer<VariableFillPatternNd>(nullptr));
-    Pointer<HierarchyGhostCellInterpolation> hier_ls_bdry_fill = new HierarchyGhostCellInterpolation();
+                                                           SAMRAIPointer<VariableFillPatternNd>(nullptr));
+    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_ls_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_ls_bdry_fill->initializeOperatorState(ls_solid_transaction, patch_hierarchy);
     hier_ls_bdry_fill->setHomogeneousBc(false);
     hier_ls_bdry_fill->fillData(fill_time);
 
     // Fill ghost cells for velocity
-    Pointer<SideVariableNd<double> > u_var = d_fluid_solver->getVelocityVariable();
+    SAMRAIPointer<SideVariableNd<double> > u_var = d_fluid_solver->getVelocityVariable();
     const int u_idx = use_current_ctx ?
                           var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getCurrentContext()) :
                       use_new_ctx ? var_db->mapVariableAndContextToIndex(u_var, d_fluid_solver->getNewContext()) :
@@ -459,9 +459,9 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchyNd> pat
                                                     /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                     /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                     d_fluid_solver->getVelocityBoundaryConditions(),
-                                                    Pointer<VariableFillPatternNd>(nullptr));
+                                                    SAMRAIPointer<VariableFillPatternNd>(nullptr));
 
-    Pointer<HierarchyGhostCellInterpolation> hier_vel_bdry_fill = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_vel_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_vel_bdry_fill->initializeOperatorState(u_transaction, patch_hierarchy);
     hier_vel_bdry_fill->setHomogeneousBc(false);
     hier_vel_bdry_fill->fillData(fill_time);
@@ -473,8 +473,9 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchyNd> pat
 #if !defined(NDEBUG)
         TBOX_ASSERT(p_vc_ins_hier_integrator);
 #endif
-        Pointer<CellVariableNd<double> > mu_adv_diff_var = p_vc_ins_hier_integrator->getTransportedViscosityVariable();
-        Pointer<CellVariableNd<double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
+        SAMRAIPointer<CellVariableNd<double> > mu_adv_diff_var =
+            p_vc_ins_hier_integrator->getTransportedViscosityVariable();
+        SAMRAIPointer<CellVariableNd<double> > mu_ins_var = p_vc_ins_hier_integrator->getViscosityVariable();
         RobinBcCoefStrategyNd* mu_bc_coef = nullptr;
         int mu_idx = IBTK::invalid_index;
         if (mu_adv_diff_var)
@@ -507,15 +508,15 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchyNd> pat
                                                               /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                               /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                               mu_bc_coef,
-                                                              Pointer<VariableFillPatternNd>(nullptr));
-        Pointer<HierarchyGhostCellInterpolation> hier_mu_bdry_fill = new HierarchyGhostCellInterpolation();
+                                                              SAMRAIPointer<VariableFillPatternNd>(nullptr));
+        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_mu_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_mu_bdry_fill->initializeOperatorState(mu_transaction_comp, patch_hierarchy);
         hier_mu_bdry_fill->setHomogeneousBc(false);
         hier_mu_bdry_fill->fillData(fill_time);
     }
 
     // Fill ghost cells for pressure
-    Pointer<CellVariableNd<double> > p_var = d_fluid_solver->getPressureVariable();
+    SAMRAIPointer<CellVariableNd<double> > p_var = d_fluid_solver->getPressureVariable();
     const int p_idx = use_current_ctx ?
                           var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getCurrentContext()) :
                       use_new_ctx ? var_db->mapVariableAndContextToIndex(p_var, d_fluid_solver->getNewContext()) :
@@ -535,8 +536,8 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchyNd> pat
                                                              /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                              /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                              p_ins_bc_coef,
-                                                             Pointer<VariableFillPatternNd>(nullptr));
-        Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
+                                                             SAMRAIPointer<VariableFillPatternNd>(nullptr));
+        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
         hier_p_bdry_fill->setHomogeneousBc(false);
         hier_p_bdry_fill->fillData(fill_time);
@@ -552,9 +553,9 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchyNd> pat
                                                              /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                              /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                              p_vc_ins_bc_coef,
-                                                             Pointer<VariableFillPatternNd>(nullptr));
+                                                             SAMRAIPointer<VariableFillPatternNd>(nullptr));
 
-        Pointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
+        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_p_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_p_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
         hier_p_bdry_fill->setHomogeneousBc(false);
         hier_p_bdry_fill->fillData(fill_time);
@@ -570,7 +571,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchyNd> pat
 } // fillPatchData
 
 void
-IBHydrodynamicSurfaceForceEvaluator::getFromInput(Pointer<Database> input_db)
+IBHydrodynamicSurfaceForceEvaluator::getFromInput(SAMRAIPointer<Database> input_db)
 {
     if (input_db->keyExists("surface_contour_value"))
     {

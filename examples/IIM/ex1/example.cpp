@@ -58,7 +58,7 @@ struct TetherData
     const double kappa_s_surface;
     const double eta_s_surface;
 
-    TetherData(tbox::Pointer<tbox::Database> input_db)
+    TetherData(SAMRAIPointer<tbox::Database> input_db)
         : kappa_s_surface(input_db->getDouble("KAPPA_S_SURFACE")), eta_s_surface(input_db->getDouble("ETA_S_SURFACE"))
     {
     }
@@ -107,9 +107,9 @@ using namespace ModelData;
 static ofstream drag_F_stream, lift_F_stream, drag_TAU_stream, lift_TAU_stream, U_L1_norm_stream, U_L2_norm_stream,
     U_max_norm_stream;
 
-void postprocess_data(tbox::Pointer<tbox::Database> input_db,
-                      tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
-                      tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+void postprocess_data(SAMRAIPointer<tbox::Database> input_db,
+                      SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
+                      SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
                       const int iteration_num,
@@ -146,8 +146,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        tbox::Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        tbox::Pointer<tbox::Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<tbox::Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -229,7 +229,7 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -248,27 +248,27 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        tbox::Pointer<IBStrategy> ib_ops;
+        SAMRAIPointer<IBStrategy> ib_ops;
         ib_ops = new IIMethod("IIMethod",
                               app_initializer->getComponentDatabase("IIMethod"),
                               &mesh,
                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        tbox::Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_ops,
                                               navier_stokes_integrator);
-        tbox::Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        tbox::Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        tbox::Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        tbox::Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        tbox::Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        tbox::Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -283,7 +283,7 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) vars[d] = d;
 
         vector<SystemData> sys_data(1, SystemData(IIMethod::VELOCITY_SYSTEM_NAME, vars));
-        tbox::Pointer<IIMethod> ibfe_ops = ib_ops;
+        SAMRAIPointer<IIMethod> ibfe_ops = ib_ops;
 
         // Whether to use discontinuous basis functions with element-local support for the jumps + traction
         // We set this up before initializing the FE equation system
@@ -304,14 +304,14 @@ main(int argc, char* argv[])
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            tbox::Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -343,13 +343,13 @@ main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         // Set up visualization plot file writers.
-        tbox::Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -493,9 +493,9 @@ main(int argc, char* argv[])
 } // main
 
 void
-postprocess_data(tbox::Pointer<tbox::Database> input_db,
-                 tbox::Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
-                 tbox::Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+postprocess_data(SAMRAIPointer<tbox::Database> input_db,
+                 SAMRAIPointer<PatchHierarchyNd> /*patch_hierarchy*/,
+                 SAMRAIPointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
                  const int /*iteration_num*/,

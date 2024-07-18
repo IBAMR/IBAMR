@@ -69,7 +69,7 @@ public:
      * \brief Class constructor
      */
     StaggeredStokesBlockFactorizationPreconditioner(const std::string& object_name,
-                                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                                     const std::string& default_options_prefix);
 
     /*!
@@ -81,9 +81,9 @@ public:
      * \brief Static function to construct a
      * StaggeredStokesBlockFactorizationPreconditioner.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    static IBTK::SAMRAIPointer<StaggeredStokesSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
         return new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db, default_options_prefix);
@@ -204,12 +204,12 @@ private:
     FactorizationType d_factorization_type = LOWER_TRIANGULAR;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_U_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_U_var;
     int d_F_U_mod_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_P_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_P_var;
     int d_P_scratch_idx = IBTK::invalid_index, d_F_P_mod_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR

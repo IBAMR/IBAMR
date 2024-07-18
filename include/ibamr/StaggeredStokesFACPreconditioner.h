@@ -66,8 +66,8 @@ public:
      * Constructor.
      */
     StaggeredStokesFACPreconditioner(const std::string& object_name,
-                                     SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,
-                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                     IBTK::SAMRAIPointer<IBTK::FACPreconditionerStrategy> fac_strategy,
+                                     IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                      const std::string& default_options_prefix);
 
     /*!
@@ -109,7 +109,7 @@ public:
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
+    void setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
 private:
     /*!

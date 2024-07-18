@@ -57,10 +57,10 @@ IBInstrumentationSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
+SAMRAIPointer<Streamable>
 IBInstrumentationSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd& /*offset*/)
 {
-    Pointer<IBInstrumentationSpec> ret_val = new IBInstrumentationSpec();
+    SAMRAIPointer<IBInstrumentationSpec> ret_val = new IBInstrumentationSpec();
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_meter_idx, 1);
     stream.unpack(&ret_val->d_node_idx, 1);

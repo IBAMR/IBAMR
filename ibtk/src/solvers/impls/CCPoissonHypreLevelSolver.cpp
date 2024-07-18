@@ -112,7 +112,7 @@ struct IndexComp
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CCPoissonHypreLevelSolver::CCPoissonHypreLevelSolver(const std::string& object_name,
-                                                     Pointer<Database> input_db,
+                                                     SAMRAIPointer<Database> input_db,
                                                      const std::string& /*default_options_prefix*/)
     : d_rap_type(RAP_TYPE_GALERKIN), d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI)
 {
@@ -234,7 +234,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorRealNd<double
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchyNd>& patch_hierarchy = x.getPatchHierarchy();
+    const SAMRAIPointer<PatchHierarchyNd>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -298,7 +298,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorRealNd<double
     // Allocate and initialize the hypre data structures.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int x_idx = x.getComponentDescriptorIndex(0);
-    Pointer<CellDataFactoryNd<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
+    SAMRAIPointer<CellDataFactoryNd<double> > x_fac = var_db->getPatchDescriptor()->getPatchDataFactory(x_idx);
     d_depth = x_fac->getDefaultDepth();
     if (d_poisson_spec.dIsConstant())
     {
@@ -307,7 +307,7 @@ CCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorRealNd<double
     else
     {
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<SideDataFactoryNd<double> > pdat_factory =
+        SAMRAIPointer<SideDataFactoryNd<double> > pdat_factory =
             var_db->getPatchDescriptor()->getPatchDataFactory(d_poisson_spec.getDPatchDataId());
 #if !defined(NDEBUG)
         TBOX_ASSERT(pdat_factory);
@@ -361,7 +361,7 @@ CCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid.
-    Pointer<CartesianGridGeometryNd> grid_geometry = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = d_hierarchy->getGridGeometry();
     const IntVectorNd& ratio = d_level->getRatio();
     const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
@@ -491,7 +491,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_aligned()
     std::vector<double> mat_vals(stencil_size, 0.0);
     for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<PatchNd> patch = d_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
         CellDataNd<double> matrix_coefs(patch_box, stencil_size, IntVectorNd(0));
         for (unsigned int k = 0; k < d_depth; ++k)
@@ -526,16 +526,16 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
     static const IntVectorNd no_ghosts = 0;
     for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<PatchNd> patch = d_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
 
         // Compute all matrix coefficients.
         //
         // NOTE: Here we assume that no flux boundary conditions are imposed at
         // the physical domain.
-        Pointer<CellDataNd<double> > C_data;
+        SAMRAIPointer<CellDataNd<double> > C_data;
         if (!d_poisson_spec.cIsZero() && !d_poisson_spec.cIsConstant())
         {
             C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
@@ -555,7 +555,7 @@ CCPoissonHypreLevelSolver::setMatrixCoefficients_nonaligned()
                 C_data->fill(d_poisson_spec.getCConstant());
         }
 
-        Pointer<SideDataNd<double> > D_data;
+        SAMRAIPointer<SideDataNd<double> > D_data;
         if (!d_poisson_spec.dIsConstant())
         {
             D_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
@@ -1014,20 +1014,20 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // solution and right-hand-side data to hypre structures.
     for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<PatchNd> patch = d_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
         const BoxNd x_ghost_box = BoxNd::grow(patch_box, 1);
-        Pointer<CellDataNd<double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<CellDataNd<double> > x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vecs, *x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any inhomogeneous
         // boundary conditions and copy the right-hand-side into the hypre
         // vector.
-        Pointer<CellDataNd<double> > b_data = patch->getPatchData(b_idx);
+        SAMRAIPointer<CellDataNd<double> > b_data = patch->getPatchData(b_idx);
         const Array<BoundaryBoxNd>& type_1_cf_bdry =
             level_zero ? Array<BoundaryBoxNd>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
@@ -1155,9 +1155,9 @@ CCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // Pull the solution vector out of the hypre structures.
     for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<PatchNd> patch = d_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CellDataNd<double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<CellDataNd<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vecs, patch_box);
     }
 

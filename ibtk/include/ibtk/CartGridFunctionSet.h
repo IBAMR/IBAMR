@@ -68,7 +68,7 @@ public:
      * \brief Add a CartGridFunction to the set of functions grouped together by
      * this object.
      */
-    void addFunction(SAMRAI::tbox::Pointer<CartGridFunction> fcn);
+    void addFunction(SAMRAIPointer<CartGridFunction> fcn);
 
     /*!
      * \name Methods to set patch interior data.
@@ -87,8 +87,8 @@ public:
      * setDataOnPatchHierarchy() provided by the component function objects.
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                 SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                                 SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = invalid_level_number,
@@ -100,8 +100,8 @@ public:
      * setDataOnPatchLevel() provided by the component function objects.
      */
     void setDataOnPatchLevel(int data_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level,
+                             SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                             SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level,
                              double data_time,
                              bool initial_time = false) override;
 
@@ -111,12 +111,12 @@ public:
      * objects.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                        SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                        SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
+                        SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level =
+                            SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
 
     //\}
 
@@ -124,7 +124,7 @@ protected:
     /*
      * The collection of function objects.
      */
-    std::vector<SAMRAI::tbox::Pointer<CartGridFunction> > d_fcns;
+    std::vector<SAMRAIPointer<CartGridFunction> > d_fcns;
 
 private:
     /*!

@@ -210,7 +210,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FEMechanicsBase::FEMechanicsBase(const std::string& object_name,
-                                 const Pointer<Database>& input_db,
+                                 const SAMRAIPointer<Database>& input_db,
                                  MeshBase* mesh,
                                  bool register_for_restart,
                                  const std::string& restart_read_dirname,
@@ -226,7 +226,7 @@ FEMechanicsBase::FEMechanicsBase(const std::string& object_name,
 }
 
 FEMechanicsBase::FEMechanicsBase(const std::string& object_name,
-                                 const Pointer<Database>& input_db,
+                                 const SAMRAIPointer<Database>& input_db,
                                  const std::vector<MeshBase*>& meshes,
                                  bool register_for_restart,
                                  const std::string& restart_read_dirname,
@@ -464,7 +464,7 @@ FEMechanicsBase::reinitializeFEData()
 }
 
 void
-FEMechanicsBase::putToDatabase(Pointer<Database> db)
+FEMechanicsBase::putToDatabase(SAMRAIPointer<Database> db)
 {
     db->putInteger("FE_MECHANICS_BASE_VERSION", FE_MECHANICS_BASE_VERSION);
     db->putBool("d_use_consistent_mass_matrix", d_use_consistent_mass_matrix);
@@ -1498,7 +1498,7 @@ FEMechanicsBase::libmesh_restart_file_name(const std::string& restart_dump_dirna
 
 void
 FEMechanicsBase::commonConstructor(const std::string& object_name,
-                                   const Pointer<Database>& input_db,
+                                   const SAMRAIPointer<Database>& input_db,
                                    const std::vector<libMesh::MeshBase*>& meshes,
                                    bool register_for_restart,
                                    const std::string& restart_read_dirname,
@@ -1689,7 +1689,7 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
 }
 
 void
-FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
+FEMechanicsBase::getFromInput(const SAMRAIPointer<Database>& db, bool /*is_from_restart*/)
 {
     // libMesh parallelization settings.
     d_libmesh_partitioner_type =
@@ -1752,8 +1752,8 @@ FEMechanicsBase::getFromInput(const Pointer<Database>& db, bool /*is_from_restar
 void
 FEMechanicsBase::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

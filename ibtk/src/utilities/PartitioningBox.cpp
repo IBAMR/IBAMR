@@ -86,11 +86,11 @@ PartitioningBoxes::PartitioningBoxes(const PatchHierarchyNd& hierarchy)
 {
     std::vector<IBTK::PartitioningBox> boxes;
     const int finest_level = hierarchy.getFinestLevelNumber();
-    Pointer<PatchLevelNd> level = hierarchy.getPatchLevel(finest_level);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy.getPatchLevel(finest_level);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
         const PatchNd& patch = *level->getPatch(p());
-        Pointer<CartesianPatchGeometryNd> patch_geometry = patch.getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> patch_geometry = patch.getPatchGeometry();
         boxes.emplace_back(*patch_geometry);
     }
 

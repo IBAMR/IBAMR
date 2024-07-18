@@ -60,8 +60,8 @@ public:
     using WallForceFcnPtr = double (*)(double D, const SAMRAI::tbox::Array<double> params);
 
     // Constructor.
-    Wall(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> wall_db,
-         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry,
+    Wall(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> wall_db,
+         IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry,
          double wall_ghost_dist);
 
     // Copy constructor.

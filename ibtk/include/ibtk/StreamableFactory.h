@@ -91,8 +91,8 @@ public:
     /*!
      * \brief Build a Streamable object by unpacking data from the data stream.
      */
-    virtual SAMRAI::tbox::Pointer<Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                           const SAMRAI::hier::IntVectorNd& offset) = 0;
+    virtual SAMRAIPointer<Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                                   const SAMRAI::hier::IntVectorNd& offset) = 0;
 
 private:
     /*!

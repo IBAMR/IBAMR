@@ -202,3 +202,20 @@ perl -pi -e 's/RefineOperator\<NDIM\>/RefineOperatorNd/g'                 `(find
 perl -pi -e 's/RefinePatchStrategy\<NDIM\>/RefinePatchStrategyNd/g'       `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h)`
 perl -pi -e 's/RefineSchedule\<NDIM\>/RefineScheduleNd/g'                 `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h)`
 perl -pi -e 's/VariableFillPattern\<NDIM\>/VariableFillPatternNd/g'       `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h)`
+
+# this is a little lazy...
+perl -pi -e 's/SAMRAI\:\:tbox\:\:ConstPointer\</IBTK\:\:SAMRAIConstPointer\</g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+perl -pi -e 's/tbox\:\:ConstPointer\</SAMRAIConstPointer\</g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+perl -pi -e 's/ConstPointer\</SAMRAIConstPointer\</g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+perl -pi -e 's/SAMRAISAMRAIConstPointer/SAMRAIConstPointer/g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+
+perl -pi -e 's/SAMRAI\:\:tbox\:\:Pointer\</IBTK\:\:SAMRAIPointer\</g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+perl -pi -e 's/tbox\:\:Pointer\</SAMRAIPointer\</g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+perl -pi -e 's/Pointer\</SAMRAIPointer\</g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+perl -pi -e 's/SAMRAISAMRAIPointer/SAMRAIPointer/g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+perl -pi -e 's/SAMRAISAMRAIConstPointer/SAMRAIConstPointer/g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+perl -pi -e 's/SAMRAIConstSAMRAIPointer/SAMRAIConstPointer/g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
+
+
+perl -i~ -0pe 's/IBTK::SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+[^\s]+\(/auto $2 = IBTK::make_samrai_shared<$1>\(/gm' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h)`
+perl -i~ -0pe 's/SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+[^\s]+\(/auto $2 = make_samrai_shared<$1>\(/gm' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h)`

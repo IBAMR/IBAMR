@@ -77,7 +77,7 @@ PoissonSolver::initSpecialized(const std::string& object_name, const bool /*homo
 
     // Initialize the boundary conditions.
     d_default_bc_coef.reset(
-        new LocationIndexRobinBcCoefsNd(object_name + "::default_bc_coef", Pointer<Database>(nullptr)));
+        new LocationIndexRobinBcCoefsNd(object_name + "::default_bc_coef", SAMRAIPointer<Database>(nullptr)));
     auto p_default_bc_coef = dynamic_cast<LocationIndexRobinBcCoefsNd*>(d_default_bc_coef.get());
     for (unsigned int d = 0; d < NDIM; ++d)
     {

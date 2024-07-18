@@ -70,9 +70,9 @@ smooth_kernel(const double r)
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SpongeLayerForceFunction::SpongeLayerForceFunction(const std::string& object_name,
-                                                   const Pointer<Database> input_db,
+                                                   const SAMRAIPointer<Database> input_db,
                                                    const INSHierarchyIntegrator* fluid_solver,
-                                                   Pointer<CartesianGridGeometryNd> grid_geometry)
+                                                   SAMRAIPointer<CartesianGridGeometryNd> grid_geometry)
     : CartGridFunction(object_name),
       d_forcing_enabled(array_constant<Array<bool>, 2 * NDIM>(Array<bool>(NDIM))),
       d_width(array_constant<double, 2 * NDIM>(0.0)),
@@ -107,18 +107,18 @@ SpongeLayerForceFunction::isTimeDependent() const
 
 void
 SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
-                                         Pointer<VariableNd> /*var*/,
-                                         Pointer<PatchNd> patch,
+                                         SAMRAIPointer<VariableNd> /*var*/,
+                                         SAMRAIPointer<PatchNd> patch,
                                          const double /*data_time*/,
                                          const bool initial_time,
-                                         Pointer<PatchLevelNd> /*level*/)
+                                         SAMRAIPointer<PatchLevelNd> /*level*/)
 {
-    Pointer<PatchDataNd> f_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    Pointer<CellDataNd<double> > f_cc_data = f_data;
-    Pointer<SideDataNd<double> > f_sc_data = f_data;
+    SAMRAIPointer<CellDataNd<double> > f_cc_data = f_data;
+    SAMRAIPointer<SideDataNd<double> > f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -129,9 +129,9 @@ SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    Pointer<PatchDataNd> u_current_data =
+    SAMRAIPointer<PatchDataNd> u_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<PatchDataNd> u_new_data =
+    SAMRAIPointer<PatchDataNd> u_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_current_data);
@@ -146,18 +146,18 @@ SpongeLayerForceFunction::setDataOnPatch(const int data_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellDataNd<double> > F_data,
-                                             Pointer<CellDataNd<double> > U_current_data,
-                                             Pointer<CellDataNd<double> > U_new_data,
+SpongeLayerForceFunction::setDataOnPatchCell(SAMRAIPointer<CellDataNd<double> > F_data,
+                                             SAMRAIPointer<CellDataNd<double> > U_current_data,
+                                             SAMRAIPointer<CellDataNd<double> > U_new_data,
                                              const double kappa,
-                                             Pointer<PatchNd> patch)
+                                             SAMRAIPointer<PatchNd> patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
 #endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const BoxNd& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
@@ -200,18 +200,18 @@ SpongeLayerForceFunction::setDataOnPatchCell(Pointer<CellDataNd<double> > F_data
 } // setDataOnPatchCell
 
 void
-SpongeLayerForceFunction::setDataOnPatchSide(Pointer<SideDataNd<double> > F_data,
-                                             Pointer<SideDataNd<double> > U_current_data,
-                                             Pointer<SideDataNd<double> > U_new_data,
+SpongeLayerForceFunction::setDataOnPatchSide(SAMRAIPointer<SideDataNd<double> > F_data,
+                                             SAMRAIPointer<SideDataNd<double> > U_current_data,
+                                             SAMRAIPointer<SideDataNd<double> > U_new_data,
                                              const double kappa,
-                                             Pointer<PatchNd> patch)
+                                             SAMRAIPointer<PatchNd> patch)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data && U_current_data);
 #endif
     const int cycle_num = d_fluid_solver->getCurrentCycleNumber();
     const BoxNd& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();

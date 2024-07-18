@@ -197,10 +197,10 @@ INSVCStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
-                                         Pointer<ArrayDataNd<double> >& bcoef_data,
-                                         Pointer<ArrayDataNd<double> >& gcoef_data,
-                                         const Pointer<VariableNd>& variable,
+INSVCStaggeredVelocityBcCoef::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                         SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                         SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                         const SAMRAIPointer<VariableNd>& variable,
                                          const PatchNd& patch,
                                          const BoundaryBoxNd& bdry_box,
                                          double fill_time) const
@@ -226,7 +226,7 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_da
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideDataNd<double> > u_target_data;
+    SAMRAIPointer<SideDataNd<double> > u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -255,14 +255,14 @@ INSVCStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_da
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const BoxNd& ghost_box = u_target_data->getGhostBox();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double mu = d_fluid_solver->muIsConstant() ? d_problem_coefs->getMu() : -1;
 #if (NDIM == 2)
-    Pointer<NodeDataNd<double> > mu_data;
+    SAMRAIPointer<NodeDataNd<double> > mu_data;
 #elif (NDIM == 3)
-    Pointer<EdgeDataNd<double> > mu_data;
+    SAMRAIPointer<EdgeDataNd<double> > mu_data;
 #endif
     if (!d_fluid_solver->muIsConstant())
     {

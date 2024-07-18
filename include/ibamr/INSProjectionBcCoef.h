@@ -169,10 +169,10 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayDataNd<double> >& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayDataNd<double> >& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayDataNd<double> >& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd>& variable,
+    void setBcCoefs(IBTK::SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& acoef_data,
+                    IBTK::SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& bcoef_data,
+                    IBTK::SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& gcoef_data,
+                    const IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd>& variable,
                     const SAMRAI::hier::PatchNd& patch,
                     const SAMRAI::hier::BoundaryBoxNd& bdry_box,
                     double fill_time = 0.0) const override;

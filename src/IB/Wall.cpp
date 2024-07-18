@@ -32,7 +32,9 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometryNd> grid_geometry, double wall_ghost_dist)
+Wall::Wall(SAMRAIPointer<Database> wall_db,
+           SAMRAIPointer<CartesianGridGeometryNd> grid_geometry,
+           double wall_ghost_dist)
 {
     // get geometry for the wall force box and scaling from cells to numerical
     // postions

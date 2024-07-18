@@ -60,10 +60,10 @@ MaterialPointSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
+SAMRAIPointer<Streamable>
 MaterialPointSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd& /*offset*/)
 {
-    Pointer<MaterialPointSpec> ret_val = new MaterialPointSpec();
+    SAMRAIPointer<MaterialPointSpec> ret_val = new MaterialPointSpec();
     stream.unpack(&ret_val->d_point_idx, 1);
     stream.unpack(&ret_val->d_weight, 1);
     int subdomain_id;

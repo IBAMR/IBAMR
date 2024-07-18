@@ -108,31 +108,31 @@ using namespace ModelData;
 
 static ofstream flow_rate_stream;
 // Function prototypes
-void compute_velocity_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
+void compute_velocity_profile(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                               const int u_idx,
                               const double /*data_time*/,
                               const string& /*data_dump_dirname*/);
 
-void compute_pressure_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
+void compute_pressure_profile(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                               const int p_idx,
                               const double /*data_time*/,
                               const string& /*data_dump_dirname*/);
 
-void postprocess_data(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
-                      tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+void postprocess_data(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
+                      SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
                       const int iteration_num,
                       const double loop_time,
                       const string& data_dump_dirname);
 
-void output_data(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
-                 tbox::Pointer<IBHierarchyIntegrator> ins_integrator,
+void output_data(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
+                 SAMRAIPointer<IBHierarchyIntegrator> ins_integrator,
                  const int iteration_num,
                  const double loop_time,
                  const string& data_dump_dirname);
 
-void compute_flow_rate(const tbox::Pointer<PatchHierarchyNd> hierarchy,
+void compute_flow_rate(const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                        const int U_idx,
                        const double loop_time,
                        const int wgt_sc_idx);
@@ -161,8 +161,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        tbox::Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        tbox::Pointer<tbox::Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<tbox::Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -271,31 +271,31 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
 
-        tbox::Pointer<IIMethod> ib_method_ops =
+        SAMRAIPointer<IIMethod> ib_method_ops =
             new IIMethod("IIMethod",
                          app_initializer->getComponentDatabase("IIMethod"),
                          meshes,
                          app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        tbox::Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        tbox::Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        tbox::Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        tbox::Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        tbox::Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        tbox::Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        tbox::Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -316,11 +316,11 @@ main(int argc, char* argv[])
 
         // Create Eulerian initial condition specification objects.
 
-        tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
-        tbox::Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
@@ -357,7 +357,7 @@ main(int argc, char* argv[])
         time_integrator->registerBodyForceFunction(new FeedbackForcer(H, D, navier_stokes_integrator, patch_hierarchy));
 
         // Set up visualization plot file writers.
-        tbox::Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -428,8 +428,8 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
-            tbox::Pointer<hier::VariableNd> u_var = time_integrator->getVelocityVariable();
-            tbox::Pointer<VariableContext> current_ctx = time_integrator->getCurrentContext();
+            SAMRAIPointer<hier::VariableNd> u_var = time_integrator->getVelocityVariable();
+            SAMRAIPointer<VariableContext> current_ctx = time_integrator->getCurrentContext();
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -463,8 +463,8 @@ main(int argc, char* argv[])
 
             {
                 VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-                tbox::Pointer<hier::VariableNd> u_var = time_integrator->getVelocityVariable();
-                const tbox::Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
+                SAMRAIPointer<hier::VariableNd> u_var = time_integrator->getVelocityVariable();
+                const SAMRAIPointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
                 const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
                 const int coarsest_ln = 0;
                 const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -491,15 +491,15 @@ main(int argc, char* argv[])
              << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n"
              << "Computing error norms.\n\n";
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        tbox::Pointer<hier::VariableNd> u_var = navier_stokes_integrator->getVelocityVariable();
-        const tbox::Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+        SAMRAIPointer<hier::VariableNd> u_var = navier_stokes_integrator->getVelocityVariable();
+        const SAMRAIPointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-        const tbox::Pointer<hier::VariableNd> p_var = time_integrator->getPressureVariable();
-        const tbox::Pointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
+        const SAMRAIPointer<hier::VariableNd> p_var = time_integrator->getPressureVariable();
+        const SAMRAIPointer<VariableContext> p_ctx = time_integrator->getCurrentContext();
 
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
         const int p_cloned_idx = var_db->registerClonedPatchDataIndex(p_var, p_idx);
@@ -558,7 +558,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-compute_velocity_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
+compute_velocity_profile(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                          const int u_idx,
                          const double /*data_time*/,
                          const string& /*data_dump_dirname*/)
@@ -577,15 +577,15 @@ compute_velocity_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
     vector<double> pos_values;
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        tbox::Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            tbox::Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
             const CellIndexNd& patch_lower = patch_box.lower();
             const CellIndexNd& patch_upper = patch_box.upper();
 
-            const tbox::Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
 
@@ -605,7 +605,7 @@ compute_velocity_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
             if (ln < finest_ln)
             {
                 BoxArrayNd refined_region_boxes;
-                tbox::Pointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+                SAMRAIPointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
                 refined_region_boxes = next_finer_level->getBoxes();
                 refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
@@ -618,8 +618,8 @@ compute_velocity_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
             iterate_box_list.removeIntersections(covered_boxes);
 
             // Loop over the boxes and store the location and interpolated value.
-            tbox::Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
-            const tbox::Pointer<CellDataNd<double> > wgt_cc_data = patch->getPatchData(wgt_cc_idx);
+            SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+            const SAMRAIPointer<CellDataNd<double> > wgt_cc_data = patch->getPatchData(wgt_cc_idx);
 
             for (BoxListNd::Iterator lit(iterate_box_list); lit; lit++)
             {
@@ -681,8 +681,8 @@ compute_velocity_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
 } // compute_velocity_profile
 
 void
-output_data(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
-            tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+output_data(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
+            SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator,
             const int iteration_num,
             const double loop_time,
             const string& data_dump_dirname)
@@ -693,7 +693,7 @@ output_data(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
     char temp_buf[128];
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, SAMRAI_MPI::getRank());
     file_name += temp_buf;
-    tbox::Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
+    SAMRAIPointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     ComponentSelector hier_data;
@@ -709,8 +709,8 @@ output_data(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
 } // output_data
 
 void
-postprocess_data(tbox::Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
-                 tbox::Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+postprocess_data(SAMRAIPointer<PatchHierarchyNd> /*patch_hierarchy*/,
+                 SAMRAIPointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
                  const int /*iteration_num*/,
@@ -933,7 +933,7 @@ postprocess_data(tbox::Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
 } // postprocess_data
 
 void
-compute_pressure_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
+compute_pressure_profile(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                          const int p_idx,
                          const double /*data_time*/,
                          const string& /*data_dump_dirname*/)
@@ -954,15 +954,15 @@ compute_pressure_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
     int qp_tot = 0;
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        tbox::Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            tbox::Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
             const CellIndexNd& patch_lower = patch_box.lower();
             const CellIndexNd& patch_upper = patch_box.upper();
 
-            const tbox::Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_x_lower = patch_geom->getXLower();
             const double* const patch_x_upper = patch_geom->getXUpper();
             const double* const patch_dx = patch_geom->getDx();
@@ -981,7 +981,7 @@ compute_pressure_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
             if (ln < finest_ln)
             {
                 BoxArrayNd refined_region_boxes;
-                tbox::Pointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+                SAMRAIPointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
                 refined_region_boxes = next_finer_level->getBoxes();
                 refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
@@ -994,8 +994,8 @@ compute_pressure_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
             iterate_box_list.removeIntersections(covered_boxes);
 
             // Loop over the boxes and store the location and interpolated value.
-            const tbox::Pointer<CellDataNd<double> > p_data = patch->getPatchData(p_idx);
-            const tbox::Pointer<CellDataNd<double> > wgt_cc_data = patch->getPatchData(wgt_cc_idx);
+            const SAMRAIPointer<CellDataNd<double> > p_data = patch->getPatchData(p_idx);
+            const SAMRAIPointer<CellDataNd<double> > wgt_cc_data = patch->getPatchData(wgt_cc_idx);
 
             for (BoxListNd::Iterator lit(iterate_box_list); lit; lit++)
             {
@@ -1046,7 +1046,7 @@ compute_pressure_profile(tbox::Pointer<PatchHierarchyNd> patch_hierarchy,
 } // compute_pressure_profile
 
 void
-compute_flow_rate(const tbox::Pointer<PatchHierarchyNd> hierarchy,
+compute_flow_rate(const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                   const int U_idx,
                   const double loop_time,
                   const int wgt_sc_idx)
@@ -1059,15 +1059,15 @@ compute_flow_rate(const tbox::Pointer<PatchHierarchyNd> hierarchy,
     const double rsrc[2] = { 0.5 * D, 0.5 * D };
     for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
     {
-        tbox::Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            tbox::Pointer<PatchNd> patch = level->getPatch(p());
-            tbox::Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
-                tbox::Pointer<SideDataNd<double> > U_data = patch->getPatchData(U_idx);
-                tbox::Pointer<SideDataNd<double> > wgt_sc_data = patch->getPatchData(wgt_sc_idx);
+                SAMRAIPointer<SideDataNd<double> > U_data = patch->getPatchData(U_idx);
+                SAMRAIPointer<SideDataNd<double> > wgt_sc_data = patch->getPatchData(wgt_sc_idx);
                 const BoxNd& patch_box = patch->getBox();
                 const double* const x_lower = pgeom->getXLower();
                 const double* const dx = pgeom->getDx();

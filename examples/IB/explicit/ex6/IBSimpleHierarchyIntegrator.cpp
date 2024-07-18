@@ -27,9 +27,9 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(const std::string& object_name,
-                                                         Pointer<Database> input_db,
-                                                         Pointer<IBMethod> ib_method_ops,
-                                                         Pointer<INSHierarchyIntegrator> ins_hier_integrator)
+                                                         SAMRAIPointer<Database> input_db,
+                                                         SAMRAIPointer<IBMethod> ib_method_ops,
+                                                         SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, /*register_for_restart*/ false)
 {
     // intentionally blank
@@ -51,13 +51,13 @@ IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 
     const int coarsest_level_num = 0;
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
-    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    SAMRAIPointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Allocate Eulerian scratch and new data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
@@ -87,7 +87,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
     const double dt = new_time - current_time;
-    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    SAMRAIPointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Here we implement a simple time integration scheme:
@@ -177,7 +177,7 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     // Deallocate Eulerian scratch data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
     }
@@ -201,8 +201,8 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
 } // postprocessIntegrateHierarchy
 
 void
-IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> hierarchy,
-                                                           Pointer<GriddingAlgorithmNd> gridding_alg)
+IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                                           SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

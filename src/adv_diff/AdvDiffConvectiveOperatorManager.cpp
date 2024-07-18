@@ -86,11 +86,11 @@ AdvDiffConvectiveOperatorManager::freeManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<ConvectiveOperator>
+SAMRAIPointer<ConvectiveOperator>
 AdvDiffConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
                                                    const std::string& operator_object_name,
-                                                   Pointer<CellVariableNd<double> > Q_var,
-                                                   Pointer<Database> input_db,
+                                                   SAMRAIPointer<CellVariableNd<double> > Q_var,
+                                                   SAMRAIPointer<Database> input_db,
                                                    ConvectiveDifferencingType difference_form,
                                                    const std::vector<RobinBcCoefStrategyNd*>& bc_coefs) const
 {

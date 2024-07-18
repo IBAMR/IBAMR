@@ -67,9 +67,9 @@ main(int argc, char** argv)
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
 
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
         Mesh solid_mesh(init.comm(), NDIM);
@@ -146,14 +146,14 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry, false);
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
 
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -175,7 +175,7 @@ main(int argc, char** argv)
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
 
-        Pointer<IBStrategy> ib_ops;
+        SAMRAIPointer<IBStrategy> ib_ops;
         if (use_boundary_mesh)
             ib_ops = new IBFESurfaceMethod(
                 "IBFEMethod",
@@ -190,18 +190,18 @@ main(int argc, char** argv)
                                &mesh,
                                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                                false);
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_ops,
                                               navier_stokes_integrator,
                                               false);
 
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -212,13 +212,13 @@ main(int argc, char** argv)
         // Configure the IBFE solver.
         if (use_boundary_mesh)
         {
-            Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
+            SAMRAIPointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             ibfe_ops->initializeFEData();
         }
         else
         {
-            Pointer<IBFEMethod> ibfe_ops = ib_ops;
+            SAMRAIPointer<IBFEMethod> ibfe_ops = ib_ops;
             ibfe_ops->initializeFEEquationSystems();
             ibfe_ops->initializeFEData();
         }
@@ -229,13 +229,13 @@ main(int argc, char** argv)
         std::string coords_system_name;
         if (use_boundary_mesh)
         {
-            Pointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
+            SAMRAIPointer<IBFESurfaceMethod> ibfe_ops = ib_ops;
             fe_data_manager = ibfe_ops->getFEDataManager();
             coords_system_name = IBFESurfaceMethod::COORDS_SYSTEM_NAME;
         }
         else
         {
-            Pointer<IBFEMethod> ibfe_ops = ib_ops;
+            SAMRAIPointer<IBFEMethod> ibfe_ops = ib_ops;
             fe_data_manager = ibfe_ops->getFEDataManager();
             coords_system_name = ibfe_ops->getCurrentCoordinatesSystemName();
         }

@@ -39,23 +39,22 @@ class AdvDiffHierarchyIntegrator;
 #include <tbox/DescribedClass.h>
 #include <tbox/Pointer.h>
 
-void
-callTagInterfaceRefinementCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
-                                                const int level_number,
-                                                const double error_data_time,
-                                                const int tag_index,
-                                                const bool initial_time,
-                                                const bool uses_richardson_extrapolation_too,
-                                                void* ctx);
+void callTagInterfaceRefinementCellsCallbackFunction(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+                                                     const int level_number,
+                                                     const double error_data_time,
+                                                     const int tag_index,
+                                                     const bool initial_time,
+                                                     const bool uses_richardson_extrapolation_too,
+                                                     void* ctx);
 
 struct TagInterfaceRefinementCells
 {
-    TagInterfaceRefinementCells(SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > scalar_var,
+    TagInterfaceRefinementCells(IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > scalar_var,
                                 double tag_min_val,
                                 double tag_max_val);
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_scalar_var;
+    IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_scalar_var;
     double d_tag_min_val;
     double d_tag_max_val;
 };

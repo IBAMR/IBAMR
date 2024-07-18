@@ -41,7 +41,7 @@ LaplaceOperator::LaplaceOperator(std::string object_name, bool homogeneous_bc)
     : LinearOperator(std::move(object_name), homogeneous_bc),
       d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
-          new LocationIndexRobinBcCoefsNd(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
+          new LocationIndexRobinBcCoefsNd(d_object_name + "::default_bc_coef", SAMRAIPointer<Database>(nullptr))),
       d_bc_coefs(1, d_default_bc_coef.get())
 {
     // Initialize the Poisson specifications.

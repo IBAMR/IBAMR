@@ -211,8 +211,8 @@ private:
          * \brief Build an IBRodForceSpec object by unpacking data from the data
          * stream.
          */
-        SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                             const SAMRAI::hier::IntVectorNd& offset) override;
+        IBTK::SAMRAIPointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                                           const SAMRAI::hier::IntVectorNd& offset) override;
 
     private:
         /*!

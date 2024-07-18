@@ -52,20 +52,20 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -97,26 +97,26 @@ main(int argc, char* argv[])
 
         // Create side centered variable
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<SideVariableNd<double> > s0_var = new SideVariableNd<double>("s0_v");
-        Pointer<SideVariableNd<double> > s1_var = new SideVariableNd<double>("s1_v");
-        Pointer<SideVariableNd<int> > mask_var = new SideVariableNd<int>("mask");
+        SAMRAIPointer<VariableContext> context = var_db->getContext("CONTEXT");
+        SAMRAIPointer<SideVariableNd<double> > s0_var = new SideVariableNd<double>("s0_v");
+        SAMRAIPointer<SideVariableNd<double> > s1_var = new SideVariableNd<double>("s1_v");
+        SAMRAIPointer<SideVariableNd<int> > mask_var = new SideVariableNd<int>("mask");
         const int gcw = 1;
         const int s0_idx = var_db->registerVariableAndContext(s0_var, context, gcw);
         const int s1_idx = var_db->registerVariableAndContext(s1_var, context, gcw);
         const int mask_idx = var_db->registerVariableAndContext(mask_var, context);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(s0_idx);
             level->allocatePatchData(s1_idx);
             level->allocatePatchData(mask_idx);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<SideDataNd<double> > s0_data = patch->getPatchData(s0_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<SideDataNd<double> > s0_data = patch->getPatchData(s0_idx);
                 s0_data->fillAll(std::numeric_limits<double>::quiet_NaN());
-                Pointer<SideDataNd<double> > s1_data = patch->getPatchData(s1_idx);
+                SAMRAIPointer<SideDataNd<double> > s1_data = patch->getPatchData(s1_idx);
                 s1_data->fillAll(0.0);
             }
         }
@@ -127,12 +127,12 @@ main(int argc, char* argv[])
         plog << "Testing masking function\n";
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<SideDataNd<double> > s0_data = patch->getPatchData(s0_idx);
-                Pointer<SideDataNd<double> > s1_data = patch->getPatchData(s1_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<SideDataNd<double> > s0_data = patch->getPatchData(s0_idx);
+                SAMRAIPointer<SideDataNd<double> > s1_data = patch->getPatchData(s1_idx);
                 phys_bc_helper.copyDataAtDirichletBoundaries(s0_data, s1_data, patch);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -150,11 +150,11 @@ main(int argc, char* argv[])
         phys_bc_helper.setupMaskingFunction(mask_idx, coarsest_ln, finest_ln);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<SideDataNd<int> > mask_data = patch->getPatchData(mask_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<SideDataNd<int> > mask_data = patch->getPatchData(mask_idx);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     for (SideIteratorNd si(patch->getBox(), axis); si; si++)
@@ -169,7 +169,7 @@ main(int argc, char* argv[])
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(mask_idx);
             level->deallocatePatchData(s1_idx);
             level->deallocatePatchData(s0_idx);

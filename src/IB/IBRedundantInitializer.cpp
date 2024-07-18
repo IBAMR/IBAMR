@@ -77,7 +77,7 @@ namespace IBAMR
 {
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBRedundantInitializer::IBRedundantInitializer(std::string object_name, Pointer<Database> input_db)
+IBRedundantInitializer::IBRedundantInitializer(std::string object_name, SAMRAIPointer<Database> input_db)
     : d_object_name(std::move(object_name)), d_posn_shift(Vector::Zero())
 {
 #if !defined(NDEBUG)
@@ -105,7 +105,7 @@ IBRedundantInitializer::~IBRedundantInitializer()
 } // ~IBRedundantInitializer
 
 void
-IBRedundantInitializer::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
+IBRedundantInitializer::registerLSiloDataWriter(SAMRAIPointer<LSiloDataWriter> silo_writer)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(silo_writer);
@@ -148,9 +148,9 @@ IBRedundantInitializer::getLevelHasLagrangianData(const int level_number, const 
 } // getLevelHasLagrangianData
 
 bool
-IBRedundantInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierarchyNd> hierarchy) const
+IBRedundantInitializer::getIsAllLagrangianDataInDomain(const SAMRAIPointer<PatchHierarchyNd> hierarchy) const
 {
-    Pointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     const IntVectorNd periodic_shift = grid_geom->getPeriodicShift();
@@ -181,7 +181,7 @@ IBRedundantInitializer::getIsAllLagrangianDataInDomain(const Pointer<PatchHierar
 }
 
 unsigned int
-IBRedundantInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHierarchyNd> /*hierarchy*/,
+IBRedundantInitializer::computeGlobalNodeCountOnPatchLevel(const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                                            const int level_number,
                                                            const double /*init_data_time*/,
                                                            const bool /*can_be_refined*/,
@@ -195,7 +195,7 @@ IBRedundantInitializer::computeGlobalNodeCountOnPatchLevel(const Pointer<PatchHi
 }
 
 unsigned int
-IBRedundantInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHierarchyNd> hierarchy,
+IBRedundantInitializer::computeLocalNodeCountOnPatchLevel(const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                           const int level_number,
                                                           const double /*init_data_time*/,
                                                           const bool /*can_be_refined*/,
@@ -208,10 +208,10 @@ IBRedundantInitializer::computeLocalNodeCountOnPatchLevel(const Pointer<PatchHie
     // Loop over all patches in the specified level of the patch level and count
     // the number of local vertices.
     int local_node_count = 0;
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
         // Count the number of vertices whose initial locations will be within
         // the given patch.
@@ -966,9 +966,9 @@ unsigned int
 IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
                                                    const unsigned int global_index_offset,
                                                    const unsigned int local_index_offset,
-                                                   Pointer<LData> X_data,
-                                                   Pointer<LData> U_data,
-                                                   const Pointer<PatchHierarchyNd> hierarchy,
+                                                   SAMRAIPointer<LData> X_data,
+                                                   SAMRAIPointer<LData> U_data,
+                                                   const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                    const int level_number,
                                                    const double /*init_data_time*/,
                                                    const bool /*can_be_refined*/,
@@ -980,7 +980,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 #endif
 
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     Vector domain_length;
@@ -999,16 +999,16 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
     boost::multi_array_ref<double, 2>& U_array = *U_data->getLocalFormVecArray();
     int local_idx = invalid_index;
     int local_node_count = 0;
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     const IntVectorNd& ratio = level->getRatio();
     const IntVectorNd& periodic_shift = grid_geom->getPeriodicShift(ratio);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
 
-        Pointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
+        SAMRAIPointer<LNodeSetData> index_data = patch->getPatchData(lag_node_index_idx);
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -1066,7 +1066,7 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 
             // Initialize the specification objects associated with the present
             // vertex.
-            std::vector<Pointer<Streamable> > node_data =
+            std::vector<SAMRAIPointer<Streamable> > node_data =
                 initializeNodeData(point_idx, global_index_offset, level_number);
             for (const auto& node : node_data)
             {
@@ -1111,9 +1111,9 @@ IBRedundantInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
 unsigned int
 IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                        const unsigned int local_index_offset,
-                                                       Pointer<LData> M_data,
-                                                       Pointer<LData> K_data,
-                                                       const Pointer<PatchHierarchyNd> hierarchy,
+                                                       SAMRAIPointer<LData> M_data,
+                                                       SAMRAIPointer<LData> K_data,
+                                                       const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                        const int level_number,
                                                        const double /*init_data_time*/,
                                                        const bool /*can_be_refined*/,
@@ -1130,10 +1130,10 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
     boost::multi_array_ref<double, 1>& K_array = *K_data->getLocalFormArray();
     int local_idx = invalid_index;
     int local_node_count = 0;
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -1171,8 +1171,8 @@ IBRedundantInitializer::initializeMassDataOnPatchLevel(const unsigned int /*glob
 unsigned int
 IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                            const unsigned int local_index_offset,
-                                                           Pointer<LData> D_data,
-                                                           const Pointer<PatchHierarchyNd> hierarchy,
+                                                           SAMRAIPointer<LData> D_data,
+                                                           const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                            const int level_number,
                                                            const double /*init_data_time*/,
                                                            const bool /*can_be_refined*/,
@@ -1188,10 +1188,10 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
     boost::multi_array_ref<double, 2>& D_array = *D_data->getLocalFormVecArray();
     int local_idx = invalid_index;
     int local_node_count = 0;
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
         // Initialize the vertices whose initial locations will be within the
         // given patch.
@@ -1215,7 +1215,7 @@ IBRedundantInitializer::initializeDirectorDataOnPatchLevel(const unsigned int /*
 } // initializeDirectorOnPatchLevel
 
 void
-IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarchyNd> hierarchy,
+IBRedundantInitializer::tagCellsForInitialRefinement(const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                      const int level_number,
                                                      const double /*error_data_time*/,
                                                      const int tag_index)
@@ -1225,22 +1225,22 @@ IBRedundantInitializer::tagCellsForInitialRefinement(const Pointer<PatchHierarch
 #endif
 
     // Determine the extents of the physical domain.
-    Pointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
 
     // Loop over all patches in the specified level of the patch level and tag
     // cells for refinement wherever there are vertices assigned to a finer
     // level of the Cartesian grid.
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     const IntVectorNd& ratio = level->getRatio();
     const IntVectorNd& periodic_shift = grid_geom->getPeriodicShift(ratio);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
 
-        Pointer<CellDataNd<int> > tag_data = patch->getPatchData(tag_index);
+        SAMRAIPointer<CellDataNd<int> > tag_data = patch->getPatchData(tag_index);
 
         // Tag cells for refinement whenever there are vertices whose initial
         // locations will be within the index space of the given patch, but on
@@ -1381,8 +1381,8 @@ IBRedundantInitializer::initializeLSiloDataWriter(const int level_number)
 
 void
 IBRedundantInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patch_vertices,
-                                         const Pointer<PatchNd> patch,
-                                         const Pointer<PatchHierarchyNd> hierarchy) const
+                                         const SAMRAIPointer<PatchNd> patch,
+                                         const SAMRAIPointer<PatchHierarchyNd> hierarchy) const
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(patch->inHierarchy());
@@ -1394,12 +1394,12 @@ IBRedundantInitializer::getPatchVertices(std::vector<std::pair<int, int> >& patc
 
 void
 IBRedundantInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int> >& patch_vertices,
-                                                const Pointer<PatchNd> patch,
-                                                const Pointer<PatchHierarchyNd> hierarchy,
+                                                const SAMRAIPointer<PatchNd> patch,
+                                                const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                 const int vertex_level_number) const
 {
-    const Pointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
-    const Pointer<PatchGeometryNd> patch_geom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
+    const SAMRAIPointer<PatchGeometryNd> patch_geom = patch->getPatchGeometry();
     bool patch_on_upper_physical_boundary = false;
     for (int d = 0; d < NDIM; ++d)
     {
@@ -1412,7 +1412,7 @@ IBRedundantInitializer::getPatchVerticesAtLevel(std::vector<std::pair<int, int> 
     TBOX_ASSERT(patch->inHierarchy());
 #endif
     const int level_number = patch->getPatchLevelNumber();
-    const Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    const SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     const IntVectorNd& ratio = level->getRatio();
     const IntVectorNd& periodic_shift = grid_geom->getPeriodicShift(ratio);
 
@@ -1531,12 +1531,12 @@ IBRedundantInitializer::getVertexSourceIndices(const std::pair<int, int>& point_
     }
 } // getVertexSourceIndices
 
-std::vector<Pointer<Streamable> >
+std::vector<SAMRAIPointer<Streamable> >
 IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_index,
                                            const unsigned int global_index_offset,
                                            const int level_number) const
 {
-    std::vector<Pointer<Streamable> > node_data;
+    std::vector<SAMRAIPointer<Streamable> > node_data;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
@@ -1699,7 +1699,7 @@ IBRedundantInitializer::initializeNodeData(const std::pair<int, int>& point_inde
 } // initializeNodeData
 
 void
-IBRedundantInitializer::getFromInput(Pointer<Database> db)
+IBRedundantInitializer::getFromInput(SAMRAIPointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -1755,7 +1755,7 @@ IBRedundantInitializer::getFromInput(Pointer<Database> db)
             const std::string& strct_name = structure_names[n];
             if (db->keyExists(strct_name))
             {
-                Pointer<Database> sub_db = db->getDatabase((strct_name));
+                SAMRAIPointer<Database> sub_db = db->getDatabase((strct_name));
                 if (sub_db->keyExists("level_number"))
                 {
                     const int ln = sub_db->getInteger("level_number");

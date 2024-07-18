@@ -85,9 +85,9 @@ public:
      * manager when requested.
      */
     IBImplicitStaggeredHierarchyIntegrator(const std::string& object_name,
-                                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                           SAMRAI::tbox::Pointer<IBImplicitStrategy> ib_method_ops,
-                                           SAMRAI::tbox::Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+                                           IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                           IBTK::SAMRAIPointer<IBImplicitStrategy> ib_method_ops,
+                                           IBTK::SAMRAIPointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
                                            bool register_for_restart = true);
 
     /*!
@@ -119,8 +119,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void initializeHierarchyIntegrator(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Returns the number of cycles to perform for the present time step.
@@ -137,9 +137,9 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabaseSpecialized(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
-    SAMRAI::tbox::Pointer<IBImplicitStrategy> d_ib_implicit_ops;
+    IBTK::SAMRAIPointer<IBImplicitStrategy> d_ib_implicit_ops;
 
 private:
     /*!
@@ -155,11 +155,11 @@ private:
          * \brief Class constructor.
          */
         IBImplicitStaggeredStokesSolver(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+                                        IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db)
             : StaggeredStokesSolver()
         {
             d_stokes_op = new StaggeredStokesOperator(object_name + "::stokes_op", false);
-            SAMRAI::tbox::Pointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op =
+            IBTK::SAMRAIPointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op =
                 new StaggeredStokesIBLevelRelaxationFACOperator(object_name + "::fac_op", input_db, "stokes_ib_pc_");
             d_stokes_fac_pc =
                 new StaggeredStokesFACPreconditioner(object_name + "::fac_pc", fac_op, input_db, "stokes_ib_pc_");
@@ -194,7 +194,7 @@ private:
             return;
         }
 
-        void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override
+        void setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override
         {
             StaggeredStokesSolver::setPhysicalBoundaryHelper(bc_helper);
             d_stokes_op->setPhysicalBoundaryHelper(bc_helper);
@@ -222,12 +222,12 @@ private:
 
         // \}
 
-        SAMRAI::tbox::Pointer<StaggeredStokesOperator> getStaggeredStokesOperator()
+        IBTK::SAMRAIPointer<StaggeredStokesOperator> getStaggeredStokesOperator()
         {
             return d_stokes_op;
         }
 
-        SAMRAI::tbox::Pointer<StaggeredStokesFACPreconditioner> getStaggeredStokesFACPreconditioner()
+        IBTK::SAMRAIPointer<StaggeredStokesFACPreconditioner> getStaggeredStokesFACPreconditioner()
         {
             return d_stokes_fac_pc;
         }
@@ -238,8 +238,8 @@ private:
         IBImplicitStaggeredStokesSolver& operator=(const IBImplicitStaggeredStokesSolver& that) = delete;
 
         // Operators and solvers maintained by this class.
-        SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
-        SAMRAI::tbox::Pointer<StaggeredStokesFACPreconditioner> d_stokes_fac_pc;
+        IBTK::SAMRAIPointer<StaggeredStokesOperator> d_stokes_op;
+        IBTK::SAMRAIPointer<StaggeredStokesFACPreconditioner> d_stokes_fac_pc;
     };
 
     /*!
@@ -351,16 +351,16 @@ private:
     // Eulerian data for storing u and p DOFs indexing.
     std::vector<std::vector<int> > d_num_dofs_per_proc;
     int d_u_dof_index_idx, d_p_dof_index_idx;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<int> > d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<int> > d_p_dof_index_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<int> > d_u_dof_index_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<int> > d_p_dof_index_var;
 
     // Solvers and associated vectors.
     bool d_solve_for_position = false;
     std::string d_jac_delta_fcn = "IB_4";
-    SAMRAI::tbox::Pointer<StaggeredStokesSolver> d_stokes_solver;
-    SAMRAI::tbox::Pointer<StaggeredStokesOperator> d_stokes_op;
+    IBTK::SAMRAIPointer<StaggeredStokesSolver> d_stokes_solver;
+    IBTK::SAMRAIPointer<StaggeredStokesOperator> d_stokes_op;
     KSP d_schur_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_u_scratch_vec, d_f_scratch_vec;
+    IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_u_scratch_vec, d_f_scratch_vec;
     Vec d_X_current;
 };
 } // namespace IBAMR

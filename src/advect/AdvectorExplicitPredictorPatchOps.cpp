@@ -500,7 +500,7 @@ static const int GODUNOV_ADVECTOR_VERSION = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvectorExplicitPredictorPatchOps::AdvectorExplicitPredictorPatchOps(const std::string& object_name,
-                                                                     Pointer<Database> input_db,
+                                                                     SAMRAIPointer<Database> input_db,
                                                                      const bool register_for_restart)
     : d_object_name(object_name), d_registered_for_restart(register_for_restart)
 {
@@ -543,7 +543,7 @@ AdvectorExplicitPredictorPatchOps::computeStableDtOnPatch(const FaceDataNd<doubl
     TBOX_ASSERT(u_ADV.getDepth() == 1);
     TBOX_ASSERT(u_ADV.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const hier::IndexNd& ilower = patch.getBox().lower();
@@ -599,7 +599,7 @@ AdvectorExplicitPredictorPatchOps::computeAdvectiveDerivative(CellDataNd<double>
 
     TBOX_ASSERT(q_half.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const hier::IndexNd& ilower = patch.getBox().lower();
@@ -907,7 +907,7 @@ AdvectorExplicitPredictorPatchOps::getNumberFluxGhosts() const
 } // getNumberFluxGhosts
 
 void
-AdvectorExplicitPredictorPatchOps::putToDatabase(Pointer<Database> db)
+AdvectorExplicitPredictorPatchOps::putToDatabase(SAMRAIPointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -938,7 +938,7 @@ AdvectorExplicitPredictorPatchOps::predict(FaceDataNd<double>& q_half,
 
     TBOX_ASSERT(Q.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const hier::IndexNd& ilower = patch.getBox().lower();
@@ -1120,7 +1120,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceDataNd<double>& q_h
 
     TBOX_ASSERT(F.getBox() == patch.getBox());
 #endif
-    const Pointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     const hier::IndexNd& ilower = patch.getBox().lower();
@@ -1306,7 +1306,7 @@ AdvectorExplicitPredictorPatchOps::predictWithSourceTerm(FaceDataNd<double>& q_h
 } // predictWithSourceTerm
 
 void
-AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+AdvectorExplicitPredictorPatchOps::getFromInput(SAMRAIPointer<Database> db, bool /*is_from_restart*/)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -1325,9 +1325,9 @@ AdvectorExplicitPredictorPatchOps::getFromInput(Pointer<Database> db, bool /*is_
 void
 AdvectorExplicitPredictorPatchOps::getFromRestart()
 {
-    Pointer<Database> root_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> root_db = RestartManager::getManager()->getRootDatabase();
 
-    Pointer<Database> db;
+    SAMRAIPointer<Database> db;
 
     if (root_db->isDatabase(d_object_name))
     {

@@ -58,7 +58,7 @@ namespace IBTK
 
 bool
 DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
-                                         const Pointer<PatchHierarchyNd> hierarchy,
+                                         const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                          const bool interior_only,
                                          const int coarsest_ln_in,
                                          const int finest_ln_in)
@@ -68,12 +68,12 @@ DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<PatchNd> patch = level->getPatch(patch_num);
-            Pointer<CellDataNd<double> > patch_data = patch->getPatchData(patch_data_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
+            SAMRAIPointer<CellDataNd<double> > patch_data = patch->getPatchData(patch_data_idx);
             const BoxNd& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (BoxNd::Iterator it(data_box); it; it++)
             {
@@ -106,7 +106,7 @@ DebuggingUtilities::checkCellDataForNaNs(const int patch_data_idx,
 
 bool
 DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
-                                         const Pointer<PatchHierarchyNd> hierarchy,
+                                         const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                          const bool interior_only,
                                          const int coarsest_ln_in,
                                          const int finest_ln_in)
@@ -116,12 +116,12 @@ DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<PatchNd> patch = level->getPatch(patch_num);
-            Pointer<FaceDataNd<double> > patch_data = patch->getPatchData(patch_data_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
+            SAMRAIPointer<FaceDataNd<double> > patch_data = patch->getPatchData(patch_data_idx);
             const BoxNd& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -158,7 +158,7 @@ DebuggingUtilities::checkFaceDataForNaNs(const int patch_data_idx,
 
 bool
 DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
-                                         const Pointer<PatchHierarchyNd> hierarchy,
+                                         const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                          const bool interior_only,
                                          const int coarsest_ln_in,
                                          const int finest_ln_in)
@@ -168,12 +168,12 @@ DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<PatchNd> patch = level->getPatch(patch_num);
-            Pointer<NodeDataNd<double> > patch_data = patch->getPatchData(patch_data_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
+            SAMRAIPointer<NodeDataNd<double> > patch_data = patch->getPatchData(patch_data_idx);
             const BoxNd& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (BoxNd::Iterator it(NodeGeometryNd::toNodeBox(data_box)); it; it++)
             {
@@ -207,7 +207,7 @@ DebuggingUtilities::checkNodeDataForNaNs(const int patch_data_idx,
 
 bool
 DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
-                                         const Pointer<PatchHierarchyNd> hierarchy,
+                                         const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                          const bool interior_only,
                                          const int coarsest_ln_in,
                                          const int finest_ln_in)
@@ -217,12 +217,12 @@ DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
     const int finest_ln = finest_ln_in < 0 ? hierarchy->getFinestLevelNumber() : finest_ln_in;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<PatchNd> patch = level->getPatch(patch_num);
-            Pointer<SideDataNd<double> > patch_data = patch->getPatchData(patch_data_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
+            SAMRAIPointer<SideDataNd<double> > patch_data = patch->getPatchData(patch_data_idx);
             const BoxNd& data_box = interior_only ? patch_data->getBox() : patch_data->getGhostBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -259,7 +259,7 @@ DebuggingUtilities::checkSideDataForNaNs(const int patch_data_idx,
 
 void
 DebuggingUtilities::saveCellData(const int patch_data_idx,
-                                 const Pointer<PatchHierarchyNd> hierarchy,
+                                 const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                  const std::string& filename,
                                  const std::string& dirname)
 {
@@ -278,13 +278,13 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevelNd::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<PatchNd> patch = level->getPatch(patch_num);
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
                     const BoxNd& patch_box = patch->getBox();
-                    Pointer<CellDataNd<double> > data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<CellDataNd<double> > data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -316,7 +316,7 @@ DebuggingUtilities::saveCellData(const int patch_data_idx,
 
 void
 DebuggingUtilities::saveFaceData(const int patch_data_idx,
-                                 const Pointer<PatchHierarchyNd> hierarchy,
+                                 const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                  const std::string& filename,
                                  const std::string& dirname)
 {
@@ -335,13 +335,13 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevelNd::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<PatchNd> patch = level->getPatch(patch_num);
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
                     const BoxNd& patch_box = patch->getBox();
-                    Pointer<FaceDataNd<double> > data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<FaceDataNd<double> > data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -376,7 +376,7 @@ DebuggingUtilities::saveFaceData(const int patch_data_idx,
 
 void
 DebuggingUtilities::saveNodeData(const int patch_data_idx,
-                                 const Pointer<PatchHierarchyNd> hierarchy,
+                                 const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                  const std::string& filename,
                                  const std::string& dirname)
 {
@@ -395,13 +395,13 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevelNd::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<PatchNd> patch = level->getPatch(patch_num);
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
                     const BoxNd& patch_box = patch->getBox();
-                    Pointer<NodeDataNd<double> > data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<NodeDataNd<double> > data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -433,7 +433,7 @@ DebuggingUtilities::saveNodeData(const int patch_data_idx,
 
 void
 DebuggingUtilities::saveSideData(const int patch_data_idx,
-                                 const Pointer<PatchHierarchyNd> hierarchy,
+                                 const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                  const std::string& filename,
                                  const std::string& dirname)
 {
@@ -452,13 +452,13 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
         {
             for (int ln = 0; ln <= hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
                 for (PatchLevelNd::Iterator p(level); p; p++)
                 {
                     const int patch_num = p();
-                    Pointer<PatchNd> patch = level->getPatch(patch_num);
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
                     const BoxNd& patch_box = patch->getBox();
-                    Pointer<SideDataNd<double> > data = patch->getPatchData(patch_data_idx);
+                    SAMRAIPointer<SideDataNd<double> > data = patch->getPatchData(patch_data_idx);
 
                     const std::string patch_filename = truncated_dirname + '/' + filename + '_' +
                                                        Utilities::levelToString(ln) + '_' +
@@ -492,7 +492,7 @@ DebuggingUtilities::saveSideData(const int patch_data_idx,
 } // saveSideData
 
 void
-DebuggingUtilities::saveLagrangianData(const Pointer<LData> lag_data,
+DebuggingUtilities::saveLagrangianData(const SAMRAIPointer<LData> lag_data,
                                        const bool save_ghost_nodes,
                                        const std::string& filename,
                                        const std::string& dirname)

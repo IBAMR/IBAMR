@@ -70,7 +70,7 @@ public:
     virtual void loadBalanceBoxes(SAMRAI::hier::BoxArrayNd& out_boxes,
                                   SAMRAI::hier::ProcessorMapping& mapping,
                                   const SAMRAI::hier::BoxListNd& in_boxes,
-                                  const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                  const SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                   int level_number,
                                   const SAMRAI::hier::BoxArrayNd& physical_domain,
                                   const SAMRAI::hier::IntVectorNd& ratio_to_hierarchy_level_zero,

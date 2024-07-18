@@ -75,8 +75,8 @@ public:
      * \brief Constructor.
      */
     IBFEDirectForcingKinematics(std::string object_name,
-                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> ibfe_method_ops,
+                                IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                IBTK::SAMRAIPointer<IBAMR::IBFEMethod> ibfe_method_ops,
                                 int part,
                                 bool register_for_restart = true);
 
@@ -200,7 +200,7 @@ public:
     /*!
      * \brief Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!
@@ -221,7 +221,7 @@ protected:
     /*
      * IBFE method and the part number registered with IBFE method.
      */
-    SAMRAI::tbox::Pointer<IBAMR::IBFEMethod> d_ibfe_method_ops;
+    IBTK::SAMRAIPointer<IBAMR::IBFEMethod> d_ibfe_method_ops;
     int d_part;
 
     /*
@@ -296,7 +296,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

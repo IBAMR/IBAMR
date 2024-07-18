@@ -42,8 +42,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FACPreconditioner::FACPreconditioner(std::string object_name,
-                                     Pointer<FACPreconditionerStrategy> fac_strategy,
-                                     tbox::Pointer<tbox::Database> input_db,
+                                     SAMRAIPointer<FACPreconditionerStrategy> fac_strategy,
+                                     SAMRAIPointer<tbox::Database> input_db,
                                      const std::string& /*default_options_prefix*/)
     : d_fac_strategy(fac_strategy)
 {
@@ -55,7 +55,7 @@ FACPreconditioner::FACPreconditioner(std::string object_name,
     d_max_iterations = 1;
 
     // Register this class with the FACPreconditionerStrategy object.
-    d_fac_strategy->setFACPreconditioner(Pointer<FACPreconditioner>(this, false));
+    d_fac_strategy->setFACPreconditioner(SAMRAIPointer<FACPreconditioner>(this, false));
 
     // Initialize object with data read from input database.
     if (input_db)
@@ -253,7 +253,7 @@ FACPreconditioner::getNumPostSmoothingSweeps() const
     return d_num_post_sweeps;
 } // getNumPostSmoothingSweeps
 
-Pointer<FACPreconditionerStrategy>
+SAMRAIPointer<FACPreconditionerStrategy>
 FACPreconditioner::getFACPreconditionerStrategy() const
 {
     return d_fac_strategy;
@@ -375,7 +375,7 @@ FACPreconditioner::FMGCycle(SAMRAIVectorRealNd<double>& u,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
+FACPreconditioner::getFromInput(SAMRAIPointer<tbox::Database> db)
 {
     if (!db) return;
     if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));

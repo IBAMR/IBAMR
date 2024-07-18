@@ -90,7 +90,9 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Database> db, bool register_for_restart)
+FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name,
+                                           SAMRAIPointer<Database> db,
+                                           bool register_for_restart)
     : LSInitStrategy(std::move(object_name), register_for_restart)
 {
     for (int& wall_idx : d_wall_location_idx) wall_idx = 0;
@@ -103,7 +105,7 @@ FastSweepingLSMethod::FastSweepingLSMethod(std::string object_name, Pointer<Data
 
 void
 FastSweepingLSMethod::initializeLSData(int D_idx,
-                                       Pointer<HierarchyMathOps> hier_math_ops,
+                                       SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                        int integrator_step,
                                        double time,
                                        bool initial_time)
@@ -113,14 +115,14 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     if (!initialize_ls) return;
 
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    Pointer<VariableNd> data_var;
+    SAMRAIPointer<VariableNd> data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
-    Pointer<CellVariableNd<double> > D_var = data_var;
+    SAMRAIPointer<CellVariableNd<double> > D_var = data_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!D_var.isNull());
 #endif
 
-    Pointer<PatchHierarchyNd> hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
@@ -157,7 +159,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "LINEAR_REFINE", true, "NONE", "LINEAR", false, d_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
     fill_op->initializeOperatorState(D_transaction, hierarchy);
     HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
@@ -225,15 +227,15 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dist_idx) const
+FastSweepingLSMethod::fastSweep(SAMRAIPointer<HierarchyMathOps> hier_math_ops, int dist_idx) const
 {
-    Pointer<PatchHierarchyNd> hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         const BoxArrayNd& domain_boxes = level->getPhysicalDomain();
 #if !defined(NDEBUG)
         TBOX_ASSERT(domain_boxes.size() == 1);
@@ -241,8 +243,8 @@ FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dis
 
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CellDataNd<double> > dist_data = patch->getPatchData(dist_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CellDataNd<double> > dist_data = patch->getPatchData(dist_idx);
             fastSweep(dist_data, patch, domain_boxes[0]);
         }
     }
@@ -251,8 +253,8 @@ FastSweepingLSMethod::fastSweep(Pointer<HierarchyMathOps> hier_math_ops, int dis
 } // fastSweep
 
 void
-FastSweepingLSMethod::fastSweep(Pointer<CellDataNd<double> > dist_data,
-                                const Pointer<PatchNd> patch,
+FastSweepingLSMethod::fastSweep(SAMRAIPointer<CellDataNd<double> > dist_data,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const BoxNd& domain_box) const
 {
     double* const D = dist_data->getPointer(0);
@@ -260,7 +262,7 @@ FastSweepingLSMethod::fastSweep(Pointer<CellDataNd<double> > dist_data,
 
     // Check if the patch touches physical domain.
     int touches_wall_loc_idx[NDIM * 2] = { 0 };
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const bool patch_touches_bdry = pgeom->getTouchesRegularBoundary() || pgeom->getTouchesPeriodicBoundary();
     if (patch_touches_bdry)
     {
@@ -316,7 +318,7 @@ FastSweepingLSMethod::fastSweep(Pointer<CellDataNd<double> > dist_data,
 } // fastSweep
 
 void
-FastSweepingLSMethod::getFromInput(Pointer<Database> input_db)
+FastSweepingLSMethod::getFromInput(SAMRAIPointer<Database> input_db)
 {
     std::string ls_order = "FIRST_ORDER";
     ls_order = input_db->getStringWithDefault("order", ls_order);

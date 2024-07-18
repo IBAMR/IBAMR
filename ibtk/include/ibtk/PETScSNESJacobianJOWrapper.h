@@ -99,7 +99,7 @@ public:
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getBaseVector() const override;
+    SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getBaseVector() const override;
 
     //\}
 
@@ -238,7 +238,7 @@ private:
     Mat d_petsc_snes_jac = nullptr;
     PetscErrorCode (*const d_petsc_snes_form_jac)(SNES, Vec, Mat, Mat, void*);
     void* const d_petsc_snes_jac_ctx;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x, d_y, d_z;
+    SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x, d_y, d_z;
     Vec d_petsc_x = nullptr, d_petsc_y = nullptr, d_petsc_z = nullptr;
 };
 } // namespace IBTK

@@ -362,7 +362,7 @@ IBTK_ENABLE_EXTRA_WARNINGS
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       const Pointer<Database>& input_db,
+                       const SAMRAIPointer<Database>& input_db,
                        MeshBase* mesh,
                        int max_levels,
                        bool register_for_restart,
@@ -376,7 +376,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
 } // IBFEMethod
 
 IBFEMethod::IBFEMethod(const std::string& object_name,
-                       const Pointer<Database>& input_db,
+                       const SAMRAIPointer<Database>& input_db,
                        const std::vector<MeshBase*>& meshes,
                        int max_levels,
                        bool register_for_restart,
@@ -475,7 +475,7 @@ IBFEMethod::getLagBodySourceFunction(unsigned int part) const
 } // getLagBodySourceFunction
 
 void
-IBFEMethod::registerDirectForcingKinematics(const Pointer<IBFEDirectForcingKinematics>& data, unsigned int part)
+IBFEMethod::registerDirectForcingKinematics(const SAMRAIPointer<IBFEDirectForcingKinematics>& data, unsigned int part)
 {
     TBOX_ASSERT(part < d_meshes.size());
     d_direct_forcing_kinematics_data[part] = data;
@@ -489,7 +489,7 @@ IBFEMethod::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithmNd> gridding_alg) const
+IBFEMethod::setupTagBuffer(Array<int>& tag_buffer, SAMRAIPointer<GriddingAlgorithmNd> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -653,8 +653,8 @@ IBFEMethod::postprocessIntegrateData(double current_time, double new_time, int n
 
 void
 IBFEMethod::interpolateVelocity(const int u_data_idx,
-                                const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
-                                const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
+                                const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                 const double data_time)
 {
     IBAMR_TIMER_START(t_interpolate_velocity);
@@ -696,7 +696,7 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     batch_vec_ghost_update(X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // Build the right-hand-sides to compute the interpolated data.
-    std::vector<Pointer<RefineScheduleNd> > no_fill(u_ghost_fill_scheds.size());
+    std::vector<SAMRAIPointer<RefineScheduleNd> > no_fill(u_ghost_fill_scheds.size());
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         if (d_part_is_active[part])
@@ -936,7 +936,7 @@ IBFEMethod::computeLagrangianForce(const double data_time)
 void
 IBFEMethod::spreadForce(const int f_data_idx,
                         RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                        const std::vector<Pointer<RefineScheduleNd> >& /*f_prolongation_scheds*/,
+                        const std::vector<SAMRAIPointer<RefineScheduleNd> >& /*f_prolongation_scheds*/,
                         const double data_time)
 {
     IBAMR_TIMER_START(t_spread_force);
@@ -950,7 +950,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     batch_vec_ghost_update({ X_IB_ghost_vecs, F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // set up a new data index for computing forces on the active hierarchy.
-    Pointer<PatchHierarchyNd> hierarchy =
+    SAMRAIPointer<PatchHierarchyNd> hierarchy =
         d_use_scratch_hierarchy ? d_secondary_hierarchy->getSecondaryHierarchy() : d_hierarchy;
     // get the data cache that is associated with whatever hierarchy we are
     // actually performing spreading operations on.
@@ -960,7 +960,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
     const auto f_scratch_data_idx = data_cache->getCachedPatchDataIndex(f_data_idx);
     const auto f_prolong_scratch_data_idx = data_cache->getCachedPatchDataIndex(f_data_idx);
     // zero data.
-    Pointer<hier::VariableNd> f_var;
+    SAMRAIPointer<hier::VariableNd> f_var;
     VariableDatabaseNd::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
     auto f_active_data_ops = HierarchyDataOpsManagerNd::getManager()->getOperationsDouble(f_var, hierarchy, true);
     f_active_data_ops->resetLevels(0, getFinestPatchLevelNumber());
@@ -1010,11 +1010,11 @@ IBFEMethod::spreadForce(const int f_data_idx,
         for (int ln = getCoarsestPatchLevelNumber(); ln <= getFinestPatchLevelNumber(); ++ln)
         {
             f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
-            Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                const Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<PatchDataNd> f_data = patch->getPatchData(f_scratch_data_idx);
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(f_scratch_data_idx);
                 f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
             }
         }
@@ -1028,7 +1028,7 @@ IBFEMethod::spreadForce(const int f_data_idx,
             // ghost region than the one required by this class. Hence, set the
             // ghost width by just picking whatever the data actually has at the
             // moment.
-            const Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+            const SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
             const IntVectorNd gcw =
                 level->getPatchDescriptor()->getPatchDataFactory(f_scratch_data_idx)->getGhostCellWidth();
 
@@ -1193,7 +1193,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
 void
 IBFEMethod::spreadFluidSource(const int q_data_idx,
                               RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                              const std::vector<Pointer<RefineScheduleNd> >& /*q_prolongation_scheds*/,
+                              const std::vector<SAMRAIPointer<RefineScheduleNd> >& /*q_prolongation_scheds*/,
                               const double data_time)
 {
     IBAMR_TIMER_START(t_spread_fluid_source);
@@ -1295,11 +1295,11 @@ IBFEMethod::registerEulerianVariables()
 } // registerEulerianVariables
 
 void
-IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
-                                     Pointer<GriddingAlgorithmNd> gridding_alg,
+IBFEMethod::initializePatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                     SAMRAIPointer<GriddingAlgorithmNd> gridding_alg,
                                      int /*u_data_idx*/,
-                                     const std::vector<Pointer<CoarsenScheduleNd> >& /*u_synch_scheds*/,
-                                     const std::vector<Pointer<RefineScheduleNd> >& /*u_ghost_fill_scheds*/,
+                                     const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& /*u_synch_scheds*/,
+                                     const std::vector<SAMRAIPointer<RefineScheduleNd> >& /*u_ghost_fill_scheds*/,
                                      int /*integrator_step*/,
                                      double /*init_data_time*/,
                                      bool /*initial_time*/)
@@ -1328,7 +1328,7 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
 } // initializePatchHierarchy
 
 void
-IBFEMethod::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer, int workload_data_idx)
+IBFEMethod::registerLoadBalancer(SAMRAIPointer<LoadBalancerNd> load_balancer, int workload_data_idx)
 {
     IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBFEMethod", "registerLoadBalancer");
     TBOX_ASSERT(load_balancer);
@@ -1338,7 +1338,7 @@ IBFEMethod::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer, int work
 } // registerLoadBalancer
 
 void
-IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
+IBFEMethod::addWorkloadEstimate(SAMRAIPointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
 {
     IBAMR_TIMER_START(t_add_workload_estimate);
     const bool old_d_do_log = d_do_log;
@@ -1441,8 +1441,8 @@ IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int w
 } // addWorkloadEstimate
 
 void
-IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
-                                    Pointer<GriddingAlgorithmNd> /*gridding_alg*/)
+IBFEMethod::beginDataRedistribution(SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
+                                    SAMRAIPointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_begin_data_redistribution);
     // clear some things that contain data specific to the current patch hierarchy
@@ -1457,7 +1457,7 @@ IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
         {
             for (int ln = 0; ln <= getFinestPatchLevelNumber(); ++ln)
             {
-                Pointer<PatchLevelNd> level = d_secondary_hierarchy->getSecondaryHierarchy()->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = d_secondary_hierarchy->getSecondaryHierarchy()->getPatchLevel(ln);
                 if (!level->checkAllocated(d_lagrangian_workload_current_idx))
                     level->allocatePatchData(d_lagrangian_workload_current_idx);
             }
@@ -1486,8 +1486,8 @@ IBFEMethod::beginDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
 } // beginDataRedistribution
 
 void
-IBFEMethod::endDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
-                                  Pointer<GriddingAlgorithmNd> /*gridding_alg*/)
+IBFEMethod::endDataRedistribution(SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
+                                  SAMRAIPointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     IBAMR_TIMER_START(t_end_data_redistribution);
     // if we are not initialized then there is nothing to do
@@ -1582,18 +1582,18 @@ IBFEMethod::endDataRedistribution(Pointer<PatchHierarchyNd> /*hierarchy*/,
 } // endDataRedistribution
 
 void
-IBFEMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
+IBFEMethod::initializeLevelData(SAMRAIPointer<BasePatchHierarchyNd> /*hierarchy*/,
                                 int /*level_number*/,
                                 double /*init_data_time*/,
                                 bool /*can_be_refined*/,
                                 bool /*initial_time*/,
-                                Pointer<BasePatchLevelNd> /*old_level*/,
+                                SAMRAIPointer<BasePatchLevelNd> /*old_level*/,
                                 bool /*allocate_data*/)
 {
 } // initializeLevelData
 
 void
-IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarchy,
+IBFEMethod::resetHierarchyConfiguration(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                         int /*coarsest_level*/,
                                         int /*finest_level*/)
 {
@@ -1606,7 +1606,7 @@ IBFEMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarchy,
 } // resetHierarchyConfiguration
 
 void
-IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> base_hierarchy,
+IBFEMethod::applyGradientDetector(SAMRAIPointer<BasePatchHierarchyNd> base_hierarchy,
                                   int level_number,
                                   double error_data_time,
                                   int tag_index,
@@ -1625,7 +1625,7 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> base_hierarchy,
         }
     }
 
-    Pointer<PatchHierarchyNd> hierarchy = base_hierarchy;
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -1663,7 +1663,7 @@ IBFEMethod::applyGradientDetector(Pointer<BasePatchHierarchyNd> base_hierarchy,
 } // applyGradientDetector
 
 void
-IBFEMethod::putToDatabase(Pointer<Database> db)
+IBFEMethod::putToDatabase(SAMRAIPointer<Database> db)
 {
     FEMechanicsBase::putToDatabase(db);
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
@@ -1678,7 +1678,7 @@ IBFEMethod::putToDatabase(Pointer<Database> db)
     return;
 } // putToDatabase
 
-SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd>
+IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd>
 IBFEMethod::getScratchHierarchy()
 {
     return d_secondary_hierarchy->getSecondaryHierarchy();
@@ -2054,7 +2054,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
 
     assertStructureOnFinestLevel();
     const int level_num = d_primary_fe_data_managers[part]->getFinestPatchLevelNumber();
-    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+    SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
 
     // Extract the mesh.
     EquationSystems& equation_systems = *d_primary_fe_data_managers[part]->getEquationSystems();
@@ -2155,8 +2155,8 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        Pointer<PatchNd> patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -2321,7 +2321,7 @@ IBFEMethod::spreadTransmissionForceDensity(const int f_data_idx,
         // Spread the boundary forces to the grid.
         const std::string& spread_kernel_fcn = d_spread_spec[part].kernel_fcn;
         const BoxNd spread_box = patch->getBox();
-        Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
+        SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
 
         FEDataManager::zeroExteriorValues(*patch_geom, x_bdry, T_bdry, NDIM);
         LEInteractor::spread(f_data, T_bdry, NDIM, x_bdry, NDIM, patch, spread_box, spread_kernel_fcn);
@@ -2436,9 +2436,9 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
     std::vector<libMesh::Point> intersection_ref_coords;
     std::vector<SideIndexNd> intersection_indices;
     std::vector<std::pair<double, libMesh::Point> > intersections;
-    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+    SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
     const IntVectorNd& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+    const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
     for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
@@ -2447,11 +2447,11 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<PatchNd> patch = level->getPatch(p());
-        Pointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
+        const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
         const BoxNd& patch_box = patch->getBox();
         const CellIndexNd& patch_lower = patch_box.lower();
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
@@ -2743,40 +2743,40 @@ IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_dat
     const auto key = std::make_pair(level_number, std::make_pair(coarse_data_idx, fine_data_idx));
     if (d_prolongation_schedules.count(key) == 0)
     {
-        Pointer<PatchHierarchyNd> hierarchy =
+        SAMRAIPointer<PatchHierarchyNd> hierarchy =
             d_use_scratch_hierarchy ? d_secondary_hierarchy->getSecondaryHierarchy() : d_hierarchy;
-        Pointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
-        Pointer<RefineOperatorNd> refine_op;
+        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        SAMRAIPointer<RefineOperatorNd> refine_op;
 
-        Pointer<hier::VariableNd> f_var;
+        SAMRAIPointer<hier::VariableNd> f_var;
         VariableDatabaseNd::getDatabase()->mapIndexToVariable(coarse_data_idx, f_var);
         {
-            Pointer<hier::VariableNd> f_var_2;
+            SAMRAIPointer<hier::VariableNd> f_var_2;
             VariableDatabaseNd::getDatabase()->mapIndexToVariable(fine_data_idx, f_var_2);
             // These should be the same variable
             TBOX_ASSERT(&*f_var == &*f_var_2);
         }
 
-        Pointer<CellVariableNd<double> > f_cc_var = f_var;
-        Pointer<SideVariableNd<double> > f_sc_var = f_var;
+        SAMRAIPointer<CellVariableNd<double> > f_cc_var = f_var;
+        SAMRAIPointer<SideVariableNd<double> > f_sc_var = f_var;
         const bool cc_data = f_cc_var;
         const bool sc_data = f_sc_var;
         TBOX_ASSERT(cc_data || sc_data);
         if (cc_data)
         {
-            Pointer<CartesianGridGeometryNd> geometry = hierarchy->getGridGeometry();
+            SAMRAIPointer<CartesianGridGeometryNd> geometry = hierarchy->getGridGeometry();
             refine_op = geometry->lookupRefineOperator(f_var, "CONSERVATIVE_LINEAR_REFINE");
         }
         else
             refine_op = new CartSideDoubleRT0Refine();
         TBOX_ASSERT(refine_op);
         refine_algorithm->registerRefine(fine_data_idx, coarse_data_idx, fine_data_idx, refine_op);
-        Pointer<PatchLevelNd> fine_level = hierarchy->getPatchLevel(level_number + 1);
+        SAMRAIPointer<PatchLevelNd> fine_level = hierarchy->getPatchLevel(level_number + 1);
         // We can ignore the fifth argument since we don't need to deal with
         // forces outside the physical domain (this was handled previously by
         // f_phys_bdry_op). In particular we don't need it since we don't care
         // about ghost force values (they aren't used in the solver).
-        Pointer<RefineScheduleNd> schedule =
+        SAMRAIPointer<RefineScheduleNd> schedule =
             refine_algorithm->createSchedule(fine_level, nullptr, level_number, hierarchy);
         d_prolongation_schedules[key] = schedule;
     }
@@ -2786,7 +2786,7 @@ IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_dat
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
+IBFEMethod::commonConstructor(const SAMRAIPointer<Database>& input_db, int max_levels)
 {
     // Keep track of the maximum possible level number.
     d_max_level_number = max_levels - 1;
@@ -2820,7 +2820,7 @@ IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
     // Initialize function data to NULL.
     d_lag_body_source_part.resize(n_parts, false);
     d_lag_body_source_fcn_data.resize(n_parts);
-    d_direct_forcing_kinematics_data.resize(n_parts, Pointer<IBFEDirectForcingKinematics>(nullptr));
+    d_direct_forcing_kinematics_data.resize(n_parts, SAMRAIPointer<IBFEDirectForcingKinematics>(nullptr));
 
     // Indicate that all of the parts do NOT use stress normalization by default.
     d_stress_normalization_part.resize(n_parts, false);
@@ -2859,7 +2859,7 @@ IBFEMethod::commonConstructor(const Pointer<Database>& input_db, int max_levels)
 } // commonConstructor
 
 void
-IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
+IBFEMethod::getFromInput(const SAMRAIPointer<Database>& db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
     if (db->isString("interp_delta_fcn"))
@@ -3060,8 +3060,8 @@ IBFEMethod::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
 void
 IBFEMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

@@ -70,44 +70,44 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator =
+        SAMRAIPointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator =
             new AdvDiffSemiImplicitHierarchyIntegrator(
                 "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"));
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            adv_diff_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
                                     box_generator,
                                     load_balancer);
-        Pointer<CartGridFunction> u_fcn = nullptr;
-        Pointer<CFINSForcing> cf_forcing = new CFINSForcing("ComplexFluid",
-                                                            app_initializer->getComponentDatabase("ComplexFluid"),
-                                                            u_fcn,
-                                                            grid_geometry,
-                                                            adv_diff_integrator,
-                                                            app_initializer->getVisItDataWriter());
-        Pointer<CartGridFunction> exact_fcn = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_fcn = nullptr;
+        SAMRAIPointer<CFINSForcing> cf_forcing = new CFINSForcing("ComplexFluid",
+                                                                  app_initializer->getComponentDatabase("ComplexFluid"),
+                                                                  u_fcn,
+                                                                  grid_geometry,
+                                                                  adv_diff_integrator,
+                                                                  app_initializer->getVisItDataWriter());
+        SAMRAIPointer<CartGridFunction> exact_fcn = new muParserCartGridFunction(
             "ComplexFluid", app_initializer->getComponentDatabase("ComplexFluid")->getDatabase("FCN"), grid_geometry);
 
         // Initialize the AMR patch hierarchy.
         adv_diff_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
-        Pointer<VariableNd> c_var;
+        SAMRAIPointer<VariableNd> c_var;
         std::string var_centering = input_db->getString("VAR_CENTERING");
         if (var_centering == "SIDE")
         {
@@ -126,7 +126,7 @@ main(int argc, char* argv[])
         const int c_cloned_idx = var_db->registerClonedPatchDataIndex(c_var, c_idx);
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(c_idx);
             level->allocatePatchData(c_cloned_idx);
         }
@@ -154,13 +154,13 @@ main(int argc, char* argv[])
             bool error = false;
             for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
             {
-                Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
                 for (PatchLevelNd::Iterator p(level); p; p++)
                 {
-                    Pointer<PatchNd> patch = level->getPatch(p());
-                    Pointer<CellDataNd<double> > draw_data = patch->getPatchData(
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                    SAMRAIPointer<CellDataNd<double> > draw_data = patch->getPatchData(
                         var_db->getVariable("ComplexFluid::conform_draw"), var_db->getContext("ComplexFluid::CONTEXT"));
-                    Pointer<CellDataNd<double> > C_data = patch->getPatchData(cf_forcing->getVariableIdx());
+                    SAMRAIPointer<CellDataNd<double> > C_data = patch->getPatchData(cf_forcing->getVariableIdx());
                     for (CellIteratorNd ci(patch->getBox()); ci; ci++)
                     {
                         const CellIndexNd& idx = ci();
@@ -208,7 +208,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(c_idx);
             level->deallocatePatchData(c_cloned_idx);
         }

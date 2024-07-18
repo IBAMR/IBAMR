@@ -191,8 +191,8 @@ main(int argc, char** argv)
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         const bool dump_restart_data = app_initializer->dumpRestartData();
         const int restart_dump_interval = app_initializer->getRestartDumpInterval();
@@ -317,14 +317,14 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
 
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -346,7 +346,7 @@ main(int argc, char** argv)
         std::vector<libMesh::MeshBase*> meshes;
         meshes.push_back(&mesh);
         if (use_inactive_mesh) meshes.push_back(&mesh_2);
-        Pointer<IBFEMethod> ib_method_ops =
+        SAMRAIPointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
                            meshes,
@@ -354,18 +354,18 @@ main(int argc, char** argv)
                            /*register_for_restart*/ true,
                            restart_read_dirname,
                            restart_restore_num);
-        Pointer<IBExplicitHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBExplicitHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
         time_integrator->registerLoadBalancer(load_balancer);
 
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -404,14 +404,14 @@ main(int argc, char** argv)
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -452,7 +452,7 @@ main(int argc, char** argv)
         if (use_separate_fe_data_manager)
         {
             FEDataManager::WorkloadSpec workload_spec;
-            Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
+            SAMRAIPointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
             other_manager = FEDataManager::getManager(
                 fe_data_manager->getFEData(),
                 "cloned_fe_data_manager",
@@ -473,7 +473,7 @@ main(int argc, char** argv)
         const bool log_postprocessor = input_db->getBoolWithDefault("log_postprocessor", false);
         const int postprocessor_sampling_rate = input_db->getIntegerWithDefault("postprocessor_sampling_rate", 25);
 
-        Pointer<IBFEPostProcessor> ib_post_processor =
+        SAMRAIPointer<IBFEPostProcessor> ib_post_processor =
             new IBFECentroidPostProcessor("IBFEPostProcessor", other_manager);
         ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
@@ -495,8 +495,8 @@ main(int argc, char** argv)
                                                   vector<SystemData>(),
                                                   &PK1_dil_stress_fcn_data);
 
-        Pointer<hier::VariableNd> p_var = navier_stokes_integrator->getPressureVariable();
-        Pointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
+        SAMRAIPointer<hier::VariableNd> p_var = navier_stokes_integrator->getPressureVariable();
+        SAMRAIPointer<VariableContext> p_current_ctx = navier_stokes_integrator->getCurrentContext();
         HierarchyGhostCellInterpolation::InterpolationTransactionComponent p_ghostfill(
             /*data_idx*/ -1, "LINEAR_REFINE", /*use_cf_bdry_interpolation*/ false, "CONSERVATIVE_COARSEN", "LINEAR");
         FEDataManager::InterpSpec p_interp_spec("PIECEWISE_LINEAR",
@@ -513,7 +513,7 @@ main(int argc, char** argv)
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
@@ -767,9 +767,9 @@ main(int argc, char** argv)
 
         if (input_db->getBoolWithDefault("log_scratch_partitioning", false))
         {
-            Pointer<PatchHierarchyNd> scratch_hier = ib_method_ops->getScratchHierarchy();
+            SAMRAIPointer<PatchHierarchyNd> scratch_hier = ib_method_ops->getScratchHierarchy();
             TBOX_ASSERT(scratch_hier);
-            Pointer<PatchLevelNd> patch_level = scratch_hier->getPatchLevel(scratch_hier->getFinestLevelNumber());
+            SAMRAIPointer<PatchLevelNd> patch_level = scratch_hier->getPatchLevel(scratch_hier->getFinestLevelNumber());
             const BoxArrayNd boxes = patch_level->getBoxes();
             plog << "Scratch hierarchy boxes:\n";
             for (int i = 0; i < boxes.size(); ++i) plog << boxes[i] << '\n';

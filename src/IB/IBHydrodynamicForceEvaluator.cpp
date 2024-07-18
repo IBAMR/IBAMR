@@ -83,14 +83,14 @@ IBHydrodynamicForceEvaluator::IBHydrodynamicForceEvaluator(std::string object_na
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     d_u_var = new SideVariableNd<double>(d_object_name + "::u_var", 1);
     d_p_var = new CellVariableNd<double>(d_object_name + "::p_var", 1);
-    Pointer<VariableContext> u_ctx = var_db->getContext(d_object_name + "::u_ctx");
-    Pointer<VariableContext> p_ctx = var_db->getContext(d_object_name + "::p_ctx");
+    SAMRAIPointer<VariableContext> u_ctx = var_db->getContext(d_object_name + "::u_ctx");
+    SAMRAIPointer<VariableContext> p_ctx = var_db->getContext(d_object_name + "::p_ctx");
     d_u_idx = var_db->registerVariableAndContext(d_u_var, u_ctx, /*ghost_width*/ 1);
     d_p_idx = var_db->registerVariableAndContext(d_p_var, p_ctx, /*ghost_width*/ 1);
 
-    Pointer<SideVariableNd<double> > wgt_var = new SideVariableNd<double>(d_object_name + "::wgt_var", 1);
-    Pointer<VariableContext> face_wgt_ctx = var_db->getContext(d_object_name + "::face_wgt_ctx");
-    Pointer<VariableContext> vol_wgt_ctx = var_db->getContext(d_object_name + "::vol_wgt_ctx");
+    SAMRAIPointer<SideVariableNd<double> > wgt_var = new SideVariableNd<double>(d_object_name + "::wgt_var", 1);
+    SAMRAIPointer<VariableContext> face_wgt_ctx = var_db->getContext(d_object_name + "::face_wgt_ctx");
+    SAMRAIPointer<VariableContext> vol_wgt_ctx = var_db->getContext(d_object_name + "::vol_wgt_ctx");
     d_face_wgt_sc_idx = var_db->registerVariableAndContext(wgt_var, face_wgt_ctx, /*ghost_width*/ 0);
     d_vol_wgt_sc_idx = var_db->registerVariableAndContext(wgt_var, vol_wgt_ctx, /*ghost_width*/ 0);
 
@@ -115,7 +115,7 @@ IBHydrodynamicForceEvaluator::~IBHydrodynamicForceEvaluator()
 void
 IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
                                                 IBTK::Vector3d& box_X_upper,
-                                                Pointer<PatchHierarchyNd> patch_hierarchy,
+                                                SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                                 const IBTK::Vector3d& box_vel,
                                                 int strct_id)
 {
@@ -131,8 +131,8 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
     {
         // Ensure that box is aligned to grid cell sides at coarsest level
         const int coarsest_ln = 0;
-        Pointer<PatchLevelNd> coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
-        const Pointer<CartesianGridGeometryNd> coarsest_grid_geom = coarsest_level->getGridGeometry();
+        SAMRAIPointer<PatchLevelNd> coarsest_level = patch_hierarchy->getPatchLevel(coarsest_ln);
+        const SAMRAIPointer<CartesianGridGeometryNd> coarsest_grid_geom = coarsest_level->getGridGeometry();
         const double* const dx_coarsest = coarsest_grid_geom->getDx();
         const double* const grid_X_lower = coarsest_grid_geom->getXLower();
         bool modified_box = false;
@@ -194,8 +194,8 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
     }
     else
     {
-        Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-        Pointer<Database> db;
+        SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+        SAMRAIPointer<Database> db;
         if (restart_db->isDatabase(d_object_name))
         {
             db = restart_db->getDatabase(d_object_name);
@@ -249,7 +249,7 @@ IBHydrodynamicForceEvaluator::registerStructure(IBTK::Vector3d& box_X_lower,
 void
 IBHydrodynamicForceEvaluator::updateStructureDomain(const IBTK::Vector3d& box_vel_new,
                                                     double dt,
-                                                    Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
+                                                    SAMRAIPointer<PatchHierarchyNd> /*patch_hierarchy*/,
                                                     int strct_id)
 
 {
@@ -310,7 +310,7 @@ IBHydrodynamicForceEvaluator::getHydrodynamicForceObject(int strct_id)
 
 void
 IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(int u_old_idx,
-                                                            Pointer<PatchHierarchyNd> patch_hierarchy,
+                                                            SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                                             const std::vector<RobinBcCoefStrategyNd*>& u_src_bc_coef)
 {
     resetFaceAreaWeight(patch_hierarchy);
@@ -340,7 +340,7 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(int u_old_idx,
 
         for (int ln = finest_ln; ln >= coarsest_ln; --ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             BoxNd integration_box(
                 IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
                 IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
@@ -350,7 +350,7 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(int u_old_idx,
 
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 const BoxNd& patch_box = patch->getBox();
                 const bool boxes_intersect = patch_box.intersects(integration_box);
                 if (!boxes_intersect) continue;
@@ -359,8 +359,8 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(int u_old_idx,
                 BoxNd trim_box = patch_box * integration_box;
 
                 // Loop over the box and compute momentum.
-                Pointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
-                Pointer<SideDataNd<double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
+                SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
+                SAMRAIPointer<SideDataNd<double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
 
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -401,7 +401,7 @@ IBHydrodynamicForceEvaluator::computeLaggedMomentumIntegral(int u_old_idx,
                              * If vol == 0, don't change anything
                              */
 
-                            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                             const double* const patch_dx = patch_geom->getDx();
                             const double box_edge_dV = 0.5 * patch_dx[0] * patch_dx[1]
 #if (NDIM == 3)
@@ -476,7 +476,7 @@ void
 IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                                                        int p_idx,
                                                        int /*f_idx*/,
-                                                       Pointer<PatchHierarchyNd> patch_hierarchy,
+                                                       SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                                        double dt,
                                                        const std::vector<RobinBcCoefStrategyNd*>& u_src_bc_coef,
                                                        RobinBcCoefStrategyNd* p_src_bc_coef)
@@ -507,7 +507,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 
         for (int ln = finest_ln; ln >= coarsest_ln; --ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             BoxNd integration_box(
                 IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
                 IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
@@ -517,7 +517,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 const BoxNd& patch_box = patch->getBox();
                 const bool boxes_intersect = patch_box.intersects(integration_box);
                 if (!boxes_intersect) continue;
@@ -526,8 +526,8 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 BoxNd trim_box = patch_box * integration_box;
 
                 // Loop over the box and compute momentum.
-                Pointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
-                Pointer<SideDataNd<double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
+                SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
+                SAMRAIPointer<SideDataNd<double> > vol_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
 
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -567,7 +567,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                              * If vol == 0, don't change anything
                              */
 
-                            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                             const double* const patch_dx = patch_geom->getDx();
                             const double box_edge_dV = 0.5 * patch_dx[0] * patch_dx[1]
 #if (NDIM == 3)
@@ -621,7 +621,7 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 
         for (int ln = finest_ln; ln >= coarsest_ln; --ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             BoxNd integration_box(
                 IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
                 IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
@@ -631,9 +631,9 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
 
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 const BoxNd& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
                 const bool boxes_intersect = patch_box.intersects(integration_box);
                 if (!boxes_intersect) continue;
@@ -656,9 +656,9 @@ IBHydrodynamicForceEvaluator::computeHydrodynamicForce(int u_idx,
                 }
 
                 // Integrate over boundary boxes.
-                Pointer<CellDataNd<double> > p_data = patch->getPatchData(d_p_idx);
-                Pointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
-                Pointer<SideDataNd<double> > face_sc_data = patch->getPatchData(d_face_wgt_sc_idx);
+                SAMRAIPointer<CellDataNd<double> > p_data = patch->getPatchData(d_p_idx);
+                SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
+                SAMRAIPointer<SideDataNd<double> > face_sc_data = patch->getPatchData(d_face_wgt_sc_idx);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
                     for (int upperlower = 0; upperlower <= 1; ++upperlower)
@@ -812,7 +812,7 @@ IBHydrodynamicForceEvaluator::postprocessIntegrateData(double /*current_time*/, 
 } // postprocessIntegrateData
 
 void
-IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db)
+IBHydrodynamicForceEvaluator::putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db)
 {
     for (const auto& hydro_obj : d_hydro_objs)
     {
@@ -838,8 +838,8 @@ IBHydrodynamicForceEvaluator::putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::
 } // putToDatabase
 
 void
-IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(Pointer<VisItDataWriterNd> visit_data_writer,
-                                                               Pointer<PatchHierarchyNd> patch_hierarchy,
+IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(SAMRAIPointer<VisItDataWriterNd> visit_data_writer,
+                                                               SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                                                int strct_id)
 
 {
@@ -855,15 +855,15 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(Pointer<VisItData
     std::stringstream strct_id_stream;
     strct_id_stream << strct_id;
     std::string struct_no = strct_id_stream.str();
-    Pointer<CellVariableNd<double> > inside_strct_var = new CellVariableNd<double>("box" + struct_no, 1);
-    Pointer<VariableContext> ctx = var_db->getContext("box" + struct_no);
+    SAMRAIPointer<CellVariableNd<double> > inside_strct_var = new CellVariableNd<double>("box" + struct_no, 1);
+    SAMRAIPointer<VariableContext> ctx = var_db->getContext("box" + struct_no);
     fobj.inside_strct_idx = var_db->registerVariableAndContext(inside_strct_var, ctx, (IntVectorNd)0);
 
     int coarsest_ln = 0;
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(fobj.inside_strct_idx)) level->allocatePatchData(fobj.inside_strct_idx);
     }
 
@@ -872,13 +872,13 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(Pointer<VisItData
 
     // Set the plot data for the initial box
     HierarchyDataOpsManagerNd* hier_data_ops_manager = HierarchyDataOpsManagerNd::getManager();
-    Pointer<HierarchyDataOpsRealNd<double> > hier_data_ops =
+    SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_data_ops =
         hier_data_ops_manager->getOperationsDouble(inside_strct_var, patch_hierarchy, true);
     hier_data_ops->setToScalar(fobj.inside_strct_idx, 0.0, /*interior_only*/ true);
 
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         BoxNd integration_box(
             IndexUtilities::getCellIndex(fobj.box_X_lower_current.data(), level->getGridGeometry(), level->getRatio()),
             IndexUtilities::getCellIndex(fobj.box_X_upper_current.data(), level->getGridGeometry(), level->getRatio()));
@@ -888,7 +888,7 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(Pointer<VisItData
 
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
             const bool boxes_intersect = patch_box.intersects(integration_box);
             if (!boxes_intersect) continue;
@@ -897,7 +897,7 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(Pointer<VisItData
             BoxNd trim_box = patch_box * integration_box;
 
             // Set plot variable to strct_id + 1
-            Pointer<CellDataNd<double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
+            SAMRAIPointer<CellDataNd<double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
             inside_strct_data->fillAll(static_cast<double>(strct_id + 1), trim_box);
         }
     }
@@ -907,7 +907,8 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(Pointer<VisItData
 } // registerStructurePlotData
 
 void
-IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(Pointer<PatchHierarchyNd> patch_hierarchy, int strct_id)
+IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
+                                                             int strct_id)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_hydro_objs.find(strct_id) != d_hydro_objs.end());
@@ -921,25 +922,25 @@ IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(Pointer<PatchHierar
     std::stringstream strct_id_stream;
     strct_id_stream << strct_id;
     std::string struct_no = strct_id_stream.str();
-    Pointer<CellVariableNd<double> > inside_strct_var = var_db->getVariable("box" + struct_no);
+    SAMRAIPointer<CellVariableNd<double> > inside_strct_var = var_db->getVariable("box" + struct_no);
 
     int coarsest_ln = 0;
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(fobj.inside_strct_idx)) level->allocatePatchData(fobj.inside_strct_idx);
     }
 
     // Set the plot data for the new box to 0
     HierarchyDataOpsManagerNd* hier_data_ops_manager = HierarchyDataOpsManagerNd::getManager();
-    Pointer<HierarchyDataOpsRealNd<double> > hier_data_ops =
+    SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_data_ops =
         hier_data_ops_manager->getOperationsDouble(inside_strct_var, patch_hierarchy, true);
     hier_data_ops->setToScalar(fobj.inside_strct_idx, 0.0, /*interior_only*/ true);
 
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         BoxNd integration_box(
             IndexUtilities::getCellIndex(fobj.box_X_lower_new.data(), level->getGridGeometry(), level->getRatio()),
             IndexUtilities::getCellIndex(fobj.box_X_upper_new.data(), level->getGridGeometry(), level->getRatio()));
@@ -949,7 +950,7 @@ IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(Pointer<PatchHierar
 
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
             const bool boxes_intersect = patch_box.intersects(integration_box);
             if (!boxes_intersect) continue;
@@ -958,7 +959,7 @@ IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(Pointer<PatchHierar
             BoxNd trim_box = patch_box * integration_box;
 
             // Set plot variable to strct_id + 1
-            Pointer<CellDataNd<double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
+            SAMRAIPointer<CellDataNd<double> > inside_strct_data = patch->getPatchData(fobj.inside_strct_idx);
             inside_strct_data->fillAll(static_cast<double>(strct_id + 1), trim_box);
         }
     }
@@ -972,14 +973,14 @@ IBAMR::IBHydrodynamicForceEvaluator::updateStructurePlotData(Pointer<PatchHierar
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchyNd> patch_hierarchy)
+IBHydrodynamicForceEvaluator::resetFaceAreaWeight(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_face_wgt_sc_idx)) level->allocatePatchData(d_face_wgt_sc_idx);
     }
 
@@ -994,11 +995,11 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchyNd> patc
     ArrayDataBasicOpsNd<double> array_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         BoxArrayNd refined_region_boxes;
         if (ln < finest_ln)
         {
-            Pointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            SAMRAIPointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
         }
@@ -1008,9 +1009,9 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchyNd> patc
 
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+            SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
             const double* const dx = pgeom->getDx();
             const double cell_vol = dx[0] * dx[1]
@@ -1018,7 +1019,7 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchyNd> patc
                                     * dx[2]
 #endif
                 ;
-            Pointer<SideDataNd<double> > face_wgt_sc_data = patch->getPatchData(d_face_wgt_sc_idx);
+            SAMRAIPointer<SideDataNd<double> > face_wgt_sc_data = patch->getPatchData(d_face_wgt_sc_idx);
             for (int axis = 0; axis < NDIM; ++axis)
             {
                 ArrayDataNd<double>& axis_data = face_wgt_sc_data->getArrayData(axis);
@@ -1063,13 +1064,13 @@ IBHydrodynamicForceEvaluator::resetFaceAreaWeight(Pointer<PatchHierarchyNd> patc
 } // resetFaceAreaWeight
 
 void
-IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchyNd> patch_hierarchy)
+IBHydrodynamicForceEvaluator::resetFaceVolWeight(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_vol_wgt_sc_idx))
         {
             level->allocatePatchData(d_vol_wgt_sc_idx);
@@ -1089,11 +1090,11 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchyNd> patch
     ArrayDataBasicOpsNd<double> array_ops;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         BoxArrayNd refined_region_boxes;
         if (ln < finest_ln)
         {
-            Pointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            SAMRAIPointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
         }
@@ -1101,16 +1102,16 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchyNd> patch
         const CoarseFineBoundary<NDIM> cf_bdry(*patch_hierarchy, ln, max_gcw);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+            SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             const double cell_vol = dx[0] * dx[1]
 #if (NDIM > 2)
                                     * dx[2]
 #endif
                 ;
-            Pointer<SideDataNd<double> > wgt_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
+            SAMRAIPointer<SideDataNd<double> > wgt_sc_data = patch->getPatchData(d_vol_wgt_sc_idx);
             wgt_sc_data->fillAll(cell_vol);
             // Rescale values along the edges of the patches.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -1184,7 +1185,7 @@ IBHydrodynamicForceEvaluator::resetFaceVolWeight(Pointer<PatchHierarchyNd> patch
 void
 IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
                                             const int p_src_idx,
-                                            Pointer<PatchHierarchyNd> patch_hierarchy,
+                                            SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                             const std::vector<RobinBcCoefStrategyNd*>& u_src_bc_coef,
                                             RobinBcCoefStrategyNd* p_src_bc_coef,
                                             const double fill_time)
@@ -1197,7 +1198,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_u_idx) && fill_velocity) level->allocatePatchData(d_u_idx);
         if (!level->checkAllocated(d_p_idx) && fill_pressure) level->allocatePatchData(d_p_idx);
     }
@@ -1206,7 +1207,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
     {
         // Fill velocity data from integrator index.
         HierarchyDataOpsManagerNd* hier_data_ops_manager = HierarchyDataOpsManagerNd::getManager();
-        Pointer<HierarchyDataOpsRealNd<double> > hier_sc_data_ops =
+        SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_sc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_u_var, patch_hierarchy, true);
         hier_sc_data_ops->copyData(d_u_idx, u_src_idx, true);
 
@@ -1220,9 +1221,9 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 u_src_bc_coef,
-                                                                Pointer<VariableFillPatternNd>(nullptr));
+                                                                SAMRAIPointer<VariableFillPatternNd>(nullptr));
 
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
         hier_bdry_fill->setHomogeneousBc(false);
         hier_bdry_fill->fillData(fill_time);
@@ -1233,7 +1234,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
         // Fill pressure data from integrator index
         HierarchyDataOpsManagerNd* hier_data_ops_manager = HierarchyDataOpsManagerNd::getManager();
 
-        Pointer<HierarchyDataOpsRealNd<double> > hier_cc_data_ops =
+        SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_p_var, patch_hierarchy, true);
         hier_cc_data_ops->copyData(d_p_idx, p_src_idx, true);
 
@@ -1253,8 +1254,8 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 p_ins_bc_coef,
-                                                                Pointer<VariableFillPatternNd>(nullptr));
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+                                                                SAMRAIPointer<VariableFillPatternNd>(nullptr));
+        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
         hier_bdry_fill->setHomogeneousBc(false);
         hier_bdry_fill->fillData(fill_time);
@@ -1265,12 +1266,12 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
 
 void
 IBHydrodynamicForceEvaluator::getPhysicalCoordinateFromSideIndex(IBTK::Vector3d& side_coord,
-                                                                 Pointer<PatchLevelNd> /*patch_level*/,
-                                                                 Pointer<PatchNd> patch,
+                                                                 SAMRAIPointer<PatchLevelNd> /*patch_level*/,
+                                                                 SAMRAIPointer<PatchNd> patch,
                                                                  const SideIndexNd side_idx,
                                                                  const int axis)
 {
-    Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
     const double* patch_X_lower = patch_geom->getXLower();
     const BoxNd& patch_box = patch->getBox();
     const hier::IndexNd& patch_lower_idx = patch_box.lower();

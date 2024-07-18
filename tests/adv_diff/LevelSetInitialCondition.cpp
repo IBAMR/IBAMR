@@ -19,7 +19,7 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LevelSetInitialCondition::LevelSetInitialCondition(const std::string& object_name,
-                                                   const Pointer<CartesianGridGeometryNd> grid_geom,
+                                                   const SAMRAIPointer<CartesianGridGeometryNd> grid_geom,
                                                    const double radius,
                                                    const IBTK::VectorNd& origin,
                                                    const bool fluid_is_interior_to_cylinder)
@@ -41,19 +41,19 @@ LevelSetInitialCondition::isTimeDependent() const
 
 void
 LevelSetInitialCondition::setDataOnPatch(const int data_idx,
-                                         Pointer<VariableNd> /*var*/,
-                                         Pointer<PatchNd> patch,
+                                         SAMRAIPointer<VariableNd> /*var*/,
+                                         SAMRAIPointer<PatchNd> patch,
                                          const double /*data_time*/,
                                          const bool initial_time,
-                                         Pointer<PatchLevelNd> patch_level)
+                                         SAMRAIPointer<PatchLevelNd> patch_level)
 {
     // Set the level set function throughout the domain
     if (initial_time)
     {
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
 
-        Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double* const grid_x_lower = d_grid_geom->getXLower();
         IntVectorNd ratio = patch_level->getRatio();

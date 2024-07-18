@@ -94,7 +94,7 @@ public:
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    virtual void setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
 protected:
     // Problem specification.
@@ -105,7 +105,7 @@ protected:
     SAMRAI::solv::RobinBcCoefStrategyNd* d_P_bc_coef;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Nullspace info
     bool d_has_velocity_nullspace = false, d_has_pressure_nullspace = false;

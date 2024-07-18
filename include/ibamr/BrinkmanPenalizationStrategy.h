@@ -97,7 +97,7 @@ public:
      *
      * \note An empty default implementation is provided.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
     /*
      * \brief Get the name of the object.

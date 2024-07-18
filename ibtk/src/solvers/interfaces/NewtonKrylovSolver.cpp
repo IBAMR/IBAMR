@@ -45,7 +45,7 @@ NewtonKrylovSolver::NewtonKrylovSolver()
 } // NewtonKrylovSolver()
 
 void
-NewtonKrylovSolver::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+NewtonKrylovSolver::setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops)
 {
     GeneralSolver::setHierarchyMathOps(hier_math_ops);
     if (d_F) d_F->setHierarchyMathOps(d_hier_math_ops);
@@ -84,9 +84,9 @@ NewtonKrylovSolver::setTimeInterval(const double current_time, const double new_
 } // setTimeInterval
 
 void
-NewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
+NewtonKrylovSolver::setOperator(SAMRAIPointer<GeneralOperator> F)
 {
-    Pointer<GeneralOperator> F_old = d_F;
+    SAMRAIPointer<GeneralOperator> F_old = d_F;
     d_F = F;
     d_F->setHomogeneousBc(d_homogeneous_bc);
     d_F->setSolutionTime(d_solution_time);
@@ -95,16 +95,16 @@ NewtonKrylovSolver::setOperator(Pointer<GeneralOperator> F)
     return;
 } // setOperator
 
-Pointer<GeneralOperator>
+SAMRAIPointer<GeneralOperator>
 NewtonKrylovSolver::getOperator() const
 {
     return d_F;
 } // getOperator
 
 void
-NewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
+NewtonKrylovSolver::setJacobian(SAMRAIPointer<JacobianOperator> J)
 {
-    Pointer<JacobianOperator> J_old = d_J;
+    SAMRAIPointer<JacobianOperator> J_old = d_J;
     d_J = J;
     d_J->setHomogeneousBc(true);
     d_J->setSolutionTime(d_solution_time);
@@ -113,13 +113,13 @@ NewtonKrylovSolver::setJacobian(Pointer<JacobianOperator> J)
     return;
 } // setJacobian
 
-Pointer<JacobianOperator>
+SAMRAIPointer<JacobianOperator>
 NewtonKrylovSolver::getJacobian() const
 {
     return d_J;
 } // getJacobian
 
-Pointer<KrylovLinearSolver>
+SAMRAIPointer<KrylovLinearSolver>
 NewtonKrylovSolver::getLinearSolver() const
 {
     return d_krylov_solver;

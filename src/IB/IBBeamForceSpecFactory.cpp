@@ -60,12 +60,12 @@ IBBeamForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
+SAMRAIPointer<Streamable>
 IBBeamForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd& /*offset*/)
 {
     int num_beams;
     stream.unpack(&num_beams, 1);
-    Pointer<IBBeamForceSpec> ret_val = new IBBeamForceSpec(num_beams);
+    SAMRAIPointer<IBBeamForceSpec> ret_val = new IBBeamForceSpec(num_beams);
     stream.unpack(&ret_val->d_master_idx, 1);
     std::vector<int> tmp_neighbor_idxs(2 * num_beams);
     stream.unpack(tmp_neighbor_idxs.data(), 2 * num_beams);

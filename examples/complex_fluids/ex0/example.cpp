@@ -33,8 +33,8 @@
 #include <ibamr/app_namespaces.h>
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchyNd> patch_hierarchy,
-                 Pointer<INSHierarchyIntegrator> ins_integrator,
+void output_data(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
+                 SAMRAIPointer<INSHierarchyIntegrator> ins_integrator,
                  const int iteration_num,
                  const double loop_time,
                  const string& data_dump_dirname);
@@ -61,8 +61,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -83,7 +83,7 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSHierarchyIntegrator> time_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> time_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "STAGGERED");
         if (solver_type == "STAGGERED")
@@ -105,21 +105,21 @@ main(int argc, char* argv[])
         }
 
         // Create the advection diffusion integrator for the extra stress.
-        Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator;
+        SAMRAIPointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator;
         adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -127,10 +127,10 @@ main(int argc, char* argv[])
                                     load_balancer);
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
         // Create initial condition specification objects.
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         time_integrator->registerVelocityInitialConditions(u_init);
-        Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         time_integrator->registerPressureInitialConditions(p_init);
 
@@ -163,7 +163,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -171,7 +171,7 @@ main(int argc, char* argv[])
 
         // Generate the extra stress component and set up necessary components. The constructor registers the extra
         // stress with the advection diffusion integrator.
-        Pointer<CFINSForcing> polymericStressForcing;
+        SAMRAIPointer<CFINSForcing> polymericStressForcing;
         bool using_exact_u = input_db->getBool("USING_EXACT_U");
         if (input_db->keyExists("ComplexFluid"))
         {
@@ -201,7 +201,7 @@ main(int argc, char* argv[])
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
         // Create a CartGridFunction that can evaluate the exact solution for the extra stress.
-        Pointer<muParserCartGridFunction> s_init = new muParserCartGridFunction(
+        SAMRAIPointer<muParserCartGridFunction> s_init = new muParserCartGridFunction(
             "S_exact",
             app_initializer->getComponentDatabase("ComplexFluid")->getDatabase("InitialConditions"),
             grid_geometry);
@@ -274,11 +274,11 @@ main(int argc, char* argv[])
         }
 
         // Compute errors at the final time.
-        Pointer<CellVariableNd<double> > s_var = polymericStressForcing->getVariable();
-        Pointer<CellVariableNd<double> > sxx_var = new CellVariableNd<double>("Sxx");
-        Pointer<CellVariableNd<double> > syy_var = new CellVariableNd<double>("Syy");
-        Pointer<CellVariableNd<double> > sxy_var = new CellVariableNd<double>("Sxy");
-        const Pointer<VariableContext> s_ctx = adv_diff_integrator->getCurrentContext();
+        SAMRAIPointer<CellVariableNd<double> > s_var = polymericStressForcing->getVariable();
+        SAMRAIPointer<CellVariableNd<double> > sxx_var = new CellVariableNd<double>("Sxx");
+        SAMRAIPointer<CellVariableNd<double> > syy_var = new CellVariableNd<double>("Syy");
+        SAMRAIPointer<CellVariableNd<double> > sxy_var = new CellVariableNd<double>("Sxy");
+        const SAMRAIPointer<VariableContext> s_ctx = adv_diff_integrator->getCurrentContext();
 
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         const int s_idx = var_db->mapVariableAndContextToIndex(s_var, s_ctx);
@@ -287,8 +287,8 @@ main(int argc, char* argv[])
         const int syy_idx = var_db->registerVariableAndContext(syy_var, s_ctx);
         const int sxy_idx = var_db->registerVariableAndContext(sxy_var, s_ctx);
 
-        const Pointer<VariableNd> u_var = time_integrator->getVelocityVariable();
-        const Pointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
+        const SAMRAIPointer<VariableNd> u_var = time_integrator->getVelocityVariable();
+        const SAMRAIPointer<VariableContext> u_ctx = time_integrator->getCurrentContext();
 
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
         const int u_cloned_idx = var_db->registerClonedPatchDataIndex(u_var, u_idx);
@@ -320,14 +320,14 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<CellDataNd<double> > s_data = patch->getPatchData(s_idx);
-                Pointer<CellDataNd<double> > sxx_data = patch->getPatchData(sxx_idx);
-                Pointer<CellDataNd<double> > syy_data = patch->getPatchData(syy_idx);
-                Pointer<CellDataNd<double> > sxy_data = patch->getPatchData(sxy_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<CellDataNd<double> > s_data = patch->getPatchData(s_idx);
+                SAMRAIPointer<CellDataNd<double> > sxx_data = patch->getPatchData(sxx_idx);
+                SAMRAIPointer<CellDataNd<double> > syy_data = patch->getPatchData(syy_idx);
+                SAMRAIPointer<CellDataNd<double> > sxy_data = patch->getPatchData(sxy_idx);
 
                 sxx_data->copyDepth(0, *s_data, 0);
                 syy_data->copyDepth(0, *s_data, 1);
@@ -365,7 +365,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             if (!using_exact_u) level->deallocatePatchData(u_cloned_idx);
             level->deallocatePatchData(s_cloned_idx);
             level->deallocatePatchData(sxx_idx);
@@ -377,8 +377,8 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchyNd> patch_hierarchy,
-            Pointer<INSHierarchyIntegrator> ins_integrator,
+output_data(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
+            SAMRAIPointer<INSHierarchyIntegrator> ins_integrator,
             const int iteration_num,
             const double loop_time,
             const string& data_dump_dirname)
@@ -389,7 +389,7 @@ output_data(Pointer<PatchHierarchyNd> patch_hierarchy,
     char temp_buf[128];
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
-    Pointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
+    SAMRAIPointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
     hier_db->create(file_name);
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     ComponentSelector hier_data;

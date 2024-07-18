@@ -58,11 +58,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<VariableNd> var,
-                        Pointer<PatchNd> patch,
+                        SAMRAIPointer<VariableNd> var,
+                        SAMRAIPointer<PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevelNd> patch_level = Pointer<PatchLevelNd>(NULL));
+                        SAMRAIPointer<PatchLevelNd> patch_level = SAMRAIPointer<PatchLevelNd>(NULL));
 
     //\}
 

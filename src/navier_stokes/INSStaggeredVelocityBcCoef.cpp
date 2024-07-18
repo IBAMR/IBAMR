@@ -195,10 +195,10 @@ INSStaggeredVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
-                                       Pointer<ArrayDataNd<double> >& bcoef_data,
-                                       Pointer<ArrayDataNd<double> >& gcoef_data,
-                                       const Pointer<VariableNd>& variable,
+INSStaggeredVelocityBcCoef::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                       SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                       SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                       const SAMRAIPointer<VariableNd>& variable,
                                        const PatchNd& patch,
                                        const BoundaryBoxNd& bdry_box,
                                        double fill_time) const
@@ -224,7 +224,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data
     if (d_homogeneous_bc) gcoef_data->fillAll(0.0);
 
     // Get the target velocity data.
-    Pointer<SideDataNd<double> > u_target_data;
+    SAMRAIPointer<SideDataNd<double> > u_target_data;
     if (d_u_target_data_idx >= 0)
         u_target_data = patch.getPatchData(d_u_target_data_idx);
     else if (d_target_data_idx >= 0)
@@ -253,7 +253,7 @@ INSStaggeredVelocityBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const BoxNd& ghost_box = u_target_data->getGhostBox();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double mu = d_problem_coefs->getMu();
     for (BoxNd::Iterator it(bc_coef_box); it; it++)

@@ -61,16 +61,16 @@ can_convert_to(T* t)
 
 template <typename U, typename T>
 inline bool
-can_convert_to(const SAMRAI::tbox::Pointer<T>& t)
+can_convert_to(const SAMRAIPointer<T>& t)
 {
     return dynamic_cast<U*>(t.getPointer()) != nullptr;
 }
 
 template <typename FactoryType>
 std::pair</*depth*/ int, /*ghost_width*/ int>
-get_characteristics(Pointer<PatchDescriptorNd> patch_descriptor, const int idx)
+get_characteristics(SAMRAIPointer<PatchDescriptorNd> patch_descriptor, const int idx)
 {
-    Pointer<FactoryType> pdat_fac = patch_descriptor->getPatchDataFactory(idx);
+    SAMRAIPointer<FactoryType> pdat_fac = patch_descriptor->getPatchDataFactory(idx);
     const int depth = pdat_fac->getDefaultDepth();
     const int ghost_width = pdat_fac->getGhostCellWidth().max();
 #if !defined NDEBUG
@@ -84,7 +84,7 @@ inline bool
 get_data_characteristics(const int idx, int& depth, int& ghost_width)
 {
     auto var_db = VariableDatabaseNd::getDatabase();
-    Pointer<VariableNd> var;
+    SAMRAIPointer<VariableNd> var;
     var_db->mapIndexToVariable(idx, var);
     auto patch_descriptor = var_db->getPatchDescriptor();
 
@@ -157,7 +157,7 @@ SAMRAIDataCache::~SAMRAIDataCache()
 }
 
 void
-SAMRAIDataCache::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
+SAMRAIDataCache::setPatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
     if (hierarchy != d_hierarchy && d_hierarchy && (d_coarsest_ln != IBTK::invalid_level_number) &&
         (d_finest_ln != IBTK::invalid_level_number))
@@ -167,7 +167,7 @@ SAMRAIDataCache::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
         {
             for (auto ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
             {
-                Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(cloned_idx)) level->deallocatePatchData(cloned_idx);
             }
         }
@@ -192,12 +192,12 @@ SAMRAIDataCache::resetLevels(const int coarsest_ln, const int finest_ln)
         {
             for (auto ln = d_coarsest_ln; ln < coarsest_ln; ++ln)
             {
-                Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(cloned_idx)) level->deallocatePatchData(cloned_idx);
             }
             for (auto ln = finest_ln + 1; ln <= d_finest_ln; ++ln)
             {
-                Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
                 if (level->checkAllocated(cloned_idx)) level->deallocatePatchData(cloned_idx);
             }
         }
@@ -234,7 +234,7 @@ SAMRAIDataCache::lookupCachedPatchDataIndex(const int idx)
     if (it == d_available_data_idx_map.end())
     {
         auto var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableNd> var;
+        SAMRAIPointer<VariableNd> var;
         var_db->mapIndexToVariable(idx, var);
         cloned_idx = var_db->registerClonedPatchDataIndex(var, idx);
         d_all_cloned_patch_data_idxs.insert(cloned_idx);
@@ -253,7 +253,7 @@ SAMRAIDataCache::lookupCachedPatchDataIndex(const int idx)
     // Allocate data if needed.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(cloned_idx)) level->allocatePatchData(cloned_idx);
     }
     return cloned_idx;
@@ -287,7 +287,7 @@ SAMRAIDataCache::key_type
 SAMRAIDataCache::construct_data_descriptor(const int idx)
 {
     // TODO: Make this more generic and extensible.
-    Pointer<VariableNd> var;
+    SAMRAIPointer<VariableNd> var;
     auto var_db = VariableDatabaseNd::getDatabase();
     var_db->mapIndexToVariable(idx, var);
     VariableNd& var_ref = *var;

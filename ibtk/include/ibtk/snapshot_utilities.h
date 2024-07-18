@@ -45,7 +45,7 @@ namespace IBTK
 void update_snapshot(SnapshotCache& cache,
                      int u_idx,
                      double time,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> current_hierarchy,
+                     SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> current_hierarchy,
                      double tol = 1.0e-8);
 
 /*!
@@ -62,7 +62,7 @@ void update_snapshot(SnapshotCache& cache,
 void fill_snapshot_on_hierarchy(SnapshotCache& cache,
                                 int u_idx,
                                 double time,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> current_hierarchy,
+                                SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> current_hierarchy,
                                 const std::string& snapshot_refine_type,
                                 double tol = 1.0e-8);
 
@@ -84,9 +84,9 @@ void fill_snapshot_at_time(SnapshotCache& snapshot_cache,
                            int u_idx,
                            double t,
                            int scr_idx,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                           SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                            const std::string& refine_type,
-                           SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsRealNd<double> > hier_data_ops = nullptr,
+                           SAMRAIPointer<SAMRAI::math::HierarchyDataOpsRealNd<double> > hier_data_ops = nullptr,
                            double period = std::numeric_limits<double>::quiet_NaN());
 
 } // namespace IBTK

@@ -57,8 +57,8 @@ public:
      */
     ForceProjector(const std::string& object_name,
                    IBTK::LDataManager* lag_data_manager,
-                   SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
-                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                   IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                   IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                    const std::string solver_type = "STAGGERED");
 
     /*!
@@ -116,7 +116,7 @@ private:
     /*!
      * \brief Get the values from input_db.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * Name of this object.
@@ -131,7 +131,7 @@ private:
     /*!
      * Pointer to Patch Hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_patch_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_patch_hierarchy;
 
     /*!
      * Fluid solver type.
@@ -141,13 +141,13 @@ private:
     /*!
      * Pointer to Lagrangian force data.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_lag_force;
+    std::vector<IBTK::SAMRAIPointer<IBTK::LData> > d_lag_force;
 
     /*!
      *  Variables and variable context associated with calculating Eulerian force.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_body_force_var;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_body_force_context;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_body_force_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_body_force_context;
     int d_body_force_idx;
 
     /*!

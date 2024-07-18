@@ -79,14 +79,14 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PoissonFACPreconditionerStrategy::PoissonFACPreconditionerStrategy(std::string object_name,
-                                                                   Pointer<VariableNd> scratch_var,
+                                                                   SAMRAIPointer<VariableNd> scratch_var,
                                                                    const int ghost_cell_width,
-                                                                   const Pointer<Database> input_db,
+                                                                   const SAMRAIPointer<Database> input_db,
                                                                    const std::string& default_options_prefix)
     : FACPreconditionerStrategy(std::move(object_name)),
       d_poisson_spec(d_object_name + "::poisson_spec"),
       d_default_bc_coef(
-          new LocationIndexRobinBcCoefsNd(d_object_name + "::default_bc_coef", Pointer<Database>(nullptr))),
+          new LocationIndexRobinBcCoefsNd(d_object_name + "::default_bc_coef", SAMRAIPointer<Database>(nullptr))),
       d_bc_coefs(1, d_default_bc_coef.get()),
       d_gcw(ghost_cell_width),
       d_coarse_solver_default_options_prefix(default_options_prefix + "_coarse")
@@ -351,7 +351,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     d_solution = solution.cloneVector(solution.getName());
     d_rhs = rhs.cloneVector(rhs.getName());
 
-    Pointer<VariableNd> sol_var = d_solution->getComponentVariable(0);
+    SAMRAIPointer<VariableNd> sol_var = d_solution->getComponentVariable(0);
     const int sol_idx = d_solution->getComponentDescriptorIndex(0);
     const int rhs_idx = d_rhs->getComponentDescriptorIndex(0);
 
@@ -362,7 +362,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
 
 #if !defined(NDEBUG)
     // To prevent very obtuse errors later on, we check that the rhs index has the correct ghost cell width.
-    Pointer<PatchDescriptorNd> pd = VariableDatabaseNd::getDatabase()->getPatchDescriptor();
+    SAMRAIPointer<PatchDescriptorNd> pd = VariableDatabaseNd::getDatabase()->getPatchDescriptor();
     const IntVectorNd& gcw = pd->getPatchDataFactory(rhs_idx)->getGhostCellWidth();
     if (gcw != d_gcw)
     {
@@ -398,12 +398,12 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_scratch_idx)) level->allocatePatchData(d_scratch_idx);
     }
 
     // Get the transfer operators.
-    Pointer<CartesianGridGeometryNd> geometry = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> geometry = d_hierarchy->getGridGeometry();
     d_prolongation_refine_operator = geometry->lookupRefineOperator(sol_var, d_prolongation_method);
     d_restriction_coarsen_operator = geometry->lookupCoarsenOperator(sol_var, d_restriction_method);
     d_cf_bdry_op->setConsistentInterpolationScheme(false);
@@ -433,9 +433,9 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
         d_scratch_idx, sol_idx, d_scratch_idx, d_prolongation_refine_operator, d_op_stencil_fill_pattern);
     d_restriction_coarsen_algorithm->registerCoarsen(d_scratch_idx, rhs_idx, d_restriction_coarsen_operator);
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, Pointer<RefineOperatorNd>(), d_op_stencil_fill_pattern);
+        sol_idx, sol_idx, sol_idx, SAMRAIPointer<RefineOperatorNd>(), d_op_stencil_fill_pattern);
     d_synch_refine_algorithm->registerRefine(
-        sol_idx, sol_idx, sol_idx, Pointer<RefineOperatorNd>(), d_synch_fill_pattern);
+        sol_idx, sol_idx, sol_idx, SAMRAIPointer<RefineOperatorNd>(), d_synch_fill_pattern);
 
     // TODO: Here we take a pessimistic approach and are recreating refine schedule for
     // (coarsest_reset_ln - 1) level as well.
@@ -443,7 +443,7 @@ PoissonFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal
     {
         d_prolongation_refine_schedules[dst_ln] =
             d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
-                                                            Pointer<PatchLevelNd>(),
+                                                            SAMRAIPointer<PatchLevelNd>(),
                                                             dst_ln - 1,
                                                             d_hierarchy,
                                                             d_prolongation_refine_patch_strategy.getPointer());
@@ -492,7 +492,7 @@ PoissonFACPreconditionerStrategy::deallocateOperatorState()
          ln <= std::min({ d_finest_ln, finest_reset_ln, d_hierarchy->getFinestLevelNumber() });
          ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_scratch_idx)) level->deallocatePatchData(d_scratch_idx);
     }
 
@@ -599,7 +599,7 @@ PoissonFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const int dst_idx
         }
     }
     RefineAlgorithmNd refiner;
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperatorNd>(), d_op_stencil_fill_pattern);
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, SAMRAIPointer<RefineOperatorNd>(), d_op_stencil_fill_pattern);
     refiner.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
@@ -615,7 +615,7 @@ void
 PoissonFACPreconditionerStrategy::xeqScheduleDataSynch(const int dst_idx, const int dst_ln)
 {
     RefineAlgorithmNd refiner;
-    refiner.registerRefine(dst_idx, dst_idx, dst_idx, Pointer<RefineOperatorNd>(), d_synch_fill_pattern);
+    refiner.registerRefine(dst_idx, dst_idx, dst_idx, SAMRAIPointer<RefineOperatorNd>(), d_synch_fill_pattern);
     refiner.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_solution_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

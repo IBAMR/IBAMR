@@ -86,20 +86,20 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -128,11 +128,11 @@ main(int argc, char* argv[])
         // Create cell-centered data and extrapolate that data at physical
         // boundaries to obtain ghost cell values.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableContext> context = var_db->getContext("CONTEXT");
-        Pointer<CellVariableNd<double> > c_var = new CellVariableNd<double>("c_u");
-        Pointer<SideVariableNd<double> > s_var = new SideVariableNd<double>("s_u");
-        Pointer<FaceVariableNd<double> > f_var = new FaceVariableNd<double>("f_u");
-        Pointer<NodeVariableNd<double> > n_var = new NodeVariableNd<double>("n_u");
+        SAMRAIPointer<VariableContext> context = var_db->getContext("CONTEXT");
+        SAMRAIPointer<CellVariableNd<double> > c_var = new CellVariableNd<double>("c_u");
+        SAMRAIPointer<SideVariableNd<double> > s_var = new SideVariableNd<double>("s_u");
+        SAMRAIPointer<FaceVariableNd<double> > f_var = new FaceVariableNd<double>("f_u");
+        SAMRAIPointer<NodeVariableNd<double> > n_var = new NodeVariableNd<double>("n_u");
         const int gcw = 4;
         const int c_idx = var_db->registerVariableAndContext(c_var, context, gcw);
         const int s_idx = var_db->registerVariableAndContext(s_var, context, gcw);
@@ -149,20 +149,20 @@ main(int argc, char* argv[])
         fcnMap["QUADRATIC"] = &quadratic_f;
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(typeMap[var_centering]);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 const BoxNd& patch_box = patch->getBox();
                 const hier::IndexNd& patch_lower = patch_box.lower();
-                Pointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
+                SAMRAIPointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
                 const double* const x_low = p_geom->getXLower();
                 const double* const dx = p_geom->getDx();
-                Pointer<CellDataNd<double> > c_data = patch->getPatchData(typeMap[var_centering]);
-                Pointer<SideDataNd<double> > s_data = patch->getPatchData(typeMap[var_centering]);
-                Pointer<FaceDataNd<double> > f_data = patch->getPatchData(typeMap[var_centering]);
-                Pointer<NodeDataNd<double> > n_data = patch->getPatchData(typeMap[var_centering]);
+                SAMRAIPointer<CellDataNd<double> > c_data = patch->getPatchData(typeMap[var_centering]);
+                SAMRAIPointer<SideDataNd<double> > s_data = patch->getPatchData(typeMap[var_centering]);
+                SAMRAIPointer<FaceDataNd<double> > f_data = patch->getPatchData(typeMap[var_centering]);
+                SAMRAIPointer<NodeDataNd<double> > n_data = patch->getPatchData(typeMap[var_centering]);
                 std::vector<double> x(NDIM);
                 if (var_centering == "CELL")
                 {

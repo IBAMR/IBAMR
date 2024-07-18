@@ -53,21 +53,21 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_poisson.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_poisson.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
 
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -98,20 +98,20 @@ main(int argc, char* argv[])
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
         // State variables: Velocity and pressure. Need to get both cell sides and centers
         // since we are using the MAC scheme.
-        Pointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
-        Pointer<CellVariableNd<double> > p_cc_var = new CellVariableNd<double>("p_cc");
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
+        SAMRAIPointer<CellVariableNd<double> > p_cc_var = new CellVariableNd<double>("p_cc");
 
         // Results of operator "forces" and "divergence"
-        Pointer<SideVariableNd<double> > f_sc_var = new SideVariableNd<double>("f_sc");
-        Pointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc");
+        SAMRAIPointer<SideVariableNd<double> > f_sc_var = new SideVariableNd<double>("f_sc");
+        SAMRAIPointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc");
 
         // Error terms.
-        Pointer<SideVariableNd<double> > e_sc_var = new SideVariableNd<double>("e_sc");
-        Pointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc");
+        SAMRAIPointer<SideVariableNd<double> > e_sc_var = new SideVariableNd<double>("e_sc");
+        SAMRAIPointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc");
 
         // Register patch data indices...
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVectorNd(1));
@@ -135,7 +135,7 @@ main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_sc_idx, 0.0);
             level->allocatePatchData(f_sc_idx, 0.0);
             level->allocatePatchData(e_sc_idx, 0.0);
@@ -197,7 +197,8 @@ main(int argc, char* argv[])
         }
         else
         {
-            Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
+            SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper =
+                new StaggeredStokesPhysicalBoundaryHelper();
             bc_helper->cacheBcCoefData(u_bc_coefs, 0.0, patch_hierarchy);
             bc_helper->copyDataAtDirichletBoundaries(e_sc_idx, u_sc_idx);
             // Setup the stokes operator
@@ -212,8 +213,8 @@ main(int argc, char* argv[])
         }
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorRealNd<double> >(&f_vec, false),
-                       Pointer<SAMRAIVectorRealNd<double> >(&e_vec, false));
+        e_vec.subtract(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&f_vec, false),
+                       SAMRAIPointer<SAMRAIVectorRealNd<double> >(&e_vec, false));
         // print out the errors in each norm
         pout << "|e|_oo = " << e_vec.maxNorm() << "\n";
         pout << "|e|_2  = " << e_vec.L2Norm() << "\n";
@@ -223,7 +224,7 @@ main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(u_sc_idx);
             level->deallocatePatchData(f_sc_idx);
             level->deallocatePatchData(e_sc_idx);

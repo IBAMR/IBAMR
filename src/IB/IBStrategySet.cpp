@@ -106,7 +106,7 @@ IBStrategySet::getMinimumGhostCellWidth() const
 } // getMinimumGhostCellWidth
 
 void
-IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithmNd> gridding_alg) const
+IBStrategySet::setupTagBuffer(Array<int>& tag_buffer, SAMRAIPointer<GriddingAlgorithmNd> gridding_alg) const
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -159,8 +159,8 @@ IBStrategySet::updateFixedLEOperators()
 
 void
 IBStrategySet::interpolateVelocity(int u_data_idx,
-                                   const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
-                                   const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
+                                   const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                   const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                    double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -213,7 +213,7 @@ IBStrategySet::computeLagrangianForce(double data_time)
 void
 IBStrategySet::spreadForce(int f_data_idx,
                            RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                           const std::vector<Pointer<RefineScheduleNd> >& f_prolongation_scheds,
+                           const std::vector<SAMRAIPointer<RefineScheduleNd> >& f_prolongation_scheds,
                            double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -247,7 +247,7 @@ IBStrategySet::computeLagrangianFluidSource(double data_time)
 void
 IBStrategySet::spreadFluidSource(int q_data_idx,
                                  RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                                 const std::vector<Pointer<RefineScheduleNd> >& q_prolongation_scheds,
+                                 const std::vector<SAMRAIPointer<RefineScheduleNd> >& q_prolongation_scheds,
                                  double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -259,8 +259,8 @@ IBStrategySet::spreadFluidSource(int q_data_idx,
 
 void
 IBStrategySet::interpolatePressure(int p_data_idx,
-                                   const std::vector<Pointer<CoarsenScheduleNd> >& p_synch_scheds,
-                                   const std::vector<Pointer<RefineScheduleNd> >& p_ghost_fill_scheds,
+                                   const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& p_synch_scheds,
+                                   const std::vector<SAMRAIPointer<RefineScheduleNd> >& p_ghost_fill_scheds,
                                    double data_time)
 {
     for (const auto& strategy : d_strategy_set)
@@ -301,11 +301,11 @@ IBStrategySet::postprocessData()
 } // postprocessData
 
 void
-IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
-                                        Pointer<GriddingAlgorithmNd> gridding_alg,
+IBStrategySet::initializePatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                        SAMRAIPointer<GriddingAlgorithmNd> gridding_alg,
                                         int u_data_idx,
-                                        const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
-                                        const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
+                                        const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                        const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                         int integrator_step,
                                         double init_data_time,
                                         bool initial_time)
@@ -325,7 +325,7 @@ IBStrategySet::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
 } // initializePatchHierarchy
 
 void
-IBStrategySet::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer, int workload_data_idx)
+IBStrategySet::registerLoadBalancer(SAMRAIPointer<LoadBalancerNd> load_balancer, int workload_data_idx)
 {
     IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBStrategySet", "registerLoadBalancer");
     for (const auto& strategy : d_strategy_set)
@@ -336,7 +336,7 @@ IBStrategySet::registerLoadBalancer(Pointer<LoadBalancerNd> load_balancer, int w
 } // registerLoadBalancer
 
 void
-IBStrategySet::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
+IBStrategySet::addWorkloadEstimate(SAMRAIPointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -346,7 +346,8 @@ IBStrategySet::addWorkloadEstimate(Pointer<PatchHierarchyNd> hierarchy, const in
 } // addWorkloadEstimate
 
 void
-IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchyNd> hierarchy, Pointer<GriddingAlgorithmNd> gridding_alg)
+IBStrategySet::beginDataRedistribution(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                       SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -356,7 +357,8 @@ IBStrategySet::beginDataRedistribution(Pointer<PatchHierarchyNd> hierarchy, Poin
 } // beginDataRedistribution
 
 void
-IBStrategySet::endDataRedistribution(Pointer<PatchHierarchyNd> hierarchy, Pointer<GriddingAlgorithmNd> gridding_alg)
+IBStrategySet::endDataRedistribution(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                     SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -366,12 +368,12 @@ IBStrategySet::endDataRedistribution(Pointer<PatchHierarchyNd> hierarchy, Pointe
 } // endDataRedistribution
 
 void
-IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
+IBStrategySet::initializeLevelData(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                    int level_number,
                                    double init_data_time,
                                    bool can_be_refined,
                                    bool initial_time,
-                                   Pointer<BasePatchLevelNd> old_level,
+                                   SAMRAIPointer<BasePatchLevelNd> old_level,
                                    bool allocate_data)
 {
     for (const auto& strategy : d_strategy_set)
@@ -383,7 +385,7 @@ IBStrategySet::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
 } // initializeLevelData
 
 void
-IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarchy,
+IBStrategySet::resetHierarchyConfiguration(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                            int coarsest_level,
                                            int finest_level)
 {
@@ -395,7 +397,7 @@ IBStrategySet::resetHierarchyConfiguration(Pointer<BasePatchHierarchyNd> hierarc
 } // resetHierarchyConfiguration
 
 void
-IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchyNd> hierarchy,
+IBStrategySet::applyGradientDetector(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                      int level_number,
                                      double error_data_time,
                                      int tag_index,
@@ -411,7 +413,7 @@ IBStrategySet::applyGradientDetector(Pointer<BasePatchHierarchyNd> hierarchy,
 } // applyGradientDetector
 
 void
-IBStrategySet::putToDatabase(Pointer<Database> db)
+IBStrategySet::putToDatabase(SAMRAIPointer<Database> db)
 {
     for (const auto& strategy : d_strategy_set)
     {

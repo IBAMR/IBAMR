@@ -409,7 +409,7 @@ free_vector_components(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
  */
 template <class T>
 const T&
-checked_dereference(const SAMRAI::tbox::Pointer<T>& p)
+checked_dereference(const SAMRAIPointer<T>& p)
 {
 #ifndef NDEBUG
     TBOX_ASSERT(p);
@@ -422,7 +422,7 @@ checked_dereference(const SAMRAI::tbox::Pointer<T>& p)
  */
 template <class T>
 T&
-checked_dereference(SAMRAI::tbox::Pointer<T>& p)
+checked_dereference(SAMRAIPointer<T>& p)
 {
 #ifndef NDEBUG
     TBOX_ASSERT(p);

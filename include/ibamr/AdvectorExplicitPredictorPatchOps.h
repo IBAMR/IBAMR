@@ -100,7 +100,7 @@ public:
      * overriding those found in the restart file).
      */
     AdvectorExplicitPredictorPatchOps(const std::string& object_name,
-                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                      IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                       bool register_for_restart = true);
 
     /*!
@@ -308,7 +308,7 @@ public:
      * This routine is a concrete implementation of the function declared in the
      * SAMRAI::tbox::Serializable abstract base class.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
 private:
     /*!
@@ -361,7 +361,7 @@ private:
      *
      * An assertion results if the database pointer is null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db, bool is_from_restart);
     void getFromRestart();
 
     /*

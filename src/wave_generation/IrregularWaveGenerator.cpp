@@ -35,7 +35,7 @@ static const unsigned SEED = 1234567;
 }
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IrregularWaveGenerator::IrregularWaveGenerator(const std::string& object_name, Pointer<Database> input_db)
+IrregularWaveGenerator::IrregularWaveGenerator(const std::string& object_name, SAMRAIPointer<Database> input_db)
     : StokesWaveGeneratorStrategy(object_name, input_db)
 {
     // Get wave parameters.
@@ -176,9 +176,9 @@ IrregularWaveGenerator::printWaveData(ofstream& ostream) const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IrregularWaveGenerator::getFromInput(Pointer<Database> input_db)
+IrregularWaveGenerator::getFromInput(SAMRAIPointer<Database> input_db)
 {
-    Pointer<Database> wave_db = input_db;
+    SAMRAIPointer<Database> wave_db = input_db;
     if (input_db->isDatabase("wave_parameters_db"))
     {
         wave_db = input_db->getDatabase("wave_parameters_db");

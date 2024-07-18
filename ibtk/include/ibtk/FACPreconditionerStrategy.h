@@ -85,7 +85,7 @@ public:
      * \brief Method to allow the FACPreconditioner object to register itself
      * with the concrete FACPreconditionerStrategy.
      */
-    virtual void setFACPreconditioner(SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
+    virtual void setFACPreconditioner(SAMRAIConstPointer<FACPreconditioner> preconditioner);
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
@@ -233,11 +233,11 @@ protected:
      * \brief Return a SAMRAIVectorReal object that corresponds to the given
      * object but restricted to a single level of the patch hierarchy.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> >
+    virtual SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> >
     getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorRealNd<double>& vec, int level_num) const;
 
     // Pointer to the FACPreconditioner that is using this operator.
-    SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
+    SAMRAIConstPointer<IBTK::FACPreconditioner> d_preconditioner;
 
     // Object name.
     const std::string d_object_name;

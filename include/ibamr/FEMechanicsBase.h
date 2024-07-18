@@ -76,7 +76,7 @@ public:
      * Constructor for a single-part model.
      */
     FEMechanicsBase(const std::string& object_name,
-                    const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                    const IBTK::SAMRAIPointer<SAMRAI::tbox::Database>& input_db,
                     libMesh::MeshBase* mesh,
                     bool register_for_restart = true,
                     const std::string& restart_read_dirname = "",
@@ -86,7 +86,7 @@ public:
      * Constructor for a multi-part model.
      */
     FEMechanicsBase(const std::string& object_name,
-                    const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                    const IBTK::SAMRAIPointer<SAMRAI::tbox::Database>& input_db,
                     const std::vector<libMesh::MeshBase*>& meshes,
                     bool register_for_restart = true,
                     const std::string& restart_read_dirname = "",
@@ -478,7 +478,7 @@ public:
     /*!
      * Write out object state to the given database.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    virtual void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * For technical reasons this class does not use SAMRAI's RestartManager, so
@@ -595,7 +595,7 @@ protected:
     /*!
      * Cached input databases.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fe_projector_db;
+    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> d_fe_projector_db;
 
     /*!
      * Indicates whether the integrator should output logging messages.
@@ -776,7 +776,7 @@ private:
      * Implementation of class constructor.
      */
     void commonConstructor(const std::string& object_name,
-                           const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                           const IBTK::SAMRAIPointer<SAMRAI::tbox::Database>& input_db,
                            const std::vector<libMesh::MeshBase*>& meshes,
                            bool register_for_restart,
                            const std::string& restart_read_dirname,
@@ -785,7 +785,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& db, bool is_from_restart);
+    void getFromInput(const IBTK::SAMRAIPointer<SAMRAI::tbox::Database>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

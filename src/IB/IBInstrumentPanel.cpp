@@ -493,7 +493,7 @@ linear_interp(const Point& X,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInstrumentPanel::IBInstrumentPanel(std::string object_name, Pointer<Database> input_db)
+IBInstrumentPanel::IBInstrumentPanel(std::string object_name, SAMRAIPointer<Database> input_db)
     : d_object_name(std::move(object_name)),
       d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d"),
       d_log_file_name(NDIM == 2 ? "inst2d.log" : "inst3d.log")
@@ -571,7 +571,7 @@ IBInstrumentPanel::isInstrumented() const
 } // isInstrumented
 
 void
-IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarchyNd> hierarchy,
+IBInstrumentPanel::initializeHierarchyIndependentData(const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                       LDataManager* const l_data_manager)
 {
     IBAMR_TIMER_START(t_initialize_hierarchy_independent_data);
@@ -587,7 +587,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
     {
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
-            const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (const auto& node_idx : local_nodes)
             {
@@ -686,7 +686,7 @@ IBInstrumentPanel::initializeHierarchyIndependentData(const Pointer<PatchHierarc
 } // initializeHierarchyIndependentData
 
 void
-IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchyNd> hierarchy,
+IBInstrumentPanel::initializeHierarchyDependentData(const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                     LDataManager* const l_data_manager,
                                                     const int timestep_num,
                                                     const double data_time)
@@ -721,14 +721,14 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local position array.
-            Pointer<LData> X_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
+            SAMRAIPointer<LData> X_data = l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             Vec X_vec = X_data->getVec();
             double* X_arr;
             int ierr = VecGetArray(X_vec, &X_arr);
             IBTK_CHKERRQ(ierr);
 
             // Store the local positions of the perimeter nodes.
-            const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (const auto& node_idx : local_nodes)
             {
@@ -793,7 +793,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
     }
 
     // Determine the finest grid spacing in the Cartesian grid hierarchy.
-    Pointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     const double* const domainXLower = grid_geom->getXLower();
     const double* const domainXUpper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
@@ -837,7 +837,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
     d_web_centroid_map.resize(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         const IntVectorNd& ratio = level->getRatio();
         const BoxNd domain_box_level = BoxNd::refine(domain_box, ratio);
         const hier::IndexNd& domain_box_level_lower = domain_box_level.lower();
@@ -848,8 +848,8 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
             dx[d] = dx_coarsest[d] / static_cast<double>(ratio(d));
         }
 
-        Pointer<PatchLevelNd> finer_level =
-            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : Pointer<BasePatchLevelNd>(nullptr));
+        SAMRAIPointer<PatchLevelNd> finer_level =
+            (ln < finest_ln ? hierarchy->getPatchLevel(ln + 1) : SAMRAIPointer<BasePatchLevelNd>(nullptr));
         const IntVectorNd& finer_ratio = (ln < finest_ln ? finer_level->getRatio() : IntVectorNd(1));
         const BoxNd finer_domain_box_level = BoxNd::refine(domain_box, finer_ratio);
         const hier::IndexNd& finer_domain_box_level_lower = finer_domain_box_level.lower();
@@ -915,7 +915,7 @@ IBInstrumentPanel::initializeHierarchyDependentData(const Pointer<PatchHierarchy
 void
 IBInstrumentPanel::readInstrumentData(const int U_data_idx,
                                       const int P_data_idx,
-                                      const Pointer<PatchHierarchyNd> hierarchy,
+                                      const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                       LDataManager* const l_data_manager,
                                       const int timestep_num,
                                       const double data_time)
@@ -954,22 +954,22 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
     // the centroid of the meter.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
             const hier::IndexNd& patch_lower = patch_box.lower();
             const hier::IndexNd& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
             const double* const x_lower = pgeom->getXLower();
             const double* const x_upper = pgeom->getXUpper();
             const double* const dx = pgeom->getDx();
 
-            Pointer<CellDataNd<double> > U_cc_data = patch->getPatchData(U_data_idx);
-            Pointer<SideDataNd<double> > U_sc_data = patch->getPatchData(U_data_idx);
-            Pointer<CellDataNd<double> > P_cc_data = patch->getPatchData(P_data_idx);
+            SAMRAIPointer<CellDataNd<double> > U_cc_data = patch->getPatchData(U_data_idx);
+            SAMRAIPointer<SideDataNd<double> > U_sc_data = patch->getPatchData(U_data_idx);
+            SAMRAIPointer<CellDataNd<double> > P_cc_data = patch->getPatchData(P_data_idx);
 
             for (BoxNd::Iterator b(patch_box); b; b++)
             {
@@ -1079,14 +1079,14 @@ IBInstrumentPanel::readInstrumentData(const int U_data_idx,
         if (l_data_manager->levelContainsLagrangianData(ln))
         {
             // Extract the local velocity array.
-            Pointer<LData> U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
+            SAMRAIPointer<LData> U_data = l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
             Vec U_vec = U_data->getVec();
             double* U_arr;
             int ierr = VecGetArray(U_vec, &U_arr);
             IBTK_CHKERRQ(ierr);
 
             // Store the local velocities of the perimeter nodes.
-            const Pointer<LMesh> mesh = l_data_manager->getLMesh(ln);
+            const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(ln);
             const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
             for (const auto& node_idx : local_nodes)
             {
@@ -1336,7 +1336,7 @@ IBInstrumentPanel::writePlotData(const int timestep_num, const double simulation
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBInstrumentPanel::getFromInput(Pointer<Database> db)
+IBInstrumentPanel::getFromInput(SAMRAIPointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);

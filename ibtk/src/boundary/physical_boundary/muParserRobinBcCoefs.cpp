@@ -65,8 +65,8 @@ static const int EXTENSIONS_FILLABLE = 128;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
-                                           Pointer<Database> input_db,
-                                           Pointer<CartesianGridGeometryNd> grid_geom)
+                                           SAMRAIPointer<Database> input_db,
+                                           SAMRAIPointer<CartesianGridGeometryNd> grid_geom)
     : d_grid_geom(grid_geom)
 {
 #if !defined(NDEBUG)
@@ -283,17 +283,17 @@ muParserRobinBcCoefs::muParserRobinBcCoefs(const std::string& object_name,
 } // muParserRobinBcCoefs
 
 void
-muParserRobinBcCoefs::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
-                                 Pointer<ArrayDataNd<double> >& bcoef_data,
-                                 Pointer<ArrayDataNd<double> >& gcoef_data,
-                                 const Pointer<VariableNd>& /*variable*/,
+muParserRobinBcCoefs::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                 SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                 SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                 const SAMRAIPointer<VariableNd>& /*variable*/,
                                  const PatchNd& patch,
                                  const BoundaryBoxNd& bdry_box,
                                  double fill_time) const
 {
     const BoxNd& patch_box = patch.getBox();
     const hier::IndexNd& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
 
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();

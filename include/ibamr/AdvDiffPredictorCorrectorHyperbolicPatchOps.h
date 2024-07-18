@@ -79,9 +79,9 @@ public:
      */
     AdvDiffPredictorCorrectorHyperbolicPatchOps(
         std::string object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom,
+        IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+        IBTK::SAMRAIPointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
+        IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom,
         bool register_for_restart = true);
 
     /*!
@@ -111,7 +111,7 @@ public:
      * level data on all patch interiors.  That is, both scratch and current
      * data correspond to current_time.
      */
-    void preprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>& level,
+    void preprocessAdvanceLevelState(const IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>& level,
                                      double current_time,
                                      double dt,
                                      bool first_step,
@@ -130,7 +130,7 @@ public:
      * correspond to current_time + dt on patch interiors.  The current data and
      * ghost values correspond to the current_time.
      */
-    void postprocessAdvanceLevelState(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>& level,
+    void postprocessAdvanceLevelState(const IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>& level,
                                       double current_time,
                                       double dt,
                                       bool first_step,

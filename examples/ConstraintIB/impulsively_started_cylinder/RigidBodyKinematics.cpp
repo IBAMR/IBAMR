@@ -39,9 +39,9 @@ static const double PII = 3.14159265358979323846264338327950288419716939937510;
 } // namespace
 
 RigidBodyKinematics::RigidBodyKinematics(const std::string& object_name,
-                                         Pointer<Database> input_db,
+                                         SAMRAIPointer<Database> input_db,
                                          LDataManager* l_data_manager,
-                                         Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
+                                         SAMRAIPointer<PatchHierarchyNd> /*patch_hierarchy*/,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_parser_time(0.0),
@@ -128,7 +128,7 @@ RigidBodyKinematics::~RigidBodyKinematics()
 } //~RigidBodyKinematics
 
 void
-RigidBodyKinematics::putToDatabase(Pointer<Database> db)
+RigidBodyKinematics::putToDatabase(SAMRAIPointer<Database> db)
 {
     db->putDouble("d_current_time", d_current_time);
     db->putDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
@@ -141,8 +141,8 @@ RigidBodyKinematics::putToDatabase(Pointer<Database> db)
 void
 RigidBodyKinematics::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

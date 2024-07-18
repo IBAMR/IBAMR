@@ -84,7 +84,7 @@ static Timer* t_deallocate_integrator;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
-STSMassFluxIntegrator::STSMassFluxIntegrator(std::string object_name, Pointer<Database> input_db)
+STSMassFluxIntegrator::STSMassFluxIntegrator(std::string object_name, SAMRAIPointer<Database> input_db)
     : d_object_name(std::move(object_name)), d_u_bc_coefs(NDIM), d_rho_bc_coefs(NDIM)
 {
     if (input_db)
@@ -236,14 +236,14 @@ STSMassFluxIntegrator::getTimeStepSize() const
 } // getTimeStepSize
 
 void
-STSMassFluxIntegrator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+STSMassFluxIntegrator::setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
 } // setHierarchyMathOps
 
-Pointer<HierarchyMathOps>
+SAMRAIPointer<HierarchyMathOps>
 STSMassFluxIntegrator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;

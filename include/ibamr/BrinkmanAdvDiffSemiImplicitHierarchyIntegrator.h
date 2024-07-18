@@ -97,7 +97,7 @@ public:
      * manager when requested.
      */
     BrinkmanAdvDiffSemiImplicitHierarchyIntegrator(const std::string& object_name,
-                                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                   IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                                    bool register_for_restart = true);
 
     /*!
@@ -114,8 +114,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void initializeHierarchyIntegrator(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -133,12 +133,12 @@ public:
      * \brief Register BrinkmanAdvDiffBcHelper object to add Brinkman penalization terms to the advection-diffusion
      * solver.
      */
-    void registerBrinkmanAdvDiffBcHelper(SAMRAI::tbox::Pointer<IBAMR::BrinkmanAdvDiffBcHelper> brinkman_penalization);
+    void registerBrinkmanAdvDiffBcHelper(IBTK::SAMRAIPointer<IBAMR::BrinkmanAdvDiffBcHelper> brinkman_penalization);
 
     /*!
      * \brief Get the BrinkmanAdvDiffBcHelper object registered with this class.
      */
-    const SAMRAI::tbox::Pointer<IBAMR::BrinkmanAdvDiffBcHelper>& getBrinkmanPenalization() const
+    const IBTK::SAMRAIPointer<IBAMR::BrinkmanAdvDiffBcHelper>& getBrinkmanPenalization() const
     {
         return d_brinkman_penalization;
     } // getBrinkmanPenalization
@@ -147,7 +147,7 @@ public:
      * \brief Indicate if are solving a time independent problem for the transport variable Q.
      * Default option is false, which means Q is assumed to vary with time.
      */
-    void setTransportQuantityTimeIndependent(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+    void setTransportQuantityTimeIndependent(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                                              bool Q_time_independent);
 
     /*!
@@ -157,7 +157,7 @@ public:
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    virtual void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+    virtual void registerTransportedQuantity(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                                              const bool output_Q = true) override;
 
 protected:
@@ -170,23 +170,23 @@ protected:
     /*!
      * Additional variables required for Brinkman penalization
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > >
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >,
+             IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > >
         d_Q_Cb_map, d_Q_Cb_rhs_map, d_Q_Fb_map;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > >
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >,
+             IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > >
         d_Q_Db_map, d_Q_Db_rhs_map;
 
     /*!
      * Flag to zero out the temporal term contribution when the Brinkman approach
      * is used.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> >, bool> d_Q_time_independent;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, bool> d_Q_time_independent;
 
     /*!
      * Brinkman penalization object registred with this integrator.
      */
-    SAMRAI::tbox::Pointer<IBAMR::BrinkmanAdvDiffBcHelper> d_brinkman_penalization;
+    IBTK::SAMRAIPointer<IBAMR::BrinkmanAdvDiffBcHelper> d_brinkman_penalization;
 
 private:
     /*!

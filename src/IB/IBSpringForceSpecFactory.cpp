@@ -60,12 +60,12 @@ IBSpringForceSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
+SAMRAIPointer<Streamable>
 IBSpringForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd& /*offset*/)
 {
     int num_springs;
     stream.unpack(&num_springs, 1);
-    Pointer<IBSpringForceSpec> ret_val = new IBSpringForceSpec(num_springs);
+    SAMRAIPointer<IBSpringForceSpec> ret_val = new IBSpringForceSpec(num_springs);
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_slave_idxs[0], num_springs);
     stream.unpack(&ret_val->d_force_fcn_idxs[0], num_springs);

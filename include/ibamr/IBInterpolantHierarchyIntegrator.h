@@ -64,9 +64,9 @@ public:
      * databases.
      */
     IBInterpolantHierarchyIntegrator(std::string object_name,
-                                     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                     SAMRAI::tbox::Pointer<IBAMR::IBLevelSetMethod> ib_ls_method_ops,
-                                     SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                     IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                     IBTK::SAMRAIPointer<IBAMR::IBLevelSetMethod> ib_ls_method_ops,
+                                     IBTK::SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator,
                                      bool register_for_restart = true);
 
     /*!
@@ -91,8 +91,8 @@ public:
      * Initialize any variables, communications algorithms, solvers, or other
      * data structures required by this time integrator object.
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void initializeHierarchyIntegrator(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
 protected:
     /*!
@@ -104,7 +104,7 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabaseSpecialized(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
 private:
     /*!
@@ -143,8 +143,8 @@ private:
     /*
      * Pointers to IBMethod ops and INSHierarchyIntegrator.
      */
-    SAMRAI::tbox::Pointer<IBLevelSetMethod> d_ib_ls_method_ops;
-    SAMRAI::tbox::Pointer<IBInterpolantMethod> d_ib_interpolant_method_ops;
+    IBTK::SAMRAIPointer<IBLevelSetMethod> d_ib_ls_method_ops;
+    IBTK::SAMRAIPointer<IBInterpolantMethod> d_ib_interpolant_method_ops;
 };
 
 } // namespace IBAMR

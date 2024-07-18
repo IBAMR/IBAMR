@@ -55,7 +55,7 @@ CellNoCornersFillPattern::CellNoCornersFillPattern(const int stencil_width,
     return;
 } // CellNoCornersFillPattern
 
-Pointer<BoxOverlapNd>
+SAMRAIPointer<BoxOverlapNd>
 CellNoCornersFillPattern::calculateOverlap(const BoxGeometryNd& dst_geometry,
                                            const BoxGeometryNd& src_geometry,
                                            const BoxNd& /*dst_patch_box*/,
@@ -63,7 +63,7 @@ CellNoCornersFillPattern::calculateOverlap(const BoxGeometryNd& dst_geometry,
                                            const bool overwrite_interior,
                                            const IntVectorNd& src_offset) const
 {
-    Pointer<CellOverlapNd> box_geom_overlap =
+    SAMRAIPointer<CellOverlapNd> box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);
@@ -122,7 +122,7 @@ CellNoCornersFillPattern::calculateOverlap(const BoxGeometryNd& dst_geometry,
     return new CellOverlapNd(dst_boxes, src_offset);
 } // calculateOverlap
 
-Pointer<BoxOverlapNd>
+SAMRAIPointer<BoxOverlapNd>
 CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometryNd& dst_geometry,
                                                   const BoxGeometryNd& src_geometry,
                                                   const BoxNd& dst_patch_box,
@@ -132,7 +132,7 @@ CellNoCornersFillPattern::calculateOverlapOnLevel(const BoxGeometryNd& dst_geome
                                                   const int dst_level_num,
                                                   const int /*src_level_num*/) const
 {
-    Pointer<CellOverlapNd> box_geom_overlap =
+    SAMRAIPointer<CellOverlapNd> box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);

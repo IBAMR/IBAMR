@@ -93,8 +93,8 @@ public:
      */
     AdvDiffPredictorCorrectorHierarchyIntegrator(
         const std::string& object_name,
-        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-        SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
+        IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+        IBTK::SAMRAIPointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
         bool register_for_restart = true);
 
     /*!
@@ -108,13 +108,13 @@ public:
      * Return a pointer to the level integrator object used to integrate the
      * advective terms.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegratorNd> getHyperbolicLevelIntegrator() const;
+    IBTK::SAMRAIPointer<SAMRAI::algs::HyperbolicLevelIntegratorNd> getHyperbolicLevelIntegrator() const;
 
     /*!
      * Return a pointer to the patch strategy object used to specify the
      * numerical routines used to integrate the advective terms.
      */
-    SAMRAI::tbox::Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> getHyperbolicPatchStrategy() const;
+    IBTK::SAMRAIPointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> getHyperbolicPatchStrategy() const;
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -125,8 +125,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void initializeHierarchyIntegrator(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -169,18 +169,18 @@ protected:
      * Initialize data on a new level after it is inserted into an AMR patch
      * hierarchy by the gridding algorithm.
      */
-    void initializeLevelDataSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void initializeLevelDataSpecialized(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                         int level_number,
                                         double init_data_time,
                                         bool can_be_refined,
                                         bool initial_time,
-                                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> old_level,
+                                        IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> old_level,
                                         bool allocate_data) override;
 
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void resetHierarchyConfigurationSpecialized(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                                 int coarsest_level,
                                                 int finest_level) override;
 
@@ -189,7 +189,7 @@ protected:
      * should occur according to gradient criteria specified by the
      * AdvectorExplicitPredictorPatchOps object.
      */
-    void applyGradientDetectorSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void applyGradientDetectorSpecialized(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                           int level_number,
                                           double error_data_time,
                                           int tag_index,
@@ -232,11 +232,11 @@ private:
      * The advection patch strategy supplies the advection-specific operations
      * needed to treat data on patches in the AMR grid hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::algs::HyperbolicLevelIntegratorNd> d_hyp_level_integrator;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
-    SAMRAI::tbox::Pointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> d_hyp_patch_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db;
-    SAMRAI::tbox::Pointer<AdvectorExplicitPredictorPatchOps> d_explicit_predictor;
+    IBTK::SAMRAIPointer<SAMRAI::algs::HyperbolicLevelIntegratorNd> d_hyp_level_integrator;
+    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> d_hyp_level_integrator_db;
+    IBTK::SAMRAIPointer<AdvDiffPredictorCorrectorHyperbolicPatchOps> d_hyp_patch_ops;
+    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> d_hyp_patch_ops_db;
+    IBTK::SAMRAIPointer<AdvectorExplicitPredictorPatchOps> d_explicit_predictor;
 };
 } // namespace IBAMR
 

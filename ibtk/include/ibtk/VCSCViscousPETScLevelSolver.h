@@ -92,7 +92,7 @@ public:
      * \brief Constructor.
      */
     VCSCViscousPETScLevelSolver(std::string object_name,
-                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                 std::string default_options_prefix);
 
     /*!
@@ -103,9 +103,9 @@ public:
     /*!
      * \brief Static function to construct a VCSCViscousPETScLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                                        const std::string& default_options_prefix)
     {
         return new VCSCViscousPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver

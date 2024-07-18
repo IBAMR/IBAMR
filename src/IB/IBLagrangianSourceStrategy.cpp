@@ -46,7 +46,7 @@ IBLagrangianSourceStrategy::setTimeInterval(const double /*current_time*/, const
 } // setTimeInterval
 
 void
-IBLagrangianSourceStrategy::initializeLevelData(const Pointer<PatchHierarchyNd> /*hierarchy*/,
+IBLagrangianSourceStrategy::initializeLevelData(const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                                 const int /*level_number*/,
                                                 const double /*init_data_time*/,
                                                 const bool /*initial_time*/,

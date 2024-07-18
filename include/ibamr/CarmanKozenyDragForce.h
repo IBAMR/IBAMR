@@ -60,11 +60,11 @@ public:
      * \brief Constructor of the class.
      */
     CarmanKozenyDragForce(std::string object_name,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > H_var,
-                          SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > lf_var,
-                          SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                          SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> fluid_solver,
-                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                          IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > H_var,
+                          IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > lf_var,
+                          IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                          IBTK::SAMRAIPointer<IBAMR::INSVCStaggeredHierarchyIntegrator> fluid_solver,
+                          IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                           bool register_for_restart = true);
 
     /*
@@ -97,24 +97,24 @@ public:
     /*!
      * \brief Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!
      * \brief Pointers to solvers.
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
-    SAMRAI::tbox::Pointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_fluid_solver;
+    IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    IBTK::SAMRAIPointer<IBAMR::INSVCStaggeredHierarchyIntegrator> d_fluid_solver;
 
     /*!
      * \brief Heaviside variable defining the gas-pcm interface.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_H_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_H_var;
 
     /*!
      * \brief Liquid fraction variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_lf_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_lf_var;
 
 private:
     /*!
@@ -143,7 +143,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

@@ -205,7 +205,7 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(PatchNd& patch,
 {
     if (ghost_width_to_fill == IntVectorNd(0)) return;
 
-    Pointer<PatchGeometryNd> pgeom = patch.getPatchGeometry();
+    SAMRAIPointer<PatchGeometryNd> pgeom = patch.getPatchGeometry();
     const BoxNd& patch_box = patch.getBox();
 
     std::vector<std::pair<BoxNd, std::pair<int, int> > > bdry_fill_boxes;
@@ -309,12 +309,12 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_cell(
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableNd> var;
+        SAMRAIPointer<VariableNd> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<CellVariableNd<double> > cc_var = var;
+        SAMRAIPointer<CellVariableNd<double> > cc_var = var;
         if (!cc_var) continue;
 
-        Pointer<CellDataNd<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<CellDataNd<double> > patch_data = patch.getPatchData(patch_data_idx);
         const BoxNd& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
@@ -408,11 +408,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_face(
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableNd> var;
+        SAMRAIPointer<VariableNd> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<FaceVariableNd<double> > fc_var = var;
+        SAMRAIPointer<FaceVariableNd<double> > fc_var = var;
         if (!fc_var) continue;
-        Pointer<FaceDataNd<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<FaceDataNd<double> > patch_data = patch.getPatchData(patch_data_idx);
         const BoxNd& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
@@ -514,11 +514,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_node(
     for (int patch_data_idx : d_patch_data_indices)
     {
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableNd> var;
+        SAMRAIPointer<VariableNd> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<NodeVariableNd<double> > nc_var = var;
+        SAMRAIPointer<NodeVariableNd<double> > nc_var = var;
         if (!nc_var) continue;
-        Pointer<NodeDataNd<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<NodeDataNd<double> > patch_data = patch.getPatchData(patch_data_idx);
         const BoxNd& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.
@@ -612,11 +612,11 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions_side(
     for (const auto& patch_data_idx : d_patch_data_indices)
     {
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableNd> var;
+        SAMRAIPointer<VariableNd> var;
         var_db->mapIndexToVariable(patch_data_idx, var);
-        Pointer<SideVariableNd<double> > sc_var = var;
+        SAMRAIPointer<SideVariableNd<double> > sc_var = var;
         if (!sc_var) continue;
-        Pointer<SideDataNd<double> > patch_data = patch.getPatchData(patch_data_idx);
+        SAMRAIPointer<SideDataNd<double> > patch_data = patch.getPatchData(patch_data_idx);
         const BoxNd& ghost_box = patch_data->getGhostBox();
 
         // Loop over the boundary fill boxes and extrapolate the data.

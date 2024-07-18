@@ -64,8 +64,8 @@ public:
      * Constructor.
      */
     PoissonFACPreconditioner(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_strategy,
+                             SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                              std::string default_options_prefix);
 
     /*!

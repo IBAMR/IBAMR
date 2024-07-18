@@ -69,21 +69,21 @@ public:
     using NonBddForceFcnPtr = void (*)(double* D, const SAMRAI::tbox::Array<double> params, double* out_force);
 
     // Class constructor.
-    NonbondedForceEvaluator(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry);
+    NonbondedForceEvaluator(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                            IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry);
 
     // Function to evaluate forces.
     void evaluateForces(int mstr_petsc_idx,
                         int search_petsc_idx,
-                        SAMRAI::tbox::Pointer<IBTK::LData> X_data,
+                        IBTK::SAMRAIPointer<IBTK::LData> X_data,
                         std::vector<int> cell_offset,
-                        SAMRAI::tbox::Pointer<IBTK::LData> F_data);
+                        IBTK::SAMRAIPointer<IBTK::LData> F_data);
 
     // Implementation of computeLagrangianForce.
-    void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void computeLagrangianForce(IBTK::SAMRAIPointer<IBTK::LData> F_data,
+                                IBTK::SAMRAIPointer<IBTK::LData> X_data,
+                                IBTK::SAMRAIPointer<IBTK::LData> U_data,
+                                const IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                 const int level_number,
                                 const double data_time,
                                 IBTK::LDataManager* const l_data_manager) override;
@@ -111,7 +111,7 @@ private:
     SAMRAI::tbox::Array<double> d_parameters;
 
     // grid geometry
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geometry;
+    IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geometry;
 
     // spring force function pointer, to evaluate the force between particles:
     // TODO: Add species, make this a map from species1 x species2 -> Force Function Pointer

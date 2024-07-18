@@ -62,14 +62,14 @@ StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_d
          ln <= (finest_ln == invalid_level_number ? finest_hier_level : finest_ln);
          ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                Pointer<SideDataNd<double> > u_out_data = patch->getPatchData(u_out_data_idx);
-                Pointer<SideDataNd<double> > u_in_data = patch->getPatchData(u_in_data_idx);
+                SAMRAIPointer<SideDataNd<double> > u_out_data = patch->getPatchData(u_out_data_idx);
+                SAMRAIPointer<SideDataNd<double> > u_in_data = patch->getPatchData(u_in_data_idx);
                 copyDataAtDirichletBoundaries(u_out_data, u_in_data, patch);
             }
         }
@@ -78,16 +78,16 @@ StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(const int u_out_d
 } // copyDataAtDirichletBoundaries
 
 void
-StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(Pointer<SideDataNd<double> > u_out_data,
-                                                               Pointer<SideDataNd<double> > u_in_data,
-                                                               Pointer<PatchNd> patch) const
+StaggeredPhysicalBoundaryHelper::copyDataAtDirichletBoundaries(SAMRAIPointer<SideDataNd<double> > u_out_data,
+                                                               SAMRAIPointer<SideDataNd<double> > u_in_data,
+                                                               SAMRAIPointer<PatchNd> patch) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
     const int patch_num = patch->getPatchNumber();
     const Array<BoundaryBoxNd>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<Pointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs =
+    const std::vector<SAMRAIPointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
@@ -119,11 +119,11 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_idx,
          ln <= (finest_ln == invalid_level_number ? finest_hier_level : finest_ln);
          ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<SideDataNd<int> > mask_data = patch->getPatchData(mask_data_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<SideDataNd<int> > mask_data = patch->getPatchData(mask_data_idx);
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 setupMaskingFunction(mask_data, patch);
@@ -138,7 +138,8 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(const int mask_data_idx,
 } // setupMaskingFunction
 
 void
-StaggeredPhysicalBoundaryHelper::setupMaskingFunction(Pointer<SideDataNd<int> > mask_data, Pointer<PatchNd> patch) const
+StaggeredPhysicalBoundaryHelper::setupMaskingFunction(SAMRAIPointer<SideDataNd<int> > mask_data,
+                                                      SAMRAIPointer<PatchNd> patch) const
 {
     mask_data->fillAll(0);
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
@@ -146,7 +147,7 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(Pointer<SideDataNd<int> > 
     const int patch_num = patch->getPatchNumber();
     const Array<BoundaryBoxNd>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<Pointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs =
+    const std::vector<SAMRAIPointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
@@ -162,7 +163,7 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(Pointer<SideDataNd<int> > 
 } // setupMaskingFunction
 
 bool
-StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(Pointer<PatchNd> patch) const
+StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(SAMRAIPointer<PatchNd> patch) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return false;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -173,7 +174,7 @@ StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundary(Pointer<PatchNd> 
 } // patchTouchesDirichletBoundary
 
 bool
-StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(Pointer<PatchNd> patch,
+StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(SAMRAIPointer<PatchNd> patch,
                                                                    const unsigned int axis) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return false;
@@ -181,7 +182,7 @@ StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(Pointer<Patch
     const int patch_num = patch->getPatchNumber();
     const Array<BoundaryBoxNd>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<Pointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs =
+    const std::vector<SAMRAIPointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
@@ -201,7 +202,7 @@ StaggeredPhysicalBoundaryHelper::patchTouchesDirichletBoundaryAxis(Pointer<Patch
 void
 StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefStrategyNd*>& u_bc_coefs,
                                                  const double fill_time,
-                                                 const Pointer<PatchHierarchyNd> hierarchy)
+                                                 const SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_bc_coefs.size() == NDIM);
@@ -216,18 +217,19 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefSt
     d_dirichlet_bdry_locs.resize(finest_hier_level + 1);
     for (int ln = 0; ln <= finest_hier_level; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<PatchNd> patch = level->getPatch(patch_num);
-            Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
+            SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
                 Array<BoundaryBoxNd>& physical_codim1_boxes = d_physical_codim1_boxes[ln][patch_num];
                 physical_codim1_boxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                 const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-                std::vector<Pointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs = d_dirichlet_bdry_locs[ln][patch_num];
+                std::vector<SAMRAIPointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs =
+                    d_dirichlet_bdry_locs[ln][patch_num];
                 dirichlet_bdry_locs.resize(n_physical_codim1_boxes);
                 BoxNd bc_coef_box;
                 BoundaryBoxNd trimmed_bdry_box;
@@ -236,11 +238,16 @@ StaggeredPhysicalBoundaryHelper::cacheBcCoefData(const std::vector<RobinBcCoefSt
                     const BoundaryBoxNd& bdry_box = physical_codim1_boxes[n];
                     StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
                     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
-                    Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                    Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                    Pointer<ArrayDataNd<double> > gcoef_data;
-                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(
-                        acoef_data, bcoef_data, gcoef_data, Pointer<VariableNd>(), *patch, trimmed_bdry_box, fill_time);
+                    SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > gcoef_data;
+                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
+                                                             bcoef_data,
+                                                             gcoef_data,
+                                                             SAMRAIPointer<VariableNd>(),
+                                                             *patch,
+                                                             trimmed_bdry_box,
+                                                             fill_time);
                     dirichlet_bdry_locs[n] = new ArrayDataNd<bool>(bc_coef_box, 1);
                     ArrayDataNd<bool>& bdry_locs_data = *dirichlet_bdry_locs[n];
                     for (BoxNd::Iterator it(bc_coef_box); it; it++)
@@ -281,9 +288,9 @@ void
 StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(BoxNd& bc_coef_box,
                                                   BoundaryBoxNd& trimmed_bdry_box,
                                                   const BoundaryBoxNd& bdry_box,
-                                                  Pointer<PatchNd> patch)
+                                                  SAMRAIPointer<PatchNd> patch)
 {
-    Pointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
     const BoxNd& patch_box = patch->getBox();
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;

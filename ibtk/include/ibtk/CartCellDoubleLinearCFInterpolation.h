@@ -179,7 +179,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy) override;
+    void setPatchHierarchy(SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy) override;
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -233,13 +233,12 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperatorNd> d_refine_op =
-        new SAMRAI::geom::CartesianCellDoubleLinearRefineNd();
+    SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> d_refine_op = new SAMRAI::geom::CartesianCellDoubleLinearRefineNd();
 
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
     std::vector<SAMRAI::hier::BoxArrayNd> d_domain_boxes;
     std::vector<SAMRAI::hier::IntVectorNd> d_periodic_shift;

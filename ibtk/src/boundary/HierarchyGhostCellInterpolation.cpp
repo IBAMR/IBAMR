@@ -129,7 +129,7 @@ HierarchyGhostCellInterpolation::setHomogeneousBc(const bool homogeneous_bc)
 
 void
 HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTransactionComponent transaction_comp,
-                                                         const Pointer<PatchHierarchyNd> hierarchy,
+                                                         const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                          const int coarsest_ln,
                                                          const int finest_ln)
 {
@@ -145,7 +145,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(const InterpolationTran
 void
 HierarchyGhostCellInterpolation::initializeOperatorState(
     const std::vector<InterpolationTransactionComponent>& transaction_comps,
-    const Pointer<PatchHierarchyNd> hierarchy,
+    const SAMRAIPointer<PatchHierarchyNd> hierarchy,
     const int coarsest_ln,
     const int finest_ln)
 {
@@ -177,12 +177,12 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         if (coarsen_op_name != "NONE")
         {
             const int src_data_idx = transaction_comp.d_src_data_idx;
-            Pointer<VariableNd> var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -198,8 +198,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     {
         for (int src_ln = std::max(1, d_coarsest_ln); src_ln <= d_finest_ln; ++src_ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(src_ln);
-            Pointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(src_ln);
+            SAMRAIPointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(src_ln - 1);
             d_coarsen_scheds[src_ln] = d_coarsen_alg->createSchedule(coarser_level, level, d_coarsen_strategy.get());
         }
     }
@@ -216,16 +216,16 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
         const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
         const std::string& phys_bdry_type = d_transaction_comps[comp_idx].d_phys_bdry_type;
-        Pointer<VariableNd> var;
+        SAMRAIPointer<VariableNd> var;
         var_db->mapIndexToVariable(src_data_idx, var);
-        Pointer<CellVariableNd<double> > cc_var = var;
-        Pointer<NodeVariableNd<double> > nc_var = var;
-        Pointer<SideVariableNd<double> > sc_var = var;
-        Pointer<EdgeVariableNd<double> > ec_var = var;
-        Pointer<FaceVariableNd<double> > fc_var = var;
-        Pointer<RefineOperatorNd> refine_op = nullptr;
+        SAMRAIPointer<CellVariableNd<double> > cc_var = var;
+        SAMRAIPointer<NodeVariableNd<double> > nc_var = var;
+        SAMRAIPointer<SideVariableNd<double> > sc_var = var;
+        SAMRAIPointer<EdgeVariableNd<double> > ec_var = var;
+        SAMRAIPointer<FaceVariableNd<double> > fc_var = var;
+        SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
         d_cf_bdry_ops[comp_idx] = nullptr;
-        Pointer<VariableFillPatternNd> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
+        SAMRAIPointer<VariableFillPatternNd> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (cc_var)
         {
             if (d_transaction_comps[comp_idx].d_refine_op_name != "NONE")
@@ -335,7 +335,7 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(dst_ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(dst_ln);
         d_refine_scheds[dst_ln] = d_refine_alg->createSchedule(level, dst_ln - 1, d_hierarchy, d_refine_strategy.get());
     }
 
@@ -398,12 +398,12 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
         if (coarsen_op_name != "NONE")
         {
             const int src_data_idx = transaction_comp.d_src_data_idx;
-            Pointer<VariableNd> var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(src_data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -426,14 +426,14 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
     {
         const int dst_data_idx = d_transaction_comps[comp_idx].d_dst_data_idx;
         const int src_data_idx = d_transaction_comps[comp_idx].d_src_data_idx;
-        Pointer<VariableNd> var;
+        SAMRAIPointer<VariableNd> var;
         var_db->mapIndexToVariable(src_data_idx, var);
-        Pointer<CellVariableNd<double> > cc_var = var;
-        Pointer<NodeVariableNd<double> > nc_var = var;
-        Pointer<SideVariableNd<double> > sc_var = var;
-        Pointer<EdgeVariableNd<double> > ec_var = var;
-        Pointer<RefineOperatorNd> refine_op = nullptr;
-        Pointer<VariableFillPatternNd> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
+        SAMRAIPointer<CellVariableNd<double> > cc_var = var;
+        SAMRAIPointer<NodeVariableNd<double> > nc_var = var;
+        SAMRAIPointer<SideVariableNd<double> > sc_var = var;
+        SAMRAIPointer<EdgeVariableNd<double> > ec_var = var;
+        SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
+        SAMRAIPointer<VariableFillPatternNd> fill_pattern = d_transaction_comps[comp_idx].d_fill_pattern;
         if (d_cf_bdry_ops[comp_idx]) d_cf_bdry_ops[comp_idx]->setPatchDataIndex(dst_data_idx);
         if (cc_var)
         {
@@ -528,7 +528,7 @@ HierarchyGhostCellInterpolation::resetTransactionComponents(
 } // resetTransactionComponents
 
 void
-HierarchyGhostCellInterpolation::reinitializeOperatorState(Pointer<PatchHierarchyNd> hierarchy)
+HierarchyGhostCellInterpolation::reinitializeOperatorState(SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
     if (!d_is_initialized) return;
 
@@ -599,11 +599,11 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)
     {
         if (d_refine_scheds[dst_ln]) d_refine_scheds[dst_ln]->fillData(fill_time);
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(dst_ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(dst_ln);
         const IntVectorNd& ratio = level->getRatioToCoarserLevel();
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)
             {
                 if (d_cf_bdry_ops[comp_idx])
@@ -621,10 +621,10 @@ HierarchyGhostCellInterpolation::fillData(double fill_time)
     IBTK_TIMER_START(t_fill_data_set_physical_bcs);
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
                 for (unsigned int comp_idx = 0; comp_idx < d_transaction_comps.size(); ++comp_idx)

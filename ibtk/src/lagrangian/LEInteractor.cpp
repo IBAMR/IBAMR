@@ -1724,7 +1724,7 @@ double (*LEInteractor::s_kernel_fcn)(double r) = &ib4_kernel_fcn;
 int LEInteractor::s_kernel_fcn_stencil_size = 4;
 
 void
-LEInteractor::setFromDatabase(Pointer<Database> /*db*/)
+LEInteractor::setFromDatabase(SAMRAIPointer<Database> /*db*/)
 {
     // intentionally blank
     return;
@@ -1809,11 +1809,11 @@ LEInteractor::getMinimumGhostWidth(const std::string& kernel_fcn)
 
 template <class T>
 void
-LEInteractor::interpolate(Pointer<LData> Q_data,
-                          const Pointer<LData> X_data,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<CellDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
+                          const SAMRAIPointer<LData> X_data,
+                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                          const SAMRAIPointer<CellDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const IntVectorNd& periodic_shift,
                           const std::string& interp_fcn)
@@ -1844,11 +1844,11 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
 
 template <class T>
 void
-LEInteractor::interpolate(Pointer<LData> Q_data,
-                          const Pointer<LData> X_data,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<NodeDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
+                          const SAMRAIPointer<LData> X_data,
+                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                          const SAMRAIPointer<NodeDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const IntVectorNd& periodic_shift,
                           const std::string& interp_fcn)
@@ -1879,11 +1879,11 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
 
 template <class T>
 void
-LEInteractor::interpolate(Pointer<LData> Q_data,
-                          const Pointer<LData> X_data,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<SideDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
+                          const SAMRAIPointer<LData> X_data,
+                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                          const SAMRAIPointer<SideDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const IntVectorNd& periodic_shift,
                           const std::string& interp_fcn)
@@ -1920,11 +1920,11 @@ LEInteractor::interpolate(Pointer<LData> Q_data,
 
 template <class T>
 void
-LEInteractor::interpolate(Pointer<LData> Q_data,
-                          const Pointer<LData> X_data,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<EdgeDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
+                          const SAMRAIPointer<LData> X_data,
+                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                          const SAMRAIPointer<EdgeDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const IntVectorNd& periodic_shift,
                           const std::string& interp_fcn)
@@ -1965,9 +1965,9 @@ LEInteractor::interpolate(double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<CellDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                          const SAMRAIPointer<CellDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const IntVectorNd& periodic_shift,
                           const std::string& interp_fcn)
@@ -1982,7 +1982,7 @@ LEInteractor::interpolate(double* const Q_data,
     NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2029,9 +2029,9 @@ LEInteractor::interpolate(double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<NodeDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                          const SAMRAIPointer<NodeDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const IntVectorNd& periodic_shift,
                           const std::string& interp_fcn)
@@ -2046,7 +2046,7 @@ LEInteractor::interpolate(double* const Q_data,
     NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2099,9 +2099,9 @@ LEInteractor::interpolate(double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<SideDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                          const SAMRAIPointer<SideDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const IntVectorNd& periodic_shift,
                           const std::string& interp_fcn)
@@ -2123,7 +2123,7 @@ LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2188,9 +2188,9 @@ LEInteractor::interpolate(double* const Q_data,
                           const int Q_depth,
                           const double* const X_data,
                           const int X_depth,
-                          const Pointer<LIndexSetData<T> > idx_data,
-                          const Pointer<EdgeDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                          const SAMRAIPointer<EdgeDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const IntVectorNd& periodic_shift,
                           const std::string& interp_fcn)
@@ -2212,7 +2212,7 @@ LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2279,8 +2279,8 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const Pointer<CellDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<CellDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const std::string& interp_fcn)
 {
@@ -2302,80 +2302,9 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const Pointer<CellDataNd<double> > mask_data,
-                          const Pointer<CellDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
-                          const BoxNd& interp_box,
-                          const std::string& interp_fcn)
-{
-    if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                mask_data,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
-}
-
-void
-LEInteractor::interpolate(std::vector<double>& Q_data,
-                          const int Q_depth,
-                          const std::vector<double>& X_data,
-                          const int X_depth,
-                          const Pointer<NodeDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
-                          const BoxNd& interp_box,
-                          const std::string& interp_fcn)
-{
-    if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
-}
-
-void
-LEInteractor::interpolate(std::vector<double>& Q_data,
-                          const int Q_depth,
-                          const std::vector<double>& X_data,
-                          const int X_depth,
-                          const Pointer<SideDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
-                          const BoxNd& interp_box,
-                          const std::string& interp_fcn)
-{
-    if (Q_data.empty()) return;
-    interpolate(&Q_data[0],
-                static_cast<int>(Q_data.size()),
-                Q_depth,
-                &X_data[0],
-                static_cast<int>(X_data.size()),
-                X_depth,
-                q_data,
-                patch,
-                interp_box,
-                interp_fcn);
-}
-
-void
-LEInteractor::interpolate(std::vector<double>& Q_data,
-                          const int Q_depth,
-                          const std::vector<double>& X_data,
-                          const int X_depth,
-                          const Pointer<SideDataNd<double> > mask_data,
-                          const Pointer<SideDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<CellDataNd<double> > mask_data,
+                          const SAMRAIPointer<CellDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const std::string& interp_fcn)
 {
@@ -2398,8 +2327,79 @@ LEInteractor::interpolate(std::vector<double>& Q_data,
                           const int Q_depth,
                           const std::vector<double>& X_data,
                           const int X_depth,
-                          const Pointer<EdgeDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<NodeDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
+                          const BoxNd& interp_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0],
+                static_cast<int>(Q_data.size()),
+                Q_depth,
+                &X_data[0],
+                static_cast<int>(X_data.size()),
+                X_depth,
+                q_data,
+                patch,
+                interp_box,
+                interp_fcn);
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const SAMRAIPointer<SideDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
+                          const BoxNd& interp_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0],
+                static_cast<int>(Q_data.size()),
+                Q_depth,
+                &X_data[0],
+                static_cast<int>(X_data.size()),
+                X_depth,
+                q_data,
+                patch,
+                interp_box,
+                interp_fcn);
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const SAMRAIPointer<SideDataNd<double> > mask_data,
+                          const SAMRAIPointer<SideDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
+                          const BoxNd& interp_box,
+                          const std::string& interp_fcn)
+{
+    if (Q_data.empty()) return;
+    interpolate(&Q_data[0],
+                static_cast<int>(Q_data.size()),
+                Q_depth,
+                &X_data[0],
+                static_cast<int>(X_data.size()),
+                X_depth,
+                mask_data,
+                q_data,
+                patch,
+                interp_box,
+                interp_fcn);
+}
+
+void
+LEInteractor::interpolate(std::vector<double>& Q_data,
+                          const int Q_depth,
+                          const std::vector<double>& X_data,
+                          const int X_depth,
+                          const SAMRAIPointer<EdgeDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const std::string& interp_fcn)
 {
@@ -2423,8 +2423,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<CellDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<CellDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const std::string& interp_fcn)
 {
@@ -2438,7 +2438,7 @@ LEInteractor::interpolate(double* const Q_data,
     NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2487,9 +2487,9 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<CellDataNd<double> > mask_data,
-                          const Pointer<CellDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<CellDataNd<double> > mask_data,
+                          const SAMRAIPointer<CellDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const std::string& interp_fcn)
 {
@@ -2505,7 +2505,7 @@ LEInteractor::interpolate(double* const Q_data,
     NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
     const BoxNd& patch_box = patch->getBox();
@@ -2601,8 +2601,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<NodeDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<NodeDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const std::string& interp_fcn)
 {
@@ -2616,7 +2616,7 @@ LEInteractor::interpolate(double* const Q_data,
     NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2671,8 +2671,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<SideDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<SideDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const std::string& interp_fcn)
 {
@@ -2693,7 +2693,7 @@ LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2760,9 +2760,9 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<SideDataNd<double> > mask_data,
-                          const Pointer<SideDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<SideDataNd<double> > mask_data,
+                          const SAMRAIPointer<SideDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const std::string& interp_fcn)
 {
@@ -2779,7 +2779,7 @@ LEInteractor::interpolate(double* const Q_data,
     NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2886,8 +2886,8 @@ LEInteractor::interpolate(double* const Q_data,
                           const double* const X_data,
                           const int X_size,
                           const int X_depth,
-                          const Pointer<EdgeDataNd<double> > q_data,
-                          const Pointer<PatchNd> patch,
+                          const SAMRAIPointer<EdgeDataNd<double> > q_data,
+                          const SAMRAIPointer<PatchNd> patch,
                           const BoxNd& interp_box,
                           const std::string& interp_fcn)
 {
@@ -2908,7 +2908,7 @@ LEInteractor::interpolate(double* const Q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -2973,11 +2973,11 @@ LEInteractor::interpolate(double* const Q_data,
 
 template <class T>
 void
-LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
-                     const Pointer<LData> Q_data,
-                     const Pointer<LData> X_data,
-                     const Pointer<LIndexSetData<T> > idx_data,
-                     const Pointer<PatchNd> patch,
+LEInteractor::spread(SAMRAIPointer<CellDataNd<double> > q_data,
+                     const SAMRAIPointer<LData> Q_data,
+                     const SAMRAIPointer<LData> X_data,
+                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const IntVectorNd& periodic_shift,
                      const std::string& spread_fcn)
@@ -3008,11 +3008,11 @@ LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
-                     const Pointer<LData> Q_data,
-                     const Pointer<LData> X_data,
-                     const Pointer<LIndexSetData<T> > idx_data,
-                     const Pointer<PatchNd> patch,
+LEInteractor::spread(SAMRAIPointer<NodeDataNd<double> > q_data,
+                     const SAMRAIPointer<LData> Q_data,
+                     const SAMRAIPointer<LData> X_data,
+                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const IntVectorNd& periodic_shift,
                      const std::string& spread_fcn)
@@ -3043,11 +3043,11 @@ LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
-                     const Pointer<LData> Q_data,
-                     const Pointer<LData> X_data,
-                     const Pointer<LIndexSetData<T> > idx_data,
-                     const Pointer<PatchNd> patch,
+LEInteractor::spread(SAMRAIPointer<SideDataNd<double> > q_data,
+                     const SAMRAIPointer<LData> Q_data,
+                     const SAMRAIPointer<LData> X_data,
+                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const IntVectorNd& periodic_shift,
                      const std::string& spread_fcn)
@@ -3084,11 +3084,11 @@ LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(Pointer<EdgeDataNd<double> > q_data,
-                     const Pointer<LData> Q_data,
-                     const Pointer<LData> X_data,
-                     const Pointer<LIndexSetData<T> > idx_data,
-                     const Pointer<PatchNd> patch,
+LEInteractor::spread(SAMRAIPointer<EdgeDataNd<double> > q_data,
+                     const SAMRAIPointer<LData> Q_data,
+                     const SAMRAIPointer<LData> X_data,
+                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const IntVectorNd& periodic_shift,
                      const std::string& spread_fcn)
@@ -3125,13 +3125,13 @@ LEInteractor::spread(Pointer<EdgeDataNd<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<CellDataNd<double> > q_data,
                      const double* const Q_data,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_depth,
-                     const Pointer<LIndexSetData<T> > idx_data,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const IntVectorNd& periodic_shift,
                      const std::string& spread_fcn)
@@ -3146,7 +3146,7 @@ LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
     NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -3189,13 +3189,13 @@ LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<NodeDataNd<double> > q_data,
                      const double* const Q_data,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_depth,
-                     const Pointer<LIndexSetData<T> > idx_data,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const IntVectorNd& periodic_shift,
                      const std::string& spread_fcn)
@@ -3210,7 +3210,7 @@ LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
     NULL_USE(X_depth);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -3259,13 +3259,13 @@ LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SideDataNd<double> > q_data,
                      const double* const Q_data,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_depth,
-                     const Pointer<LIndexSetData<T> > idx_data,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const IntVectorNd& periodic_shift,
                      const std::string& spread_fcn)
@@ -3287,7 +3287,7 @@ LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -3348,13 +3348,13 @@ LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
 
 template <class T>
 void
-LEInteractor::spread(Pointer<EdgeDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<EdgeDataNd<double> > q_data,
                      const double* const Q_data,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_depth,
-                     const Pointer<LIndexSetData<T> > idx_data,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<LIndexSetData<T> > idx_data,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const IntVectorNd& periodic_shift,
                      const std::string& spread_fcn)
@@ -3376,7 +3376,7 @@ LEInteractor::spread(Pointer<EdgeDataNd<double> > q_data,
     }
 
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -3439,12 +3439,12 @@ LEInteractor::spread(Pointer<EdgeDataNd<double> > q_data,
 }
 
 void
-LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<CellDataNd<double> > q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3462,13 +3462,13 @@ LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
 }
 
 void
-LEInteractor::spread(Pointer<CellDataNd<double> > mask_data,
-                     Pointer<CellDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<CellDataNd<double> > mask_data,
+                     SAMRAIPointer<CellDataNd<double> > q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3487,12 +3487,12 @@ LEInteractor::spread(Pointer<CellDataNd<double> > mask_data,
 }
 
 void
-LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<NodeDataNd<double> > q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3510,12 +3510,12 @@ LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
 }
 
 void
-LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SideDataNd<double> > q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3533,13 +3533,13 @@ LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
 }
 
 void
-LEInteractor::spread(Pointer<SideDataNd<double> > mask_data,
-                     Pointer<SideDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SideDataNd<double> > mask_data,
+                     SAMRAIPointer<SideDataNd<double> > q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3558,12 +3558,12 @@ LEInteractor::spread(Pointer<SideDataNd<double> > mask_data,
 }
 
 void
-LEInteractor::spread(Pointer<EdgeDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<EdgeDataNd<double> > q_data,
                      const std::vector<double>& Q_data,
                      const int Q_depth,
                      const std::vector<double>& X_data,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3581,14 +3581,14 @@ LEInteractor::spread(Pointer<EdgeDataNd<double> > q_data,
 }
 
 void
-LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<CellDataNd<double> > q_data,
                      const double* const Q_data,
                      const int Q_size,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_size,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3602,7 +3602,7 @@ LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
     NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -3645,15 +3645,15 @@ LEInteractor::spread(Pointer<CellDataNd<double> > q_data,
 }
 
 void
-LEInteractor::spread(Pointer<CellDataNd<double> > mask_data,
-                     Pointer<CellDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<CellDataNd<double> > mask_data,
+                     SAMRAIPointer<CellDataNd<double> > q_data,
                      const double* const Q_data,
                      const int Q_size,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_size,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3669,7 +3669,7 @@ LEInteractor::spread(Pointer<CellDataNd<double> > mask_data,
     NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
     const BoxNd& patch_box = patch->getBox();
@@ -3760,14 +3760,14 @@ LEInteractor::spread(Pointer<CellDataNd<double> > mask_data,
 }
 
 void
-LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<NodeDataNd<double> > q_data,
                      const double* const Q_data,
                      const int Q_size,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_size,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3781,7 +3781,7 @@ LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
     NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -3830,14 +3830,14 @@ LEInteractor::spread(Pointer<NodeDataNd<double> > q_data,
 }
 
 void
-LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SideDataNd<double> > q_data,
                      const double* const Q_data,
                      const int /*Q_size*/,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_size,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3853,7 +3853,7 @@ LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -3914,15 +3914,15 @@ LEInteractor::spread(Pointer<SideDataNd<double> > q_data,
 }
 
 void
-LEInteractor::spread(Pointer<SideDataNd<double> > mask_data,
-                     Pointer<SideDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<SideDataNd<double> > mask_data,
+                     SAMRAIPointer<SideDataNd<double> > q_data,
                      const double* const Q_data,
                      const int Q_size,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_size,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -3938,7 +3938,7 @@ LEInteractor::spread(Pointer<SideDataNd<double> > mask_data,
     NULL_USE(Q_size);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -4038,14 +4038,14 @@ LEInteractor::spread(Pointer<SideDataNd<double> > mask_data,
 }
 
 void
-LEInteractor::spread(Pointer<EdgeDataNd<double> > q_data,
+LEInteractor::spread(SAMRAIPointer<EdgeDataNd<double> > q_data,
                      const double* const Q_data,
                      const int /*Q_size*/,
                      const int Q_depth,
                      const double* const X_data,
                      const int X_size,
                      const int X_depth,
-                     const Pointer<PatchNd> patch,
+                     const SAMRAIPointer<PatchNd> patch,
                      const BoxNd& spread_box,
                      const std::string& spread_fcn)
 {
@@ -4061,7 +4061,7 @@ LEInteractor::spread(Pointer<EdgeDataNd<double> > q_data,
     TBOX_ASSERT(X_depth == NDIM);
 #endif
     // Determine the patch geometry.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
     const double* const dx = pgeom->getDx();
@@ -5396,9 +5396,9 @@ void
 LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                 std::vector<double>& periodic_shifts,
                                 const BoxNd& box,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const IntVectorNd& periodic_shift,
-                                const Pointer<LIndexSetData<T> > idx_data)
+                                const SAMRAIPointer<LIndexSetData<T> > idx_data)
 {
     local_indices.clear();
     periodic_shifts.clear();
@@ -5412,7 +5412,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     const hier::IndexNd& iupper = patch_box.upper();
     const BoxNd& ghost_box = idx_data->getGhostBox();
 
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     std::array<bool, NDIM> patch_touches_lower_periodic_bdry, patch_touches_upper_periodic_bdry;
     for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -5474,7 +5474,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
 void
 LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                 const BoxNd& box,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const double* const X_data,
                                 const int X_size,
                                 const int X_depth)
@@ -5484,7 +5484,7 @@ LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
     if (upper_bound == 0) return;
 
     const BoxNd& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
     local_indices.reserve(upper_bound);
     for (int k = 0; k < X_size / X_depth; ++k)
     {
@@ -5757,49 +5757,38 @@ LEInteractor::userDefinedSpread(double* q,
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
-template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
-                                              const SAMRAI::tbox::Pointer<LData> X_data,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
+                                              const SAMRAIPointer<LData> X_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                              const SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > q_data,
+                                              const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                               const SAMRAI::hier::BoxNd& interp_box,
                                               const SAMRAI::hier::IntVectorNd& periodic_shift,
                                               const std::string& interp_fcn);
 
-template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
-                                              const SAMRAI::tbox::Pointer<LData> X_data,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeDataNd<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
+                                              const SAMRAIPointer<LData> X_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                              const SAMRAIPointer<SAMRAI::pdat::NodeDataNd<double> > q_data,
+                                              const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                               const SAMRAI::hier::BoxNd& interp_box,
                                               const SAMRAI::hier::IntVectorNd& periodic_shift,
                                               const std::string& interp_fcn);
 
-template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
-                                              const SAMRAI::tbox::Pointer<LData> X_data,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
+                                              const SAMRAIPointer<LData> X_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                              const SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > q_data,
+                                              const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                               const SAMRAI::hier::BoxNd& interp_box,
                                               const SAMRAI::hier::IntVectorNd& periodic_shift,
                                               const std::string& interp_fcn);
 
-template void IBTK::LEInteractor::interpolate(SAMRAI::tbox::Pointer<LData> Q_data,
-                                              const SAMRAI::tbox::Pointer<LData> X_data,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeDataNd<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
-                                              const SAMRAI::hier::BoxNd& interp_box,
-                                              const SAMRAI::hier::IntVectorNd& periodic_shift,
-                                              const std::string& interp_fcn);
-
-template void IBTK::LEInteractor::interpolate(double* const Q_data,
-                                              const int Q_depth,
-                                              const double* const X_data,
-                                              const int X_depth,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+template void IBTK::LEInteractor::interpolate(SAMRAIPointer<LData> Q_data,
+                                              const SAMRAIPointer<LData> X_data,
+                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                              const SAMRAIPointer<SAMRAI::pdat::EdgeDataNd<double> > q_data,
+                                              const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                               const SAMRAI::hier::BoxNd& interp_box,
                                               const SAMRAI::hier::IntVectorNd& periodic_shift,
                                               const std::string& interp_fcn);
@@ -5808,9 +5797,9 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeDataNd<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                              const SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > q_data,
+                                              const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                               const SAMRAI::hier::BoxNd& interp_box,
                                               const SAMRAI::hier::IntVectorNd& periodic_shift,
                                               const std::string& interp_fcn);
@@ -5819,9 +5808,9 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                              const SAMRAIPointer<SAMRAI::pdat::NodeDataNd<double> > q_data,
+                                              const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                               const SAMRAI::hier::BoxNd& interp_box,
                                               const SAMRAI::hier::IntVectorNd& periodic_shift,
                                               const std::string& interp_fcn);
@@ -5830,89 +5819,100 @@ template void IBTK::LEInteractor::interpolate(double* const Q_data,
                                               const int Q_depth,
                                               const double* const X_data,
                                               const int X_depth,
-                                              const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeDataNd<double> > q_data,
-                                              const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                              const SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > q_data,
+                                              const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                               const SAMRAI::hier::BoxNd& interp_box,
                                               const SAMRAI::hier::IntVectorNd& periodic_shift,
                                               const std::string& interp_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > q_data,
-                                         const SAMRAI::tbox::Pointer<LData> Q_data,
-                                         const SAMRAI::tbox::Pointer<LData> X_data,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+template void IBTK::LEInteractor::interpolate(double* const Q_data,
+                                              const int Q_depth,
+                                              const double* const X_data,
+                                              const int X_depth,
+                                              const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                              const SAMRAIPointer<SAMRAI::pdat::EdgeDataNd<double> > q_data,
+                                              const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
+                                              const SAMRAI::hier::BoxNd& interp_box,
+                                              const SAMRAI::hier::IntVectorNd& periodic_shift,
+                                              const std::string& interp_fcn);
+
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > q_data,
+                                         const SAMRAIPointer<LData> Q_data,
+                                         const SAMRAIPointer<LData> X_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                          const SAMRAI::hier::BoxNd& spread_box,
                                          const SAMRAI::hier::IntVectorNd& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeDataNd<double> > q_data,
-                                         const SAMRAI::tbox::Pointer<LData> Q_data,
-                                         const SAMRAI::tbox::Pointer<LData> X_data,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAI::pdat::NodeDataNd<double> > q_data,
+                                         const SAMRAIPointer<LData> Q_data,
+                                         const SAMRAIPointer<LData> X_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                          const SAMRAI::hier::BoxNd& spread_box,
                                          const SAMRAI::hier::IntVectorNd& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > q_data,
-                                         const SAMRAI::tbox::Pointer<LData> Q_data,
-                                         const SAMRAI::tbox::Pointer<LData> X_data,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > q_data,
+                                         const SAMRAIPointer<LData> Q_data,
+                                         const SAMRAIPointer<LData> X_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                          const SAMRAI::hier::BoxNd& spread_box,
                                          const SAMRAI::hier::IntVectorNd& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeDataNd<double> > q_data,
-                                         const SAMRAI::tbox::Pointer<LData> Q_data,
-                                         const SAMRAI::tbox::Pointer<LData> X_data,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAI::pdat::EdgeDataNd<double> > q_data,
+                                         const SAMRAIPointer<LData> Q_data,
+                                         const SAMRAIPointer<LData> X_data,
+                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                          const SAMRAI::hier::BoxNd& spread_box,
                                          const SAMRAI::hier::IntVectorNd& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                          const SAMRAI::hier::BoxNd& spread_box,
                                          const SAMRAI::hier::IntVectorNd& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeDataNd<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAI::pdat::NodeDataNd<double> > q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                          const SAMRAI::hier::BoxNd& spread_box,
                                          const SAMRAI::hier::IntVectorNd& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                          const SAMRAI::hier::BoxNd& spread_box,
                                          const SAMRAI::hier::IntVectorNd& periodic_shift,
                                          const std::string& spread_fcn);
 
-template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeDataNd<double> > q_data,
+template void IBTK::LEInteractor::spread(SAMRAIPointer<SAMRAI::pdat::EdgeDataNd<double> > q_data,
                                          const double* const Q_data,
                                          const int Q_depth,
                                          const double* const X_data,
                                          const int X_depth,
-                                         const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data,
-                                         const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                         const SAMRAIPointer<LIndexSetData<LNode> > idx_data,
+                                         const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                          const SAMRAI::hier::BoxNd& spread_box,
                                          const SAMRAI::hier::IntVectorNd& periodic_shift,
                                          const std::string& spread_fcn);
@@ -5920,8 +5920,8 @@ template void IBTK::LEInteractor::spread(SAMRAI::tbox::Pointer<SAMRAI::pdat::Edg
 template void IBTK::LEInteractor::buildLocalIndices(std::vector<int>& local_indices,
                                                     std::vector<double>& periodic_shifts,
                                                     const SAMRAI::hier::BoxNd& box,
-                                                    const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                                                    const SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                                                     const SAMRAI::hier::IntVectorNd& periodic_shift,
-                                                    const SAMRAI::tbox::Pointer<LIndexSetData<LNode> > idx_data);
+                                                    const SAMRAIPointer<LIndexSetData<LNode> > idx_data);
 
 //////////////////////////////////////////////////////////////////////////////

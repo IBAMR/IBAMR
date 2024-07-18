@@ -92,7 +92,7 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlapNd>
+    SAMRAIPointer<SAMRAI::hier::BoxOverlapNd>
     calculateOverlap(const SAMRAI::hier::BoxGeometryNd& dst_geometry,
                      const SAMRAI::hier::BoxGeometryNd& src_geometry,
                      const SAMRAI::hier::BoxNd& dst_patch_box,
@@ -124,15 +124,14 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlapNd>
-    calculateOverlapOnLevel(const SAMRAI::hier::BoxGeometryNd& dst_geometry,
-                            const SAMRAI::hier::BoxGeometryNd& src_geometry,
-                            const SAMRAI::hier::BoxNd& dst_patch_box,
-                            const SAMRAI::hier::BoxNd& src_mask,
-                            bool overwrite_interior,
-                            const SAMRAI::hier::IntVectorNd& src_offset,
-                            int dst_level_num,
-                            int src_level_num) const override;
+    SAMRAIPointer<SAMRAI::hier::BoxOverlapNd> calculateOverlapOnLevel(const SAMRAI::hier::BoxGeometryNd& dst_geometry,
+                                                                      const SAMRAI::hier::BoxGeometryNd& src_geometry,
+                                                                      const SAMRAI::hier::BoxNd& dst_patch_box,
+                                                                      const SAMRAI::hier::BoxNd& src_mask,
+                                                                      bool overwrite_interior,
+                                                                      const SAMRAI::hier::IntVectorNd& src_offset,
+                                                                      int dst_level_num,
+                                                                      int src_level_num) const override;
 
     /*!
      * Set the target patch level number for the variable fill pattern.

@@ -67,7 +67,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBKirchhoffRodForceGen(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = NULL);
+    IBKirchhoffRodForceGen(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db = NULL);
 
     /*!
      * \brief Destructor.
@@ -84,7 +84,7 @@ public:
      * \brief Setup the data needed to compute the beam forces on the specified
      * level of the patch hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void initializeLevelData(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool initial_time,
@@ -97,11 +97,11 @@ public:
      * \note Nodal forces and moments computed by this method are \em added to
      * the force and moment vectors.
      */
-    void computeLagrangianForceAndTorque(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                         SAMRAI::tbox::Pointer<IBTK::LData> N_data,
-                                         SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                         SAMRAI::tbox::Pointer<IBTK::LData> D_data,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void computeLagrangianForceAndTorque(IBTK::SAMRAIPointer<IBTK::LData> F_data,
+                                         IBTK::SAMRAIPointer<IBTK::LData> N_data,
+                                         IBTK::SAMRAIPointer<IBTK::LData> X_data,
+                                         IBTK::SAMRAIPointer<IBTK::LData> D_data,
+                                         IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                          int level_number,
                                          double data_time,
                                          IBTK::LDataManager* l_data_manager);
@@ -132,13 +132,13 @@ private:
      *
      * The database pointer may be null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
     /*!
      * Constant body force routines.
      */
-    void computeLagrangianBodyForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void computeLagrangianBodyForce(IBTK::SAMRAIPointer<IBTK::LData> F_data,
+                                    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                     int level_number,
                                     double data_time,
                                     IBTK::LDataManager* l_data_manager);

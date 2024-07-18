@@ -69,11 +69,12 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_name,
-                                                   Pointer<Database> input_db,
-                                                   Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                                                   Pointer<CIBStrategy> cib_strategy,
-                                                   const std::string& default_options_prefix)
+CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(
+    const std::string& object_name,
+    SAMRAIPointer<Database> input_db,
+    SAMRAIPointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+    SAMRAIPointer<CIBStrategy> cib_strategy,
+    const std::string& default_options_prefix)
     : StaggeredStokesSolver(),
       d_cib_strategy(cib_strategy, false),
       d_num_rigid_parts(d_cib_strategy->getNumberOfRigidStructures())
@@ -85,7 +86,7 @@ CIBStaggeredStokesSolver::CIBStaggeredStokesSolver(const std::string& object_nam
         object_name, input_db, navier_stokes_integrator, d_cib_strategy, default_options_prefix);
 
     // Create widened variables for IB operations.
-    Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
+    SAMRAIPointer<IBStrategy> ib_method_ops = d_cib_strategy;
     const IntVectorNd ghost_width = ib_method_ops->getMinimumGhostCellWidth();
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     d_wide_u_var = new SideVariableNd<double>(d_object_name + "::wide_u_var", 1);
@@ -127,7 +128,7 @@ CIBStaggeredStokesSolver::setTimeInterval(double current_time, double new_time)
     return;
 } // setTimeInterval
 
-Pointer<CIBSaddlePointSolver>
+SAMRAIPointer<CIBSaddlePointSolver>
 CIBStaggeredStokesSolver::getSaddlePointSolver() const
 {
     return d_sp_solver;
@@ -145,19 +146,19 @@ CIBStaggeredStokesSolver::initializeSolverState(const SAMRAIVectorRealNd<double>
     }
 
     // Wrap Eulerian data into PETSc Vecs.
-    Pointer<PatchHierarchyNd> hierarchy = x.getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = x.getPatchHierarchy();
     const int coarsest_ln = x.getCoarsestLevelNumber();
     const int finest_ln = x.getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_wide_u_idx)) level->allocatePatchData(d_wide_u_idx);
         if (!level->checkAllocated(d_wide_f_idx)) level->allocatePatchData(d_wide_f_idx);
     }
 
-    Pointer<CellVariableNd<double> > x_p_cc_var = x.getComponentVariable(1);
-    Pointer<CellVariableNd<double> > b_p_cc_var = b.getComponentVariable(1);
+    SAMRAIPointer<CellVariableNd<double> > x_p_cc_var = x.getComponentVariable(1);
+    SAMRAIPointer<CellVariableNd<double> > b_p_cc_var = b.getComponentVariable(1);
     const int x_p_idx = x.getComponentDescriptorIndex(1);
     const int b_p_idx = b.getComponentDescriptorIndex(1);
 
@@ -243,7 +244,7 @@ CIBStaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrate
 } // setPhysicalBcCoefs
 
 void
-CIBStaggeredStokesSolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+CIBStaggeredStokesSolver::setPhysicalBoundaryHelper(SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_helper);
@@ -256,8 +257,8 @@ bool
 CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<double>& b)
 {
     // Create packaged vectors for the Saddle point solver.
-    d_x_wide->copyVector(Pointer<SAMRAIVectorRealNd<double> >(&x, false));
-    d_b_wide->copyVector(Pointer<SAMRAIVectorRealNd<double> >(&b, false));
+    d_x_wide->copyVector(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&x, false));
+    d_b_wide->copyVector(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&b, false));
 
     // Wrap SAMRAI vector into PETSc Vec
     Vec u_p = PETScSAMRAIVectorReal::createPETScVector(d_x_wide);
@@ -335,17 +336,17 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVecto
 
     RefineAlgorithmNd ghost_fill_alg;
     ghost_fill_alg.registerRefine(d_wide_u_idx, d_wide_u_idx, d_wide_u_idx, nullptr);
-    Pointer<PatchHierarchyNd> hierarchy = x.getPatchHierarchy();
-    Pointer<RefineScheduleNd> ghost_fill_schd = ghost_fill_alg.createSchedule(hierarchy->getPatchLevel(0));
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = x.getPatchHierarchy();
+    SAMRAIPointer<RefineScheduleNd> ghost_fill_schd = ghost_fill_alg.createSchedule(hierarchy->getPatchLevel(0));
     ghost_fill_schd->fillData(half_time);
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
 
 #if 0
-    Pointer<CIBFEMethod> ib_method_ops = d_cib_strategy;
+    SAMRAIPointer<CIBFEMethod> ib_method_ops = d_cib_strategy;
     bool cached_compute_L2_projection = ib_method_ops->setComputeVelL2Projection(true);
     ib_method_ops->interpolateVelocity(d_wide_u_idx,
-                                       std::vector<Pointer<CoarsenScheduleNd > >(),
-                                       std::vector<Pointer<RefineScheduleNd > >(),
+                                       std::vector<SAMRAIPointer<CoarsenScheduleNd > >(),
+                                       std::vector<SAMRAIPointer<RefineScheduleNd > >(),
                                        half_time);
     ib_method_ops->setComputeVelL2Projection(cached_compute_L2_projection);
     d_cib_strategy->getInterpolatedVelocity(V, half_time);
@@ -355,10 +356,10 @@ CIBStaggeredStokesSolver::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVecto
 #endif
 
 #if 0
-    Pointer<IBStrategy> ib_method_ops = d_cib_strategy;
+    SAMRAIPointer<IBStrategy> ib_method_ops = d_cib_strategy;
     ib_method_ops->interpolateVelocity(d_wide_u_idx,
-                                       std::vector<Pointer<CoarsenScheduleNd > >(),
-                                       std::vector<Pointer<RefineScheduleNd > >(),
+                                       std::vector<SAMRAIPointer<CoarsenScheduleNd > >(),
+                                       std::vector<SAMRAIPointer<RefineScheduleNd > >(),
                                        half_time);
     d_cib_strategy->getInterpolatedVelocity(V, half_time);
     VecView(V, PETSC_VIEWER_STDOUT_WORLD);
@@ -385,12 +386,12 @@ CIBStaggeredStokesSolver::deallocateSolverState()
     }
 
     // Deallocate widened patch data.
-    Pointer<PatchHierarchyNd> hierarchy = d_x_wide->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = d_x_wide->getPatchHierarchy();
     const int coarsest_ln = d_x_wide->getCoarsestLevelNumber();
     const int finest_ln = d_x_wide->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_wide_u_idx)) level->deallocatePatchData(d_wide_u_idx);
         if (level->checkAllocated(d_wide_f_idx)) level->deallocatePatchData(d_wide_f_idx);
     }

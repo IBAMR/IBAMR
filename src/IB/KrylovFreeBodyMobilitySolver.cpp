@@ -58,9 +58,9 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 KrylovFreeBodyMobilitySolver::KrylovFreeBodyMobilitySolver(std::string object_name,
-                                                           Pointer<Database> input_db,
+                                                           SAMRAIPointer<Database> input_db,
                                                            std::string default_options_prefix,
-                                                           Pointer<CIBStrategy> cib_strategy,
+                                                           SAMRAIPointer<CIBStrategy> cib_strategy,
                                                            MPI_Comm petsc_comm)
     : d_object_name(std::move(object_name)),
       d_options_prefix(std::move(default_options_prefix)),
@@ -108,7 +108,7 @@ KrylovFreeBodyMobilitySolver::~KrylovFreeBodyMobilitySolver()
 } // ~KrylovFreeBodyMobilitySolver
 
 void
-KrylovFreeBodyMobilitySolver::setMobilitySolver(Pointer<CIBMobilitySolver> mobility_solver)
+KrylovFreeBodyMobilitySolver::setMobilitySolver(SAMRAIPointer<CIBMobilitySolver> mobility_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(mobility_solver);

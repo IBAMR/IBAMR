@@ -187,9 +187,9 @@ yPosition(double s, void* params)
 } // namespace
 
 IBEELKinematics3d::IBEELKinematics3d(const std::string& object_name,
-                                     Pointer<Database> input_db,
+                                     SAMRAIPointer<Database> input_db,
                                      LDataManager* l_data_manager,
-                                     Pointer<PatchHierarchyNd> patch_hierarchy,
+                                     SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                      bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_mesh_width(NDIM),
@@ -226,7 +226,7 @@ IBEELKinematics3d::~IBEELKinematics3d()
 } // ~IBEELKinematics3d
 
 void
-IBEELKinematics3d::putToDatabase(Pointer<Database> db)
+IBEELKinematics3d::putToDatabase(SAMRAIPointer<Database> db)
 {
     db->putDouble("d_current_time", d_current_time);
     db->putDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
@@ -240,8 +240,8 @@ IBEELKinematics3d::putToDatabase(Pointer<Database> db)
 void
 IBEELKinematics3d::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -262,7 +262,7 @@ IBEELKinematics3d::getFromRestart()
 } // getFromRestart
 
 void
-IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchyNd> patch_hierarchy)
+IBEELKinematics3d::setImmersedBodyLayout(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy)
 {
     const StructureParameters& struct_param = getStructureParameters();
     const int coarsest_ln = struct_param.getCoarsestLevelNumber();
@@ -278,10 +278,10 @@ IBEELKinematics3d::setImmersedBodyLayout(Pointer<PatchHierarchyNd> patch_hierarc
     }
 
     // Get Background mesh related data.
-    Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(coarsest_ln);
+    SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(coarsest_ln);
     PatchLevelNd::Iterator p(level);
-    Pointer<PatchNd> patch = level->getPatch(p());
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (int dim = 0; dim < NDIM; ++dim)
     {

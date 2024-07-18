@@ -75,7 +75,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBRedundantInitializer(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBRedundantInitializer(std::string object_name, IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -85,7 +85,7 @@ public:
     /*!
      * \brief Register a Silo data writer with the IB initializer object.
      */
-    void registerLSiloDataWriter(SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> silo_writer);
+    void registerLSiloDataWriter(IBTK::SAMRAIPointer<IBTK::LSiloDataWriter> silo_writer);
 
     /*!
      * \brief Determine whether there are any Lagrangian nodes on the specified
@@ -100,14 +100,14 @@ public:
      * \return A boolean value indicating whether or not all Lagrangian data is
      * within the computational domain specified by the patch hierarchy.
      */
-    bool getIsAllLagrangianDataInDomain(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy) const override;
+    bool getIsAllLagrangianDataInDomain(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy) const override;
 
     /*!
      * \brief Determine the number of global nodes on the specified patch level.
      *
      * \return The number of global nodes on the specified level.
      */
-    unsigned int computeGlobalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    unsigned int computeGlobalNodeCountOnPatchLevel(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                                     int level_number,
                                                     double init_data_time,
                                                     bool can_be_refined,
@@ -118,7 +118,7 @@ public:
      *
      * \return The number of local nodes on the specified level.
      */
-    unsigned int computeLocalNodeCountOnPatchLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    unsigned int computeLocalNodeCountOnPatchLevel(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                                    int level_number,
                                                    double init_data_time,
                                                    bool can_be_refined,
@@ -405,9 +405,9 @@ public:
     unsigned int initializeDataOnPatchLevel(int lag_node_index_idx,
                                             unsigned int global_index_offset,
                                             unsigned int local_index_offset,
-                                            SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                            SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                            IBTK::SAMRAIPointer<IBTK::LData> X_data,
+                                            IBTK::SAMRAIPointer<IBTK::LData> U_data,
+                                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                             int level_number,
                                             double init_data_time,
                                             bool can_be_refined,
@@ -422,9 +422,9 @@ public:
      */
     unsigned int initializeMassDataOnPatchLevel(unsigned int global_index_offset,
                                                 unsigned int local_index_offset,
-                                                SAMRAI::tbox::Pointer<IBTK::LData> M_data,
-                                                SAMRAI::tbox::Pointer<IBTK::LData> K_data,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                                IBTK::SAMRAIPointer<IBTK::LData> M_data,
+                                                IBTK::SAMRAIPointer<IBTK::LData> K_data,
+                                                IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                                 int level_number,
                                                 double init_data_time,
                                                 bool can_be_refined,
@@ -439,8 +439,8 @@ public:
      */
     unsigned int initializeDirectorDataOnPatchLevel(unsigned int global_index_offset,
                                                     unsigned int local_index_offset,
-                                                    SAMRAI::tbox::Pointer<IBTK::LData> D_data,
-                                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                                    IBTK::SAMRAIPointer<IBTK::LData> D_data,
+                                                    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                                     int level_number,
                                                     double init_data_time,
                                                     bool can_be_refined,
@@ -456,7 +456,7 @@ public:
      * that will reside in any yet-to-be-constructed level(s) of the patch
      * hierarchy.
      */
-    void tagCellsForInitialRefinement(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void tagCellsForInitialRefinement(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                       int level_number,
                                       double error_data_time,
                                       int tag_index) override;
@@ -565,16 +565,16 @@ protected:
      * specified patch.
      */
     void getPatchVertices(std::vector<std::pair<int, int> >& point_indices,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
-                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy) const;
+                          IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
+                          IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy) const;
 
     /*!
      * \brief Determine the indices of any vertices associated with a given
      * level number initially located within the specified patch.
      */
     void getPatchVerticesAtLevel(std::vector<std::pair<int, int> >& point_indices,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  int level_number) const;
 
     /*!
@@ -635,7 +635,7 @@ protected:
     /*!
      * \return The specification objects associated with the specified vertex.
      */
-    virtual std::vector<SAMRAI::tbox::Pointer<IBTK::Streamable> >
+    virtual std::vector<IBTK::SAMRAIPointer<IBTK::Streamable> >
     initializeNodeData(const std::pair<int, int>& point_index,
                        unsigned int global_index_offset,
                        int level_number) const;
@@ -645,7 +645,7 @@ protected:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -664,7 +664,7 @@ protected:
     /*
      * An (optional) Lagrangian Silo data writer.
      */
-    SAMRAI::tbox::Pointer<IBTK::LSiloDataWriter> d_silo_writer;
+    IBTK::SAMRAIPointer<IBTK::LSiloDataWriter> d_silo_writer;
 
     /*
      * The base filenames of the structures are used to generate unique names

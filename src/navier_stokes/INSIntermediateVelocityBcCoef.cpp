@@ -120,10 +120,10 @@ INSIntermediateVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSIntermediateVelocityBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
-                                          Pointer<ArrayDataNd<double> >& bcoef_data,
-                                          Pointer<ArrayDataNd<double> >& gcoef_data,
-                                          const Pointer<VariableNd>& variable,
+INSIntermediateVelocityBcCoef::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                          SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                          SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                          const SAMRAIPointer<VariableNd>& variable,
                                           const PatchNd& patch,
                                           const BoundaryBoxNd& bdry_box,
                                           double fill_time) const

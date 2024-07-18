@@ -39,7 +39,7 @@
 #include <ibtk/app_namespaces.h>
 
 void
-print_patch_descriptor_data(Pointer<PatchDescriptorNd> descriptor)
+print_patch_descriptor_data(SAMRAIPointer<PatchDescriptorNd> descriptor)
 {
     int max_number_registered_components = descriptor->getMaxNumberRegisteredComponents();
     pout << "patch descriptor configuration:\n";
@@ -74,20 +74,20 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -96,21 +96,21 @@ main(int argc, char* argv[])
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
         pout << "adding double variables\n";
-        Pointer<CellVariableNd<double> > cc_double_var = new CellVariableNd<double>("cc_double");
-        Pointer<EdgeVariableNd<double> > ec_double_var = new EdgeVariableNd<double>("ec_double");
-        Pointer<FaceVariableNd<double> > fc_double_var = new FaceVariableNd<double>("fc_double");
-        Pointer<NodeVariableNd<double> > nc_double_var = new NodeVariableNd<double>("nc_double");
-        Pointer<OuteredgeVariableNd<double> > oec_double_var = new OuteredgeVariableNd<double>("oec_double");
-        Pointer<OuterfaceVariableNd<double> > ofc_double_var = new OuterfaceVariableNd<double>("ofc_double");
-        Pointer<OuternodeVariableNd<double> > onc_double_var = new OuternodeVariableNd<double>("onc_double");
-        Pointer<OutersideVariableNd<double> > osc_double_var = new OutersideVariableNd<double>("osc_double");
-        Pointer<SideVariableNd<double> > sc_double_var = new SideVariableNd<double>("sc_double");
-        std::vector<Pointer<VariableNd> > double_vars{ cc_double_var,  ec_double_var,  fc_double_var,
-                                                       nc_double_var,  oec_double_var, ofc_double_var,
-                                                       onc_double_var, osc_double_var, sc_double_var };
+        SAMRAIPointer<CellVariableNd<double> > cc_double_var = new CellVariableNd<double>("cc_double");
+        SAMRAIPointer<EdgeVariableNd<double> > ec_double_var = new EdgeVariableNd<double>("ec_double");
+        SAMRAIPointer<FaceVariableNd<double> > fc_double_var = new FaceVariableNd<double>("fc_double");
+        SAMRAIPointer<NodeVariableNd<double> > nc_double_var = new NodeVariableNd<double>("nc_double");
+        SAMRAIPointer<OuteredgeVariableNd<double> > oec_double_var = new OuteredgeVariableNd<double>("oec_double");
+        SAMRAIPointer<OuterfaceVariableNd<double> > ofc_double_var = new OuterfaceVariableNd<double>("ofc_double");
+        SAMRAIPointer<OuternodeVariableNd<double> > onc_double_var = new OuternodeVariableNd<double>("onc_double");
+        SAMRAIPointer<OutersideVariableNd<double> > osc_double_var = new OutersideVariableNd<double>("osc_double");
+        SAMRAIPointer<SideVariableNd<double> > sc_double_var = new SideVariableNd<double>("sc_double");
+        std::vector<SAMRAIPointer<VariableNd> > double_vars{ cc_double_var,  ec_double_var,  fc_double_var,
+                                                             nc_double_var,  oec_double_var, ofc_double_var,
+                                                             onc_double_var, osc_double_var, sc_double_var };
         std::vector<int> double_idxs;
         for (const auto& var : double_vars)
         {
@@ -119,19 +119,19 @@ main(int argc, char* argv[])
         print_patch_descriptor_data(patch_hierarchy->getPatchDescriptor());
 
         pout << "adding float variables\n";
-        Pointer<CellVariableNd<float> > cc_float_var = new CellVariableNd<float>("cc_float");
-        Pointer<EdgeVariableNd<float> > ec_float_var = new EdgeVariableNd<float>("ec_float");
-        Pointer<FaceVariableNd<float> > fc_float_var = new FaceVariableNd<float>("fc_float");
-        Pointer<NodeVariableNd<float> > nc_float_var = new NodeVariableNd<float>("nc_float");
-        Pointer<OuteredgeVariableNd<float> > oec_float_var = new OuteredgeVariableNd<float>("oec_float");
-        Pointer<OuterfaceVariableNd<float> > ofc_float_var = new OuterfaceVariableNd<float>("ofc_float");
-        Pointer<OuternodeVariableNd<float> > onc_float_var = new OuternodeVariableNd<float>("onc_float");
-        Pointer<OutersideVariableNd<float> > osc_float_var = new OutersideVariableNd<float>("osc_float");
-        Pointer<SideVariableNd<float> > sc_float_var = new SideVariableNd<float>("sc_float");
+        SAMRAIPointer<CellVariableNd<float> > cc_float_var = new CellVariableNd<float>("cc_float");
+        SAMRAIPointer<EdgeVariableNd<float> > ec_float_var = new EdgeVariableNd<float>("ec_float");
+        SAMRAIPointer<FaceVariableNd<float> > fc_float_var = new FaceVariableNd<float>("fc_float");
+        SAMRAIPointer<NodeVariableNd<float> > nc_float_var = new NodeVariableNd<float>("nc_float");
+        SAMRAIPointer<OuteredgeVariableNd<float> > oec_float_var = new OuteredgeVariableNd<float>("oec_float");
+        SAMRAIPointer<OuterfaceVariableNd<float> > ofc_float_var = new OuterfaceVariableNd<float>("ofc_float");
+        SAMRAIPointer<OuternodeVariableNd<float> > onc_float_var = new OuternodeVariableNd<float>("onc_float");
+        SAMRAIPointer<OutersideVariableNd<float> > osc_float_var = new OutersideVariableNd<float>("osc_float");
+        SAMRAIPointer<SideVariableNd<float> > sc_float_var = new SideVariableNd<float>("sc_float");
 
-        std::vector<Pointer<VariableNd> > float_vars{ cc_float_var,  ec_float_var,  fc_float_var,
-                                                      nc_float_var,  oec_float_var, ofc_float_var,
-                                                      onc_float_var, osc_float_var, sc_float_var };
+        std::vector<SAMRAIPointer<VariableNd> > float_vars{ cc_float_var,  ec_float_var,  fc_float_var,
+                                                            nc_float_var,  oec_float_var, ofc_float_var,
+                                                            onc_float_var, osc_float_var, sc_float_var };
         std::vector<int> float_idxs;
         for (const auto& var : float_vars)
         {
@@ -140,18 +140,19 @@ main(int argc, char* argv[])
         print_patch_descriptor_data(patch_hierarchy->getPatchDescriptor());
 
         pout << "adding int variables\n";
-        Pointer<CellVariableNd<int> > cc_int_var = new CellVariableNd<int>("cc_int");
-        Pointer<EdgeVariableNd<int> > ec_int_var = new EdgeVariableNd<int>("ec_int");
-        Pointer<FaceVariableNd<int> > fc_int_var = new FaceVariableNd<int>("fc_int");
-        Pointer<NodeVariableNd<int> > nc_int_var = new NodeVariableNd<int>("nc_int");
-        Pointer<OuteredgeVariableNd<int> > oec_int_var = new OuteredgeVariableNd<int>("oec_int");
-        Pointer<OuterfaceVariableNd<int> > ofc_int_var = new OuterfaceVariableNd<int>("ofc_int");
-        Pointer<OuternodeVariableNd<int> > onc_int_var = new OuternodeVariableNd<int>("onc_int");
-        Pointer<OutersideVariableNd<int> > osc_int_var = new OutersideVariableNd<int>("osc_int");
-        Pointer<SideVariableNd<int> > sc_int_var = new SideVariableNd<int>("sc_int");
+        SAMRAIPointer<CellVariableNd<int> > cc_int_var = new CellVariableNd<int>("cc_int");
+        SAMRAIPointer<EdgeVariableNd<int> > ec_int_var = new EdgeVariableNd<int>("ec_int");
+        SAMRAIPointer<FaceVariableNd<int> > fc_int_var = new FaceVariableNd<int>("fc_int");
+        SAMRAIPointer<NodeVariableNd<int> > nc_int_var = new NodeVariableNd<int>("nc_int");
+        SAMRAIPointer<OuteredgeVariableNd<int> > oec_int_var = new OuteredgeVariableNd<int>("oec_int");
+        SAMRAIPointer<OuterfaceVariableNd<int> > ofc_int_var = new OuterfaceVariableNd<int>("ofc_int");
+        SAMRAIPointer<OuternodeVariableNd<int> > onc_int_var = new OuternodeVariableNd<int>("onc_int");
+        SAMRAIPointer<OutersideVariableNd<int> > osc_int_var = new OutersideVariableNd<int>("osc_int");
+        SAMRAIPointer<SideVariableNd<int> > sc_int_var = new SideVariableNd<int>("sc_int");
 
-        std::vector<Pointer<VariableNd> > int_vars{ cc_int_var,  ec_int_var,  fc_int_var,  nc_int_var, oec_int_var,
-                                                    ofc_int_var, onc_int_var, osc_int_var, sc_int_var };
+        std::vector<SAMRAIPointer<VariableNd> > int_vars{ cc_int_var,  ec_int_var,  fc_int_var,
+                                                          nc_int_var,  oec_int_var, ofc_int_var,
+                                                          onc_int_var, osc_int_var, sc_int_var };
         std::vector<int> int_idxs;
         for (const auto& var : int_vars)
         {

@@ -103,8 +103,8 @@ namespace IBAMR
 namespace
 {
 // Timers.
-static Pointer<Timer> t_collectNeighboringPatchElements;
-static Pointer<Timer> t_buildIntersectionMap;
+static SAMRAIPointer<Timer> t_collectNeighboringPatchElements;
+static SAMRAIPointer<Timer> t_buildIntersectionMap;
 
 template <class T1, class T2>
 inline T1
@@ -119,7 +119,7 @@ const double FESurfaceDistanceEvaluator::s_large_distance = 1234567.0;
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 FESurfaceDistanceEvaluator::FESurfaceDistanceEvaluator(std::string object_name,
-                                                       Pointer<PatchHierarchyNd> patch_hierarchy,
+                                                       SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                                        const libMesh::Mesh& mesh,
                                                        const BoundaryMesh& bdry_mesh,
                                                        const int gcw,
@@ -177,7 +177,7 @@ FESurfaceDistanceEvaluator::mapIntersections()
 
     // Loop over patches on finest level, while keeping track of the local patch
     // indexing.
-    Pointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(finest_ln);
+    SAMRAIPointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(finest_ln);
     int local_patch_num = 0;
 
     // Desired ghost cell width.
@@ -224,7 +224,7 @@ FESurfaceDistanceEvaluator::mapIntersections()
     IBTK_MPI::maxReduction(elem_tr.data(), 3);
 
     // Structure bounding box, taking into account ghost cell width.
-    Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     const double* const dx0 = grid_geom->getDx();
     const IntVectorNd& level_ratio = level->getRatio();
     double level_dx[NDIM] = { 0.0 };
@@ -255,9 +255,9 @@ FESurfaceDistanceEvaluator::mapIntersections()
         const size_t num_active_patch_elems = patch_elems.size();
         if (!num_active_patch_elems) continue;
 
-        Pointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* patch_X_lower = patch_geom->getXLower();
         const SAMRAI::hier::IndexNd& patch_lower_index = patch_box.lower();
         const double* const patch_dx = patch_geom->getDx();
@@ -361,17 +361,17 @@ FESurfaceDistanceEvaluator::computeSignedDistance(int n_idx, int d_idx)
 
     // Loop over patches on finest level.
     const int finest_ln = d_patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(finest_ln);
+    SAMRAIPointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(finest_ln);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
         const SAMRAI::hier::IndexNd& patch_lower_index = patch_box.lower();
-        Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* patch_X_lower = patch_geom->getXLower();
         const double* const patch_dx = patch_geom->getDx();
-        Pointer<CellDataNd<double> > n_data = patch->getPatchData(n_idx);
-        Pointer<CellDataNd<double> > d_data = patch->getPatchData(d_idx);
+        SAMRAIPointer<CellDataNd<double> > n_data = patch->getPatchData(n_idx);
+        SAMRAIPointer<CellDataNd<double> > d_data = patch->getPatchData(d_idx);
 
         // Note that we only work with cells that satisfy the intersecting criteria.
         for (BoxNd::Iterator it(patch_box); it; it++)
@@ -580,14 +580,14 @@ FESurfaceDistanceEvaluator::calculateSurfaceNormals()
 /////////////////////////////// STATIC ///////////////////////////////////////
 void
 FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
-                                                        Pointer<PatchHierarchyNd> patch_hierarchy,
+                                                        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                                         double large_distance)
 {
     // Allocate scratch variable on the finest level.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    Pointer<SAMRAI::hier::VariableNd> data_var;
+    SAMRAIPointer<SAMRAI::hier::VariableNd> data_var;
     var_db->mapIndexToVariable(D_idx, data_var);
-    Pointer<CellVariableNd<double> > D_var = data_var;
+    SAMRAIPointer<CellVariableNd<double> > D_var = data_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!D_var.isNull());
 #endif
@@ -595,7 +595,7 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
     const int D_iter_idx = var_db->registerVariableAndContext(
         D_var, var_db->getContext("FESurfaceDistanceEvaluator::updateSignAwayFromInterface::ITER"), cell_ghosts);
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(finest_ln);
+    SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(finest_ln);
     level->allocatePatchData(D_iter_idx, /*time*/ 0.0);
 
     // Copy d_idx to D_iter_idx.
@@ -608,7 +608,7 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
     // Fill ghost cells.
     RefineAlgorithmNd ghost_fill_alg;
     ghost_fill_alg.registerRefine(D_iter_idx, D_iter_idx, D_iter_idx, nullptr);
-    Pointer<RefineScheduleNd> ghost_fill_sched = ghost_fill_alg.createSchedule(level);
+    SAMRAIPointer<RefineScheduleNd> ghost_fill_sched = ghost_fill_alg.createSchedule(level);
 
     int n_global_updates = 1;
     while (n_global_updates > 0)
@@ -617,7 +617,7 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
         int n_local_updates = 0;
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
 
             // If the patch box doesn't intersect the structure box, no need to do
@@ -626,7 +626,7 @@ FESurfaceDistanceEvaluator::updateSignAwayFromInterface(int D_idx,
 
             const SAMRAI::hier::IndexNd& patch_lower_index = patch_box.lower();
             const SAMRAI::hier::IndexNd& patch_upper_index = patch_box.upper();
-            Pointer<CellDataNd<double> > D_iter_data = patch->getPatchData(D_iter_idx);
+            SAMRAIPointer<CellDataNd<double> > D_iter_data = patch->getPatchData(D_iter_idx);
             double* const D = D_iter_data->getPointer(0);
             const int D_ghosts = (D_iter_data->getGhostCellWidth()).max();
 
@@ -1343,7 +1343,7 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
     d_active_neighbor_patch_bdry_elem_map.clear();
 
     // Setup data structures used to assign elements to patches.
-    Pointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(level_number);
     const int num_local_patches = level->getProcessorMapping().getNumberOfLocalIndices();
     d_active_neighbor_patch_bdry_elem_map.resize(num_local_patches);
     IntVectorNd ghost_width = d_gcw;
@@ -1352,8 +1352,8 @@ FESurfaceDistanceEvaluator::collectNeighboringPatchElements(int level_number)
     for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         d_active_neighbor_patch_bdry_elem_map[local_patch_num] = std::vector<const Elem*>();
-        Pointer<PatchNd> patch = level->getPatch(p());
-        const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         IBTK::Point x_lower;
         for (unsigned int d = 0; d < NDIM; ++d) x_lower[d] = pgeom->getXLower()[d];
         IBTK::Point x_upper;

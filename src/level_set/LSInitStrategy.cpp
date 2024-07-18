@@ -75,7 +75,7 @@ LSInitStrategy::setReinitializeLSData(bool reinit_ls_data)
 } // setReinitializeLSData
 
 void
-LSInitStrategy::putToDatabase(Pointer<Database> /*db*/)
+LSInitStrategy::putToDatabase(SAMRAIPointer<Database> /*db*/)
 {
     // intentionally blank
     return;

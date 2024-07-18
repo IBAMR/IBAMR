@@ -45,11 +45,11 @@ LevelSetGasInitialCondition::isTimeDependent() const
 
 void
 LevelSetGasInitialCondition::setDataOnPatch(const int data_idx,
-                                            Pointer<VariableNd> /*var*/,
-                                            Pointer<PatchNd> patch,
+                                            SAMRAIPointer<VariableNd> /*var*/,
+                                            SAMRAIPointer<PatchNd> patch,
                                             const double /*data_time*/,
                                             const bool initial_time,
-                                            Pointer<PatchLevelNd> /*patch_level*/)
+                                            SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
     // Set the level set function throughout the domain
     if (initial_time)
@@ -59,7 +59,7 @@ LevelSetGasInitialCondition::setDataOnPatch(const int data_idx,
             TBOX_ERROR("Presently not implemented for NDIM != 3");
         }
 
-        Pointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
         const BoxNd& patch_box = patch->getBox();
         for (BoxNd::Iterator it(patch_box); it; it++)
         {
@@ -67,7 +67,7 @@ LevelSetGasInitialCondition::setDataOnPatch(const int data_idx,
 
             // Get physical coordinates
             IBTK::Vector coord = IBTK::Vector::Zero();
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
             const hier::IndexNd& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();

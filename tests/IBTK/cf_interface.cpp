@@ -48,20 +48,20 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "ghost_cells.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "ghost_cells.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -69,7 +69,7 @@ main(int argc, char* argv[])
                                     load_balancer);
         // Create cell-centered and node-centered quantities, and initialize them with a function read from the input
         // file
-        Pointer<VariableNd> Q_var;
+        SAMRAIPointer<VariableNd> Q_var;
         if (input_db->getString("CENTERING").compare("CELL") == 0)
             Q_var = new CellVariableNd<double>("Q");
         else if (input_db->getString("CENTERING").compare("SIDE") == 0)
@@ -101,23 +101,23 @@ main(int argc, char* argv[])
         int coarsest_ln = 0, finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(Q_idx);
         }
 
         // Fill in initial data
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double* const xlow = pgeom->getXLower();
                 const hier::IndexNd& idx_low = patch->getBox().lower();
-                Pointer<CellDataNd<double> > Q_cc_data = patch->getPatchData(Q_idx);
-                Pointer<SideDataNd<double> > Q_sc_data = patch->getPatchData(Q_idx);
+                SAMRAIPointer<CellDataNd<double> > Q_cc_data = patch->getPatchData(Q_idx);
+                SAMRAIPointer<SideDataNd<double> > Q_sc_data = patch->getPatchData(Q_idx);
                 if (Q_cc_data)
                 {
                     for (CellIteratorNd ci(patch->getBox()); ci; ci++)
@@ -159,16 +159,16 @@ main(int argc, char* argv[])
 
         {
             int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
                 const double* const dx = pgeom->getDx();
                 const double* const xlow = pgeom->getXLower();
                 const hier::IndexNd& idx_low = patch->getBox().lower();
-                Pointer<CellDataNd<double> > Q_cc_data = patch->getPatchData(Q_idx);
-                Pointer<SideDataNd<double> > Q_sc_data = patch->getPatchData(Q_idx);
+                SAMRAIPointer<CellDataNd<double> > Q_cc_data = patch->getPatchData(Q_idx);
+                SAMRAIPointer<SideDataNd<double> > Q_sc_data = patch->getPatchData(Q_idx);
                 IntVectorNd ghost_cells = Q_cc_data ? Q_cc_data->getGhostCellWidth() : Q_sc_data->getGhostCellWidth();
                 // Only print ghost cells on the left side.
                 BoxNd ghost_box = patch->getBox();
@@ -227,7 +227,7 @@ main(int argc, char* argv[])
         // Deallocate patch data
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(Q_idx);
         }
 

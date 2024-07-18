@@ -78,15 +78,15 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
          ln <= (finest_ln == IBTK::invalid_level_number ? finest_hier_level : finest_ln);
          ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
             const int patch_num = p();
-            Pointer<PatchNd> patch = level->getPatch(patch_num);
-            Pointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(patch_num);
+            SAMRAIPointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
             if (pgeom->getTouchesRegularBoundary())
             {
-                Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_data_idx);
+                SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_data_idx);
                 BoxNd bc_coef_box;
                 BoundaryBoxNd trimmed_bdry_box;
                 const Array<BoundaryBoxNd>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
@@ -96,11 +96,16 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                     const BoundaryBoxNd& bdry_box = physical_codim1_boxes[n];
                     StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
                     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
-                    Pointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                    Pointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                    Pointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(
-                        acoef_data, bcoef_data, gcoef_data, Pointer<VariableNd>(), *patch, trimmed_bdry_box, fill_time);
+                    SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                    u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
+                                                             bcoef_data,
+                                                             gcoef_data,
+                                                             SAMRAIPointer<VariableNd>(),
+                                                             *patch,
+                                                             trimmed_bdry_box,
+                                                             fill_time);
                     auto const extended_bc_coef =
                         dynamic_cast<ExtendedRobinBcCoefStrategy*>(u_bc_coefs[bdry_normal_axis]);
                     if (homogeneous_bc && !extended_bc_coef) gcoef_data->fillAll(0.0);
@@ -139,13 +144,13 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
          ln <= (finest_ln == IBTK::invalid_level_number ? finest_hier_level : finest_ln);
          ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             if (patch->getPatchGeometry()->getTouchesRegularBoundary())
             {
-                Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_data_idx);
+                SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_data_idx);
                 enforceDivergenceFreeConditionAtBoundary(u_data, patch, bdry_tag);
             }
         }
@@ -154,18 +159,19 @@ StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
 } // enforceDivergenceFreeConditionAtBoundary
 
 void
-StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(Pointer<SideDataNd<double> > u_data,
-                                                                                Pointer<PatchNd> patch,
-                                                                                const short int bdry_tag) const
+StaggeredStokesPhysicalBoundaryHelper::enforceDivergenceFreeConditionAtBoundary(
+    SAMRAIPointer<SideDataNd<double> > u_data,
+    SAMRAIPointer<PatchNd> patch,
+    const short int bdry_tag) const
 {
     if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
     const int patch_num = patch->getPatchNumber();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const Array<BoundaryBoxNd>& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;
     const int n_physical_codim1_boxes = physical_codim1_boxes.size();
-    const std::vector<Pointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs =
+    const std::vector<SAMRAIPointer<ArrayDataNd<bool> > >& dirichlet_bdry_locs =
         d_dirichlet_bdry_locs[ln].find(patch_num)->second;
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {

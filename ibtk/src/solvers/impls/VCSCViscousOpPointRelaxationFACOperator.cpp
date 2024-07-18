@@ -318,7 +318,7 @@ do_local_data_update(SmootherType smoother_type)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 VCSCViscousOpPointRelaxationFACOperator::VCSCViscousOpPointRelaxationFACOperator(std::string object_name,
-                                                                                 const Pointer<Database> input_db,
+                                                                                 const SAMRAIPointer<Database> input_db,
                                                                                  std::string default_options_prefix)
     : SCPoissonPointRelaxationFACOperator(std::move(object_name), input_db, std::move(default_options_prefix))
 {
@@ -357,7 +357,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<double>&
 
     IBTK_TIMER_START(t_smooth_error);
 
-    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+    SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
     const int error_idx = error.getComponentDescriptorIndex(0);
     const int scratch_idx = d_scratch_idx;
 
@@ -376,9 +376,9 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<double>&
         int patch_counter = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<SideDataNd<double> > error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideDataNd<double> > scratch_data = patch->getPatchData(scratch_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<SideDataNd<double> > error_data = error.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SideDataNd<double> > scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
             const BoxNd& ghost_box = error_data->getGhostBox();
             TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
@@ -408,9 +408,9 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<double>&
                 int patch_counter = 0;
                 for (PatchLevelNd::Iterator p(level); p; p++, ++patch_counter)
                 {
-                    Pointer<PatchNd> patch = level->getPatch(p());
-                    Pointer<SideDataNd<double> > error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<SideDataNd<double> > scratch_data = patch->getPatchData(scratch_idx);
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                    SAMRAIPointer<SideDataNd<double> > error_data = error.getComponentPatchData(0, *patch);
+                    SAMRAIPointer<SideDataNd<double> > scratch_data = patch->getPatchData(scratch_idx);
 #if !defined(NDEBUG)
                     const BoxNd& ghost_box = error_data->getGhostBox();
                     TBOX_ASSERT(ghost_box == scratch_data->getGhostBox());
@@ -435,7 +435,7 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<double>&
             const IntVectorNd& ratio = level->getRatioToCoarserLevel();
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 const IntVectorNd& ghost_width_to_fill = d_gcw;
                 d_cf_bdry_op->computeNormalExtension(*patch, ratio, ghost_width_to_fill);
             }
@@ -449,14 +449,14 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<double>&
         int patch_counter = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<SideDataNd<double> > error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideDataNd<double> > residual_data = residual.getComponentPatchData(0, *patch);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<SideDataNd<double> > error_data = error.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SideDataNd<double> > residual_data = residual.getComponentPatchData(0, *patch);
 #if (NDIM == 2)
-            Pointer<NodeDataNd<double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+            SAMRAIPointer<NodeDataNd<double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
 #endif
 #if (NDIM == 3)
-            Pointer<EdgeDataNd<double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
+            SAMRAIPointer<EdgeDataNd<double> > mu_data = patch->getPatchData(d_poisson_spec.getDPatchDataId());
 #endif
 #if !defined(NDEBUG)
             const BoxNd& ghost_box = error_data->getGhostBox();
@@ -468,15 +468,15 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<double>&
             TBOX_ASSERT(error_data->getDepth() == residual_data->getDepth());
             TBOX_ASSERT(error_data->getDepth() == mu_data->getDepth());
 #endif
-            Pointer<SideDataNd<double> > C_data = nullptr;
+            SAMRAIPointer<SideDataNd<double> > C_data = nullptr;
             if (d_poisson_spec.cIsVariable())
             {
                 C_data = patch->getPatchData(d_poisson_spec.getCPatchDataId());
             }
 
-            Pointer<SideDataNd<int> > mask_data = patch->getPatchData(d_mask_idx);
+            SAMRAIPointer<SideDataNd<int> > mask_data = patch->getPatchData(d_mask_idx);
             const BoxNd& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
 
             // Copy updated values from neighboring local patches.
@@ -490,8 +490,8 @@ VCSCViscousOpPointRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<double>&
                     {
                         const int src_patch_num = pair.first;
                         const BoxNd& overlap = pair.second;
-                        Pointer<PatchNd> src_patch = level->getPatch(src_patch_num);
-                        Pointer<SideDataNd<double> > src_error_data = error.getComponentPatchData(0, *src_patch);
+                        SAMRAIPointer<PatchNd> src_patch = level->getPatch(src_patch_num);
+                        SAMRAIPointer<SideDataNd<double> > src_error_data = error.getComponentPatchData(0, *src_patch);
                         error_data->getArrayData(axis).copy(
                             src_error_data->getArrayData(axis), overlap, IntVectorNd(0));
                     }
@@ -787,12 +787,12 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorRealNd<doub
     const int sol_idx = solution.getComponentDescriptorIndex(0);
     const int rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const Pointer<SideVariableNd<double> > res_var = residual.getComponentVariable(0);
-    const Pointer<SideVariableNd<double> > sol_var = solution.getComponentVariable(0);
+    const SAMRAIPointer<SideVariableNd<double> > res_var = residual.getComponentVariable(0);
+    const SAMRAIPointer<SideVariableNd<double> > sol_var = solution.getComponentVariable(0);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    Pointer<SideNoCornersFillPattern> fill_pattern = nullptr;
+    SAMRAIPointer<SideNoCornersFillPattern> fill_pattern = nullptr;
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
@@ -846,14 +846,14 @@ VCSCViscousOpPointRelaxationFACOperator::computeResidual(SAMRAIVectorRealNd<doub
                                                    beta,
                                                    d_poisson_spec.getDPatchDataId(),
 #if (NDIM == 2)
-                                                   Pointer<NodeVariableNd<double> >(nullptr),
+                                                   SAMRAIPointer<NodeVariableNd<double> >(nullptr),
 #endif
 #if (NDIM == 3)
-                                                   Pointer<EdgeVariableNd<double> >(nullptr),
+                                                   SAMRAIPointer<EdgeVariableNd<double> >(nullptr),
 #endif
                                                    sol_idx,
                                                    sol_var,
-                                                   Pointer<HierarchyGhostCellInterpolation>(nullptr),
+                                                   SAMRAIPointer<HierarchyGhostCellInterpolation>(nullptr),
                                                    d_solution_time,
                                                    d_D_interp_type,
                                                    d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() :
@@ -905,7 +905,7 @@ VCSCViscousOpPointRelaxationFACOperator::setOperatorScaling(const Array<double> 
     return;
 } // setOperatorScaling
 
-Pointer<PoissonSolver>
+SAMRAIPointer<PoissonSolver>
 VCSCViscousOpPointRelaxationFACOperator::getCoarseSolver()
 {
     return d_coarse_solver;

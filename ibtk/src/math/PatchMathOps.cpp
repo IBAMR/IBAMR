@@ -1494,11 +1494,11 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 void
-PatchMathOps::curl(Pointer<CellDataNd<double> > dst,
-                   const Pointer<CellDataNd<double> > src,
-                   const Pointer<PatchNd> patch) const
+PatchMathOps::curl(SAMRAIPointer<CellDataNd<double> > dst,
+                   const SAMRAIPointer<CellDataNd<double> > src,
+                   const SAMRAIPointer<PatchNd> patch) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1591,11 +1591,11 @@ PatchMathOps::curl(Pointer<CellDataNd<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<CellDataNd<double> > dst,
-                   const Pointer<FaceDataNd<double> > src,
-                   const Pointer<PatchNd> patch) const
+PatchMathOps::curl(SAMRAIPointer<CellDataNd<double> > dst,
+                   const SAMRAIPointer<FaceDataNd<double> > src,
+                   const SAMRAIPointer<PatchNd> patch) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1687,9 +1687,9 @@ PatchMathOps::curl(Pointer<CellDataNd<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<FaceDataNd<double> > dst,
-                   const Pointer<FaceDataNd<double> > src,
-                   const Pointer<PatchNd> patch) const
+PatchMathOps::curl(SAMRAIPointer<FaceDataNd<double> > dst,
+                   const SAMRAIPointer<FaceDataNd<double> > src,
+                   const SAMRAIPointer<PatchNd> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1699,7 +1699,7 @@ PatchMathOps::curl(Pointer<FaceDataNd<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1775,11 +1775,11 @@ PatchMathOps::curl(Pointer<FaceDataNd<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<CellDataNd<double> > dst,
-                   const Pointer<SideDataNd<double> > src,
-                   const Pointer<PatchNd> patch) const
+PatchMathOps::curl(SAMRAIPointer<CellDataNd<double> > dst,
+                   const SAMRAIPointer<SideDataNd<double> > src,
+                   const SAMRAIPointer<PatchNd> patch) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -1871,9 +1871,9 @@ PatchMathOps::curl(Pointer<CellDataNd<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<SideDataNd<double> > dst,
-                   const Pointer<SideDataNd<double> > src,
-                   const Pointer<PatchNd> patch) const
+PatchMathOps::curl(SAMRAIPointer<SideDataNd<double> > dst,
+                   const SAMRAIPointer<SideDataNd<double> > src,
+                   const SAMRAIPointer<PatchNd> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -1883,7 +1883,7 @@ PatchMathOps::curl(Pointer<SideDataNd<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -1959,11 +1959,11 @@ PatchMathOps::curl(Pointer<SideDataNd<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<NodeDataNd<double> > dst,
-                   const Pointer<SideDataNd<double> > src,
-                   const Pointer<PatchNd> patch) const
+PatchMathOps::curl(SAMRAIPointer<NodeDataNd<double> > dst,
+                   const SAMRAIPointer<SideDataNd<double> > src,
+                   const SAMRAIPointer<PatchNd> patch) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const W = dst->getPointer();
@@ -2055,9 +2055,9 @@ PatchMathOps::curl(Pointer<NodeDataNd<double> > dst,
 } // curl
 
 void
-PatchMathOps::curl(Pointer<EdgeDataNd<double> > dst,
-                   const Pointer<SideDataNd<double> > src,
-                   const Pointer<PatchNd> patch) const
+PatchMathOps::curl(SAMRAIPointer<EdgeDataNd<double> > dst,
+                   const SAMRAIPointer<SideDataNd<double> > src,
+                   const SAMRAIPointer<PatchNd> patch) const
 {
 #if (NDIM != 3)
     TBOX_ERROR("PatchMathOps::curl():\n"
@@ -2067,7 +2067,7 @@ PatchMathOps::curl(Pointer<EdgeDataNd<double> > dst,
     NULL_USE(patch);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2143,9 +2143,9 @@ PatchMathOps::curl(Pointer<EdgeDataNd<double> > dst,
 } // curl
 
 void
-PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
-                  const Pointer<NodeDataNd<double> > src,
-                  const Pointer<PatchNd> patch,
+PatchMathOps::rot(SAMRAIPointer<SideDataNd<double> > dst,
+                  const SAMRAIPointer<NodeDataNd<double> > src,
+                  const SAMRAIPointer<PatchNd> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
 {
@@ -2159,7 +2159,7 @@ PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
     NULL_USE(fill_time);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2255,9 +2255,9 @@ PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
 } // rot
 
 void
-PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
-                  const Pointer<CellDataNd<double> > src,
-                  const Pointer<PatchNd> patch,
+PatchMathOps::rot(SAMRAIPointer<SideDataNd<double> > dst,
+                  const SAMRAIPointer<CellDataNd<double> > src,
+                  const SAMRAIPointer<PatchNd> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
 {
@@ -2271,7 +2271,7 @@ PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
     NULL_USE(fill_time);
 #endif
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2376,9 +2376,9 @@ PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
 } // rot
 
 void
-PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
-                  const Pointer<EdgeDataNd<double> > src,
-                  const Pointer<PatchNd> patch,
+PatchMathOps::rot(SAMRAIPointer<SideDataNd<double> > dst,
+                  const SAMRAIPointer<EdgeDataNd<double> > src,
+                  const SAMRAIPointer<PatchNd> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
 {
@@ -2392,7 +2392,7 @@ PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
     NULL_USE(fill_time);
 #endif
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const w0 = dst->getPointer(0);
@@ -2512,9 +2512,9 @@ PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
 } // rot
 
 void
-PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
-                  const Pointer<SideDataNd<double> > src,
-                  const Pointer<PatchNd> patch,
+PatchMathOps::rot(SAMRAIPointer<SideDataNd<double> > dst,
+                  const SAMRAIPointer<SideDataNd<double> > src,
+                  const SAMRAIPointer<PatchNd> patch,
                   CartSideRobinPhysBdryOp* bc_op,
                   const double fill_time) const
 {
@@ -2534,7 +2534,7 @@ PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
         NULL_USE(fill_time);
 #endif
 #if (NDIM == 3)
-        const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
         const BoxNd& patch_box = patch->getBox();
 
@@ -2622,16 +2622,16 @@ PatchMathOps::rot(Pointer<SideDataNd<double> > dst,
 } // rot
 
 void
-PatchMathOps::div(Pointer<CellDataNd<double> > dst,
+PatchMathOps::div(SAMRAIPointer<CellDataNd<double> > dst,
                   const double alpha,
-                  const Pointer<CellDataNd<double> > src1,
+                  const SAMRAIPointer<CellDataNd<double> > src1,
                   const double beta,
-                  const Pointer<CellDataNd<double> > src2,
-                  const Pointer<PatchNd> patch,
+                  const SAMRAIPointer<CellDataNd<double> > src2,
+                  const SAMRAIPointer<PatchNd> patch,
                   const int l,
                   const int m) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2754,16 +2754,16 @@ PatchMathOps::div(Pointer<CellDataNd<double> > dst,
 } // div
 
 void
-PatchMathOps::div(Pointer<CellDataNd<double> > dst,
+PatchMathOps::div(SAMRAIPointer<CellDataNd<double> > dst,
                   const double alpha,
-                  const Pointer<FaceDataNd<double> > src1,
+                  const SAMRAIPointer<FaceDataNd<double> > src1,
                   const double beta,
-                  const Pointer<CellDataNd<double> > src2,
-                  const Pointer<PatchNd> patch,
+                  const SAMRAIPointer<CellDataNd<double> > src2,
+                  const SAMRAIPointer<PatchNd> patch,
                   const int l,
                   const int m) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2869,16 +2869,16 @@ PatchMathOps::div(Pointer<CellDataNd<double> > dst,
 } // div
 
 void
-PatchMathOps::div(Pointer<CellDataNd<double> > dst,
+PatchMathOps::div(SAMRAIPointer<CellDataNd<double> > dst,
                   const double alpha,
-                  const Pointer<SideDataNd<double> > src1,
+                  const SAMRAIPointer<SideDataNd<double> > src1,
                   const double beta,
-                  const Pointer<CellDataNd<double> > src2,
-                  const Pointer<PatchNd> patch,
+                  const SAMRAIPointer<CellDataNd<double> > src2,
+                  const SAMRAIPointer<PatchNd> patch,
                   const int l,
                   const int m) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const D = dst->getPointer(l);
@@ -2984,15 +2984,15 @@ PatchMathOps::div(Pointer<CellDataNd<double> > dst,
 } // div
 
 void
-PatchMathOps::grad(Pointer<CellDataNd<double> > dst,
+PatchMathOps::grad(SAMRAIPointer<CellDataNd<double> > dst,
                    const double alpha,
-                   const Pointer<CellDataNd<double> > src1,
+                   const SAMRAIPointer<CellDataNd<double> > src1,
                    const double beta,
-                   const Pointer<CellDataNd<double> > src2,
-                   const Pointer<PatchNd> patch,
+                   const SAMRAIPointer<CellDataNd<double> > src2,
+                   const SAMRAIPointer<PatchNd> patch,
                    const int l) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const G = dst->getPointer();
@@ -3123,16 +3123,16 @@ PatchMathOps::grad(Pointer<CellDataNd<double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(Pointer<FaceDataNd<double> > dst,
+PatchMathOps::grad(SAMRAIPointer<FaceDataNd<double> > dst,
                    const double alpha,
-                   const Pointer<CellDataNd<double> > src1,
+                   const SAMRAIPointer<CellDataNd<double> > src1,
                    const double beta,
-                   const Pointer<FaceDataNd<double> > src2,
-                   const Pointer<PatchNd> patch,
+                   const SAMRAIPointer<FaceDataNd<double> > src2,
+                   const SAMRAIPointer<PatchNd> patch,
                    const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3255,16 +3255,16 @@ PatchMathOps::grad(Pointer<FaceDataNd<double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(Pointer<SideDataNd<double> > dst,
+PatchMathOps::grad(SAMRAIPointer<SideDataNd<double> > dst,
                    const double alpha,
-                   const Pointer<CellDataNd<double> > src1,
+                   const SAMRAIPointer<CellDataNd<double> > src1,
                    const double beta,
-                   const Pointer<SideDataNd<double> > src2,
-                   const Pointer<PatchNd> patch,
+                   const SAMRAIPointer<SideDataNd<double> > src2,
+                   const SAMRAIPointer<PatchNd> patch,
                    const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3387,16 +3387,16 @@ PatchMathOps::grad(Pointer<SideDataNd<double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(Pointer<FaceDataNd<double> > dst,
-                   const Pointer<FaceDataNd<double> > alpha,
-                   const Pointer<CellDataNd<double> > src1,
+PatchMathOps::grad(SAMRAIPointer<FaceDataNd<double> > dst,
+                   const SAMRAIPointer<FaceDataNd<double> > alpha,
+                   const SAMRAIPointer<CellDataNd<double> > src1,
                    const double beta,
-                   const Pointer<FaceDataNd<double> > src2,
-                   const Pointer<PatchNd> patch,
+                   const SAMRAIPointer<FaceDataNd<double> > src2,
+                   const SAMRAIPointer<PatchNd> patch,
                    const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3666,16 +3666,16 @@ PatchMathOps::grad(Pointer<FaceDataNd<double> > dst,
 } // grad
 
 void
-PatchMathOps::grad(Pointer<SideDataNd<double> > dst,
-                   const Pointer<SideDataNd<double> > alpha,
-                   const Pointer<CellDataNd<double> > src1,
+PatchMathOps::grad(SAMRAIPointer<SideDataNd<double> > dst,
+                   const SAMRAIPointer<SideDataNd<double> > alpha,
+                   const SAMRAIPointer<CellDataNd<double> > src1,
                    const double beta,
-                   const Pointer<SideDataNd<double> > src2,
-                   const Pointer<PatchNd> patch,
+                   const SAMRAIPointer<SideDataNd<double> > src2,
+                   const SAMRAIPointer<PatchNd> patch,
                    const int l) const
 {
     // Compute the gradient.
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const g0 = dst->getPointer(0);
@@ -3933,9 +3933,9 @@ PatchMathOps::grad(Pointer<SideDataNd<double> > dst,
 } // grad
 
 void
-PatchMathOps::interp(Pointer<CellDataNd<double> > dst,
-                     const Pointer<FaceDataNd<double> > src,
-                     const Pointer<PatchNd> patch) const
+PatchMathOps::interp(SAMRAIPointer<CellDataNd<double> > dst,
+                     const SAMRAIPointer<FaceDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -4008,9 +4008,9 @@ PatchMathOps::interp(Pointer<CellDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<CellDataNd<double> > dst,
-                     const Pointer<SideDataNd<double> > src,
-                     const Pointer<PatchNd> patch) const
+PatchMathOps::interp(SAMRAIPointer<CellDataNd<double> > dst,
+                     const SAMRAIPointer<SideDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -4083,9 +4083,9 @@ PatchMathOps::interp(Pointer<CellDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<FaceDataNd<double> > dst,
-                     const Pointer<CellDataNd<double> > src,
-                     const Pointer<PatchNd> patch) const
+PatchMathOps::interp(SAMRAIPointer<FaceDataNd<double> > dst,
+                     const SAMRAIPointer<CellDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
@@ -4166,9 +4166,9 @@ PatchMathOps::interp(Pointer<FaceDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<SideDataNd<double> > dst,
-                     const Pointer<CellDataNd<double> > src,
-                     const Pointer<PatchNd> patch) const
+PatchMathOps::interp(SAMRAIPointer<SideDataNd<double> > dst,
+                     const SAMRAIPointer<CellDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
@@ -4249,9 +4249,9 @@ PatchMathOps::interp(Pointer<SideDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<CellDataNd<double> > dst,
-                     const Pointer<NodeDataNd<double> > src,
-                     const Pointer<PatchNd> patch) const
+PatchMathOps::interp(SAMRAIPointer<CellDataNd<double> > dst,
+                     const SAMRAIPointer<NodeDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch) const
 {
 #if (NDIM == 3)
     TBOX_ERROR("Node to cell PatchMathOps::interp():\n"
@@ -4322,9 +4322,9 @@ PatchMathOps::interp(Pointer<CellDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<CellDataNd<double> > dst,
-                     const Pointer<EdgeDataNd<double> > src,
-                     const Pointer<PatchNd> patch) const
+PatchMathOps::interp(SAMRAIPointer<CellDataNd<double> > dst,
+                     const SAMRAIPointer<EdgeDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch) const
 {
 #if (NDIM == 2)
     TBOX_ERROR("Edge to cell PatchMathOps::interp():\n"
@@ -4406,9 +4406,9 @@ PatchMathOps::interp(Pointer<CellDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<NodeDataNd<double> > dst,
-                     const Pointer<CellDataNd<double> > src,
-                     const Pointer<PatchNd> patch,
+PatchMathOps::interp(SAMRAIPointer<NodeDataNd<double> > dst,
+                     const SAMRAIPointer<CellDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch,
                      const bool dst_ghost_interp) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -4495,9 +4495,9 @@ PatchMathOps::interp(Pointer<NodeDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<NodeDataNd<double> > dst,
-                     const Pointer<FaceDataNd<double> > src,
-                     const Pointer<PatchNd> patch) const
+PatchMathOps::interp(SAMRAIPointer<NodeDataNd<double> > dst,
+                     const SAMRAIPointer<FaceDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -4578,9 +4578,9 @@ PatchMathOps::interp(Pointer<NodeDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<NodeDataNd<double> > dst,
-                     const Pointer<SideDataNd<double> > src,
-                     const Pointer<PatchNd> patch) const
+PatchMathOps::interp(SAMRAIPointer<NodeDataNd<double> > dst,
+                     const SAMRAIPointer<SideDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch) const
 {
     const int U_ghosts = (dst->getGhostCellWidth()).max();
     const int v_ghosts = (src->getGhostCellWidth()).max();
@@ -4661,9 +4661,9 @@ PatchMathOps::interp(Pointer<NodeDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::interp(Pointer<EdgeDataNd<double> > dst,
-                     const Pointer<CellDataNd<double> > src,
-                     const Pointer<PatchNd> patch,
+PatchMathOps::interp(SAMRAIPointer<EdgeDataNd<double> > dst,
+                     const SAMRAIPointer<CellDataNd<double> > src,
+                     const SAMRAIPointer<PatchNd> patch,
                      const bool dst_ghost_interp) const
 {
 #if (NDIM == 2)
@@ -4760,9 +4760,9 @@ PatchMathOps::interp(Pointer<EdgeDataNd<double> > dst,
 } // interp
 
 void
-PatchMathOps::harmonic_interp(Pointer<SideDataNd<double> > dst,
-                              const Pointer<CellDataNd<double> > src,
-                              const Pointer<PatchNd> patch) const
+PatchMathOps::harmonic_interp(SAMRAIPointer<SideDataNd<double> > dst,
+                              const SAMRAIPointer<CellDataNd<double> > src,
+                              const SAMRAIPointer<PatchNd> patch) const
 {
     const int u_ghosts = (dst->getGhostCellWidth()).max();
     const int V_ghosts = (src->getGhostCellWidth()).max();
@@ -4843,9 +4843,9 @@ PatchMathOps::harmonic_interp(Pointer<SideDataNd<double> > dst,
 } // harmonic_interp
 
 void
-PatchMathOps::harmonic_interp(Pointer<NodeDataNd<double> > dst,
-                              const Pointer<CellDataNd<double> > src,
-                              const Pointer<PatchNd> patch,
+PatchMathOps::harmonic_interp(SAMRAIPointer<NodeDataNd<double> > dst,
+                              const SAMRAIPointer<CellDataNd<double> > src,
+                              const SAMRAIPointer<PatchNd> patch,
                               const bool dst_ghost_interp) const
 {
 #if (NDIM == 3)
@@ -4937,9 +4937,9 @@ PatchMathOps::harmonic_interp(Pointer<NodeDataNd<double> > dst,
 } // harmonic_interp
 
 void
-PatchMathOps::harmonic_interp(Pointer<EdgeDataNd<double> > dst,
-                              const Pointer<CellDataNd<double> > src,
-                              const Pointer<PatchNd> patch,
+PatchMathOps::harmonic_interp(SAMRAIPointer<EdgeDataNd<double> > dst,
+                              const SAMRAIPointer<CellDataNd<double> > src,
+                              const SAMRAIPointer<PatchNd> patch,
                               const bool dst_ghost_interp) const
 {
 #if (NDIM == 2)
@@ -5036,18 +5036,18 @@ PatchMathOps::harmonic_interp(Pointer<EdgeDataNd<double> > dst,
 } // harmonic_interp
 
 void
-PatchMathOps::laplace(Pointer<CellDataNd<double> > dst,
+PatchMathOps::laplace(SAMRAIPointer<CellDataNd<double> > dst,
                       const double alpha,
                       const double beta,
-                      const Pointer<CellDataNd<double> > src1,
+                      const SAMRAIPointer<CellDataNd<double> > src1,
                       const double gamma,
-                      const Pointer<CellDataNd<double> > src2,
-                      const Pointer<PatchNd> patch,
+                      const SAMRAIPointer<CellDataNd<double> > src2,
+                      const SAMRAIPointer<PatchNd> patch,
                       const int l,
                       const int m,
                       const int n) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -5207,18 +5207,18 @@ PatchMathOps::laplace(Pointer<CellDataNd<double> > dst,
 } // laplace
 
 void
-PatchMathOps::laplace(Pointer<SideDataNd<double> > dst,
+PatchMathOps::laplace(SAMRAIPointer<SideDataNd<double> > dst,
                       const double alpha,
                       const double beta,
-                      const Pointer<SideDataNd<double> > src1,
+                      const SAMRAIPointer<SideDataNd<double> > src1,
                       const double gamma,
-                      const Pointer<SideDataNd<double> > src2,
-                      const Pointer<PatchNd> patch,
+                      const SAMRAIPointer<SideDataNd<double> > src2,
+                      const SAMRAIPointer<PatchNd> patch,
                       const int l,
                       const int m,
                       const int n) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     std::array<double*, NDIM> F;
@@ -5412,18 +5412,18 @@ PatchMathOps::laplace(Pointer<SideDataNd<double> > dst,
 } // laplace
 
 void
-PatchMathOps::laplace(Pointer<CellDataNd<double> > dst,
-                      const Pointer<FaceDataNd<double> > alpha,
+PatchMathOps::laplace(SAMRAIPointer<CellDataNd<double> > dst,
+                      const SAMRAIPointer<FaceDataNd<double> > alpha,
                       const double beta,
-                      const Pointer<CellDataNd<double> > src1,
+                      const SAMRAIPointer<CellDataNd<double> > src1,
                       const double gamma,
-                      const Pointer<CellDataNd<double> > src2,
-                      const Pointer<PatchNd> patch,
+                      const SAMRAIPointer<CellDataNd<double> > src2,
+                      const SAMRAIPointer<PatchNd> patch,
                       const int l,
                       const int m,
                       const int n) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -5628,18 +5628,18 @@ PatchMathOps::laplace(Pointer<CellDataNd<double> > dst,
 } // laplace
 
 void
-PatchMathOps::laplace(Pointer<CellDataNd<double> > dst,
-                      const Pointer<SideDataNd<double> > alpha,
+PatchMathOps::laplace(SAMRAIPointer<CellDataNd<double> > dst,
+                      const SAMRAIPointer<SideDataNd<double> > alpha,
                       const double beta,
-                      const Pointer<CellDataNd<double> > src1,
+                      const SAMRAIPointer<CellDataNd<double> > src1,
                       const double gamma,
-                      const Pointer<CellDataNd<double> > src2,
-                      const Pointer<PatchNd> patch,
+                      const SAMRAIPointer<CellDataNd<double> > src2,
+                      const SAMRAIPointer<PatchNd> patch,
                       const int l,
                       const int m,
                       const int n) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const F = dst->getPointer(l);
@@ -5844,22 +5844,22 @@ PatchMathOps::laplace(Pointer<CellDataNd<double> > dst,
 } // laplace
 
 void
-PatchMathOps::vc_laplace(Pointer<SideDataNd<double> > dst,
+PatchMathOps::vc_laplace(SAMRAIPointer<SideDataNd<double> > dst,
                          const double alpha,
                          const double beta,
-                         const Pointer<NodeDataNd<double> > coef1,
-                         const Pointer<SideDataNd<double> > coef2,
-                         const Pointer<SideDataNd<double> > src1,
+                         const SAMRAIPointer<NodeDataNd<double> > coef1,
+                         const SAMRAIPointer<SideDataNd<double> > coef2,
+                         const SAMRAIPointer<SideDataNd<double> > src1,
                          const double gamma_in,
-                         const Pointer<SideDataNd<double> > src2_in,
-                         const Pointer<PatchNd> patch,
+                         const SAMRAIPointer<SideDataNd<double> > src2_in,
+                         const SAMRAIPointer<PatchNd> patch,
                          const bool use_harmonic_interp,
                          const int l,
                          const int m,
                          const int n) const
 {
 #if (NDIM == 2)
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const f0 = dst->getPointer(0, l);
@@ -5885,7 +5885,7 @@ PatchMathOps::vc_laplace(Pointer<SideDataNd<double> > dst,
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
     const double gamma = (src2_in ? gamma_in : 0.0);
-    const Pointer<SideDataNd<double> > src2 = (src2_in ? src2_in : src1);
+    const SAMRAIPointer<SideDataNd<double> > src2 = (src2_in ? src2_in : src1);
     const double* const v0 = src2->getPointer(0, n);
     const double* const v1 = src2->getPointer(1, n);
     const int v_ghosts = (src2->getGhostCellWidth()).max();
@@ -6022,22 +6022,22 @@ PatchMathOps::vc_laplace(Pointer<SideDataNd<double> > dst,
 } // vc_laplace
 
 void
-PatchMathOps::vc_laplace(Pointer<SideDataNd<double> > dst,
+PatchMathOps::vc_laplace(SAMRAIPointer<SideDataNd<double> > dst,
                          const double alpha,
                          const double beta,
-                         const Pointer<EdgeDataNd<double> > coef1,
-                         const Pointer<SideDataNd<double> > coef2,
-                         const Pointer<SideDataNd<double> > src1,
+                         const SAMRAIPointer<EdgeDataNd<double> > coef1,
+                         const SAMRAIPointer<SideDataNd<double> > coef2,
+                         const SAMRAIPointer<SideDataNd<double> > src1,
                          const double gamma_in,
-                         const Pointer<SideDataNd<double> > src2_in,
-                         const Pointer<PatchNd> patch,
+                         const SAMRAIPointer<SideDataNd<double> > src2_in,
+                         const SAMRAIPointer<PatchNd> patch,
                          const bool use_harmonic_interp,
                          const int l,
                          const int m,
                          const int n) const
 {
 #if (NDIM == 3)
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const f0 = dst->getPointer(0, l);
@@ -6068,7 +6068,7 @@ PatchMathOps::vc_laplace(Pointer<SideDataNd<double> > dst,
     const int u_ghosts = (src1->getGhostCellWidth()).max();
 
     const double gamma = (src2_in ? gamma_in : 0.0);
-    const Pointer<SideDataNd<double> > src2 = (src2_in ? src2_in : src1);
+    const SAMRAIPointer<SideDataNd<double> > src2 = (src2_in ? src2_in : src1);
     const double* const v0 = src2->getPointer(0, n);
     const double* const v1 = src2->getPointer(1, n);
     const double* const v2 = src2->getPointer(2, n);
@@ -6214,12 +6214,12 @@ PatchMathOps::vc_laplace(Pointer<SideDataNd<double> > dst,
 } // vc_laplace
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<CellDataNd<double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<CellDataNd<double> > dst,
                                 const double alpha,
-                                const Pointer<CellDataNd<double> > src1,
+                                const SAMRAIPointer<CellDataNd<double> > src1,
                                 const double beta,
-                                const Pointer<CellDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<CellDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k) const
@@ -6317,12 +6317,12 @@ PatchMathOps::pointwiseMultiply(Pointer<CellDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<CellDataNd<double> > dst,
-                                const Pointer<CellDataNd<double> > alpha,
-                                const Pointer<CellDataNd<double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<CellDataNd<double> > dst,
+                                const SAMRAIPointer<CellDataNd<double> > alpha,
+                                const SAMRAIPointer<CellDataNd<double> > src1,
                                 const double beta,
-                                const Pointer<CellDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<CellDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -6438,12 +6438,12 @@ PatchMathOps::pointwiseMultiply(Pointer<CellDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<CellDataNd<double> > dst,
-                                const Pointer<CellDataNd<double> > alpha,
-                                const Pointer<CellDataNd<double> > src1,
-                                const Pointer<CellDataNd<double> > beta,
-                                const Pointer<CellDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<CellDataNd<double> > dst,
+                                const SAMRAIPointer<CellDataNd<double> > alpha,
+                                const SAMRAIPointer<CellDataNd<double> > src1,
+                                const SAMRAIPointer<CellDataNd<double> > beta,
+                                const SAMRAIPointer<CellDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -6560,12 +6560,12 @@ PatchMathOps::pointwiseMultiply(Pointer<CellDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<FaceDataNd<double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<FaceDataNd<double> > dst,
                                 const double alpha,
-                                const Pointer<FaceDataNd<double> > src1,
+                                const SAMRAIPointer<FaceDataNd<double> > src1,
                                 const double beta,
-                                const Pointer<FaceDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<FaceDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k) const
@@ -6667,12 +6667,12 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<FaceDataNd<double> > dst,
-                                const Pointer<FaceDataNd<double> > alpha,
-                                const Pointer<FaceDataNd<double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<FaceDataNd<double> > dst,
+                                const SAMRAIPointer<FaceDataNd<double> > alpha,
+                                const SAMRAIPointer<FaceDataNd<double> > src1,
                                 const double beta,
-                                const Pointer<FaceDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<FaceDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -6792,12 +6792,12 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<FaceDataNd<double> > dst,
-                                const Pointer<FaceDataNd<double> > alpha,
-                                const Pointer<FaceDataNd<double> > src1,
-                                const Pointer<FaceDataNd<double> > beta,
-                                const Pointer<FaceDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<FaceDataNd<double> > dst,
+                                const SAMRAIPointer<FaceDataNd<double> > alpha,
+                                const SAMRAIPointer<FaceDataNd<double> > src1,
+                                const SAMRAIPointer<FaceDataNd<double> > beta,
+                                const SAMRAIPointer<FaceDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -6918,12 +6918,12 @@ PatchMathOps::pointwiseMultiply(Pointer<FaceDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<NodeDataNd<double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<NodeDataNd<double> > dst,
                                 const double alpha,
-                                const Pointer<NodeDataNd<double> > src1,
+                                const SAMRAIPointer<NodeDataNd<double> > src1,
                                 const double beta,
-                                const Pointer<NodeDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<NodeDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k) const
@@ -7022,12 +7022,12 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<NodeDataNd<double> > dst,
-                                const Pointer<NodeDataNd<double> > alpha,
-                                const Pointer<NodeDataNd<double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<NodeDataNd<double> > dst,
+                                const SAMRAIPointer<NodeDataNd<double> > alpha,
+                                const SAMRAIPointer<NodeDataNd<double> > src1,
                                 const double beta,
-                                const Pointer<NodeDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<NodeDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -7144,12 +7144,12 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<NodeDataNd<double> > dst,
-                                const Pointer<NodeDataNd<double> > alpha,
-                                const Pointer<NodeDataNd<double> > src1,
-                                const Pointer<NodeDataNd<double> > beta,
-                                const Pointer<NodeDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<NodeDataNd<double> > dst,
+                                const SAMRAIPointer<NodeDataNd<double> > alpha,
+                                const SAMRAIPointer<NodeDataNd<double> > src1,
+                                const SAMRAIPointer<NodeDataNd<double> > beta,
+                                const SAMRAIPointer<NodeDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -7267,12 +7267,12 @@ PatchMathOps::pointwiseMultiply(Pointer<NodeDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<SideDataNd<double> > dst,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SideDataNd<double> > dst,
                                 const double alpha,
-                                const Pointer<SideDataNd<double> > src1,
+                                const SAMRAIPointer<SideDataNd<double> > src1,
                                 const double beta,
-                                const Pointer<SideDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<SideDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k) const
@@ -7374,12 +7374,12 @@ PatchMathOps::pointwiseMultiply(Pointer<SideDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<SideDataNd<double> > dst,
-                                const Pointer<SideDataNd<double> > alpha,
-                                const Pointer<SideDataNd<double> > src1,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SideDataNd<double> > dst,
+                                const SAMRAIPointer<SideDataNd<double> > alpha,
+                                const SAMRAIPointer<SideDataNd<double> > src1,
                                 const double beta,
-                                const Pointer<SideDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+                                const SAMRAIPointer<SideDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -7499,12 +7499,12 @@ PatchMathOps::pointwiseMultiply(Pointer<SideDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseMultiply(Pointer<SideDataNd<double> > dst,
-                                const Pointer<SideDataNd<double> > alpha,
-                                const Pointer<SideDataNd<double> > src1,
-                                const Pointer<SideDataNd<double> > beta,
-                                const Pointer<SideDataNd<double> > src2,
-                                const Pointer<PatchNd> patch,
+PatchMathOps::pointwiseMultiply(SAMRAIPointer<SideDataNd<double> > dst,
+                                const SAMRAIPointer<SideDataNd<double> > alpha,
+                                const SAMRAIPointer<SideDataNd<double> > src1,
+                                const SAMRAIPointer<SideDataNd<double> > beta,
+                                const SAMRAIPointer<SideDataNd<double> > src2,
+                                const SAMRAIPointer<PatchNd> patch,
                                 const int i,
                                 const int j,
                                 const int k,
@@ -7625,9 +7625,9 @@ PatchMathOps::pointwiseMultiply(Pointer<SideDataNd<double> > dst,
 } // pointwiseMultiply
 
 void
-PatchMathOps::pointwiseL1Norm(Pointer<CellDataNd<double> > dst,
-                              const Pointer<CellDataNd<double> > src,
-                              const Pointer<PatchNd> patch) const
+PatchMathOps::pointwiseL1Norm(SAMRAIPointer<CellDataNd<double> > dst,
+                              const SAMRAIPointer<CellDataNd<double> > src,
+                              const SAMRAIPointer<PatchNd> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7690,9 +7690,9 @@ PatchMathOps::pointwiseL1Norm(Pointer<CellDataNd<double> > dst,
 } // pointwiseL1Norm
 
 void
-PatchMathOps::pointwiseL2Norm(Pointer<CellDataNd<double> > dst,
-                              const Pointer<CellDataNd<double> > src,
-                              const Pointer<PatchNd> patch) const
+PatchMathOps::pointwiseL2Norm(SAMRAIPointer<CellDataNd<double> > dst,
+                              const SAMRAIPointer<CellDataNd<double> > src,
+                              const SAMRAIPointer<PatchNd> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7755,9 +7755,9 @@ PatchMathOps::pointwiseL2Norm(Pointer<CellDataNd<double> > dst,
 } // pointwiseL2Norm
 
 void
-PatchMathOps::pointwiseMaxNorm(Pointer<CellDataNd<double> > dst,
-                               const Pointer<CellDataNd<double> > src,
-                               const Pointer<PatchNd> patch) const
+PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<CellDataNd<double> > dst,
+                               const SAMRAIPointer<CellDataNd<double> > src,
+                               const SAMRAIPointer<PatchNd> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7820,9 +7820,9 @@ PatchMathOps::pointwiseMaxNorm(Pointer<CellDataNd<double> > dst,
 } // pointwiseMaxNorm
 
 void
-PatchMathOps::pointwiseL1Norm(Pointer<NodeDataNd<double> > dst,
-                              const Pointer<NodeDataNd<double> > src,
-                              const Pointer<PatchNd> patch) const
+PatchMathOps::pointwiseL1Norm(SAMRAIPointer<NodeDataNd<double> > dst,
+                              const SAMRAIPointer<NodeDataNd<double> > src,
+                              const SAMRAIPointer<PatchNd> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7886,9 +7886,9 @@ PatchMathOps::pointwiseL1Norm(Pointer<NodeDataNd<double> > dst,
 } // pointwiseL1Norm
 
 void
-PatchMathOps::pointwiseL2Norm(Pointer<NodeDataNd<double> > dst,
-                              const Pointer<NodeDataNd<double> > src,
-                              const Pointer<PatchNd> patch) const
+PatchMathOps::pointwiseL2Norm(SAMRAIPointer<NodeDataNd<double> > dst,
+                              const SAMRAIPointer<NodeDataNd<double> > src,
+                              const SAMRAIPointer<PatchNd> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -7952,9 +7952,9 @@ PatchMathOps::pointwiseL2Norm(Pointer<NodeDataNd<double> > dst,
 } // pointwiseL2Norm
 
 void
-PatchMathOps::pointwiseMaxNorm(Pointer<NodeDataNd<double> > dst,
-                               const Pointer<NodeDataNd<double> > src,
-                               const Pointer<PatchNd> patch) const
+PatchMathOps::pointwiseMaxNorm(SAMRAIPointer<NodeDataNd<double> > dst,
+                               const SAMRAIPointer<NodeDataNd<double> > src,
+                               const SAMRAIPointer<PatchNd> patch) const
 {
     double* const U = dst->getPointer();
     const int U_ghosts = (dst->getGhostCellWidth()).max();
@@ -8018,12 +8018,12 @@ PatchMathOps::pointwiseMaxNorm(Pointer<NodeDataNd<double> > dst,
 } // pointwiseMaxNorm
 
 void
-PatchMathOps::strain_rate(Pointer<CellDataNd<double> > dst1,
-                          Pointer<CellDataNd<double> > dst2,
-                          const Pointer<SideDataNd<double> > src,
-                          const Pointer<PatchNd> patch) const
+PatchMathOps::strain_rate(SAMRAIPointer<CellDataNd<double> > dst1,
+                          SAMRAIPointer<CellDataNd<double> > dst2,
+                          const SAMRAIPointer<SideDataNd<double> > src,
+                          const SAMRAIPointer<PatchNd> patch) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     double* const E_diag = dst1->getPointer();
@@ -8138,11 +8138,11 @@ PatchMathOps::strain_rate(Pointer<CellDataNd<double> > dst1,
 } // strain
 
 void
-PatchMathOps::strain_rate(Pointer<CellDataNd<double> > dst,
-                          const Pointer<SideDataNd<double> > src,
-                          const Pointer<PatchNd> patch) const
+PatchMathOps::strain_rate(SAMRAIPointer<CellDataNd<double> > dst,
+                          const SAMRAIPointer<SideDataNd<double> > src,
+                          const SAMRAIPointer<PatchNd> patch) const
 {
-    const Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     const int E_ghosts = (dst->getGhostCellWidth()).max();
@@ -8229,8 +8229,8 @@ PatchMathOps::strain_rate(Pointer<CellDataNd<double> > dst,
     }
     else if (E_depth == NDIM * NDIM)
     {
-        Pointer<CellDataNd<double> > E_diag = new CellDataNd<double>(patch_box, NDIM, IntVectorNd(E_ghosts));
-        Pointer<CellDataNd<double> > E_offDiag =
+        SAMRAIPointer<CellDataNd<double> > E_diag = new CellDataNd<double>(patch_box, NDIM, IntVectorNd(E_ghosts));
+        SAMRAIPointer<CellDataNd<double> > E_offDiag =
             new CellDataNd<double>(patch_box, NDIM == 2 ? 1 : 3, IntVectorNd(E_ghosts));
 
         S_TO_C_STRAIN_FC(E_diag->getPointer(),

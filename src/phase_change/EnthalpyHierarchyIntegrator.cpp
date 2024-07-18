@@ -99,7 +99,7 @@ static const double H_LIM = 0.5;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 EnthalpyHierarchyIntegrator::EnthalpyHierarchyIntegrator(const std::string& object_name,
-                                                         Pointer<Database> input_db,
+                                                         SAMRAIPointer<Database> input_db,
                                                          bool register_for_restart)
     : PhaseChangeHierarchyIntegrator(object_name, input_db, register_for_restart)
 {
@@ -118,8 +118,8 @@ EnthalpyHierarchyIntegrator::EnthalpyHierarchyIntegrator(const std::string& obje
 } // EnthalpyHierarchyIntegrator
 
 void
-EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> hierarchy,
-                                                           Pointer<GriddingAlgorithmNd> gridding_alg)
+EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                                           SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -156,7 +156,7 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
     if (d_solve_mass_conservation)
     {
         // Set various objects with conservative time integrator.
-        Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
+        SAMRAIPointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         rho_p_cc_integrator->setCellCenteredTransportQuantityBoundaryConditions(d_h_bc_coef);
     }
 
@@ -181,7 +181,7 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_dh_dT_scratch_idx)) level->allocatePatchData(d_dh_dT_scratch_idx, current_time);
         if (!level->checkAllocated(d_T_pre_idx)) level->allocatePatchData(d_T_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_T_idx)) level->allocatePatchData(d_grad_T_idx, current_time);
@@ -196,7 +196,7 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 
     if (d_solve_mass_conservation)
     {
-        Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
+        SAMRAIPointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
 
         // Set the velocities used to update the density and the previous time step
         // size
@@ -289,7 +289,7 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     T_rhs_op_spec.setDPatchDataId(d_T_diffusion_coef_rhs_scratch_idx);
 
     // Initialize the RHS operator and compute the RHS vector for the temperature equation.
-    Pointer<LaplaceOperator> T_rhs_op = d_T_rhs_op;
+    SAMRAIPointer<LaplaceOperator> T_rhs_op = d_T_rhs_op;
     T_rhs_op->setPoissonSpecifications(T_rhs_op_spec);
     T_rhs_op->setPhysicalBcCoef(d_T_bc_coef);
     T_rhs_op->setHomogeneousBc(false);
@@ -344,7 +344,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
 
     // In the special case of conservative discretization, the updated
     // density is calculated by the mass and convective integrator.
-    Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
+    SAMRAIPointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
     // Update N_idx if necessary
     if (cycle_num > 0 && d_solve_mass_conservation)
     {
@@ -461,7 +461,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
         T_solver_spec.setCPatchDataId(d_T_C_idx);
 
         // Initialize the linear solver for temperature equation.
-        Pointer<PoissonSolver> T_solver = d_T_solver;
+        SAMRAIPointer<PoissonSolver> T_solver = d_T_solver;
         T_solver->setPoissonSpecifications(T_solver_spec);
         T_solver->setPhysicalBcCoef(d_T_bc_coef);
         T_solver->setHomogeneousBc(false);
@@ -589,7 +589,7 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     // Deallocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_T_pre_idx);
         level->deallocatePatchData(d_dh_dT_scratch_idx);
         level->deallocatePatchData(d_grad_T_idx);
@@ -612,7 +612,7 @@ EnthalpyHierarchyIntegrator::setEnthalpyBcCoef(RobinBcCoefStrategyNd* h_bc_coef)
 } // setEnthalpyBcCoef
 
 void
-EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<Database> db)
 {
     db->putInteger("ENTHALPY_PC_HIERARCHY_INTEGRATOR_VERSION", ENTHALPY_PC_HIERARCHY_INTEGRATOR_VERSION);
     db->putDouble("specific_heat_liquid", d_specific_heat_liquid);
@@ -639,18 +639,18 @@ EnthalpyHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int 
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > T_new_data = patch->getPatchData(d_T_new_idx);
-            Pointer<CellDataNd<double> > h_new_data = patch->getPatchData(d_h_new_idx);
-            Pointer<CellDataNd<double> > h_current_data = patch->getPatchData(d_h_current_idx);
-            Pointer<CellDataNd<double> > rho_new_data = patch->getPatchData(d_rho_new_idx);
-            Pointer<CellDataNd<double> > rho_current_data = patch->getPatchData(d_rho_current_idx);
-            Pointer<CellDataNd<double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
-            Pointer<CellDataNd<double> > F_data = patch->getPatchData(F_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > T_new_data = patch->getPatchData(d_T_new_idx);
+            SAMRAIPointer<CellDataNd<double> > h_new_data = patch->getPatchData(d_h_new_idx);
+            SAMRAIPointer<CellDataNd<double> > h_current_data = patch->getPatchData(d_h_current_idx);
+            SAMRAIPointer<CellDataNd<double> > rho_new_data = patch->getPatchData(d_rho_new_idx);
+            SAMRAIPointer<CellDataNd<double> > rho_current_data = patch->getPatchData(d_rho_current_idx);
+            SAMRAIPointer<CellDataNd<double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > F_data = patch->getPatchData(F_scratch_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -685,7 +685,7 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
                                                                "LINEAR",
                                                                false,
                                                                d_T_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(T_transaction_comps, d_hierarchy);
     hier_bdry_fill->fillData(new_time);
 
@@ -702,15 +702,15 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > h_data = patch->getPatchData(d_h_new_idx);
-            Pointer<CellDataNd<double> > rho_data = patch->getPatchData(d_rho_new_idx);
-            Pointer<CellDataNd<double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
-            Pointer<CellDataNd<double> > H_data = patch->getPatchData(H_new_idx);
+            SAMRAIPointer<CellDataNd<double> > h_data = patch->getPatchData(d_h_new_idx);
+            SAMRAIPointer<CellDataNd<double> > rho_data = patch->getPatchData(d_rho_new_idx);
+            SAMRAIPointer<CellDataNd<double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
+            SAMRAIPointer<CellDataNd<double> > H_data = patch->getPatchData(H_new_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -749,16 +749,16 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > T_data = patch->getPatchData(T_idx);
-            Pointer<CellDataNd<double> > h_data = patch->getPatchData(h_idx);
-            Pointer<CellDataNd<double> > rho_data = patch->getPatchData(rho_idx);
-            Pointer<CellDataNd<double> > lf_data = patch->getPatchData(lf_idx);
-            Pointer<CellDataNd<double> > H_data = patch->getPatchData(H_idx);
+            SAMRAIPointer<CellDataNd<double> > T_data = patch->getPatchData(T_idx);
+            SAMRAIPointer<CellDataNd<double> > h_data = patch->getPatchData(h_idx);
+            SAMRAIPointer<CellDataNd<double> > rho_data = patch->getPatchData(rho_idx);
+            SAMRAIPointer<CellDataNd<double> > lf_data = patch->getPatchData(lf_idx);
+            SAMRAIPointer<CellDataNd<double> > H_data = patch->getPatchData(H_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -800,14 +800,14 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > T_data = patch->getPatchData(T_idx);
-            Pointer<CellDataNd<double> > h_data = patch->getPatchData(h_idx);
-            Pointer<CellDataNd<double> > H_data = patch->getPatchData(H_idx);
+            SAMRAIPointer<CellDataNd<double> > T_data = patch->getPatchData(T_idx);
+            SAMRAIPointer<CellDataNd<double> > h_data = patch->getPatchData(h_idx);
+            SAMRAIPointer<CellDataNd<double> > H_data = patch->getPatchData(H_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -847,15 +847,15 @@ EnthalpyHierarchyIntegrator::updateEnthalpy(int h_new_idx, const int T_new_idx, 
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > h_new_data = patch->getPatchData(h_new_idx);
-            Pointer<CellDataNd<double> > T_new_data = patch->getPatchData(T_new_idx);
-            Pointer<CellDataNd<double> > T_pre_data = patch->getPatchData(T_pre_idx);
-            Pointer<CellDataNd<double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > h_new_data = patch->getPatchData(h_new_idx);
+            SAMRAIPointer<CellDataNd<double> > T_new_data = patch->getPatchData(T_new_idx);
+            SAMRAIPointer<CellDataNd<double> > T_pre_data = patch->getPatchData(T_pre_idx);
+            SAMRAIPointer<CellDataNd<double> > dh_dT_data = patch->getPatchData(d_dh_dT_scratch_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -876,14 +876,14 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > T_data = patch->getPatchData(T_idx);
-            Pointer<CellDataNd<double> > H_data = patch->getPatchData(H_idx);
-            Pointer<CellDataNd<double> > dh_dT_data = patch->getPatchData(dh_dT_idx);
+            SAMRAIPointer<CellDataNd<double> > T_data = patch->getPatchData(T_idx);
+            SAMRAIPointer<CellDataNd<double> > H_data = patch->getPatchData(H_idx);
+            SAMRAIPointer<CellDataNd<double> > dh_dT_data = patch->getPatchData(dh_dT_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -925,14 +925,14 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
     const double h_l = d_specific_heat_mushy * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > lf_data = patch->getPatchData(lf_idx);
-            Pointer<CellDataNd<double> > h_data = patch->getPatchData(h_idx);
-            Pointer<CellDataNd<double> > H_data = patch->getPatchData(H_idx);
+            SAMRAIPointer<CellDataNd<double> > lf_data = patch->getPatchData(lf_idx);
+            SAMRAIPointer<CellDataNd<double> > h_data = patch->getPatchData(h_idx);
+            SAMRAIPointer<CellDataNd<double> > H_data = patch->getPatchData(H_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -966,7 +966,7 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
 } // computeLiquidFraction
 
 void
-EnthalpyHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)
+EnthalpyHierarchyIntegrator::getFromInput(SAMRAIPointer<Database> input_db, bool is_from_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(input_db);
@@ -998,8 +998,8 @@ EnthalpyHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_fr
 void
 EnthalpyHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

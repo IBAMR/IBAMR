@@ -91,7 +91,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     }
 
     // Process "Main" section of the input database.
-    Pointer<Database> main_db = new NullDatabase();
+    SAMRAIPointer<Database> main_db = new NullDatabase();
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");
@@ -137,7 +137,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     // Avoid some warnings by unconditionally creating the timer database, even if
     // we never use it:
     {
-        Pointer<Database> timer_manager_db;
+        SAMRAIPointer<Database> timer_manager_db;
         if (d_input_db->isDatabase("TimerManager"))
         {
             timer_manager_db = d_input_db->getDatabase("TimerManager");
@@ -363,7 +363,7 @@ AppInitializer::~AppInitializer()
     return;
 } // ~AppInitializer
 
-Pointer<Database>
+SAMRAIPointer<Database>
 AppInitializer::getInputDatabase()
 {
     return d_input_db;
@@ -387,7 +387,7 @@ AppInitializer::getRestartRestoreNumber() const
     return d_restart_restore_num;
 }
 
-Pointer<Database>
+SAMRAIPointer<Database>
 AppInitializer::getRestartDatabase(const bool suppress_warning)
 {
     if (!d_is_from_restart && !suppress_warning)
@@ -398,7 +398,7 @@ AppInitializer::getRestartDatabase(const bool suppress_warning)
     return RestartManager::getManager()->getRootDatabase();
 } // getRestartDatabase
 
-Pointer<Database>
+SAMRAIPointer<Database>
 AppInitializer::getComponentDatabase(const std::string& component_name, const bool suppress_warning)
 {
     const bool db_exists = d_input_db->isDatabase(component_name);
@@ -439,13 +439,13 @@ AppInitializer::getVizWriters() const
     return d_viz_writers;
 } // getVizDumpDirectory
 
-Pointer<VisItDataWriterNd>
+SAMRAIPointer<VisItDataWriterNd>
 AppInitializer::getVisItDataWriter() const
 {
     return d_visit_data_writer;
 } // getVisItDataWriter
 
-Pointer<LSiloDataWriter>
+SAMRAIPointer<LSiloDataWriter>
 AppInitializer::getLSiloDataWriter() const
 {
     return d_silo_data_writer;

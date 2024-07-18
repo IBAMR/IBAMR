@@ -113,7 +113,7 @@ public:
      * \brief Constructor.
      */
     CCPoissonLevelRelaxationFACOperator(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                         const std::string& default_options_prefix);
 
     /*!
@@ -125,11 +125,11 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * CCPoissonLevelRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                                        const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonLevelRelaxationFACOperator(
+        SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonLevelRelaxationFACOperator(
             object_name + "::CCPoissonLevelRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
@@ -250,14 +250,14 @@ private:
     std::string d_level_solver_type = CCPoissonSolverManager::PETSC_LEVEL_SOLVER, d_level_solver_default_options_prefix;
     double d_level_solver_abs_residual_tol = 1.0e-50, d_level_solver_rel_residual_tol = 1.0e-5;
     int d_level_solver_max_iterations = 1;
-    std::vector<SAMRAI::tbox::Pointer<PoissonSolver> > d_level_solvers;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
+    std::vector<SAMRAIPointer<PoissonSolver> > d_level_solvers;
+    SAMRAIPointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    SAMRAIPointer<PoissonSolver> d_coarse_solver;
+    SAMRAIPointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Patch overlap data.

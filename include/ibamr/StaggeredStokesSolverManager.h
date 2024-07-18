@@ -92,10 +92,10 @@ public:
     /*!
      * Allocate a new StaggeredStokesSolver object of the specified type.
      */
-    SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    IBTK::SAMRAIPointer<StaggeredStokesSolver>
     allocateSolver(const std::string& solver_type,
                    const std::string& solver_object_name,
-                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+                   IBTK::SAMRAIPointer<SAMRAI::tbox::Database> solver_input_db,
                    const std::string& solver_default_options_prefix) const;
 
     /*!
@@ -105,28 +105,28 @@ public:
      * \note The preconditioner settings are used only when the parent solver
      * is a KrylovLinearSolver.
      */
-    SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    IBTK::SAMRAIPointer<StaggeredStokesSolver>
     allocateSolver(const std::string& solver_type,
                    const std::string& solver_object_name,
-                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+                   IBTK::SAMRAIPointer<SAMRAI::tbox::Database> solver_input_db,
                    const std::string& solver_default_options_prefix,
                    const std::string& precond_type,
                    const std::string& precond_object_name,
-                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> precond_input_db,
+                   IBTK::SAMRAIPointer<SAMRAI::tbox::Database> precond_input_db,
                    const std::string& precond_default_options_prefix,
                    const std::string& sub_precond_type = "",
                    const std::string& sub_precond_object_name = "",
-                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> sub_precond_input_db =
-                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>(),
+                   IBTK::SAMRAIPointer<SAMRAI::tbox::Database> sub_precond_input_db =
+                       IBTK::SAMRAIPointer<SAMRAI::tbox::Database>(),
                    const std::string& sub_precond_default_options_prefix = "") const;
 
     /*!
      * Typedef for functions to construct staggered-grid Stokes solvers.
      */
     using SolverMaker =
-        SAMRAI::tbox::Pointer<StaggeredStokesSolver> (*)(const std::string& solver_object_name,
-                                                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
-                                                         const std::string& solver_default_options_prefix);
+        IBTK::SAMRAIPointer<StaggeredStokesSolver> (*)(const std::string& solver_object_name,
+                                                       IBTK::SAMRAIPointer<SAMRAI::tbox::Database> solver_input_db,
+                                                       const std::string& solver_default_options_prefix);
 
     /*!
      * Register a solver factory function with the solver manager class.

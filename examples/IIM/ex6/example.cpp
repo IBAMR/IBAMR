@@ -337,8 +337,8 @@ apply_initial_jacobian(EquationSystems& es, const string& system_name)
 using namespace ModelData;
 
 static ofstream drag_stream, lift_stream, A_x_posn_stream, A_y_posn_stream;
-void postprocess_data(Pointer<PatchHierarchyNd> patch_hierarchy,
-                      Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
+void postprocess_data(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
+                      SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       const FEMechanicsExplicitIntegrator* fem_solver,
                       ReplicatedMesh& beam_mesh,
                       EquationSystems* beam_equation_systems,
@@ -370,8 +370,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -443,7 +443,7 @@ main(int argc, char* argv[])
         const double loop_time_end = input_db->getDouble("END_TIME");
         double dt = input_db->getDouble("DT");
 
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -466,39 +466,39 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<FEMechanicsExplicitIntegrator> fem_solver = new FEMechanicsExplicitIntegrator(
+        SAMRAIPointer<FEMechanicsExplicitIntegrator> fem_solver = new FEMechanicsExplicitIntegrator(
             "FEMechanicsExplicitIntegrator",
             app_initializer->getComponentDatabase("FEMechanicsExplicitIntegrator"),
             &beam_mesh,
             app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
 
-        Pointer<IIMethod> ibfe_bndry_ops =
+        SAMRAIPointer<IIMethod> ibfe_bndry_ops =
             new IIMethod("IIMethod",
                          app_initializer->getComponentDatabase("IIMethod"),
                          &boundary_mesh,
                          app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        vector<Pointer<IBStrategy> > ib_method_ops(2);
+        vector<SAMRAIPointer<IBStrategy> > ib_method_ops(2);
         ib_method_ops[0] = fem_solver;
         ib_method_ops[1] = ibfe_bndry_ops;
-        Pointer<IBStrategySet> ib_method_set = new IBStrategySet(ib_method_ops.begin(), ib_method_ops.end());
+        SAMRAIPointer<IBStrategySet> ib_method_set = new IBStrategySet(ib_method_ops.begin(), ib_method_ops.end());
 
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ibfe_bndry_ops,
                                               navier_stokes_integrator);
 
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -563,14 +563,14 @@ main(int argc, char* argv[])
         // **************Create Eulerian initial condition specification objects.**************** //
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -605,7 +605,7 @@ main(int argc, char* argv[])
 
         // Set up visualization plot file writers.
 
-        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -799,8 +799,8 @@ main(int argc, char* argv[])
 } // main
 
 void
-postprocess_data(Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
-                 Pointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
+postprocess_data(SAMRAIPointer<PatchHierarchyNd> /*patch_hierarchy*/,
+                 SAMRAIPointer<INSHierarchyIntegrator> /*navier_stokes_integrator*/,
                  const FEMechanicsExplicitIntegrator* const fem_solver,
                  ReplicatedMesh& beam_mesh,
                  EquationSystems* beam_equation_systems,

@@ -59,7 +59,7 @@ public:
      *
      * @param[in]  hierarchy  The patch hierarchy
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy);
+    void setPatchHierarchy(SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy);
 
     /**
      * @brief      Reset the range of patch levels over which operations occur.
@@ -175,7 +175,7 @@ private:
     SAMRAIDataCache& operator=(const SAMRAIDataCache& that) = delete;
 
     /// \brief The patch hierarchy under consideration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
 
     /// Coarsest level of allocated patch data.
     int d_coarsest_ln = IBTK::invalid_level_number;

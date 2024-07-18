@@ -53,7 +53,7 @@ static Timer* t_apply;
 
 VCStaggeredStokesOperator::VCStaggeredStokesOperator(const std::string& object_name,
                                                      bool homogeneous_bc,
-                                                     Pointer<Database> input_db)
+                                                     SAMRAIPointer<Database> input_db)
     : StaggeredStokesOperator(object_name, homogeneous_bc, input_db)
 {
     // Setup Timers.
@@ -87,10 +87,10 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorReal
     const int A_P_idx = y.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
-    Pointer<SideVariableNd<double> > U_sc_var = x.getComponentVariable(0);
-    Pointer<CellVariableNd<double> > P_cc_var = x.getComponentVariable(1);
-    Pointer<SideVariableNd<double> > A_U_sc_var = y.getComponentVariable(0);
-    Pointer<CellVariableNd<double> > A_P_cc_var = y.getComponentVariable(1);
+    SAMRAIPointer<SideVariableNd<double> > U_sc_var = x.getComponentVariable(0);
+    SAMRAIPointer<CellVariableNd<double> > P_cc_var = x.getComponentVariable(1);
+    SAMRAIPointer<SideVariableNd<double> > A_U_sc_var = y.getComponentVariable(0);
+    SAMRAIPointer<CellVariableNd<double> > A_P_cc_var = y.getComponentVariable(1);
 
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -147,9 +147,9 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorReal
                                 beta,
                                 d_U_problem_coefs.getDPatchDataId(),
 #if (NDIM == 2)
-                                Pointer<NodeVariableNd<double> >(nullptr),
+                                SAMRAIPointer<NodeVariableNd<double> >(nullptr),
 #elif (NDIM == 3)
-                                Pointer<EdgeVariableNd<double> >(nullptr),
+                                SAMRAIPointer<EdgeVariableNd<double> >(nullptr),
 #endif
                                 U_scratch_idx,
                                 U_sc_var,
@@ -157,7 +157,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorRealNd<double>& x, SAMRAIVectorReal
                                 d_new_time,
                                 d_D_interp_type,
                                 d_U_problem_coefs.cIsVariable() ? d_U_problem_coefs.getCPatchDataId() : -1,
-                                Pointer<SideVariableNd<double> >(nullptr),
+                                SAMRAIPointer<SideVariableNd<double> >(nullptr),
                                 1.0,
                                 A_U_idx,
                                 A_U_sc_var);

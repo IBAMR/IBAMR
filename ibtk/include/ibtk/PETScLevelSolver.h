@@ -115,10 +115,10 @@ public:
     /*!
      * \brief Set the nullspace of the linear system.
      */
-    void setNullspace(
-        bool contains_constant_vec,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > >& nullspace_basis_vecs =
-            std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > >()) override;
+    void
+    setNullspace(bool contains_constant_vec,
+                 const std::vector<SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > >& nullspace_basis_vecs =
+                     std::vector<SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > >()) override;
 
     /*!
      * \brief Solve the linear system of equations \f$Ax=b\f$ for \f$x\f$.
@@ -224,7 +224,7 @@ protected:
     /*!
      * \brief Basic initialization.
      */
-    void init(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
+    void init(SAMRAIPointer<SAMRAI::tbox::Database> input_db, const std::string& default_options_prefix);
 
     /*!
      * \brief Generate IS/subdomains for Schwartz type preconditioners.
@@ -278,14 +278,14 @@ protected:
     /*!
      * \brief Associated hierarchy.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
 
     /*!
      * \brief Associated patch level and C-F boundary (for level numbers > 0).
      */
     int d_level_num = IBTK::invalid_level_number;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> d_level;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+    SAMRAIPointer<SAMRAI::hier::PatchLevelNd> d_level;
+    SAMRAIPointer<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
 
     /*!
      * \brief Scratch data.

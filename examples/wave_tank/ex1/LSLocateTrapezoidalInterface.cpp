@@ -23,7 +23,7 @@
 
 void
 callLSLocateTrapezoidalInterfaceCallbackFunction(int D_idx,
-                                                 Pointer<HierarchyMathOps> hier_math_ops,
+                                                 SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                  double time,
                                                  bool initial_time,
                                                  void* ctx)
@@ -39,8 +39,8 @@ callLSLocateTrapezoidalInterfaceCallbackFunction(int D_idx,
 /////////////////////////////// PUBLIC //////////////////////////////////////
 
 LSLocateTrapezoidalInterface::LSLocateTrapezoidalInterface(const std::string& object_name,
-                                                           Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                           Pointer<CellVariableNd<double> > ls_var,
+                                                           SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                                           SAMRAIPointer<CellVariableNd<double> > ls_var,
                                                            TrapezoidalInterface* trapezoid)
     : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_trapezoid(trapezoid)
 {
@@ -50,7 +50,7 @@ LSLocateTrapezoidalInterface::LSLocateTrapezoidalInterface(const std::string& ob
 
 void
 LSLocateTrapezoidalInterface::setLevelSetPatchData(int D_idx,
-                                                   Pointer<HierarchyMathOps> hier_math_ops,
+                                                   SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                    double /*time*/,
                                                    bool /*initial_time*/)
 {
@@ -59,7 +59,7 @@ LSLocateTrapezoidalInterface::setLevelSetPatchData(int D_idx,
 #endif
     // Note that this class assumes the object remains stationary
     // Also note that I did not test this algorithm on very many trapezoids, so this may need to be modified accordingly
-    Pointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -84,19 +84,19 @@ LSLocateTrapezoidalInterface::setLevelSetPatchData(int D_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > D_data = patch->getPatchData(D_idx);
+            SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(D_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 CellIndexNd ci(it());
 
                 // Get physical coordinates
                 IBTK::Vector coord = IBTK::Vector::Zero();
-                Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
                 const hier::IndexNd& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();

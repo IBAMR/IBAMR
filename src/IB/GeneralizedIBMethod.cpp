@@ -86,7 +86,9 @@ static const int GENERALIZED_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-GeneralizedIBMethod::GeneralizedIBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+GeneralizedIBMethod::GeneralizedIBMethod(std::string object_name,
+                                         SAMRAIPointer<Database> input_db,
+                                         bool register_for_restart)
     : IBMethod(std::move(object_name), input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager,
@@ -101,7 +103,7 @@ GeneralizedIBMethod::GeneralizedIBMethod(std::string object_name, Pointer<Databa
 } // GeneralizedIBMethod
 
 void
-GeneralizedIBMethod::registerIBKirchhoffRodForceGen(Pointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
+GeneralizedIBMethod::registerIBKirchhoffRodForceGen(SAMRAIPointer<IBKirchhoffRodForceGen> ib_force_and_torque_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(ib_force_and_torque_fcn);
@@ -118,9 +120,9 @@ GeneralizedIBMethod::registerEulerianVariables()
     const IntVectorNd ib_ghosts = getMinimumGhostCellWidth();
     const IntVectorNd no_ghosts = 0;
 
-    Pointer<VariableNd> u_var = d_ib_solver->getVelocityVariable();
-    Pointer<CellVariableNd<double> > u_cc_var = u_var;
-    Pointer<SideVariableNd<double> > u_sc_var = u_var;
+    SAMRAIPointer<VariableNd> u_var = d_ib_solver->getVelocityVariable();
+    SAMRAIPointer<CellVariableNd<double> > u_cc_var = u_var;
+    SAMRAIPointer<SideVariableNd<double> > u_sc_var = u_var;
     if (u_cc_var)
     {
         d_f_var = new CellVariableNd<double>(d_object_name + "::f", NDIM);
@@ -149,8 +151,8 @@ GeneralizedIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
-    Pointer<RefineAlgorithmNd> refine_alg;
-    Pointer<RefineOperatorNd> refine_op;
+    SAMRAIPointer<RefineAlgorithmNd> refine_alg;
+    SAMRAIPointer<RefineOperatorNd> refine_op;
 
     refine_alg = new RefineAlgorithmNd();
     refine_op = nullptr;
@@ -243,15 +245,15 @@ GeneralizedIBMethod::postprocessIntegrateData(double current_time, double new_ti
 
 void
 GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
-                                         const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
-                                         const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
+                                         const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                         const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                          const double data_time)
 {
     // Interpolate the linear velocities.
     IBMethod::interpolateVelocity(u_data_idx, u_synch_scheds, u_ghost_fill_scheds, data_time);
 
     // Interpolate the angular velocities.
-    std::vector<Pointer<LData> >* W_data = nullptr;
+    std::vector<SAMRAIPointer<LData> >* W_data = nullptr;
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         W_data = &d_W_current_data;
@@ -269,17 +271,17 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
     }
     TBOX_ASSERT(W_data);
 
-    Pointer<VariableNd> u_var = d_ib_solver->getVelocityVariable();
-    Pointer<CellVariableNd<double> > u_cc_var = u_var;
-    Pointer<SideVariableNd<double> > u_sc_var = u_var;
+    SAMRAIPointer<VariableNd> u_var = d_ib_solver->getVelocityVariable();
+    SAMRAIPointer<CellVariableNd<double> > u_cc_var = u_var;
+    SAMRAIPointer<SideVariableNd<double> > u_sc_var = u_var;
     if (u_cc_var)
     {
-        Pointer<CellVariableNd<double> > w_cc_var = d_w_var;
+        SAMRAIPointer<CellVariableNd<double> > w_cc_var = d_w_var;
         getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, nullptr, data_time);
     }
     else if (u_sc_var)
     {
-        Pointer<SideVariableNd<double> > w_sc_var = d_w_var;
+        SAMRAIPointer<SideVariableNd<double> > w_sc_var = d_w_var;
         getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, nullptr, data_time);
     }
     else
@@ -287,14 +289,14 @@ GeneralizedIBMethod::interpolateVelocity(const int u_data_idx,
         TBOX_ERROR(d_object_name << "::interpolateVelocity():\n"
                                  << "  unsupported velocity data centering" << std::endl);
     }
-    std::vector<Pointer<LData> >* X_LE_data;
+    std::vector<SAMRAIPointer<LData> >* X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->scale(d_w_idx, 0.5, d_w_idx);
     d_l_data_manager->interp(d_w_idx,
                              *W_data,
                              *X_LE_data,
-                             std::vector<Pointer<CoarsenScheduleNd> >(),
+                             std::vector<SAMRAIPointer<CoarsenScheduleNd> >(),
                              getGhostfillRefineSchedules(d_object_name + "::w"),
                              data_time);
     resetAnchorPointValues(*W_data,
@@ -438,10 +440,10 @@ GeneralizedIBMethod::computeLagrangianForce(const double data_time)
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     int ierr;
-    std::vector<Pointer<LData> >* F_data = nullptr;
-    std::vector<Pointer<LData> >* N_data = nullptr;
-    std::vector<Pointer<LData> >* X_data = nullptr;
-    std::vector<Pointer<LData> >* D_data = nullptr;
+    std::vector<SAMRAIPointer<LData> >* F_data = nullptr;
+    std::vector<SAMRAIPointer<LData> >* N_data = nullptr;
+    std::vector<SAMRAIPointer<LData> >* X_data = nullptr;
+    std::vector<SAMRAIPointer<LData> >* D_data = nullptr;
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
         d_F_current_needs_ghost_fill = true;
@@ -492,12 +494,12 @@ GeneralizedIBMethod::computeLagrangianForce(const double data_time)
 void
 GeneralizedIBMethod::spreadForce(const int f_data_idx,
                                  RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                                 const std::vector<Pointer<RefineScheduleNd> >& f_prolongation_scheds,
+                                 const std::vector<SAMRAIPointer<RefineScheduleNd> >& f_prolongation_scheds,
                                  const double data_time)
 {
     IBMethod::spreadForce(f_data_idx, f_phys_bdry_op, f_prolongation_scheds, data_time);
 
-    std::vector<Pointer<LData> >* N_data = nullptr;
+    std::vector<SAMRAIPointer<LData> >* N_data = nullptr;
     bool* N_needs_ghost_fill = nullptr;
     if (IBTK::rel_equal_eps(data_time, d_current_time))
     {
@@ -519,7 +521,7 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
     TBOX_ASSERT(N_data);
     TBOX_ASSERT(N_needs_ghost_fill);
 
-    std::vector<Pointer<LData> >* X_LE_data;
+    std::vector<SAMRAIPointer<LData> >* X_LE_data;
     bool* X_LE_needs_ghost_fill;
     getLECouplingPositionData(&X_LE_data, &X_LE_needs_ghost_fill, data_time);
     getVelocityHierarchyDataOps()->setToScalar(d_n_idx, 0.0, false);
@@ -527,7 +529,7 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
                              *N_data,
                              *X_LE_data,
                              f_phys_bdry_op,
-                             std::vector<Pointer<RefineScheduleNd> >(),
+                             std::vector<SAMRAIPointer<RefineScheduleNd> >(),
                              data_time,
                              *N_needs_ghost_fill,
                              *X_LE_needs_ghost_fill);
@@ -535,26 +537,26 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
     *X_LE_needs_ghost_fill = false;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const std::vector<Pointer<RefineScheduleNd> >& n_ghostfill_scheds =
+    const std::vector<SAMRAIPointer<RefineScheduleNd> >& n_ghostfill_scheds =
         getGhostfillRefineSchedules(d_object_name + "::n");
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         n_ghostfill_scheds[ln]->fillData(data_time);
     }
-    Pointer<VariableNd> u_var = d_ib_solver->getVelocityVariable();
-    Pointer<CellVariableNd<double> > u_cc_var = u_var;
-    Pointer<SideVariableNd<double> > u_sc_var = u_var;
+    SAMRAIPointer<VariableNd> u_var = d_ib_solver->getVelocityVariable();
+    SAMRAIPointer<CellVariableNd<double> > u_cc_var = u_var;
+    SAMRAIPointer<SideVariableNd<double> > u_sc_var = u_var;
     if (u_cc_var)
     {
-        Pointer<CellVariableNd<double> > f_cc_var = d_f_var;
-        Pointer<CellVariableNd<double> > n_cc_var = d_n_var;
+        SAMRAIPointer<CellVariableNd<double> > f_cc_var = d_f_var;
+        SAMRAIPointer<CellVariableNd<double> > n_cc_var = d_n_var;
         getHierarchyMathOps()->curl(d_f_idx, f_cc_var, d_n_idx, n_cc_var, nullptr, data_time);
     }
     else if (u_sc_var)
     {
-        Pointer<SideVariableNd<double> > f_sc_var = d_f_var;
-        Pointer<SideVariableNd<double> > n_sc_var = d_n_var;
+        SAMRAIPointer<SideVariableNd<double> > f_sc_var = d_f_var;
+        SAMRAIPointer<SideVariableNd<double> > n_sc_var = d_n_var;
         getHierarchyMathOps()->curl(d_f_idx, f_sc_var, d_n_idx, n_sc_var, nullptr, data_time);
     }
     else
@@ -567,11 +569,11 @@ GeneralizedIBMethod::spreadForce(const int f_data_idx,
 } // spreadForce
 
 void
-GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
-                                              Pointer<GriddingAlgorithmNd> gridding_alg,
+GeneralizedIBMethod::initializePatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                              SAMRAIPointer<GriddingAlgorithmNd> gridding_alg,
                                               int u_data_idx,
-                                              const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
-                                              const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
+                                              const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                              const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                               int integrator_step,
                                               double init_data_time,
                                               bool initial_time)
@@ -595,25 +597,25 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarch
         const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
         // Initialize the interpolated angular velocity field.
-        std::vector<Pointer<LData> > W_data(finest_ln + 1);
-        std::vector<Pointer<LData> > X_data(finest_ln + 1);
+        std::vector<SAMRAIPointer<LData> > W_data(finest_ln + 1);
+        std::vector<SAMRAIPointer<LData> > X_data(finest_ln + 1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
             X_data[ln] = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
             W_data[ln] = d_l_data_manager->getLData("W", ln);
         }
-        Pointer<VariableNd> u_var = d_ib_solver->getVelocityVariable();
-        Pointer<CellVariableNd<double> > u_cc_var = u_var;
-        Pointer<SideVariableNd<double> > u_sc_var = u_var;
+        SAMRAIPointer<VariableNd> u_var = d_ib_solver->getVelocityVariable();
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = u_var;
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = u_var;
         if (u_cc_var)
         {
-            Pointer<CellVariableNd<double> > w_cc_var = d_w_var;
+            SAMRAIPointer<CellVariableNd<double> > w_cc_var = d_w_var;
             getHierarchyMathOps()->curl(d_w_idx, w_cc_var, u_data_idx, u_cc_var, nullptr, init_data_time);
         }
         else if (u_sc_var)
         {
-            Pointer<SideVariableNd<double> > w_sc_var = d_w_var;
+            SAMRAIPointer<SideVariableNd<double> > w_sc_var = d_w_var;
             getHierarchyMathOps()->curl(d_w_idx, w_sc_var, u_data_idx, u_sc_var, nullptr, init_data_time);
         }
         else
@@ -625,7 +627,7 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarch
         d_l_data_manager->interp(d_w_idx,
                                  W_data,
                                  X_data,
-                                 std::vector<Pointer<CoarsenScheduleNd> >(),
+                                 std::vector<SAMRAIPointer<CoarsenScheduleNd> >(),
                                  getGhostfillRefineSchedules(d_object_name + "::w"),
                                  init_data_time);
         resetAnchorPointValues(W_data, coarsest_ln, finest_ln);
@@ -637,12 +639,12 @@ GeneralizedIBMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarch
 } // initializePatchHierarchy
 
 void
-GeneralizedIBMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
+GeneralizedIBMethod::initializeLevelData(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                          int level_number,
                                          double init_data_time,
                                          bool can_be_refined,
                                          bool initial_time,
-                                         Pointer<BasePatchLevelNd> old_level,
+                                         SAMRAIPointer<BasePatchLevelNd> old_level,
                                          bool allocate_data)
 {
     IBMethod::initializeLevelData(
@@ -651,11 +653,11 @@ GeneralizedIBMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy
     {
         // 1. Allocate LData corresponding to the curvilinear mesh node
         //    directors and angular velocities.
-        Pointer<LData> D_data = d_l_data_manager->createLData("D",
-                                                              level_number,
-                                                              NDIM * NDIM,
-                                                              /*manage_data*/ true);
-        Pointer<LData> W_data = d_l_data_manager->createLData("W", level_number, NDIM, /*manage_data*/ true);
+        SAMRAIPointer<LData> D_data = d_l_data_manager->createLData("D",
+                                                                    level_number,
+                                                                    NDIM * NDIM,
+                                                                    /*manage_data*/ true);
+        SAMRAIPointer<LData> W_data = d_l_data_manager->createLData("W", level_number, NDIM, /*manage_data*/ true);
 
         // 2. Initialize the Lagrangian data.
         static const int global_index_offset = 0;
@@ -683,7 +685,7 @@ GeneralizedIBMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy
 } // initializeLevelData
 
 void
-GeneralizedIBMethod::putToDatabase(Pointer<Database> db)
+GeneralizedIBMethod::putToDatabase(SAMRAIPointer<Database> db)
 {
     IBMethod::putToDatabase(db);
     db->putInteger("GENERALIZED_IB_METHOD_VERSION", GENERALIZED_IB_METHOD_VERSION);
@@ -707,7 +709,7 @@ GeneralizedIBMethod::resetLagrangianForceAndTorqueFunction(const double init_dat
 } // resetLagrangianForceAndTorqueFunction
 
 void
-GeneralizedIBMethod::getFromInput(Pointer<Database> /*db*/, bool /*is_from_restart*/)
+GeneralizedIBMethod::getFromInput(SAMRAIPointer<Database> /*db*/, bool /*is_from_restart*/)
 {
     // intentionally blank
     return;
@@ -716,8 +718,8 @@ GeneralizedIBMethod::getFromInput(Pointer<Database> /*db*/, bool /*is_from_resta
 void
 GeneralizedIBMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

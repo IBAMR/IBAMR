@@ -100,10 +100,10 @@ solve_3x3_system(const Eigen::Vector3d& L, const Eigen::Matrix3d& T)
 /////////////////////////////// PUBLIC //////////////////////////////////////
 BrinkmanPenalizationRigidBodyDynamics::BrinkmanPenalizationRigidBodyDynamics(
     std::string object_name,
-    Pointer<CellVariableNd<double> > ls_solid_var,
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-    Pointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
-    Pointer<Database> input_db,
+    SAMRAIPointer<CellVariableNd<double> > ls_solid_var,
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+    SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> fluid_solver,
+    SAMRAIPointer<Database> input_db,
     bool register_for_restart)
     : BrinkmanPenalizationStrategy(std::move(object_name), register_for_restart),
       d_adv_diff_solver(adv_diff_solver),
@@ -303,8 +303,8 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                                           "LINEAR",
                                           false,
                                           d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var)));
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    Pointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
     if (!d_split_penalty)
     {
@@ -353,7 +353,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
     const int ls_scratch_idx =
         var_db->mapVariableAndContextToIndex(d_ls_solid_var, d_adv_diff_solver->getScratchContext());
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
     // Ghost fill the level set values.
     typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
@@ -366,7 +366,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
                                                                  "LINEAR",
                                                                  false,
                                                                  d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
     hier_bdry_fill->fillData(time);
 
@@ -398,7 +398,7 @@ BrinkmanPenalizationRigidBodyDynamics::postprocessComputeBrinkmanPenalization(do
 } // postprocessComputeBrinkmanPenalization
 
 void
-BrinkmanPenalizationRigidBodyDynamics::putToDatabase(Pointer<Database> db)
+BrinkmanPenalizationRigidBodyDynamics::putToDatabase(SAMRAIPointer<Database> db)
 {
     std::string U = "U", W = "W", C0 = "C0", C = "C", J0 = "J0", Q = "Q", M = "M";
 
@@ -429,7 +429,7 @@ BrinkmanPenalizationRigidBodyDynamics::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-BrinkmanPenalizationRigidBodyDynamics::getFromInput(Pointer<Database> input_db, bool is_from_restart)
+BrinkmanPenalizationRigidBodyDynamics::getFromInput(SAMRAIPointer<Database> input_db, bool is_from_restart)
 {
     if (!is_from_restart && input_db->keyExists("init_quaternion"))
     {
@@ -493,8 +493,8 @@ BrinkmanPenalizationRigidBodyDynamics::getFromInput(Pointer<Database> input_db, 
 void
 BrinkmanPenalizationRigidBodyDynamics::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -552,27 +552,27 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithoutSplitting(i
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    SAMRAIPointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
     const double dt = d_new_time - d_current_time;
 
     // Set the rigid body velocity in u_in_idx
     for (PatchLevelNd::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchNd> patch = finest_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = finest_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        Pointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
-        Pointer<SideDataNd<double> > u_in_data = patch->getPatchData(u_in_idx);
-        Pointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
+        SAMRAIPointer<SideDataNd<double> > u_in_data = patch->getPatchData(u_in_idx);
+        SAMRAIPointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
         TBOX_ASSERT((ls_solid_data->getGhostCellWidth()).min() >= 1);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -633,28 +633,28 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocityWithSplitting(int 
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    SAMRAIPointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
     const double dt = d_new_time - d_current_time;
 
     // Set the rigid body velocity in u_in_idx
     for (PatchLevelNd::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchNd> patch = finest_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = finest_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        Pointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
-        Pointer<SideDataNd<double> > u_new_data = patch->getPatchData(u_scratch_idx);
-        Pointer<SideDataNd<double> > u_in_data = patch->getPatchData(u_in_idx);
-        Pointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
+        SAMRAIPointer<SideDataNd<double> > u_new_data = patch->getPatchData(u_scratch_idx);
+        SAMRAIPointer<SideDataNd<double> > u_in_data = patch->getPatchData(u_in_idx);
+        SAMRAIPointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
         TBOX_ASSERT((ls_solid_data->getGhostCellWidth()).min() >= 1);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
@@ -811,26 +811,26 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithoutSplitting(int
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    SAMRAIPointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
     const double dt = d_new_time - d_current_time;
 
     for (PatchLevelNd::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchNd> patch = finest_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = finest_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        Pointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
-        Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
-        Pointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
+        SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+        SAMRAIPointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
@@ -881,26 +881,26 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZoneWithSplitting(int u_
     // Get the cell-centered viscosity patch data index. Returns mu_scratch with ghost cells filled.
     const int mu_ins_idx = d_fluid_solver->getLinearOperatorMuPatchDataIndex();
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    SAMRAIPointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
     const double dt = d_new_time - d_current_time;
 
     for (PatchLevelNd::Iterator p(finest_level); p; p++)
     {
-        Pointer<PatchNd> patch = finest_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = finest_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* patch_dx = patch_geom->getDx();
         const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-        Pointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
-        Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
-        Pointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
-        Pointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
+        SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_scratch_idx);
+        SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+        SAMRAIPointer<SideDataNd<double> > rho_data = patch->getPatchData(rho_ins_idx);
+        SAMRAIPointer<CellDataNd<double> > mu_data = patch->getPatchData(mu_ins_idx);
 
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {

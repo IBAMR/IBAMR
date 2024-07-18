@@ -36,8 +36,8 @@ class LSLocateGasInterface
 {
 public:
     LSLocateGasInterface(const std::string& object_name,
-                         SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
+                         IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                         IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
                          const double init_height)
         : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_init_height(init_height)
     {
@@ -48,11 +48,11 @@ public:
      * Reinitialize the level set information
      */
     void setLevelSetPatchData(int D_idx,
-                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                              IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                               const double /*time*/,
                               const bool initial_time)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -74,20 +74,19 @@ public:
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             for (SAMRAI::hier::PatchLevelNd::Iterator p(level); p; p++)
             {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch = level->getPatch(p());
+                IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch = level->getPatch(p());
                 const SAMRAI::hier::BoxNd& patch_box = patch->getBox();
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > D_data = patch->getPatchData(D_idx);
+                IBTK::SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > D_data = patch->getPatchData(D_idx);
                 for (SAMRAI::hier::BoxNd::Iterator it(patch_box); it; it++)
                 {
                     SAMRAI::pdat::CellIndexNd ci(it());
 
                     // Get physical coordinates
                     IBTK::Vector coord = IBTK::Vector::Zero();
-                    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometryNd> patch_geom =
-                        patch->getPatchGeometry();
+                    IBTK::SAMRAIPointer<SAMRAI::geom::CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                     const double* patch_X_lower = patch_geom->getXLower();
                     const SAMRAI::hier::IndexNd& patch_lower_idx = patch_box.lower();
                     const double* const patch_dx = patch_geom->getDx();
@@ -120,12 +119,12 @@ private:
     /*!
      * SAMRAI::tbox::Pointer to the advection-diffusion solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
      * Level set variable.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_var;
 
     /*!
      * Initial level set information.
@@ -135,7 +134,7 @@ private:
 
 inline void
 callLSLocateGasInterfaceCallbackFunction(int D_idx,
-                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                         IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                          double time,
                                          bool initial_time,
                                          void* ctx)

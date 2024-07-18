@@ -24,8 +24,8 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-BoussinesqForcing::BoussinesqForcing(Pointer<VariableNd> T_var,
-                                     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
+BoussinesqForcing::BoussinesqForcing(SAMRAIPointer<VariableNd> T_var,
+                                     SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
                                      int gamma)
     : d_T_var(T_var), d_adv_diff_hier_integrator(adv_diff_hier_integrator), d_gamma(gamma)
 {
@@ -47,8 +47,8 @@ BoussinesqForcing::isTimeDependent() const
 
 void
 BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
-                                           Pointer<VariableNd> var,
-                                           Pointer<PatchHierarchyNd> hierarchy,
+                                           SAMRAIPointer<VariableNd> var,
+                                           SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                            const double data_time,
                                            const bool initial_time,
                                            const int coarsest_ln_in,
@@ -71,7 +71,7 @@ BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
         int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getNewContext());
         const bool T_new_is_allocated = d_adv_diff_hier_integrator->isAllocatedPatchData(T_new_idx);
         HierarchyDataOpsManagerNd* hier_data_ops_manager = HierarchyDataOpsManagerNd::getManager();
-        Pointer<HierarchyDataOpsRealNd<double> > hier_cc_data_ops =
+        SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_T_var, hierarchy, /*get_unique*/ true);
         if (d_adv_diff_hier_integrator->getCurrentCycleNumber() == 0 || !T_new_is_allocated)
         {
@@ -115,16 +115,16 @@ BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 BoussinesqForcing::setDataOnPatch(const int data_idx,
-                                  Pointer<VariableNd> /*var*/,
-                                  Pointer<PatchNd> patch,
+                                  SAMRAIPointer<VariableNd> /*var*/,
+                                  SAMRAIPointer<PatchNd> patch,
                                   const double /*data_time*/,
                                   const bool initial_time,
-                                  Pointer<PatchLevelNd> /*patch_level*/)
+                                  SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
-    Pointer<SideDataNd<double> > F_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SideDataNd<double> > F_data = patch->getPatchData(data_idx);
     F_data->fillAll(0.0);
     if (initial_time) return;
-    Pointer<CellDataNd<double> > T_scratch_data =
+    SAMRAIPointer<CellDataNd<double> > T_scratch_data =
         patch->getPatchData(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
     const BoxNd& patch_box = patch->getBox();
     const int axis = NDIM - 1;

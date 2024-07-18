@@ -88,9 +88,9 @@ static const int COARSEN_OP_PRIORITY = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-CartCellDoubleCubicCoarsen::findCoarsenOperator(const Pointer<VariableNd>& var, const std::string& op_name) const
+CartCellDoubleCubicCoarsen::findCoarsenOperator(const SAMRAIPointer<VariableNd>& var, const std::string& op_name) const
 {
-    Pointer<CellVariableNd<double> > cc_var = var;
+    SAMRAIPointer<CellVariableNd<double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
@@ -128,8 +128,8 @@ CartCellDoubleCubicCoarsen::coarsen(PatchNd& coarse,
         d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }
-    Pointer<CellDataNd<double> > cdata = coarse.getPatchData(dst_component);
-    Pointer<CellDataNd<double> > fdata = fine.getPatchData(src_component);
+    SAMRAIPointer<CellDataNd<double> > cdata = coarse.getPatchData(dst_component);
+    SAMRAIPointer<CellDataNd<double> > fdata = fine.getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
 #if !defined(NDEBUG)

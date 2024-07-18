@@ -76,9 +76,9 @@ public:
      * when requested.
      */
     IBExplicitHierarchyIntegrator(std::string object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                  SAMRAI::tbox::Pointer<IBStrategy> ib_method_ops,
-                                  SAMRAI::tbox::Pointer<INSHierarchyIntegrator> ins_hier_integrator,
+                                  IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                  IBTK::SAMRAIPointer<IBStrategy> ib_method_ops,
+                                  IBTK::SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator,
                                   bool register_for_restart = true);
 
     /*!
@@ -110,8 +110,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void initializeHierarchyIntegrator(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Get the global number of markers.
@@ -159,7 +159,7 @@ protected:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabaseSpecialized(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * Velocity patch index at the halfway point with IB ghosting. Used only for
@@ -170,7 +170,7 @@ protected:
     /*!
      * Implementation of marker points.
      */
-    SAMRAI::tbox::Pointer<IBTK::MarkerPatchHierarchy> d_markers;
+    IBTK::SAMRAIPointer<IBTK::MarkerPatchHierarchy> d_markers;
 
     /*!
      * Boolean indicating whether or not we have set marker point velocities.
@@ -237,7 +237,7 @@ private:
     /*!
      * Pointer to data only stored during regrids.
      */
-    SAMRAI::tbox::Pointer<RegridData> d_regrid_temporary_data;
+    IBTK::SAMRAIPointer<RegridData> d_regrid_temporary_data;
 };
 } // namespace IBAMR
 

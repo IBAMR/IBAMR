@@ -67,9 +67,9 @@ public:
      * \brief Class constructor.
      */
     CIBStaggeredStokesOperator(std::string object_name,
-                               SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
+                               IBTK::SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy,
                                bool homogeneous_bc = true,
-                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
+                               IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db = nullptr);
 
     /*!
      * \brief Destructor.
@@ -145,7 +145,7 @@ public:
     //////////////////////////////////////////////////////////////////////////////
 protected:
     // Pointer to a constraint based rigid IB Method.
-    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
+    IBTK::SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
 
     // Scaling factors for various operators.
     double d_scale_interp = 1.0, d_scale_spread = 1.0, d_reg_mob_factor = 1.0;

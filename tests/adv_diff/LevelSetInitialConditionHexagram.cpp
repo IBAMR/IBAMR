@@ -23,9 +23,10 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LevelSetInitialConditionHexagram::LevelSetInitialConditionHexagram(const std::string& object_name,
-                                                                   const Pointer<CartesianGridGeometryNd> grid_geom,
-                                                                   const IBTK::VectorNd& origin)
+LevelSetInitialConditionHexagram::LevelSetInitialConditionHexagram(
+    const std::string& object_name,
+    const SAMRAIPointer<CartesianGridGeometryNd> grid_geom,
+    const IBTK::VectorNd& origin)
     : d_object_name(object_name), d_grid_geom(grid_geom), d_origin(origin)
 {
     // intentionally blank
@@ -40,17 +41,17 @@ LevelSetInitialConditionHexagram::isTimeDependent() const
 
 void
 LevelSetInitialConditionHexagram::setDataOnPatch(const int data_idx,
-                                                 Pointer<SAMRAI::hier::VariableNd> /*var*/,
-                                                 Pointer<PatchNd> patch,
+                                                 SAMRAIPointer<SAMRAI::hier::VariableNd> /*var*/,
+                                                 SAMRAIPointer<PatchNd> patch,
                                                  const double /*data_time*/,
                                                  const bool initial_time,
-                                                 Pointer<PatchLevelNd> patch_level)
+                                                 SAMRAIPointer<PatchLevelNd> patch_level)
 {
     // Set the level set function throughout the domain
     if (initial_time)
     {
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
         std::vector<double> k{ -0.5, 0.8660254038, 0.5773502692, 1.7320508076 };
         IBTK::VectorNd kxy{ k[0], k[1] };
         IBTK::VectorNd kyx{ k[1], k[0] };
@@ -60,7 +61,7 @@ LevelSetInitialConditionHexagram::setDataOnPatch(const int data_idx,
         IBTK::VectorNd p = IBTK::Vector::Zero();
         IBTK::VectorNd q = IBTK::Vector::Zero();
 
-        Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double* const grid_x_lower = d_grid_geom->getXLower();
         IntVectorNd ratio = patch_level->getRatio();

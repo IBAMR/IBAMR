@@ -77,7 +77,7 @@ public:
      * grid.
      */
     INSStaggeredStochasticForcing(std::string object_name,
-                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                  IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                   const INSStaggeredHierarchyIntegrator* fluid_solver);
 
     /*!
@@ -101,8 +101,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  const double data_time,
                                  const bool initial_time = false,
                                  const int coarsest_ln = IBTK::invalid_level_number,
@@ -112,12 +112,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level =
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
 
     //\}
 
@@ -182,17 +182,17 @@ private:
      * VariableContext and Variable objects for storing the components of the
      * stochastic stresses.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_W_cc_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_context;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_W_cc_var;
     int d_W_cc_idx = IBTK::invalid_index;
     std::vector<int> d_W_cc_idxs;
 #if (NDIM == 2)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariableNd<double> > d_W_nc_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::NodeVariableNd<double> > d_W_nc_var;
     int d_W_nc_idx = IBTK::invalid_index;
     std::vector<int> d_W_nc_idxs;
 #endif
 #if (NDIM == 3)
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::EdgeVariableNd<double> > d_W_ec_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::EdgeVariableNd<double> > d_W_ec_var;
     int d_W_ec_idx = IBTK::invalid_index;
     std::vector<int> d_W_ec_idxs;
 #endif

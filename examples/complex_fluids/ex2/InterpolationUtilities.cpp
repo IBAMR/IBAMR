@@ -36,8 +36,8 @@ namespace IBTK
 double
 InterpolationUtilities::interpolate(const vector<double>& X,
                                     const int data_idx,
-                                    Pointer<CellVariableNd<double> > Q_var,
-                                    Pointer<PatchHierarchyNd> patch_hierarchy,
+                                    SAMRAIPointer<CellVariableNd<double> > Q_var,
+                                    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                     const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
                                     const double data_time,
                                     const int depth)
@@ -48,7 +48,7 @@ InterpolationUtilities::interpolate(const vector<double>& X,
         var_db->registerVariableAndContext(Q_var, var_db->getContext("Interpolation"), IntVectorNd(3));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(data_idx_temp);
     }
     HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy);
@@ -64,16 +64,16 @@ InterpolationUtilities::interpolate(const vector<double>& X,
     for (int ln = patch_hierarchy->getFinestLevelNumber(); ln >= 0 && !done; --ln)
     {
         // Start at the finest level...
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         CellIndexNd idx = IndexUtilities::getCellIndex(X, level->getGridGeometry(), level->getRatio());
         for (PatchLevelNd::Iterator p(level); p && !done; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
             const double* const dx = p_geom->getDx();
             const double* const x_lower = p_geom->getXLower();
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > S_data = patch->getPatchData(data_idx_temp);
+            SAMRAIPointer<CellDataNd<double> > S_data = patch->getPatchData(data_idx_temp);
             if (patch_box.contains(idx))
             {
                 // Great. The patch is currently on this level
@@ -116,7 +116,7 @@ InterpolationUtilities::interpolate(const vector<double>& X,
     }
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(data_idx_temp);
     }
     q_val = IBTK_MPI::sumReduction(q_val);
@@ -126,8 +126,8 @@ InterpolationUtilities::interpolate(const vector<double>& X,
 double
 InterpolationUtilities::interpolateL2(const std::vector<double>& X,
                                       const int data_idx,
-                                      Pointer<CellVariableNd<double> > Q_var,
-                                      SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                                      SAMRAIPointer<CellVariableNd<double> > Q_var,
+                                      IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                       const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs,
                                       const double data_time,
                                       const int depth)
@@ -138,7 +138,7 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
         var_db->registerVariableAndContext(Q_var, var_db->getContext("Interpolation"), IntVectorNd(3));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(data_idx_temp);
     }
     HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy);
@@ -154,16 +154,16 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
     for (int ln = patch_hierarchy->getFinestLevelNumber(); ln >= 0 && !done; --ln)
     {
         // Start at the finest level...
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         CellIndexNd idx = IndexUtilities::getCellIndex(X, level->getGridGeometry(), level->getRatio());
         for (PatchLevelNd::Iterator p(level); p && !done; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<CartesianPatchGeometryNd> p_geom = patch->getPatchGeometry();
             const double* const dx = p_geom->getDx();
             const double* const x_lower = p_geom->getXLower();
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > S_data = patch->getPatchData(data_idx_temp);
+            SAMRAIPointer<CellDataNd<double> > S_data = patch->getPatchData(data_idx_temp);
             if (patch_box.contains(idx))
             {
                 // Great. The patch is currently on this level
@@ -248,7 +248,7 @@ InterpolationUtilities::interpolateL2(const std::vector<double>& X,
 
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(data_idx_temp);
     }
     return q_val;
@@ -281,7 +281,7 @@ InterpolationUtilities::interpolate_in_boxes(const CellIndexNd& idx,
                                              const std::vector<double>& X,
                                              CellDataNd<int>& r_data,
                                              CellDataNd<double>& q_data,
-                                             Pointer<CartesianPatchGeometryNd> pgeom,
+                                             SAMRAIPointer<CartesianPatchGeometryNd> pgeom,
                                              const BoxNd& pbox,
                                              int dim,
                                              int cycle,

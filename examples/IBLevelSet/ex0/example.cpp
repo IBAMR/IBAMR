@@ -81,10 +81,10 @@ CircularInterface circle;
 // Struct to reset solid level set
 struct SolidLevelSetResetter
 {
-    Pointer<IBInterpolantMethod> ib_interp_ops;
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
-    Pointer<CellVariableNd<double> > ls_solid_var;
-    Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd;
+    SAMRAIPointer<IBInterpolantMethod> ib_interp_ops;
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+    SAMRAIPointer<CellVariableNd<double> > ls_solid_var;
+    SAMRAIPointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd;
 };
 
 void
@@ -99,7 +99,7 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
     Eigen::Vector3d XCOM_new = XCOM_current + dt * (resetter->bp_rbd->getNewCOMTransVelocity());
 
     // Set a large value away from the solid body.
-    Pointer<PatchHierarchyNd> patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
 
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
@@ -108,17 +108,17 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
 
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> patch_level = patch_hier->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(patch_level); p; p++)
         {
-            Pointer<PatchNd> patch = patch_level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = patch_level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
             const hier::IndexNd& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
 
-            Pointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
+            SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 const hier::IndexNd& ci = it();
@@ -148,22 +148,22 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
 }
 
 void
-calculate_distance_analytically(Pointer<PatchHierarchyNd> patch_hierarchy, int E_idx)
+calculate_distance_analytically(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy, int E_idx)
 {
     int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
             const hier::IndexNd& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
 
-            Pointer<CellDataNd<double> > E_data = patch->getPatchData(E_idx);
+            SAMRAIPointer<CellDataNd<double> > E_data = patch->getPatchData(E_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 CellIndexNd ci(it());
@@ -190,7 +190,7 @@ calculate_distance_analytically(Pointer<PatchHierarchyNd> patch_hierarchy, int E
 } // calculate_distance_analytically
 
 void
-calculate_error_near_band(Pointer<PatchHierarchyNd> patch_hierarchy,
+calculate_error_near_band(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                           int E_idx,
                           int d_idx,
                           int W_idx,
@@ -205,21 +205,21 @@ calculate_error_near_band(Pointer<PatchHierarchyNd> patch_hierarchy,
     int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > D_data = patch->getPatchData(d_idx);
-            Pointer<CellDataNd<double> > E_data = patch->getPatchData(E_idx);
-            Pointer<CellDataNd<double> > W_data = patch->getPatchData(W_idx);
+            SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(d_idx);
+            SAMRAIPointer<CellDataNd<double> > E_data = patch->getPatchData(E_idx);
+            SAMRAIPointer<CellDataNd<double> > W_data = patch->getPatchData(W_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 CellIndexNd ci(it());
                 const double phi = (*D_data)(ci);
                 const double err = (*E_data)(ci);
                 const double dV = (*W_data)(ci);
-                Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* const patch_dx = patch_geom->getDx();
 
                 if (std::abs(err) <= 4.0 * patch_dx[0])
@@ -333,8 +333,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IBLevelSet.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IBLevelSet.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -466,7 +466,7 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator;
         const string discretization_form =
             app_initializer->getComponentDatabase("Main")->getString("discretization_form");
         const bool conservative_form = (discretization_form == "CONSERVATIVE");
@@ -489,12 +489,12 @@ main(int argc, char* argv[])
         }
 
         // Set up the advection diffusion hierarchy integrator
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
         const string adv_diff_solver_type = app_initializer->getComponentDatabase("Main")->getStringWithDefault(
             "adv_diff_solver_type", "PREDICTOR_CORRECTOR");
         if (adv_diff_solver_type == "PREDICTOR_CORRECTOR")
         {
-            Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+            SAMRAIPointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
                 "AdvectorExplicitPredictorPatchOps",
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             adv_diff_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
@@ -515,7 +515,7 @@ main(int argc, char* argv[])
         }
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<IBFEMethod> ibfe_method_ops = nullptr;
+        SAMRAIPointer<IBFEMethod> ibfe_method_ops = nullptr;
         bool from_restart = RestartManager::getManager()->isFromRestart();
         if (!from_restart)
         {
@@ -526,29 +526,29 @@ main(int argc, char* argv[])
                                app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
                                /*register_for_restart*/ false);
         }
-        Pointer<IBInterpolantMethod> ib_interpolant_method_ops = new IBInterpolantMethod(
+        SAMRAIPointer<IBInterpolantMethod> ib_interpolant_method_ops = new IBInterpolantMethod(
             "IBInterpolantMethod", app_initializer->getComponentDatabase("IBInterpolantMethod"));
-        Pointer<IBLevelSetMethod> ib_level_set_method_ops =
+        SAMRAIPointer<IBLevelSetMethod> ib_level_set_method_ops =
             new IBLevelSetMethod(ib_interpolant_method_ops, ibfe_method_ops);
 
-        Pointer<IBHierarchyIntegrator> time_integrator = new IBInterpolantHierarchyIntegrator(
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = new IBInterpolantHierarchyIntegrator(
             "IBInterpolantHierarchyIntegrator",
             app_initializer->getComponentDatabase("IBInterpolantHierarchyIntegrator"),
             ib_level_set_method_ops,
             navier_stokes_integrator);
 
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -557,13 +557,13 @@ main(int argc, char* argv[])
 
         // Create level sets for solid interface.
         const string& ls_name_solid = "level_set_solid";
-        Pointer<CellVariableNd<double> > phi_var_solid = new CellVariableNd<double>(ls_name_solid);
+        SAMRAIPointer<CellVariableNd<double> > phi_var_solid = new CellVariableNd<double>(ls_name_solid);
 
         // Create level sets for gas/liquid interface.
         const double fluid_height = input_db->getDouble("GAS_LS_INIT");
         const string& ls_name_gas = "level_set_gas";
-        Pointer<CellVariableNd<double> > phi_var_gas = new CellVariableNd<double>(ls_name_gas);
-        Pointer<RelaxationLSMethod> level_set_gas_ops =
+        SAMRAIPointer<CellVariableNd<double> > phi_var_gas = new CellVariableNd<double>(ls_name_gas);
+        SAMRAIPointer<RelaxationLSMethod> level_set_gas_ops =
             new RelaxationLSMethod(ls_name_gas, app_initializer->getComponentDatabase("LevelSet_Gas"));
         LSLocateGasInterface setLSLocateGasInterface(
             "LSLocateGasInterface", adv_diff_integrator, phi_var_gas, fluid_height);
@@ -593,8 +593,8 @@ main(int argc, char* argv[])
                                                                 static_cast<void*>(&solid_level_set_resetter));
 
         // Setup the advected and diffused fluid quantities.
-        Pointer<CellVariableNd<double> > mu_var = new CellVariableNd<double>("mu");
-        Pointer<hier::VariableNd> rho_var;
+        SAMRAIPointer<CellVariableNd<double> > mu_var = new CellVariableNd<double>("mu");
+        SAMRAIPointer<hier::VariableNd> rho_var;
         if (conservative_form)
         {
             rho_var = new SideVariableNd<double>("rho");
@@ -647,14 +647,14 @@ main(int argc, char* argv[])
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -721,20 +721,20 @@ main(int argc, char* argv[])
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
         circle.g_y = grav_const[1];
-        Pointer<CartGridFunction> grav_force =
+        SAMRAIPointer<CartGridFunction> grav_force =
             new IBAMR::VCINSUtilities::GravityForcing("GravityForcing",
                                                       adv_diff_integrator,
                                                       phi_var_gas,
                                                       app_initializer->getComponentDatabase("FlowGravityForcing"),
                                                       grav_const);
 
-        Pointer<SurfaceTensionForceFunction> surface_tension_force =
+        SAMRAIPointer<SurfaceTensionForceFunction> surface_tension_force =
             new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
                                             app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
                                             adv_diff_integrator,
                                             phi_var_gas);
 
-        Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
+        SAMRAIPointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
         eul_forces->addFunction(grav_force);
         eul_forces->addFunction(surface_tension_force);
         time_integrator->registerBodyForceFunction(eul_forces);
@@ -748,7 +748,7 @@ main(int argc, char* argv[])
         }
 
         // Configure the IBInterpolant solver.
-        Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
+        SAMRAIPointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
         std::vector<std::string> struct_list_vec(1, "InterpolationMesh");
         coarsest_ln = 0;
@@ -760,7 +760,7 @@ main(int argc, char* argv[])
             ls_name_solid, /*depth*/ 1, phi_var_solid, adv_diff_integrator);
 
         // Configure the Brinkman penalization object to do the rigid body dynamics.
-        Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd =
+        SAMRAIPointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd =
             new BrinkmanPenalizationRigidBodyDynamics("Brinkman Body",
                                                       phi_var_solid,
                                                       adv_diff_integrator,
@@ -779,8 +779,8 @@ main(int argc, char* argv[])
         solid_level_set_resetter.bp_rbd = bp_rbd;
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
-        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -798,16 +798,16 @@ main(int argc, char* argv[])
 
         // Compute distance function from FE mesh.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<CellVariableNd<double> > n_var = new CellVariableNd<double>("num_elements", 1);
-        Pointer<CellVariableNd<double> > d_var = new CellVariableNd<double>("distance", 1);
+        SAMRAIPointer<CellVariableNd<double> > n_var = new CellVariableNd<double>("num_elements", 1);
+        SAMRAIPointer<CellVariableNd<double> > d_var = new CellVariableNd<double>("distance", 1);
         const IntVectorNd no_width = 0;
-        Pointer<VariableContext> main_ctx = var_db->getContext("Main");
+        SAMRAIPointer<VariableContext> main_ctx = var_db->getContext("Main");
         const int n_idx = var_db->registerVariableAndContext(n_var, main_ctx, no_width);
         const int d_idx = var_db->registerVariableAndContext(d_var, main_ctx, no_width);
         int hier_finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= hier_finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(n_idx, 0.0);
             level->allocatePatchData(d_idx, 0.0);
         }
@@ -838,15 +838,15 @@ main(int argc, char* argv[])
         pout << "Finished updating sign" << std::endl;
 
         // Compute the error.
-        Pointer<CellVariableNd<double> > E_var = new CellVariableNd<double>("E");
+        SAMRAIPointer<CellVariableNd<double> > E_var = new CellVariableNd<double>("E");
         const int E_idx = var_db->registerVariableAndContext(E_var, main_ctx);
         for (int ln = 0; ln <= hier_finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             if (!level->checkAllocated(E_idx)) level->allocatePatchData(E_idx, time_integrator->getIntegratorTime());
         }
 
-        Pointer<HierarchyMathOps> hier_math_ops =
+        SAMRAIPointer<HierarchyMathOps> hier_math_ops =
             new HierarchyMathOps("HierarchyMathOps", patch_hierarchy, coarsest_ln, hier_finest_ln);
         const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 

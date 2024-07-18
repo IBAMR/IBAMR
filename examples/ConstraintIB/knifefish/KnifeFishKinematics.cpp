@@ -63,9 +63,9 @@ discard_comments(const std::string& input_string)
 } // namespace
 
 KnifeFishKinematics::KnifeFishKinematics(const std::string& object_name,
-                                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                         IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                          IBTK::LDataManager* l_data_manager,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> /*patch_hierarchy*/,
+                                         IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> /*patch_hierarchy*/,
                                          bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_kinematics_vel(NDIM),
@@ -220,8 +220,8 @@ KnifeFishKinematics::~KnifeFishKinematics()
 void
 KnifeFishKinematics::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -238,7 +238,7 @@ KnifeFishKinematics::getFromRestart()
 } // getFromRestart
 
 void
-KnifeFishKinematics::putToDatabase(Pointer<Database> db)
+KnifeFishKinematics::putToDatabase(SAMRAIPointer<Database> db)
 {
     IBAMR::ConstraintIBKinematics::putToDatabase(db);
     db->putDouble("d_current_time", d_current_time);

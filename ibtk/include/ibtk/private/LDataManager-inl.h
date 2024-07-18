@@ -104,7 +104,7 @@ LDataManager::getGlobalNodeOffset(const int level_number) const
     return d_node_offset[level_number];
 } // getGlobalNodeOffset
 
-inline SAMRAI::tbox::Pointer<LMesh>
+inline SAMRAIPointer<LMesh>
 LDataManager::getLMesh(const int level_number) const
 {
 #if !defined(NDEBUG)
@@ -114,7 +114,7 @@ LDataManager::getLMesh(const int level_number) const
     return d_lag_mesh[level_number];
 } // getLMesh
 
-inline SAMRAI::tbox::Pointer<LData>
+inline SAMRAIPointer<LData>
 LDataManager::getLData(const std::string& quantity_name, const int level_number) const
 {
 #if !defined(NDEBUG)

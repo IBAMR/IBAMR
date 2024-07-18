@@ -80,7 +80,7 @@ struct MassConservationFunctor
 {
     std::pair<double, double> operator()(const double& alpha);
     double d_dt;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> d_patch_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> d_patch_hierarchy;
     int d_u_idx;
     int d_phi_new_idx;
     int d_phi_current_idx;
@@ -109,24 +109,24 @@ MassConservationFunctor::operator()(const double& alpha)
     static const int dir = NDIM == 2 ? 1 : 2;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(ln);
-        Pointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
+        SAMRAIPointer<PatchLevelNd> level = d_patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
         const double* const grid_X_lower = grid_geom->getXLower();
         const double* const grid_X_upper = grid_geom->getXUpper();
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const patch_x_lower = patch_geom->getXLower();
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd& patch_lower = patch_box.lower();
 
-            Pointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
-            Pointer<CellDataNd<double> > phi_new_data = patch->getPatchData(d_phi_new_idx);
-            Pointer<CellDataNd<double> > phi_current_data = patch->getPatchData(d_phi_current_idx);
-            Pointer<CellDataNd<double> > I_data = patch->getPatchData(d_I_idx);
-            Pointer<CellDataNd<double> > dI_data = patch->getPatchData(d_dI_idx);
+            SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(d_u_idx);
+            SAMRAIPointer<CellDataNd<double> > phi_new_data = patch->getPatchData(d_phi_new_idx);
+            SAMRAIPointer<CellDataNd<double> > phi_current_data = patch->getPatchData(d_phi_current_idx);
+            SAMRAIPointer<CellDataNd<double> > I_data = patch->getPatchData(d_I_idx);
+            SAMRAIPointer<CellDataNd<double> > dI_data = patch->getPatchData(d_dI_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -246,12 +246,12 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
     const double alpha = ptr_wave_damper->d_alpha;
     const double sign_gas = ptr_wave_damper->d_sign_gas_phase;
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = ptr_wave_damper->d_ins_hier_integrator->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = ptr_wave_damper->d_ins_hier_integrator->getPatchHierarchy();
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     int u_new_idx = var_db->mapVariableAndContextToIndex(ptr_wave_damper->d_ins_hier_integrator->getVelocityVariable(),
                                                          ptr_wave_damper->d_ins_hier_integrator->getNewContext());
 
-    Pointer<CellVariableNd<double> > phi_cc_var = ptr_wave_damper->d_phi_var;
+    SAMRAIPointer<CellVariableNd<double> > phi_cc_var = ptr_wave_damper->d_phi_var;
     if (!phi_cc_var)
         TBOX_ERROR(
             "WaveDampingStrategy::callRelaxationZoneCallbackFunction: Level "
@@ -265,17 +265,17 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const patch_x_lower = patch_geom->getXLower();
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd& patch_lower = patch_box.lower();
 
-            Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_new_idx);
+            SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_new_idx);
 
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -306,17 +306,17 @@ callRelaxationZoneCallbackFunction(double /*current_time*/,
     // Modify the level set in the generation zone.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const patch_x_lower = patch_geom->getXLower();
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd& patch_lower = patch_box.lower();
 
-            Pointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_new_idx);
+            SAMRAIPointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_new_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 SAMRAI::hier::IndexNd i = it();
@@ -362,7 +362,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const std::string var_name = "callConservedWaveAbsorbingCallbackFunction::I_var";
     IntVectorNd no_ghosts = 0;
-    Pointer<CellVariableNd<double> > I_var = var_db->getVariable(var_name);
+    SAMRAIPointer<CellVariableNd<double> > I_var = var_db->getVariable(var_name);
     if (!I_var) I_var = new CellVariableNd<double>(var_name);
     const int I_idx =
         var_db->registerVariableAndContext(I_var, var_db->getContext(var_name + "::INTEGRAND"), no_ghosts);
@@ -374,7 +374,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
 #endif
 
     // Allocate patch data
-    Pointer<PatchHierarchyNd> patch_hierarchy = ptr_wave_damper->d_ins_hier_integrator->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = ptr_wave_damper->d_ins_hier_integrator->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -386,7 +386,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     // Get the required patch data
     int u_new_idx = var_db->mapVariableAndContextToIndex(ptr_wave_damper->d_ins_hier_integrator->getVelocityVariable(),
                                                          ptr_wave_damper->d_ins_hier_integrator->getNewContext());
-    Pointer<CellVariableNd<double> > phi_cc_var = ptr_wave_damper->d_phi_var;
+    SAMRAIPointer<CellVariableNd<double> > phi_cc_var = ptr_wave_damper->d_phi_var;
     if (!phi_cc_var)
         TBOX_ERROR(
             "WaveDampingStrategy::"
@@ -404,7 +404,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
         phi_cc_var, var_db->getContext("callConservedWaveAbsorbingCallbackFunction::phi_cc_var::SCRATCH"), cell_ghosts);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(phi_scratch_idx, new_time);
     }
 
@@ -420,7 +420,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
                                                       "LINEAR",
                                                       false,
                                                       phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(phi_transaction, patch_hierarchy);
     hier_bdry_fill->fillData(new_time);
 
@@ -454,17 +454,17 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     static const int dir = NDIM == 2 ? 1 : 2;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const patch_x_lower = patch_geom->getXLower();
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd& patch_lower = patch_box.lower();
 
-            Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_new_idx);
+            SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_new_idx);
 
             for (int axis = 0; axis < NDIM; ++axis)
             {
@@ -494,17 +494,17 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
     // Modify the level set in the generation zone.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const patch_x_lower = patch_geom->getXLower();
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd& patch_lower = patch_box.lower();
 
-            Pointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_new_idx);
+            SAMRAIPointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_new_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 SAMRAI::hier::IndexNd i = it();

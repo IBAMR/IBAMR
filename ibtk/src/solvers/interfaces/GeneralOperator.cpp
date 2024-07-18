@@ -107,14 +107,14 @@ GeneralOperator::getDt() const
 } // getDt
 
 void
-GeneralOperator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+GeneralOperator::setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
 } // setHierarchyMathOps
 
-Pointer<HierarchyMathOps>
+SAMRAIPointer<HierarchyMathOps>
 GeneralOperator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
@@ -126,7 +126,7 @@ GeneralOperator::applyAdd(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<doub
     // Guard against the case that y == z.
     SAMRAIScopedVectorCopy<double> zz(z);
     apply(x, zz);
-    z.add(Pointer<SAMRAIVectorRealNd<double> >(&y, false), zz);
+    z.add(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&y, false), zz);
     return;
 } // applyAdd
 

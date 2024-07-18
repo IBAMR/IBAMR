@@ -87,8 +87,7 @@ public:
     /*!
      * Determine time increment to advance data on level.
      */
-    double
-    getLevelDt(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> level, double dt_time, bool initial_time) override;
+    double getLevelDt(SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> level, double dt_time, bool initial_time) override;
 
     /*!
      * Advance data on all patches on specified patch level from current time
@@ -145,8 +144,8 @@ public:
 
 
      */
-    double advanceLevel(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> level,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    double advanceLevel(SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> level,
+                        SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                         double current_time,
                         double new_time,
                         bool first_step,
@@ -156,7 +155,7 @@ public:
     /*!
      * Reset time-dependent data storage for the specified patch level.
      */
-    void resetTimeDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> level,
+    void resetTimeDependentData(SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> level,
                                 double new_time,
                                 bool can_be_refined) override;
 
@@ -166,7 +165,7 @@ public:
      * words, this is the data needed to begin a time integration step on the
      * level.
      */
-    void resetDataToPreadvanceState(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> level) override;
+    void resetDataToPreadvanceState(SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> level) override;
 
     /*!
      * Initialize data on a new level after it is inserted into an AMR patch
@@ -190,14 +189,14 @@ public:
      * can_be_refined boolean argument indicates whether the level is the finest
      * allowable level in the hierarchy.
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
-                             int level_number,
-                             double init_data_time,
-                             bool can_be_refined,
-                             bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd>(NULL),
-                             bool allocate_data = true) override;
+    void initializeLevelData(
+        SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+        int level_number,
+        double init_data_time,
+        bool can_be_refined,
+        bool initial_time,
+        SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> old_level = SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd>(NULL),
+        bool allocate_data = true) override;
 
     /*!
      * After hierarchy levels have changed and data has been initialized on the
@@ -216,7 +215,7 @@ public:
      * current hierarchy configuration that have changed.  It should be assumed
      * that all intermediate levels have changed as well.
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void resetHierarchyConfiguration(SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                      int coarsest_level,
                                      int finest_level) override;
 
@@ -238,7 +237,7 @@ public:
      * detector, and false otherwise.  This argument helps the user to manage
      * multiple regridding criteria.
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void applyGradientDetector(SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -270,7 +269,7 @@ public:
      * otherwise.  This argument helps the user to manage multiple regridding
      * criteria.
      */
-    void applyRichardsonExtrapolation(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> level,
+    void applyRichardsonExtrapolation(SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level,
                                       double error_data_time,
                                       int tag_index,
                                       double deltat,
@@ -288,9 +287,9 @@ public:
      * coarsening the "new" solution on the fine level (i.e., after it has been
      * advanced).
      */
-    void coarsenDataForRichardsonExtrapolation(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void coarsenDataForRichardsonExtrapolation(SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                                int level_number,
-                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> coarser_level,
+                                               SAMRAIPointer<SAMRAI::hier::PatchLevelNd> coarser_level,
                                                double coarsen_data_time,
                                                bool before_advance) override;
 

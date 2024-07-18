@@ -80,7 +80,7 @@ enum HypreSStructRelaxType
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SCPoissonHypreLevelSolver::SCPoissonHypreLevelSolver(const std::string& object_name,
-                                                     Pointer<Database> input_db,
+                                                     SAMRAIPointer<Database> input_db,
                                                      const std::string& /*default_options_prefix*/)
     : d_relax_type(RELAX_TYPE_WEIGHTED_JACOBI)
 {
@@ -200,7 +200,7 @@ SCPoissonHypreLevelSolver::initializeSolverState(const SAMRAIVectorRealNd<double
                                  << "  vectors must have the same number of components" << std::endl);
     }
 
-    const Pointer<PatchHierarchyNd>& patch_hierarchy = x.getPatchHierarchy();
+    const SAMRAIPointer<PatchHierarchyNd>& patch_hierarchy = x.getPatchHierarchy();
     if (patch_hierarchy != b.getPatchHierarchy())
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
@@ -302,7 +302,7 @@ SCPoissonHypreLevelSolver::allocateHypreData()
     MPI_Comm communicator = IBTK_MPI::getCommunicator();
 
     // Setup the hypre grid and variables and assemble the grid.
-    Pointer<CartesianGridGeometryNd> grid_geometry = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = d_hierarchy->getGridGeometry();
     const IntVectorNd& ratio = d_level->getRatio();
     const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift(ratio);
 
@@ -386,7 +386,7 @@ SCPoissonHypreLevelSolver::setMatrixCoefficients()
 {
     for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<PatchNd> patch = d_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
         const auto stencil_size = d_stencil_offsets.size();
         SideDataNd<double> matrix_coefs(patch_box, stencil_size, IntVectorNd(0));
@@ -666,19 +666,19 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     // solution and right-hand-side data to hypre structures.
     for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<PatchNd> patch = d_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
         // Copy the solution data into the hypre vector, including ghost cell
         // values
         const BoxNd x_ghost_box = BoxNd::grow(patch_box, 1);
-        Pointer<SideDataNd<double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SideDataNd<double> > x_data = patch->getPatchData(x_idx);
         copyToHypre(d_sol_vec, *x_data, x_ghost_box);
 
         // Modify the right-hand-side data to account for any boundary
         // conditions and copy the right-hand-side into the hypre vector.
-        Pointer<SideDataNd<double> > b_data = patch->getPatchData(b_idx);
+        SAMRAIPointer<SideDataNd<double> > b_data = patch->getPatchData(b_idx);
         const Array<BoundaryBoxNd>& type_1_cf_bdry =
             level_zero ? Array<BoundaryBoxNd>() :
                          d_cf_boundary->getBoundaries(patch->getPatchNumber(), /* boundary type */ 1);
@@ -803,9 +803,9 @@ SCPoissonHypreLevelSolver::solveSystem(const int x_idx, const int b_idx)
     HYPRE_SStructVectorGather(d_sol_vec);
     for (PatchLevelNd::Iterator p(d_level); p; p++)
     {
-        Pointer<PatchNd> patch = d_level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = d_level->getPatch(p());
         const BoxNd& patch_box = patch->getBox();
-        Pointer<SideDataNd<double> > x_data = patch->getPatchData(x_idx);
+        SAMRAIPointer<SideDataNd<double> > x_data = patch->getPatchData(x_idx);
         copyFromHypre(*x_data, d_sol_vec, patch_box);
     }
 

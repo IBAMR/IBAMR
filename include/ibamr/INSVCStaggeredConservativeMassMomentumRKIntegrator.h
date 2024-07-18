@@ -78,7 +78,7 @@ public:
      * \brief Class constructor.
      */
     INSVCStaggeredConservativeMassMomentumRKIntegrator(std::string object_name,
-                                                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+                                                       IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -99,7 +99,7 @@ public:
      * \brief Compute hierarchy dependent data required for time integrating variables.
      */
     virtual void
-    initializeSTSIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> base_hierarchy) override;
+    initializeSTSIntegrator(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> base_hierarchy) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -130,14 +130,14 @@ public:
     /*!
      * \brief Set an optional mass density source term.
      */
-    void setMassDensitySourceTerm(const SAMRAI::tbox::Pointer<IBTK::CartGridFunction> S_fcn);
+    void setMassDensitySourceTerm(const IBTK::SAMRAIPointer<IBTK::CartGridFunction> S_fcn);
 
 protected:
     /*!
      * \brief Compute the advection velocity using simple averages.
      */
-    void computeAdvectionVelocity(std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
-                                  const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > U_data,
+    void computeAdvectionVelocity(std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
+                                  const IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > U_data,
                                   const SAMRAI::hier::IntVectorNd& patch_lower,
                                   const SAMRAI::hier::IntVectorNd& patch_upper,
                                   const std::array<SAMRAI::hier::BoxNd, NDIM>& side_boxes);
@@ -146,9 +146,9 @@ protected:
      * \brief Compute the interpolation of a quantity Q onto Q_half, faces of the velocity DOF centered control volumes.
      */
     void
-    interpolateSideQuantity(std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> Q_half_data,
-                            const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
-                            const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > Q_data,
+    interpolateSideQuantity(std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> Q_half_data,
+                            const std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
+                            const IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > Q_data,
                             const SAMRAI::hier::IntVectorNd& patch_lower,
                             const SAMRAI::hier::IntVectorNd& patch_upper,
                             const std::array<SAMRAI::hier::BoxNd, NDIM>& side_boxes,
@@ -158,28 +158,28 @@ protected:
      * \brief Compute div[rho_half*u_half*u_adv].
      */
     void computeConvectiveDerivative(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > N_data,
-        std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> P_half_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> R_half_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_half_data,
+        IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > N_data,
+        std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> P_half_data,
+        const std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
+        const std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> R_half_data,
+        const std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_half_data,
         const std::array<SAMRAI::hier::BoxNd, NDIM>& side_boxes,
         const double* const dx,
-        const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd>& patch);
+        const IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd>& patch);
 
     /*!
      * \brief Compute the density update rho = a0*rho^0 + a1*rho^1 + a2*dt*(-div[u_adv*rho_half]) + a2*dt*S
      */
     void
-    computeDensityUpdate(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > R_data,
+    computeDensityUpdate(IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > R_data,
                          const double& a0,
-                         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > R0_data,
+                         const IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > R0_data,
                          const double& a1,
-                         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > R1_data,
+                         const IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > R1_data,
                          const double& a2,
-                         const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
-                         const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> R_half_data,
-                         const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > S_data,
+                         const std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
+                         const std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> R_half_data,
+                         const IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > S_data,
                          const std::array<SAMRAI::hier::BoxNd, NDIM>& side_boxes,
                          const double& dt,
                          const double* const dx);
@@ -189,11 +189,11 @@ protected:
      * density field pointwise.
      */
     void computeErrorOfMassConservationEquation(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > E_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > Rnew_data,
-        const SAMRAI::tbox::Pointer<SAMRAI::pdat::SideDataNd<double> > Rold_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
-        const std::array<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> R_half_data,
+        IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > E_data,
+        const IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > Rnew_data,
+        const IBTK::SAMRAIPointer<SAMRAI::pdat::SideDataNd<double> > Rold_data,
+        const std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> U_adv_data,
+        const std::array<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> >, NDIM> R_half_data,
         const std::array<SAMRAI::hier::BoxNd, NDIM>& side_boxes,
         const double& dt,
         const double* const dx);
@@ -205,7 +205,7 @@ protected:
     // Cached communications operators.
     std::string d_velocity_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_v_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_v_bdry_fill;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_v_bdry_fill;
 
     // The limiter type for interpolation onto faces.
     LimiterType d_velocity_convective_limiter = CUI;

@@ -39,9 +39,9 @@
 namespace IBAMR
 {
 OscillatingCylinderKinematics::OscillatingCylinderKinematics(const std::string& object_name,
-                                                             Pointer<Database> input_db,
+                                                             SAMRAIPointer<Database> input_db,
                                                              LDataManager* l_data_manager,
-                                                             Pointer<PatchHierarchyNd> /*patch_hierarchy*/,
+                                                             SAMRAIPointer<PatchHierarchyNd> /*patch_hierarchy*/,
                                                              bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_prescribed_trans_vel(0.0),
@@ -135,8 +135,8 @@ OscillatingCylinderKinematics::~OscillatingCylinderKinematics()
 void
 OscillatingCylinderKinematics::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -154,7 +154,7 @@ OscillatingCylinderKinematics::getFromRestart()
 } // getFromRestart
 
 void
-OscillatingCylinderKinematics::putToDatabase(Pointer<Database> db)
+OscillatingCylinderKinematics::putToDatabase(SAMRAIPointer<Database> db)
 {
     IBAMR::ConstraintIBKinematics::putToDatabase(db);
     db->putDouble("d_current_time", d_current_time);

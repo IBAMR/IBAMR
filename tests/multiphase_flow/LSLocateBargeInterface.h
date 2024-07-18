@@ -49,8 +49,8 @@ class LSLocateBargeInterface
 {
 public:
     LSLocateBargeInterface(const std::string& object_name,
-                           SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
+                           IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                           IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
                            IBTK::LDataManager* lag_data_manager,
                            double vol_elem,
                            BargeInterface* barge)
@@ -69,7 +69,7 @@ public:
      * Reinitialize the level set information
      */
     void setLevelSetPatchData(int D_idx,
-                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                              IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                               double time,
                               bool initial_time)
     {
@@ -90,12 +90,12 @@ private:
     /*!
      * Pointer to the advection-diffusion solver
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
      * Level set variable
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_var;
 
     /*!
      * IB information
@@ -116,11 +116,11 @@ private:
      * Reinitialize the level set information by geometry.
      */
     void setLevelSetPatchDataByGeometry(int D_idx,
-                                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                        IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                         double /*time*/,
                                         bool /*initial_time*/)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -162,20 +162,19 @@ private:
         // Analytical distance away from the rectangle
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             for (SAMRAI::hier::PatchLevelNd::Iterator p(level); p; p++)
             {
-                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch = level->getPatch(p());
+                IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch = level->getPatch(p());
                 const SAMRAI::hier::BoxNd& patch_box = patch->getBox();
-                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > D_data = patch->getPatchData(D_idx);
+                IBTK::SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > D_data = patch->getPatchData(D_idx);
                 for (SAMRAI::hier::BoxNd::Iterator it(patch_box); it; it++)
                 {
                     SAMRAI::pdat::CellIndexNd ci(it());
 
                     // Get physical coordinates
                     IBTK::Vector X = IBTK::Vector::Zero();
-                    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometryNd> patch_geom =
-                        patch->getPatchGeometry();
+                    IBTK::SAMRAIPointer<SAMRAI::geom::CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                     const double* patch_X_lower = patch_geom->getXLower();
                     const SAMRAI::hier::IndexNd& patch_lower_idx = patch_box.lower();
                     const double* const patch_dx = patch_geom->getDx();
@@ -218,8 +217,7 @@ private:
     /*!
      * Get the extreme coordinate points of the barge.
      */
-    void getExtremeCoords(std::vector<IBTK::Vector>& corners,
-                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops)
+    void getExtremeCoords(std::vector<IBTK::Vector>& corners, IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops)
     {
         double xmin = std::numeric_limits<double>::max();
         double xmax = -std::numeric_limits<double>::max();
@@ -232,11 +230,10 @@ private:
 
         IBTK::Vector c_xmin, c_xmax, c_ymin, c_ymax;
 
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
+        IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1,
-                                                                SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
+        std::vector<IBTK::SAMRAIPointer<IBTK::LData> > X_data(finest_ln + 1, IBTK::SAMRAIPointer<IBTK::LData>(NULL));
         X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -245,7 +242,7 @@ private:
 
             // Get pointer to LData
             boost::multi_array_ref<double, 2>& X_boost_data = *X_data[ln]->getLocalFormVecArray();
-            const SAMRAI::tbox::Pointer<IBTK::LMesh> mesh = d_lag_data_manager->getLMesh(ln);
+            const IBTK::SAMRAIPointer<IBTK::LMesh> mesh = d_lag_data_manager->getLMesh(ln);
             const std::vector<IBTK::LNode*>& local_nodes = mesh->getLocalNodes();
 
             for (std::vector<IBTK::LNode*>::const_iterator cit = local_nodes.begin(); cit != local_nodes.end(); ++cit)
@@ -325,7 +322,7 @@ private:
 
 inline void
 callLSLocateBargeInterfaceCallbackFunction(int D_idx,
-                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                           IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                            double time,
                                            bool initial_time,
                                            void* ctx)

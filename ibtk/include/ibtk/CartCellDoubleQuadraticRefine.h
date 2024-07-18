@@ -69,7 +69,7 @@ public:
      * Return true if the refining operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd>& var,
+    bool findRefineOperator(const SAMRAIPointer<SAMRAI::hier::VariableNd>& var,
                             const std::string& op_name) const override;
 
     /*!

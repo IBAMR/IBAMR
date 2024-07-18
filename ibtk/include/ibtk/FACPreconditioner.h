@@ -77,8 +77,8 @@ public:
      * Constructor.
      */
     FACPreconditioner(std::string object_name,
-                      SAMRAI::tbox::Pointer<FACPreconditionerStrategy> fac_strategy,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                      SAMRAIPointer<FACPreconditionerStrategy> fac_strategy,
+                      SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                       const std::string& default_options_prefix);
 
     /*!
@@ -259,7 +259,7 @@ public:
      * \brief Get the FAC preconditioner strategy objects employed by the
      * preconditioner.
      */
-    SAMRAI::tbox::Pointer<FACPreconditionerStrategy> getFACPreconditionerStrategy() const;
+    SAMRAIPointer<FACPreconditionerStrategy> getFACPreconditionerStrategy() const;
 
 protected:
     void FACVCycleNoPreSmoothing(SAMRAI::solv::SAMRAIVectorRealNd<double>& u,
@@ -283,8 +283,8 @@ protected:
                   int level_num,
                   int mu);
 
-    SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    SAMRAIPointer<FACPreconditionerStrategy> d_fac_strategy;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = 0;
     int d_finest_ln = 0;
     MGCycleType d_cycle_type = V_CYCLE;
@@ -318,7 +318,7 @@ private:
      */
     FACPreconditioner& operator=(const FACPreconditioner& that) = delete;
 
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(SAMRAIPointer<SAMRAI::tbox::Database> db);
 };
 } // namespace IBTK
 

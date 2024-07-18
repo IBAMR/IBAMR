@@ -59,7 +59,7 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops) override;
+    void setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops) override;
 
     /*!
      * \name General-purpose solver functionality.
@@ -91,12 +91,12 @@ public:
     /*!
      * \brief Set the nonlinear operator \f$F[x]\f$ used by the solver.
      */
-    virtual void setOperator(SAMRAI::tbox::Pointer<GeneralOperator> op);
+    virtual void setOperator(SAMRAIPointer<GeneralOperator> op);
 
     /*!
      * \brief Retrieve the nonlinear operator \f$F[x]\f$ used by the solver.
      */
-    virtual SAMRAI::tbox::Pointer<GeneralOperator> getOperator() const;
+    virtual SAMRAIPointer<GeneralOperator> getOperator() const;
 
     /*!
      * \brief Return the vector in which the approximate solution is stored.
@@ -104,7 +104,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * NULL pointer if the solver is not initialized.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getSolutionVector() const = 0;
+    virtual SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getSolutionVector() const = 0;
 
     /*!
      * \brief Return the vector in which the nonlinear function evaluation is
@@ -113,7 +113,7 @@ public:
      * \note Implementations of this member function are permitted to return a
      * NULL pointer if the solver is not initialized.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getFunctionVector() const = 0;
+    virtual SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getFunctionVector() const = 0;
 
     /*!
      * \brief Set the Jacobian operator \f$J[x] = F'[x]\f$ used by the solver.
@@ -123,19 +123,19 @@ public:
      * Newton-Krylov method is employed to approximate the action of the
      * Jacobian.
      */
-    virtual void setJacobian(SAMRAI::tbox::Pointer<JacobianOperator> J);
+    virtual void setJacobian(SAMRAIPointer<JacobianOperator> J);
 
     /*!
      * \brief Retrieve the Jacobian operator \f$J[x] = F'[x]\f$ used by the
      * solver.
      */
-    virtual SAMRAI::tbox::Pointer<JacobianOperator> getJacobian() const;
+    virtual SAMRAIPointer<JacobianOperator> getJacobian() const;
 
     /*!
      * \brief Retrieve the Krylov linear solver used in computing Newton step
      * directions.
      */
-    virtual SAMRAI::tbox::Pointer<KrylovLinearSolver> getLinearSolver() const;
+    virtual SAMRAIPointer<KrylovLinearSolver> getLinearSolver() const;
 
     //\}
 
@@ -183,10 +183,10 @@ public:
 
 protected:
     // Solver components.
-    SAMRAI::tbox::Pointer<GeneralOperator> d_F;
-    SAMRAI::tbox::Pointer<JacobianOperator> d_J;
-    SAMRAI::tbox::Pointer<KrylovLinearSolver> d_krylov_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x, d_b, d_r;
+    SAMRAIPointer<GeneralOperator> d_F;
+    SAMRAIPointer<JacobianOperator> d_J;
+    SAMRAIPointer<KrylovLinearSolver> d_krylov_solver;
+    SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x, d_b, d_r;
 
     // Solver parameters.
     int d_max_evaluations = 10000;

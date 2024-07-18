@@ -105,7 +105,7 @@ public:
      * \brief Constructor.
      */
     CCPoissonPETScLevelSolver(const std::string& object_name,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                               std::string default_options_prefix);
 
     /*!
@@ -116,9 +116,9 @@ public:
     /*!
      * \brief Static function to construct a CCPoissonPETScLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                                        const std::string& default_options_prefix)
     {
         return new CCPoissonPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
@@ -193,11 +193,11 @@ private:
      * \name PETSc objects.
      */
     //\{
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    SAMRAIPointer<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_dof_index_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<int> > d_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> d_data_synch_sched, d_ghost_fill_sched;
+    SAMRAIPointer<SAMRAI::pdat::CellVariableNd<int> > d_dof_index_var;
+    SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> d_data_synch_sched, d_ghost_fill_sched;
     //\}
 };
 } // namespace IBTK

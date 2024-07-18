@@ -49,7 +49,7 @@ IBLagrangianForceStrategySet::setTimeInterval(const double current_time, const d
 } // setTimeInterval
 
 void
-IBLagrangianForceStrategySet::initializeLevelData(const Pointer<PatchHierarchyNd> hierarchy,
+IBLagrangianForceStrategySet::initializeLevelData(const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                   const int level_number,
                                                   const double init_data_time,
                                                   const bool initial_time,
@@ -63,10 +63,10 @@ IBLagrangianForceStrategySet::initializeLevelData(const Pointer<PatchHierarchyNd
 } // initializeLevelData
 
 void
-IBLagrangianForceStrategySet::computeLagrangianForce(Pointer<LData> F_data,
-                                                     Pointer<LData> X_data,
-                                                     Pointer<LData> U_data,
-                                                     const Pointer<PatchHierarchyNd> hierarchy,
+IBLagrangianForceStrategySet::computeLagrangianForce(SAMRAIPointer<LData> F_data,
+                                                     SAMRAIPointer<LData> X_data,
+                                                     SAMRAIPointer<LData> U_data,
+                                                     const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                      const int level_number,
                                                      const double data_time,
                                                      LDataManager* const l_data_manager)
@@ -79,11 +79,12 @@ IBLagrangianForceStrategySet::computeLagrangianForce(Pointer<LData> F_data,
 } // computeLagrangianForce
 
 void
-IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructure(std::vector<int>& d_nnz,
-                                                                             std::vector<int>& o_nnz,
-                                                                             const Pointer<PatchHierarchyNd> hierarchy,
-                                                                             const int level_number,
-                                                                             LDataManager* const l_data_manager)
+IBLagrangianForceStrategySet::computeLagrangianForceJacobianNonzeroStructure(
+    std::vector<int>& d_nnz,
+    std::vector<int>& o_nnz,
+    const SAMRAIPointer<PatchHierarchyNd> hierarchy,
+    const int level_number,
+    LDataManager* const l_data_manager)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -96,10 +97,10 @@ void
 IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
                                                              MatAssemblyType assembly_type,
                                                              const double X_coef,
-                                                             Pointer<LData> X_data,
+                                                             SAMRAIPointer<LData> X_data,
                                                              const double U_coef,
-                                                             Pointer<LData> U_data,
-                                                             const Pointer<PatchHierarchyNd> hierarchy,
+                                                             SAMRAIPointer<LData> U_data,
+                                                             const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                              const int level_number,
                                                              const double data_time,
                                                              LDataManager* const l_data_manager)
@@ -129,9 +130,9 @@ IBLagrangianForceStrategySet::computeLagrangianForceJacobian(Mat& J_mat,
 } // computeLagrangianForceJacobian
 
 double
-IBLagrangianForceStrategySet::computeLagrangianEnergy(Pointer<LData> X_data,
-                                                      Pointer<LData> U_data,
-                                                      const Pointer<PatchHierarchyNd> hierarchy,
+IBLagrangianForceStrategySet::computeLagrangianEnergy(SAMRAIPointer<LData> X_data,
+                                                      SAMRAIPointer<LData> U_data,
+                                                      const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                       const int level_number,
                                                       const double data_time,
                                                       LDataManager* const l_data_manager)

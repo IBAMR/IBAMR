@@ -87,7 +87,7 @@ static Timer* t_deallocate_integrator;
 
 INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(
     std::string object_name,
-    Pointer<Database> input_db)
+    SAMRAIPointer<Database> input_db)
     : INSVCStaggeredConservativeMassMomentumRKIntegrator(object_name, input_db)
 {
     switch (d_density_time_stepping_type)
@@ -328,35 +328,35 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
 
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
-                const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* const dx = patch_geom->getDx();
 
                 const BoxNd& patch_box = patch->getBox();
                 const IntVectorNd& patch_lower = patch_box.lower();
                 const IntVectorNd& patch_upper = patch_box.upper();
 
-                Pointer<SideDataNd<double> > N_data = patch->getPatchData(d_N_idx);
-                Pointer<SideDataNd<double> > V_data = patch->getPatchData(d_V_scratch_idx);
-                Pointer<SideDataNd<double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
-                Pointer<SideDataNd<double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
-                Pointer<SideDataNd<double> > R_new_data = patch->getPatchData(d_rho_new_idx);
-                Pointer<SideDataNd<double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
-                Pointer<SideDataNd<double> > E_data = patch->getPatchData(d_E_scratch_idx);
+                SAMRAIPointer<SideDataNd<double> > N_data = patch->getPatchData(d_N_idx);
+                SAMRAIPointer<SideDataNd<double> > V_data = patch->getPatchData(d_V_scratch_idx);
+                SAMRAIPointer<SideDataNd<double> > R_cur_data = patch->getPatchData(d_rho_current_idx);
+                SAMRAIPointer<SideDataNd<double> > R_pre_data = patch->getPatchData(d_rho_scratch_idx);
+                SAMRAIPointer<SideDataNd<double> > R_new_data = patch->getPatchData(d_rho_new_idx);
+                SAMRAIPointer<SideDataNd<double> > R_src_data = patch->getPatchData(d_S_scratch_idx);
+                SAMRAIPointer<SideDataNd<double> > E_data = patch->getPatchData(d_E_scratch_idx);
 
                 // Define variables that live on the "faces" of control
                 // volumes centered about side-centered staggered velocity
                 // components
                 const IntVectorNd ghosts = IntVectorNd(1);
                 std::array<BoxNd, NDIM> side_boxes;
-                std::array<Pointer<FaceDataNd<double> >, NDIM> V_adv_data;
-                std::array<Pointer<FaceDataNd<double> >, NDIM> V_half_data;
-                std::array<Pointer<FaceDataNd<double> >, NDIM> R_half_data;
-                std::array<Pointer<FaceDataNd<double> >, NDIM> P_half_data;
+                std::array<SAMRAIPointer<FaceDataNd<double> >, NDIM> V_adv_data;
+                std::array<SAMRAIPointer<FaceDataNd<double> >, NDIM> V_half_data;
+                std::array<SAMRAIPointer<FaceDataNd<double> >, NDIM> R_half_data;
+                std::array<SAMRAIPointer<FaceDataNd<double> >, NDIM> P_half_data;
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
                     side_boxes[axis] = SideGeometryNd::toSideBox(patch_box, axis);
@@ -448,7 +448,7 @@ INSVCStaggeredConservativeMassMomentumSSPRKIntegrator::integrate(double dt)
                                      dt,
                                      dx);
 
-                Pointer<SideDataNd<double> > V_cur_data = patch->getPatchData(d_V_current_idx);
+                SAMRAIPointer<SideDataNd<double> > V_cur_data = patch->getPatchData(d_V_current_idx);
                 if ((d_density_time_stepping_type == SSPRK2 && step == 1) ||
                     (d_density_time_stepping_type == SSPRK3 && step == 2))
                 {

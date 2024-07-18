@@ -92,7 +92,7 @@ public:
      * \brief Constructor.
      */
     BGaussSeidelPreconditioner(std::string object_name,
-                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                               SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                const std::string& default_options_prefix);
 
     /*!
@@ -104,14 +104,13 @@ public:
      * \brief Set the preconditioner to be employed on the specified vector
      * component.
      */
-    void setComponentPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> preconditioner, unsigned int component);
+    void setComponentPreconditioner(SAMRAIPointer<LinearSolver> preconditioner, unsigned int component);
 
     /*!
      * \brief Set the linear operators to be employed on the specified vector
      * component.
      */
-    void setComponentOperators(const std::vector<SAMRAI::tbox::Pointer<LinearOperator> >& linear_ops,
-                               unsigned int component);
+    void setComponentOperators(const std::vector<SAMRAIPointer<LinearOperator> >& linear_ops, unsigned int component);
 
     /*!
      * \brief Indicate whether to apply the component preconditioners
@@ -289,18 +288,18 @@ private:
      * SAMRAI::solv::SAMRAIVectorReal objects to correspond to each of the
      * components.
      */
-    static std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > >
-    getComponentVectors(SAMRAI::tbox::ConstPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > x);
+    static std::vector<SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > >
+    getComponentVectors(SAMRAIConstPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > x);
 
     /*!
      * The component preconditioners.
      */
-    std::map<unsigned int, SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
+    std::map<unsigned int, SAMRAIPointer<LinearSolver> > d_pc_map;
 
     /*!
      * The component operators.
      */
-    std::map<unsigned int, std::vector<SAMRAI::tbox::Pointer<LinearOperator> > > d_linear_ops_map;
+    std::map<unsigned int, std::vector<SAMRAIPointer<LinearOperator> > > d_linear_ops_map;
 
     /*!
      * Parameters to specify the ordering of the application of the component

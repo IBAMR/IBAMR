@@ -91,7 +91,7 @@ setup_deformation_system(ReplicatedMesh& mesh, EquationSystems& equation_systems
 class TestTag : public SAMRAI::mesh::StandardTagAndInitStrategyNd
 {
 public:
-    TestTag(const Parallel::Communicator& comm, Pointer<Database>& input_db) : d_mesh(comm), d_es(d_mesh)
+    TestTag(const Parallel::Communicator& comm, SAMRAIPointer<Database>& input_db) : d_mesh(comm), d_es(d_mesh)
     {
         MeshTools::Generation::build_sphere(d_mesh, 0.5, 4, NDIM == 2 ? TRI3 : HEX8);
         MeshBase::element_iterator el_end = d_mesh.elements_end();
@@ -138,23 +138,23 @@ public:
         d_fe_data_manager->setCurrentCoordinatesSystemName(X_system.name());
     }
 
-    void initializeLevelData(const Pointer<BasePatchHierarchyNd> /*hierarchy*/,
+    void initializeLevelData(const SAMRAIPointer<BasePatchHierarchyNd> /*hierarchy*/,
                              const int /*level_number*/,
                              const double /*init_data_time*/,
                              const bool /*can_be_refined*/,
                              const bool /*initial_time*/,
-                             const tbox::Pointer<hier::BasePatchLevelNd> /*old_level*/ = nullptr,
+                             const SAMRAIPointer<hier::BasePatchLevelNd> /*old_level*/ = nullptr,
                              const bool /*allocate_data*/ = true) override
     {
     }
 
-    void resetHierarchyConfiguration(const tbox::Pointer<hier::BasePatchHierarchyNd> /*hierarchy*/,
+    void resetHierarchyConfiguration(const SAMRAIPointer<hier::BasePatchHierarchyNd> /*hierarchy*/,
                                      const int /*coarsest_level*/,
                                      const int /*finest_level*/) override
     {
     }
 
-    void applyGradientDetector(const tbox::Pointer<hier::BasePatchHierarchyNd> hierarchy,
+    void applyGradientDetector(const SAMRAIPointer<hier::BasePatchHierarchyNd> hierarchy,
                                const int level_number,
                                const double error_data_time,
                                const int tag_index,
@@ -182,19 +182,19 @@ main(int argc, char** argv)
 
     // Parse command line options, set some standard options from the input
     // file, and enable file logging.
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "multilevel_fe_01.log");
-    Pointer<Database> input_db = app_initializer->getInputDatabase();
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "multilevel_fe_01.log");
+    SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
     TestTag tag(init.comm(), input_db);
 
-    Pointer<CartesianGridGeometryNd> grid_geometry =
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geometry =
         new CartesianGridGeometryNd("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-    Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-    Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+    SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
         "StandardTagAndInitialize", &tag, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-    Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-    Pointer<LoadBalancerNd> load_balancer =
+    SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+    SAMRAIPointer<LoadBalancerNd> load_balancer =
         new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-    Pointer<GriddingAlgorithmNd> gridding_algorithm =
+    SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
         new GriddingAlgorithmNd("GriddingAlgorithm",
                                 app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                 error_detector,
@@ -219,18 +219,18 @@ main(int argc, char** argv)
 
     // plot stuff
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    Pointer<VariableContext> ctx = var_db->getContext("context");
-    Pointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc");
+    SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
+    SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc");
     const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVectorNd(1));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         TBOX_ASSERT(level);
         level->allocatePatchData(u_cc_idx, 0.0);
     }
 
     // Register variables for plotting.
-    Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+    SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
     TBOX_ASSERT(visit_data_writer);
     visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
     visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);

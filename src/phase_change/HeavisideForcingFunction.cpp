@@ -19,9 +19,9 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 HeavisideForcingFunction::HeavisideForcingFunction(const std::string& /*object_name*/,
-                                                   const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                   const Pointer<CellVariableNd<double> > H_var,
-                                                   const Pointer<FaceVariableNd<double> > U_adv_var)
+                                                   const SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                                   const SAMRAIPointer<CellVariableNd<double> > H_var,
+                                                   const SAMRAIPointer<FaceVariableNd<double> > U_adv_var)
     : d_adv_diff_solver(adv_diff_solver), d_H_var(H_var), d_U_adv_var(U_adv_var)
 {
     // intentionally blank
@@ -36,8 +36,8 @@ HeavisideForcingFunction::isTimeDependent() const
 
 void
 HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                  Pointer<VariableNd> /*var*/,
-                                                  Pointer<PatchHierarchyNd> hierarchy,
+                                                  SAMRAIPointer<VariableNd> /*var*/,
+                                                  SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                   const double data_time,
                                                   const bool initial_time,
                                                   const int coarsest_ln_in,
@@ -81,11 +81,11 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 HeavisideForcingFunction::setDataOnPatch(const int /*data_idx*/,
-                                         Pointer<VariableNd> /*var*/,
-                                         Pointer<PatchNd> /*patch*/,
+                                         SAMRAIPointer<VariableNd> /*var*/,
+                                         SAMRAIPointer<PatchNd> /*patch*/,
                                          const double /*data_time*/,
                                          const bool /*initial_time*/,
-                                         Pointer<PatchLevelNd> /*patch_level*/)
+                                         SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
     // As we directly compute and set data on the patch hierarchy don't do anything over here.
     return;

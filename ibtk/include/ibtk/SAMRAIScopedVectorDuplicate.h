@@ -45,7 +45,7 @@ public:
     /*!
      * Constructor. Sets up a vector equivalent to @p vector but does not copy values.
      */
-    SAMRAIScopedVectorDuplicate(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> >& vector,
+    SAMRAIScopedVectorDuplicate(const SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> >& vector,
                                 const std::string& name = "");
 
     /*!
@@ -65,12 +65,12 @@ public:
      * to a vector. Since this pointer is non-owning it is not an implementation
      * of reference-counting to this object.
      */
-    operator SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> >();
+    operator SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> >();
 
     /*!
      * Get the components of the vectors.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> > > getComponentVectors() const;
+    std::vector<SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> > > getComponentVectors() const;
 
     /*!
      * Destructor. Removes the cloned patch index and deallocates data.
@@ -78,7 +78,7 @@ public:
     ~SAMRAIScopedVectorDuplicate();
 
 protected:
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> > d_vector;
+    SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<TYPE> > d_vector;
 };
 } // namespace IBTK
 

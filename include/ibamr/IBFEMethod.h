@@ -444,7 +444,7 @@ public:
      * \brief Constructor for a single-part model.
      */
     IBFEMethod(const std::string& object_name,
-               const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+               const IBTK::SAMRAIPointer<SAMRAI::tbox::Database>& input_db,
                libMesh::MeshBase* mesh,
                int max_levels,
                bool register_for_restart = true,
@@ -455,7 +455,7 @@ public:
      * \brief Constructor for a multi-part model.
      */
     IBFEMethod(const std::string& object_name,
-               const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+               const IBTK::SAMRAIPointer<SAMRAI::tbox::Database>& input_db,
                const std::vector<libMesh::MeshBase*>& meshes,
                int max_levels,
                bool register_for_restart = true,
@@ -556,7 +556,7 @@ public:
      * Register the (optional) direct forcing kinematics object with the finite
      * element mesh.
      */
-    virtual void registerDirectForcingKinematics(const SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics>& data,
+    virtual void registerDirectForcingKinematics(const IBTK::SAMRAIPointer<IBAMR::IBFEDirectForcingKinematics>& data,
                                                  unsigned int part = 0);
 
     /*!
@@ -569,7 +569,7 @@ public:
      * Setup the tag buffer.
      */
     void setupTagBuffer(SAMRAI::tbox::Array<int>& tag_buffer,
-                        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) const override;
+                        IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) const override;
 
     /*!
      * Same as the base class.
@@ -621,8 +621,8 @@ public:
      */
     void
     interpolateVelocity(int u_data_idx,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
+                        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+                        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
                         double data_time) override;
 
     /*!
@@ -661,7 +661,7 @@ public:
      */
     void spreadForce(int f_data_idx,
                      IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                     const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
+                     const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
                      double data_time) override;
 
     /*!
@@ -682,7 +682,7 @@ public:
     void
     spreadFluidSource(int q_data_idx,
                       IBTK::RobinPhysBdryPatchStrategy* q_phys_bdry_op,
-                      const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& q_prolongation_scheds,
+                      const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& q_prolongation_scheds,
                       double data_time) override;
 
     /*!
@@ -725,11 +725,11 @@ public:
      * Eulerian data will be filled upon entry to this function.
      */
     void initializePatchHierarchy(
-        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-        SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg,
+        IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+        IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg,
         int u_data_idx,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
-        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
+        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> >& u_synch_scheds,
+        const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& u_ghost_fill_scheds,
         int integrator_step,
         double init_data_time,
         bool initial_time) override;
@@ -741,7 +741,7 @@ public:
      * @deprecated This method is no longer necessary with the current
      * workload estimation scheme.
      */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancerNd> load_balancer,
+    void registerLoadBalancer(IBTK::SAMRAIPointer<SAMRAI::mesh::LoadBalancerNd> load_balancer,
                               int workload_data_idx) override;
 
     /*!
@@ -749,22 +749,22 @@ public:
      * work required by the owned Lagrangian objects) per cell into the
      * specified <code>workload_data_idx</code>.
      */
-    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void addWorkloadEstimate(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                              int workload_data_idx) override;
 
     /*!
      * Begin redistributing Lagrangian data prior to regridding the patch
      * hierarchy.
      */
-    void beginDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                                 SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void beginDataRedistribution(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                 IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Complete redistributing Lagrangian data following regridding the patch
      * hierarchy.
      */
-    void endDataRedistribution(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                               SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void endDataRedistribution(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                               IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * this function only exists for compatibility with the base class and
@@ -780,12 +780,12 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void initializeLevelData(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                              int level_number,
                              double init_data_time,
                              bool can_be_refined,
                              bool initial_time,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevelNd> old_level,
+                             IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> old_level,
                              bool allocate_data) override;
 
     /*!
@@ -793,7 +793,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::resetHierarchyConfiguration
      */
-    void resetHierarchyConfiguration(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void resetHierarchyConfiguration(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                      int coarsest_level,
                                      int finest_level) override;
 
@@ -808,7 +808,7 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void applyGradientDetector(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -818,13 +818,13 @@ public:
     /*!
      * Write out object state to the given database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * Return a pointer to the scratch hierarchy used by this object. See the
      * main documentation of this class for more information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> getScratchHierarchy();
+    IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> getScratchHierarchy();
 
 protected:
     /*!
@@ -895,7 +895,7 @@ protected:
     /*!
      * Cached input databases.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_fe_data_manager_db;
+    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> d_fe_data_manager_db;
 
     /// System names for key variables.
     const std::string d_source_system_name;
@@ -925,8 +925,8 @@ protected:
      * Pointers to the patch hierarchy and gridding algorithm objects associated
      * with this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> d_gridding_alg;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> d_gridding_alg;
     bool d_is_initialized = false;
 
     /*!
@@ -940,7 +940,7 @@ protected:
     int d_lagrangian_workload_new_idx = IBTK::invalid_index;
     int d_lagrangian_workload_scratch_idx = IBTK::invalid_index;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> d_lagrangian_workload_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_lagrangian_workload_var;
     const std::string d_lagrangian_workload_coarsen_type = "CONSERVATIVE_COARSEN";
     const std::string d_lagrangian_workload_refine_type = "CONSERVATIVE_LINEAR_REFINE";
 
@@ -996,7 +996,7 @@ protected:
      * number, the patch data index for the coarse level data, and the patch
      * data index which will be filled with fine level data.
      */
-    std::map<std::pair<int, std::pair<int, int> >, SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >
+    std::map<std::pair<int, std::pair<int, int> >, IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >
         d_prolongation_schedules;
 
     /// Minimum ghost cell width.
@@ -1058,7 +1058,7 @@ protected:
     /*!
      * Objects used to impose direct forcing kinematics.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBAMR::IBFEDirectForcingKinematics> > d_direct_forcing_kinematics_data;
+    std::vector<IBTK::SAMRAIPointer<IBAMR::IBFEDirectForcingKinematics> > d_direct_forcing_kinematics_data;
 
     /*!
      * Functions used to compute source/sink strength on the Lagrangian mesh.
@@ -1070,7 +1070,7 @@ protected:
     /*!
      * Nonuniform load balancing data structures.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancerNd> d_load_balancer;
+    IBTK::SAMRAIPointer<SAMRAI::mesh::LoadBalancerNd> d_load_balancer;
     int d_workload_idx = IBTK::invalid_index;
 
     /**
@@ -1085,12 +1085,12 @@ private:
     /*!
      * Implementation of class constructor.
      */
-    void commonConstructor(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db, int max_levels);
+    void commonConstructor(const IBTK::SAMRAIPointer<SAMRAI::tbox::Database>& input_db, int max_levels);
 
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& db, bool is_from_restart);
+    void getFromInput(const IBTK::SAMRAIPointer<SAMRAI::tbox::Database>& db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

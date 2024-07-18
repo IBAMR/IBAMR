@@ -93,9 +93,9 @@ public:
      * \brief The only constructor of this class.
      */
     CIBMobilitySolver(std::string object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                      SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                      SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy);
+                      IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                      IBTK::SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                      IBTK::SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy);
 
     /*!
      * \brief Destructor for this class.
@@ -165,7 +165,7 @@ public:
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \brief Solves the mobility problem.
@@ -219,7 +219,7 @@ private:
     /*!
      * \brief Get various options from input db.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     // Name of this object.
     std::string d_object_name;
@@ -228,10 +228,10 @@ private:
     unsigned d_num_rigid_parts;
 
     // Pointers.
-    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
-    SAMRAI::tbox::Pointer<IBAMR::DirectMobilitySolver> d_direct_mob_solver;
-    SAMRAI::tbox::Pointer<IBAMR::KrylovMobilitySolver> d_krylov_mob_solver;
-    SAMRAI::tbox::Pointer<IBAMR::KrylovFreeBodyMobilitySolver> d_krylov_freebody_mob_solver;
+    IBTK::SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
+    IBTK::SAMRAIPointer<IBAMR::DirectMobilitySolver> d_direct_mob_solver;
+    IBTK::SAMRAIPointer<IBAMR::KrylovMobilitySolver> d_krylov_mob_solver;
+    IBTK::SAMRAIPointer<IBAMR::KrylovFreeBodyMobilitySolver> d_krylov_freebody_mob_solver;
 
     // Other parameters.
     double d_solution_time, d_current_time, d_new_time;

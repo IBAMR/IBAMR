@@ -37,7 +37,7 @@
 class DummyAdvDiffIntegrator : public AdvDiffHierarchyIntegrator
 {
 public:
-    DummyAdvDiffIntegrator(std::string object_name, Pointer<Database> input_db)
+    DummyAdvDiffIntegrator(std::string object_name, SAMRAIPointer<Database> input_db)
         : AdvDiffHierarchyIntegrator(std::move(object_name), input_db, true)
     {
     }
@@ -93,27 +93,27 @@ protected:
     {
         plog << d_object_name << ": initializeCompositeHierarchyDataSpecialized()\n";
     }
-    void initializeLevelDataSpecialized(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
+    void initializeLevelDataSpecialized(SAMRAIPointer<BasePatchHierarchyNd> /*hierarchy*/,
                                         int /*level_number*/,
                                         double /*init_data_time*/,
                                         bool /*can_be_refined*/,
                                         bool /*initial_time*/,
-                                        Pointer<BasePatchLevelNd> /*old_level*/,
+                                        SAMRAIPointer<BasePatchLevelNd> /*old_level*/,
                                         bool /*allocate_data*/) override
     {
         plog << d_object_name << ": initializeLevelDataSpecialized()\n";
     }
-    void resetHierarchyConfigurationSpecialized(Pointer<BasePatchHierarchyNd> /*hierarchy*/,
+    void resetHierarchyConfigurationSpecialized(SAMRAIPointer<BasePatchHierarchyNd> /*hierarchy*/,
                                                 int /*coarsest_level*/,
                                                 int /*finest_level*/) override
     {
         plog << d_object_name << ": resetHierarchyConfigurationSpecialized()\n";
     }
-    void putToDatabaseSpecialized(Pointer<Database> /*db*/) override
+    void putToDatabaseSpecialized(SAMRAIPointer<Database> /*db*/) override
     {
         plog << d_object_name << ": putToDatabaseSpecialized()\n";
     }
-    void addWorkloadEstimate(Pointer<PatchHierarchyNd> /*hierarchy*/, const int /*workload_data_idx*/) override
+    void addWorkloadEstimate(SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/, const int /*workload_data_idx*/) override
     {
         plog << d_object_name << ": addWorkloadEstimate()\n";
     }
@@ -166,9 +166,9 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -185,10 +185,10 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator =
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator =
             new DummyAdvDiffIntegrator("DummyAdvDiff", app_initializer->getComponentDatabase("DummyAdvDiff"));
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator_2;
-        Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator_2;
+        SAMRAIPointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
@@ -199,30 +199,31 @@ main(int argc, char* argv[])
                 new DummyAdvDiffIntegrator("DummyAdvDiff2", app_initializer->getComponentDatabase("DummyAdvDiff"));
             navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator_2);
         }
-        Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
+        SAMRAIPointer<IBMethod> ib_method_ops =
+            new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
             new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
                                               app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
                                               ib_method_ops,
                                               navier_stokes_integrator);
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            time_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
                                     box_generator,
                                     load_balancer);
         // Configure the IB solver.
-        Pointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
+        SAMRAIPointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
         std::vector<std::string> struct_list_vec = { "dummy" };
         ib_initializer->setStructureNamesOnLevel(input_db->getInteger("MAX_LEVELS") - 1, struct_list_vec);
@@ -230,7 +231,7 @@ main(int argc, char* argv[])
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
         // Set up visualization plot file writer.
-        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

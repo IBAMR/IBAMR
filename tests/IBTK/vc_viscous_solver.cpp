@@ -41,12 +41,12 @@
 // Set up application namespace declarations
 #include <ibtk/app_namespaces.h>
 
-Pointer<PoissonSolver>
+SAMRAIPointer<PoissonSolver>
 allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
-                                   SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> solver_input_db,
+                                   IBTK::SAMRAIPointer<SAMRAI::tbox::Database> solver_input_db,
                                    const std::string& solver_default_options_prefix)
 {
-    Pointer<PETScKrylovPoissonSolver> krylov_solver =
+    SAMRAIPointer<PETScKrylovPoissonSolver> krylov_solver =
         new PETScKrylovPoissonSolver(solver_object_name, solver_input_db, solver_default_options_prefix);
     krylov_solver->setOperator(new VCSCViscousOperator(solver_object_name + "::vc_viscous_operator"));
     return krylov_solver;
@@ -69,20 +69,20 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_poisson.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_poisson.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -91,19 +91,19 @@ main(int argc, char* argv[])
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
-        Pointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
-        Pointer<SideVariableNd<double> > f_sc_var = new SideVariableNd<double>("f_sc");
-        Pointer<SideVariableNd<double> > e_sc_var = new SideVariableNd<double>("e_sc");
-        Pointer<SideVariableNd<double> > r_sc_var = new SideVariableNd<double>("r_sc");
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
+        SAMRAIPointer<SideVariableNd<double> > f_sc_var = new SideVariableNd<double>("f_sc");
+        SAMRAIPointer<SideVariableNd<double> > e_sc_var = new SideVariableNd<double>("e_sc");
+        SAMRAIPointer<SideVariableNd<double> > r_sc_var = new SideVariableNd<double>("r_sc");
 #if (NDIM == 2)
-        Pointer<NodeVariableNd<double> > mu_nc_var = new NodeVariableNd<double>("mu_node");
+        SAMRAIPointer<NodeVariableNd<double> > mu_nc_var = new NodeVariableNd<double>("mu_node");
         const int mu_nc_idx = var_db->registerVariableAndContext(mu_nc_var, ctx, IntVectorNd(1));
 #elif (NDIM == 3)
-        Pointer<EdgeVariableNd<double> > mu_ec_var = new EdgeVariableNd<double>("mu_edge");
+        SAMRAIPointer<EdgeVariableNd<double> > mu_ec_var = new EdgeVariableNd<double>("mu_edge");
         const int mu_ec_idx = var_db->registerVariableAndContext(mu_ec_var, ctx, IntVectorNd(1));
-        Pointer<CellVariableNd<double> > mu_cc_var = new CellVariableNd<double>("mu_cc");
+        SAMRAIPointer<CellVariableNd<double> > mu_cc_var = new CellVariableNd<double>("mu_cc");
         const int mu_cc_idx = var_db->registerVariableAndContext(mu_cc_var, ctx, IntVectorNd(0));
 #endif
 
@@ -112,10 +112,10 @@ main(int argc, char* argv[])
         const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVectorNd(1));
         const int r_sc_idx = var_db->registerVariableAndContext(r_sc_var, ctx, IntVectorNd(1));
 
-        Pointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc", NDIM);
-        Pointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc", NDIM);
-        Pointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc", NDIM);
-        Pointer<CellVariableNd<double> > r_cc_var = new CellVariableNd<double>("r_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > r_cc_var = new CellVariableNd<double>("r_cc", NDIM);
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVectorNd(0));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVectorNd(0));
@@ -123,7 +123,7 @@ main(int argc, char* argv[])
         const int r_cc_idx = var_db->registerVariableAndContext(r_cc_var, ctx, IntVectorNd(0));
 
         // Register variables for plotting.
-        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         TBOX_ASSERT(visit_data_writer);
 
         visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "VECTOR", u_cc_idx);
@@ -171,7 +171,7 @@ main(int argc, char* argv[])
         // Allocate data on each level of the patch hierarchy.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_sc_idx, 0.0);
             level->allocatePatchData(f_sc_idx, 0.0);
             level->allocatePatchData(e_sc_idx, 0.0);
@@ -230,7 +230,7 @@ main(int argc, char* argv[])
                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 /*mu_bc_coef*/ NULL,
-                                                                Pointer<VariableFillPatternNd>(NULL));
+                                                                SAMRAIPointer<VariableFillPatternNd>(NULL));
 #elif (NDIM == 3)
         transaction_comp[0] = InterpolationTransactionComponent(mu_ec_idx,
                                                                 /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
@@ -239,16 +239,16 @@ main(int argc, char* argv[])
                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 /*mu_bc_coef*/ NULL,
-                                                                Pointer<VariableFillPatternNd>(NULL));
+                                                                SAMRAIPointer<VariableFillPatternNd>(NULL));
 #endif
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
         hier_bdry_fill->setHomogeneousBc(false);
         hier_bdry_fill->fillData(/*time*/ 0.0);
 
         const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
         vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
-        std::vector<Pointer<SAMRAIVectorRealNd<double> > > U_nul_vecs(NDIM);
+        std::vector<SAMRAIPointer<SAMRAIVectorRealNd<double> > > U_nul_vecs(NDIM);
         const bool has_velocity_nullspace = periodic_shift.min() > 0;
         if (has_velocity_nullspace)
         {
@@ -264,11 +264,11 @@ main(int argc, char* argv[])
                 U_nul_vecs[k]->setToScalar(0.0);
                 for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
                 {
-                    Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+                    SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
                     for (PatchLevelNd::Iterator p(level); p; p++)
                     {
-                        Pointer<PatchNd> patch = level->getPatch(p());
-                        Pointer<SideDataNd<double> > U_nul_data =
+                        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                        SAMRAIPointer<SideDataNd<double> > U_nul_data =
                             patch->getPatchData(U_nul_vecs[k]->getComponentDescriptorIndex(0));
                         U_nul_data->getArrayData(k).fillAll(1.0);
                     }
@@ -283,7 +283,7 @@ main(int argc, char* argv[])
 
                 const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
-                Pointer<Database> bc_coefs_db = app_initializer->getComponentDatabase(bc_coefs_db_name);
+                SAMRAIPointer<Database> bc_coefs_db = app_initializer->getComponentDatabase(bc_coefs_db_name);
                 u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, bc_coefs_db, grid_geometry);
             }
         }
@@ -303,9 +303,9 @@ main(int argc, char* argv[])
         viscous_op.setSolutionTime(0.0);
 
         string solver_type = input_db->getString("solver_type");
-        Pointer<Database> solver_db = input_db->getDatabase("solver_db");
+        SAMRAIPointer<Database> solver_db = input_db->getDatabase("solver_db");
         string precond_type = input_db->getString("precond_type");
-        Pointer<Database> precond_db = input_db->getDatabase("precond_db");
+        SAMRAIPointer<Database> precond_db = input_db->getDatabase("precond_db");
 
         SCPoissonSolverManager* solver_manager = SCPoissonSolverManager::getManager();
         solver_manager->registerSolverFactoryFunction("VC_VELOCITY_PETSC_KRYLOV_SOLVER",
@@ -314,15 +314,15 @@ main(int argc, char* argv[])
                                                       VCSCViscousOpPointRelaxationFACOperator::allocate_solver);
         solver_manager->registerSolverFactoryFunction("VC_VELOCITY_PETSC_LEVEL_SOLVER",
                                                       VCSCViscousPETScLevelSolver::allocate_solver);
-        Pointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(solver_type,
-                                                                               "vc_velocity_solver",
-                                                                               solver_db,
-                                                                               "vc_velocity_",
-                                                                               precond_type,
-                                                                               "vc_velocity_precond",
-                                                                               precond_db,
-                                                                               "vc_velocity_pc_");
-        /*Pointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(solver_type,
+        SAMRAIPointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(solver_type,
+                                                                                     "vc_velocity_solver",
+                                                                                     solver_db,
+                                                                                     "vc_velocity_",
+                                                                                     precond_type,
+                                                                                     "vc_velocity_precond",
+                                                                                     precond_db,
+                                                                                     "vc_velocity_pc_");
+        /*SAMRAIPointer<PoissonSolver> poisson_solver = solver_manager->allocateSolver(solver_type,
                                                                                "vc_velocity_solver",
                                                                                solver_db,
                                                                                "vc_velocity_",
@@ -346,21 +346,22 @@ main(int argc, char* argv[])
                 r_vec.setToScalar(0.0);
                 for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
                 {
-                    Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+                    SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
                     for (PatchLevelNd::Iterator p(level); p; p++)
                     {
-                        Pointer<PatchNd> patch = level->getPatch(p());
-                        Pointer<SideDataNd<double> > r_data = patch->getPatchData(r_vec.getComponentDescriptorIndex(0));
+                        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                        SAMRAIPointer<SideDataNd<double> > r_data =
+                            patch->getPatchData(r_vec.getComponentDescriptorIndex(0));
                         r_data->getArrayData(k).fillAll(1.0);
                     }
                 }
 
-                double fk_mean = f_vec.dot(Pointer<SAMRAIVectorRealNd<double> >(&r_vec, false)) /
-                                 r_vec.dot(Pointer<SAMRAIVectorRealNd<double> >(&r_vec, false));
+                double fk_mean = f_vec.dot(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&r_vec, false)) /
+                                 r_vec.dot(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&r_vec, false));
                 sc_data_ops.axpy(f_sc_idx, -fk_mean, r_sc_idx, f_sc_idx);
             }
 
-            Pointer<PETScKrylovLinearSolver> krylov_solver = poisson_solver;
+            SAMRAIPointer<PETScKrylovLinearSolver> krylov_solver = poisson_solver;
             if (krylov_solver)
             {
                 krylov_solver->setNullspace(false, U_nul_vecs);
@@ -380,24 +381,25 @@ main(int argc, char* argv[])
                 r_vec.setToScalar(0.0);
                 for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
                 {
-                    Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+                    SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
                     for (PatchLevelNd::Iterator p(level); p; p++)
                     {
-                        Pointer<PatchNd> patch = level->getPatch(p());
-                        Pointer<SideDataNd<double> > r_data = patch->getPatchData(r_vec.getComponentDescriptorIndex(0));
+                        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                        SAMRAIPointer<SideDataNd<double> > r_data =
+                            patch->getPatchData(r_vec.getComponentDescriptorIndex(0));
                         r_data->getArrayData(k).fillAll(1.0);
                     }
                 }
 
-                const double uk_mean = u_vec.dot(Pointer<SAMRAIVectorRealNd<double> >(&r_vec, false)) /
-                                       r_vec.dot(Pointer<SAMRAIVectorRealNd<double> >(&r_vec, false));
+                const double uk_mean = u_vec.dot(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&r_vec, false)) /
+                                       r_vec.dot(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&r_vec, false));
                 sc_data_ops.axpy(u_sc_idx, -uk_mean, r_sc_idx, u_sc_idx);
             }
         }
 
         // Compute error and print error norms.
-        e_vec.subtract(Pointer<SAMRAIVectorRealNd<double> >(&e_vec, false),
-                       Pointer<SAMRAIVectorRealNd<double> >(&u_vec, false));
+        e_vec.subtract(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&e_vec, false),
+                       SAMRAIPointer<SAMRAIVectorRealNd<double> >(&u_vec, false));
         const double e_max_norm = e_vec.maxNorm();
         const double e_l2_norm = e_vec.L2Norm();
         const double e_l1_norm = e_vec.L1Norm();
@@ -408,8 +410,8 @@ main(int argc, char* argv[])
         // Compute the residual and print residual norms.
         viscous_op.setHomogeneousBc(false);
         viscous_op.apply(u_vec, r_vec);
-        r_vec.subtract(Pointer<SAMRAIVectorRealNd<double> >(&f_vec, false),
-                       Pointer<SAMRAIVectorRealNd<double> >(&r_vec, false));
+        r_vec.subtract(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&f_vec, false),
+                       SAMRAIPointer<SAMRAIVectorRealNd<double> >(&r_vec, false));
 
         if (IBTK_MPI::getRank() == 0)
         {
@@ -430,13 +432,13 @@ main(int argc, char* argv[])
         // Interpolate the edge-centered data to cell centers for output.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 const BoxNd& box = patch->getBox();
-                Pointer<EdgeDataNd<double> > mu_ec_data = patch->getPatchData(mu_ec_idx);
-                Pointer<CellDataNd<double> > mu_cc_data = patch->getPatchData(mu_cc_idx);
+                SAMRAIPointer<EdgeDataNd<double> > mu_ec_data = patch->getPatchData(mu_ec_idx);
+                SAMRAIPointer<CellDataNd<double> > mu_cc_data = patch->getPatchData(mu_cc_idx);
                 for (BoxNd::Iterator it(CellGeometryNd::toCellBox(box)); it; it++)
                 {
                     CellIndexNd ci(it());
@@ -459,17 +461,17 @@ main(int argc, char* argv[])
         // are covered by finer grid patches) to equal zero.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber() - 1; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             BoxArrayNd refined_region_boxes;
-            Pointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
+            SAMRAIPointer<PatchLevelNd> next_finer_level = patch_hierarchy->getPatchLevel(ln + 1);
             refined_region_boxes = next_finer_level->getBoxes();
             refined_region_boxes.coarsen(next_finer_level->getRatioToCoarserLevel());
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 const BoxNd& patch_box = patch->getBox();
-                Pointer<CellDataNd<double> > e_cc_data = patch->getPatchData(e_cc_idx);
-                Pointer<CellDataNd<double> > r_cc_data = patch->getPatchData(r_cc_idx);
+                SAMRAIPointer<CellDataNd<double> > e_cc_data = patch->getPatchData(e_cc_idx);
+                SAMRAIPointer<CellDataNd<double> > r_cc_data = patch->getPatchData(r_cc_idx);
                 for (int i = 0; i < refined_region_boxes.getNumberOfBoxes(); ++i)
                 {
                     const BoxNd refined_box = refined_region_boxes[i];

@@ -70,7 +70,7 @@ public:
      * manager when requested.
      */
     EnthalpyHierarchyIntegrator(const std::string& object_name,
-                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                 bool register_for_restart = true);
 
     /*!
@@ -89,8 +89,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
-                                       SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
+    void initializeHierarchyIntegrator(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -123,7 +123,7 @@ public:
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabaseSpecialized(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     /*!
@@ -163,7 +163,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, bool is_from_restart);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db, bool is_from_restart);
 
     /*!
      * \brief Read object state from the restart file and initialize class data
@@ -200,10 +200,10 @@ private:
     /*!
      * Solver variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_h_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_grad_T_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_T_pre_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_dh_dT_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_h_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_grad_T_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_T_pre_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_dh_dT_var;
 
     SAMRAI::solv::RobinBcCoefStrategyNd* d_h_bc_coef = nullptr;
 

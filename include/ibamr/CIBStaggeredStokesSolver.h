@@ -64,9 +64,9 @@ public:
      * \brief Constructor.
      */
     CIBStaggeredStokesSolver(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                             SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
+                             IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                             IBTK::SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                             IBTK::SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy,
                              const std::string& default_options_prefix);
 
     /*!
@@ -124,7 +124,7 @@ public:
      * in the StokesOperator.
      */
     virtual void
-    setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
+    setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
@@ -140,7 +140,7 @@ public:
      * \brief Get the saddle-point solver for the extended Stokes
      * system.
      */
-    SAMRAI::tbox::Pointer<IBAMR::CIBSaddlePointSolver> getSaddlePointSolver() const;
+    IBTK::SAMRAIPointer<IBAMR::CIBSaddlePointSolver> getSaddlePointSolver() const;
 
     //////////////////////////////////////////////////////////////////////////////
 protected:
@@ -168,21 +168,21 @@ private:
     CIBStaggeredStokesSolver& operator=(const CIBStaggeredStokesSolver& that) = delete;
 
     // Pointer to the constraint IB strategy.
-    SAMRAI::tbox::Pointer<CIBStrategy> d_cib_strategy;
+    IBTK::SAMRAIPointer<CIBStrategy> d_cib_strategy;
 
     // Number of structures.
     const unsigned int d_num_rigid_parts;
 
     // Pointer to saddle-point solver.
-    SAMRAI::tbox::Pointer<IBAMR::CIBSaddlePointSolver> d_sp_solver;
+    IBTK::SAMRAIPointer<IBAMR::CIBSaddlePointSolver> d_sp_solver;
 
     // Patch data to support delta function.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_wide_u_var, d_wide_f_var;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_wide_ctx;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_wide_u_var, d_wide_f_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_wide_ctx;
     int d_wide_u_idx = IBTK::invalid_index, d_wide_f_idx = IBTK::invalid_index;
 
     // SVR for holding widened u/f.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x_wide, d_b_wide;
+    IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x_wide, d_b_wide;
 
     // Bools to control initialization and deallocation
     bool d_is_initialized = false, d_reinitializing_solver = false;

@@ -190,7 +190,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * \brief Set the equations systems object that is associated with the
@@ -287,7 +287,7 @@ public:
      */
     SubdomainToPatchLevelTranslation(const int max_level_number,
                                      const std::set<libMesh::subdomain_id_type>& subdomain_ids,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+                                     const SAMRAIPointer<SAMRAI::tbox::Database>& input_db);
 
     /*!
      * Given a libMesh subdomain id, return the patch level of the Cartesian
@@ -609,7 +609,7 @@ public:
      */
     static FEDataManager* getManager(std::shared_ptr<FEData> fe_data,
                                      const std::string& name,
-                                     const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                                     const SAMRAIPointer<SAMRAI::tbox::Database>& input_db,
                                      const int max_levels,
                                      const InterpSpec& default_interp_spec,
                                      const SpreadSpec& default_spread_spec,
@@ -679,12 +679,12 @@ public:
      * tag cells for refinement to create the initial hierarchy then use
      * applyGradientDetector, which does not use the stored patch hierarchy.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy);
+    void setPatchHierarchy(SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy);
 
     /*!
      * \brief Get the patch hierarchy used by this object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> getPatchHierarchy() const;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> getPatchHierarchy() const;
 
     /*!
      * Get the coarsest patch level number on which elements are assigned.
@@ -927,8 +927,8 @@ public:
                         libMesh::NumericVector<double>& F,
                         libMesh::NumericVector<double>& X,
                         const std::string& system_name,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
-                            std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >(),
+                        const std::vector<SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
+                            std::vector<SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >(),
                         double fill_data_time = 0.0,
                         bool close_F = true,
                         bool close_X = true);
@@ -945,8 +945,8 @@ public:
                         libMesh::NumericVector<double>& X,
                         const std::string& system_name,
                         const InterpSpec& interp_spec,
-                        const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
-                            std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >(),
+                        const std::vector<SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
+                            std::vector<SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >(),
                         double fill_data_time = 0.0,
                         bool close_F = true,
                         bool close_X = true);
@@ -959,8 +959,8 @@ public:
                 libMesh::NumericVector<double>& F,
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >(),
+                const std::vector<SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
+                    std::vector<SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >(),
                 double fill_data_time = 0.0,
                 bool close_X = true);
 
@@ -973,8 +973,8 @@ public:
                 libMesh::NumericVector<double>& X,
                 const std::string& system_name,
                 const InterpSpec& interp_spec,
-                const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
-                    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> >(),
+                const std::vector<SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& f_refine_scheds =
+                    std::vector<SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >(),
                 double fill_data_time = 0.0,
                 bool close_X = true);
 
@@ -1063,7 +1063,7 @@ public:
      * main documentation of this class for information on how this is
      * computed) to the <code>d_workload_idx</code> cell variable.
      */
-    void addWorkloadEstimate(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void addWorkloadEstimate(SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                              const int workload_data_idx,
                              const int coarsest_ln = invalid_level_number,
                              const int finest_ln = invalid_level_number);
@@ -1090,7 +1090,7 @@ public:
      * SAMRAI::mesh::StandardTagAndInitStrategy::applyGradientDetector() and is
      * only meant to be called from IBAMR::IBFEMethod::applyGradientDetector().
      */
-    void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+    void applyGradientDetector(SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
                                int level_number,
                                double error_data_time,
                                int tag_index,
@@ -1102,7 +1102,7 @@ public:
      *
      * When assertion checking is active, database pointer must be non-null.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * \brief Zero the values corresponding to points on the given patch
@@ -1135,7 +1135,7 @@ protected:
      * co-owned by other objects.
      */
     FEDataManager(std::string object_name,
-                  const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db,
+                  const SAMRAIPointer<SAMRAI::tbox::Database>& input_db,
                   const int max_levels,
                   InterpSpec default_interp_spec,
                   SpreadSpec default_spread_spec,
@@ -1289,7 +1289,7 @@ private:
     /*!
      * Grid hierarchy information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
 
     /*!
      * Maximum possible level number in the patch hierarchy.
@@ -1304,14 +1304,14 @@ private:
     /*!
      * SAMRAI::hier::VariableContext object used for data management.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    SAMRAIPointer<SAMRAI::hier::VariableContext> d_context;
 
     /*!
      * SAMRAI::hier::Variable pointer and patch data descriptor indices for the
      * cell variable used to keep track of the count of the quadrature points in
      * each cell.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_qp_count_var;
+    SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_qp_count_var;
     int d_qp_count_idx;
 
     /*!

@@ -104,7 +104,7 @@ static const int NOGHOSTS = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AllenCahnHierarchyIntegrator::AllenCahnHierarchyIntegrator(const std::string& object_name,
-                                                           Pointer<Database> input_db,
+                                                           SAMRAIPointer<Database> input_db,
                                                            bool register_for_restart)
     : PhaseChangeHierarchyIntegrator(object_name, input_db, register_for_restart)
 {
@@ -150,8 +150,8 @@ AllenCahnHierarchyIntegrator::AllenCahnHierarchyIntegrator(const std::string& ob
 } // AllenCahnHierarchyIntegrator
 
 void
-AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchyNd> hierarchy,
-                                                            Pointer<GriddingAlgorithmNd> gridding_alg)
+AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                                            SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -278,7 +278,7 @@ AllenCahnHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarc
     if (d_solve_mass_conservation)
     {
         // Set various objects with conservative time integrator.
-        Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
+        SAMRAIPointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         rho_p_cc_integrator->setMaterialPropertyVariable(d_specific_heat_var);
         rho_p_cc_integrator->setCellCenteredMaterialPropertyBoundaryConditions(d_specific_heat_bc_coef);
         rho_p_cc_integrator->setCellCenteredTransportQuantityBoundaryConditions(d_T_bc_coef);
@@ -310,7 +310,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
     // Allocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_lf_C_idx)) level->allocatePatchData(d_lf_C_idx, current_time);
         if (!level->checkAllocated(d_lf_temp_rhs_idx)) level->allocatePatchData(d_lf_temp_rhs_idx, current_time);
         if (!level->checkAllocated(d_g_firstder_idx)) level->allocatePatchData(d_g_firstder_idx, current_time);
@@ -384,7 +384,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
     lf_rhs_op_spec.setDPatchDataId(d_lf_diffusion_coef_rhs_scratch_idx);
 
     // Initialize the RHS operator and compute the RHS vector for lf equation.
-    Pointer<LaplaceOperator> lf_rhs_op = d_lf_rhs_op;
+    SAMRAIPointer<LaplaceOperator> lf_rhs_op = d_lf_rhs_op;
     lf_rhs_op->setPoissonSpecifications(lf_rhs_op_spec);
     lf_rhs_op->setPhysicalBcCoef(d_lf_bc_coef);
     lf_rhs_op->setHomogeneousBc(false);
@@ -458,7 +458,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
     {
         if (d_solve_mass_conservation)
         {
-            Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
+            SAMRAIPointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
             // Set the velocities used to update the density and the previous time step
             // size
             if (MathUtilities<double>::equalEps(d_integrator_time, d_start_time))
@@ -556,7 +556,7 @@ AllenCahnHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_
         T_rhs_op_spec.setDPatchDataId(d_T_diffusion_coef_rhs_scratch_idx);
 
         // Initialize the RHS operator and compute the RHS vector for temperature equation.
-        Pointer<LaplaceOperator> T_rhs_op = d_T_rhs_op;
+        SAMRAIPointer<LaplaceOperator> T_rhs_op = d_T_rhs_op;
         T_rhs_op->setPoissonSpecifications(T_rhs_op_spec);
         T_rhs_op->setPhysicalBcCoef(d_T_bc_coef);
         T_rhs_op->setHomogeneousBc(false);
@@ -674,7 +674,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
     lf_solver_spec.setDPatchDataId(d_lf_diff_coef_scratch_idx);
 
     // Initialize the linear solver for lf equation.
-    Pointer<PoissonSolver> lf_solver = d_lf_solver;
+    SAMRAIPointer<PoissonSolver> lf_solver = d_lf_solver;
     lf_solver->setPoissonSpecifications(lf_solver_spec);
     lf_solver->setPhysicalBcCoef(d_lf_bc_coef);
     lf_solver->setHomogeneousBc(false);
@@ -694,7 +694,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
         if (cycle_num > 0)
         {
             // Update the advection velocity.
-            Pointer<IBTK::CartGridFunction> u_fcn = d_u_fcn[d_u_adv_var];
+            SAMRAIPointer<IBTK::CartGridFunction> u_fcn = d_u_fcn[d_u_adv_var];
             if (u_fcn)
             {
                 u_fcn->setDataOnPatchHierarchy(d_u_adv_new_idx, d_u_adv_var, d_hierarchy, new_time);
@@ -880,7 +880,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
         // In the special case of a conservative discretization form, the updated
         // density is calculated by application of the mass and convective
         // momentum integrator.
-        Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
+        SAMRAIPointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         // Update N_idx if necessary
         if (cycle_num > 0 && d_solve_mass_conservation)
         {
@@ -1002,7 +1002,7 @@ AllenCahnHierarchyIntegrator::integrateHierarchySpecialized(const double current
         T_solver_spec.setDPatchDataId(d_T_diffusion_coef_scratch_idx);
 
         // Initialize the linear solver for temperature equation.
-        Pointer<PoissonSolver> T_solver = d_T_solver;
+        SAMRAIPointer<PoissonSolver> T_solver = d_T_solver;
         T_solver->setPoissonSpecifications(T_solver_spec);
         T_solver->setPhysicalBcCoef(d_T_bc_coef);
         T_solver->setHomogeneousBc(false);
@@ -1104,7 +1104,7 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
     // Deallocate the scratch and new data.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_lf_C_idx);
         level->deallocatePatchData(d_lf_temp_rhs_idx);
         level->deallocatePatchData(d_g_firstder_idx);
@@ -1127,17 +1127,18 @@ AllenCahnHierarchyIntegrator::postprocessIntegrateHierarchy(const double current
 } // postprocessIntegrateHierarchy
 
 void
-AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariableNd<double> > lf_var,
+AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(SAMRAIPointer<CellVariableNd<double> > lf_var,
                                                              const bool output_lf_var)
 {
     d_lf_var = lf_var;
     d_output_lf = output_lf_var;
 
-    Pointer<CellDataFactoryNd<double> > lf_factory = lf_var->getPatchDataFactory();
+    SAMRAIPointer<CellDataFactoryNd<double> > lf_factory = lf_var->getPatchDataFactory();
     const int lf_depth = lf_factory->getDefaultDepth();
-    Pointer<CellVariableNd<double> > lf_rhs_var = new CellVariableNd<double>(lf_var->getName() + "::lf_rhs", lf_depth);
-    Pointer<CellVariableNd<double> > lf_F_var = new CellVariableNd<double>(lf_var->getName() + "::F", lf_depth);
-    Pointer<SideVariableNd<double> > lf_diff_coef_var =
+    SAMRAIPointer<CellVariableNd<double> > lf_rhs_var =
+        new CellVariableNd<double>(lf_var->getName() + "::lf_rhs", lf_depth);
+    SAMRAIPointer<CellVariableNd<double> > lf_F_var = new CellVariableNd<double>(lf_var->getName() + "::F", lf_depth);
+    SAMRAIPointer<SideVariableNd<double> > lf_diff_coef_var =
         new SideVariableNd<double>(lf_var->getName() + "::diff_coef", lf_depth);
 
     // Set default values.
@@ -1151,8 +1152,8 @@ AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(Pointer<CellVariabl
     return;
 } // registerLiquidFractionVariable
 
-Pointer<PoissonSolver>
-AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(Pointer<CellVariableNd<double> > lf_var)
+SAMRAIPointer<PoissonSolver>
+AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(SAMRAIPointer<CellVariableNd<double> > lf_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_lf_var);
@@ -1174,8 +1175,8 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzSolver(Pointer<CellVa
     return d_lf_solver;
 } // getAllenCahnEquationHelmholtzSolver
 
-Pointer<LaplaceOperator>
-AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(Pointer<CellVariableNd<double> > lf_var)
+SAMRAIPointer<LaplaceOperator>
+AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(SAMRAIPointer<CellVariableNd<double> > lf_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_lf_var);
@@ -1190,7 +1191,7 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(Pointer<C
 } // getAllenCahnEquationHelmholtzRHSOperator
 
 void
-AllenCahnHierarchyIntegrator::setLiquidFractionPhysicalBcCoef(Pointer<CellVariableNd<double> > lf_var,
+AllenCahnHierarchyIntegrator::setLiquidFractionPhysicalBcCoef(SAMRAIPointer<CellVariableNd<double> > lf_var,
                                                               RobinBcCoefStrategyNd* lf_bc_coef)
 {
 #if !defined(NDEBUG)
@@ -1206,9 +1207,9 @@ AllenCahnHierarchyIntegrator::getLiquidFractionPhysicalBcCoef()
     return d_lf_bc_coef;
 } // getLiquidFractionPhysicalBcCoef
 
-Pointer<CellConvectiveOperator>
-AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<CellVariableNd<double> > lf_var,
-                                                                     Pointer<CellVariableNd<double> > H_var)
+SAMRAIPointer<CellConvectiveOperator>
+AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(SAMRAIPointer<CellVariableNd<double> > lf_var,
+                                                                     SAMRAIPointer<CellVariableNd<double> > H_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(lf_var);
@@ -1231,7 +1232,7 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<Cel
 } // getAllenCahnEquationConvectiveOperator
 
 void
-AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<Database> db)
 {
     db->putInteger("IEP_HIERARCHY_INTEGRATOR_VERSION", IEP_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("lf_diffusion_time_stepping_type",
@@ -1266,16 +1267,16 @@ AllenCahnHierarchyIntegrator::addTemporalAndLinearTermstoRHSOfEnergyEquation(int
     int H_current_idx = var_db->mapVariableAndContextToIndex(d_H_var, getCurrentContext());
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
-            Pointer<CellDataNd<double> > H_new_data = patch->getPatchData(H_new_idx);
-            Pointer<CellDataNd<double> > lf_current_data = patch->getPatchData(d_lf_current_idx);
-            Pointer<CellDataNd<double> > H_current_data = patch->getPatchData(H_current_idx);
-            Pointer<CellDataNd<double> > F_data = patch->getPatchData(F_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
+            SAMRAIPointer<CellDataNd<double> > H_new_data = patch->getPatchData(H_new_idx);
+            SAMRAIPointer<CellDataNd<double> > lf_current_data = patch->getPatchData(d_lf_current_idx);
+            SAMRAIPointer<CellDataNd<double> > H_current_data = patch->getPatchData(H_current_idx);
+            SAMRAIPointer<CellDataNd<double> > F_data = patch->getPatchData(F_scratch_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -1311,7 +1312,7 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
                                                                 "LINEAR",
                                                                 false,
                                                                 d_lf_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
     hier_bdry_fill->initializeOperatorState(lf_transaction_comps, d_hierarchy);
     hier_bdry_fill->fillData(new_time);
 
@@ -1337,19 +1338,19 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > T_data = patch->getPatchData(d_T_new_idx);
-            Pointer<CellDataNd<double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
-            Pointer<CellDataNd<double> > H_data = patch->getPatchData(H_new_idx);
-            Pointer<CellDataNd<double> > rho_data = patch->getPatchData(d_rho_new_idx);
-            Pointer<CellDataNd<double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
-            Pointer<CellDataNd<double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
-            Pointer<CellDataNd<double> > chemical_potential_data = patch->getPatchData(d_chemical_potential_idx);
-            Pointer<CellDataNd<double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
+            SAMRAIPointer<CellDataNd<double> > T_data = patch->getPatchData(d_T_new_idx);
+            SAMRAIPointer<CellDataNd<double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
+            SAMRAIPointer<CellDataNd<double> > H_data = patch->getPatchData(H_new_idx);
+            SAMRAIPointer<CellDataNd<double> > rho_data = patch->getPatchData(d_rho_new_idx);
+            SAMRAIPointer<CellDataNd<double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
+            SAMRAIPointer<CellDataNd<double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
+            SAMRAIPointer<CellDataNd<double> > chemical_potential_data = patch->getPatchData(d_chemical_potential_idx);
+            SAMRAIPointer<CellDataNd<double> > Div_U_F_data = patch->getPatchData(Div_U_F_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -1432,15 +1433,15 @@ AllenCahnHierarchyIntegrator::computeDoubleWellPotential(int g_firstder_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
 
-            Pointer<CellDataNd<double> > lf_data = patch->getPatchData(liquid_fraction_idx);
-            Pointer<CellDataNd<double> > g_firstder_data = patch->getPatchData(g_firstder_idx);
-            Pointer<CellDataNd<double> > g_secondder_data = patch->getPatchData(g_secondder_idx);
+            SAMRAIPointer<CellDataNd<double> > lf_data = patch->getPatchData(liquid_fraction_idx);
+            SAMRAIPointer<CellDataNd<double> > g_firstder_data = patch->getPatchData(g_firstder_idx);
+            SAMRAIPointer<CellDataNd<double> > g_secondder_data = patch->getPatchData(g_secondder_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 CellIndexNd ci(it());
@@ -1477,15 +1478,15 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
 
-            Pointer<CellDataNd<double> > lf_data = patch->getPatchData(liquid_fraction_idx);
-            Pointer<CellDataNd<double> > T_data = patch->getPatchData(T_idx);
-            Pointer<CellDataNd<double> > q_firstder_data = patch->getPatchData(q_firstder_idx);
+            SAMRAIPointer<CellDataNd<double> > lf_data = patch->getPatchData(liquid_fraction_idx);
+            SAMRAIPointer<CellDataNd<double> > T_data = patch->getPatchData(T_idx);
+            SAMRAIPointer<CellDataNd<double> > q_firstder_data = patch->getPatchData(q_firstder_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 CellIndexNd ci(it());
@@ -1584,19 +1585,19 @@ AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx)
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
 
-            Pointer<CellDataNd<double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
-            Pointer<CellDataNd<double> > T_data = patch->getPatchData(d_T_new_idx);
-            Pointer<CellDataNd<double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
-            Pointer<CellDataNd<double> > H_data = patch->getPatchData(H_new_idx);
-            Pointer<CellDataNd<double> > F_data = patch->getPatchData(F_scratch_idx);
-            Pointer<CellDataNd<double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
-            Pointer<CellDataNd<double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
+            SAMRAIPointer<CellDataNd<double> > lf_new_data = patch->getPatchData(d_lf_new_idx);
+            SAMRAIPointer<CellDataNd<double> > T_data = patch->getPatchData(d_T_new_idx);
+            SAMRAIPointer<CellDataNd<double> > q_firstder_data = patch->getPatchData(d_q_firstder_idx);
+            SAMRAIPointer<CellDataNd<double> > H_data = patch->getPatchData(H_new_idx);
+            SAMRAIPointer<CellDataNd<double> > F_data = patch->getPatchData(F_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > g_firstder_data = patch->getPatchData(d_g_firstder_idx);
+            SAMRAIPointer<CellDataNd<double> > g_secondder_data = patch->getPatchData(d_g_secondder_idx);
 
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
@@ -1614,7 +1615,7 @@ AllenCahnHierarchyIntegrator::computeLiquidFractionSourceTerm(int F_scratch_idx)
 } // computeLiquidFractionSourceTerm
 
 void
-AllenCahnHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)
+AllenCahnHierarchyIntegrator::getFromInput(SAMRAIPointer<Database> input_db, bool is_from_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(input_db);
@@ -1674,8 +1675,8 @@ AllenCahnHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_f
 void
 AllenCahnHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

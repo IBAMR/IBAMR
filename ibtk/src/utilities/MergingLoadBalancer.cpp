@@ -39,7 +39,7 @@ void
 MergingLoadBalancer::loadBalanceBoxes(hier::BoxArrayNd& out_boxes,
                                       hier::ProcessorMapping& mapping,
                                       const hier::BoxListNd& in_boxes,
-                                      const tbox::Pointer<hier::PatchHierarchyNd> hierarchy,
+                                      const SAMRAIPointer<hier::PatchHierarchyNd> hierarchy,
                                       int level_number,
                                       const hier::BoxArrayNd& physical_domain,
                                       const hier::IntVectorNd& ratio_to_hierarchy_level_zero,

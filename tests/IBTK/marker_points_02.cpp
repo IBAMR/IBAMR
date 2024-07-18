@@ -66,9 +66,9 @@ main(int argc, char** argv)
     Logger::getInstance()->setWarning(false);
 
     const auto rank = IBTK_MPI::getRank();
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
-    Pointer<Database> input_db = app_initializer->getInputDatabase();
-    Pointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : nullptr;
+    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
+    SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
+    SAMRAIPointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : nullptr;
     const bool set_velocity = test_db && test_db->getBoolWithDefault("set_velocity", false);
     const bool timestep = test_db && test_db->getBoolWithDefault("timestep", false);
     const bool collective_print = test_db && test_db->getBoolWithDefault("collective_print", false);
@@ -76,7 +76,7 @@ main(int argc, char** argv)
     const bool from_restart = RestartManager::getManager()->isFromRestart();
 
     int u_idx = IBTK::invalid_index;
-    Pointer<hier::VariableNd> u_var;
+    SAMRAIPointer<hier::VariableNd> u_var;
     if (set_velocity)
     {
         // Set up the velocity on the Cartesian grid:
@@ -85,22 +85,22 @@ main(int argc, char** argv)
         const int ghost_width = LEInteractor::getMinimumGhostWidth(kernel);
 
         auto* var_db = hier::VariableDatabaseNd::getDatabase();
-        tbox::Pointer<hier::VariableContext> ctx = var_db->getContext("context");
+        SAMRAIPointer<hier::VariableContext> ctx = var_db->getContext("context");
         u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVectorNd(ghost_width));
     }
 
-    Pointer<CartesianGridGeometryNd> grid_geometry =
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geometry =
         new CartesianGridGeometryNd("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
     grid_geometry->addSpatialRefineOperator(new CartesianCellDoubleLinearRefineNd());
     grid_geometry->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
 
-    Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-    Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+    SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
         "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-    Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-    Pointer<LoadBalancerNd> load_balancer =
+    SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+    SAMRAIPointer<LoadBalancerNd> load_balancer =
         new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-    Pointer<GriddingAlgorithmNd> gridding_algorithm =
+    SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
         new GriddingAlgorithmNd("GriddingAlgorithm",
                                 app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                 error_detector,
@@ -142,7 +142,7 @@ main(int argc, char** argv)
     {
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            tbox::Pointer<hier::PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<hier::PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_idx, 0.0);
         }
         HierarchySideDataOpsRealNd<double> ops(patch_hierarchy);
@@ -181,7 +181,8 @@ main(int argc, char** argv)
     if (timestep)
     {
         // Pick CFL = 1.0 to simulate the largest marker point travel possible:
-        Pointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
+        SAMRAIPointer<PatchLevelNd> finest_level =
+            patch_hierarchy->getPatchLevel(patch_hierarchy->getFinestLevelNumber());
         const double dx = get_min_patch_dx(*finest_level);
         const double U_MAX = 1.0;
         const double dt = dx / U_MAX;
@@ -238,7 +239,7 @@ main(int argc, char** argv)
                 const auto all_keys_0 = hdf5_database.getAllKeys();
                 for (int i = 0; i < all_keys_0.size(); ++i) plog << all_keys_0[i] << '\n';
 
-                Pointer<Database> step_db = hdf5_database.getDatabase("Step#0");
+                SAMRAIPointer<Database> step_db = hdf5_database.getDatabase("Step#0");
                 plog << "Keys in " << last_file_name << " Step#0 database:\n";
                 const auto all_keys_1 = step_db->getAllKeys();
                 for (int i = 0; i < all_keys_1.size(); ++i) plog << all_keys_1[i] << '\n';
@@ -301,7 +302,7 @@ main(int argc, char** argv)
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             int local_patch_num = 0;
-            Pointer<PatchLevelNd> current_level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> current_level = patch_hierarchy->getPatchLevel(ln);
             for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
             {
                 if (rank == current_level->getMappingForPatch(p))

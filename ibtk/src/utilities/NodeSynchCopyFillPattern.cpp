@@ -44,7 +44,7 @@ NodeSynchCopyFillPattern::NodeSynchCopyFillPattern(const unsigned int axis) : d_
     return;
 } // NodeSynchCopyFillPattern
 
-Pointer<BoxOverlapNd>
+SAMRAIPointer<BoxOverlapNd>
 NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometryNd& dst_geometry,
                                            const BoxGeometryNd& src_geometry,
                                            const BoxNd& /*dst_patch_box*/,
@@ -52,7 +52,7 @@ NodeSynchCopyFillPattern::calculateOverlap(const BoxGeometryNd& dst_geometry,
                                            const bool overwrite_interior,
                                            const IntVectorNd& src_offset) const
 {
-    Pointer<NodeOverlapNd> box_geom_overlap =
+    SAMRAIPointer<NodeOverlapNd> box_geom_overlap =
         dst_geometry.calculateOverlap(src_geometry, src_mask, overwrite_interior, src_offset);
 #if !defined(NDEBUG)
     TBOX_ASSERT(box_geom_overlap);

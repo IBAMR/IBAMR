@@ -37,9 +37,9 @@ public:
      * \brief Class constructor.
      */
     CellConvectiveOperator(std::string object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > Q_cell_var,
+                           IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_cell_var,
                            int Q_min_ghost_cell_width,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                            ConvectiveDifferencingType difference_form,
                            std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> bc_coefs);
 
@@ -178,23 +178,23 @@ private:
     CellConvectiveOperator& operator=(const CellConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperatorNd> d_Q_cell_refine_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> d_Q_cell_refine_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategyNd> d_Q_cell_refine_bdry_op;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> > d_Q_cell_refine_scheds;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperatorNd> d_q_flux_coarsen_op, d_q_interp_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithmNd> d_q_flux_coarsen_alg, d_q_interp_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> > d_q_flux_coarsen_scheds,
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> d_Q_cell_refine_op;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineAlgorithmNd> d_Q_cell_refine_alg;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefinePatchStrategyNd> d_Q_cell_refine_bdry_op;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> > d_Q_cell_refine_scheds;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenOperatorNd> d_q_flux_coarsen_op, d_q_interp_coarsen_op;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenAlgorithmNd> d_q_flux_coarsen_alg, d_q_interp_coarsen_alg;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> > d_q_flux_coarsen_scheds,
         d_q_interp_coarsen_scheds;
     const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_Q_cell_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariableNd<double> > d_q_flux_var, d_q_interp_var, d_u_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_Q_cell_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > d_q_flux_var, d_q_interp_var, d_u_var;
     int d_Q_scratch_idx, d_Q_ghost_idx, d_q_flux_idx, d_q_interp_idx;
 };
 } // namespace IBAMR

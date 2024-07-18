@@ -41,8 +41,8 @@ CartGridFunction::CartGridFunction(std::string object_name) : d_object_name(std:
 
 void
 CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
-                                          Pointer<VariableNd> var,
-                                          Pointer<PatchHierarchyNd> hierarchy,
+                                          SAMRAIPointer<VariableNd> var,
+                                          SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                           const double data_time,
                                           const bool initial_time,
                                           const int coarsest_ln_in,
@@ -62,8 +62,8 @@ CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 CartGridFunction::setDataOnPatchLevel(const int data_idx,
-                                      Pointer<VariableNd> var,
-                                      Pointer<PatchLevelNd> level,
+                                      SAMRAIPointer<VariableNd> var,
+                                      SAMRAIPointer<PatchLevelNd> level,
                                       const double data_time,
                                       const bool initial_time)
 {

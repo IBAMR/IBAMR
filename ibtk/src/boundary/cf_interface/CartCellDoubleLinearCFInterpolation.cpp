@@ -163,7 +163,7 @@ CartCellDoubleLinearCFInterpolation::setPatchDataIndices(const ComponentSelector
 } // setPatchDataIndices
 
 void
-CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchyNd> hierarchy)
+CartCellDoubleLinearCFInterpolation::setPatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -179,14 +179,14 @@ CartCellDoubleLinearCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchyNd>
         d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
     }
 
-    Pointer<GridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<GridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
     const BoxArrayNd& domain_boxes = grid_geom->getPhysicalDomain();
 
     d_domain_boxes.resize(finest_level_number + 1);
     d_periodic_shift.resize(finest_level_number + 1);
     for (int ln = 0; ln <= finest_level_number; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         const IntVectorNd& ratio = level->getRatio();
         d_domain_boxes[ln] = BoxArrayNd(domain_boxes);
         d_domain_boxes[ln].refine(ratio);
@@ -224,7 +224,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(PatchNd& patch,
     const int patch_num = patch.getPatchNumber();
     const int patch_level_num = patch.getPatchLevelNumber();
 #if !defined(NDEBUG)
-    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(patch_level_num);
+    SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(patch_level_num);
     TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
 #endif
     const Array<BoundaryBoxNd>& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num].getBoundaries(patch_num, 1);
@@ -237,7 +237,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(PatchNd& patch,
     // Get the patch data.
     for (const auto& patch_data_index : d_patch_data_indices)
     {
-        Pointer<CellDataNd<double> > data = patch.getPatchData(patch_data_index);
+        SAMRAIPointer<CellDataNd<double> > data = patch.getPatchData(patch_data_index);
 #if !defined(NDEBUG)
         TBOX_ASSERT(data);
 #endif
@@ -251,7 +251,7 @@ CartCellDoubleLinearCFInterpolation::computeNormalExtension(PatchNd& patch,
 #endif
         const int data_depth = data->getDepth();
         const IntVectorNd ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
-        Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
         const BoxNd& patch_box = patch.getBox();
         for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
         {

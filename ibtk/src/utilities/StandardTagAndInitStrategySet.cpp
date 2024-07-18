@@ -50,7 +50,7 @@ StandardTagAndInitStrategySet::~StandardTagAndInitStrategySet()
 } // ~StandardTagAndInitStrategySet
 
 double
-StandardTagAndInitStrategySet::getLevelDt(const Pointer<BasePatchLevelNd> level,
+StandardTagAndInitStrategySet::getLevelDt(const SAMRAIPointer<BasePatchLevelNd> level,
                                           const double dt_time,
                                           const bool initial_time)
 {
@@ -63,8 +63,8 @@ StandardTagAndInitStrategySet::getLevelDt(const Pointer<BasePatchLevelNd> level,
 } // getLevelDt
 
 double
-StandardTagAndInitStrategySet::advanceLevel(const Pointer<BasePatchLevelNd> level,
-                                            const Pointer<BasePatchHierarchyNd> hierarchy,
+StandardTagAndInitStrategySet::advanceLevel(const SAMRAIPointer<BasePatchLevelNd> level,
+                                            const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                             const double current_time,
                                             const double new_time,
                                             const bool first_step,
@@ -82,7 +82,7 @@ StandardTagAndInitStrategySet::advanceLevel(const Pointer<BasePatchLevelNd> leve
 } // advanceLevel
 
 void
-StandardTagAndInitStrategySet::resetTimeDependentData(const Pointer<BasePatchLevelNd> level,
+StandardTagAndInitStrategySet::resetTimeDependentData(const SAMRAIPointer<BasePatchLevelNd> level,
                                                       const double new_time,
                                                       const bool can_be_refined)
 {
@@ -94,7 +94,7 @@ StandardTagAndInitStrategySet::resetTimeDependentData(const Pointer<BasePatchLev
 } // resetTimeDependentData
 
 void
-StandardTagAndInitStrategySet::resetDataToPreadvanceState(const Pointer<BasePatchLevelNd> level)
+StandardTagAndInitStrategySet::resetDataToPreadvanceState(const SAMRAIPointer<BasePatchLevelNd> level)
 {
     for (const auto& strategy : d_strategy_set)
     {
@@ -104,12 +104,12 @@ StandardTagAndInitStrategySet::resetDataToPreadvanceState(const Pointer<BasePatc
 } // resetDataToPreadvanceState
 
 void
-StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchHierarchyNd> hierarchy,
+StandardTagAndInitStrategySet::initializeLevelData(const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                                    const int level_number,
                                                    const double init_data_time,
                                                    const bool can_be_refined,
                                                    const bool initial_time,
-                                                   const Pointer<BasePatchLevelNd> old_level,
+                                                   const SAMRAIPointer<BasePatchLevelNd> old_level,
                                                    const bool allocate_data)
 {
     for (const auto& strategy : d_strategy_set)
@@ -121,7 +121,7 @@ StandardTagAndInitStrategySet::initializeLevelData(const Pointer<BasePatchHierar
 } // initializeLevelData
 
 void
-StandardTagAndInitStrategySet::resetHierarchyConfiguration(const Pointer<BasePatchHierarchyNd> hierarchy,
+StandardTagAndInitStrategySet::resetHierarchyConfiguration(const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                                            const int coarsest_level,
                                                            const int finest_level)
 {
@@ -133,7 +133,7 @@ StandardTagAndInitStrategySet::resetHierarchyConfiguration(const Pointer<BasePat
 } // resetHierarchyConfiguration
 
 void
-StandardTagAndInitStrategySet::applyGradientDetector(const Pointer<BasePatchHierarchyNd> hierarchy,
+StandardTagAndInitStrategySet::applyGradientDetector(const SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                                      const int level_number,
                                                      const double error_data_time,
                                                      const int tag_index,
@@ -149,7 +149,7 @@ StandardTagAndInitStrategySet::applyGradientDetector(const Pointer<BasePatchHier
 } // applyGradientDetector
 
 void
-StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const Pointer<PatchLevelNd> level,
+StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const SAMRAIPointer<PatchLevelNd> level,
                                                             const double error_data_time,
                                                             const int tag_index,
                                                             const double deltat,
@@ -166,9 +166,9 @@ StandardTagAndInitStrategySet::applyRichardsonExtrapolation(const Pointer<PatchL
 } // applyRichardsonExtrapolation
 
 void
-StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const Pointer<PatchHierarchyNd> hierarchy,
+StandardTagAndInitStrategySet::coarsenDataForRichardsonExtrapolation(const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                                      const int level_number,
-                                                                     const Pointer<PatchLevelNd> coarser_level,
+                                                                     const SAMRAIPointer<PatchLevelNd> coarser_level,
                                                                      const double coarsen_data_time,
                                                                      const bool before_advance)
 {

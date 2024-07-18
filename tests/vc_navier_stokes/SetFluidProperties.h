@@ -37,8 +37,8 @@ class CartGridFunction;
  */
 
 void callSetFluidDensityCallbackFunction(int rho_idx,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> rho_var,
-                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                         IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> rho_var,
+                                         IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                          const int cycle_num,
                                          const double time,
                                          const double current_time,
@@ -53,8 +53,8 @@ void callSetFluidDensityCallbackFunction(int rho_idx,
  */
 
 void callSetFluidViscosityCallbackFunction(int mu_idx,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> mu_var,
-                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                           IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> mu_var,
+                                           IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                            const int cycle_num,
                                            const double time,
                                            const double current_time,
@@ -72,8 +72,8 @@ public:
      * The only constructor of this class.
      */
     SetFluidProperties(const std::string& object_name,
-                       SAMRAI::tbox::Pointer<IBTK::CartGridFunction> rho_fcn,
-                       SAMRAI::tbox::Pointer<IBTK::CartGridFunction> mu_fcn);
+                       IBTK::SAMRAIPointer<IBTK::CartGridFunction> rho_fcn,
+                       IBTK::SAMRAIPointer<IBTK::CartGridFunction> mu_fcn);
 
     /*!
      * Destructor for this class.
@@ -84,8 +84,8 @@ public:
      * Set the density
      */
     void setDensityPatchData(int rho_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> rho_var,
-                             SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                             IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> rho_var,
+                             IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                              const int cycle_num,
                              const double time,
                              const double current_time,
@@ -95,8 +95,8 @@ public:
      * Set the viscosity
      */
     void setViscosityPatchData(int mu_idx,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> mu_var,
-                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                               IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> mu_var,
+                               IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int cycle_num,
                                const double time,
                                const double current_time,
@@ -126,7 +126,7 @@ private:
     /*!
      * Pointer to density and viscosity functions
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_fcn, d_mu_fcn;
+    IBTK::SAMRAIPointer<IBTK::CartGridFunction> d_rho_fcn, d_mu_fcn;
 
 }; // SetFluidProperties
 

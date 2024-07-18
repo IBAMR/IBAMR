@@ -45,8 +45,8 @@ static const int EXTENSIONS_FILLABLE = 128;
 
 StokesSecondOrderWaveBcCoef::StokesSecondOrderWaveBcCoef(std::string object_name,
                                                          const int comp_idx,
-                                                         Pointer<Database> input_db,
-                                                         Pointer<CartesianGridGeometryNd> grid_geom)
+                                                         SAMRAIPointer<Database> input_db,
+                                                         SAMRAIPointer<CartesianGridGeometryNd> grid_geom)
     : d_object_name(std::move(object_name)),
       d_comp_idx(comp_idx),
       d_muparser_bcs(d_object_name + "::muParser", input_db, grid_geom),
@@ -69,10 +69,10 @@ StokesSecondOrderWaveBcCoef::~StokesSecondOrderWaveBcCoef()
 } // ~StokesSecondOrderWaveBcCoef
 
 void
-StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
-                                        Pointer<ArrayDataNd<double> >& bcoef_data,
-                                        Pointer<ArrayDataNd<double> >& gcoef_data,
-                                        const Pointer<VariableNd>& variable,
+StokesSecondOrderWaveBcCoef::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                        SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                        SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                        const SAMRAIPointer<VariableNd>& variable,
                                         const PatchNd& patch,
                                         const BoundaryBoxNd& bdry_box,
                                         double fill_time) const
@@ -80,7 +80,7 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_dat
     // Get pgeom info.
     const BoxNd& patch_box = patch.getBox();
     const SAMRAI::hier::IndexNd& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
@@ -198,9 +198,9 @@ StokesSecondOrderWaveBcCoef::numberOfExtensionsFillable() const
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
-StokesSecondOrderWaveBcCoef::getFromInput(Pointer<Database> input_db)
+StokesSecondOrderWaveBcCoef::getFromInput(SAMRAIPointer<Database> input_db)
 {
-    Pointer<Database> wave_db = input_db->getDatabase("wave_parameters_db");
+    SAMRAIPointer<Database> wave_db = input_db->getDatabase("wave_parameters_db");
 #if !defined(NDEBUG)
     TBOX_ASSERT(input_db->isDatabase("wave_parameters_db"));
 #endif

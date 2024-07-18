@@ -84,7 +84,7 @@ public:
      */
     StaggeredStokesOperator(const std::string& object_name,
                             bool homogeneous_bc = true,
-                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
+                            IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db = nullptr);
 
     /*!
      * \brief Destructor.
@@ -126,7 +126,7 @@ public:
     /*!
      * \brief Set the physical boundary condition helper object.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    virtual void setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \name Linear operator functionality.
@@ -227,15 +227,15 @@ protected:
     SAMRAI::solv::RobinBcCoefStrategyNd* d_P_bc_coef;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPatternNd> d_U_fill_pattern, d_P_fill_pattern;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::VariableFillPatternNd> d_U_fill_pattern, d_P_fill_pattern;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x, d_b;
+    IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x, d_b;
 
     std::string d_refine_type = "NONE";
     std::string d_coarsen_type = "CUBIC_COARSEN";

@@ -58,7 +58,7 @@ public:
     /*!
      * \brief The container class.
      */
-    using DataSet = std::vector<SAMRAI::tbox::Pointer<T> >;
+    using DataSet = std::vector<SAMRAIPointer<T> >;
 
     /*!
      * \brief The type of object, T, stored in the collection.
@@ -246,12 +246,12 @@ public:
     /*!
      * \brief Pack data into a database.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
+    void putToDatabase(SAMRAIPointer<SAMRAI::tbox::Database> database);
 
     /*!
      * \brief Unpack data from a database.
      */
-    void getFromDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> database);
+    void getFromDatabase(SAMRAIPointer<SAMRAI::tbox::Database> database);
 
 private:
     /*!

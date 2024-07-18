@@ -37,8 +37,8 @@ public:
      * \brief Constructor.
      */
     UFunction(const std::string& object_name,
-              SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometryNd> grid_geom,
-              SAMRAI::tbox::Pointer<Database> input_db)
+              IBTK::SAMRAIPointer<SAMRAI::hier::GridGeometryNd> grid_geom,
+              IBTK::SAMRAIPointer<Database> input_db)
         : CartGridFunction(object_name),
           d_object_name(object_name),
           d_grid_geom(grid_geom),
@@ -78,13 +78,13 @@ public:
      * Set the data on the patch interior to some initial values.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> /*var*/,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> /*var*/,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                         const double /*data_time*/,
                         const bool /*initial_time*/,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> /*level*/)
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> /*level*/)
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceDataNd<double> > u_data = patch->getPatchData(data_idx);
+        IBTK::SAMRAIPointer<SAMRAI::pdat::FaceDataNd<double> > u_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
         TBOX_ASSERT(u_data);
 #endif
@@ -100,7 +100,7 @@ public:
         {
             const SAMRAI::hier::BoxNd& patch_box = patch->getBox();
             const SAMRAI::hier::IndexNd& patch_lower = patch_box.lower();
-            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+            IBTK::SAMRAIPointer<SAMRAI::geom::CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
             const double* const x_lower = pgeom->getXLower();
             const double* const dx = pgeom->getDx();
@@ -152,7 +152,7 @@ private:
     /*!
      * Read input values, indicated above, from given database.
      */
-    void getFromInput(Pointer<Database> db)
+    void getFromInput(SAMRAIPointer<Database> db)
     {
         if (db)
         {
@@ -192,7 +192,7 @@ private:
     /*
      * The grid geometry.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
+    IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
 
     /*
      * The center of the initial data.

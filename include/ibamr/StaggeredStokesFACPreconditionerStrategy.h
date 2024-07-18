@@ -107,7 +107,7 @@ public:
      */
     StaggeredStokesFACPreconditionerStrategy(const std::string& object_name,
                                              int ghost_cell_width,
-                                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                             IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                              const std::string& default_options_prefix);
 
     /*!
@@ -149,7 +149,7 @@ public:
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    virtual void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    virtual void setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \name Functions for configuring the solver.
@@ -382,7 +382,7 @@ protected:
     /*
      * Boundary condition helper object.
      */
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     /*
      * Ghost cell width.
@@ -397,7 +397,7 @@ protected:
     /*
      * Solution and rhs vectors.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_solution, d_rhs;
+    IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_solution, d_rhs;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -407,14 +407,14 @@ protected:
      * hierarchy is obtainable through variables in most function argument
      * lists.  We use it to enforce working on one hierarchy at a time.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     /*
      * Level operators, used to compute composite-grid residuals.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_level_bdry_fill_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> > d_level_math_ops;
+    std::vector<IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> > d_level_bdry_fill_ops;
+    std::vector<IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> > d_level_math_ops;
 
     /*
      * Range of levels to be reset the next time the operator is initialized.
@@ -454,8 +454,8 @@ protected:
     double d_coarse_solver_rel_residual_tol = 1.0e-5;
     double d_coarse_solver_abs_residual_tol = 1.0e-50;
     int d_coarse_solver_max_iterations = 10;
-    SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    IBTK::SAMRAIPointer<IBAMR::StaggeredStokesSolver> d_coarse_solver;
+    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Nullspace info.
@@ -472,7 +472,7 @@ protected:
     /*
      * Variable context for internally maintained hierarchy data.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_context;
 
     /*
      * Patch descriptor indices for scratch data.
@@ -489,18 +489,18 @@ protected:
     /*
      * Physical boundary operators.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartSideRobinPhysBdryOp> d_U_bc_op;
-    SAMRAI::tbox::Pointer<IBTK::CartCellRobinPhysBdryOp> d_P_bc_op;
+    IBTK::SAMRAIPointer<IBTK::CartSideRobinPhysBdryOp> d_U_bc_op;
+    IBTK::SAMRAIPointer<IBTK::CartCellRobinPhysBdryOp> d_P_bc_op;
 
     /*
      * Coarse-fine interface interpolation objects.
      */
-    SAMRAI::tbox::Pointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_U_cf_bdry_op, d_P_cf_bdry_op;
+    IBTK::SAMRAIPointer<IBTK::CoarseFineBoundaryRefinePatchStrategy> d_U_cf_bdry_op, d_P_cf_bdry_op;
 
     /*
      * Variable fill pattern object.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::VariableFillPatternNd> d_U_op_stencil_fill_pattern, d_P_op_stencil_fill_pattern,
+    IBTK::SAMRAIPointer<SAMRAI::xfer::VariableFillPatternNd> d_U_op_stencil_fill_pattern, d_P_op_stencil_fill_pattern,
         d_U_synch_fill_pattern;
 
     //\}
@@ -541,31 +541,31 @@ private:
     /*
      * Error prolongation (refinement) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperatorNd> d_U_prolongation_refine_operator,
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> d_U_prolongation_refine_operator,
         d_P_prolongation_refine_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategyNd> d_prolongation_refine_patch_strategy;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> d_prolongation_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> > d_prolongation_refine_schedules;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefinePatchStrategyNd> d_prolongation_refine_patch_strategy;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineAlgorithmNd> d_prolongation_refine_algorithm;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> > d_prolongation_refine_schedules;
 
     /*
      * Residual restriction (coarsening) operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperatorNd> d_U_restriction_coarsen_operator,
+    IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenOperatorNd> d_U_restriction_coarsen_operator,
         d_P_restriction_coarsen_operator;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithmNd> d_restriction_coarsen_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenScheduleNd> > d_restriction_coarsen_schedules;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenAlgorithmNd> d_restriction_coarsen_algorithm;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> > d_restriction_coarsen_schedules;
 
     /*
      * Refine operator for side and cell data from same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> d_ghostfill_nocoarse_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> > d_ghostfill_nocoarse_refine_schedules;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineAlgorithmNd> d_ghostfill_nocoarse_refine_algorithm;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> > d_ghostfill_nocoarse_refine_schedules;
 
     /*
      * Operator for side data synchronization on same level.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithmNd> d_synch_refine_algorithm;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> > d_synch_refine_schedules;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineAlgorithmNd> d_synch_refine_algorithm;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> > d_synch_refine_schedules;
 };
 } // namespace IBAMR
 

@@ -77,7 +77,7 @@ public:
      * \brief Class constructor.
      */
     INSVCStaggeredConservativeMassMomentumSSPRKIntegrator(std::string object_name,
-                                                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+                                                          IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.

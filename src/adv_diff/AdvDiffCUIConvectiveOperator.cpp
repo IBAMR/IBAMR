@@ -93,8 +93,8 @@ static const int Q_MIN_GCW = 2;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 AdvDiffCUIConvectiveOperator::AdvDiffCUIConvectiveOperator(std::string object_name,
-                                                           Pointer<CellVariableNd<double> > Q_var,
-                                                           Pointer<Database> input_db,
+                                                           SAMRAIPointer<CellVariableNd<double> > Q_var,
+                                                           SAMRAIPointer<Database> input_db,
                                                            const ConvectiveDifferencingType difference_form,
                                                            std::vector<RobinBcCoefStrategyNd*> bc_coefs)
     : CellConvectiveOperator(std::move(object_name), Q_var, Q_MIN_GCW, input_db, difference_form, std::move(bc_coefs))

@@ -76,7 +76,7 @@ static const int PENALTY_IB_METHOD_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-PenaltyIBMethod::PenaltyIBMethod(std::string object_name, Pointer<Database> input_db, bool register_for_restart)
+PenaltyIBMethod::PenaltyIBMethod(std::string object_name, SAMRAIPointer<Database> input_db, bool register_for_restart)
     : IBMethod(std::move(object_name), input_db, register_for_restart)
 {
     // NOTE: Parent class constructor registers class with the restart manager, sets object
@@ -364,11 +364,11 @@ PenaltyIBMethod::computeLagrangianForce(const double data_time)
 } // computeLagrangianForce
 
 void
-PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
-                                          Pointer<GriddingAlgorithmNd> gridding_alg,
+PenaltyIBMethod::initializePatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                          SAMRAIPointer<GriddingAlgorithmNd> gridding_alg,
                                           int u_data_idx,
-                                          const std::vector<Pointer<CoarsenScheduleNd> >& u_synch_scheds,
-                                          const std::vector<Pointer<RefineScheduleNd> >& u_ghost_fill_scheds,
+                                          const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                          const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                           int integrator_step,
                                           double init_data_time,
                                           bool initial_time)
@@ -391,10 +391,10 @@ PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
-            Pointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
-            Pointer<LData> U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
-            Pointer<LData> Y_data = d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
-            Pointer<LData> V_data = d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
+            SAMRAIPointer<LData> X_data = d_l_data_manager->getLData(LDataManager::POSN_DATA_NAME, ln);
+            SAMRAIPointer<LData> U_data = d_l_data_manager->getLData(LDataManager::VEL_DATA_NAME, ln);
+            SAMRAIPointer<LData> Y_data = d_l_data_manager->createLData("Y", ln, NDIM, /*manage_data*/ true);
+            SAMRAIPointer<LData> V_data = d_l_data_manager->createLData("V", ln, NDIM, /*manage_data*/ true);
 
             if (d_silo_writer)
             {
@@ -413,12 +413,12 @@ PenaltyIBMethod::initializePatchHierarchy(Pointer<PatchHierarchyNd> hierarchy,
 } // initializePatchHierarchy
 
 void
-PenaltyIBMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
+PenaltyIBMethod::initializeLevelData(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                      int level_number,
                                      double init_data_time,
                                      bool can_be_refined,
                                      bool initial_time,
-                                     Pointer<BasePatchLevelNd> old_level,
+                                     SAMRAIPointer<BasePatchLevelNd> old_level,
                                      bool allocate_data)
 {
     IBMethod::initializeLevelData(
@@ -428,14 +428,14 @@ PenaltyIBMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
     {
         // Initialize Mass and Spring constant data.
         // Position and Velocity will be copied later.
-        Pointer<LData> M_data = d_l_data_manager->createLData("M",
-                                                              level_number,
-                                                              1,
-                                                              /*manage_data*/ true);
-        Pointer<LData> K_data = d_l_data_manager->createLData("K",
-                                                              level_number,
-                                                              1,
-                                                              /*manage_data*/ true);
+        SAMRAIPointer<LData> M_data = d_l_data_manager->createLData("M",
+                                                                    level_number,
+                                                                    1,
+                                                                    /*manage_data*/ true);
+        SAMRAIPointer<LData> K_data = d_l_data_manager->createLData("K",
+                                                                    level_number,
+                                                                    1,
+                                                                    /*manage_data*/ true);
         static const int global_index_offset = 0;
         static const int local_index_offset = 0;
         d_l_initializer->initializeMassDataOnPatchLevel(global_index_offset,
@@ -458,7 +458,7 @@ PenaltyIBMethod::initializeLevelData(Pointer<BasePatchHierarchyNd> hierarchy,
 }
 
 void
-PenaltyIBMethod::putToDatabase(Pointer<Database> db)
+PenaltyIBMethod::putToDatabase(SAMRAIPointer<Database> db)
 {
     IBMethod::putToDatabase(db);
 
@@ -472,7 +472,7 @@ PenaltyIBMethod::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-PenaltyIBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
+PenaltyIBMethod::getFromInput(SAMRAIPointer<Database> db, bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -493,8 +493,8 @@ PenaltyIBMethod::getFromInput(Pointer<Database> db, bool is_from_restart)
 void
 PenaltyIBMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

@@ -53,8 +53,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-NonbondedForceEvaluator::NonbondedForceEvaluator(Pointer<Database> input_db,
-                                                 Pointer<CartesianGridGeometryNd> grid_geometry)
+NonbondedForceEvaluator::NonbondedForceEvaluator(SAMRAIPointer<Database> input_db,
+                                                 SAMRAIPointer<CartesianGridGeometryNd> grid_geometry)
     : d_grid_geometry(grid_geometry)
 {
     // get interaction radius
@@ -87,9 +87,9 @@ NonbondedForceEvaluator::NonbondedForceEvaluator(Pointer<Database> input_db,
 void
 NonbondedForceEvaluator::evaluateForces(int mstr_petsc_idx,
                                         int search_petsc_idx,
-                                        Pointer<LData> X_data,
+                                        SAMRAIPointer<LData> X_data,
                                         std::vector<int> cell_offset,
-                                        Pointer<LData> F_data)
+                                        SAMRAIPointer<LData> F_data)
 {
     //   Function to add nonbonded forces from the interaction between the nodes at
     //   mstr_petsc_idx and search_petsc_idx.
@@ -142,16 +142,16 @@ NonbondedForceEvaluator::evaluateForces(int mstr_petsc_idx,
 } // evaluateForces
 
 void
-NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
-                                                Pointer<LData> X_data,
-                                                Pointer<LData> /*U_data*/,
-                                                const Pointer<PatchHierarchyNd> hierarchy,
+NonbondedForceEvaluator::computeLagrangianForce(SAMRAIPointer<LData> F_data,
+                                                SAMRAIPointer<LData> X_data,
+                                                SAMRAIPointer<LData> /*U_data*/,
+                                                const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                 const int level_number,
                                                 const double /*data_time*/,
                                                 LDataManager* const l_data_manager)
 {
     // Get grid geometry and relevant lower and upper limits.
-    Pointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     if (!grid_geom->getDomainIsSingleBox()) TBOX_ERROR("physical domain must be a single box...\n");
 
     // These will only work if the domain is a single box.
@@ -164,13 +164,13 @@ NonbondedForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
     const int lag_node_idx_current_idx = l_data_manager->getLNodePatchDescriptorIndex();
 
     // iterate through levels.
-    Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
     for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<PatchNd> patch = level->getPatch(p());
-        Pointer<LNodeSetData> current_idx_data = patch->getPatchData(lag_node_idx_current_idx);
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<LNodeSetData> current_idx_data = patch->getPatchData(lag_node_idx_current_idx);
         const BoxNd& patch_box = patch->getBox();
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
 
         std::vector<int> cell_offset(NDIM);

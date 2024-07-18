@@ -89,8 +89,8 @@ public:
      */
     IrregularWaveBcCoef(std::string object_name,
                         const int comp_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                        SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom);
+                        IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                        IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom);
 
     /*!
      * \brief Destructor.
@@ -130,10 +130,10 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayDataNd<double> >& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayDataNd<double> >& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayDataNd<double> >& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd>& variable,
+    void setBcCoefs(IBTK::SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& acoef_data,
+                    IBTK::SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& bcoef_data,
+                    IBTK::SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& gcoef_data,
+                    const IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd>& variable,
                     const SAMRAI::hier::PatchNd& patch,
                     const SAMRAI::hier::BoundaryBoxNd& bdry_box,
                     double fill_time = 0.0) const override;
@@ -161,7 +161,7 @@ private:
     /*!
      * Get wave parameters from input db.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
     /*!
      * Get surface elevation at a specified horizontal position and time.
@@ -192,7 +192,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
+    IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
 
     /*!
      * \brief Wave parameters.

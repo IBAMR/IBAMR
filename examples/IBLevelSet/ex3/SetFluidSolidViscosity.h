@@ -40,8 +40,8 @@ class HierarchyMathOps;
  * \TODO: Let's move this out of the global namespace and use "snake case" for static function names.
  */
 void callSetFluidSolidViscosityCallbackFunction(int mu_idx,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> mu_var,
-                                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> mu_var,
+                                                IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                 const int cycle_num,
                                                 const double time,
                                                 const double current_time,
@@ -69,8 +69,8 @@ public:
      * Set the density based on the current level set information
      */
     void setViscosityPatchData(int mu_idx,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> mu_var,
-                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                               IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> mu_var,
+                               IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int cycle_num,
                                const double time,
                                const double current_time,

@@ -69,9 +69,9 @@ LInitStrategy::initializeStructureIndexingOnPatchLevel(
 unsigned int
 LInitStrategy::initializeMassDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                               const unsigned int /*local_index_offset*/,
-                                              Pointer<LData> /*M_data*/,
-                                              Pointer<LData> /*K_data*/,
-                                              const Pointer<PatchHierarchyNd> /*hierarchy*/,
+                                              SAMRAIPointer<LData> /*M_data*/,
+                                              SAMRAIPointer<LData> /*K_data*/,
+                                              const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                               const int /*level_number*/,
                                               const double /*init_data_time*/,
                                               const bool /*can_be_refined*/,
@@ -86,8 +86,8 @@ LInitStrategy::initializeMassDataOnPatchLevel(const unsigned int /*global_index_
 unsigned int
 LInitStrategy::initializeDirectorDataOnPatchLevel(const unsigned int /*global_index_offset*/,
                                                   const unsigned int /*local_index_offset*/,
-                                                  Pointer<LData> /*D_data*/,
-                                                  const Pointer<PatchHierarchyNd> /*hierarchy*/,
+                                                  SAMRAIPointer<LData> /*D_data*/,
+                                                  const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                                   const int /*level_number*/,
                                                   const double /*init_data_time*/,
                                                   const bool /*can_be_refined*/,
@@ -100,7 +100,7 @@ LInitStrategy::initializeDirectorDataOnPatchLevel(const unsigned int /*global_in
 } // initializeDirectorDataOnPatchLevel
 
 void
-LInitStrategy::tagCellsForInitialRefinement(const Pointer<PatchHierarchyNd> /*hierarchy*/,
+LInitStrategy::tagCellsForInitialRefinement(const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                             const int /*level_number*/,
                                             const double /*error_data_time*/,
                                             const int /*tag_index*/)

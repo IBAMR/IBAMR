@@ -55,9 +55,9 @@ static const double LOWER_CUT_OFF_ANGLE = 7 * PII / 180;
 ///////////////////////////////////////////////////////////////////////
 
 IBEELKinematics::IBEELKinematics(const std::string& object_name,
-                                 Pointer<Database> input_db,
+                                 SAMRAIPointer<Database> input_db,
                                  LDataManager* l_data_manager,
-                                 Pointer<PatchHierarchyNd> patch_hierarchy,
+                                 SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                                  bool register_for_restart)
     : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
       d_current_time(0.0),
@@ -170,7 +170,7 @@ IBEELKinematics::~IBEELKinematics()
 } // ~IBEELKinematics
 
 void
-IBEELKinematics::putToDatabase(Pointer<Database> db)
+IBEELKinematics::putToDatabase(SAMRAIPointer<Database> db)
 {
     db->putDouble("d_current_time", d_current_time);
     db->putDoubleArray("d_center_of_mass", &d_center_of_mass[0], 3);
@@ -184,8 +184,8 @@ IBEELKinematics::putToDatabase(Pointer<Database> db)
 void
 IBEELKinematics::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -205,7 +205,7 @@ IBEELKinematics::getFromRestart()
 } // getFromRestart
 
 void
-IBEELKinematics::setImmersedBodyLayout(Pointer<PatchHierarchyNd> patch_hierarchy)
+IBEELKinematics::setImmersedBodyLayout(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy)
 {
     // Set some vector sizes.
     const StructureParameters& struct_param = getStructureParameters();
@@ -222,10 +222,10 @@ IBEELKinematics::setImmersedBodyLayout(Pointer<PatchHierarchyNd> patch_hierarchy
     }
 
     // Get Background mesh related data.
-    Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(finest_ln);
+    SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(finest_ln);
     PatchLevelNd::Iterator p(level);
-    Pointer<PatchNd> patch = level->getPatch(p());
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     for (int dim = 0; dim < NDIM; ++dim)
     {

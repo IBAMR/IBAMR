@@ -47,18 +47,18 @@ main(int argc, char* argv[])
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
     {
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
             "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -67,7 +67,7 @@ main(int argc, char* argv[])
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
         // TODO: make depth, cell vs side, ghost width input arguments
         const int u_depth = input_db->getIntegerWithDefault("depth", 1);
@@ -76,8 +76,8 @@ main(int argc, char* argv[])
         const bool use_cell = input_db->getStringWithDefault("var_type", "CELL") == "CELL";
 
         // disambiguate between libMesh::Variable and SAMRAI::hier::Variable
-        auto u_var = use_cell ? Pointer<hier::VariableNd>(new CellVariableNd<double>("u", u_depth)) :
-                                Pointer<hier::VariableNd>(new SideVariableNd<double>("u", u_depth));
+        auto u_var = use_cell ? SAMRAIPointer<hier::VariableNd>(new CellVariableNd<double>("u", u_depth)) :
+                                SAMRAIPointer<hier::VariableNd>(new SideVariableNd<double>("u", u_depth));
 
         const int u_idx = var_db->registerVariableAndContext(u_var, ctx, gcw);
 
@@ -93,25 +93,25 @@ main(int argc, char* argv[])
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_idx, 0.0);
         }
 
         // Set up values for u
-        Pointer<PatchLevelNd> patch_level = patch_hierarchy->getPatchLevel(finest_ln);
+        SAMRAIPointer<PatchLevelNd> patch_level = patch_hierarchy->getPatchLevel(finest_ln);
         if (input_db->getStringWithDefault("fill_test", "uniform") == "uniform")
         {
             for (PatchLevelNd::Iterator p(patch_level); p; p++)
             {
-                Pointer<PatchNd> patch = patch_level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = patch_level->getPatch(p());
                 if (use_cell)
                 {
-                    Pointer<CellDataNd<double> > u_data = patch->getPatchData(u_idx);
+                    SAMRAIPointer<CellDataNd<double> > u_data = patch->getPatchData(u_idx);
                     u_data->fillAll(1.0);
                 }
                 else
                 {
-                    Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+                    SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
                     u_data->fillAll(1.0);
                 }
             }
@@ -138,17 +138,17 @@ main(int argc, char* argv[])
             const std::string spread_fcn = input_db->getString("IB_DELTA_FUNCTION");
             for (PatchLevelNd::Iterator p(patch_level); p; p++)
             {
-                Pointer<PatchNd> patch = patch_level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = patch_level->getPatch(p());
                 const BoxNd box = patch->getBox();
                 if (use_cell)
                 {
-                    Pointer<CellDataNd<double> > q_data = patch->getPatchData(u_idx);
+                    SAMRAIPointer<CellDataNd<double> > q_data = patch->getPatchData(u_idx);
                     q_data->fillAll(0.0);
                     LEInteractor::spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, box, spread_fcn);
                 }
                 else
                 {
-                    Pointer<SideDataNd<double> > q_data = patch->getPatchData(u_idx);
+                    SAMRAIPointer<SideDataNd<double> > q_data = patch->getPatchData(u_idx);
                     q_data->fillAll(0.0);
                     LEInteractor::spread(q_data, Q_data, Q_depth, X_data, X_depth, patch, box, spread_fcn);
                 }
@@ -163,8 +163,8 @@ main(int argc, char* argv[])
         out.precision(16);
         for (PatchLevelNd::Iterator p(patch_level); p; p++)
         {
-            Pointer<PatchNd> patch = patch_level->getPatch(p());
-            tbox::Pointer<CartesianPatchGeometryNd> patch_geo = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = patch_level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geo = patch->getPatchGeometry();
             TBOX_ASSERT(patch_geo);
             IBTK::VectorNd x_lo;
             IBTK::VectorNd x_up;
@@ -177,12 +177,12 @@ main(int argc, char* argv[])
             BoxNd patch_box = patch->getBox();
             if (use_cell)
             {
-                Pointer<CellDataNd<double> > u_data = patch->getPatchData(u_idx);
+                SAMRAIPointer<CellDataNd<double> > u_data = patch->getPatchData(u_idx);
                 u_data->print(patch_box, out, 16);
             }
             else
             {
-                Pointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+                SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
                 u_data->print(patch_box, out, 16);
             }
         }

@@ -53,18 +53,18 @@ FoilInterface foilA;
 // Struct to reset solid level set
 struct SolidLevelSetResetter
 {
-    SolidLevelSetResetter(Pointer<AdvDiffHierarchyIntegrator> integrator,
-                          Pointer<CellVariableNd<double> > var,
-                          Pointer<BrinkmanPenalizationRigidBodyDynamics> bp,
+    SolidLevelSetResetter(SAMRAIPointer<AdvDiffHierarchyIntegrator> integrator,
+                          SAMRAIPointer<CellVariableNd<double> > var,
+                          SAMRAIPointer<BrinkmanPenalizationRigidBodyDynamics> bp,
                           FoilInterface* foil)
         : adv_diff_integrator(integrator), ls_solid_var(var), bp_rbd(bp), ptr_foil(foil)
     {
         return;
     }
 
-    Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
-    Pointer<CellVariableNd<double> > ls_solid_var;
-    Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd;
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+    SAMRAIPointer<CellVariableNd<double> > ls_solid_var;
+    SAMRAIPointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd;
     FoilInterface* ptr_foil;
 };
 
@@ -113,7 +113,7 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
     double distance1[2], distance2[3]; // Foil has three surfaces and 1 surface for circle.
 
     // Set a large value away from the solid body.
-    Pointer<PatchHierarchyNd> patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = resetter->adv_diff_integrator->getPatchHierarchy();
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
 
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
@@ -122,17 +122,17 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
 
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> patch_level = patch_hier->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> patch_level = patch_hier->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(patch_level); p; p++)
         {
-            Pointer<PatchNd> patch = patch_level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = patch_level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
             const hier::IndexNd& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
 
-            Pointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
+            SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_solid_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 const hier::IndexNd& ci = it();
@@ -228,8 +228,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IBLevelSet.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IBLevelSet.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -274,30 +274,30 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator =
+        SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> navier_stokes_integrator =
             new INSVCStaggeredConservativeHierarchyIntegrator(
                 "INSVCStaggeredConservativeHierarchyIntegrator",
                 app_initializer->getComponentDatabase("INSVCStaggeredConservativeHierarchyIntegrator"));
 
         // Set up the advection diffusion hierarchy integrator
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
 
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitializeNd> error_detector =
+        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
             new StandardTagAndInitializeNd("StandardTagAndInitialize",
                                            navier_stokes_integrator,
                                            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        Pointer<LoadBalancerNd> load_balancer =
+        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        SAMRAIPointer<LoadBalancerNd> load_balancer =
             new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithmNd> gridding_algorithm =
+        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
             new GriddingAlgorithmNd("GriddingAlgorithm",
                                     app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                     error_detector,
@@ -306,7 +306,7 @@ main(int argc, char* argv[])
 
         // Create level sets for solid interfaces.
         const string& ls_foilA = "level_set_foilA";
-        Pointer<CellVariableNd<double> > phi_var_foilA = new CellVariableNd<double>(ls_foilA);
+        SAMRAIPointer<CellVariableNd<double> > phi_var_foilA = new CellVariableNd<double>(ls_foilA);
 
         // Register the level sets with advection diffusion integrator.
         adv_diff_integrator->registerTransportedQuantity(phi_var_foilA);
@@ -315,7 +315,7 @@ main(int argc, char* argv[])
                                                   navier_stokes_integrator->getAdvectionVelocityVariable());
 
         // Solid level set initial condition
-        Pointer<CartGridFunction> phi_foilA_init = new LevelSetInitialCondition("phi_foilA_init", foilA);
+        SAMRAIPointer<CartGridFunction> phi_foilA_init = new LevelSetInitialCondition("phi_foilA_init", foilA);
         adv_diff_integrator->setInitialConditions(phi_var_foilA, phi_foilA_init);
 
         // Solid level set resetting consition
@@ -324,8 +324,8 @@ main(int argc, char* argv[])
                                                                 static_cast<void*>(&foilA_level_set_resetter));
 
         // Fluid density and viscosity.
-        Pointer<CellVariableNd<double> > mu_var = new CellVariableNd<double>("mu");
-        Pointer<hier::VariableNd> rho_var;
+        SAMRAIPointer<CellVariableNd<double> > mu_var = new CellVariableNd<double>("mu");
+        SAMRAIPointer<hier::VariableNd> rho_var;
         rho_var = new SideVariableNd<double>("rho");
         navier_stokes_integrator->registerMassDensityVariable(rho_var);
         navier_stokes_integrator->registerViscosityVariable(mu_var);
@@ -353,14 +353,14 @@ main(int argc, char* argv[])
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -418,7 +418,7 @@ main(int argc, char* argv[])
         adv_diff_integrator->setPhysicalBcCoef(phi_var_foilA, phi_bc_coef);
 
         // Configure the Brinkman penalization object to do the rigid body dynamics.
-        Pointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd_A =
+        SAMRAIPointer<BrinkmanPenalizationRigidBodyDynamics> bp_rbd_A =
             new BrinkmanPenalizationRigidBodyDynamics("Airfoil_A",
                                                       phi_var_foilA,
                                                       adv_diff_integrator,
@@ -440,7 +440,7 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             navier_stokes_integrator->registerVisItDataWriter(visit_data_writer);

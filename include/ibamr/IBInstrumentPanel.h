@@ -68,7 +68,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBInstrumentPanel(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IBInstrumentPanel(std::string object_name, IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -128,13 +128,13 @@ public:
      * The data initialized by this method is assumed \em not to change during
      * the course of a simulation.
      */
-    void initializeHierarchyIndependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void initializeHierarchyIndependentData(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                             IBTK::LDataManager* l_data_manager);
 
     /*!
      * \brief Initialize hierarchy- and configuration-dependent data.
      */
-    void initializeHierarchyDependentData(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+    void initializeHierarchyDependentData(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                           IBTK::LDataManager* l_data_manager,
                                           int timestep_num,
                                           double data_time);
@@ -145,7 +145,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                             IBTK::LDataManager* l_data_manager,
                             int timestep_num,
                             double data_time);
@@ -197,7 +197,7 @@ private:
      *
      * When assertion checking is active, the database pointer must be non-null.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
     /*!
      * Output log data to the provided output stream.

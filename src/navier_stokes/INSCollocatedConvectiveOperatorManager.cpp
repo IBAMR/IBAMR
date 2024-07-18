@@ -83,10 +83,10 @@ INSCollocatedConvectiveOperatorManager::freeManager()
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Pointer<ConvectiveOperator>
+SAMRAIPointer<ConvectiveOperator>
 INSCollocatedConvectiveOperatorManager::allocateOperator(const std::string& operator_type,
                                                          const std::string& operator_object_name,
-                                                         Pointer<Database> input_db,
+                                                         SAMRAIPointer<Database> input_db,
                                                          const ConvectiveDifferencingType difference_form,
                                                          const std::vector<RobinBcCoefStrategyNd*>& bc_coefs) const
 {

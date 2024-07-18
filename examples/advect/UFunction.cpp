@@ -21,7 +21,9 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-UFunction::UFunction(const string& object_name, Pointer<GridGeometryNd> grid_geom, Pointer<Database> input_db)
+UFunction::UFunction(const string& object_name,
+                     SAMRAIPointer<GridGeometryNd> grid_geom,
+                     SAMRAIPointer<Database> input_db)
     : CartGridFunction(object_name),
       d_object_name(object_name),
       d_grid_geom(grid_geom),
@@ -57,13 +59,13 @@ UFunction::~UFunction()
 
 void
 UFunction::setDataOnPatch(const int data_idx,
-                          Pointer<VariableNd> /*var*/,
-                          Pointer<PatchNd> patch,
+                          SAMRAIPointer<VariableNd> /*var*/,
+                          SAMRAIPointer<PatchNd> patch,
                           const double /*data_time*/,
                           const bool /*initial_time*/,
-                          Pointer<PatchLevelNd> /*level*/)
+                          SAMRAIPointer<PatchLevelNd> /*level*/)
 {
-    Pointer<FaceDataNd<double> > u_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<FaceDataNd<double> > u_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(u_data);
 #endif
@@ -79,7 +81,7 @@ UFunction::setDataOnPatch(const int data_idx,
     {
         const BoxNd& patch_box = patch->getBox();
         const hier::IndexNd& patch_lower = patch_box.lower();
-        Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
 
         const double* const x_lower = pgeom->getXLower();
         const double* const dx = pgeom->getDx();
@@ -128,7 +130,7 @@ UFunction::setDataOnPatch(const int data_idx,
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-UFunction::getFromInput(Pointer<Database> db)
+UFunction::getFromInput(SAMRAIPointer<Database> db)
 {
     if (db)
     {

@@ -257,8 +257,8 @@ public:
         const std::string& var_name,
         libMesh::FEFamily var_fe_family,
         libMesh::Order var_fe_order,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx,
+        IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+        IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> ctx,
         const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction);
 
     /*!
@@ -269,8 +269,8 @@ public:
         const std::string& var_name,
         libMesh::FEFamily var_fe_family,
         libMesh::Order var_fe_order,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-        SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx,
+        IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+        IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> ctx,
         const IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent& ghost_fill_transaction,
         const IBTK::FEDataManager::InterpSpec& interp_spec);
 
@@ -337,8 +337,8 @@ protected:
      * Eulerian interpolation data.
      */
     std::vector<libMesh::System*> d_scalar_interp_var_systems;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> > d_scalar_interp_vars;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> > d_scalar_interp_ctxs;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> > d_scalar_interp_vars;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> > d_scalar_interp_ctxs;
     std::vector<int> d_scalar_interp_data_idxs, d_scalar_interp_scratch_idxs;
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent>
         d_scalar_interp_fill_transactions;

@@ -184,9 +184,9 @@ namespace IBAMR
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& object_name,
-                                                         const Pointer<Database> input_db,
+                                                         const SAMRAIPointer<Database> input_db,
                                                          const AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                                         const Pointer<VariableNd> level_set_var)
+                                                         const SAMRAIPointer<VariableNd> level_set_var)
     : CartGridFunction(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(level_set_var)
 {
     // Set some default values
@@ -244,8 +244,8 @@ SurfaceTensionForceFunction::isTimeDependent() const
 
 void
 SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                     Pointer<VariableNd> var,
-                                                     Pointer<PatchHierarchyNd> hierarchy,
+                                                     SAMRAIPointer<VariableNd> var,
+                                                     SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                      const double data_time,
                                                      const bool initial_time,
                                                      const int coarsest_ln_in,
@@ -262,7 +262,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     d_hier_sc_data_ops = new HierarchySideDataOpsRealNd<double>(hierarchy, coarsest_ln, finest_ln);
 
     // Get the newest patch data index for the level set variable
-    Pointer<CellVariableNd<double> > phi_cc_var = d_ls_var;
+    SAMRAIPointer<CellVariableNd<double> > phi_cc_var = d_ls_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!phi_cc_var.isNull());
 #endif
@@ -330,8 +330,8 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
         d_C_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
     InterpolationTransactionComponent phi_transaction(
         d_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> C_fill_op = new HierarchyGhostCellInterpolation();
-    Pointer<HierarchyGhostCellInterpolation> phi_fill_op = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> C_fill_op = new HierarchyGhostCellInterpolation();
+    SAMRAIPointer<HierarchyGhostCellInterpolation> phi_fill_op = new HierarchyGhostCellInterpolation();
     C_fill_op->initializeOperatorState(C_transaction, hierarchy, coarsest_ln, finest_ln);
     phi_fill_op->initializeOperatorState(phi_transaction, hierarchy, coarsest_ln, finest_ln);
 
@@ -375,18 +375,18 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
-                                            Pointer<VariableNd> /*var*/,
-                                            Pointer<PatchNd> patch,
+                                            SAMRAIPointer<VariableNd> /*var*/,
+                                            SAMRAIPointer<PatchNd> patch,
                                             const double data_time,
                                             const bool initial_time,
-                                            Pointer<PatchLevelNd> level)
+                                            SAMRAIPointer<PatchLevelNd> level)
 {
-    Pointer<PatchDataNd> f_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    Pointer<CellDataNd<double> > f_cc_data = f_data;
-    Pointer<SideDataNd<double> > f_sc_data = f_data;
+    SAMRAIPointer<CellDataNd<double> > f_cc_data = f_data;
+    SAMRAIPointer<SideDataNd<double> > f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -449,22 +449,22 @@ void
 SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
                                                 int coarsest_ln,
                                                 int finest_ln,
-                                                Pointer<PatchHierarchyNd> patch_hierarchy)
+                                                SAMRAIPointer<PatchHierarchyNd> patch_hierarchy)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
             double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             const BoxNd& patch_box = patch->getBox();
-            Pointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_idx);
+            SAMRAIPointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_idx);
             for (BoxNd::Iterator it(patch_box); it; it++)
             {
                 CellIndexNd ci(it());
@@ -481,20 +481,20 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
                                          int coarsest_ln,
                                          int finest_ln,
                                          double data_time,
-                                         Pointer<PatchHierarchyNd> hierarchy,
-                                         Pointer<HierarchyGhostCellInterpolation> fill_op)
+                                         SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                         SAMRAIPointer<HierarchyGhostCellInterpolation> fill_op)
 {
     if (d_kernel_fcn == "none") return;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
 
-            Pointer<CellDataNd<double> > smooth_C_data = patch->getPatchData(smooth_C_idx);
+            SAMRAIPointer<CellDataNd<double> > smooth_C_data = patch->getPatchData(smooth_C_idx);
             CellDataNd<double> C_data(patch_box, /*depth*/ 1, smooth_C_data->getGhostCellWidth());
 
             C_data.copy(*smooth_C_data);
@@ -534,11 +534,11 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
 } // mollifyData
 
 void
-SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellDataNd<double> > /*F_data*/,
-                                                Pointer<PatchNd> /*patch*/,
+SurfaceTensionForceFunction::setDataOnPatchCell(SAMRAIPointer<CellDataNd<double> > /*F_data*/,
+                                                SAMRAIPointer<PatchNd> /*patch*/,
                                                 const double /*data_time*/,
                                                 const bool /*initial_time*/,
-                                                Pointer<PatchLevelNd> /*level*/)
+                                                SAMRAIPointer<PatchLevelNd> /*level*/)
 {
     TBOX_ERROR(
         "SurfaceTensionForceFunction::setDataOnPatchCell() Cell centered "
@@ -549,14 +549,14 @@ SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellDataNd<double> > /*F
 } // setDataOnPatchCell
 
 void
-SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideDataNd<double> > F_data,
-                                                Pointer<PatchNd> patch,
+SurfaceTensionForceFunction::setDataOnPatchSide(SAMRAIPointer<SideDataNd<double> > F_data,
+                                                SAMRAIPointer<PatchNd> patch,
                                                 const double /*data_time*/,
                                                 const bool /*initial_time*/,
-                                                Pointer<PatchLevelNd> /*level*/)
+                                                SAMRAIPointer<PatchLevelNd> /*level*/)
 {
     const BoxNd& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // First find normal in terms of gradient of phi.
@@ -564,7 +564,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideDataNd<double> > F_d
     SideDataNd<double> N(patch_box,
                          /*depth*/ NDIM,
                          /*gcw*/ IntVectorNd(2));
-    Pointer<CellDataNd<double> > Phi = patch->getPatchData(d_phi_idx);
+    SAMRAIPointer<CellDataNd<double> > Phi = patch->getPatchData(d_phi_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),
@@ -622,7 +622,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideDataNd<double> > F_d
                     dx);
 
     // Compute N = grad(C)
-    Pointer<CellDataNd<double> > C = patch->getPatchData(d_C_idx);
+    SAMRAIPointer<CellDataNd<double> > C = patch->getPatchData(d_C_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),

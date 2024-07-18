@@ -67,7 +67,7 @@ CartGridFunctionSet::CartGridFunctionSet(std::string object_name) : CartGridFunc
 } // CartGridFunctionSet
 
 void
-CartGridFunctionSet::addFunction(Pointer<CartGridFunction> fcn)
+CartGridFunctionSet::addFunction(SAMRAIPointer<CartGridFunction> fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(fcn);
@@ -88,8 +88,8 @@ CartGridFunctionSet::isTimeDependent() const
 
 void
 CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
-                                             Pointer<VariableNd> var,
-                                             Pointer<PatchHierarchyNd> hierarchy,
+                                             SAMRAIPointer<VariableNd> var,
+                                             SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                              const double data_time,
                                              const bool initial_time,
                                              const int coarsest_ln_in,
@@ -106,7 +106,7 @@ CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
     {
         hierarchy->getPatchLevel(ln)->allocatePatchData(cloned_data_idx);
     }
-    Pointer<HierarchyDataOpsRealNd<double> > hier_data_ops =
+    SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_data_ops =
         HierarchyDataOpsManagerNd::getManager()->getOperationsDouble(var,
                                                                      hierarchy,
                                                                      /* get_unique */ true);
@@ -136,19 +136,19 @@ CartGridFunctionSet::setDataOnPatchHierarchy(const int data_idx,
 
 void
 CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
-                                         Pointer<VariableNd> var,
-                                         Pointer<PatchLevelNd> level,
+                                         SAMRAIPointer<VariableNd> var,
+                                         SAMRAIPointer<PatchLevelNd> level,
                                          const double data_time,
                                          const bool initial_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(level);
 #endif
-    Pointer<CellVariableNd<double> > cc_var = var;
-    Pointer<EdgeVariableNd<double> > ec_var = var;
-    Pointer<FaceVariableNd<double> > fc_var = var;
-    Pointer<NodeVariableNd<double> > nc_var = var;
-    Pointer<SideVariableNd<double> > sc_var = var;
+    SAMRAIPointer<CellVariableNd<double> > cc_var = var;
+    SAMRAIPointer<EdgeVariableNd<double> > ec_var = var;
+    SAMRAIPointer<FaceVariableNd<double> > fc_var = var;
+    SAMRAIPointer<NodeVariableNd<double> > nc_var = var;
+    SAMRAIPointer<SideVariableNd<double> > sc_var = var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
 #endif
@@ -164,39 +164,39 @@ CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
         d_fcns[k]->setDataOnPatchLevel(cloned_data_idx, var, level, data_time, initial_time);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             if (cc_var)
             {
-                Pointer<CellDataNd<double> > data = patch->getPatchData(data_idx);
-                Pointer<CellDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<CellDataNd<double> > data = patch->getPatchData(data_idx);
+                SAMRAIPointer<CellDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchCellDataBasicOpsNd<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (ec_var)
             {
-                Pointer<EdgeDataNd<double> > data = patch->getPatchData(data_idx);
-                Pointer<EdgeDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<EdgeDataNd<double> > data = patch->getPatchData(data_idx);
+                SAMRAIPointer<EdgeDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchEdgeDataBasicOpsNd<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (fc_var)
             {
-                Pointer<FaceDataNd<double> > data = patch->getPatchData(data_idx);
-                Pointer<FaceDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<FaceDataNd<double> > data = patch->getPatchData(data_idx);
+                SAMRAIPointer<FaceDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchFaceDataBasicOpsNd<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (nc_var)
             {
-                Pointer<NodeDataNd<double> > data = patch->getPatchData(data_idx);
-                Pointer<NodeDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<NodeDataNd<double> > data = patch->getPatchData(data_idx);
+                SAMRAIPointer<NodeDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchNodeDataBasicOpsNd<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
             else if (sc_var)
             {
-                Pointer<SideDataNd<double> > data = patch->getPatchData(data_idx);
-                Pointer<SideDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
+                SAMRAIPointer<SideDataNd<double> > data = patch->getPatchData(data_idx);
+                SAMRAIPointer<SideDataNd<double> > cloned_data = patch->getPatchData(cloned_data_idx);
                 PatchSideDataBasicOpsNd<double> patch_ops;
                 patch_ops.add(data, data, cloned_data, patch->getBox());
             }
@@ -214,48 +214,48 @@ CartGridFunctionSet::setDataOnPatchLevel(const int data_idx,
 
 void
 CartGridFunctionSet::setDataOnPatch(int data_idx,
-                                    Pointer<VariableNd> var,
-                                    Pointer<PatchNd> patch,
+                                    SAMRAIPointer<VariableNd> var,
+                                    SAMRAIPointer<PatchNd> patch,
                                     double data_time,
                                     bool initial_time,
-                                    Pointer<PatchLevelNd> patch_level)
+                                    SAMRAIPointer<PatchLevelNd> patch_level)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(patch);
 #endif
-    Pointer<CellVariableNd<double> > cc_var = var;
-    Pointer<EdgeVariableNd<double> > ec_var = var;
-    Pointer<FaceVariableNd<double> > fc_var = var;
-    Pointer<NodeVariableNd<double> > nc_var = var;
-    Pointer<SideVariableNd<double> > sc_var = var;
+    SAMRAIPointer<CellVariableNd<double> > cc_var = var;
+    SAMRAIPointer<EdgeVariableNd<double> > ec_var = var;
+    SAMRAIPointer<FaceVariableNd<double> > fc_var = var;
+    SAMRAIPointer<NodeVariableNd<double> > nc_var = var;
+    SAMRAIPointer<SideVariableNd<double> > sc_var = var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(cc_var || ec_var || fc_var || nc_var || sc_var);
 #endif
-    Pointer<PatchDataNd> data = patch->getPatchData(data_idx);
-    Pointer<PatchDataNd> cloned_data;
+    SAMRAIPointer<PatchDataNd> data = patch->getPatchData(data_idx);
+    SAMRAIPointer<PatchDataNd> cloned_data;
     if (cc_var)
     {
-        Pointer<CellDataNd<double> > p_data = data;
+        SAMRAIPointer<CellDataNd<double> > p_data = data;
         cloned_data = new CellDataNd<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (ec_var)
     {
-        Pointer<EdgeDataNd<double> > p_data = data;
+        SAMRAIPointer<EdgeDataNd<double> > p_data = data;
         cloned_data = new EdgeDataNd<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (fc_var)
     {
-        Pointer<FaceDataNd<double> > p_data = data;
+        SAMRAIPointer<FaceDataNd<double> > p_data = data;
         cloned_data = new FaceDataNd<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (nc_var)
     {
-        Pointer<NodeDataNd<double> > p_data = data;
+        SAMRAIPointer<NodeDataNd<double> > p_data = data;
         cloned_data = new NodeDataNd<double>(p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth());
     }
     else if (sc_var)
     {
-        Pointer<SideDataNd<double> > p_data = data;
+        SAMRAIPointer<SideDataNd<double> > p_data = data;
         cloned_data = new SideDataNd<double>(
             p_data->getBox(), p_data->getDepth(), p_data->getGhostCellWidth(), p_data->getDirectionVector());
     }
@@ -277,36 +277,36 @@ CartGridFunctionSet::setDataOnPatch(int data_idx,
         d_fcns[k]->setDataOnPatch(data_idx, var, patch, data_time, initial_time, patch_level);
         if (cc_var)
         {
-            Pointer<CellDataNd<double> > p_data = data;
-            Pointer<CellDataNd<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<CellDataNd<double> > p_data = data;
+            SAMRAIPointer<CellDataNd<double> > p_cloned_data = cloned_data;
             PatchCellDataBasicOpsNd<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (ec_var)
         {
-            Pointer<EdgeDataNd<double> > p_data = data;
-            Pointer<EdgeDataNd<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<EdgeDataNd<double> > p_data = data;
+            SAMRAIPointer<EdgeDataNd<double> > p_cloned_data = cloned_data;
             PatchEdgeDataBasicOpsNd<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (fc_var)
         {
-            Pointer<FaceDataNd<double> > p_data = data;
-            Pointer<FaceDataNd<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<FaceDataNd<double> > p_data = data;
+            SAMRAIPointer<FaceDataNd<double> > p_cloned_data = cloned_data;
             PatchFaceDataBasicOpsNd<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (nc_var)
         {
-            Pointer<NodeDataNd<double> > p_data = data;
-            Pointer<NodeDataNd<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<NodeDataNd<double> > p_data = data;
+            SAMRAIPointer<NodeDataNd<double> > p_cloned_data = cloned_data;
             PatchNodeDataBasicOpsNd<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }
         else if (sc_var)
         {
-            Pointer<SideDataNd<double> > p_data = data;
-            Pointer<SideDataNd<double> > p_cloned_data = cloned_data;
+            SAMRAIPointer<SideDataNd<double> > p_data = data;
+            SAMRAIPointer<SideDataNd<double> > p_cloned_data = cloned_data;
             PatchSideDataBasicOpsNd<double> patch_ops;
             patch_ops.add(p_cloned_data, p_cloned_data, p_data, patch->getBox());
         }

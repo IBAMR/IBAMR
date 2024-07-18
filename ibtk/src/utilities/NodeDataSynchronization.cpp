@@ -66,7 +66,7 @@ NodeDataSynchronization::~NodeDataSynchronization()
 
 void
 NodeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                 Pointer<PatchHierarchyNd> hierarchy)
+                                                 SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
@@ -75,7 +75,7 @@ NodeDataSynchronization::initializeOperatorState(const SynchronizationTransactio
 void
 NodeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-    Pointer<PatchHierarchyNd> hierarchy)
+    SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -99,12 +99,12 @@ NodeDataSynchronization::initializeOperatorState(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<VariableNd> var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -121,8 +121,8 @@ NodeDataSynchronization::initializeOperatorState(
     {
         for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
     }
@@ -134,16 +134,16 @@ NodeDataSynchronization::initializeOperatorState(
         for (const auto& transaction_comp : d_transaction_comps)
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<VariableNd> var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(data_idx, var);
-            Pointer<NodeVariableNd<double> > nc_var = var;
+            SAMRAIPointer<NodeVariableNd<double> > nc_var = var;
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::initializeOperatorState():\n"
                            << "  only double-precision node-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperatorNd> refine_op = nullptr;
-            Pointer<VariableFillPatternNd> fill_pattern = new NodeSynchCopyFillPattern(axis);
+            SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
+            SAMRAIPointer<VariableFillPatternNd> fill_pattern = new NodeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
@@ -154,7 +154,7 @@ NodeDataSynchronization::initializeOperatorState(
         d_refine_scheds[axis].resize(d_finest_ln + 1);
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             d_refine_scheds[axis][ln] = d_refine_alg[axis]->createSchedule(level);
         }
     }
@@ -207,12 +207,12 @@ NodeDataSynchronization::resetTransactionComponents(
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<VariableNd> var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -238,16 +238,16 @@ NodeDataSynchronization::resetTransactionComponents(
         for (const auto& transaction_comp : d_transaction_comps)
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<VariableNd> var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(data_idx, var);
-            Pointer<NodeVariableNd<double> > nc_var = var;
+            SAMRAIPointer<NodeVariableNd<double> > nc_var = var;
             if (!nc_var)
             {
                 TBOX_ERROR("NodeDataSynchronization::resetTransactionComponents():\n"
                            << "  only double-precision node-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperatorNd> refine_op = nullptr;
-            Pointer<VariableFillPatternNd> fill_pattern = new NodeSynchCopyFillPattern(axis);
+            SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
+            SAMRAIPointer<VariableFillPatternNd> fill_pattern = new NodeSynchCopyFillPattern(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
@@ -291,7 +291,7 @@ NodeDataSynchronization::synchronizeData(const double fill_time)
 #endif
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
 
         // Synchronize data on the current level.
         for (unsigned int axis = 0; axis < NDIM; ++axis)

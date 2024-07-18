@@ -22,11 +22,11 @@
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-BoussinesqForcing::BoussinesqForcing(Pointer<SAMRAI::hier::VariableNd> T_var,
-                                     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
-                                     Pointer<CellVariableNd<double> > ls_inner_solid_var,
-                                     Pointer<CellVariableNd<double> > ls_outer_solid_var,
-                                     Pointer<Database> input_db)
+BoussinesqForcing::BoussinesqForcing(SAMRAIPointer<SAMRAI::hier::VariableNd> T_var,
+                                     SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator,
+                                     SAMRAIPointer<CellVariableNd<double> > ls_inner_solid_var,
+                                     SAMRAIPointer<CellVariableNd<double> > ls_outer_solid_var,
+                                     SAMRAIPointer<Database> input_db)
     : d_T_var(T_var), d_adv_diff_hier_integrator(adv_diff_hier_integrator)
 {
     d_rayleigh_number = input_db->getDouble("rayleigh_number");
@@ -54,8 +54,8 @@ BoussinesqForcing::isTimeDependent() const
 
 void
 BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
-                                           Pointer<SAMRAI::hier::VariableNd> var,
-                                           Pointer<PatchHierarchyNd> hierarchy,
+                                           SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                                           SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                            const double data_time,
                                            const bool initial_time,
                                            const int coarsest_ln_in,
@@ -75,7 +75,7 @@ BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
 
     int T_new_idx = var_db->mapVariableAndContextToIndex(d_T_var, d_adv_diff_hier_integrator->getNewContext());
     HierarchyDataOpsManagerNd* hier_data_ops_manager = HierarchyDataOpsManagerNd::getManager();
-    Pointer<HierarchyDataOpsRealNd<double> > hier_cc_data_ops =
+    SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_cc_data_ops =
         hier_data_ops_manager->getOperationsDouble(d_T_var, hierarchy, /*get_unique*/ true);
     hier_cc_data_ops->copyData(T_scratch_idx, T_new_idx);
 
@@ -130,18 +130,19 @@ BoussinesqForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 BoussinesqForcing::setDataOnPatch(const int data_idx,
-                                  Pointer<SAMRAI::hier::VariableNd> /*var*/,
-                                  Pointer<PatchNd> patch,
+                                  SAMRAIPointer<SAMRAI::hier::VariableNd> /*var*/,
+                                  SAMRAIPointer<PatchNd> patch,
                                   const double /*data_time*/,
                                   const bool initial_time,
-                                  Pointer<PatchLevelNd> /*patch_level*/)
+                                  SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
     if (initial_time) return;
-    Pointer<SideDataNd<double> > F_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SideDataNd<double> > F_data = patch->getPatchData(data_idx);
 
-    Pointer<CellDataNd<double> > T_data = patch->getPatchData(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
-    Pointer<SideDataNd<double> > chi_data = patch->getPatchData(d_chi_idx);
-    const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+    SAMRAIPointer<CellDataNd<double> > T_data =
+        patch->getPatchData(d_T_var, d_adv_diff_hier_integrator->getScratchContext());
+    SAMRAIPointer<SideDataNd<double> > chi_data = patch->getPatchData(d_chi_idx);
+    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
     const double* patch_dx = patch_geom->getDx();
     const double alpha = 2.0 * patch_dx[0];
     const BoxNd& patch_box = patch->getBox();
@@ -157,7 +158,7 @@ BoussinesqForcing::setDataOnPatch(const int data_idx,
                 VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
                 int ls_solid_scratch_idx =
                     var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_hier_integrator->getScratchContext());
-                Pointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_solid_scratch_idx);
+                SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(ls_solid_scratch_idx);
                 const double phi_lower = (*ls_solid_data)(si.toCell(0));
                 const double phi_upper = (*ls_solid_data)(si.toCell(1));
                 const double phi = 0.5 * (phi_lower + phi_upper);

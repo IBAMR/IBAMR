@@ -36,8 +36,8 @@ get_min_patch_dx(const PatchLevelNd& patch_level)
     // after one loop operation than to check
     for (PatchLevelNd::Iterator p(patch_level); p; p++)
     {
-        Pointer<PatchNd> patch = patch_level.getPatch(p());
-        const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<PatchNd> patch = patch_level.getPatch(p());
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
         result = std::min(result, patch_dx_min);

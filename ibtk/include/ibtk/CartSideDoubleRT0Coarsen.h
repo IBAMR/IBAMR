@@ -70,7 +70,7 @@ public:
      * Return true if the coarsening operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd>& var,
+    bool findCoarsenOperator(const SAMRAIPointer<SAMRAI::hier::VariableNd>& var,
                              const std::string& op_name) const override;
 
     /*!

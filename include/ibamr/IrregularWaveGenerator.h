@@ -45,7 +45,7 @@ namespace IBAMR
 class IrregularWaveGenerator : public StokesWaveGeneratorStrategy
 {
 public:
-    IrregularWaveGenerator(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    IrregularWaveGenerator(const std::string& object_name, IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * Get surface elevation at a specified horizontal position and time.
@@ -66,7 +66,7 @@ private:
     /*!
      * Get wave parameters from input db.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
     ///
     /// Number of component waves with random phases to be generated (default = 50).

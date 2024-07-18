@@ -49,27 +49,27 @@ LIndexSetDataFactory<T>::LIndexSetDataFactory(IntVectorNd ghosts) : LSetDataFact
 } // LIndexSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactoryNd>
+SAMRAIPointer<PatchDataFactoryNd>
 LIndexSetDataFactory<T>::cloneFactory(const IntVectorNd& ghosts)
 {
     return new LIndexSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchDataNd>
-LIndexSetDataFactory<T>::allocate(const BoxNd& box, Pointer<Arena> pool) const
+SAMRAIPointer<PatchDataNd>
+LIndexSetDataFactory<T>::allocate(const BoxNd& box, SAMRAIPointer<Arena> pool) const
 {
     if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
     PatchDataNd* pd = new (pool) LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
-    return Pointer<PatchDataNd>(pd, pool);
+    return SAMRAIPointer<PatchDataNd>(pd, pool);
 } // allocate
 
 template <class T>
-Pointer<PatchDataNd>
-LIndexSetDataFactory<T>::allocate(const PatchNd& patch, Pointer<Arena> pool) const
+SAMRAIPointer<PatchDataNd>
+LIndexSetDataFactory<T>::allocate(const PatchNd& patch, SAMRAIPointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
@@ -83,9 +83,9 @@ LIndexSetDataFactory<T>::getSizeOfMemory(const BoxNd& /*box*/) const
 
 template <class T>
 bool
-LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactoryNd>& dst_pdf) const
+LIndexSetDataFactory<T>::validCopyTo(const SAMRAIPointer<PatchDataFactoryNd>& dst_pdf) const
 {
-    const Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
+    const SAMRAIPointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;
 } // validCopyTo
 

@@ -37,9 +37,9 @@ public:
      * \brief Constructor.
      */
     RigidBodyKinematics(const std::string& object_name,
-                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                        IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                         IBTK::LDataManager* l_data_manager,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> /*patch_hierarchy*/,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> /*patch_hierarchy*/,
                         bool register_for_restart = true)
         : ConstraintIBKinematics(object_name, input_db, l_data_manager, register_for_restart),
           d_parser_time(0.0),

@@ -47,7 +47,7 @@ public:
     /*!
      * \brief Returns true if the refinement operation matches the given variable and operation name.
      */
-    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd>& var,
+    bool findRefineOperator(const SAMRAIPointer<SAMRAI::hier::VariableNd>& var,
                             const std::string& op_name) const override;
     /*!
      * \brief Returns the operator name.
@@ -103,7 +103,7 @@ public:
     /*!
      * \brief Returns true if the coarsening operation matches the given variable and operation name.
      */
-    bool findCoarsenOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd>& var,
+    bool findCoarsenOperator(const SAMRAIPointer<SAMRAI::hier::VariableNd>& var,
                              const std::string& op_name) const override;
 
     /*!

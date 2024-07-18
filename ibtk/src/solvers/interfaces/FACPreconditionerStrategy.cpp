@@ -54,7 +54,7 @@ FACPreconditionerStrategy::getIsInitialized() const
 } // getIsInitialized
 
 void
-FACPreconditionerStrategy::setFACPreconditioner(ConstPointer<FACPreconditioner> preconditioner)
+FACPreconditionerStrategy::setFACPreconditioner(SAMRAIConstPointer<FACPreconditioner> preconditioner)
 {
     d_preconditioner = preconditioner;
     return;
@@ -137,10 +137,10 @@ FACPreconditionerStrategy::deallocateScratchData()
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
-Pointer<SAMRAIVectorRealNd<double> >
+SAMRAIPointer<SAMRAIVectorRealNd<double> >
 FACPreconditionerStrategy::getLevelSAMRAIVectorReal(const SAMRAIVectorRealNd<double>& vec, int level_num) const
 {
-    Pointer<SAMRAIVectorRealNd<double> > level_vec = new SAMRAIVectorRealNd<double>(
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > level_vec = new SAMRAIVectorRealNd<double>(
         vec.getName() + "::level_" + std::to_string(level_num), vec.getPatchHierarchy(), level_num, level_num);
     for (int comp = 0; comp < vec.getNumberOfComponents(); ++comp)
     {

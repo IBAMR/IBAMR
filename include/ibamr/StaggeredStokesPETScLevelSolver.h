@@ -71,7 +71,7 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesPETScLevelSolver(const std::string& object_name,
-                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                     const std::string& default_options_prefix);
 
     /*!
@@ -82,9 +82,9 @@ public:
     /*!
      * \brief Static function to construct a StaggeredStokesPETScLevelSolver.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    static IBTK::SAMRAIPointer<StaggeredStokesSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
         return new StaggeredStokesPETScLevelSolver(object_name, input_db, default_options_prefix);
@@ -168,15 +168,15 @@ private:
      */
     //\{
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_context;
     std::vector<int> d_num_dofs_per_proc;
     int d_u_dof_index_idx = IBTK::invalid_index, d_p_dof_index_idx = IBTK::invalid_index;
     int d_u_nullspace_idx = IBTK::invalid_index, d_p_nullspace_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<int> > d_u_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariableNd<double> > d_u_nullspace_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<int> > d_p_dof_index_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > d_p_nullspace_var;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineScheduleNd> d_data_synch_sched, d_ghost_fill_sched;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<int> > d_u_dof_index_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_u_nullspace_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<int> > d_p_dof_index_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_p_nullspace_var;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> d_data_synch_sched, d_ghost_fill_sched;
 
     //\}
 };

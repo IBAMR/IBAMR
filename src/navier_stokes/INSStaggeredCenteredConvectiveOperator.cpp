@@ -212,7 +212,7 @@ static Timer* t_deallocate_operator_state;
 
 INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     std::string object_name,
-    Pointer<Database> input_db,
+    SAMRAIPointer<Database> input_db,
     const ConvectiveDifferencingType difference_form,
     std::vector<RobinBcCoefStrategyNd*> bc_coefs)
     : ConvectiveOperator(std::move(object_name), difference_form), d_bc_coefs(std::move(bc_coefs))
@@ -234,7 +234,7 @@ INSStaggeredCenteredConvectiveOperator::INSStaggeredCenteredConvectiveOperator(
     }
 
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSStaggeredCenteredConvectiveOperator::CONTEXT");
+    SAMRAIPointer<VariableContext> context = var_db->getContext("INSStaggeredCenteredConvectiveOperator::CONTEXT");
 
     const std::string U_var_name = "INSStaggeredCenteredConvectiveOperator::U";
     d_U_var = var_db->getVariable(U_var_name);
@@ -289,7 +289,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
     // Allocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_U_scratch_idx))
         {
             level->allocatePatchData(d_U_scratch_idx);
@@ -318,20 +318,20 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
     // Compute the convective derivative.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
-            const Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
             const BoxNd& patch_box = patch->getBox();
             const IntVectorNd& patch_lower = patch_box.lower();
             const IntVectorNd& patch_upper = patch_box.upper();
 
-            Pointer<SideDataNd<double> > N_data = patch->getPatchData(N_idx);
-            Pointer<SideDataNd<double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            SAMRAIPointer<SideDataNd<double> > N_data = patch->getPatchData(N_idx);
+            SAMRAIPointer<SideDataNd<double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVectorNd& N_data_gcw = N_data->getGhostCellWidth();
             const IntVectorNd& U_data_gcw = U_data->getGhostCellWidth();
@@ -467,7 +467,7 @@ INSStaggeredCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx,
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_U_scratch_idx))
         {
             level->deallocatePatchData(d_U_scratch_idx);

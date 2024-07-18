@@ -68,8 +68,7 @@ public:
     /*!
      * \brief Update the cached indexing data.
      */
-    void cacheLocalIndices(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
-                           const SAMRAI::hier::IntVectorNd& periodic_shift);
+    void cacheLocalIndices(SAMRAIPointer<SAMRAI::hier::PatchNd> patch, const SAMRAI::hier::IntVectorNd& periodic_shift);
 
     /*!
      * \return A constant reference to the set of Lagrangian data indices that

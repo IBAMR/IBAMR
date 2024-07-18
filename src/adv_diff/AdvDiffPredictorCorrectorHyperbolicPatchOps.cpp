@@ -162,9 +162,9 @@ namespace IBAMR
 
 AdvDiffPredictorCorrectorHyperbolicPatchOps::AdvDiffPredictorCorrectorHyperbolicPatchOps(
     std::string object_name,
-    Pointer<Database> input_db,
-    Pointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
-    Pointer<CartesianGridGeometryNd> grid_geom,
+    SAMRAIPointer<Database> input_db,
+    SAMRAIPointer<AdvectorExplicitPredictorPatchOps> explicit_predictor,
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom,
     bool register_for_restart)
     : AdvectorPredictorCorrectorHyperbolicPatchOps(std::move(object_name),
                                                    input_db,
@@ -186,31 +186,31 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
     const hier::IndexNd& ilower = patch_box.lower();
     const hier::IndexNd& iupper = patch_box.upper();
 
-    const Pointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
+    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch.getPatchGeometry();
     const double* const dx = patch_geom->getDx();
 
     for (const auto& Q_var : d_Q_var)
     {
-        Pointer<CellDataNd<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
-        Pointer<FaceVariableNd<double> > u_var = d_Q_u_map[Q_var];
+        SAMRAIPointer<CellDataNd<double> > Q_data = patch.getPatchData(Q_var, getDataContext());
+        SAMRAIPointer<FaceVariableNd<double> > u_var = d_Q_u_map[Q_var];
         if (u_var)
         {
             const bool conservation_form = d_Q_difference_form[Q_var] == CONSERVATIVE;
             const bool u_is_div_free = d_u_is_div_free[u_var];
 
-            Pointer<FaceVariableNd<double> > flux_integral_var = d_flux_integral_var[Q_var];
-            Pointer<FaceVariableNd<double> > q_integral_var = d_q_integral_var[Q_var];
-            Pointer<FaceVariableNd<double> > u_integral_var = d_u_integral_var[u_var];
+            SAMRAIPointer<FaceVariableNd<double> > flux_integral_var = d_flux_integral_var[Q_var];
+            SAMRAIPointer<FaceVariableNd<double> > q_integral_var = d_q_integral_var[Q_var];
+            SAMRAIPointer<FaceVariableNd<double> > u_integral_var = d_u_integral_var[u_var];
 
-            Pointer<FaceDataNd<double> > flux_integral_data =
+            SAMRAIPointer<FaceDataNd<double> > flux_integral_data =
                 (conservation_form ? patch.getPatchData(flux_integral_var, getDataContext()) :
-                                     Pointer<PatchDataNd>(nullptr));
-            Pointer<FaceDataNd<double> > q_integral_data =
+                                     SAMRAIPointer<PatchDataNd>(nullptr));
+            SAMRAIPointer<FaceDataNd<double> > q_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(q_integral_var, getDataContext()) :
-                                                        Pointer<PatchDataNd>(nullptr));
-            Pointer<FaceDataNd<double> > u_integral_data =
+                                                        SAMRAIPointer<PatchDataNd>(nullptr));
+            SAMRAIPointer<FaceDataNd<double> > u_integral_data =
                 (!conservation_form || !u_is_div_free ? patch.getPatchData(u_integral_var, getDataContext()) :
-                                                        Pointer<PatchDataNd>(nullptr));
+                                                        SAMRAIPointer<PatchDataNd>(nullptr));
 
             const IntVectorNd& Q_data_ghost_cells = Q_data->getGhostCellWidth();
             const IntVectorNd& flux_integral_data_ghost_cells =
@@ -331,7 +331,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
                 d_explicit_predictor->computeAdvectiveDerivative(N_data, *u_integral_data, *q_integral_data, patch);
                 PatchCellDataOpsRealNd<double> patch_cc_data_ops;
                 patch_cc_data_ops.scale(
-                    Q_data, -1.0 / (dt * dt), Pointer<CellDataNd<double> >(&N_data, false), patch_box);
+                    Q_data, -1.0 / (dt * dt), SAMRAIPointer<CellDataNd<double> >(&N_data, false), patch_box);
                 break;
             }
             default:
@@ -355,7 +355,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::conservativeDifferenceOnPatch(Patch
 } // conservativeDifferenceOnPatch
 
 void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const Pointer<PatchLevelNd>& level,
+AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const SAMRAIPointer<PatchLevelNd>& level,
                                                                          double current_time,
                                                                          double /*dt*/,
                                                                          bool /*first_step*/,
@@ -378,7 +378,7 @@ AdvDiffPredictorCorrectorHyperbolicPatchOps::preprocessAdvanceLevelState(const P
 } // preprocessAdvanceLevelState
 
 void
-AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const Pointer<PatchLevelNd>& level,
+AdvDiffPredictorCorrectorHyperbolicPatchOps::postprocessAdvanceLevelState(const SAMRAIPointer<PatchLevelNd>& level,
                                                                           double current_time,
                                                                           double dt,
                                                                           bool /*first_step*/,

@@ -75,10 +75,10 @@ VelocityBcCoefs::~VelocityBcCoefs()
 } // ~VelocityBcCoefs
 
 void
-VelocityBcCoefs::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
-                            Pointer<ArrayDataNd<double> >& bcoef_data,
-                            Pointer<ArrayDataNd<double> >& gcoef_data,
-                            const Pointer<VariableNd>& /*variable*/,
+VelocityBcCoefs::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                            SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                            SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                            const SAMRAIPointer<VariableNd>& /*variable*/,
                             const PatchNd& patch,
                             const BoundaryBoxNd& bdry_box,
                             double fill_time) const
@@ -106,7 +106,7 @@ VelocityBcCoefs::setBcCoefs(Pointer<ArrayDataNd<double> >& acoef_data,
 
     const BoxNd& patch_box = patch.getBox();
     const hier::IndexNd& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower(); // pointer to lower coordinates of patch
 

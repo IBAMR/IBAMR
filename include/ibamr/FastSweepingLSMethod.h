@@ -70,7 +70,7 @@ public:
      * \brief Constructor.
      */
     FastSweepingLSMethod(std::string object_name,
-                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL,
+                         IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db = NULL,
                          bool register_for_restart = true);
 
     /*!
@@ -82,7 +82,7 @@ public:
      * \brief Initialize level set data using the fast-sweeping method.
      */
     void initializeLSData(int D_idx,
-                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
+                          IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
                           int integrator_step,
                           double time,
                           bool initial_time) override;
@@ -96,19 +96,19 @@ private:
     /*!
      * \brief Do one fast sweep over the hierarchy.
      */
-    void fastSweep(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops, int dist_idx) const;
+    void fastSweep(IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops, int dist_idx) const;
 
     /*!
      * \brief Do one fast sweep over a patch.
      */
-    void fastSweep(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellDataNd<double> > dist_data,
-                   const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
+    void fastSweep(IBTK::SAMRAIPointer<SAMRAI::pdat::CellDataNd<double> > dist_data,
+                   const IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                    const SAMRAI::hier::BoxNd& domain_box) const;
 
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
     /*!
      * Read object state from the restart file and initialize class data

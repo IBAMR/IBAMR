@@ -81,8 +81,8 @@ public:
      * \see setDataOnPatch
      */
     virtual void setDataOnPatchHierarchy(int data_idx,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                         SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                                         SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                          double data_time,
                                          bool initial_time = false,
                                          int coarsest_ln = invalid_level_number,
@@ -95,8 +95,8 @@ public:
      * \see setDataOnPatch
      */
     virtual void setDataOnPatchLevel(int data_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level,
+                                     SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                                     SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level,
                                      double data_time,
                                      bool initial_time = false);
 
@@ -104,13 +104,13 @@ public:
      * \brief Pure virtual function to evaluate the function on the patch
      * interior.
      */
-    virtual void setDataOnPatch(int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::VariableNd> var,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchNd> patch,
-                                double data_time,
-                                bool initial_time = false,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd> patch_level =
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevelNd>(NULL)) = 0;
+    virtual void setDataOnPatch(
+        int data_idx,
+        SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+        SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
+        double data_time,
+        bool initial_time = false,
+        SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level = SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) = 0;
 
     //\}
 

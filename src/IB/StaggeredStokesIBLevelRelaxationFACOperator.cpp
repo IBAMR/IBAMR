@@ -83,7 +83,7 @@ static const int NOGHOST = 0;
 
 StaggeredStokesIBLevelRelaxationFACOperator::StaggeredStokesIBLevelRelaxationFACOperator(
     std::string object_name,
-    const Pointer<Database> input_db,
+    const SAMRAIPointer<Database> input_db,
     const std::string& default_options_prefix)
     : StaggeredStokesFACPreconditionerStrategy(std::move(object_name),
                                                std::max(SIDEG, CELLG),
@@ -195,7 +195,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::setIBInterpOp(Mat& J)
     return;
 } // setIBInterpOp
 
-Pointer<StaggeredStokesPETScLevelSolver>
+SAMRAIPointer<StaggeredStokesPETScLevelSolver>
 StaggeredStokesIBLevelRelaxationFACOperator::getStaggeredStokesPETScLevelSolver(const int ln) const
 {
 #if !defined(NDEBUG)
@@ -254,7 +254,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorRealNd<
         for (int ln = coarsest_level_num; ln <= finest_level_num; ++ln)
         {
             Vec solution_vec, residual_vec;
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
 
             int ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
             IBTK_CHKERRQ(ierr);
@@ -301,7 +301,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::computeResidual(SAMRAIVectorRealNd<
             Vec solution_vec;
             Vec residual_vec;
             Vec rhs_vec;
-            Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
 
             int ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[ln][rank], PETSC_DETERMINE, &solution_vec);
             IBTK_CHKERRQ(ierr);
@@ -350,14 +350,14 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<doub
 {
     if (num_sweeps == 0) return;
 
-    Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+    SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
     const int U_error_idx = error.getComponentDescriptorIndex(0);
     const int P_error_idx = error.getComponentDescriptorIndex(1);
     const int U_scratch_idx = d_side_scratch_idx;
     const int P_scratch_idx = d_cell_scratch_idx;
 
-    Pointer<SAMRAIVectorRealNd<double> > e_level = getLevelSAMRAIVectorReal(error, level_num);
-    Pointer<SAMRAIVectorRealNd<double> > r_level = getLevelSAMRAIVectorReal(residual, level_num);
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > e_level = getLevelSAMRAIVectorReal(error, level_num);
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > r_level = getLevelSAMRAIVectorReal(residual, level_num);
 
     // Cache coarse-fine interface ghost cell values in the "scratch" data.
     if (level_num > d_coarsest_ln && num_sweeps > 1)
@@ -365,10 +365,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<doub
         int patch_counter = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
-            Pointer<SideDataNd<double> > U_error_data = error.getComponentPatchData(0, *patch);
-            Pointer<SideDataNd<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
+            SAMRAIPointer<SideDataNd<double> > U_error_data = error.getComponentPatchData(0, *patch);
+            SAMRAIPointer<SideDataNd<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
 #if !defined(NDEBUG)
             const BoxNd& U_ghost_box = U_error_data->getGhostBox();
             TBOX_ASSERT(U_ghost_box == U_scratch_data->getGhostBox());
@@ -382,8 +382,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<doub
                                                         IntVectorNd(0));
             }
 
-            Pointer<CellDataNd<double> > P_error_data = error.getComponentPatchData(1, *patch);
-            Pointer<CellDataNd<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
+            SAMRAIPointer<CellDataNd<double> > P_error_data = error.getComponentPatchData(1, *patch);
+            SAMRAIPointer<CellDataNd<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
 #if !defined(NDEBUG)
             const BoxNd& P_ghost_box = P_error_data->getGhostBox();
             TBOX_ASSERT(P_ghost_box == P_scratch_data->getGhostBox());
@@ -408,10 +408,10 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<doub
                 int patch_counter = 0;
                 for (PatchLevelNd::Iterator p(level); p; p++, ++patch_counter)
                 {
-                    Pointer<PatchNd> patch = level->getPatch(p());
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
 
-                    Pointer<SideDataNd<double> > U_error_data = error.getComponentPatchData(0, *patch);
-                    Pointer<SideDataNd<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
+                    SAMRAIPointer<SideDataNd<double> > U_error_data = error.getComponentPatchData(0, *patch);
+                    SAMRAIPointer<SideDataNd<double> > U_scratch_data = patch->getPatchData(U_scratch_idx);
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
                         U_error_data->getArrayData(axis).copy(
@@ -420,8 +420,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<doub
                             IntVectorNd(0));
                     }
 
-                    Pointer<CellDataNd<double> > P_error_data = error.getComponentPatchData(1, *patch);
-                    Pointer<CellDataNd<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
+                    SAMRAIPointer<CellDataNd<double> > P_error_data = error.getComponentPatchData(1, *patch);
+                    SAMRAIPointer<CellDataNd<double> > P_scratch_data = patch->getPatchData(P_scratch_idx);
                     P_error_data->getArrayData().copy(P_scratch_data->getArrayData(),
                                                       d_patch_cell_bc_box_overlap[level_num][patch_counter],
                                                       IntVectorNd(0));
@@ -437,14 +437,14 @@ StaggeredStokesIBLevelRelaxationFACOperator::smoothError(SAMRAIVectorRealNd<doub
             const IntVectorNd& ratio = level->getRatioToCoarserLevel();
             for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
                 d_U_cf_bdry_op->computeNormalExtension(*patch, ratio, SIDEG);
                 d_P_cf_bdry_op->computeNormalExtension(*patch, ratio, CELLG);
             }
         }
 
         // Smooth the error on the level.
-        Pointer<StaggeredStokesPETScLevelSolver> level_solver = d_level_solvers[level_num];
+        SAMRAIPointer<StaggeredStokesPETScLevelSolver> level_solver = d_level_solvers[level_num];
         level_solver->setSolutionTime(d_solution_time);
         level_solver->setTimeInterval(d_current_time, d_new_time);
         level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
@@ -492,7 +492,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
         // Allocate DOF index data.
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_u_dof_index_idx)) level->allocatePatchData(d_u_dof_index_idx);
         if (!level->checkAllocated(d_p_dof_index_idx)) level->allocatePatchData(d_p_dof_index_idx);
 
@@ -508,7 +508,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln - 1, finest_reset_ln);
          ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         StaggeredStokesPETScVecUtilities::constructPatchLevelAO(d_u_p_app_ordering[ln],
                                                                 d_num_dofs_per_proc[ln],
                                                                 d_u_dof_index_idx,
@@ -526,8 +526,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     for (int ln = std::min(d_finest_ln - 1, finest_reset_ln); ln >= std::max(d_coarsest_ln, coarsest_reset_ln - 1);
          --ln)
     {
-        Pointer<PatchLevelNd> fine_level = d_hierarchy->getPatchLevel(ln + 1);
-        Pointer<PatchLevelNd> coarse_level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> fine_level = d_hierarchy->getPatchLevel(ln + 1);
+        SAMRAIPointer<PatchLevelNd> coarse_level = d_hierarchy->getPatchLevel(ln);
         PETScMatUtilities::constructProlongationOp(d_SAJ_prolongation_mat[ln],
                                                    d_u_petsc_prolongation_method,
                                                    d_u_dof_index_idx,
@@ -567,8 +567,8 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
             IBTK_CHKERRQ(ierr);
 
             // Compute the scale for the spreading operator.
-            Pointer<PatchLevelNd> finest_level = d_hierarchy->getPatchLevel(d_finest_ln);
-            Pointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
+            SAMRAIPointer<PatchLevelNd> finest_level = d_hierarchy->getPatchLevel(d_finest_ln);
+            SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
             const double* const dx0 = grid_geom->getDx();
             IntVectorNd ratio = finest_level->getRatio();
             double spread_scale = -kappa * kappa * dt;
@@ -590,7 +590,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     d_galerkin_stokesib_mat.resize(d_finest_ln + 1, nullptr);
     for (int ln = std::min(d_finest_ln, finest_reset_ln); ln >= std::max(d_coarsest_ln + 1, coarsest_reset_ln); --ln)
     {
-        Pointer<StaggeredStokesPETScLevelSolver>& level_solver = d_level_solvers[ln];
+        SAMRAIPointer<StaggeredStokesPETScLevelSolver>& level_solver = d_level_solvers[ln];
         if (!level_solver)
         {
             level_solver = StaggeredStokesSolverManager::getManager()->allocateSolver(
@@ -672,7 +672,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         d_coarse_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         d_coarse_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, d_coarsest_ln),
                                                *getLevelSAMRAIVectorReal(*d_rhs, d_coarsest_ln));
-        Pointer<StaggeredStokesPETScLevelSolver> p_coarse_solver = d_coarse_solver;
+        SAMRAIPointer<StaggeredStokesPETScLevelSolver> p_coarse_solver = d_coarse_solver;
         if (p_coarse_solver)
         {
             const KSP& level_ksp = p_coarse_solver->getPETScKSP();
@@ -709,13 +709,13 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     d_patch_side_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_side_bc_box_overlap[ln].resize(num_local_patches);
         int patch_counter = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
@@ -730,7 +730,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
     d_patch_cell_bc_box_overlap.resize(d_finest_ln + 1);
     for (int ln = coarsest_reset_ln; ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
 
         const int num_local_patches = level->getProcessorMapping().getLocalIndices().getSize();
         d_patch_cell_bc_box_overlap[ln].resize(num_local_patches);
@@ -738,7 +738,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         int patch_counter = 0;
         for (PatchLevelNd::Iterator p(level); p; p++, ++patch_counter)
         {
-            Pointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const BoxNd& patch_box = patch->getBox();
             const BoxNd& ghost_box = BoxNd::grow(patch_box, 1);
             d_patch_cell_bc_box_overlap[ln][patch_counter] = BoxListNd(ghost_box);
@@ -809,7 +809,7 @@ StaggeredStokesIBLevelRelaxationFACOperator::deallocateOperatorStateSpecialized(
     // Deallocate DOF index data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln - 1); ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        Pointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_u_dof_index_idx)) level->deallocatePatchData(d_u_dof_index_idx);
         if (level->checkAllocated(d_p_dof_index_idx)) level->deallocatePatchData(d_p_dof_index_idx);
     }

@@ -81,8 +81,8 @@ namespace IBTK
 CartSideDoubleDivPreservingRefine::CartSideDoubleDivPreservingRefine(const int u_dst_idx,
                                                                      const int u_src_idx,
                                                                      const int indicator_idx,
-                                                                     Pointer<RefineOperatorNd> refine_op,
-                                                                     Pointer<CoarsenOperatorNd> coarsen_op,
+                                                                     SAMRAIPointer<RefineOperatorNd> refine_op,
+                                                                     SAMRAIPointer<CoarsenOperatorNd> coarsen_op,
                                                                      const double fill_time,
                                                                      RefinePatchStrategyNd* const phys_bdry_op)
     : d_u_dst_idx(u_dst_idx),
@@ -152,7 +152,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(PatchNd& fine,
     }
 #endif
 
-    Pointer<SideDataNd<double> > fdata = fine.getPatchData(d_u_dst_idx);
+    SAMRAIPointer<SideDataNd<double> > fdata = fine.getPatchData(d_u_dst_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
 #endif
@@ -162,7 +162,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(PatchNd& fine,
 #endif
     const int fdata_depth = fdata->getDepth();
 
-    Pointer<SideDataNd<double> > cdata = coarse.getPatchData(d_u_dst_idx);
+    SAMRAIPointer<SideDataNd<double> > cdata = coarse.getPatchData(d_u_dst_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(cdata);
     const int cdata_ghosts = cdata->getGhostCellWidth().max();
@@ -176,8 +176,8 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(PatchNd& fine,
         // Perform (limited) conservative prolongation of the coarse grid data.
         d_refine_op->refine(fine, coarse, d_u_dst_idx, d_u_dst_idx, fine_box, ratio);
 
-        Pointer<SideDataNd<double> > u_src_data = fine.getPatchData(d_u_src_idx);
-        Pointer<SideDataNd<double> > indicator_data = fine.getPatchData(d_indicator_idx);
+        SAMRAIPointer<SideDataNd<double> > u_src_data = fine.getPatchData(d_u_src_idx);
+        SAMRAIPointer<SideDataNd<double> > indicator_data = fine.getPatchData(d_indicator_idx);
 
         // Ensure that we do not modify any of the data from the old level by
         // setting the value of the fine grid data to equal u_src wherever the
@@ -246,7 +246,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(PatchNd& fine,
 #endif
         // Apply the divergence- and curl-preserving correction to the fine grid
         // data.
-        Pointer<CartesianPatchGeometryNd> pgeom_fine = fine.getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> pgeom_fine = fine.getPatchGeometry();
         const double* const dx_fine = pgeom_fine->getDx();
         for (int d = 0; d < fdata_depth; ++d)
         {
@@ -284,7 +284,7 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(PatchNd& fine,
         intermediate.allocatePatchData(d_u_dst_idx);
 
         // Setup a patch geometry object for the intermediate patch.
-        Pointer<CartesianPatchGeometryNd> pgeom_coarse = coarse.getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> pgeom_coarse = coarse.getPatchGeometry();
         const IntVectorNd& ratio_to_level_zero_coarse = pgeom_coarse->getRatio();
         Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
         for (int axis = 0; axis < NDIM; ++axis)
@@ -323,13 +323,13 @@ CartSideDoubleDivPreservingRefine::postprocessRefine(PatchNd& fine,
         {
             intermediate.allocatePatchData(d_u_src_idx);
             intermediate.allocatePatchData(d_indicator_idx);
-            Pointer<SideDataNd<double> > u_src_idata = intermediate.getPatchData(d_u_src_idx);
-            Pointer<SideDataNd<double> > indicator_idata = intermediate.getPatchData(d_indicator_idx);
+            SAMRAIPointer<SideDataNd<double> > u_src_idata = intermediate.getPatchData(d_u_src_idx);
+            SAMRAIPointer<SideDataNd<double> > indicator_idata = intermediate.getPatchData(d_indicator_idx);
             u_src_idata->fillAll(std::numeric_limits<double>::quiet_NaN());
             indicator_idata->fillAll(-1.0);
 #if !defined(NDEBUG)
-            Pointer<SideDataNd<double> > u_src_fdata = fine.getPatchData(d_u_src_idx);
-            Pointer<SideDataNd<double> > indicator_fdata = fine.getPatchData(d_indicator_idx);
+            SAMRAIPointer<SideDataNd<double> > u_src_fdata = fine.getPatchData(d_u_src_idx);
+            SAMRAIPointer<SideDataNd<double> > indicator_fdata = fine.getPatchData(d_indicator_idx);
             TBOX_ASSERT(u_src_fdata->getGhostBox().contains(BoxNd::refine(intermediate_box, ratio / 2)));
             TBOX_ASSERT(indicator_fdata->getGhostBox().contains(BoxNd::refine(intermediate_box, ratio / 2)));
 #endif

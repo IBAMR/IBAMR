@@ -56,11 +56,11 @@ VelocityInitialCondition::isTimeDependent() const
 
 void
 VelocityInitialCondition::setDataOnPatch(const int data_idx,
-                                         Pointer<VariableNd> /*var*/,
-                                         Pointer<PatchNd> patch,
+                                         SAMRAIPointer<VariableNd> /*var*/,
+                                         SAMRAIPointer<PatchNd> patch,
                                          const double /*data_time*/,
                                          const bool initial_time,
-                                         Pointer<PatchLevelNd> /*patch_level*/)
+                                         SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
     // Set the initial velocity inside and outside the level set
     if (initial_time)
@@ -70,9 +70,9 @@ VelocityInitialCondition::setDataOnPatch(const int data_idx,
         const IBTK::Vector& X0 = d_init_circle.X0;
 
         // Initial velocity patch data
-        Pointer<SideDataNd<double> > U_data = patch->getPatchData(data_idx);
+        SAMRAIPointer<SideDataNd<double> > U_data = patch->getPatchData(data_idx);
 
-        Pointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];

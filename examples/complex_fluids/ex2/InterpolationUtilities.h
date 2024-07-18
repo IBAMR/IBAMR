@@ -56,16 +56,16 @@ public:
     // Use polynomial interpolation
     static double interpolate(const std::vector<double>& X,
                               const int data_idx,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                              IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                              IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                               const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs,
                               const double data_time,
                               const int depth = 0);
     // Use least squares interpolation
     static double interpolateL2(const std::vector<double>& X,
                                 const int data_idx,
-                                SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
-                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
+                                IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                                IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                                 const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs,
                                 const double data_time,
                                 const int depth = 0);
@@ -78,7 +78,7 @@ private:
                                        const std::vector<double>& X,
                                        SAMRAI::pdat::CellDataNd<int>& r_data,
                                        SAMRAI::pdat::CellDataNd<double>& q_data,
-                                       Pointer<CartesianPatchGeometryNd> pgeom,
+                                       SAMRAIPointer<CartesianPatchGeometryNd> pgeom,
                                        const BoxNd& pbox,
                                        int dim,
                                        int cycle,
