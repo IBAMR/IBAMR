@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# based on the compile_clang_format deal.II script and licensed under the LGPL
+# based on the compile-clang-format deal.II script and licensed under the LGPL
 
 #
 # This script downloads, compiles and installs the clang-format binary. The
@@ -18,7 +18,7 @@ set -u
 PRG="$(cd "$(dirname "$0")" && pwd)/programs"
 
 VERSION="16"
-RELEASE_DATE="2023-06-01"
+RELEASE_DATE="2023-06-10"
 LLVM_COMMIT="7cbf1a2591520c2491aa35339f227775f4d3adf6"
 
 CLANG_PATH="${PRG}/clang-${VERSION}"
