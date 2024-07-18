@@ -67,7 +67,7 @@ public:
     /*!
      * \brief Default constructor.
      */
-    IBKirchhoffRodForceGen(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = NULL);
+    IBKirchhoffRodForceGen(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
 
     /*!
      * \brief Destructor.

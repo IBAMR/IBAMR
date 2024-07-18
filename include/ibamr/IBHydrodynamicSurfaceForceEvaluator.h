@@ -95,7 +95,7 @@ public:
                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
                                         SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                                         SAMRAI::tbox::Pointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = NULL);
+                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db = nullptr);
 
     /*!
      * \brief Virtual destructor.

@@ -201,7 +201,7 @@ IBInterpolantMethod::registerEulerianVariables()
     {
         const std::string& var_name = q_pair.first;
         q_pair.second = -1;
-        registerVariable(q_pair.second, d_q_var[var_name], ib_ghosts, NULL /*d_ib_solver->getScratchContext()*/);
+        registerVariable(q_pair.second, d_q_var[var_name], ib_ghosts, nullptr /*d_ib_solver->getScratchContext()*/);
     }
 
     return;
@@ -211,7 +211,7 @@ void
 IBInterpolantMethod::registerEulerianCommunicationAlgorithms()
 {
     Pointer<RefineAlgorithm<NDIM> > ghost_fill_alg = new RefineAlgorithm<NDIM>();
-    Pointer<RefineOperator<NDIM> > refine_op = NULL;
+    Pointer<RefineOperator<NDIM> > refine_op = nullptr;
 
     for (const auto& q_pair : d_q_interp_idx)
     {
@@ -445,7 +445,7 @@ IBInterpolantMethod::interpolateQ(const double data_time)
         d_l_data_manager->interp(q_data_idx,
                                  *Q_data,
                                  *X_data,
-                                 std::vector<Pointer<CoarsenSchedule<NDIM> > >(finest_ln + 1, NULL),
+                                 std::vector<Pointer<CoarsenSchedule<NDIM> > >(finest_ln + 1, nullptr),
                                  getGhostfillRefineSchedules(d_object_name + "::ghost_fill_alg"),
                                  data_time);
     }
@@ -608,7 +608,7 @@ IBInterpolantMethod::spreadQ(double data_time)
         getQData(name, &Q_data, data_time);
         Vec l_data_vec = (*Q_data)[finest_ln]->getVec();
         VecScale(l_data_vec, vol);
-        d_l_data_manager->spread(q_data_idx, *Q_data, *X_data, (RobinPhysBdryPatchStrategy*)NULL);
+        d_l_data_manager->spread(q_data_idx, *Q_data, *X_data, (RobinPhysBdryPatchStrategy*)nullptr);
         VecScale(l_data_vec, 1.0 / vol);
     }
 
@@ -656,7 +656,7 @@ IBInterpolantMethod::initializePatchHierarchy(
 
     // Initialize initial center of mass of structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > X0_data_vec(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<Pointer<LData> > X0_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
     X0_data_vec[finest_ln] = d_l_data_manager->getLData("X0", finest_ln);
     computeCenterOfMass(d_center_of_mass_initial, X0_data_vec);
 

@@ -57,7 +57,7 @@ public:
                         Pointer<Patch<NDIM> > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL)) override;
+                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(nullptr)) override;
 
     //\}
 

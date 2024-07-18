@@ -324,7 +324,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -377,7 +377,7 @@ main(int argc, char* argv[])
             relaxation_time = input_db->getDatabase("ComplexFluid")->getDouble("relaxation_time");
         }
 
-        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : nullptr);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -576,7 +576,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
     std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
-    void* force_fcn_ctx = NULL;
+    void* force_fcn_ctx = nullptr;
 
     TensorValue<double> FF, FF_inv_trans;
     boost::multi_array<double, 2> x_node, U_node;

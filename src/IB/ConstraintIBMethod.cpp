@@ -659,7 +659,7 @@ ConstraintIBMethod::registerConstraintIBKinematics(const std::vector<Pointer<Con
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
             if (ib_kinematics[struct_no].isNull())
-                TBOX_ERROR("NULL ConstraintIBKinematics encountered in vector at " << struct_no << std::endl);
+                TBOX_ERROR("nullptr ConstraintIBKinematics encountered in vector at " << struct_no << std::endl);
             else
                 d_ib_kinematics[struct_no] = ib_kinematics[struct_no];
         }

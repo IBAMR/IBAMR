@@ -313,7 +313,7 @@ apply_initial_jacobian(EquationSystems& es, const string& system_name)
     libmesh_assert_equal_to(system_name, "JacobianDeterminant");
     ExplicitSystem& system = es.get_system<ExplicitSystem>("JacobianDeterminant");
     es.parameters.set<Real>("time") = system.time = 0;
-    system.project_solution(initial_jacobian, NULL, es.parameters);
+    system.project_solution(initial_jacobian, nullptr, es.parameters);
 }
 
 } // namespace ModelData
@@ -589,7 +589,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -618,8 +618,8 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
-        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(boundary_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(boundary_mesh) : nullptr);
 
         ibfe_bndry_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);

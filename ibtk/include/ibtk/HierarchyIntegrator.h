@@ -540,7 +540,7 @@ public:
                              bool can_be_refined,
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(nullptr),
                              bool allocate_data = true) override;
 
     /*!
@@ -662,16 +662,16 @@ public:
      * step to time step and, if the necessary coarsen and refine operators are
      * specified, as the patch hierarchy evolves.
      */
-    void
-    registerVariable(int& current_idx,
-                     int& new_idx,
-                     int& scratch_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-                     const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
-                     const std::string& coarsen_name = "NO_COARSEN",
-                     const std::string& refine_name = "NO_REFINE",
-                     SAMRAI::tbox::Pointer<CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<CartGridFunction>(NULL),
-                     const bool register_for_restart = true);
+    void registerVariable(
+        int& current_idx,
+        int& new_idx,
+        int& scratch_idx,
+        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+        const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
+        const std::string& coarsen_name = "NO_COARSEN",
+        const std::string& refine_name = "NO_REFINE",
+        SAMRAI::tbox::Pointer<CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<CartGridFunction>(nullptr),
+        const bool register_for_restart = true);
 
     /*!
      * Register a variable with the integrator that may not be maintained from
@@ -684,7 +684,7 @@ public:
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
                           const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL),
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(nullptr),
                           const bool register_for_restart = true);
 
     ///

@@ -910,13 +910,13 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         FEType DU_jump_fe_type;
         std::vector<std::vector<unsigned int> > WSS_out_dof_indices(NDIM);
         System* WSS_out_system;
-        const DofMap* WSS_out_dof_map = NULL;
-        FEDataManager::SystemDofMapCache* WSS_out_dof_map_cache = NULL;
+        const DofMap* WSS_out_dof_map = nullptr;
+        FEDataManager::SystemDofMapCache* WSS_out_dof_map_cache = nullptr;
 
         std::vector<std::vector<unsigned int> > WSS_in_dof_indices(NDIM);
         System* WSS_in_system;
-        const DofMap* WSS_in_dof_map = NULL;
-        FEDataManager::SystemDofMapCache* WSS_in_dof_map_cache = NULL;
+        const DofMap* WSS_in_dof_map = nullptr;
+        FEDataManager::SystemDofMapCache* WSS_in_dof_map_cache = nullptr;
 
         if (d_use_u_interp_correction)
         {
@@ -1554,22 +1554,22 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
                              d_X_new_vecs[part] },
                            INSERT_VALUES,
                            SCATTER_FORWARD);
-    NumericVector<double>* WSS_in_vec = NULL;
+    NumericVector<double>* WSS_in_vec = nullptr;
     NumericVector<double>* WSS_in_ghost_vec = d_WSS_in_IB_ghost_vecs[part];
 
-    NumericVector<double>* WSS_out_vec = NULL;
+    NumericVector<double>* WSS_out_vec = nullptr;
     NumericVector<double>* WSS_out_ghost_vec = d_WSS_out_IB_ghost_vecs[part];
 
-    NumericVector<double>* P_in_vec = NULL;
+    NumericVector<double>* P_in_vec = nullptr;
     NumericVector<double>* P_in_ghost_vec = d_P_in_IB_ghost_vecs[part];
 
-    NumericVector<double>* P_out_vec = NULL;
+    NumericVector<double>* P_out_vec = nullptr;
     NumericVector<double>* P_out_ghost_vec = d_P_out_IB_ghost_vecs[part];
 
     NumericVector<double>* TAU_in_vec = d_TAU_in_half_vecs[part];
     NumericVector<double>* TAU_out_vec = d_TAU_out_half_vecs[part];
 
-    NumericVector<double>* X_vec = NULL;
+    NumericVector<double>* X_vec = nullptr;
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
@@ -2013,7 +2013,7 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     NumericVector<double>* P_in_vec = d_P_in_half_vecs[part];
     NumericVector<double>* P_out_vec = d_P_out_half_vecs[part];
     NumericVector<double>* P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
-    NumericVector<double>* X_vec = NULL;
+    NumericVector<double>* X_vec = nullptr;
     NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
 
     std::unique_ptr<NumericVector<double> > P_in_rhs_vec = (*P_in_vec).zero_clone();
@@ -2400,7 +2400,7 @@ IIMethod::calculateInterfacialFluidForces(const int p_data_idx, double data_time
     const auto p_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(d_p_scratch_idx);
     RefineAlgorithm<NDIM> ghost_fill_alg_p;
     // TODO: Can we cache this algorithm/schedule?
-    ghost_fill_alg_p.registerRefine(p_scratch_data_idx, p_data_idx, p_scratch_data_idx, NULL);
+    ghost_fill_alg_p.registerRefine(p_scratch_data_idx, p_data_idx, p_scratch_data_idx, nullptr);
     Pointer<RefineSchedule<NDIM> > ghost_fill_schd_p =
         ghost_fill_alg_p.createSchedule(d_hierarchy->getPatchLevel(finest_ln));
 
@@ -2581,8 +2581,8 @@ IIMethod::computeLagrangianForce(const double data_time)
         TBOX_ASSERT(X_fe_type == F_fe_type);
         NumericVector<double>& X0_vec = X_system.get_vector("INITIAL_COORDINATES");
         System* P_jump_system;
-        const DofMap* P_jump_dof_map = NULL;
-        FEDataManager::SystemDofMapCache* P_jump_dof_map_cache = NULL;
+        const DofMap* P_jump_dof_map = nullptr;
+        FEDataManager::SystemDofMapCache* P_jump_dof_map_cache = nullptr;
         FEType P_jump_fe_type;
         if (d_use_pressure_jump_conditions)
         {
@@ -2941,7 +2941,7 @@ IIMethod::spreadForce(const int f_data_idx,
         d_fe_data_managers[part]->spread(
             f_data_idx, *F_ghost_vec, *X_ghost_vec, FORCE_SYSTEM_NAME, f_phys_bdry_op, data_time);
         PetscVector<double>* P_jump_vec;
-        PetscVector<double>* P_jump_ghost_vec = NULL;
+        PetscVector<double>* P_jump_ghost_vec = nullptr;
         std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec;
         std::array<PetscVector<double>*, NDIM> DU_jump_vec;
         if (d_use_pressure_jump_conditions)
@@ -3430,7 +3430,7 @@ IIMethod::imposeJumpConditions(const int f_data_idx,
 
     System* P_jump_system;
     const DofMap* P_jump_dof_map;
-    FEDataManager::SystemDofMapCache* P_jump_dof_map_cache = NULL;
+    FEDataManager::SystemDofMapCache* P_jump_dof_map_cache = nullptr;
     FEType P_jump_fe_type;
     if (d_use_pressure_jump_conditions)
     {
@@ -4250,7 +4250,7 @@ IIMethod::commonConstructor(const std::string& object_name,
     d_default_quad_type.resize(d_num_parts, INVALID_Q_RULE);
     d_default_quad_order.resize(d_num_parts, INVALID_ORDER);
 
-    // Initialize function data to NULL.
+    // Initialize function data to nullptr.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
     d_initial_velocity_fcn_data.resize(d_num_parts);
     d_lag_surface_pressure_fcn_data.resize(d_num_parts);

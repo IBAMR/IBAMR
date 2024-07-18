@@ -62,7 +62,7 @@ main(int argc, char* argv[])
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
@@ -203,17 +203,17 @@ main(int argc, char* argv[])
         const bool synch_src_cf_interface = true;
         if (var_type == "CELL")
         {
-            hier_math_ops.interp(u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_cc_var, NULL, 0.0);
+            hier_math_ops.interp(u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_cc_var, nullptr, 0.0);
         }
         else if (var_type == "SIDE")
         {
             hier_math_ops.interp(
-                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, NULL, 0.0, synch_src_cf_interface);
+                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, nullptr, 0.0, synch_src_cf_interface);
         }
         else if (var_type == "FACE")
         {
             hier_math_ops.interp(
-                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_fc_var, NULL, 0.0, synch_src_cf_interface);
+                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_fc_var, nullptr, 0.0, synch_src_cf_interface);
         }
 
         if (interp_back)

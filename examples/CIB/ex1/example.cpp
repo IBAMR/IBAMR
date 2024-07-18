@@ -136,7 +136,7 @@ main(int argc, char* argv[])
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
@@ -219,11 +219,11 @@ main(int argc, char* argv[])
         ib_method_ops->setSolveRigidBodyVelocity(0, outer_free_dofs);
         ib_method_ops->setSolveRigidBodyVelocity(1, inner_free_dofs);
 
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel, NULL, 0);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMInnerVel, NULL, 1);
+        ib_method_ops->registerConstrainedVelocityFunction(nullptr, &ConstrainedCOMOuterVel, nullptr, 0);
+        ib_method_ops->registerConstrainedVelocityFunction(nullptr, &ConstrainedCOMInnerVel, nullptr, 1);
 
-        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorqueOuter, NULL, 0);
-        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorqueInner, NULL, 1);
+        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorqueOuter, nullptr, 0);
+        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorqueInner, nullptr, 1);
 
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -251,7 +251,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -292,8 +292,9 @@ main(int argc, char* argv[])
             struct_ids1.push_back(prototype_structs1);
             struct_ids2.push_back(prototype_structs2);
 
-            DirectMobilitySolver* direct_solvers = NULL;
-            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(NULL, &direct_solvers, NULL);
+            DirectMobilitySolver* direct_solvers = nullptr;
+            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(
+                nullptr, &direct_solvers, nullptr);
 
             direct_solvers->registerMobilityMat(
                 mat_name1, prototype_structs1, EMPIRICAL, std::make_pair(LAPACK_SVD, LAPACK_SVD), 0);

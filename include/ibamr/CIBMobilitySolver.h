@@ -147,9 +147,9 @@ public:
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
-     * \note Any of the elements of \a u_bc_coefs may be NULL.  In this case,
+     * \note Any of the elements of \a u_bc_coefs may be nullptr.  In this case,
      * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.  \a p_bc_coef may also be NULL; in that case, homogeneous Neumann
+     * depth.  \a p_bc_coef may also be nullptr; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
      * \param u_bc_coefs  IBTK::Vector of pointers to objects that can set the

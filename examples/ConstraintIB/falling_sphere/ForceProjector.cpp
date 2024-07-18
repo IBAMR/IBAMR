@@ -193,15 +193,15 @@ ForceProjector::calculateEulerianBodyForce(const double /*new_time*/, const doub
     } // all levels.
 
     // spread the lagrangian force from finest level to the finest level.
-    std::vector<Pointer<LData> > F_data(finest_ln + 1, Pointer<LData>(NULL));
-    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<Pointer<LData> > F_data(finest_ln + 1, Pointer<LData>(nullptr));
+    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(nullptr));
 
     // Fill in the above vectors at the finest level.
     F_data[finest_ln] = d_lag_force[finest_ln];
     X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
     // Spread the deformation velocities.
-    d_lag_data_manager->spread(d_body_force_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
+    d_lag_data_manager->spread(d_body_force_idx, F_data, X_data, (RobinPhysBdryPatchStrategy*)nullptr);
 
     return;
 

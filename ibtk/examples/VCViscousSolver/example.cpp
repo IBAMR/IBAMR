@@ -77,7 +77,7 @@ main(int argc, char* argv[])
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
@@ -228,8 +228,8 @@ main(int argc, char* argv[])
                                                                 /*DATA_COARSEN_TYPE*/ "CONSTANT_COARSEN",
                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                /*mu_bc_coef*/ NULL,
-                                                                Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                                /*mu_bc_coef*/ nullptr,
+                                                                Pointer<VariableFillPattern<NDIM> >(nullptr));
 #elif (NDIM == 3)
         transaction_comp[0] = InterpolationTransactionComponent(mu_ec_idx,
                                                                 /*DATA_REFINE_TYPE*/ "CONSERVATIVE_LINEAR_REFINE",
@@ -237,8 +237,8 @@ main(int argc, char* argv[])
                                                                 /*DATA_COARSEN_TYPE*/ "CONSERVATIVE_COARSEN",
                                                                 /*BDRY_EXTRAP_TYPE*/ "LINEAR",
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
-                                                                /*mu_bc_coef*/ NULL,
-                                                                Pointer<VariableFillPattern<NDIM> >(NULL));
+                                                                /*mu_bc_coef*/ nullptr,
+                                                                Pointer<VariableFillPattern<NDIM> >(nullptr));
 #endif
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
@@ -253,7 +253,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
 
             for (unsigned int k = 0; k < NDIM; ++k)
@@ -414,10 +414,10 @@ main(int argc, char* argv[])
 
         // Interpolate the side-centered data to cell centers for output.
         static const bool synch_cf_interface = true;
-        hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(r_cc_idx, r_cc_var, r_sc_idx, r_sc_var, NULL, 0.0, synch_cf_interface);
+        hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, nullptr, 0.0, synch_cf_interface);
+        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, nullptr, 0.0, synch_cf_interface);
+        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, nullptr, 0.0, synch_cf_interface);
+        hier_math_ops.interp(r_cc_idx, r_cc_var, r_sc_idx, r_sc_var, nullptr, 0.0, synch_cf_interface);
 
 #if (NDIM == 3)
         // Interpolate the edge-centered data to cell centers for output.

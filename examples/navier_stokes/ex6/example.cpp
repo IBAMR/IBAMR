@@ -117,7 +117,7 @@ main(int argc, char* argv[])
             T_var,
             new muParserCartGridFunction(
                 "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
-        RobinBcCoefStrategy<NDIM>* T_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* T_bc_coef = nullptr;
         if (!periodic_domain)
         {
             T_bc_coef = new muParserRobinBcCoefs(
@@ -143,7 +143,7 @@ main(int argc, char* argv[])
                                               app_initializer->getComponentDatabase("VelocityStochasticForcing"),
                                               time_integrator));
         vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
-        for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = NULL;
+        for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = nullptr;
         if (!periodic_domain)
         {
             for (unsigned int d = 0; d < NDIM; ++d)

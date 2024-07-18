@@ -76,10 +76,14 @@ main(int argc, char* argv[])
             new PatchHierarchy<NDIM>("OldPatchHierarchy", grid_geometry);
         Pointer<PatchHierarchy<NDIM> > new_patch_hierarchy =
             new PatchHierarchy<NDIM>("NewPatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > old_error_detector = new StandardTagAndInitialize<NDIM>(
-            "OldStandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("OldStandardTagAndInitialize"));
-        Pointer<StandardTagAndInitialize<NDIM> > new_error_detector = new StandardTagAndInitialize<NDIM>(
-            "NewStandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("NewStandardTagAndInitialize"));
+        Pointer<StandardTagAndInitialize<NDIM> > old_error_detector =
+            new StandardTagAndInitialize<NDIM>("OldStandardTagAndInitialize",
+                                               nullptr,
+                                               app_initializer->getComponentDatabase("OldStandardTagAndInitialize"));
+        Pointer<StandardTagAndInitialize<NDIM> > new_error_detector =
+            new StandardTagAndInitialize<NDIM>("NewStandardTagAndInitialize",
+                                               nullptr,
+                                               app_initializer->getComponentDatabase("NewStandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));

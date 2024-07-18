@@ -107,10 +107,10 @@ LSLocateStructureInterface::setLevelSetPatchDataBySpreading(int D_idx,
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     // Spread
-    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(nullptr));
     X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
-    std::vector<Pointer<LData> > lag_phi(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<Pointer<LData> > lag_phi(finest_ln + 1, Pointer<LData>(nullptr));
     lag_phi[finest_ln] = d_lag_data_manager->getLData("PHI", finest_ln);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -131,9 +131,9 @@ LSLocateStructureInterface::setLevelSetPatchDataBySpreading(int D_idx,
         VecSet(petsc_vec, 1.0 * d_vol_elem);
     }
 
-    std::vector<Pointer<LData> > PHI_data(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<Pointer<LData> > PHI_data(finest_ln + 1, Pointer<LData>(nullptr));
     PHI_data[finest_ln] = lag_phi[finest_ln];
-    d_lag_data_manager->spread(D_idx, PHI_data, X_data, (RobinPhysBdryPatchStrategy*)NULL);
+    d_lag_data_manager->spread(D_idx, PHI_data, X_data, (RobinPhysBdryPatchStrategy*)nullptr);
     return;
 } // setLevelSetPatchDataBySpreading
 
@@ -254,7 +254,7 @@ LSLocateStructureInterface::getMinimumWedgeCoord(Pointer<HierarchyMathOps> hier_
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(NULL));
+    std::vector<Pointer<LData> > X_data(finest_ln + 1, Pointer<LData>(nullptr));
     X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

@@ -80,7 +80,7 @@ VCSCViscousOperator::VCSCViscousOperator(std::string object_name, const bool hom
     : SCLaplaceOperator(std::move(object_name), homogeneous_bc)
 {
     // Setup the operator to use default vector-valued boundary conditions.
-    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)));
+    setPhysicalBcCoefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, nullptr));
 
     // Setup Timers.
     IBTK_DO_ONCE(t_apply = TimerManager::getManager()->getTimer("IBTK::VCSCViscousOperator::apply()");

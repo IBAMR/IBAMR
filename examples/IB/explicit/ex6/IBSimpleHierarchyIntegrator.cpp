@@ -193,10 +193,10 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     // the AMR patch hierarchy.
     ierr = VecSwap(d_X_current_data->getVec(), d_X_new_data->getVec());
     IBTK_CHKERRQ(ierr);
-    d_X_current_data = NULL;
-    d_X_new_data = NULL;
-    d_U_data = NULL;
-    d_F_data = NULL;
+    d_X_current_data = nullptr;
+    d_X_new_data = nullptr;
+    d_U_data = nullptr;
+    d_F_data = nullptr;
     return;
 } // postprocessIntegrateHierarchy
 

@@ -365,7 +365,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -415,10 +415,10 @@ main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(polymericStressForcing);
         }
 
-        std::unique_ptr<ExodusII_IO> exodus_io_0(uses_exodus ? new ExodusII_IO(*(meshes[0])) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_io_1(uses_exodus ? new ExodusII_IO(*(meshes[1])) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_io_2(uses_exodus ? new ExodusII_IO(*(meshes[2])) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_io_3(uses_exodus ? new ExodusII_IO(*(meshes[3])) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io_0(uses_exodus ? new ExodusII_IO(*(meshes[0])) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_io_1(uses_exodus ? new ExodusII_IO(*(meshes[1])) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_io_2(uses_exodus ? new ExodusII_IO(*(meshes[2])) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_io_3(uses_exodus ? new ExodusII_IO(*(meshes[3])) : nullptr);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();

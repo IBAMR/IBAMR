@@ -153,7 +153,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -190,7 +190,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                U_adv_diff_bc_coefs[d] = NULL;
+                U_adv_diff_bc_coefs[d] = nullptr;
             }
         }
         else

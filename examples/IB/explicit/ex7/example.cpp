@@ -484,9 +484,9 @@ main(int argc, char* argv[])
                 MPI_Gatherv(local_coordinates.data(),
                             local_coordinates.size(),
                             mpi_lag_coords_type,
-                            NULL,
-                            NULL,
-                            NULL,
+                            nullptr,
+                            nullptr,
+                            nullptr,
                             mpi_lag_coords_type,
                             0,
                             IBTK_MPI::getCommunicator());

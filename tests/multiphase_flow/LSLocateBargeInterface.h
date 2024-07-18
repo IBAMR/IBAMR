@@ -236,7 +236,7 @@ private:
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > X_data(finest_ln + 1,
-                                                                SAMRAI::tbox::Pointer<IBTK::LData>(NULL));
+                                                                SAMRAI::tbox::Pointer<IBTK::LData>(nullptr));
         X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
