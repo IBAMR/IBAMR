@@ -93,9 +93,9 @@ public:
      * \brief The only constructor of this class.
      */
     CIBMobilitySolver(std::string object_name,
-                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                      SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                      SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy);
+                      IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                      IBTK::SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                      IBTK::SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy);
 
     /*!
      * \brief Destructor for this class.
@@ -147,9 +147,9 @@ public:
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
-     * \note Any of the elements of \a u_bc_coefs may be NULL.  In this case,
+     * \note Any of the elements of \a u_bc_coefs may be nullptr.  In this case,
      * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.  \a p_bc_coef may also be NULL; in that case, homogeneous Neumann
+     * depth.  \a p_bc_coef may also be nullptr; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
      * \param u_bc_coefs  IBTK::Vector of pointers to objects that can set the
@@ -158,14 +158,14 @@ public:
      * \param p_bc_coef   Pointer to object that can set the Robin boundary
      * condition coefficients for the pressure.
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                            SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef);
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& u_bc_coefs,
+                            SAMRAI::solv::RobinBcCoefStrategyNd* p_bc_coef);
 
     /*!
      * \brief Set the StokesSpecifications object and timestep size used to specify
      * the coefficients for the time-dependent incompressible Stokes operator.
      */
-    void setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
+    void setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<IBAMR::StaggeredStokesPhysicalBoundaryHelper> bc_helper);
 
     /*!
      * \brief Solves the mobility problem.
@@ -219,7 +219,7 @@ private:
     /*!
      * \brief Get various options from input db.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     // Name of this object.
     std::string d_object_name;
@@ -228,10 +228,10 @@ private:
     unsigned d_num_rigid_parts;
 
     // Pointers.
-    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
-    SAMRAI::tbox::Pointer<IBAMR::DirectMobilitySolver> d_direct_mob_solver;
-    SAMRAI::tbox::Pointer<IBAMR::KrylovMobilitySolver> d_krylov_mob_solver;
-    SAMRAI::tbox::Pointer<IBAMR::KrylovFreeBodyMobilitySolver> d_krylov_freebody_mob_solver;
+    IBTK::SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
+    IBTK::SAMRAIPointer<IBAMR::DirectMobilitySolver> d_direct_mob_solver;
+    IBTK::SAMRAIPointer<IBAMR::KrylovMobilitySolver> d_krylov_mob_solver;
+    IBTK::SAMRAIPointer<IBAMR::KrylovFreeBodyMobilitySolver> d_krylov_freebody_mob_solver;
 
     // Other parameters.
     double d_solution_time, d_current_time, d_new_time;

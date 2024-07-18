@@ -37,7 +37,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    UFunction(const string& object_name, Pointer<GridGeometry<NDIM> > grid_geom, Pointer<Database> input_db);
+    UFunction(const string& object_name, SAMRAIPointer<GridGeometryNd> grid_geom, SAMRAIPointer<Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -56,11 +56,11 @@ public:
      * Set the data on the patch interior to some initial values.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAIPointer<VariableNd> var,
+                        SAMRAIPointer<PatchNd> patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > level = Pointer<PatchLevel<NDIM> >(NULL));
+                        SAMRAIPointer<PatchLevelNd> level = SAMRAIPointer<PatchLevelNd>(nullptr));
 
 protected:
 private:
@@ -94,7 +94,7 @@ private:
     /*!
      * Read input values, indicated above, from given database.
      */
-    void getFromInput(Pointer<Database> db);
+    void getFromInput(SAMRAIPointer<Database> db);
 
     /*
      * The object name is used as a handle to databases stored in restart files
@@ -105,7 +105,7 @@ private:
     /*
      * The grid geometry.
      */
-    Pointer<CartesianGridGeometry<NDIM> > d_grid_geom;
+    SAMRAIPointer<CartesianGridGeometryNd> d_grid_geom;
 
     /*
      * The center of the initial data.

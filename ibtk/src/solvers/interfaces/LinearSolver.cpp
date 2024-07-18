@@ -48,7 +48,7 @@ LinearSolver::~LinearSolver()
 
 void
 LinearSolver::setNullspace(const bool nullspace_containsconstant_vec,
-                           const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
+                           const std::vector<SAMRAIPointer<SAMRAIVectorRealNd<double> > >& nullspace_basis_vecs)
 {
     d_nullspace_contains_constant_vec = nullspace_containsconstant_vec;
     d_nullspace_basis_vecs = nullspace_basis_vecs;
@@ -68,7 +68,7 @@ LinearSolver::getNullspaceContainsConstantVector() const
     return d_nullspace_contains_constant_vec;
 } // getNullspaceContainsConstantVector
 
-const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >&
+const std::vector<SAMRAIPointer<SAMRAIVectorRealNd<double> > >&
 LinearSolver::getNullspaceBasisVectors() const
 {
     return d_nullspace_basis_vecs;

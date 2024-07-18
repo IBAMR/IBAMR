@@ -43,7 +43,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    IBFEInstrumentPanel(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, int part);
+    IBFEInstrumentPanel(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db, int part);
 
     /*!
      * \brief Default destructor.
@@ -64,7 +64,7 @@ public:
      */
     void readInstrumentData(int U_data_idx,
                             int P_data_idx,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                             IBAMR::IBFEMethod* ib_method_ops,
                             double data_time);
 
@@ -154,7 +154,7 @@ private:
     /*!
      * \brief Get data from input file.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
     /*!
      * \brief Initialize data that depend on the FE equation systems for
@@ -171,7 +171,7 @@ private:
                                     std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_u_corr_map,
                                     std::vector<std::map<int, std::vector<IBTK::Vector> > >& meter_normal_map,
                                     std::vector<std::map<int, std::vector<double> > >& meter_JxW_map,
-                                    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                     const IBFEMethod* ib_method_ops);
 
     /*!

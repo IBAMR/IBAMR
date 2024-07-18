@@ -28,7 +28,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FirstOrderStokesWaveGenerator::FirstOrderStokesWaveGenerator(const std::string& object_name, Pointer<Database> input_db)
+FirstOrderStokesWaveGenerator::FirstOrderStokesWaveGenerator(const std::string& object_name,
+                                                             SAMRAIPointer<Database> input_db)
     : StokesWaveGeneratorStrategy(object_name, input_db)
 {
     return;

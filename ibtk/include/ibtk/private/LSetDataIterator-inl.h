@@ -130,7 +130,7 @@ LSetDataIterator<T>::getDataItem() const
 } // getDataItem
 
 template <class T>
-inline const SAMRAI::hier::Index<NDIM>&
+inline const SAMRAI::hier::IndexNd&
 LSetDataIterator<T>::getCellIndex() const
 {
     return d_index_it.getIndex();

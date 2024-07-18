@@ -37,11 +37,11 @@ public:
      * \brief Class constructor.
      */
     CellConvectiveOperator(std::string object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_cell_var,
+                           IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_cell_var,
                            int Q_min_ghost_cell_width,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                           IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                            ConvectiveDifferencingType difference_form,
-                           std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> bc_coefs);
+                           std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> bc_coefs);
 
     /*!
      * \brief Default destructor.
@@ -83,20 +83,20 @@ public:
     /*!
      * \brief Interpolate a cell-centered field Q to a face-centered field q on a single grid patch.
      */
-    virtual void interpolateToFaceOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_interp_data,
-                                          const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
-                                          const SAMRAI::pdat::FaceData<NDIM, double>& u_data,
-                                          const SAMRAI::hier::Patch<NDIM>& patch) = 0;
+    virtual void interpolateToFaceOnPatch(SAMRAI::pdat::FaceDataNd<double>& q_interp_data,
+                                          const SAMRAI::pdat::CellDataNd<double>& Q_cell_data,
+                                          const SAMRAI::pdat::FaceDataNd<double>& u_data,
+                                          const SAMRAI::hier::PatchNd& patch) = 0;
 
     /*!
      * \brief Evaluate the face-centered flux Q to a face-centered field q using the provided advection velocity field.
      *
      * A default implementation is provided that uses interpolateToFaceOnPatch to determine the advective fluxes.
      */
-    virtual void evaluateAdvectiveFluxOnPatch(SAMRAI::pdat::FaceData<NDIM, double>& q_flux_data,
-                                              const SAMRAI::pdat::CellData<NDIM, double>& Q_cell_data,
-                                              const SAMRAI::pdat::FaceData<NDIM, double>& u_data,
-                                              const SAMRAI::hier::Patch<NDIM>& patch);
+    virtual void evaluateAdvectiveFluxOnPatch(SAMRAI::pdat::FaceDataNd<double>& q_flux_data,
+                                              const SAMRAI::pdat::CellDataNd<double>& Q_cell_data,
+                                              const SAMRAI::pdat::FaceDataNd<double>& u_data,
+                                              const SAMRAI::hier::PatchNd& patch);
 
     /*!
      * \brief Compute N = u * grad Q or N = div(Q u).
@@ -138,8 +138,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorRealNd<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -178,23 +178,23 @@ private:
     CellConvectiveOperator& operator=(const CellConvectiveOperator& that) = delete;
 
     // Data communication algorithms, operators, and schedules.
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_Q_cell_refine_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineAlgorithm<NDIM> > d_Q_cell_refine_alg;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefinePatchStrategy<NDIM> > d_Q_cell_refine_bdry_op;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > > d_Q_cell_refine_scheds;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_q_flux_coarsen_op, d_q_interp_coarsen_op;
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_q_flux_coarsen_alg, d_q_interp_coarsen_alg;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_q_flux_coarsen_scheds,
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> d_Q_cell_refine_op;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefineAlgorithmNd> d_Q_cell_refine_alg;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::RefinePatchStrategyNd> d_Q_cell_refine_bdry_op;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> > d_Q_cell_refine_scheds;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenOperatorNd> d_q_flux_coarsen_op, d_q_interp_coarsen_op;
+    IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenAlgorithmNd> d_q_flux_coarsen_alg, d_q_interp_coarsen_alg;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::CoarsenScheduleNd> > d_q_flux_coarsen_scheds,
         d_q_interp_coarsen_scheds;
-    const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_bc_coefs;
     std::string d_outflow_bdry_extrap_type = "CONSTANT";
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_cell_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_q_flux_var, d_q_interp_var, d_u_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_Q_cell_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > d_q_flux_var, d_q_interp_var, d_u_var;
     int d_Q_scratch_idx, d_Q_ghost_idx, d_q_flux_idx, d_q_interp_idx;
 };
 } // namespace IBAMR

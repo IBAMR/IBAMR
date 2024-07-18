@@ -61,20 +61,20 @@ IBHierarchyIntegrator::IBEulerianSourceFunction::isTimeDependent() const
 
 void
 IBHierarchyIntegrator::IBEulerianSourceFunction::setDataOnPatch(const int data_idx,
-                                                                Pointer<Variable<NDIM> > /*var*/,
-                                                                Pointer<Patch<NDIM> > patch,
+                                                                SAMRAIPointer<VariableNd> /*var*/,
+                                                                SAMRAIPointer<PatchNd> patch,
                                                                 const double /*data_time*/,
                                                                 const bool initial_time,
-                                                                Pointer<PatchLevel<NDIM> > /*level*/)
+                                                                SAMRAIPointer<PatchLevelNd> /*level*/)
 {
-    Pointer<CellData<NDIM, double> > q_cc_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<CellDataNd<double> > q_cc_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(q_cc_data);
 #endif
     q_cc_data->fillAll(0.0);
     if (initial_time) return;
-    Pointer<CellData<NDIM, double> > q_ib_cc_data = patch->getPatchData(d_ib_solver->d_q_idx);
-    PatchCellDataBasicOps<NDIM, double> patch_ops;
+    SAMRAIPointer<CellDataNd<double> > q_ib_cc_data = patch->getPatchData(d_ib_solver->d_q_idx);
+    PatchCellDataBasicOpsNd<double> patch_ops;
     patch_ops.add(q_cc_data, q_cc_data, q_ib_cc_data, patch->getBox());
     return;
 } // setDataOnPatch

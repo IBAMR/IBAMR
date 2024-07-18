@@ -67,9 +67,9 @@ public:
      * \brief Class constructor.
      */
     CIBStaggeredStokesOperator(std::string object_name,
-                               SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
+                               IBTK::SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy,
                                bool homogeneous_bc = true,
-                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
+                               IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db = nullptr);
 
     /*!
      * \brief Destructor.
@@ -83,8 +83,8 @@ public:
      * \note CIBStaggeredStokesOperator requires a different communication pattern than StaggeredStokes operator.  In
      * particular, CIBStaggeredStokesOperator needs ghost cells to be filled in corners and (in 3D) edges.
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorRealNd<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -145,7 +145,7 @@ public:
     //////////////////////////////////////////////////////////////////////////////
 protected:
     // Pointer to a constraint based rigid IB Method.
-    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
+    IBTK::SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
 
     // Scaling factors for various operators.
     double d_scale_interp = 1.0, d_scale_spread = 1.0, d_reg_mob_factor = 1.0;

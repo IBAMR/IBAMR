@@ -99,12 +99,13 @@ INSHierarchyIntegrator::getInitialConvectiveTimeSteppingType() const
 } // getInitialConvectiveTimeSteppingType
 
 void
-INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
+INSHierarchyIntegrator::registerAdvDiffHierarchyIntegrator(
+    SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(adv_diff_hier_integrator);
     // Bad things happen if the same integrator is registered twice.
-    auto pointer_compare = [adv_diff_hier_integrator](Pointer<AdvDiffHierarchyIntegrator> integrator) -> bool
+    auto pointer_compare = [adv_diff_hier_integrator](SAMRAIPointer<AdvDiffHierarchyIntegrator> integrator) -> bool
     { return adv_diff_hier_integrator.getPointer() == integrator.getPointer(); };
     TBOX_ASSERT(std::find_if(d_adv_diff_hier_integrators.begin(), d_adv_diff_hier_integrators.end(), pointer_compare) ==
                 d_adv_diff_hier_integrators.end());
@@ -133,7 +134,7 @@ INSHierarchyIntegrator::getStokesSpecifications() const
 } // getStokesSpecifications
 
 void
-INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<RobinBcCoefStrategyNd*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -143,20 +144,20 @@ INSHierarchyIntegrator::registerPhysicalBoundaryConditions(const std::vector<Rob
     return;
 } // registerPhysicalBoundaryConditions
 
-const std::vector<RobinBcCoefStrategy<NDIM>*>&
+const std::vector<RobinBcCoefStrategyNd*>&
 INSHierarchyIntegrator::getVelocityBoundaryConditions() const
 {
     return d_U_bc_coefs;
 } // getVelocityBoundaryConditions
 
-RobinBcCoefStrategy<NDIM>*
+RobinBcCoefStrategyNd*
 INSHierarchyIntegrator::getPressureBoundaryConditions() const
 {
     return d_P_bc_coef;
 } // getPressureBoundaryConditions
 
 void
-INSHierarchyIntegrator::registerVelocityInitialConditions(Pointer<CartGridFunction> U_init)
+INSHierarchyIntegrator::registerVelocityInitialConditions(SAMRAIPointer<CartGridFunction> U_init)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -166,7 +167,7 @@ INSHierarchyIntegrator::registerVelocityInitialConditions(Pointer<CartGridFuncti
 } // registerVelocityInitialConditions
 
 void
-INSHierarchyIntegrator::registerPressureInitialConditions(Pointer<CartGridFunction> P_init)
+INSHierarchyIntegrator::registerPressureInitialConditions(SAMRAIPointer<CartGridFunction> P_init)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -176,14 +177,14 @@ INSHierarchyIntegrator::registerPressureInitialConditions(Pointer<CartGridFuncti
 } // registerPressureInitialConditions
 
 void
-INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fcn)
+INSHierarchyIntegrator::registerBodyForceFunction(SAMRAIPointer<CartGridFunction> F_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     if (d_F_fcn)
     {
-        Pointer<CartGridFunctionSet> p_F_fcn = d_F_fcn;
+        SAMRAIPointer<CartGridFunctionSet> p_F_fcn = d_F_fcn;
         if (!p_F_fcn)
         {
             pout << d_object_name << "::registerBodyForceFunction(): WARNING:\n"
@@ -207,7 +208,7 @@ INSHierarchyIntegrator::registerBodyForceFunction(Pointer<CartGridFunction> F_fc
 } // registerBodyForceFunction
 
 void
-INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_fcn)
+INSHierarchyIntegrator::registerFluidSourceFunction(SAMRAIPointer<CartGridFunction> Q_fcn)
 {
     IBTK_DEPRECATED_MEMBER_FUNCTION2(
         "INSHierarchyIntegrator", "registerFluidSourceFunction", "registerVelocityDivergenceFunction");
@@ -216,14 +217,14 @@ INSHierarchyIntegrator::registerFluidSourceFunction(Pointer<CartGridFunction> Q_
 } // registerFluidSourceFunction
 
 void
-INSHierarchyIntegrator::registerVelocityDivergenceFunction(Pointer<CartGridFunction> Q_fcn)
+INSHierarchyIntegrator::registerVelocityDivergenceFunction(SAMRAIPointer<CartGridFunction> Q_fcn)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
 #endif
     if (d_Q_fcn)
     {
-        Pointer<CartGridFunctionSet> p_Q_fcn = d_Q_fcn;
+        SAMRAIPointer<CartGridFunctionSet> p_Q_fcn = d_Q_fcn;
         if (!p_Q_fcn)
         {
             pout << d_object_name << "::registerVelocityDivergenceFunction(): WARNING:\n"
@@ -243,25 +244,25 @@ INSHierarchyIntegrator::registerVelocityDivergenceFunction(Pointer<CartGridFunct
     return;
 } // registerVelocityDivergenceFunction
 
-Pointer<Variable<NDIM> >
+SAMRAIPointer<VariableNd>
 INSHierarchyIntegrator::getVelocityVariable() const
 {
     return d_U_var;
 } // getVelocityVariable
 
-Pointer<Variable<NDIM> >
+SAMRAIPointer<VariableNd>
 INSHierarchyIntegrator::getPressureVariable() const
 {
     return d_P_var;
 } // getPressureVariable
 
-Pointer<Variable<NDIM> >
+SAMRAIPointer<VariableNd>
 INSHierarchyIntegrator::getBodyForceVariable() const
 {
     return d_F_var;
 } // getBodyForceVariable
 
-Pointer<Variable<NDIM> >
+SAMRAIPointer<VariableNd>
 INSHierarchyIntegrator::getFluidSourceVariable() const
 {
     IBTK_DEPRECATED_MEMBER_FUNCTION2(
@@ -269,25 +270,25 @@ INSHierarchyIntegrator::getFluidSourceVariable() const
     return d_Q_var;
 } // getFluidSourceVariable
 
-Pointer<Variable<NDIM> >
+SAMRAIPointer<VariableNd>
 INSHierarchyIntegrator::getVelocityDivergenceVariable() const
 {
     return d_Q_var;
 } // getVelocityDivergenceVariable
 
-Pointer<FaceVariable<NDIM, double> >
+SAMRAIPointer<FaceVariableNd<double> >
 INSHierarchyIntegrator::getAdvectionVelocityVariable() const
 {
     return d_U_adv_diff_var;
 } // getAdvectionVelocityVariable
 
-std::vector<RobinBcCoefStrategy<NDIM>*>
+std::vector<RobinBcCoefStrategyNd*>
 INSHierarchyIntegrator::getIntermediateVelocityBoundaryConditions() const
 {
     return d_U_star_bc_coefs;
 } // getIntermediateVelocityBoundaryConditions
 
-RobinBcCoefStrategy<NDIM>*
+RobinBcCoefStrategyNd*
 INSHierarchyIntegrator::getProjectionBoundaryConditions() const
 {
     return d_Phi_bc_coef.get();
@@ -348,7 +349,7 @@ INSHierarchyIntegrator::getConvectiveDifferencingType() const
 } // getConvectiveDifferencingType
 
 void
-INSHierarchyIntegrator::setConvectiveOperator(Pointer<ConvectiveOperator> convective_op)
+INSHierarchyIntegrator::setConvectiveOperator(SAMRAIPointer<ConvectiveOperator> convective_op)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -367,7 +368,7 @@ INSHierarchyIntegrator::setConvectiveOperatorNeedsInit()
 }
 
 void
-INSHierarchyIntegrator::setVelocitySubdomainSolver(Pointer<PoissonSolver> velocity_solver)
+INSHierarchyIntegrator::setVelocitySubdomainSolver(SAMRAIPointer<PoissonSolver> velocity_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -385,7 +386,7 @@ INSHierarchyIntegrator::setVelocitySubdomainSolverNeedsInit()
 }
 
 void
-INSHierarchyIntegrator::setPressureSubdomainSolver(Pointer<PoissonSolver> pressure_solver)
+INSHierarchyIntegrator::setPressureSubdomainSolver(SAMRAIPointer<PoissonSolver> pressure_solver)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -428,7 +429,7 @@ INSHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
                                                       const int num_cycles)
 {
     // The child class has the data indices so we have to look them up manually at this point
-    auto* var_db = VariableDatabase<NDIM>::getDatabase();
+    auto* var_db = VariableDatabaseNd::getDatabase();
     updateCurrentCFLNumber(var_db->mapVariableAndContextToIndex(getVelocityVariable(), getNewContext()),
                            new_time - current_time);
 
@@ -445,11 +446,11 @@ INSHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_time,
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
-                                               Pointer<Database> input_db,
-                                               Pointer<Variable<NDIM> > U_var,
-                                               Pointer<Variable<NDIM> > P_var,
-                                               Pointer<Variable<NDIM> > F_var,
-                                               Pointer<Variable<NDIM> > Q_var,
+                                               SAMRAIPointer<Database> input_db,
+                                               SAMRAIPointer<VariableNd> U_var,
+                                               SAMRAIPointer<VariableNd> P_var,
+                                               SAMRAIPointer<VariableNd> F_var,
+                                               SAMRAIPointer<VariableNd> Q_var,
                                                bool register_for_restart)
     : INSHierarchyIntegrator(std::move(object_name),
                              input_db,
@@ -470,17 +471,17 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
 }
 
 INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
-                                               Pointer<Database> input_db,
-                                               Pointer<Variable<NDIM> > U_var,
+                                               SAMRAIPointer<Database> input_db,
+                                               SAMRAIPointer<VariableNd> U_var,
                                                std::string U_default_coarsen_type,
                                                std::string U_default_refine_type,
-                                               Pointer<Variable<NDIM> > P_var,
+                                               SAMRAIPointer<VariableNd> P_var,
                                                std::string P_default_coarsen_type,
                                                std::string P_default_refine_type,
-                                               Pointer<Variable<NDIM> > F_var,
+                                               SAMRAIPointer<VariableNd> F_var,
                                                std::string F_default_coarsen_type,
                                                std::string F_default_refine_type,
-                                               Pointer<Variable<NDIM> > Q_var,
+                                               SAMRAIPointer<VariableNd> Q_var,
                                                std::string Q_default_coarsen_type,
                                                std::string Q_default_refine_type,
                                                bool register_for_restart)
@@ -497,8 +498,8 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
       d_Q_var(Q_var),
       d_Q_coarsen_type(std::move(Q_default_coarsen_type)),
       d_Q_refine_type(std::move(Q_default_refine_type)),
-      d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(nullptr)),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
+      d_default_bc_coefs(d_object_name + "::default_bc_coefs", SAMRAIPointer<Database>(nullptr)),
+      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(nullptr))
 {
     // Set some default values.
     d_convective_op_input_db = new MemoryDatabase(d_object_name + "::convective_op_input_db");
@@ -510,7 +511,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
         d_default_bc_coefs.setBoundaryValue(2 * d, 0.0);
         d_default_bc_coefs.setBoundaryValue(2 * d + 1, 0.0);
     }
-    registerPhysicalBoundaryConditions(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_bc_coefs));
+    registerPhysicalBoundaryConditions(std::vector<RobinBcCoefStrategyNd*>(NDIM, &d_default_bc_coefs));
 
     // Setup physical boundary conditions objects.
     d_U_star_bc_coefs.resize(NDIM);
@@ -528,7 +529,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
     // Initialize an advection velocity variable.  NOTE: Patch data are
     // allocated for this variable only when an advection-diffusion solver is
     // registered with the INSHierarchyIntegrator.
-    d_U_adv_diff_var = new FaceVariable<NDIM, double>(d_object_name + "::U_adv_diff");
+    d_U_adv_diff_var = new FaceVariableNd<double>(d_object_name + "::U_adv_diff");
     return;
 } // INSHierarchyIntegrator
 
@@ -536,20 +537,20 @@ void
 INSHierarchyIntegrator::updateCurrentCFLNumber(const int data_idx, const double dt)
 {
     double cfl_max = 0.0;
-    PatchCellDataOpsReal<NDIM, double> patch_cc_ops;
-    PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
+    PatchCellDataOpsRealNd<double> patch_cc_ops;
+    PatchSideDataOpsRealNd<double> patch_sc_ops;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
+            const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
             const double dx_min = *(std::min_element(dx, dx + NDIM));
-            Pointer<CellData<NDIM, double> > u_cc_new_data = patch->getPatchData(data_idx);
-            Pointer<SideData<NDIM, double> > u_sc_new_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<CellDataNd<double> > u_cc_new_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SideDataNd<double> > u_sc_new_data = patch->getPatchData(data_idx);
 #ifndef NDEBUG
             TBOX_ASSERT(u_cc_new_data || u_sc_new_data);
 #endif
@@ -571,20 +572,20 @@ INSHierarchyIntegrator::getMaximumVorticityMagnitude(const int Omega_idx)
     double max_vorticity_norm = 0.0;
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
-            Pointer<CellData<NDIM, double> > cc_wgt_data_ptr = patch->getPatchData(wgt_cc_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
+            SAMRAIPointer<CellDataNd<double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
+            SAMRAIPointer<CellDataNd<double> > cc_wgt_data_ptr = patch->getPatchData(wgt_cc_idx);
             TBOX_ASSERT(Omega_data_ptr);
             TBOX_ASSERT(cc_wgt_data_ptr);
-            const CellData<NDIM, double>& Omega_data = *Omega_data_ptr;
-            const CellData<NDIM, double>& cc_wgt_data = *cc_wgt_data_ptr;
-            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            const CellDataNd<double>& Omega_data = *Omega_data_ptr;
+            const CellDataNd<double>& cc_wgt_data = *cc_wgt_data_ptr;
+            for (CellIteratorNd ic(patch_box); ic; ic++)
             {
-                const hier::Index<NDIM>& i = ic();
+                const hier::IndexNd& i = ic();
                 if (cc_wgt_data(i) > 0.0)
                 {
                     if (NDIM == 2)
@@ -612,7 +613,7 @@ INSHierarchyIntegrator::getMaximumVorticityMagnitude(const int Omega_idx)
 void
 INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx)
 {
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+    SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_number);
     const double Omega_max = getMaximumVorticityMagnitude(Omega_idx);
 
     // Tag cells based on the magnitude of the vorticity.
@@ -635,19 +636,19 @@ INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, con
         if (Omega_rel_thresh > 0.0) thresh = std::min(thresh, Omega_rel_thresh * Omega_max);
         if (Omega_abs_thresh > 0.0) thresh = std::min(thresh, Omega_abs_thresh);
         thresh += std::sqrt(std::numeric_limits<double>::epsilon());
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
-            Pointer<CellData<NDIM, int> > tag_data_ptr = patch->getPatchData(tag_idx);
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
+            SAMRAIPointer<CellDataNd<double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
+            SAMRAIPointer<CellDataNd<int> > tag_data_ptr = patch->getPatchData(tag_idx);
             TBOX_ASSERT(Omega_data_ptr);
             TBOX_ASSERT(tag_data_ptr);
-            const CellData<NDIM, double>& Omega_data = *Omega_data_ptr;
-            CellData<NDIM, int>& tag_data = *tag_data_ptr;
-            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            const CellDataNd<double>& Omega_data = *Omega_data_ptr;
+            CellDataNd<int>& tag_data = *tag_data_ptr;
+            for (CellIteratorNd ic(patch_box); ic; ic++)
             {
-                const hier::Index<NDIM>& i = ic();
+                const hier::IndexNd& i = ic();
                 double norm_Omega = 0.0;
                 if (NDIM == 2)
                 {
@@ -679,19 +680,19 @@ INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
     double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
     for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         dt = std::min(dt, d_cfl_max * getStableTimestep(level));
     }
     return dt;
 } // getMaximumTimeStepSizeSpecialized
 
 double
-INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > level) const
+INSHierarchyIntegrator::getStableTimestep(SAMRAIPointer<PatchLevelNd> level) const
 {
     double stable_dt = std::numeric_limits<double>::max();
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
         stable_dt = std::min(stable_dt, getStableTimestep(patch));
     }
     stable_dt = IBTK_MPI::minReduction(stable_dt);
@@ -699,7 +700,7 @@ INSHierarchyIntegrator::getStableTimestep(Pointer<PatchLevel<NDIM> > level) cons
 } // getStableTimestep
 
 void
-INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+INSHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<Database> db)
 {
     db->putInteger("INS_HIERARCHY_INTEGRATOR_VERSION", INS_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("d_viscous_time_stepping_type", enum_to_string<TimeSteppingType>(d_viscous_time_stepping_type));
@@ -741,7 +742,7 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_restart)
+INSHierarchyIntegrator::getFromInput(SAMRAIPointer<Database> db, const bool is_from_restart)
 {
     if (!is_from_restart)
     {
@@ -944,8 +945,8 @@ INSHierarchyIntegrator::getFromInput(Pointer<Database> db, const bool is_from_re
 void
 INSHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

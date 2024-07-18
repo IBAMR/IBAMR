@@ -29,11 +29,11 @@ main(int argc, char** argv)
 
     // Since this is a test we do not want to print file names or line numbers
     // to output files:
-    Pointer<Logger::Appender> abort_append(new TestAppender());
+    SAMRAIPointer<Logger::Appender> abort_append(new TestAppender());
     Logger::getInstance()->setAbortAppender(abort_append);
 
-    Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "test.log");
-    Pointer<Database> input_db = app_initializer->getInputDatabase();
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "test.log");
+    SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
     std::set<libMesh::subdomain_id_type> ids;
     for (libMesh::subdomain_id_type i = 0; i < 20; ++i) ids.insert(i);

@@ -137,16 +137,16 @@ static const int COARSEN_OP_PRIORITY = 0;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CartSideDoubleRT0Coarsen::CartSideDoubleRT0Coarsen(IntVector<NDIM> gcw) : d_gcw(std::move(gcw))
+CartSideDoubleRT0Coarsen::CartSideDoubleRT0Coarsen(IntVectorNd gcw) : d_gcw(std::move(gcw))
 {
     // intentionally blank
     return;
 } // CartSideDoubleRT0Coarsen
 
 bool
-CartSideDoubleRT0Coarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+CartSideDoubleRT0Coarsen::findCoarsenOperator(const SAMRAIPointer<VariableNd>& var, const std::string& op_name) const
 {
-    Pointer<SideVariable<NDIM, double> > sc_var = var;
+    SAMRAIPointer<SideVariableNd<double> > sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
@@ -162,22 +162,22 @@ CartSideDoubleRT0Coarsen::getOperatorPriority() const
     return COARSEN_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM>
+IntVectorNd
 CartSideDoubleRT0Coarsen::getStencilWidth() const
 {
     return d_gcw;
 } // getStencilWidth
 
 void
-CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
-                                  const Patch<NDIM>& fine,
+CartSideDoubleRT0Coarsen::coarsen(PatchNd& coarse,
+                                  const PatchNd& fine,
                                   const int dst_component,
                                   const int src_component,
-                                  const Box<NDIM>& coarse_box,
-                                  const IntVector<NDIM>& ratio) const
+                                  const BoxNd& coarse_box,
+                                  const IntVectorNd& ratio) const
 {
-    Pointer<SideData<NDIM, double> > cdata = coarse.getPatchData(dst_component);
-    Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(src_component);
+    SAMRAIPointer<SideDataNd<double> > cdata = coarse.getPatchData(dst_component);
+    SAMRAIPointer<SideDataNd<double> > fdata = fine.getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
 #if !defined(NDEBUG)
@@ -206,9 +206,9 @@ CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
 #if !defined(NDEBUG)
     TBOX_ASSERT(data_depth == fdata->getDepth());
 #endif
-    const Box<NDIM>& patch_box_fine = fine.getBox();
-    const Box<NDIM>& patch_box_crse = coarse.getBox();
-    Array<BoundaryBox<NDIM> > bboxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(fine);
+    const BoxNd& patch_box_fine = fine.getBox();
+    const BoxNd& patch_box_crse = coarse.getBox();
+    Array<BoundaryBoxNd> bboxes = PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(fine);
     for (int depth = 0; depth < data_depth; ++depth)
     {
         double* const U_crse0 = cdata->getPointer(0, depth);
@@ -259,7 +259,7 @@ CartSideDoubleRT0Coarsen::coarsen(Patch<NDIM>& coarse,
             const unsigned int location_index = bbox.getLocationIndex();
             const int bdry_normal_axis = location_index / 2;
             const int bdry_lower_side = (location_index % 2) == 0 ? 0 : 1;
-            const Box<NDIM>& side_bdry_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bbox);
+            const BoxNd& side_bdry_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(bbox);
             TBOX_ASSERT(side_bdry_box.lower(bdry_normal_axis) == side_bdry_box.upper(bdry_normal_axis));
 
             SC_RT0_COARSEN_BDRY_FC(U_crse0,

@@ -28,7 +28,7 @@
 
 namespace IBAMR
 {
-ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Database> input_db,
+ConstraintIBKinematics::StructureParameters::StructureParameters(SAMRAIPointer<Database> input_db,
                                                                  LDataManager* l_data_manager)
     : d_total_nodes(0), d_tagged_pt_idx(-1), d_struct_is_self_translating(false), d_struct_is_self_rotating(false)
 {
@@ -106,7 +106,7 @@ ConstraintIBKinematics::StructureParameters::StructureParameters(Pointer<Databas
 } // StructureParameters
 
 ConstraintIBKinematics::ConstraintIBKinematics(std::string object_name,
-                                               Pointer<Database> input_db,
+                                               SAMRAIPointer<Database> input_db,
                                                LDataManager* l_data_manager,
                                                bool register_for_restart)
     : d_object_name(std::move(object_name)),
@@ -135,7 +135,7 @@ ConstraintIBKinematics::~ConstraintIBKinematics()
 } // ~ConstraintIBKinematics
 
 void
-ConstraintIBKinematics::putToDatabase(Pointer<Database> /*db*/)
+ConstraintIBKinematics::putToDatabase(SAMRAIPointer<Database> /*db*/)
 {
     // intentionally left blank
     return;

@@ -60,15 +60,15 @@ RelaxationLSBcCoefs::resetLSPatchDataIndex()
 } // resetLSPatchDataIndex
 
 void
-RelaxationLSBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                const Pointer<Variable<NDIM> >& /*variable*/,
-                                const Patch<NDIM>& patch,
-                                const BoundaryBox<NDIM>& bdry_box,
+RelaxationLSBcCoefs::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                const SAMRAIPointer<VariableNd>& /*variable*/,
+                                const PatchNd& patch,
+                                const BoundaryBoxNd& bdry_box,
                                 double /*fill_time*/) const
 {
-    Pointer<CellData<NDIM, double> > phi_data = patch.getPatchData(d_phi_idx);
+    SAMRAIPointer<CellDataNd<double> > phi_data = patch.getPatchData(d_phi_idx);
 
     const int location_index = bdry_box.getLocationIndex();
     const int axis = location_index / 2;
@@ -76,16 +76,16 @@ RelaxationLSBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
 #if !defined(NDEBUG)
     TBOX_ASSERT(!acoef_data.isNull());
 #endif
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const BoxNd& bc_coef_box = acoef_data->getBox();
 #if !defined(NDEBUG)
     TBOX_ASSERT(bcoef_data.isNull() || bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(gcoef_data.isNull() || bc_coef_box == gcoef_data->getBox());
 #endif
-    for (Box<NDIM>::Iterator bc(bc_coef_box); bc; bc++)
+    for (BoxNd::Iterator bc(bc_coef_box); bc; bc++)
     {
-        const hier::Index<NDIM>& i = bc();
-        hier::Index<NDIM> i_bdry = bc();
-        hier::Index<NDIM> i_intr = bc();
+        const hier::IndexNd& i = bc();
+        hier::IndexNd i_bdry = bc();
+        hier::IndexNd i_intr = bc();
 
         if (is_upper)
         {
@@ -108,7 +108,7 @@ RelaxationLSBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+IntVectorNd
 RelaxationLSBcCoefs::numberOfExtensionsFillable() const
 {
     return 128;

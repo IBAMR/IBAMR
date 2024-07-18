@@ -64,9 +64,9 @@ public:
      * \brief Constructor.
      */
     CIBStaggeredStokesSolver(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                             SAMRAI::tbox::Pointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                             SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
+                             IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                             IBTK::SAMRAIPointer<IBAMR::INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                             IBTK::SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy,
                              const std::string& default_options_prefix);
 
     /*!
@@ -77,8 +77,8 @@ public:
     /*!
      * Initialize the solver before solving the system of equations.
      */
-    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                                       const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * Deallocate the solver when hierarchy changes.
@@ -91,8 +91,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise.
      */
-    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                             SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -105,9 +105,9 @@ public:
      *\brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
-     * \note Any of the elements of \a u_bc_coefs may be NULL.  In this case,
+     * \note Any of the elements of \a u_bc_coefs may be nullptr.  In this case,
      * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
+     * depth.  \a P_bc_coef may also be nullptr; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
      * \param u_bc_coefs Vector of pointers to objects that can set the
@@ -116,15 +116,15 @@ public:
      * \param p_bc_coef Pointer to object that can set the Robin boundary condition
      * coefficients for the pressure.
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_bc_coef) override;
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& u_bc_coefs,
+                                    SAMRAI::solv::RobinBcCoefStrategyNd* p_bc_coef) override;
 
     /*!
      * \brief Set the StaggeredStokesPhysicalBoundaryHelper object to be used
      * in the StokesOperator.
      */
     virtual void
-    setPhysicalBoundaryHelper(SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
+    setPhysicalBoundaryHelper(IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper) override;
 
     /*!
      * \brief Set the time at which the solution is to be evaluated.
@@ -140,7 +140,7 @@ public:
      * \brief Get the saddle-point solver for the extended Stokes
      * system.
      */
-    SAMRAI::tbox::Pointer<IBAMR::CIBSaddlePointSolver> getSaddlePointSolver() const;
+    IBTK::SAMRAIPointer<IBAMR::CIBSaddlePointSolver> getSaddlePointSolver() const;
 
     //////////////////////////////////////////////////////////////////////////////
 protected:
@@ -168,21 +168,21 @@ private:
     CIBStaggeredStokesSolver& operator=(const CIBStaggeredStokesSolver& that) = delete;
 
     // Pointer to the constraint IB strategy.
-    SAMRAI::tbox::Pointer<CIBStrategy> d_cib_strategy;
+    IBTK::SAMRAIPointer<CIBStrategy> d_cib_strategy;
 
     // Number of structures.
     const unsigned int d_num_rigid_parts;
 
     // Pointer to saddle-point solver.
-    SAMRAI::tbox::Pointer<IBAMR::CIBSaddlePointSolver> d_sp_solver;
+    IBTK::SAMRAIPointer<IBAMR::CIBSaddlePointSolver> d_sp_solver;
 
     // Patch data to support delta function.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_wide_u_var, d_wide_f_var;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_wide_ctx;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_wide_u_var, d_wide_f_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_wide_ctx;
     int d_wide_u_idx = IBTK::invalid_index, d_wide_f_idx = IBTK::invalid_index;
 
     // SVR for holding widened u/f.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x_wide, d_b_wide;
+    IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x_wide, d_b_wide;
 
     // Bools to control initialization and deallocation
     bool d_is_initialized = false, d_reinitializing_solver = false;

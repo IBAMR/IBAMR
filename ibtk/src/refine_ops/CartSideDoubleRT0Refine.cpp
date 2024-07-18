@@ -112,9 +112,9 @@ static const int REFINE_OP_STENCIL_WIDTH = 1;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-CartSideDoubleRT0Refine::findRefineOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+CartSideDoubleRT0Refine::findRefineOperator(const SAMRAIPointer<VariableNd>& var, const std::string& op_name) const
 {
-    const Pointer<SideVariable<NDIM, double> > sc_var = var;
+    const SAMRAIPointer<SideVariableNd<double> > sc_var = var;
     return (sc_var && op_name == s_op_name);
 } // findRefineOperator
 
@@ -130,23 +130,23 @@ CartSideDoubleRT0Refine::getOperatorPriority() const
     return REFINE_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM>
+IntVectorNd
 CartSideDoubleRT0Refine::getStencilWidth() const
 {
     return REFINE_OP_STENCIL_WIDTH;
 } // getStencilWidth
 
 void
-CartSideDoubleRT0Refine::refine(Patch<NDIM>& fine,
-                                const Patch<NDIM>& coarse,
+CartSideDoubleRT0Refine::refine(PatchNd& fine,
+                                const PatchNd& coarse,
                                 const int dst_component,
                                 const int src_component,
-                                const Box<NDIM>& fine_box,
-                                const IntVector<NDIM>& ratio) const
+                                const BoxNd& fine_box,
+                                const IntVectorNd& ratio) const
 {
     // Get the patch data.
-    Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(dst_component);
-    Pointer<SideData<NDIM, double> > cdata = coarse.getPatchData(src_component);
+    SAMRAIPointer<SideDataNd<double> > fdata = fine.getPatchData(dst_component);
+    SAMRAIPointer<SideDataNd<double> > cdata = coarse.getPatchData(src_component);
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata);
     TBOX_ASSERT(cdata);
@@ -154,13 +154,13 @@ CartSideDoubleRT0Refine::refine(Patch<NDIM>& fine,
 #endif
     const int data_depth = fdata->getDepth();
 
-    const Box<NDIM>& fdata_box = fdata->getBox();
+    const BoxNd& fdata_box = fdata->getBox();
     const int fdata_gcw = fdata->getGhostCellWidth().max();
 #if !defined(NDEBUG)
     TBOX_ASSERT(fdata_gcw == fdata->getGhostCellWidth().min());
 #endif
 
-    const Box<NDIM>& cdata_box = cdata->getBox();
+    const BoxNd& cdata_box = cdata->getBox();
     const int cdata_gcw = cdata->getGhostCellWidth().max();
 #if !defined(NDEBUG)
     TBOX_ASSERT(cdata_gcw == cdata->getGhostCellWidth().min());

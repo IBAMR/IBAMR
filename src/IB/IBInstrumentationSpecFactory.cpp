@@ -57,10 +57,10 @@ IBInstrumentationSpec::Factory::setStreamableClassID(const int class_id)
     return;
 } // setStreamableClassID
 
-Pointer<Streamable>
-IBInstrumentationSpec::Factory::unpackStream(AbstractStream& stream, const IntVector<NDIM>& /*offset*/)
+SAMRAIPointer<Streamable>
+IBInstrumentationSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd& /*offset*/)
 {
-    Pointer<IBInstrumentationSpec> ret_val = new IBInstrumentationSpec();
+    auto ret_val = make_samrai_shared<IBInstrumentationSpec>();
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_meter_idx, 1);
     stream.unpack(&ret_val->d_node_idx, 1);

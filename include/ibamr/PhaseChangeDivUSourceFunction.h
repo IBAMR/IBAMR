@@ -58,7 +58,7 @@ public:
      * \brief Class constructor.
      */
     PhaseChangeDivUSourceFunction(const std::string& object_name,
-                                  SAMRAI::tbox::Pointer<IBAMR::PhaseChangeHierarchyIntegrator> pc_hier_integrator);
+                                  IBTK::SAMRAIPointer<IBAMR::PhaseChangeHierarchyIntegrator> pc_hier_integrator);
 
     /*!
      * \brief Empty destructor.
@@ -79,8 +79,8 @@ public:
      * \see setDataOnPatch
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                                 IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
@@ -90,12 +90,12 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level =
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(nullptr)) override;
 
 private:
     /*!
@@ -116,7 +116,7 @@ private:
     /*!
      * Name of this object.
      */
-    SAMRAI::tbox::Pointer<IBAMR::PhaseChangeHierarchyIntegrator> d_pc_hier_integrator;
+    IBTK::SAMRAIPointer<IBAMR::PhaseChangeHierarchyIntegrator> d_pc_hier_integrator;
 };
 } // namespace IBAMR
 

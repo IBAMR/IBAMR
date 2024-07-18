@@ -72,7 +72,7 @@ public:
      * \brief Constructor.
      */
     StaggeredStokesLevelRelaxationFACOperator(const std::string& object_name,
-                                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                              IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                               const std::string& default_options_prefix);
 
     /*!
@@ -84,13 +84,13 @@ public:
      * \brief Static function to construct a StaggeredStokesFACPreconditioner with a
      * StaggeredStokesLevelRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    static IBTK::SAMRAIPointer<StaggeredStokesSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
-            new StaggeredStokesLevelRelaxationFACOperator(
+        IBTK::SAMRAIPointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
+            IBTK::make_samrai_shared<StaggeredStokesLevelRelaxationFACOperator>(
                 object_name + "::StaggeredStokesLevelRelaxationFACOperator", input_db, default_options_prefix);
         return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate_solver
@@ -119,8 +119,8 @@ public:
      *being
      *performed
      */
-    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    void smoothError(SAMRAI::solv::SAMRAIVectorRealNd<double>& error,
+                     const SAMRAI::solv::SAMRAIVectorRealNd<double>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
@@ -132,8 +132,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorRealNd<double>& solution,
+                                            const SAMRAI::solv::SAMRAIVectorRealNd<double>& rhs,
                                             int coarsest_reset_ln,
                                             int finest_reset_ln) override;
 
@@ -178,14 +178,14 @@ private:
                 d_level_solver_default_options_prefix;
     double d_level_solver_abs_residual_tol = 1.0e-50, d_level_solver_rel_residual_tol = 1.0e-5;
     int d_level_solver_max_iterations = 1;
-    std::vector<SAMRAI::tbox::Pointer<IBAMR::StaggeredStokesSolver> > d_level_solvers;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_level_solver_db;
+    std::vector<IBTK::SAMRAIPointer<IBAMR::StaggeredStokesSolver> > d_level_solvers;
+    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> d_level_solver_db;
 
     /*
      * Mappings from patch indices to patch operators.
      */
-    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_side_bc_box_overlap;
-    std::vector<std::vector<SAMRAI::hier::BoxList<NDIM> > > d_patch_cell_bc_box_overlap;
+    std::vector<std::vector<std::array<SAMRAI::hier::BoxListNd, NDIM> > > d_patch_side_bc_box_overlap;
+    std::vector<std::vector<SAMRAI::hier::BoxListNd> > d_patch_cell_bc_box_overlap;
 };
 } // namespace IBAMR
 

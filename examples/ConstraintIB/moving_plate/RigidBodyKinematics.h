@@ -47,9 +47,9 @@ public:
      * \brief ctor. This is the only ctor for this object.
      */
     RigidBodyKinematics(const std::string& object_name,
-                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                        IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                         IBTK::LDataManager* l_data_manager,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy,
                         bool register_for_restart = true);
 
     /*!
@@ -63,12 +63,12 @@ public:
     typedef void (*RigidVelFcn)(const double time, Eigen::Vector3d& rigid_vel);
     struct RigidKinematicsData
     {
-        RigidKinematicsData() : d_trans_vel_fcn(NULL), d_rot_vel_fcn(NULL)
+        RigidKinematicsData() : d_trans_vel_fcn(nullptr), d_rot_vel_fcn(nullptr)
         {
             return;
         } // RigidKinematicsData
 
-        RigidKinematicsData(RigidVelFcn trans_vel_fcn, RigidVelFcn rot_vel_fcn = NULL)
+        RigidKinematicsData(RigidVelFcn trans_vel_fcn, RigidVelFcn rot_vel_fcn = nullptr)
             : d_trans_vel_fcn(trans_vel_fcn), d_rot_vel_fcn(rot_vel_fcn)
         {
             return;
@@ -80,7 +80,7 @@ public:
     /*!
      * \brief Set the COM translational and rotational velocity.
      */
-    void registerRigidBodyKinematics(RigidVelFcn tran_vel_fcn = NULL, RigidVelFcn rot_vel_fcn = NULL);
+    void registerRigidBodyKinematics(RigidVelFcn tran_vel_fcn = nullptr, RigidVelFcn rot_vel_fcn = nullptr);
 
     /*!
      * \brief Set kinematics velocity for the rigid body.
@@ -112,7 +112,7 @@ public:
     /*!
      * \brief Override the ConstraintIBkinematics base class method.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    virtual void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
 private:
     /*!
@@ -128,7 +128,7 @@ private:
     /*!
      * \brief Set the rigid body related data.
      */
-    void setImmersedBodyLayout(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
+    void setImmersedBodyLayout(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> patch_hierarchy);
 
     /*!
      * \brief Set data from restart.

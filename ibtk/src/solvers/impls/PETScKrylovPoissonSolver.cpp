@@ -30,7 +30,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PETScKrylovPoissonSolver::PETScKrylovPoissonSolver(std::string object_name,
-                                                   Pointer<Database> input_db,
+                                                   SAMRAIPointer<Database> input_db,
                                                    std::string default_options_prefix)
     : PETScKrylovLinearSolver(std::move(object_name), input_db, std::move(default_options_prefix))
 {

@@ -26,7 +26,7 @@ namespace IBAMR
 
 PhaseChangeDivUSourceFunction::PhaseChangeDivUSourceFunction(
     const std::string& /*object_name*/,
-    const Pointer<PhaseChangeHierarchyIntegrator> pc_hier_integrator)
+    const SAMRAIPointer<PhaseChangeHierarchyIntegrator> pc_hier_integrator)
     : d_pc_hier_integrator(pc_hier_integrator)
 {
     // intentionally blank
@@ -41,8 +41,8 @@ PhaseChangeDivUSourceFunction::isTimeDependent() const
 
 void
 PhaseChangeDivUSourceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                       Pointer<Variable<NDIM> > var,
-                                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                       SAMRAIPointer<VariableNd> var,
+                                                       SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                        const double data_time,
                                                        const bool initial_time,
                                                        const int coarsest_ln_in,
@@ -60,20 +60,20 @@ PhaseChangeDivUSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > var,
-                                              Pointer<Patch<NDIM> > patch,
+                                              SAMRAIPointer<VariableNd> var,
+                                              SAMRAIPointer<PatchNd> patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                              SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
 #if !defined(NDEBUG)
-    Pointer<CellVariable<NDIM, double> > cc_var = var;
+    SAMRAIPointer<CellVariableNd<double> > cc_var = var;
     TBOX_ASSERT(cc_var);
 #else
     NULL_USE(var);
 #endif
 
-    Pointer<CellData<NDIM, double> > div_u_cc_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<CellDataNd<double> > div_u_cc_data = patch->getPatchData(data_idx);
     if (initial_time)
     {
         div_u_cc_data->fill(0.0);
@@ -82,8 +82,8 @@ PhaseChangeDivUSourceFunction::setDataOnPatch(const int data_idx,
 
     // Set Div U = S where source term S is computed from PhaseChangeHierarchyIntegrator.
     const int S_idx = d_pc_hier_integrator->getVelocityDivergencePatchDataIndex();
-    Pointer<CellData<NDIM, double> > S_cc_data = patch->getPatchData(S_idx);
-    PatchCellDataOpsReal<NDIM, double> patch_cc_data_ops;
+    SAMRAIPointer<CellDataNd<double> > S_cc_data = patch->getPatchData(S_idx);
+    PatchCellDataOpsRealNd<double> patch_cc_data_ops;
     patch_cc_data_ops.copyData(div_u_cc_data, S_cc_data, patch->getBox());
 
     return;

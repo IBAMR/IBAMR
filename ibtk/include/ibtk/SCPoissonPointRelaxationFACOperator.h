@@ -96,7 +96,7 @@ public:
      * \brief Constructor.
      */
     SCPoissonPointRelaxationFACOperator(const std::string& object_name,
-                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                         std::string default_options_prefix);
 
     /*!
@@ -108,12 +108,13 @@ public:
      * \brief Static function to construct a PoissonFACPreconditioner with a
      * SCPoissonPointRelaxationFACOperator FAC strategy.
      */
-    static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
-                                                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                                                const std::string& default_options_prefix)
+    static SAMRAIPointer<PoissonSolver> allocate_solver(const std::string& object_name,
+                                                        SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                                                        const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new SCPoissonPointRelaxationFACOperator(
-            object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+        SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_operator =
+            make_samrai_shared<SCPoissonPointRelaxationFACOperator>(
+                object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
 
@@ -158,8 +159,8 @@ public:
      *being
      *performed
      */
-    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    void smoothError(SAMRAI::solv::SAMRAIVectorRealNd<double>& error,
+                     const SAMRAI::solv::SAMRAIVectorRealNd<double>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
@@ -173,8 +174,8 @@ public:
      * \param residual residual vector
      * \param coarsest_ln coarsest level number
      */
-    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorRealNd<double>& error,
+                            const SAMRAI::solv::SAMRAIVectorRealNd<double>& residual,
                             int coarsest_ln) override;
 
     /*!
@@ -186,9 +187,9 @@ public:
      * \param coarsest_level_num coarsest level number
      * \param finest_level_num finest level number
      */
-    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void computeResidual(SAMRAI::solv::SAMRAIVectorRealNd<double>& residual,
+                         const SAMRAI::solv::SAMRAIVectorRealNd<double>& solution,
+                         const SAMRAI::solv::SAMRAIVectorRealNd<double>& rhs,
                          int coarsest_level_num,
                          int finest_level_num) override;
 
@@ -198,8 +199,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorRealNd<double>& solution,
+                                            const SAMRAI::solv::SAMRAIVectorRealNd<double>& rhs,
                                             int coarsest_reset_ln,
                                             int finest_reset_ln) override;
 
@@ -211,19 +212,19 @@ protected:
     /*
      * Coarse level solvers and solver parameters.
      */
-    SAMRAI::tbox::Pointer<PoissonSolver> d_coarse_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
+    SAMRAIPointer<PoissonSolver> d_coarse_solver;
+    SAMRAIPointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
      * Patch overlap data.
      */
-    std::vector<std::vector<std::array<SAMRAI::hier::BoxList<NDIM>, NDIM> > > d_patch_bc_box_overlap;
-    std::vector<std::vector<std::array<std::map<int, SAMRAI::hier::Box<NDIM> >, NDIM> > > d_patch_neighbor_overlap;
+    std::vector<std::vector<std::array<SAMRAI::hier::BoxListNd, NDIM> > > d_patch_bc_box_overlap;
+    std::vector<std::vector<std::array<std::map<int, SAMRAI::hier::BoxNd>, NDIM> > > d_patch_neighbor_overlap;
 
     /*
      * Dirichlet boundary condition utilities.
      */
-    SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> d_bc_helper;
+    SAMRAIPointer<StaggeredPhysicalBoundaryHelper> d_bc_helper;
     int d_mask_idx;
 
 private:

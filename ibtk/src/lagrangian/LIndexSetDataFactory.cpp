@@ -42,50 +42,50 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 template <class T>
-LIndexSetDataFactory<T>::LIndexSetDataFactory(IntVector<NDIM> ghosts) : LSetDataFactory<T>(std::move(ghosts))
+LIndexSetDataFactory<T>::LIndexSetDataFactory(IntVectorNd ghosts) : LSetDataFactory<T>(std::move(ghosts))
 {
     // intentionally blank
     return;
 } // LIndexSetDataFactory
 
 template <class T>
-Pointer<PatchDataFactory<NDIM> >
-LIndexSetDataFactory<T>::cloneFactory(const IntVector<NDIM>& ghosts)
+SAMRAIPointer<PatchDataFactoryNd>
+LIndexSetDataFactory<T>::cloneFactory(const IntVectorNd& ghosts)
 {
     return new LIndexSetDataFactory<T>(ghosts);
 } // cloneFactory
 
 template <class T>
-Pointer<PatchData<NDIM> >
-LIndexSetDataFactory<T>::allocate(const Box<NDIM>& box, Pointer<Arena> pool) const
+SAMRAIPointer<PatchDataNd>
+LIndexSetDataFactory<T>::allocate(const BoxNd& box, SAMRAIPointer<Arena> pool) const
 {
     if (!pool)
     {
         pool = ArenaManager::getManager()->getStandardAllocator();
     }
-    PatchData<NDIM>* pd = new (pool) LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
-    return Pointer<PatchData<NDIM> >(pd, pool);
+    PatchDataNd* pd = new (pool) LIndexSetData<T>(box, LSetDataFactory<T>::getGhostCellWidth());
+    return SAMRAIPointer<PatchDataNd>(pd, pool);
 } // allocate
 
 template <class T>
-Pointer<PatchData<NDIM> >
-LIndexSetDataFactory<T>::allocate(const Patch<NDIM>& patch, Pointer<Arena> pool) const
+SAMRAIPointer<PatchDataNd>
+LIndexSetDataFactory<T>::allocate(const PatchNd& patch, SAMRAIPointer<Arena> pool) const
 {
     return allocate(patch.getBox(), pool);
 } // allocate
 
 template <class T>
 size_t
-LIndexSetDataFactory<T>::getSizeOfMemory(const Box<NDIM>& /*box*/) const
+LIndexSetDataFactory<T>::getSizeOfMemory(const BoxNd& /*box*/) const
 {
     return Arena::align(sizeof(LIndexSetData<T>));
 } // getSizeOfMemory
 
 template <class T>
 bool
-LIndexSetDataFactory<T>::validCopyTo(const Pointer<PatchDataFactory<NDIM> >& dst_pdf) const
+LIndexSetDataFactory<T>::validCopyTo(const SAMRAIPointer<PatchDataFactoryNd>& dst_pdf) const
 {
-    const Pointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
+    const SAMRAIPointer<LIndexSetDataFactory<T> > lnidf = dst_pdf;
     return lnidf;
 } // validCopyTo
 

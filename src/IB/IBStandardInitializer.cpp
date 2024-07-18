@@ -89,7 +89,7 @@ discard_comments(const std::string& input_string)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBStandardInitializer::IBStandardInitializer(std::string object_name, Pointer<Database> input_db)
+IBStandardInitializer::IBStandardInitializer(std::string object_name, SAMRAIPointer<Database> input_db)
     : IBRedundantInitializer(std::move(object_name), input_db), d_posn_shift(Vector::Zero())
 {
 #if !defined(NDEBUG)
@@ -2392,12 +2392,12 @@ IBStandardInitializer::readSourceFiles(const std::string& extension)
     return;
 } // readSourceFiles
 
-std::vector<Pointer<Streamable> >
+std::vector<SAMRAIPointer<Streamable> >
 IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index,
                                           const unsigned int global_index_offset,
                                           const int level_number) const
 {
-    std::vector<Pointer<Streamable> > node_data;
+    std::vector<SAMRAIPointer<Streamable> > node_data;
 
     const int j = point_index.first;
     const int mastr_idx = getCanonicalLagrangianIndex(point_index, level_number);
@@ -2569,7 +2569,7 @@ IBStandardInitializer::initializeNodeData(const std::pair<int, int>& point_index
 } // initializeNodeData
 
 void
-IBStandardInitializer::getFromInput(Pointer<Database> db)
+IBStandardInitializer::getFromInput(SAMRAIPointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -2680,7 +2680,7 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
             const std::string& strct_name = structure_names[n];
             if (db->keyExists(strct_name))
             {
-                Pointer<Database> sub_db = db->getDatabase((strct_name));
+                SAMRAIPointer<Database> sub_db = db->getDatabase((strct_name));
                 if (sub_db->keyExists("level_number"))
                 {
                     const int ln = sub_db->getInteger("level_number");
@@ -2818,7 +2818,7 @@ IBStandardInitializer::getFromInput(Pointer<Database> db)
             const std::string& base_filename = d_base_filename[ln][j];
             if (db->isDatabase(base_filename))
             {
-                Pointer<Database> sub_db = db->getDatabase(base_filename);
+                SAMRAIPointer<Database> sub_db = db->getDatabase(base_filename);
 
                 // Determine whether to enable or disable any particular
                 // features.

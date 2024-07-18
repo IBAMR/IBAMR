@@ -23,7 +23,7 @@
 
 void
 callLSLocateCircularInterfaceCallbackFunction(int D_idx,
-                                              Pointer<HierarchyMathOps> hier_math_ops,
+                                              SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                               double time,
                                               bool initial_time,
                                               void* ctx)
@@ -37,8 +37,8 @@ callLSLocateCircularInterfaceCallbackFunction(int D_idx,
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 LSLocateCircularInterface::LSLocateCircularInterface(const std::string& object_name,
-                                                     Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                     Pointer<CellVariable<NDIM, double> > ls_var,
+                                                     SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                                     SAMRAIPointer<CellVariableNd<double> > ls_var,
                                                      CircularInterface init_circle)
     : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(ls_var), d_init_circle(init_circle)
 {
@@ -54,21 +54,21 @@ LSLocateCircularInterface::~LSLocateCircularInterface()
 
 void
 LSLocateCircularInterface::setLevelSetPatchData(int D_idx,
-                                                Pointer<HierarchyMathOps> hier_math_ops,
+                                                SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                 double /*time*/,
                                                 bool initial_time)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     // If not the intial time, set the level set to the current value maintained by the integrator
     if (!initial_time)
     {
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         const int ls_current_idx =
             var_db->mapVariableAndContextToIndex(d_ls_var, d_adv_diff_solver->getCurrentContext());
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
 
         hier_cc_data_ops.copyData(D_idx, ls_current_idx);
 
@@ -81,21 +81,21 @@ LSLocateCircularInterface::setLevelSetPatchData(int D_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(D_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
+            SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(D_idx);
+            for (BoxNd::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                CellIndexNd ci(it());
 
                 // Get physical coordinates
                 IBTK::Vector coord = IBTK::Vector::Zero();
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
-                const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+                const hier::IndexNd& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();
                 for (int d = 0; d < NDIM; ++d)
                 {

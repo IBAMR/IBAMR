@@ -115,12 +115,12 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    virtual void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops);
+    virtual void setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Get the HierarchyMathOps object used by the solver.
      */
-    virtual SAMRAI::tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
+    virtual SAMRAIPointer<HierarchyMathOps> getHierarchyMathOps() const;
 
     /*!
      * \brief Solve the system of equations.
@@ -160,8 +160,8 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                             SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) = 0;
+    virtual bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                             SAMRAI::solv::SAMRAIVectorRealNd<double>& b) = 0;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving
@@ -207,8 +207,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                       const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b);
+    virtual void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                                       const SAMRAI::solv::SAMRAIVectorRealNd<double>& b);
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -330,7 +330,7 @@ protected:
     double d_current_residual_norm = std::numeric_limits<double>::quiet_NaN();
 
     // Mathematical operators.
-    SAMRAI::tbox::Pointer<HierarchyMathOps> d_hier_math_ops;
+    SAMRAIPointer<HierarchyMathOps> d_hier_math_ops;
     bool d_hier_math_ops_external = false;
 
     // Logging configuration.

@@ -183,11 +183,11 @@ namespace IBAMR
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 MarangoniSurfaceTensionForceFunction::MarangoniSurfaceTensionForceFunction(const std::string& object_name,
-                                                                           const Pointer<Database> input_db,
+                                                                           const SAMRAIPointer<Database> input_db,
                                                                            AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                                                           Pointer<Variable<NDIM> > level_set_var,
-                                                                           Pointer<Variable<NDIM> > T_var,
-                                                                           RobinBcCoefStrategy<NDIM>*& T_bc_coef)
+                                                                           SAMRAIPointer<VariableNd> level_set_var,
+                                                                           SAMRAIPointer<VariableNd> T_var,
+                                                                           RobinBcCoefStrategyNd*& T_bc_coef)
     : SurfaceTensionForceFunction(object_name, input_db, adv_diff_solver, level_set_var)
 {
     d_T_var = T_var;
@@ -206,19 +206,19 @@ MarangoniSurfaceTensionForceFunction::isTimeDependent() const
 
 void
 MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                              Pointer<Variable<NDIM> > var,
-                                                              Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                              SAMRAIPointer<VariableNd> var,
+                                                              SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                               const double data_time,
                                                               const bool initial_time,
                                                               const int coarsest_ln_in,
                                                               const int finest_ln_in)
 {
     // Patch index to store F_marangoni.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     d_F_cloned_idx = var_db->registerClonedPatchDataIndex(var, data_idx);
 
     // Get the patch data index for the temperature variable
-    Pointer<CellVariable<NDIM, double> > T_var = d_T_var;
+    SAMRAIPointer<CellVariableNd<double> > T_var = d_T_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!T_var.isNull());
 #endif
@@ -229,7 +229,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
     TBOX_ASSERT(T_current_idx >= 0);
 #endif
 
-    IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
+    IntVectorNd cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
     d_T_idx = var_db->registerVariableAndContext(T_var, var_db->getContext(d_object_name + "::T"), cell_ghosts);
 
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
@@ -240,7 +240,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
         hierarchy->getPatchLevel(ln)->allocatePatchData(d_T_idx, data_time);
     }
 
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+    HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
     if (d_ts_type == MIDPOINT_RULE)
     {
         hier_cc_data_ops.linearSum(d_T_idx,
@@ -274,7 +274,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent T_transaction(
         d_T_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_T_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> T_fill_op = new HierarchyGhostCellInterpolation();
+    auto T_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     T_fill_op->initializeOperatorState(T_transaction, hierarchy, coarsest_ln, finest_ln);
 
     T_fill_op->fillData(data_time);
@@ -296,18 +296,18 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
 
 void
 MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
-                                                     Pointer<Variable<NDIM> > var,
-                                                     Pointer<Patch<NDIM> > patch,
+                                                     SAMRAIPointer<VariableNd> var,
+                                                     SAMRAIPointer<PatchNd> patch,
                                                      const double data_time,
                                                      const bool initial_time,
-                                                     Pointer<PatchLevel<NDIM> > level)
+                                                     SAMRAIPointer<PatchLevelNd> level)
 {
-    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    Pointer<CellData<NDIM, double> > f_cc_data = f_data;
-    Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+    SAMRAIPointer<CellDataNd<double> > f_cc_data = f_data;
+    SAMRAIPointer<SideDataNd<double> > f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -321,7 +321,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
     if (f_cc_data) setDataOnPatchCell(f_cc_data, patch, data_time, initial_time, level);
     if (f_sc_data)
     {
-        Pointer<SideData<NDIM, double> > f_marangoni_sc_data = patch->getPatchData(d_F_cloned_idx);
+        SAMRAIPointer<SideDataNd<double> > f_marangoni_sc_data = patch->getPatchData(d_F_cloned_idx);
         setDataOnPatchSide(f_marangoni_sc_data, patch, data_time, initial_time, level);
 
         if (d_compute_marangoni_coef)
@@ -360,11 +360,11 @@ MarangoniSurfaceTensionForceFunction::registerMarangoniCoefficientFunction(Compu
 /////////////////////////////// PRIVATE ////////////////////////////////////
 
 void
-MarangoniSurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > /*F_data*/,
-                                                         Pointer<Patch<NDIM> > /*patch*/,
+MarangoniSurfaceTensionForceFunction::setDataOnPatchCell(SAMRAIPointer<CellDataNd<double> > /*F_data*/,
+                                                         SAMRAIPointer<PatchNd> /*patch*/,
                                                          const double /*data_time*/,
                                                          const bool /*initial_time*/,
-                                                         Pointer<PatchLevel<NDIM> > /*level*/)
+                                                         SAMRAIPointer<PatchLevelNd> /*level*/)
 {
     TBOX_ERROR(
         "MarangoniSurfaceTensionForceFunction::setDataOnPatchCell() Cell centered "
@@ -375,22 +375,22 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, 
 } // setDataOnPatchCell
 
 void
-MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_data,
-                                                         Pointer<Patch<NDIM> > patch,
+MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(SAMRAIPointer<SideDataNd<double> > F_data,
+                                                         SAMRAIPointer<PatchNd> patch,
                                                          const double /*data_time*/,
                                                          const bool /*initial_time*/,
-                                                         Pointer<PatchLevel<NDIM> > /*level*/)
+                                                         SAMRAIPointer<PatchLevelNd> /*level*/)
 {
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const BoxNd& patch_box = patch->getBox();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // First find normal in terms of gradient of phi.
     // N = grad(phi)
-    SideData<NDIM, double> N(patch_box,
-                             /*depth*/ NDIM,
-                             /*gcw*/ IntVector<NDIM>(2));
-    Pointer<CellData<NDIM, double> > Phi = patch->getPatchData(d_phi_idx);
+    SideDataNd<double> N(patch_box,
+                         /*depth*/ NDIM,
+                         /*gcw*/ IntVectorNd(2));
+    SAMRAIPointer<CellDataNd<double> > Phi = patch->getPatchData(d_phi_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),
@@ -419,8 +419,8 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
                  dx);
 
     // Find the gradient of T at the side-center.
-    SideData<NDIM, double> grad_T(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
-    Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_idx);
+    SideDataNd<double> grad_T(patch_box, /*depth*/ NDIM, /*gcw*/ IntVectorNd(2));
+    SAMRAIPointer<CellDataNd<double> > T_data = patch->getPatchData(d_T_idx);
     SC_NORMAL_FC(grad_T.getPointer(0, 0),
                  grad_T.getPointer(0, 1),
 #if (NDIM == 3)
@@ -448,8 +448,8 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
                  dx);
 
     // Find the gradient of C at the side-center.
-    SideData<NDIM, double> grad_C(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
-    Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(d_C_idx);
+    SideDataNd<double> grad_C(patch_box, /*depth*/ NDIM, /*gcw*/ IntVectorNd(2));
+    SAMRAIPointer<CellDataNd<double> > C_data = patch->getPatchData(d_C_idx);
     SC_NORMAL_FC(grad_C.getPointer(0, 0),
                  grad_C.getPointer(0, 1),
 #if (NDIM == 3)

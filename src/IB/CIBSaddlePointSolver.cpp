@@ -116,9 +116,9 @@ static Timer* t_deallocate_solver_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
-                                           Pointer<Database> input_db,
-                                           Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                                           Pointer<CIBStrategy> cib_strategy,
+                                           SAMRAIPointer<Database> input_db,
+                                           SAMRAIPointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                                           SAMRAIPointer<CIBStrategy> cib_strategy,
                                            std::string default_options_prefix,
                                            MPI_Comm petsc_comm)
     : d_object_name(std::move(object_name)),
@@ -150,12 +150,12 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
 
     // Create the Stokes solver (LInv) for the preconditioner.
     // Create databases for setting up LInv solver.
-    Pointer<Database> LInv_db = input_db->getDatabase("PCStokesSolver");
+    SAMRAIPointer<Database> LInv_db = input_db->getDatabase("PCStokesSolver");
     if (LInv_db->keyExists("normalize_pressure")) d_normalize_pressure = LInv_db->getBool("normalize_pressure");
     if (LInv_db->keyExists("normalize_velocity")) d_normalize_velocity = LInv_db->getBool("normalize_velocity");
 
     std::string stokes_solver_type = StaggeredStokesSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> stokes_solver_db = nullptr;
+    SAMRAIPointer<Database> stokes_solver_db = nullptr;
     if (LInv_db->keyExists("stokes_solver_type"))
     {
         stokes_solver_type = LInv_db->getString("stokes_solver_type");
@@ -168,7 +168,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
     }
 
     std::string stokes_precond_type = StaggeredStokesSolverManager::DEFAULT_BLOCK_PRECONDITIONER;
-    Pointer<Database> stokes_precond_db = nullptr;
+    SAMRAIPointer<Database> stokes_precond_db = nullptr;
     if (LInv_db->keyExists("stokes_precond_type"))
     {
         stokes_precond_type = LInv_db->getString("stokes_precond_type");
@@ -181,7 +181,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
     }
 
     std::string velocity_solver_type = IBTK::SCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> velocity_solver_db = nullptr;
+    SAMRAIPointer<Database> velocity_solver_db = nullptr;
     if (LInv_db->keyExists("velocity_solver_type"))
     {
         velocity_solver_type = LInv_db->getString("velocity_solver_type");
@@ -196,7 +196,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
     }
 
     std::string velocity_precond_type = IBTK::SCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> velocity_precond_db = nullptr;
+    SAMRAIPointer<Database> velocity_precond_db = nullptr;
     if (LInv_db->keyExists("velocity_precond_type"))
     {
         velocity_precond_type = LInv_db->getString("velocity_precond_type");
@@ -210,7 +210,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
     }
 
     std::string pressure_solver_type = IBTK::CCPoissonSolverManager::PETSC_KRYLOV_SOLVER;
-    Pointer<Database> pressure_solver_db = nullptr;
+    SAMRAIPointer<Database> pressure_solver_db = nullptr;
     if (LInv_db->keyExists("pressure_solver_type"))
     {
         pressure_solver_type = LInv_db->getString("pressure_solver_type");
@@ -225,7 +225,7 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
     }
 
     std::string pressure_precond_type = IBTK::CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER;
-    Pointer<Database> pressure_precond_db = nullptr;
+    SAMRAIPointer<Database> pressure_precond_db = nullptr;
     if (LInv_db->keyExists("pressure_precond_type"))
     {
         pressure_precond_type = LInv_db->getString("pressure_precond_type");
@@ -277,18 +277,18 @@ CIBSaddlePointSolver::CIBSaddlePointSolver(std::string object_name,
     d_pressure_solver->setPoissonSpecifications(P_problem_coefs);
 
     // Register velocity and pressure solvers with LInv.
-    Pointer<IBTK::LinearSolver> p_stokes_linear_solver = d_LInv;
+    SAMRAIPointer<IBTK::LinearSolver> p_stokes_linear_solver = d_LInv;
     if (!p_stokes_linear_solver)
     {
-        Pointer<IBTK::NewtonKrylovSolver> p_stokes_newton_solver = d_LInv;
+        SAMRAIPointer<IBTK::NewtonKrylovSolver> p_stokes_newton_solver = d_LInv;
         if (p_stokes_newton_solver) p_stokes_linear_solver = p_stokes_newton_solver->getLinearSolver();
     }
     if (p_stokes_linear_solver)
     {
-        Pointer<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
+        SAMRAIPointer<StaggeredStokesBlockPreconditioner> p_stokes_block_pc = p_stokes_linear_solver;
         if (!p_stokes_block_pc)
         {
-            Pointer<IBTK::KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
+            SAMRAIPointer<IBTK::KrylovLinearSolver> p_stokes_krylov_solver = p_stokes_linear_solver;
             if (p_stokes_krylov_solver) p_stokes_block_pc = p_stokes_krylov_solver->getPreconditioner();
         }
         if (p_stokes_block_pc)
@@ -387,8 +387,8 @@ CIBSaddlePointSolver::setTimeInterval(double current_time, double new_time)
 } // setTimeInterval
 
 void
-CIBSaddlePointSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                         RobinBcCoefStrategy<NDIM>* p_bc_coef)
+CIBSaddlePointSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& u_bc_coefs,
+                                         RobinBcCoefStrategyNd* p_bc_coef)
 {
     d_u_bc_coefs = u_bc_coefs;
     d_A->setPhysicalBcCoefs(d_u_bc_coefs, p_bc_coef);
@@ -401,7 +401,7 @@ CIBSaddlePointSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<N
 } // setPhysicalBcCoefs
 
 void
-CIBSaddlePointSolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+CIBSaddlePointSolver::setPhysicalBoundaryHelper(SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     d_A->setPhysicalBoundaryHelper(bc_helper);
     d_LInv->setPhysicalBoundaryHelper(bc_helper);
@@ -410,19 +410,19 @@ CIBSaddlePointSolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalB
     return;
 } // setPhysicalBoundaryHelper
 
-Pointer<IBTK::LinearOperator>
+SAMRAIPointer<IBTK::LinearOperator>
 CIBSaddlePointSolver::getA() const
 {
     return d_A;
 } // getA
 
-Pointer<StaggeredStokesSolver>
+SAMRAIPointer<StaggeredStokesSolver>
 CIBSaddlePointSolver::getStokesSolver() const
 {
     return d_LInv;
 } // getStokesSolver
 
-Pointer<CIBMobilitySolver>
+SAMRAIPointer<CIBMobilitySolver>
 CIBSaddlePointSolver::getCIBMobilitySolver() const
 {
     return d_mob_solver;
@@ -491,7 +491,7 @@ CIBSaddlePointSolver::initializeSolverState(Vec x, Vec b)
     VecNestGetSubVecs(x, nullptr, &vx);
     VecNestGetSubVecs(b, nullptr, &vb);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vb0;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > vx0, vb0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vb[0], &vb0);
     d_hierarchy = vx0->getPatchHierarchy();
@@ -579,7 +579,7 @@ CIBSaddlePointSolver::deallocateSolverState()
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-CIBSaddlePointSolver::getFromInput(Pointer<Database> input_db)
+CIBSaddlePointSolver::getFromInput(SAMRAIPointer<Database> input_db)
 {
     // Get some options.
     if (input_db->keyExists("options_prefix")) d_options_prefix = input_db->getString("options_prefix");
@@ -630,10 +630,10 @@ CIBSaddlePointSolver::initializeKSP()
 } // initializeKSP
 
 void
-CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double>& sol_vec,
-                                             const SAMRAIVectorReal<NDIM, double>& rhs_vec)
+CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorRealNd<double>& sol_vec,
+                                             const SAMRAIVectorRealNd<double>& rhs_vec)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hier = sol_vec.getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = sol_vec.getPatchHierarchy();
     const int coarsest_ln = sol_vec.getCoarsestLevelNumber();
     const int finest_ln = sol_vec.getFinestLevelNumber();
 
@@ -664,7 +664,7 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
             d_nul_vecs[k]->allocateVectorData(d_current_time);
             d_nul_vecs[k]->setToScalar(0.0);
 
-            SAMRAIVectorReal<NDIM, double> svr_u(
+            SAMRAIVectorRealNd<double> svr_u(
                 d_object_name + "::U_nul_vec_U_" + std::to_string(k), patch_hier, coarsest_ln, finest_ln);
             svr_u.addComponent(sol_vec.getComponentVariable(0),
                                sol_vec.getComponentDescriptorIndex(0),
@@ -675,14 +675,14 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
             d_U_nul_vecs[k]->setToScalar(0.0);
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hier->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                SAMRAIPointer<PatchLevelNd> level = patch_hier->getPatchLevel(ln);
+                for (PatchLevelNd::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    Pointer<SideData<NDIM, double> > nul_data =
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                    SAMRAIPointer<SideDataNd<double> > nul_data =
                         patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
                     nul_data->getArrayData(k).fillAll(1.0);
-                    Pointer<SideData<NDIM, double> > U_nul_data =
+                    SAMRAIPointer<SideDataNd<double> > U_nul_data =
                         patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
                     U_nul_data->getArrayData(k).fillAll(1.0);
                 }
@@ -695,8 +695,8 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
         d_nul_vecs.back() = sol_vec.cloneVector(d_object_name + "::nul_vec_p");
         d_nul_vecs.back()->allocateVectorData(d_current_time);
 
-        HierarchySideDataOpsReal<NDIM, double> side_ops(patch_hier);
-        HierarchyCellDataOpsReal<NDIM, double> cell_ops(patch_hier);
+        HierarchySideDataOpsRealNd<double> side_ops(patch_hier);
+        HierarchyCellDataOpsRealNd<double> cell_ops(patch_hier);
         side_ops.setToScalar(d_nul_vecs.back()->getComponentDescriptorIndex(0), 0.0);
         cell_ops.setToScalar(d_nul_vecs.back()->getComponentDescriptorIndex(1), 1.0);
     }
@@ -707,15 +707,15 @@ CIBSaddlePointSolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     const int b_u_idx = rhs_vec.getComponentDescriptorIndex(0);
     const int b_p_idx = rhs_vec.getComponentDescriptorIndex(1);
 
-    Pointer<SideVariable<NDIM, double> > x_u_sc_var = sol_vec.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > x_p_cc_var = sol_vec.getComponentVariable(1);
-    Pointer<SideVariable<NDIM, double> > b_u_sc_var = rhs_vec.getComponentVariable(0);
-    Pointer<CellVariable<NDIM, double> > b_p_cc_var = rhs_vec.getComponentVariable(1);
+    SAMRAIPointer<SideVariableNd<double> > x_u_sc_var = sol_vec.getComponentVariable(0);
+    SAMRAIPointer<CellVariableNd<double> > x_p_cc_var = sol_vec.getComponentVariable(1);
+    SAMRAIPointer<SideVariableNd<double> > b_u_sc_var = rhs_vec.getComponentVariable(0);
+    SAMRAIPointer<CellVariableNd<double> > b_p_cc_var = rhs_vec.getComponentVariable(1);
 
-    SAMRAIVectorReal<NDIM, double> x_u_vec(d_object_name + "::x_u_vec", patch_hier, coarsest_ln, finest_ln);
-    SAMRAIVectorReal<NDIM, double> b_u_vec(d_object_name + "::b_u_vec", patch_hier, coarsest_ln, finest_ln);
-    SAMRAIVectorReal<NDIM, double> x_p_vec(d_object_name + "::x_p_vec", patch_hier, coarsest_ln, finest_ln);
-    SAMRAIVectorReal<NDIM, double> b_p_vec(d_object_name + "::b_p_vec", patch_hier, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> x_u_vec(d_object_name + "::x_u_vec", patch_hier, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> b_u_vec(d_object_name + "::b_u_vec", patch_hier, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> x_p_vec(d_object_name + "::x_p_vec", patch_hier, coarsest_ln, finest_ln);
+    SAMRAIVectorRealNd<double> b_p_vec(d_object_name + "::b_p_vec", patch_hier, coarsest_ln, finest_ln);
 
     x_u_vec.addComponent(x_u_sc_var, x_u_idx, sol_vec.getControlVolumeIndex(0));
     b_u_vec.addComponent(b_u_sc_var, b_u_idx, rhs_vec.getControlVolumeIndex(0));
@@ -908,7 +908,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     void* ctx;
     PCShellGetContext(pc, &ctx);
     auto solver = static_cast<CIBSaddlePointSolver*>(ctx);
-    Pointer<IBStrategy> ib_method_ops = solver->d_cib_strategy;
+    SAMRAIPointer<IBStrategy> ib_method_ops = solver->d_cib_strategy;
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(solver);
@@ -928,15 +928,15 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     VecNestGetSubVecs(y, &total_comps, &vy);
     VecGetSize(vx[2], &free_comps);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > vx0, vy0;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > vx0, vy0;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(vy[0], &vy0);
 
     // Get the individual components.
-    Pointer<SAMRAIVectorReal<NDIM, double> > g_h = vx0->cloneVector("");
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > g_h = vx0->cloneVector("");
     g_h->allocateVectorData();
     g_h->copyVector(vx0);
-    Pointer<SAMRAIVectorReal<NDIM, double> > u_p = vy0;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > u_p = vy0;
 
     Vec W, Lambda, F_tilde;
     W = vx[1];
@@ -974,8 +974,8 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     // 2b) U = J u + W.
     solver->d_cib_strategy->setInterpolatedVelocityVector(U, half_time);
     ib_method_ops->interpolateVelocity(u_data_idx,
-                                       std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
-                                       std::vector<Pointer<RefineSchedule<NDIM> > >(),
+                                       std::vector<SAMRAIPointer<CoarsenScheduleNd> >(),
+                                       std::vector<SAMRAIPointer<RefineScheduleNd> >(),
                                        half_time);
 
     solver->d_cib_strategy->getInterpolatedVelocity(U, half_time, beta);
@@ -1017,7 +1017,7 @@ CIBSaddlePointSolver::PCApply_SaddlePoint(PC pc, Vec x, Vec y)
     // 5) (u,p)   = L^-1(S[lambda]+g, h)
     const int g_data_idx = g_h->getComponentDescriptorIndex(0);
     solver->d_cib_strategy->setConstraintForce(Lambda, half_time, gamma);
-    ib_method_ops->spreadForce(g_data_idx, nullptr, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+    ib_method_ops->spreadForce(g_data_idx, nullptr, std::vector<SAMRAIPointer<RefineScheduleNd> >(), half_time);
     if (solver->d_normalize_spread_force)
     {
         solver->d_cib_strategy->subtractMeanConstraintForce(Lambda, g_data_idx, gamma);

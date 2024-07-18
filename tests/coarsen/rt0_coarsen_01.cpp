@@ -43,7 +43,7 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
+    PetscInitialize(&argc, &argv, nullptr, nullptr);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -51,41 +51,42 @@ main(int argc, char* argv[])
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
     {
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "rt0.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "rt0.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
 
         // Create variables and register them with the variable database.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<VariableContext> ctx = var_db->getContext("context");
-        Pointer<SideVariable<NDIM, double> > u_sc_var = new SideVariable<NDIM, double>("u_sc");
-        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVector<NDIM>(4));
-        Pointer<SideVariable<NDIM, double> > exact_sc_var = new SideVariable<NDIM, double>("exact_sc");
-        const int exact_sc_idx = var_db->registerVariableAndContext(exact_sc_var, ctx, IntVector<NDIM>(4));
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+        SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = make_samrai_shared<SideVariableNd<double> >("u_sc");
+        const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVectorNd(4));
+        SAMRAIPointer<SideVariableNd<double> > exact_sc_var = make_samrai_shared<SideVariableNd<double> >("exact_sc");
+        const int exact_sc_idx = var_db->registerVariableAndContext(exact_sc_var, ctx, IntVectorNd(4));
         // TODO u_cc_var is only for plotting (and testing): remove later
         // #define DO_PLOT
 #ifdef DO_PLOT
-        Pointer<CellVariable<NDIM, double> > u_cc_var = new CellVariable<NDIM, double>("u_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = make_samrai_shared<CellVariableNd<double> >("u_cc", NDIM);
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx);
-        Pointer<CellVariable<NDIM, double> > exact_cc_var = new CellVariable<NDIM, double>("exact_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > exact_cc_var =
+            make_samrai_shared<CellVariableNd<double> >("exact_cc", NDIM);
         const int exact_cc_idx = var_db->registerVariableAndContext(exact_cc_var, ctx);
 #endif
 
@@ -101,7 +102,7 @@ main(int argc, char* argv[])
         const int finest_level = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(u_sc_idx, 0.0);
             level->allocatePatchData(exact_sc_idx, 0.0);
 #ifdef DO_PLOT
@@ -117,7 +118,7 @@ main(int argc, char* argv[])
             u_fcn.setDataOnPatchHierarchy(u_sc_idx, u_sc_var, patch_hierarchy, 0.0);
             u_fcn.setDataOnPatchHierarchy(exact_sc_idx, exact_sc_var, patch_hierarchy, 0.0);
         }
-        Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_writer = app_initializer->getVisItDataWriter();
 
         // Fill in ghost cells. Since this is a no coarse fine interface, the actual refine operator doesn't matter. We
         // will just be copying values.
@@ -131,28 +132,28 @@ main(int argc, char* argv[])
         // cells.
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_sc_idx);
-                Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_sc_idx);
+                SAMRAIPointer<PatchGeometryNd> pgeom = patch->getPatchGeometry();
 
-                tbox::Array<BoundaryBox<NDIM> > bdry_boxes =
+                tbox::Array<BoundaryBoxNd> bdry_boxes =
                     PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                 for (int i = 0; i < bdry_boxes.size(); ++i)
                 {
-                    const BoundaryBox<NDIM>& bdry_box = bdry_boxes[i];
+                    const BoundaryBoxNd& bdry_box = bdry_boxes[i];
                     const int bdry_axis = bdry_box.getLocationIndex() / 2;
                     const int upper_lower = bdry_box.getLocationIndex() % 2;
                     if (!pgeom->getTouchesRegularBoundary(bdry_axis, upper_lower)) continue;
-                    const Box<NDIM>& fill_box =
+                    const BoxNd& fill_box =
                         pgeom->getBoundaryFillBox(bdry_box, patch->getBox(), u_data->getGhostCellWidth());
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for (SideIterator<NDIM> si(fill_box, axis); si; si++)
+                        for (SideIteratorNd si(fill_box, axis); si; si++)
                         {
-                            const SideIndex<NDIM>& idx = si();
+                            const SideIndexNd& idx = si();
                             if (!patch->getBox().contains(idx.toCell(0)) && !patch->getBox().contains(idx.toCell(1)))
                                 (*u_data)(idx) = std::numeric_limits<double>::quiet_NaN();
                         }
@@ -163,17 +164,17 @@ main(int argc, char* argv[])
 
         // The rest is just book-keeping, this is the actual test:
         {
-            IntVector<NDIM> ratio;
+            IntVectorNd ratio;
             for (int d = 0; d < NDIM; ++d) ratio(d) = 4;
-            Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = new IBTK::CartSideDoubleRT0Coarsen(ratio);
+            auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = make_samrai_shared<IBTK::CartSideDoubleRT0Coarsen>(ratio);
             coarsen_alg->registerCoarsen(u_sc_idx, u_sc_idx, coarsen_op);
-            Pointer<CoarsenSchedule<NDIM> > coarsen_sched =
+            SAMRAIPointer<CoarsenScheduleNd> coarsen_sched =
                 coarsen_alg->createSchedule(patch_hierarchy->getPatchLevel(0), patch_hierarchy->getPatchLevel(1));
             coarsen_sched->coarsenData();
         }
 
-        HierarchySideDataOpsReal<NDIM, double> hier_data_ops(patch_hierarchy);
+        HierarchySideDataOpsRealNd<double> hier_data_ops(patch_hierarchy);
         hier_data_ops.subtract(exact_sc_idx, exact_sc_idx, u_sc_idx, false);
 
         pout << "max norm error = " << hier_data_ops.maxNorm(exact_sc_idx) << '\n';
@@ -188,13 +189,13 @@ main(int argc, char* argv[])
 #endif
 
         // Check the values on the coarsest level.
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(0);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(0);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
             pout << "patch number " << p() << '\n';
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > e_data = patch->getPatchData(exact_sc_idx);
-            const Box<NDIM> patch_box = patch->getBox();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<SideDataNd<double> > e_data = patch->getPatchData(exact_sc_idx);
+            const BoxNd patch_box = patch->getBox();
 
             // same as SideData::print, but elides zero values. We don't
             // print any information about the patch when no values are
@@ -205,8 +206,8 @@ main(int argc, char* argv[])
                 for (int d = 0; d < e_data->getDepth(); ++d)
                 {
                     pout << "Array depth = " << d << std::endl;
-                    const ArrayData<NDIM, double>& data = e_data->getArrayData(axis);
-                    for (SideIterator<NDIM> i(patch_box, axis); i; i++)
+                    const ArrayDataNd<double>& data = e_data->getArrayData(axis);
+                    for (SideIteratorNd i(patch_box, axis); i; i++)
                     {
                         const double value = data(i(), d);
                         if (std::abs(value) > 1e-12)

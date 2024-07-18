@@ -47,7 +47,7 @@ namespace IBTK
  * SAMRAI::xfer::RefineOperator object which prolongs cell-centered double
  * precision patch data via quadratic interpolation.
  */
-class CartCellDoubleQuadraticRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartCellDoubleQuadraticRefine : public SAMRAI::xfer::RefineOperatorNd
 {
 public:
     /*!
@@ -69,7 +69,7 @@ public:
      * Return true if the refining operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+    bool findRefineOperator(const SAMRAIPointer<SAMRAI::hier::VariableNd>& var,
                             const std::string& op_name) const override;
 
     /*!
@@ -91,7 +91,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each refining operator.
      */
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const override;
+    SAMRAI::hier::IntVectorNd getStencilWidth() const override;
 
     /*!
      * Refine the source component on the fine patch to the destination
@@ -100,12 +100,12 @@ public:
      * is guaranteed to contain sufficient data for the stencil width of the
      * refining operator.
      */
-    void refine(SAMRAI::hier::Patch<NDIM>& fine,
-                const SAMRAI::hier::Patch<NDIM>& coarse,
+    void refine(SAMRAI::hier::PatchNd& fine,
+                const SAMRAI::hier::PatchNd& coarse,
                 int dst_component,
                 int src_component,
-                const SAMRAI::hier::Box<NDIM>& fine_box,
-                const SAMRAI::hier::IntVector<NDIM>& ratio) const override;
+                const SAMRAI::hier::BoxNd& fine_box,
+                const SAMRAI::hier::IntVectorNd& ratio) const override;
 
     //\}
 

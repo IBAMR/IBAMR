@@ -233,8 +233,8 @@ private:
          * \brief Build an IBBeamForceSpec object by unpacking data from the
          * data stream.
          */
-        SAMRAI::tbox::Pointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                                             const SAMRAI::hier::IntVector<NDIM>& offset) override;
+        IBTK::SAMRAIPointer<IBTK::Streamable> unpackStream(SAMRAI::tbox::AbstractStream& stream,
+                                                           const SAMRAI::hier::IntVectorNd& offset) override;
 
     private:
         /*!

@@ -116,15 +116,15 @@ static Timer* t_deallocate_operator_state;
 StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrategy(
     const std::string& object_name,
     const int ghost_cell_width,
-    const Pointer<Database> input_db,
+    const SAMRAIPointer<Database> input_db,
     const std::string& default_options_prefix)
     : FACPreconditionerStrategy(object_name),
       d_U_problem_coefs(object_name + "::U_problem_coefs"),
       d_default_U_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_U_bc_coef", Pointer<Database>(nullptr))),
-      d_U_bc_coefs(std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, d_default_U_bc_coef)),
+          new LocationIndexRobinBcCoefsNd(d_object_name + "::default_U_bc_coef", SAMRAIPointer<Database>(nullptr))),
+      d_U_bc_coefs(std::vector<RobinBcCoefStrategyNd*>(NDIM, d_default_U_bc_coef)),
       d_default_P_bc_coef(
-          new LocationIndexRobinBcCoefs<NDIM>(d_object_name + "::default_P_bc_coef", Pointer<Database>(nullptr))),
+          new LocationIndexRobinBcCoefsNd(d_object_name + "::default_P_bc_coef", SAMRAIPointer<Database>(nullptr))),
       d_P_bc_coef(d_default_P_bc_coef),
       d_gcw(ghost_cell_width),
       d_coarse_solver_default_options_prefix(default_options_prefix + "level_0_")
@@ -155,11 +155,11 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     setCoarseSolverType(d_coarse_solver_type);
 
     // Setup scratch variables.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    const IntVector<NDIM> side_ghosts = d_gcw;
-    Pointer<SideVariable<NDIM, double> > side_scratch_var =
-        new SideVariable<NDIM, double>(d_object_name + "::side_scratch");
+    const IntVectorNd side_ghosts = d_gcw;
+    SAMRAIPointer<SideVariableNd<double> > side_scratch_var =
+        make_samrai_shared<SideVariableNd<double> >(d_object_name + "::side_scratch");
     if (var_db->checkVariableExists(side_scratch_var->getName()))
     {
         side_scratch_var = var_db->getVariable(side_scratch_var->getName());
@@ -167,9 +167,9 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
         var_db->removePatchDataIndex(d_side_scratch_idx);
     }
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
-    const IntVector<NDIM> cell_ghosts = d_gcw;
-    Pointer<CellVariable<NDIM, double> > cell_scratch_var =
-        new CellVariable<NDIM, double>(d_object_name + "::cell_scratch");
+    const IntVectorNd cell_ghosts = d_gcw;
+    SAMRAIPointer<CellVariableNd<double> > cell_scratch_var =
+        make_samrai_shared<CellVariableNd<double> >(d_object_name + "::cell_scratch");
     if (var_db->checkVariableExists(cell_scratch_var->getName()))
     {
         cell_scratch_var = var_db->getVariable(cell_scratch_var->getName());
@@ -227,8 +227,8 @@ StaggeredStokesFACPreconditionerStrategy::setComponentsHaveNullspace(const bool 
 } // setComponentsHaveNullspace
 
 void
-StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                                             RobinBcCoefStrategy<NDIM>* P_bc_coef)
+StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& U_bc_coefs,
+                                                             RobinBcCoefStrategyNd* P_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_bc_coefs.size() == NDIM);
@@ -259,7 +259,7 @@ StaggeredStokesFACPreconditionerStrategy::setPhysicalBcCoefs(const std::vector<R
 
 void
 StaggeredStokesFACPreconditionerStrategy::setPhysicalBoundaryHelper(
-    Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+    SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_helper);
@@ -358,21 +358,21 @@ StaggeredStokesFACPreconditionerStrategy::setRestrictionMethods(const std::strin
 } // setRestrictionMethods
 
 void
-StaggeredStokesFACPreconditionerStrategy::setToZero(SAMRAIVectorReal<NDIM, double>& vec, int level_num)
+StaggeredStokesFACPreconditionerStrategy::setToZero(SAMRAIVectorRealNd<double>& vec, int level_num)
 {
     const int U_data_idx = vec.getComponentDescriptorIndex(0);
     const int P_data_idx = vec.getComponentDescriptorIndex(1);
     static const bool interior_only = false;
-    HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, level_num, level_num);
+    HierarchySideDataOpsRealNd<double> level_sc_data_ops(d_hierarchy, level_num, level_num);
     level_sc_data_ops.setToScalar(U_data_idx, 0.0, interior_only);
-    HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(d_hierarchy, level_num, level_num);
+    HierarchyCellDataOpsRealNd<double> level_cc_data_ops(d_hierarchy, level_num, level_num);
     level_cc_data_ops.setToScalar(P_data_idx, 0.0, interior_only);
     return;
 } // setToZero
 
 void
-StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorReal<NDIM, double>& src,
-                                                           SAMRAIVectorReal<NDIM, double>& dst,
+StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorRealNd<double>& src,
+                                                           SAMRAIVectorRealNd<double>& dst,
                                                            int dst_ln)
 {
     IBAMR_TIMER_START(t_restrict_residual);
@@ -387,13 +387,13 @@ StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorRea
 
     if (U_src_idx != U_dst_idx)
     {
-        HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, dst_ln, dst_ln);
+        HierarchySideDataOpsRealNd<double> level_sc_data_ops(d_hierarchy, dst_ln, dst_ln);
         static const bool interior_only = false;
         level_sc_data_ops.copyData(U_dst_idx, U_src_idx, interior_only);
     }
     if (P_src_idx != P_dst_idx)
     {
-        HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(d_hierarchy, dst_ln, dst_ln);
+        HierarchyCellDataOpsRealNd<double> level_cc_data_ops(d_hierarchy, dst_ln, dst_ln);
         static const bool interior_only = false;
         level_cc_data_ops.copyData(P_dst_idx, P_src_idx, interior_only);
     }
@@ -404,8 +404,8 @@ StaggeredStokesFACPreconditionerStrategy::restrictResidual(const SAMRAIVectorRea
 } // restrictResidual
 
 void
-StaggeredStokesFACPreconditionerStrategy::prolongError(const SAMRAIVectorReal<NDIM, double>& src,
-                                                       SAMRAIVectorReal<NDIM, double>& dst,
+StaggeredStokesFACPreconditionerStrategy::prolongError(const SAMRAIVectorRealNd<double>& src,
+                                                       SAMRAIVectorRealNd<double>& dst,
                                                        int dst_ln)
 {
     IBAMR_TIMER_START(t_prolong_error);
@@ -427,8 +427,8 @@ StaggeredStokesFACPreconditionerStrategy::prolongError(const SAMRAIVectorReal<ND
 } // prolongError
 
 void
-StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorReal<NDIM, double>& src,
-                                                                 SAMRAIVectorReal<NDIM, double>& dst,
+StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVectorRealNd<double>& src,
+                                                                 SAMRAIVectorRealNd<double>& dst,
                                                                  int dst_ln)
 {
     IBAMR_TIMER_START(t_prolong_error_and_correct);
@@ -447,18 +447,18 @@ StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVec
     static const bool interior_only = false;
     if (U_src_idx != U_dst_idx)
     {
-        HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops_coarse(d_hierarchy, dst_ln - 1, dst_ln - 1);
+        HierarchySideDataOpsRealNd<double> level_sc_data_ops_coarse(d_hierarchy, dst_ln - 1, dst_ln - 1);
         level_sc_data_ops_coarse.add(U_dst_idx, U_dst_idx, U_src_idx, interior_only);
     }
     if (P_src_idx != P_dst_idx)
     {
-        HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops_coarse(d_hierarchy, dst_ln - 1, dst_ln - 1);
+        HierarchyCellDataOpsRealNd<double> level_cc_data_ops_coarse(d_hierarchy, dst_ln - 1, dst_ln - 1);
         level_cc_data_ops_coarse.add(P_dst_idx, P_dst_idx, P_src_idx, interior_only);
     }
     xeqScheduleProlongation(scratch_idxs, src_idxs, dst_ln);
-    HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
+    HierarchySideDataOpsRealNd<double> level_sc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
     level_sc_data_ops_fine.add(U_dst_idx, U_dst_idx, d_side_scratch_idx, interior_only);
-    HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
+    HierarchyCellDataOpsRealNd<double> level_cc_data_ops_fine(d_hierarchy, dst_ln, dst_ln);
     level_cc_data_ops_fine.add(P_dst_idx, P_dst_idx, d_cell_scratch_idx, interior_only);
 
     IBAMR_TIMER_STOP(t_prolong_error_and_correct);
@@ -466,8 +466,8 @@ StaggeredStokesFACPreconditionerStrategy::prolongErrorAndCorrect(const SAMRAIVec
 } // prolongErrorAndCorrect
 
 bool
-StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<NDIM, double>& error,
-                                                             const SAMRAIVectorReal<NDIM, double>& residual,
+StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorRealNd<double>& error,
+                                                             const SAMRAIVectorRealNd<double>& residual,
                                                              int coarsest_ln)
 {
 #if !defined(NDEBUG)
@@ -514,9 +514,9 @@ StaggeredStokesFACPreconditionerStrategy::solveCoarsestLevel(SAMRAIVectorReal<ND
 } // solveCoarsestLevel
 
 void
-StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM, double>& residual,
-                                                          const SAMRAIVectorReal<NDIM, double>& solution,
-                                                          const SAMRAIVectorReal<NDIM, double>& rhs,
+StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorRealNd<double>& residual,
+                                                          const SAMRAIVectorRealNd<double>& solution,
+                                                          const SAMRAIVectorRealNd<double>& rhs,
                                                           int coarsest_level_num,
                                                           int finest_level_num)
 {
@@ -524,20 +524,22 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
     const int U_sol_idx = solution.getComponentDescriptorIndex(0);
     const int U_rhs_idx = rhs.getComponentDescriptorIndex(0);
 
-    const Pointer<SideVariable<NDIM, double> > U_res_sc_var = residual.getComponentVariable(0);
-    const Pointer<SideVariable<NDIM, double> > U_sol_sc_var = solution.getComponentVariable(0);
+    const SAMRAIPointer<SideVariableNd<double> > U_res_sc_var = residual.getComponentVariable(0);
+    const SAMRAIPointer<SideVariableNd<double> > U_sol_sc_var = solution.getComponentVariable(0);
 
     const int P_res_idx = residual.getComponentDescriptorIndex(1);
     const int P_sol_idx = solution.getComponentDescriptorIndex(1);
     const int P_rhs_idx = rhs.getComponentDescriptorIndex(1);
 
-    const Pointer<CellVariable<NDIM, double> > P_res_cc_var = residual.getComponentVariable(1);
-    const Pointer<CellVariable<NDIM, double> > P_sol_cc_var = solution.getComponentVariable(1);
+    const SAMRAIPointer<CellVariableNd<double> > P_res_cc_var = residual.getComponentVariable(1);
+    const SAMRAIPointer<CellVariableNd<double> > P_sol_cc_var = solution.getComponentVariable(1);
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, true);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, true);
+    SAMRAIPointer<VariableFillPatternNd> sc_fill_pattern =
+        make_samrai_shared<SideNoCornersFillPattern>(d_gcw, false, false, true);
+    SAMRAIPointer<VariableFillPatternNd> cc_fill_pattern =
+        make_samrai_shared<CellNoCornersFillPattern>(d_gcw, false, false, true);
     InterpolationTransactionComponent U_scratch_component(U_sol_idx,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
@@ -619,7 +621,7 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                                 1.0,
                                                 U_res_idx,
                                                 U_res_sc_var);
-    HierarchySideDataOpsReal<NDIM, double> level_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    HierarchySideDataOpsRealNd<double> level_sc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     level_sc_data_ops.axpy(U_res_idx, -1.0, U_res_idx, U_rhs_idx, false);
     d_level_math_ops[finest_level_num]->div(P_res_idx,
                                             P_res_cc_var,
@@ -629,14 +631,14 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
                                             nullptr,
                                             d_new_time,
                                             /*cf_bdry_synch*/ true);
-    HierarchyCellDataOpsReal<NDIM, double> level_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
+    HierarchyCellDataOpsRealNd<double> level_cc_data_ops(d_hierarchy, coarsest_level_num, finest_level_num);
     level_cc_data_ops.axpy(P_res_idx, -1.0, P_res_idx, P_rhs_idx, false);
     return;
 } // computeResidual
 
 void
-StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& solution,
-                                                                  const SAMRAIVectorReal<NDIM, double>& rhs)
+StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVectorRealNd<double>& solution,
+                                                                  const SAMRAIVectorRealNd<double>& rhs)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -722,19 +724,19 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     // Allocate scratch data.
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (!level->checkAllocated(d_side_scratch_idx)) level->allocatePatchData(d_side_scratch_idx);
         if (!level->checkAllocated(d_cell_scratch_idx)) level->allocatePatchData(d_cell_scratch_idx);
     }
 
     // Get the transfer operators.
-    Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> geometry = d_hierarchy->getGridGeometry();
     IBAMR_DO_ONCE(geometry->addSpatialCoarsenOperator(new CartSideDoubleCubicCoarsen());
                   geometry->addSpatialCoarsenOperator(new CartSideDoubleRT0Coarsen());
                   geometry->addSpatialCoarsenOperator(new CartCellDoubleCubicCoarsen());
                   geometry->addSpatialRefineOperator(new CartSideDoubleRT0Refine()));
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<Variable<NDIM> > var;
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    SAMRAIPointer<VariableNd> var;
 
     var_db->mapIndexToVariable(d_side_scratch_idx, var);
     d_U_prolongation_refine_operator = geometry->lookupRefineOperator(var, d_U_prolongation_method);
@@ -759,7 +761,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     // Make space for saving communication schedules.  There is no need to
     // delete the old schedules first because we have deallocated the solver
     // state above.
-    std::vector<RefinePatchStrategy<NDIM>*> prolongation_refine_patch_strategies;
+    std::vector<RefinePatchStrategyNd*> prolongation_refine_patch_strategies;
     prolongation_refine_patch_strategies.push_back(d_U_cf_bdry_op);
     prolongation_refine_patch_strategies.push_back(d_P_cf_bdry_op);
     prolongation_refine_patch_strategies.push_back(d_U_bc_op);
@@ -772,10 +774,10 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_ghostfill_nocoarse_refine_schedules.resize(d_finest_ln + 1);
     d_synch_refine_schedules.resize(d_finest_ln + 1);
 
-    d_prolongation_refine_algorithm = new RefineAlgorithm<NDIM>();
-    d_restriction_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
-    d_ghostfill_nocoarse_refine_algorithm = new RefineAlgorithm<NDIM>();
-    d_synch_refine_algorithm = new RefineAlgorithm<NDIM>();
+    d_prolongation_refine_algorithm = new RefineAlgorithmNd();
+    d_restriction_coarsen_algorithm = new CoarsenAlgorithmNd();
+    d_ghostfill_nocoarse_refine_algorithm = new RefineAlgorithmNd();
+    d_synch_refine_algorithm = new RefineAlgorithmNd();
 
     d_prolongation_refine_algorithm->registerRefine(d_side_scratch_idx,
                                                     solution.getComponentDescriptorIndex(0),
@@ -796,21 +798,21 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
                                                           solution.getComponentDescriptorIndex(0),
                                                           solution.getComponentDescriptorIndex(0),
-                                                          Pointer<RefineOperator<NDIM> >(),
+                                                          SAMRAIPointer<RefineOperatorNd>(),
                                                           d_U_op_stencil_fill_pattern);
     d_ghostfill_nocoarse_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(1),
                                                           solution.getComponentDescriptorIndex(1),
                                                           solution.getComponentDescriptorIndex(1),
-                                                          Pointer<RefineOperator<NDIM> >(),
+                                                          SAMRAIPointer<RefineOperatorNd>(),
                                                           d_P_op_stencil_fill_pattern);
 
     d_synch_refine_algorithm->registerRefine(solution.getComponentDescriptorIndex(0),
                                              solution.getComponentDescriptorIndex(0),
                                              solution.getComponentDescriptorIndex(0),
-                                             Pointer<RefineOperator<NDIM> >(),
+                                             SAMRAIPointer<RefineOperatorNd>(),
                                              d_U_synch_fill_pattern);
 
-    std::vector<RefinePatchStrategy<NDIM>*> bc_op_ptrs(2);
+    std::vector<RefinePatchStrategyNd*> bc_op_ptrs(2);
     bc_op_ptrs[0] = d_U_bc_op;
     bc_op_ptrs[1] = d_P_bc_op;
     d_U_P_bc_op = new RefinePatchStrategySet(bc_op_ptrs.begin(), bc_op_ptrs.end(), false);
@@ -819,7 +821,7 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     {
         d_prolongation_refine_schedules[dst_ln] =
             d_prolongation_refine_algorithm->createSchedule(d_hierarchy->getPatchLevel(dst_ln),
-                                                            Pointer<PatchLevel<NDIM> >(),
+                                                            SAMRAIPointer<PatchLevelNd>(),
                                                             dst_ln - 1,
                                                             d_hierarchy,
                                                             d_prolongation_refine_patch_strategy.getPointer());
@@ -872,7 +874,7 @@ StaggeredStokesFACPreconditionerStrategy::deallocateOperatorState()
     // Deallocate scratch data.
     for (int ln = coarsest_reset_ln; ln <= std::min(d_finest_ln, finest_reset_ln); ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         if (level->checkAllocated(d_side_scratch_idx)) level->deallocatePatchData(d_side_scratch_idx);
         if (level->checkAllocated(d_cell_scratch_idx)) level->deallocatePatchData(d_cell_scratch_idx);
     }
@@ -951,7 +953,7 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleProlongation(const std::pai
     d_P_bc_op->setHomogeneousBc(true);
     d_P_cf_bdry_op->setPatchDataIndex(P_dst_idx);
 
-    RefineAlgorithm<NDIM> refine_alg;
+    RefineAlgorithmNd refine_alg;
     refine_alg.registerRefine(
         U_dst_idx, U_src_idx, U_dst_idx, d_U_prolongation_refine_operator, d_U_op_stencil_fill_pattern);
     refine_alg.registerRefine(
@@ -973,7 +975,7 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleRestriction(const std::pair
     const int P_dst_idx = dst_idxs.second;
     const int P_src_idx = src_idxs.second;
 
-    CoarsenAlgorithm<NDIM> coarsen_alg;
+    CoarsenAlgorithmNd coarsen_alg;
     coarsen_alg.registerCoarsen(U_dst_idx, U_src_idx, d_U_restriction_coarsen_operator);
     coarsen_alg.registerCoarsen(P_dst_idx, P_src_idx, d_P_restriction_coarsen_operator);
     coarsen_alg.resetSchedule(d_restriction_coarsen_schedules[dst_ln]);
@@ -994,11 +996,11 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const std
     d_P_bc_op->setPatchDataIndex(P_dst_idx);
     d_P_bc_op->setHomogeneousBc(true);
 
-    RefineAlgorithm<NDIM> refine_alg;
+    RefineAlgorithmNd refine_alg;
     refine_alg.registerRefine(
-        U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM> >(), d_U_op_stencil_fill_pattern);
+        U_dst_idx, U_dst_idx, U_dst_idx, SAMRAIPointer<RefineOperatorNd>(), d_U_op_stencil_fill_pattern);
     refine_alg.registerRefine(
-        P_dst_idx, P_dst_idx, P_dst_idx, Pointer<RefineOperator<NDIM> >(), d_P_op_stencil_fill_pattern);
+        P_dst_idx, P_dst_idx, P_dst_idx, SAMRAIPointer<RefineOperatorNd>(), d_P_op_stencil_fill_pattern);
     refine_alg.resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
     d_ghostfill_nocoarse_refine_schedules[dst_ln]->fillData(d_new_time);
     d_ghostfill_nocoarse_refine_algorithm->resetSchedule(d_ghostfill_nocoarse_refine_schedules[dst_ln]);
@@ -1008,9 +1010,9 @@ StaggeredStokesFACPreconditionerStrategy::xeqScheduleGhostFillNoCoarse(const std
 void
 StaggeredStokesFACPreconditionerStrategy::xeqScheduleDataSynch(const int U_dst_idx, const int dst_ln)
 {
-    RefineAlgorithm<NDIM> refine_alg;
+    RefineAlgorithmNd refine_alg;
     refine_alg.registerRefine(
-        U_dst_idx, U_dst_idx, U_dst_idx, Pointer<RefineOperator<NDIM> >(), d_U_synch_fill_pattern);
+        U_dst_idx, U_dst_idx, U_dst_idx, SAMRAIPointer<RefineOperatorNd>(), d_U_synch_fill_pattern);
     refine_alg.resetSchedule(d_synch_refine_schedules[dst_ln]);
     d_synch_refine_schedules[dst_ln]->fillData(d_new_time);
     d_synch_refine_algorithm->resetSchedule(d_synch_refine_schedules[dst_ln]);

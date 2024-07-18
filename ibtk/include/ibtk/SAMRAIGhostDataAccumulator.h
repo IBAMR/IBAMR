@@ -44,9 +44,9 @@ public:
     /*!
      * Constructor.
      */
-    SAMRAIGhostDataAccumulator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > patch_hierarchy,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                               const SAMRAI::hier::IntVector<NDIM> gcw,
+    SAMRAIGhostDataAccumulator(SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> patch_hierarchy,
+                               SAMRAIPointer<SAMRAI::hier::VariableNd> var,
+                               const SAMRAI::hier::IntVectorNd gcw,
                                const int coarsest_ln,
                                const int finest_ln);
 
@@ -65,17 +65,17 @@ protected:
     /*!
      * Pointer to the patch hierarchy under consideration.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> d_hierarchy;
 
     /*!
      * Pointer to the variable whose data layout we copied.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_var;
+    SAMRAIPointer<SAMRAI::hier::VariableNd> d_var;
 
     /*!
      * Ghost cell width.
      */
-    const SAMRAI::hier::IntVector<NDIM> d_gcw;
+    const SAMRAI::hier::IntVectorNd d_gcw;
 
     /*!
      * Coarsest level of the patch hierarchy on which we work.

@@ -66,7 +66,7 @@ EdgeDataSynchronization::~EdgeDataSynchronization()
 
 void
 EdgeDataSynchronization::initializeOperatorState(const SynchronizationTransactionComponent& transaction_comp,
-                                                 Pointer<PatchHierarchy<NDIM> > hierarchy)
+                                                 SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
     initializeOperatorState(std::vector<SynchronizationTransactionComponent>(1, transaction_comp), hierarchy);
     return;
@@ -75,7 +75,7 @@ EdgeDataSynchronization::initializeOperatorState(const SynchronizationTransactio
 void
 EdgeDataSynchronization::initializeOperatorState(
     const std::vector<SynchronizationTransactionComponent>& transaction_comps,
-    Pointer<PatchHierarchy<NDIM> > hierarchy)
+    SAMRAIPointer<PatchHierarchyNd> hierarchy)
 {
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
@@ -90,21 +90,21 @@ EdgeDataSynchronization::initializeOperatorState(
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Setup cached coarsen algorithms and schedules.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_coarsen_alg = new CoarsenAlgorithmNd();
     for (const auto& transaction_comp : d_transaction_comps)
     {
         const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<Variable<NDIM> > var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -115,14 +115,14 @@ EdgeDataSynchronization::initializeOperatorState(
         }
     }
 
-    CoarsenPatchStrategy<NDIM>* coarsen_strategy = nullptr;
+    CoarsenPatchStrategyNd* coarsen_strategy = nullptr;
     d_coarsen_scheds.resize(d_finest_ln + 1);
     if (registered_coarsen_op)
     {
         for (int ln = d_coarsest_ln + 1; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            Pointer<PatchLevel<NDIM> > coarser_level = d_hierarchy->getPatchLevel(ln - 1);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(ln - 1);
             d_coarsen_scheds[ln] = d_coarsen_alg->createSchedule(coarser_level, level, coarsen_strategy);
         }
     }
@@ -130,20 +130,20 @@ EdgeDataSynchronization::initializeOperatorState(
     // Setup cached refine algorithms and schedules.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_refine_alg[axis] = new RefineAlgorithm<NDIM>();
+        d_refine_alg[axis] = new RefineAlgorithmNd();
         for (const auto& transaction_comp : d_transaction_comps)
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<Variable<NDIM> > var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(data_idx, var);
-            Pointer<EdgeVariable<NDIM, double> > ec_var = var;
+            SAMRAIPointer<EdgeVariableNd<double> > ec_var = var;
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::initializeOperatorState():\n"
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperator<NDIM> > refine_op = nullptr;
-            Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
+            SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
+            SAMRAIPointer<VariableFillPatternNd> fill_pattern = make_samrai_shared<EdgeSynchCopyFillPattern>(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
@@ -154,7 +154,7 @@ EdgeDataSynchronization::initializeOperatorState(
         d_refine_scheds[axis].resize(d_finest_ln + 1);
         for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
             d_refine_scheds[axis][ln] = d_refine_alg[axis]->createSchedule(level);
         }
     }
@@ -198,21 +198,21 @@ EdgeDataSynchronization::resetTransactionComponents(
     d_transaction_comps = transaction_comps;
 
     // Reset cached coarsen algorithms and schedules.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     bool registered_coarsen_op = false;
-    d_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_coarsen_alg = new CoarsenAlgorithmNd();
     for (const auto& transaction_comp : d_transaction_comps)
     {
         const std::string& coarsen_op_name = transaction_comp.d_coarsen_op_name;
         if (coarsen_op_name != "NONE")
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<Variable<NDIM> > var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(data_idx, var);
 #if !defined(NDEBUG)
             TBOX_ASSERT(var);
 #endif
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = d_grid_geom->lookupCoarsenOperator(var, coarsen_op_name);
 #if !defined(NDEBUG)
             TBOX_ASSERT(coarsen_op);
 #endif
@@ -234,20 +234,20 @@ EdgeDataSynchronization::resetTransactionComponents(
     // Reset cached refine algorithms and schedules.
     for (unsigned int axis = 0; axis < NDIM; ++axis)
     {
-        d_refine_alg[axis] = new RefineAlgorithm<NDIM>();
+        d_refine_alg[axis] = new RefineAlgorithmNd();
         for (const auto& transaction_comp : d_transaction_comps)
         {
             const int data_idx = transaction_comp.d_data_idx;
-            Pointer<Variable<NDIM> > var;
+            SAMRAIPointer<VariableNd> var;
             var_db->mapIndexToVariable(data_idx, var);
-            Pointer<EdgeVariable<NDIM, double> > ec_var = var;
+            SAMRAIPointer<EdgeVariableNd<double> > ec_var = var;
             if (!ec_var)
             {
                 TBOX_ERROR("EdgeDataSynchronization::resetTransactionComponents():\n"
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
-            Pointer<RefineOperator<NDIM> > refine_op = nullptr;
-            Pointer<VariableFillPattern<NDIM> > fill_pattern = new EdgeSynchCopyFillPattern(axis);
+            SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
+            SAMRAIPointer<VariableFillPatternNd> fill_pattern = make_samrai_shared<EdgeSynchCopyFillPattern>(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
@@ -291,7 +291,7 @@ EdgeDataSynchronization::synchronizeData(const double fill_time)
 #endif
     for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
 
         // Synchronize data on the current level.
         for (unsigned int axis = 0; axis < NDIM; ++axis)

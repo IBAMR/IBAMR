@@ -22,7 +22,7 @@ main(int argc, char** argv)
     using namespace IBTK;
 
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
-    tbox::Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv);
 
     auto tuple = setup_hierarchy<NDIM>(app_initializer);
     auto patch_hierarchy = std::get<0>(tuple);
@@ -33,10 +33,10 @@ main(int argc, char** argv)
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             tbox::pout << "  Level = " << ln << '\n';
-            tbox::Pointer<hier::PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (hier::PatchLevel<NDIM>::Iterator it(level); it; it++)
+            SAMRAIPointer<hier::PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (hier::PatchLevelNd::Iterator it(level); it; it++)
             {
-                tbox::Pointer<hier::Patch<NDIM> > patch = level->getPatch(it());
+                SAMRAIPointer<hier::PatchNd> patch = level->getPatch(it());
                 const auto index = IndexUtilities::getCellIndex(p, patch->getPatchGeometry(), patch->getBox());
                 IBTK::Vector c0, c1;
                 c0 = IndexUtilities::getCellCenter(*patch, index);

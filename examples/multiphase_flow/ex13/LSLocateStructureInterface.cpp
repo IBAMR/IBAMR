@@ -23,7 +23,7 @@
 
 void
 callLSLocateStructureInterfaceCallbackFunction(int D_idx,
-                                               Pointer<HierarchyMathOps> hier_math_ops,
+                                               SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                double time,
                                                bool initial_time,
                                                void* ctx)
@@ -37,8 +37,8 @@ callLSLocateStructureInterfaceCallbackFunction(int D_idx,
 
 /////////////////////////////// PUBLIC //////////////////////////////////////
 LSLocateStructureInterface::LSLocateStructureInterface(const std::string& object_name,
-                                                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                       Pointer<CellVariable<NDIM, double> > ls_var,
+                                                       SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                                       SAMRAIPointer<CellVariableNd<double> > ls_var,
                                                        LDataManager* lag_data_manager,
                                                        double vol_elem,
                                                        RectangleInterface* rectangle)
@@ -61,7 +61,7 @@ LSLocateStructureInterface::~LSLocateStructureInterface()
 
 void
 LSLocateStructureInterface::setLevelSetPatchData(int D_idx,
-                                                 Pointer<HierarchyMathOps> hier_math_ops,
+                                                 SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                  double time,
                                                  bool initial_time)
 {
@@ -73,7 +73,7 @@ LSLocateStructureInterface::setLevelSetPatchData(int D_idx,
 
 void
 LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
-                                                           Pointer<HierarchyMathOps> hier_math_ops,
+                                                           SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                                            double /*time*/,
                                                            bool /*initial_time*/)
 {
@@ -85,7 +85,7 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
         TBOX_ERROR("Presently not implemented for NDIM != 3");
     }
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -98,21 +98,21 @@ LSLocateStructureInterface::setLevelSetPatchDataByGeometry(int D_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(D_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
+            SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(D_idx);
+            for (BoxNd::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                CellIndexNd ci(it());
 
                 // Get physical coordinates
                 IBTK::Vector X = IBTK::Vector::Zero();
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
-                const SAMRAI::hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+                const SAMRAI::hier::IndexNd& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();
                 for (int d = 0; d < NDIM; ++d)
                 {

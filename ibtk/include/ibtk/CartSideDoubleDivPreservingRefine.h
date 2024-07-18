@@ -46,7 +46,7 @@ namespace IBTK
  * precision patch data via conservative linear interpolation with divergence-
  * and curl-preserving corrections.
  */
-class CartSideDoubleDivPreservingRefine : public SAMRAI::xfer::RefinePatchStrategy<NDIM>
+class CartSideDoubleDivPreservingRefine : public SAMRAI::xfer::RefinePatchStrategyNd
 {
 public:
     /*!
@@ -55,10 +55,10 @@ public:
     CartSideDoubleDivPreservingRefine(int u_dst_idx,
                                       int u_src_idx,
                                       int indicator_idx,
-                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > refine_op,
-                                      SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > coarsen_op,
+                                      SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> refine_op,
+                                      SAMRAIPointer<SAMRAI::xfer::CoarsenOperatorNd> coarsen_op,
                                       double fill_time,
-                                      SAMRAI::xfer::RefinePatchStrategy<NDIM>* phys_bdry_op);
+                                      SAMRAI::xfer::RefinePatchStrategyNd* phys_bdry_op);
 
     /*!
      * \brief Virtual destructor.
@@ -92,16 +92,16 @@ public:
      *all
      *registered scratch components.
      */
-    virtual void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+    virtual void setPhysicalBoundaryConditions(SAMRAI::hier::PatchNd& patch,
                                                double fill_time,
-                                               const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
+                                               const SAMRAI::hier::IntVectorNd& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    virtual SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
+    virtual SAMRAI::hier::IntVectorNd getRefineOpStencilWidth() const override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -120,10 +120,10 @@ public:
      *fine
      *patches.
      */
-    virtual void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                                  const SAMRAI::hier::Patch<NDIM>& coarse,
-                                  const SAMRAI::hier::Box<NDIM>& fine_box,
-                                  const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    virtual void preprocessRefine(SAMRAI::hier::PatchNd& fine,
+                                  const SAMRAI::hier::PatchNd& coarse,
+                                  const SAMRAI::hier::BoxNd& fine_box,
+                                  const SAMRAI::hier::IntVectorNd& ratio) override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -142,10 +142,10 @@ public:
      *fine
      *patches.
      */
-    virtual void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                                   const SAMRAI::hier::Patch<NDIM>& coarse,
-                                   const SAMRAI::hier::Box<NDIM>& fine_box,
-                                   const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    virtual void postprocessRefine(SAMRAI::hier::PatchNd& fine,
+                                   const SAMRAI::hier::PatchNd& coarse,
+                                   const SAMRAI::hier::BoxNd& fine_box,
+                                   const SAMRAI::hier::IntVectorNd& ratio) override;
 
     //\}
 
@@ -189,17 +189,17 @@ private:
      * Routines for setting physical boundary conditions.
      */
     const double d_fill_time;
-    SAMRAI::xfer::RefinePatchStrategy<NDIM>* const d_phys_bdry_op;
+    SAMRAI::xfer::RefinePatchStrategyNd* const d_phys_bdry_op;
 
     /*!
      * The basic linear refine operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op;
+    SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> d_refine_op;
 
     /*!
      * The basic coarsening operator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenOperator<NDIM> > d_coarsen_op;
+    SAMRAIPointer<SAMRAI::xfer::CoarsenOperatorNd> d_coarsen_op;
 };
 } // namespace IBTK
 

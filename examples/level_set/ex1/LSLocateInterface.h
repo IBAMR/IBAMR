@@ -27,7 +27,7 @@ struct CircularInterface
     double R;
 };
 void circular_interface_neighborhood(int D_idx,
-                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                     IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                      double time,
                                      bool initial_time,
                                      void* ctx);

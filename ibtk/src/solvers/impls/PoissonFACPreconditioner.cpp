@@ -48,8 +48,8 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 PoissonFACPreconditioner::PoissonFACPreconditioner(const std::string& object_name,
-                                                   Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
-                                                   Pointer<Database> input_db,
+                                                   SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_strategy,
+                                                   SAMRAIPointer<Database> input_db,
                                                    std::string default_options_prefix)
     : FACPreconditioner(object_name, fac_strategy, input_db, std::move(default_options_prefix))
 {
@@ -61,25 +61,25 @@ void
 PoissonFACPreconditioner::setPoissonSpecifications(const PoissonSpecifications& poisson_spec)
 {
     PoissonSolver::setPoissonSpecifications(poisson_spec);
-    Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    SAMRAIPointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPoissonSpecifications(d_poisson_spec);
     return;
 } // setPoissonSpecifications
 
 void
-PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategy<NDIM>* bc_coef)
+PoissonFACPreconditioner::setPhysicalBcCoef(RobinBcCoefStrategyNd* bc_coef)
 {
     PoissonSolver::setPhysicalBcCoef(bc_coef);
-    Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    SAMRAIPointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
 } // setPhysicalBcCoef
 
 void
-PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+PoissonFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& bc_coefs)
 {
     PoissonSolver::setPhysicalBcCoefs(bc_coefs);
-    Pointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
+    SAMRAIPointer<PoissonFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
     if (p_fac_strategy) p_fac_strategy->setPhysicalBcCoefs(d_bc_coefs);
     return;
 } // setPhysicalBcCoefs

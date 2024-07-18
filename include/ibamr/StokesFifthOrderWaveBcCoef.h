@@ -81,7 +81,7 @@ namespace IBAMR
  * regime is shallow water (finite depth).
  *
  */
-class StokesFifthOrderWaveBcCoef : public SAMRAI::solv::RobinBcCoefStrategy<NDIM>
+class StokesFifthOrderWaveBcCoef : public SAMRAI::solv::RobinBcCoefStrategyNd
 {
 public:
     /*!
@@ -89,8 +89,8 @@ public:
      */
     StokesFifthOrderWaveBcCoef(std::string object_name,
                                const int comp_idx,
-                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                               SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom);
+                               IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                               IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom);
 
     /*!
      * \brief Destructor.
@@ -130,12 +130,12 @@ public:
      * \param fill_time   Solution time corresponding to filling, for use when coefficients are
      *time-dependent.
      */
-    void setBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& acoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& bcoef_data,
-                    SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& gcoef_data,
-                    const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& variable,
-                    const SAMRAI::hier::Patch<NDIM>& patch,
-                    const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+    void setBcCoefs(IBTK::SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& acoef_data,
+                    IBTK::SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& bcoef_data,
+                    IBTK::SAMRAIPointer<SAMRAI::pdat::ArrayDataNd<double> >& gcoef_data,
+                    const IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd>& variable,
+                    const SAMRAI::hier::PatchNd& patch,
+                    const SAMRAI::hier::BoundaryBoxNd& bdry_box,
                     double fill_time = 0.0) const override;
 
     /*
@@ -153,7 +153,7 @@ public:
      * The boundary box that setBcCoefs() is required to fill should not extend
      * past the limits returned by this function.
      */
-    SAMRAI::hier::IntVector<NDIM> numberOfExtensionsFillable() const override;
+    SAMRAI::hier::IntVectorNd numberOfExtensionsFillable() const override;
 
     //\}
 
@@ -188,7 +188,7 @@ private:
     /*!
      * Get wave parameters from input db.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db);
 
     /*!
      * Initialize Stokes coefficients.
@@ -224,7 +224,7 @@ private:
      * The Cartesian grid geometry object provides the extents of the
      * computational domain.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geom;
+    IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geom;
 
     /*!
      * \brief Wave parameters.

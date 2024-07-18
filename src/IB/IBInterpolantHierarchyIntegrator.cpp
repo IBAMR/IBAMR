@@ -78,11 +78,12 @@ static const int IB_INTERPOLANT_HIERARCHY_INTEGRATOR_VERSION = 1;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBInterpolantHierarchyIntegrator::IBInterpolantHierarchyIntegrator(std::string object_name,
-                                                                   Pointer<Database> input_db,
-                                                                   Pointer<IBLevelSetMethod> ib_ls_method_ops,
-                                                                   Pointer<INSHierarchyIntegrator> ins_hier_integrator,
-                                                                   bool register_for_restart)
+IBInterpolantHierarchyIntegrator::IBInterpolantHierarchyIntegrator(
+    std::string object_name,
+    SAMRAIPointer<Database> input_db,
+    SAMRAIPointer<IBLevelSetMethod> ib_ls_method_ops,
+    SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator,
+    bool register_for_restart)
     : IBHierarchyIntegrator(std::move(object_name),
                             input_db,
                             ib_ls_method_ops,
@@ -131,14 +132,14 @@ IBInterpolantHierarchyIntegrator::integrateHierarchySpecialized(const double cur
     // (3) Solve the fluid equations using the updated value of the scalar.
 
     // Move the mesh to new location.
-    Pointer<INSVCStaggeredHierarchyIntegrator> vc_ins_integrator = d_ins_hier_integrator;
-    const std::vector<Pointer<BrinkmanPenalizationStrategy> >& brinkman_force =
+    SAMRAIPointer<INSVCStaggeredHierarchyIntegrator> vc_ins_integrator = d_ins_hier_integrator;
+    const std::vector<SAMRAIPointer<BrinkmanPenalizationStrategy> >& brinkman_force =
         vc_ins_integrator->getBrinkmanPenalizationStrategy();
     const std::size_t num_objects = brinkman_force.size();
     EigenAlignedVector<Eigen::Vector3d> U(num_objects), W(num_objects);
     for (std::size_t k = 0; k < num_objects; ++k)
     {
-        Pointer<BrinkmanPenalizationRigidBodyDynamics> rbd = brinkman_force[k];
+        SAMRAIPointer<BrinkmanPenalizationRigidBodyDynamics> rbd = brinkman_force[k];
         U[k] = rbd->getNewCOMTransVelocity();
         W[k] = rbd->getNewCOMRotVelocity();
     }
@@ -172,8 +173,8 @@ IBInterpolantHierarchyIntegrator::postprocessIntegrateHierarchy(const double cur
 } // postprocessIntegrateHierarchy
 
 void
-IBInterpolantHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBInterpolantHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                                                SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
@@ -191,7 +192,7 @@ IBInterpolantHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBInterpolantHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+IBInterpolantHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<Database> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_INTERPOLANT_HIERARCHY_INTEGRATOR_VERSION", IB_INTERPOLANT_HIERARCHY_INTEGRATOR_VERSION);
@@ -203,8 +204,8 @@ IBInterpolantHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 void
 IBInterpolantHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

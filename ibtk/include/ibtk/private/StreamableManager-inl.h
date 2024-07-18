@@ -33,13 +33,13 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 inline size_t
-StreamableManager::getDataStreamSize(const SAMRAI::tbox::Pointer<Streamable> data_item) const
+StreamableManager::getDataStreamSize(const SAMRAIPointer<Streamable> data_item) const
 {
     return SAMRAI::tbox::AbstractStream::sizeofInt() + data_item->getDataStreamSize();
 } // getDataStreamSize
 
 inline size_t
-StreamableManager::getDataStreamSize(const std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items) const
+StreamableManager::getDataStreamSize(const std::vector<SAMRAIPointer<Streamable> >& data_items) const
 {
     size_t size = SAMRAI::tbox::AbstractStream::sizeofInt();
     for (const auto& data_item : data_items)
@@ -50,7 +50,7 @@ StreamableManager::getDataStreamSize(const std::vector<SAMRAI::tbox::Pointer<Str
 } // getDataStreamSize
 
 inline void
-StreamableManager::packStream(SAMRAI::tbox::AbstractStream& stream, SAMRAI::tbox::Pointer<Streamable> data_item)
+StreamableManager::packStream(SAMRAI::tbox::AbstractStream& stream, SAMRAIPointer<Streamable> data_item)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(data_item);
@@ -62,8 +62,7 @@ StreamableManager::packStream(SAMRAI::tbox::AbstractStream& stream, SAMRAI::tbox
 } // packStream
 
 inline void
-StreamableManager::packStream(SAMRAI::tbox::AbstractStream& stream,
-                              std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items)
+StreamableManager::packStream(SAMRAI::tbox::AbstractStream& stream, std::vector<SAMRAIPointer<Streamable> >& data_items)
 {
     const int num_data = static_cast<int>(data_items.size());
     stream.pack(&num_data, 1);
@@ -74,8 +73,8 @@ StreamableManager::packStream(SAMRAI::tbox::AbstractStream& stream,
     return;
 } // packStream
 
-inline SAMRAI::tbox::Pointer<Streamable>
-StreamableManager::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVector<NDIM>& offset)
+inline SAMRAIPointer<Streamable>
+StreamableManager::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMRAI::hier::IntVectorNd& offset)
 {
     int streamable_id;
     stream.unpack(&streamable_id, 1);
@@ -87,8 +86,8 @@ StreamableManager::unpackStream(SAMRAI::tbox::AbstractStream& stream, const SAMR
 
 inline void
 StreamableManager::unpackStream(SAMRAI::tbox::AbstractStream& stream,
-                                const SAMRAI::hier::IntVector<NDIM>& offset,
-                                std::vector<SAMRAI::tbox::Pointer<Streamable> >& data_items)
+                                const SAMRAI::hier::IntVectorNd& offset,
+                                std::vector<SAMRAIPointer<Streamable> >& data_items)
 {
     int num_data;
     stream.unpack(&num_data, 1);
@@ -97,7 +96,7 @@ StreamableManager::unpackStream(SAMRAI::tbox::AbstractStream& stream,
     {
         data_item = unpackStream(stream, offset);
     }
-    std::vector<SAMRAI::tbox::Pointer<Streamable> >(data_items).swap(data_items); // trim-to-fit
+    std::vector<SAMRAIPointer<Streamable> >(data_items).swap(data_items); // trim-to-fit
     return;
 } // unpackStream
 

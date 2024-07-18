@@ -344,8 +344,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        tbox::Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        tbox::Pointer<tbox::Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
+        SAMRAIPointer<tbox::Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -467,7 +467,7 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        tbox::Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -486,40 +486,39 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        tbox::Pointer<IIMethod> ib_method_ops =
-            new IIMethod("IIMethod",
-                         app_initializer->getComponentDatabase("IIMethod"),
-                         bndry_meshes,
-                         app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
+        auto ib_method_ops = make_samrai_shared<IIMethod>(
+            "IIMethod",
+            app_initializer->getComponentDatabase("IIMethod"),
+            bndry_meshes,
+            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
 
-        tbox::Pointer<FEMechanicsExplicitIntegrator> fem_solver = new FEMechanicsExplicitIntegrator(
+        auto fem_solver = make_samrai_shared<FEMechanicsExplicitIntegrator>(
             "FEMechanicsExplicitIntegrator",
             app_initializer->getComponentDatabase("FEMechanicsExplicitIntegrator"),
             &beam_mesh,
             app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
 
-        tbox::Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-        tbox::Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        tbox::Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        tbox::Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        tbox::Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        tbox::Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        tbox::Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Configure the IBFE solver.
 
@@ -592,14 +591,14 @@ main(int argc, char* argv[])
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            tbox::Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            tbox::Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -607,19 +606,18 @@ main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            tbox::Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         // register bc's
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         for (int d = 0; d < NDIM; ++d)
             u_bc_coefs[d] = new VelocityBcCoefs(navier_stokes_integrator, bc_data, d); // VelocityBcCoefs extends
                                                                                        // RobinBcCoefStrategy
         navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
-        tbox::Pointer<FeedbackForcer> feedback_forcer =
-            new FeedbackForcer(navier_stokes_integrator, patch_hierarchy, bc_data);
+        auto feedback_forcer = make_samrai_shared<FeedbackForcer>(navier_stokes_integrator, patch_hierarchy, bc_data);
         time_integrator->registerBodyForceFunction(feedback_forcer);
 
         if (input_db->keyExists("BoundaryStabilization"))
@@ -632,17 +630,17 @@ main(int argc, char* argv[])
         }
 
         // Set up visualization plot file writers.
-        tbox::Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
-        std::unique_ptr<ExodusII_IO> beam_io(uses_exodus ? new ExodusII_IO(beam_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> beam_io(uses_exodus ? new ExodusII_IO(beam_mesh) : nullptr);
 
         std::unique_ptr<ExodusII_IO> bndry_housing_io(uses_exodus ? new ExodusII_IO(*bndry_meshes[HOUSING_PART]) :
-                                                                    NULL);
-        std::unique_ptr<ExodusII_IO> bndry_beam_io(uses_exodus ? new ExodusII_IO(*bndry_meshes[BEAM_PART]) : NULL);
+                                                                    nullptr);
+        std::unique_ptr<ExodusII_IO> bndry_beam_io(uses_exodus ? new ExodusII_IO(*bndry_meshes[BEAM_PART]) : nullptr);
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();

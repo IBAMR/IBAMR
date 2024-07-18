@@ -33,7 +33,7 @@ struct BcData
     const double z_min;
     const double z_max;
 
-    BcData(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+    BcData(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db)
         : U1(input_db->getDouble("U1")),
           U2(input_db->getDouble("U2")),
           t_load(input_db->getDouble("T_LOAD")),

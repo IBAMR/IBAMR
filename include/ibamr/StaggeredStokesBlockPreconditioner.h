@@ -77,7 +77,7 @@ public:
     /*!
      * \brief Provide a velocity subdomain solver.
      */
-    virtual void setVelocitySubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> velocity_solver);
+    virtual void setVelocitySubdomainSolver(IBTK::SAMRAIPointer<IBTK::PoissonSolver> velocity_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -95,7 +95,7 @@ public:
     /*!
      * \brief Provide a pressure subdomain solver.
      */
-    virtual void setPressureSubdomainSolver(SAMRAI::tbox::Pointer<IBTK::PoissonSolver> pressure_solver);
+    virtual void setPressureSubdomainSolver(IBTK::SAMRAIPointer<IBTK::PoissonSolver> pressure_solver);
 
     /*!
      * \brief Set the PoissonSpecifications object used to specify the
@@ -107,9 +107,9 @@ public:
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
-     * \note Any of the elements of \a U_bc_coefs may be NULL.  In this case,
+     * \note Any of the elements of \a U_bc_coefs may be nullptr.  In this case,
      * homogeneous Dirichlet boundary conditions are employed for that data
-     * depth.  \a P_bc_coef may also be NULL; in that case, homogeneous Neumann
+     * depth.  \a P_bc_coef may also be nullptr; in that case, homogeneous Neumann
      * boundary conditions are employed for the pressure.
      *
      * \param U_bc_coefs  vector of pointers to objects that can set the Robin boundary
@@ -118,8 +118,8 @@ public:
      *coefficients
      *for the pressure
      */
-    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,
-                                    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* P_bc_coef) override;
+    virtual void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& U_bc_coefs,
+                                    SAMRAI::solv::RobinBcCoefStrategyNd* P_bc_coef) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -138,8 +138,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -158,22 +158,22 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullspace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > U_vec,
-                          SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > P_vec);
+    void correctNullspace(IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > U_vec,
+                          IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > P_vec);
 
     // Subdomain solvers.
     const bool d_needs_velocity_solver;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_velocity_solver;
+    IBTK::SAMRAIPointer<IBTK::PoissonSolver> d_velocity_solver;
     SAMRAI::solv::PoissonSpecifications d_P_problem_coefs;
     const bool d_needs_pressure_solver;
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver> d_pressure_solver;
+    IBTK::SAMRAIPointer<IBTK::PoissonSolver> d_pressure_solver;
 
     // Hierarchy data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_velocity_data_ops, d_pressure_data_ops;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchyDataOpsRealNd<double> > d_velocity_data_ops, d_pressure_data_ops;
     int d_velocity_wgt_idx = IBTK::invalid_index, d_pressure_wgt_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> d_hier_math_ops;
 
 private:
     /*!

@@ -34,7 +34,7 @@ class HierarchyMathOps;
  */
 
 void callLSLocateStructureInterfaceCallbackFunction(int D_idx,
-                                                    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                    IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                     double time,
                                                     bool initial_time,
                                                     void* ctx);
@@ -59,8 +59,8 @@ public:
      * The only constructor of this class.
      */
     LSLocateStructureInterface(const std::string& object_name,
-                               SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                               IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
+                               IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
                                IBTK::LDataManager* lag_data_manager,
                                double vol_elem,
                                RectangleInterface* rectangle);
@@ -74,7 +74,7 @@ public:
      * Reinitialize the level set information
      */
     void setLevelSetPatchData(int D_idx,
-                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                              IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                               const double time,
                               const bool initial_time);
 
@@ -98,7 +98,7 @@ private:
      * Reinitialize the level set information by geometry.
      */
     void setLevelSetPatchDataByGeometry(int D_idx,
-                                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                        IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                         const double time,
                                         const bool initial_time);
 
@@ -110,12 +110,12 @@ private:
     /*!
      * Pointer to the advection-diffusion solver
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
      * Level set variable
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_ls_var;
 
     /*!
      * IB information

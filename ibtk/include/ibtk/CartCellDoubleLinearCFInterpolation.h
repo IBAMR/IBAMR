@@ -89,16 +89,16 @@ public:
      *all
      *registered scratch components.
      */
-    void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+    void setPhysicalBoundaryConditions(SAMRAI::hier::PatchNd& patch,
                                        double fill_time,
-                                       const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
+                                       const SAMRAI::hier::IntVectorNd& ghost_width_to_fill) override;
 
     /*!
      * Function to return maximum stencil width needed over user-defined data
      * interpolation operations.  This is needed to determine the correct
      * interpolation data dependencies.
      */
-    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
+    SAMRAI::hier::IntVectorNd getRefineOpStencilWidth() const override;
 
     /*!
      * Function to perform user-defined preprocess data refine operations.  This
@@ -119,10 +119,10 @@ public:
      *fine
      *patches.
      */
-    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                          const SAMRAI::hier::Patch<NDIM>& coarse,
-                          const SAMRAI::hier::Box<NDIM>& fine_box,
-                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void preprocessRefine(SAMRAI::hier::PatchNd& fine,
+                          const SAMRAI::hier::PatchNd& coarse,
+                          const SAMRAI::hier::BoxNd& fine_box,
+                          const SAMRAI::hier::IntVectorNd& ratio) override;
 
     /*!
      * Function to perform user-defined postprocess data refine operations.
@@ -141,10 +141,10 @@ public:
      *fine
      *patches.
      */
-    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
-                           const SAMRAI::hier::Patch<NDIM>& coarse,
-                           const SAMRAI::hier::Box<NDIM>& fine_box,
-                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+    void postprocessRefine(SAMRAI::hier::PatchNd& fine,
+                           const SAMRAI::hier::PatchNd& coarse,
+                           const SAMRAI::hier::BoxNd& fine_box,
+                           const SAMRAI::hier::IntVectorNd& ratio) override;
 
     //\}
 
@@ -179,7 +179,7 @@ public:
      * Set the patch hierarchy used in constructing coarse-fine interface
      * boundary boxes.
      */
-    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) override;
+    void setPatchHierarchy(SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy) override;
 
     /*!
      * Clear the patch hierarchy used in constructing coarse-fine interface
@@ -190,9 +190,9 @@ public:
     /*!
      * Compute the normal extension of fine data at coarse-fine interfaces.
      */
-    void computeNormalExtension(SAMRAI::hier::Patch<NDIM>& patch,
-                                const SAMRAI::hier::IntVector<NDIM>& ratio,
-                                const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
+    void computeNormalExtension(SAMRAI::hier::PatchNd& patch,
+                                const SAMRAI::hier::IntVectorNd& ratio,
+                                const SAMRAI::hier::IntVectorNd& ghost_width_to_fill) override;
 
     //\}
 
@@ -233,16 +233,16 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op =
-        new SAMRAI::geom::CartesianCellDoubleLinearRefine<NDIM>();
+    SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> d_refine_op =
+        make_samrai_shared<SAMRAI::geom::CartesianCellDoubleLinearRefineNd>();
 
     /*!
      * Cached hierarchy-related information.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
-    std::vector<SAMRAI::hier::BoxArray<NDIM> > d_domain_boxes;
-    std::vector<SAMRAI::hier::IntVector<NDIM> > d_periodic_shift;
+    std::vector<SAMRAI::hier::BoxArrayNd> d_domain_boxes;
+    std::vector<SAMRAI::hier::IntVectorNd> d_periodic_shift;
 };
 } // namespace IBTK
 

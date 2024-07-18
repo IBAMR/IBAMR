@@ -140,20 +140,20 @@ namespace IBAMR
 
 namespace
 {
-inline Box<NDIM>
-compute_tangential_extension(const Box<NDIM>& box, const int data_axis)
+inline BoxNd
+compute_tangential_extension(const BoxNd& box, const int data_axis)
 {
-    Box<NDIM> extended_box = box;
+    BoxNd extended_box = box;
     extended_box.upper()(data_axis) += 1;
     return extended_box;
 } // compute_tangential_extension
 
 void
-genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
+genrandn(ArrayDataNd<double>& data, const BoxNd& box)
 {
     for (int depth = 0; depth < data.getDepth(); ++depth)
     {
-        for (Box<NDIM>::Iterator i(box); i; i++)
+        for (BoxNd::Iterator i(box); i; i++)
         {
             RNG::genrandn(&data(i(), depth));
         }
@@ -165,7 +165,7 @@ genrandn(ArrayData<NDIM, double>& data, const Box<NDIM>& box)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_name,
-                                                             Pointer<Database> input_db,
+                                                             SAMRAIPointer<Database> input_db,
                                                              const INSStaggeredHierarchyIntegrator* const fluid_solver)
     : d_object_name(std::move(object_name)),
       d_fluid_solver(fluid_solver),
@@ -196,23 +196,23 @@ INSStaggeredStochasticForcing::INSStaggeredStochasticForcing(std::string object_
     }
 
     // Setup variables and variable context objects.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
-    d_W_cc_var = new CellVariable<NDIM, double>(d_object_name + "::W_cc", NDIM);
-    static const IntVector<NDIM> ghosts_cc = 1;
+    d_W_cc_var = new CellVariableNd<double>(d_object_name + "::W_cc", NDIM);
+    static const IntVectorNd ghosts_cc = 1;
     d_W_cc_idx = var_db->registerVariableAndContext(d_W_cc_var, d_context, ghosts_cc);
     for (int k = 0; k < d_num_rand_vals; ++k)
         d_W_cc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_W_cc_var, d_W_cc_idx));
 #if (NDIM == 2)
-    d_W_nc_var = new NodeVariable<NDIM, double>(d_object_name + "::W_nc", 2);
-    static const IntVector<NDIM> ghosts_nc = 0;
+    d_W_nc_var = new NodeVariableNd<double>(d_object_name + "::W_nc", 2);
+    static const IntVectorNd ghosts_nc = 0;
     d_W_nc_idx = var_db->registerVariableAndContext(d_W_nc_var, d_context, ghosts_nc);
     for (int k = 0; k < d_num_rand_vals; ++k)
         d_W_nc_idxs.push_back(var_db->registerClonedPatchDataIndex(d_W_nc_var, d_W_nc_idx));
 #endif
 #if (NDIM == 3)
-    d_W_ec_var = new EdgeVariable<NDIM, double>(d_object_name + "::W_ec", 2);
-    static const IntVector<NDIM> ghosts_ec = 0;
+    d_W_ec_var = new EdgeVariableNd<double>(d_object_name + "::W_ec", 2);
+    static const IntVectorNd ghosts_ec = 0;
     d_W_ec_idx = var_db->registerVariableAndContext(d_W_ec_var, d_context, ghosts_ec);
     for (int k = 0; k < d_num_rand_vals; ++k)
         d_W_ec_idxs.push_back(var_db->registerClonedPatchDataIndex(d_W_ec_var, d_W_ec_idx));
@@ -228,8 +228,8 @@ INSStaggeredStochasticForcing::isTimeDependent() const
 
 void
 INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
-                                                       Pointer<Variable<NDIM> > var,
-                                                       Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                       SAMRAIPointer<VariableNd> var,
+                                                       SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                        const double data_time,
                                                        const bool initial_time,
                                                        const int coarsest_ln_in,
@@ -247,7 +247,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         // Allocate data to store components of the stochastic stress components.
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
+            SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_num);
             if (!level->checkAllocated(d_W_cc_idx)) level->allocatePatchData(d_W_cc_idx);
             for (int k = 0; k < d_num_rand_vals; ++k)
                 if (!level->checkAllocated(d_W_cc_idxs[k])) level->allocatePatchData(d_W_cc_idxs[k]);
@@ -270,21 +270,21 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             {
                 for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
                 {
-                    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_num);
+                    for (PatchLevelNd::Iterator p(level); p; p++)
                     {
-                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                        Pointer<CellData<NDIM, double> > W_cc_data = patch->getPatchData(d_W_cc_idxs[k]);
+                        SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                        SAMRAIPointer<CellDataNd<double> > W_cc_data = patch->getPatchData(d_W_cc_idxs[k]);
                         genrandn(W_cc_data->getArrayData(), W_cc_data->getBox());
 #if (NDIM == 2)
-                        Pointer<NodeData<NDIM, double> > W_nc_data = patch->getPatchData(d_W_nc_idxs[k]);
-                        genrandn(W_nc_data->getArrayData(), NodeGeometry<NDIM>::toNodeBox(W_nc_data->getBox()));
+                        SAMRAIPointer<NodeDataNd<double> > W_nc_data = patch->getPatchData(d_W_nc_idxs[k]);
+                        genrandn(W_nc_data->getArrayData(), NodeGeometryNd::toNodeBox(W_nc_data->getBox()));
 #endif
 #if (NDIM == 3)
-                        Pointer<EdgeData<NDIM, double> > W_ec_data = patch->getPatchData(d_W_ec_idxs[k]);
+                        SAMRAIPointer<EdgeDataNd<double> > W_ec_data = patch->getPatchData(d_W_ec_idxs[k]);
                         for (int d = 0; d < NDIM; ++d)
                         {
-                            genrandn(W_ec_data->getArrayData(d), EdgeGeometry<NDIM>::toEdgeBox(W_ec_data->getBox(), d));
+                            genrandn(W_ec_data->getArrayData(d), EdgeGeometryNd::toEdgeBox(W_ec_data->getBox(), d));
                         }
 #endif
                     }
@@ -298,8 +298,8 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         TBOX_ASSERT(cycle_num >= 0 && cycle_num < static_cast<int>(d_weights.size()));
 #endif
         const Array<double>& weights = d_weights[cycle_num];
-        HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_cc_data_ops =
+        HierarchyDataOpsManagerNd* hier_data_ops_manager = HierarchyDataOpsManagerNd::getManager();
+        SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_cc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_W_cc_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
@@ -307,7 +307,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
         for (int k = 0; k < d_num_rand_vals; ++k)
             hier_cc_data_ops->axpy(d_W_cc_idx, weights[k], d_W_cc_idxs[k], d_W_cc_idx);
 #if (NDIM == 2)
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_nc_data_ops =
+        SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_nc_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_W_nc_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
@@ -316,7 +316,7 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
             hier_nc_data_ops->axpy(d_W_nc_idx, weights[k], d_W_nc_idxs[k], d_W_nc_idx);
 #endif
 #if (NDIM == 3)
-        Pointer<HierarchyDataOpsReal<NDIM, double> > hier_ec_data_ops =
+        SAMRAIPointer<HierarchyDataOpsRealNd<double> > hier_ec_data_ops =
             hier_data_ops_manager->getOperationsDouble(d_W_ec_var,
                                                        hierarchy,
                                                        /*get_unique*/ true);
@@ -326,21 +326,21 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
         // Modify the stress tensor values (if necessary).
-        const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs =
+        const std::vector<RobinBcCoefStrategyNd*>& u_bc_coefs =
             d_fluid_solver->getIntermediateVelocityBoundaryConditions();
         for (int level_num = coarsest_ln; level_num <= finest_ln; ++level_num)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_num);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_num);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                Pointer<CellData<NDIM, double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                const BoxNd& patch_box = patch->getBox();
+                SAMRAIPointer<CellDataNd<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
 #if (NDIM == 2)
-                Pointer<NodeData<NDIM, double> > W_nc_data = patch->getPatchData(d_W_nc_idx);
+                SAMRAIPointer<NodeDataNd<double> > W_nc_data = patch->getPatchData(d_W_nc_idx);
 #endif
 #if (NDIM == 3)
-                Pointer<EdgeData<NDIM, double> > W_ec_data = patch->getPatchData(d_W_ec_idx);
+                SAMRAIPointer<EdgeDataNd<double> > W_ec_data = patch->getPatchData(d_W_ec_idx);
 #endif
                 if (d_stress_tensor_type == SYMMETRIC || d_stress_tensor_type == SYMMETRIC_TRACELESS)
                 {
@@ -349,9 +349,9 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 // NOTE: By averaging random variates instead of just using
 // one of the two, we do more work than necessary.
 #if (NDIM == 2)
-                    for (Box<NDIM>::Iterator it(NodeGeometry<NDIM>::toNodeBox(patch_box)); it; it++)
+                    for (BoxNd::Iterator it(NodeGeometryNd::toNodeBox(patch_box)); it; it++)
                     {
-                        const NodeIndex<NDIM> i_n(it(), 0);
+                        const NodeIndexNd i_n(it(), 0);
                         double avg = 0.5 * ((*W_nc_data)(i_n, 0) + (*W_nc_data)(i_n, 1));
                         (*W_nc_data)(i_n, 0) = std::sqrt(2.0) * avg;
                         (*W_nc_data)(i_n, 1) = std::sqrt(2.0) * avg;
@@ -360,9 +360,9 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #if (NDIM == 3)
                     for (int axis = 0; axis < NDIM; ++axis)
                     {
-                        for (Box<NDIM>::Iterator it(EdgeGeometry<NDIM>::toEdgeBox(patch_box, axis)); it; it++)
+                        for (BoxNd::Iterator it(EdgeGeometryNd::toEdgeBox(patch_box, axis)); it; it++)
                         {
-                            const EdgeIndex<NDIM> i_e(it(), axis, 0);
+                            const EdgeIndexNd i_e(it(), axis, 0);
                             double avg = 0.5 * ((*W_ec_data)(i_e, 0) + (*W_ec_data)(i_e, 1));
                             (*W_ec_data)(i_e, 0) = std::sqrt(2.0) * avg;
                             (*W_ec_data)(i_e, 1) = std::sqrt(2.0) * avg;
@@ -373,9 +373,9 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     {
                         // Multiply the diagonal by sqrt(2) to make the variance
                         // 2.
-                        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                        for (BoxNd::Iterator it(patch_box); it; it++)
                         {
-                            const hier::Index<NDIM>& i = it();
+                            const hier::IndexNd& i = it();
                             for (int d = 0; d < NDIM; ++d)
                             {
                                 (*W_cc_data)(i, d) *= std::sqrt(2.0);
@@ -386,9 +386,9 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     {
                         // Subtract the trace from the diagonal and multiply the
                         // diagonal by sqrt(2) to make the variance 2.
-                        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                        for (BoxNd::Iterator it(patch_box); it; it++)
                         {
-                            const hier::Index<NDIM>& i = it();
+                            const hier::IndexNd& i = it();
                             double trace = 0.0;
                             for (int d = 0; d < NDIM; ++d)
                             {
@@ -410,12 +410,12 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                                              << std::endl);
                 }
 
-                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
                 if (!pgeom->getTouchesRegularBoundary()) continue;
                 const double* const dx = pgeom->getDx();
                 const double* const patch_x_lower = pgeom->getXLower();
                 const double* const patch_x_upper = pgeom->getXUpper();
-                const IntVector<NDIM>& ratio_to_level_zero = pgeom->getRatio();
+                const IntVectorNd& ratio_to_level_zero = pgeom->getRatio();
                 Array<Array<bool> > touches_regular_bdry(NDIM), touches_periodic_bdry(NDIM);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -428,27 +428,30 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     }
                 }
 
-                const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+                const Array<BoundaryBoxNd> physical_codim1_boxes =
                     PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
                 const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
 #if (NDIM == 2)
-                const Box<NDIM> node_box = NodeGeometry<NDIM>::toNodeBox(patch_box);
+                const BoxNd node_box = NodeGeometryNd::toNodeBox(patch_box);
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
-                    const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                    const IntVector<NDIM> gcw_to_fill = 1;
-                    const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
+                    const BoundaryBoxNd& bdry_box = physical_codim1_boxes[n];
+                    const IntVectorNd gcw_to_fill = 1;
+                    const BoxNd bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                     const int location_index = bdry_box.getLocationIndex();
                     const int bdry_normal_axis = location_index / 2;
                     const int bdry_tangent_axis = (bdry_normal_axis + 1) % 2; // NOTE: NDIM == 2
-                    const BoundaryBox<NDIM> trimmed_bdry_box(
+                    const BoundaryBoxNd trimmed_bdry_box(
                         bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
-                    const Box<NDIM> bc_coef_box = compute_tangential_extension(
+                    const BoxNd bc_coef_box = compute_tangential_extension(
                         PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), bdry_tangent_axis);
-                    Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                    Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                    Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > acoef_data =
+                        make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > bcoef_data =
+                        make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > gcoef_data =
+                        make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
 
                     // Temporarily reset the patch geometry object associated
                     // with the patch so that boundary conditions are set at the
@@ -461,24 +464,24 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     }
                     shifted_patch_x_lower[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
                     shifted_patch_x_upper[bdry_tangent_axis] -= 0.5 * dx[bdry_tangent_axis];
-                    patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                             touches_regular_bdry,
-                                                                             touches_periodic_bdry,
-                                                                             dx,
-                                                                             shifted_patch_x_lower,
-                                                                             shifted_patch_x_upper));
+                    patch->setPatchGeometry(new CartesianPatchGeometryNd(ratio_to_level_zero,
+                                                                         touches_regular_bdry,
+                                                                         touches_periodic_bdry,
+                                                                         dx,
+                                                                         shifted_patch_x_lower,
+                                                                         shifted_patch_x_upper));
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.
                     for (int d = 0; d < NDIM; ++d)
                     {
-                        RobinBcCoefStrategy<NDIM>* bc_coef = u_bc_coefs[d];
+                        RobinBcCoefStrategyNd* bc_coef = u_bc_coefs[d];
                         bc_coef->setBcCoefs(
                             acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
-                        for (Box<NDIM>::Iterator it(bc_coef_box * node_box); it; it++)
+                        for (BoxNd::Iterator it(bc_coef_box * node_box); it; it++)
                         {
-                            const hier::Index<NDIM>& i = it();
-                            const NodeIndex<NDIM> n_i(i, 0);
+                            const hier::IndexNd& i = it();
+                            const NodeIndexNd n_i(i, 0);
                             const double& alpha = (*acoef_data)(i, 0);
                             const double& beta = (*bcoef_data)(i, 0);
                             const bool velocity_bc = (alpha != 0.0 && beta == 0.0);
@@ -498,30 +501,33 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                 }
 #endif
 #if (NDIM == 3)
-                Box<NDIM> edge_boxes[NDIM];
+                BoxNd edge_boxes[NDIM];
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    edge_boxes[d] = EdgeGeometry<NDIM>::toEdgeBox(patch_box, d);
+                    edge_boxes[d] = EdgeGeometryNd::toEdgeBox(patch_box, d);
                 }
                 for (int n = 0; n < n_physical_codim1_boxes; ++n)
                 {
-                    const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-                    const IntVector<NDIM> gcw_to_fill = 1;
-                    const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
+                    const BoundaryBoxNd& bdry_box = physical_codim1_boxes[n];
+                    const IntVectorNd gcw_to_fill = 1;
+                    const BoxNd bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, gcw_to_fill);
                     const int location_index = bdry_box.getLocationIndex();
                     const int bdry_normal_axis = location_index / 2;
-                    const BoundaryBox<NDIM> trimmed_bdry_box(
+                    const BoundaryBoxNd trimmed_bdry_box(
                         bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
                     for (int edge_axis = 0; edge_axis < NDIM; ++edge_axis)
                     {
                         if (edge_axis == bdry_normal_axis)
                             continue; // we only care about edges that are on the boundary
 
-                        const Box<NDIM> bc_coef_box = compute_tangential_extension(
+                        const BoxNd bc_coef_box = compute_tangential_extension(
                             PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), edge_axis);
-                        Pointer<ArrayData<NDIM, double> > acoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                        Pointer<ArrayData<NDIM, double> > bcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
-                        Pointer<ArrayData<NDIM, double> > gcoef_data = new ArrayData<NDIM, double>(bc_coef_box, 1);
+                        SAMRAIPointer<ArrayDataNd<double> > acoef_data =
+                            make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                        SAMRAIPointer<ArrayDataNd<double> > bcoef_data =
+                            make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                        SAMRAIPointer<ArrayDataNd<double> > gcoef_data =
+                            make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
 
                         // Temporarily reset the patch geometry object
                         // associated with the patch so that boundary conditions
@@ -534,12 +540,12 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                         }
                         shifted_patch_x_lower[edge_axis] -= 0.5 * dx[edge_axis];
                         shifted_patch_x_upper[edge_axis] -= 0.5 * dx[edge_axis];
-                        patch->setPatchGeometry(new CartesianPatchGeometry<NDIM>(ratio_to_level_zero,
-                                                                                 touches_regular_bdry,
-                                                                                 touches_periodic_bdry,
-                                                                                 dx,
-                                                                                 shifted_patch_x_lower,
-                                                                                 shifted_patch_x_upper));
+                        patch->setPatchGeometry(new CartesianPatchGeometryNd(ratio_to_level_zero,
+                                                                             touches_regular_bdry,
+                                                                             touches_periodic_bdry,
+                                                                             dx,
+                                                                             shifted_patch_x_lower,
+                                                                             shifted_patch_x_upper));
 
                         // Set the boundary condition coefficients and use them
                         // to rescale the stochastic fluxes.
@@ -548,13 +554,13 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                             if (d == edge_axis) continue;
                             const int data_depth = ((d == 1 && edge_axis == 2) || (d == 2)) ? 1 : 0;
 
-                            RobinBcCoefStrategy<NDIM>* bc_coef = u_bc_coefs[d];
+                            RobinBcCoefStrategyNd* bc_coef = u_bc_coefs[d];
                             bc_coef->setBcCoefs(
                                 acoef_data, bcoef_data, gcoef_data, var, *patch, trimmed_bdry_box, data_time);
-                            for (Box<NDIM>::Iterator it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
+                            for (BoxNd::Iterator it(bc_coef_box * edge_boxes[edge_axis]); it; it++)
                             {
-                                const hier::Index<NDIM>& i = it();
-                                const EdgeIndex<NDIM> e_i(i, edge_axis, 0);
+                                const hier::IndexNd& i = it();
+                                const EdgeIndexNd e_i(i, edge_axis, 0);
                                 const double& alpha = (*acoef_data)(i, 0);
                                 const double& beta = (*bcoef_data)(i, 0);
                                 const bool velocity_bc = (alpha != 0.0 && beta == 0.0);
@@ -595,13 +601,13 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
         // Communicate ghost-cell data.
-        LocationIndexRobinBcCoefs<NDIM> bc_coef(d_object_name + "::bc_coef", Pointer<Database>(nullptr));
+        LocationIndexRobinBcCoefsNd bc_coef(d_object_name + "::bc_coef", SAMRAIPointer<Database>(nullptr));
         for (int d = 0; d < NDIM; ++d)
         {
             bc_coef.setBoundarySlope(2 * d, 0.0);
             bc_coef.setBoundarySlope(2 * d + 1, 0.0);
         }
-        std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs(NDIM, &bc_coef);
+        std::vector<RobinBcCoefStrategyNd*> bc_coefs(NDIM, &bc_coef);
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
         std::vector<InterpolationTransactionComponent> ghost_fill_components(1);
         ghost_fill_components[0] =
@@ -621,18 +627,18 @@ INSStaggeredStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
 
 void
 INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
+                                              SAMRAIPointer<VariableNd> /*var*/,
+                                              SAMRAIPointer<PatchNd> patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                              SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
-    Pointer<SideData<NDIM, double> > divW_sc_data = patch->getPatchData(data_idx);
-    const IntVector<NDIM> divW_sc_ghosts = divW_sc_data->getGhostCellWidth();
+    SAMRAIPointer<SideDataNd<double> > divW_sc_data = patch->getPatchData(data_idx);
+    const IntVectorNd divW_sc_ghosts = divW_sc_data->getGhostCellWidth();
     divW_sc_data->fillAll(0.0);
     if (initial_time) return;
-    const Box<NDIM>& patch_box = patch->getBox();
-    const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const BoxNd& patch_box = patch->getBox();
+    const SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     double dV = 1.0;
     for (unsigned int d = 0; d < NDIM; ++d) dV *= dx[d];
@@ -640,11 +646,11 @@ INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     // NOTE: We are solving the momentum equation, not the velocity equation.
     const double scale = d_std * std::sqrt(2.0 * mu / (dt * dV));
-    Pointer<CellData<NDIM, double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
-    const IntVector<NDIM> W_cc_ghosts = W_cc_data->getGhostCellWidth();
+    SAMRAIPointer<CellDataNd<double> > W_cc_data = patch->getPatchData(d_W_cc_idx);
+    const IntVectorNd W_cc_ghosts = W_cc_data->getGhostCellWidth();
 #if (NDIM == 2)
-    Pointer<NodeData<NDIM, double> > W_nc_data = patch->getPatchData(d_W_nc_idx);
-    const IntVector<NDIM> W_nc_ghosts = W_nc_data->getGhostCellWidth();
+    SAMRAIPointer<NodeDataNd<double> > W_nc_data = patch->getPatchData(d_W_nc_idx);
+    const IntVectorNd W_nc_ghosts = W_nc_data->getGhostCellWidth();
     double* const divW_sc0 = divW_sc_data->getPointer(0);
     double* const divW_sc1 = divW_sc_data->getPointer(1);
     const double* const W_cc = W_cc_data->getPointer();
@@ -667,8 +673,8 @@ INSStaggeredStochasticForcing::setDataOnPatch(const int data_idx,
                                            divW_sc1);
 #endif
 #if (NDIM == 3)
-    Pointer<EdgeData<NDIM, double> > W_ec_data = patch->getPatchData(d_W_ec_idx);
-    const IntVector<NDIM> W_ec_ghosts = W_ec_data->getGhostCellWidth();
+    SAMRAIPointer<EdgeDataNd<double> > W_ec_data = patch->getPatchData(d_W_ec_idx);
+    const IntVectorNd W_ec_ghosts = W_ec_data->getGhostCellWidth();
     double* const divW_sc0 = divW_sc_data->getPointer(0);
     double* const divW_sc1 = divW_sc_data->getPointer(1);
     double* const divW_sc2 = divW_sc_data->getPointer(2);

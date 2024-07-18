@@ -27,9 +27,9 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBSimpleHierarchyIntegrator::IBSimpleHierarchyIntegrator(const std::string& object_name,
-                                                         Pointer<Database> input_db,
-                                                         Pointer<IBMethod> ib_method_ops,
-                                                         Pointer<INSHierarchyIntegrator> ins_hier_integrator)
+                                                         SAMRAIPointer<Database> input_db,
+                                                         SAMRAIPointer<IBMethod> ib_method_ops,
+                                                         SAMRAIPointer<INSHierarchyIntegrator> ins_hier_integrator)
     : IBHierarchyIntegrator(object_name, input_db, ib_method_ops, ins_hier_integrator, /*register_for_restart*/ false)
 {
     // intentionally blank
@@ -51,13 +51,13 @@ IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 
     const int coarsest_level_num = 0;
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
-    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    SAMRAIPointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Allocate Eulerian scratch and new data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
@@ -87,7 +87,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
     const double dt = new_time - current_time;
-    Pointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
+    SAMRAIPointer<IBMethod> p_ib_method_ops = d_ib_method_ops;
     LDataManager* l_data_manager = p_ib_method_ops->getLDataManager();
 
     // Here we implement a simple time integration scheme:
@@ -145,7 +145,7 @@ IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     // "current" data (defined at time level n) or some other velocity field
     // here.  We use the "current" Lagrangian position data to define the
     // locations to where the velocities are interpolated.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
@@ -177,7 +177,7 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     // Deallocate Eulerian scratch data.
     for (int level_num = coarsest_level_num; level_num <= finest_level_num; ++level_num)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
     }
@@ -193,16 +193,16 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     // the AMR patch hierarchy.
     ierr = VecSwap(d_X_current_data->getVec(), d_X_new_data->getVec());
     IBTK_CHKERRQ(ierr);
-    d_X_current_data = NULL;
-    d_X_new_data = NULL;
-    d_U_data = NULL;
-    d_F_data = NULL;
+    d_X_current_data = nullptr;
+    d_X_new_data = nullptr;
+    d_U_data = nullptr;
+    d_F_data = nullptr;
     return;
 } // postprocessIntegrateHierarchy
 
 void
-IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                           Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBSimpleHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                                           SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 

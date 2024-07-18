@@ -67,12 +67,10 @@ namespace IBAMR
 
 INSCollocatedVelocityBcCoef::INSCollocatedVelocityBcCoef(const unsigned int comp_idx,
                                                          const INSCollocatedHierarchyIntegrator* fluid_solver,
-                                                         const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
+                                                         const std::vector<RobinBcCoefStrategyNd*>& bc_coefs,
                                                          const TractionBcType traction_bc_type,
                                                          const bool homogeneous_bc)
-    : d_comp_idx(comp_idx),
-      d_fluid_solver(fluid_solver),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
+    : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver), d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(nullptr))
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);
@@ -142,7 +140,7 @@ INSCollocatedVelocityBcCoef::clearTargetPressurePatchDataIndex()
 } // clearTargetPressurePatchDataIndex
 
 void
-INSCollocatedVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs)
+INSCollocatedVelocityBcCoef::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& bc_coefs)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -202,12 +200,12 @@ INSCollocatedVelocityBcCoef::setHomogeneousBc(bool homogeneous_bc)
 } // setHomogeneousBc
 
 void
-INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                        Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                        Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                        const Pointer<Variable<NDIM> >& variable,
-                                        const Patch<NDIM>& patch,
-                                        const BoundaryBox<NDIM>& bdry_box,
+INSCollocatedVelocityBcCoef::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                        SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                        SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                        const SAMRAIPointer<VariableNd>& variable,
+                                        const PatchNd& patch,
+                                        const BoundaryBoxNd& bdry_box,
                                         double fill_time) const
 {
 #if !defined(NDEBUG)
@@ -243,16 +241,16 @@ INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
     const unsigned int location_index = bdry_box.getLocationIndex();
     const unsigned int bdry_normal_axis = location_index / 2;
     const bool is_lower = location_index % 2 == 0;
-    const Box<NDIM>& bc_coef_box = acoef_data->getBox();
+    const BoxNd& bc_coef_box = acoef_data->getBox();
 #if !defined(NDEBUG)
     TBOX_ASSERT(bc_coef_box == acoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == bcoef_data->getBox());
     TBOX_ASSERT(bc_coef_box == gcoef_data->getBox());
 #endif
     const double mu = d_problem_coefs->getMu();
-    for (Box<NDIM>::Iterator it(bc_coef_box); it; it++)
+    for (BoxNd::Iterator it(bc_coef_box); it; it++)
     {
-        const hier::Index<NDIM>& i = it();
+        const hier::IndexNd& i = it();
         double& alpha = (*acoef_data)(i, 0);
         double& beta = (*bcoef_data)(i, 0);
         double& gamma = (*gcoef_data)(i, 0);
@@ -311,7 +309,7 @@ INSCollocatedVelocityBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+IntVectorNd
 INSCollocatedVelocityBcCoef::numberOfExtensionsFillable() const
 {
 #if !defined(NDEBUG)
@@ -320,10 +318,10 @@ INSCollocatedVelocityBcCoef::numberOfExtensionsFillable() const
         TBOX_ASSERT(d_bc_coefs[d]);
     }
 #endif
-    IntVector<NDIM> ret_val(std::numeric_limits<int>::max());
+    IntVectorNd ret_val(std::numeric_limits<int>::max());
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        ret_val = IntVector<NDIM>::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
+        ret_val = IntVectorNd::min(ret_val, d_bc_coefs[d]->numberOfExtensionsFillable());
     }
     return ret_val;
 } // numberOfExtensionsFillable

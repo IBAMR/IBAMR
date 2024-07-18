@@ -34,7 +34,7 @@ public:
     hagen_poiseuille_FeedbackForcer(const double height,
                                     const double diameter,
                                     const INSHierarchyIntegrator* fluid_solver,
-                                    Pointer<PatchHierarchy<NDIM> > patch_hierarchy);
+                                    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy);
 
     /*!
      * \brief Destructor.
@@ -56,11 +56,11 @@ public:
      * \brief Set data on the specified patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        Pointer<hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAIPointer<hier::VariableNd> var,
+                        SAMRAIPointer<PatchNd> patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL));
+                        SAMRAIPointer<PatchLevelNd> patch_level = SAMRAIPointer<PatchLevelNd>(nullptr));
 
     //\}
 
@@ -95,7 +95,7 @@ private:
     const double d_H;
     const double d_D;
     const INSHierarchyIntegrator* const d_fluid_solver;
-    Pointer<PatchHierarchy<NDIM> > d_patch_hierarchy;
+    SAMRAIPointer<PatchHierarchyNd> d_patch_hierarchy;
 };
 
 #endif // #ifndef included_hagen_poiseuille_FeedbackForcer

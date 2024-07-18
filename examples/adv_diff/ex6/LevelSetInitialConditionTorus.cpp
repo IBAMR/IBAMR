@@ -19,7 +19,7 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LevelSetInitialConditionTorus::LevelSetInitialConditionTorus(const std::string& object_name,
-                                                             const Pointer<CartesianGridGeometry<NDIM> > grid_geom,
+                                                             const SAMRAIPointer<CartesianGridGeometryNd> grid_geom,
                                                              const IBTK::VectorNd& origin,
                                                              const IBTK::Vector2d& t)
     : d_object_name(object_name), d_grid_geom(grid_geom), d_origin(origin), d_t(t)
@@ -36,34 +36,33 @@ LevelSetInitialConditionTorus::isTimeDependent() const
 
 void
 LevelSetInitialConditionTorus::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
+                                              SAMRAIPointer<VariableNd> /*var*/,
+                                              SAMRAIPointer<PatchNd> patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > patch_level)
+                                              SAMRAIPointer<PatchLevelNd> patch_level)
 {
     // Set the level set function throughout the domain
     if (initial_time)
     {
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(data_idx);
+        const BoxNd& patch_box = patch->getBox();
+        SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
 
         // Get physical coordinates
         IBTK::VectorNd coord = IBTK::Vector::Zero();
         IBTK::VectorNd p = IBTK::Vector::Zero();
         IBTK::Vector2d q(0.0, 0.0);
 
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
         const double* const grid_x_lower = d_grid_geom->getXLower();
-        IntVector<NDIM> ratio = patch_level->getRatio();
-        const SAMRAI::hier::Box<NDIM> domain_box =
-            SAMRAI::hier::Box<NDIM>::refine(d_grid_geom->getPhysicalDomain()[0], ratio);
-        const hier::Index<NDIM>& grid_lower_idx = domain_box.lower();
+        IntVectorNd ratio = patch_level->getRatio();
+        const SAMRAI::hier::BoxNd domain_box = SAMRAI::hier::BoxNd::refine(d_grid_geom->getPhysicalDomain()[0], ratio);
+        const hier::IndexNd& grid_lower_idx = domain_box.lower();
 
-        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        for (BoxNd::Iterator it(patch_box); it; it++)
         {
-            CellIndex<NDIM> ci(it());
+            CellIndexNd ci(it());
 
             for (int d = 0; d < NDIM; ++d)
                 coord[d] = grid_x_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - grid_lower_idx(d)) + 0.5);

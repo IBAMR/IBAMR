@@ -32,11 +32,13 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometry<NDIM> > grid_geometry, double wall_ghost_dist)
+Wall::Wall(SAMRAIPointer<Database> wall_db,
+           SAMRAIPointer<CartesianGridGeometryNd> grid_geometry,
+           double wall_ghost_dist)
 {
     // get geometry for the wall force box and scaling from cells to numerical
     // postions
-    const Box<NDIM> domain_box = grid_geometry->getPhysicalDomain()[0];
+    const BoxNd domain_box = grid_geometry->getPhysicalDomain()[0];
     const double* dx = grid_geometry->getDx();
 
     // get direction the wall is facing, dim
@@ -88,7 +90,7 @@ Wall::Wall(Pointer<Database> wall_db, Pointer<CartesianGridGeometry<NDIM> > grid
         TBOX_ERROR("walls must have a force_distance parameter");
     }
 
-    Box<NDIM> force_box = domain_box;
+    BoxNd force_box = domain_box;
 
     if (d_side == 0)
     {
@@ -150,7 +152,7 @@ Wall::registerWallForceFcn(WallForceFcnPtr wall_force_fcn)
     return;
 } // registerWallForceFcn
 
-Box<NDIM>
+BoxNd
 Wall::getForceArea()
 {
     return d_force_area;

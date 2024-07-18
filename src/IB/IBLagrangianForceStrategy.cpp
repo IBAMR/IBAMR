@@ -59,7 +59,7 @@ IBLagrangianForceStrategy::setTimeInterval(const double /*current_time*/, const 
 } // setTimeInterval
 
 void
-IBLagrangianForceStrategy::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IBLagrangianForceStrategy::initializeLevelData(const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                                const int /*level_number*/,
                                                const double /*init_data_time*/,
                                                const bool /*initial_time*/,
@@ -70,10 +70,10 @@ IBLagrangianForceStrategy::initializeLevelData(const Pointer<PatchHierarchy<NDIM
 } // initializeLevelData
 
 void
-IBLagrangianForceStrategy::computeLagrangianForce(Pointer<LData> /*F_data*/,
-                                                  Pointer<LData> /*X_data*/,
-                                                  Pointer<LData> /*U_data*/,
-                                                  const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IBLagrangianForceStrategy::computeLagrangianForce(SAMRAIPointer<LData> /*F_data*/,
+                                                  SAMRAIPointer<LData> /*X_data*/,
+                                                  SAMRAIPointer<LData> /*U_data*/,
+                                                  const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                                   const int /*level_number*/,
                                                   const double /*data_time*/,
                                                   LDataManager* const /*l_data_manager*/)
@@ -87,7 +87,7 @@ void
 IBLagrangianForceStrategy::computeLagrangianForceJacobianNonzeroStructure(
     std::vector<int>& /*d_nnz*/,
     std::vector<int>& /*o_nnz*/,
-    const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+    const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
     const int /*level_number*/,
     LDataManager* const /*l_data_manager*/)
 {
@@ -100,10 +100,10 @@ void
 IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
                                                           MatAssemblyType /*assembly_type*/,
                                                           const double /*X_coef*/,
-                                                          Pointer<LData> /*X_data*/,
+                                                          SAMRAIPointer<LData> /*X_data*/,
                                                           const double /*U_coef*/,
-                                                          Pointer<LData> /*U_data*/,
-                                                          const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                                          SAMRAIPointer<LData> /*U_data*/,
+                                                          const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                                           const int /*level_number*/,
                                                           const double /*data_time*/,
                                                           LDataManager* const /*l_data_manager*/)
@@ -114,9 +114,9 @@ IBLagrangianForceStrategy::computeLagrangianForceJacobian(Mat& /*J_mat*/,
 } // computeLagrangianForceJacobian
 
 double
-IBLagrangianForceStrategy::computeLagrangianEnergy(Pointer<LData> /*X_data*/,
-                                                   Pointer<LData> /*U_data*/,
-                                                   const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IBLagrangianForceStrategy::computeLagrangianEnergy(SAMRAIPointer<LData> /*X_data*/,
+                                                   SAMRAIPointer<LData> /*U_data*/,
+                                                   const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                                    const int /*level_number*/,
                                                    const double /*data_time*/,
                                                    LDataManager* const /*l_data_manager*/)

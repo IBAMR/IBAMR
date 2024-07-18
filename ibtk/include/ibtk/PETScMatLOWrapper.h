@@ -97,8 +97,7 @@ public:
      * \param x input
      * \param y output: y=Ax
      */
-    void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-               SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
+    void apply(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& y) override;
 
     /*!
      * \brief Compute z=Ax+y.
@@ -123,9 +122,9 @@ public:
      * \param y input
      * \param z output: z=Ax+y
      */
-    void applyAdd(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& z) override;
+    void applyAdd(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                  SAMRAI::solv::SAMRAIVectorRealNd<double>& y,
+                  SAMRAI::solv::SAMRAIVectorRealNd<double>& z) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for computing y=Ax and
@@ -157,8 +156,8 @@ public:
      * \param in input vector
      * \param out output vector
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorRealNd<double>& out) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -203,7 +202,7 @@ private:
     PETScMatLOWrapper& operator=(const PETScMatLOWrapper& that) = delete;
 
     const Mat d_petsc_mat;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_y, d_z;
+    SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x, d_y, d_z;
     Vec d_petsc_x = nullptr, d_petsc_y = nullptr, d_petsc_z = nullptr;
 };
 } // namespace IBTK

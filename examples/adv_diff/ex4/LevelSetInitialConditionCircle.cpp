@@ -23,7 +23,7 @@
 
 LevelSetInitialConditionCircle::LevelSetInitialConditionCircle(
     const std::string& object_name,
-    const SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geom,
+    const IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geom,
     const double radius,
     const IBTK::VectorNd& origin,
     const bool fluid_is_interior_to_cylinder)
@@ -45,27 +45,27 @@ LevelSetInitialConditionCircle::isTimeDependent() const
 
 void
 LevelSetInitialConditionCircle::setDataOnPatch(const int data_idx,
-                                               Pointer<Variable<NDIM> > /*var*/,
-                                               Pointer<Patch<NDIM> > patch,
+                                               SAMRAIPointer<VariableNd> /*var*/,
+                                               SAMRAIPointer<PatchNd> patch,
                                                const double /*data_time*/,
                                                const bool initial_time,
-                                               Pointer<PatchLevel<NDIM> > patch_level)
+                                               SAMRAIPointer<PatchLevelNd> patch_level)
 {
     // Set the level set function throughout the domain
     if (initial_time)
     {
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(data_idx);
-        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        const BoxNd& patch_box = patch->getBox();
+        SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
+        for (BoxNd::Iterator it(patch_box); it; it++)
         {
-            CellIndex<NDIM> ci(it());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            CellIndexNd ci(it());
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double* const grid_x_lower = d_grid_geom->getXLower();
-            IntVector<NDIM> ratio = patch_level->getRatio();
-            const SAMRAI::hier::Box<NDIM> domain_box =
-                SAMRAI::hier::Box<NDIM>::refine(d_grid_geom->getPhysicalDomain()[0], ratio);
-            const hier::Index<NDIM>& grid_lower_idx = domain_box.lower();
+            IntVectorNd ratio = patch_level->getRatio();
+            const SAMRAI::hier::BoxNd domain_box =
+                SAMRAI::hier::BoxNd::refine(d_grid_geom->getPhysicalDomain()[0], ratio);
+            const hier::IndexNd& grid_lower_idx = domain_box.lower();
 
             // Get physical coordinates
             IBTK::Vector coord = IBTK::Vector::Zero();

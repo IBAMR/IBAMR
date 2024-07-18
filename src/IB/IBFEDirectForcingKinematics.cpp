@@ -131,8 +131,8 @@ set_rotation_matrix(const Eigen::Vector3d& rot_vel,
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFEDirectForcingKinematics::IBFEDirectForcingKinematics(std::string object_name,
-                                                         Pointer<Database> input_db,
-                                                         Pointer<IBFEMethod> ibfe_method_ops,
+                                                         SAMRAIPointer<Database> input_db,
+                                                         SAMRAIPointer<IBFEMethod> ibfe_method_ops,
                                                          int part,
                                                          bool register_for_restart)
     : d_ibfe_method_ops(ibfe_method_ops), d_part(part), d_object_name(std::move(object_name))
@@ -467,7 +467,7 @@ IBFEDirectForcingKinematics::postprocessIntegrateData(double /*current_time*/, d
 } // postprocessIntegrateData
 
 void
-IBFEDirectForcingKinematics::putToDatabase(Pointer<Database> db)
+IBFEDirectForcingKinematics::putToDatabase(SAMRAIPointer<Database> db)
 {
     double Q_coeffs[4] = {
         d_quaternion_current.w(), d_quaternion_current.x(), d_quaternion_current.y(), d_quaternion_current.z()
@@ -485,7 +485,7 @@ IBFEDirectForcingKinematics::putToDatabase(Pointer<Database> db)
 /////////////////////////////// PRIVATE ////////////////////////////////////
 
 void
-IBFEDirectForcingKinematics::getFromInput(Pointer<Database> input_db, bool is_from_restart)
+IBFEDirectForcingKinematics::getFromInput(SAMRAIPointer<Database> input_db, bool is_from_restart)
 {
     // Get some input values.
     d_rho = input_db->getDouble("rho_s");
@@ -514,8 +514,8 @@ IBFEDirectForcingKinematics::getFromInput(Pointer<Database> input_db, bool is_fr
 void
 IBFEDirectForcingKinematics::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

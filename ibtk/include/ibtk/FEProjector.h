@@ -63,11 +63,10 @@ class FEProjector
 {
 public:
     /// Constructor.
-    FEProjector(libMesh::EquationSystems* equation_systems,
-                const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+    FEProjector(libMesh::EquationSystems* equation_systems, const SAMRAIPointer<SAMRAI::tbox::Database>& input_db);
 
     /// Alternative constructor that takes in a shared pointer to an FEData object.
-    FEProjector(std::shared_ptr<FEData> fe_data, const SAMRAI::tbox::Pointer<SAMRAI::tbox::Database>& input_db);
+    FEProjector(std::shared_ptr<FEData> fe_data, const SAMRAIPointer<SAMRAI::tbox::Database>& input_db);
 
     /// Deleted default constructor.
     FEProjector() = delete;
@@ -205,7 +204,7 @@ private:
      * SAMRAI stores timers in a single unsorted array. To keep timer lookups
      * quick we cache the pointers here.
      */
-    std::map<std::string, SAMRAI::tbox::Pointer<SAMRAI::tbox::Timer> > d_linear_solve_system_timers;
+    std::map<std::string, SAMRAIPointer<SAMRAI::tbox::Timer> > d_linear_solve_system_timers;
 
     /*!
      * Whether or not to log data to the screen: see

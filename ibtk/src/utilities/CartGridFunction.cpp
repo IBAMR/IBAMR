@@ -41,8 +41,8 @@ CartGridFunction::CartGridFunction(std::string object_name) : d_object_name(std:
 
 void
 CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
-                                          Pointer<Variable<NDIM> > var,
-                                          Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                          SAMRAIPointer<VariableNd> var,
+                                          SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                           const double data_time,
                                           const bool initial_time,
                                           const int coarsest_ln_in,
@@ -62,15 +62,15 @@ CartGridFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 CartGridFunction::setDataOnPatchLevel(const int data_idx,
-                                      Pointer<Variable<NDIM> > var,
-                                      Pointer<PatchLevel<NDIM> > level,
+                                      SAMRAIPointer<VariableNd> var,
+                                      SAMRAIPointer<PatchLevelNd> level,
                                       const double data_time,
                                       const bool initial_time)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(level);
 #endif
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    for (PatchLevelNd::Iterator p(level); p; p++)
     {
         setDataOnPatch(data_idx, var, level->getPatch(p()), data_time, initial_time, level);
     }

@@ -84,9 +84,9 @@ static const bool ENABLE_TIMERS = true;
 namespace std
 {
 template <typename T>
-struct less<SAMRAI::tbox::Pointer<T> >
+struct less<IBTK::SAMRAIPointer<T> >
 {
-    inline bool operator()(const SAMRAI::tbox::Pointer<T>& k1, const SAMRAI::tbox::Pointer<T>& k2) const
+    inline bool operator()(const IBTK::SAMRAIPointer<T>& k1, const IBTK::SAMRAIPointer<T>& k2) const
     {
         return k1.getPointer() < k2.getPointer();
     }

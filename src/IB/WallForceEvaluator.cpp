@@ -50,7 +50,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-WallForceEvaluator::WallForceEvaluator(Pointer<Database> input_db, Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+WallForceEvaluator::WallForceEvaluator(SAMRAIPointer<Database> input_db,
+                                       SAMRAIPointer<CartesianGridGeometryNd> grid_geometry)
     : d_grid_geometry(grid_geometry)
 {
     // register walls, call this during IB Hierarchy Integrator constructor
@@ -81,7 +82,7 @@ WallForceEvaluator::WallForceEvaluator(Pointer<Database> input_db, Pointer<Carte
     }
 
     // wall parameters with defaults (no walls)
-    Pointer<Database> wall_db;
+    SAMRAIPointer<Database> wall_db;
 
     std::string wall_str, num_str;
     for (int wall = 0; wall < n_walls; ++wall)
@@ -109,7 +110,7 @@ WallForceEvaluator::registerWallForceFcn(Wall::WallForceFcnPtr wall_force_fcn)
 } // registerWallForceFcn
 
 void
-WallForceEvaluator::addWall(Pointer<Database> wall_db, double wall_ghost_dist)
+WallForceEvaluator::addWall(SAMRAIPointer<Database> wall_db, double wall_ghost_dist)
 {
     // Create the new wall from the wall_db
     Wall new_wall(wall_db, d_grid_geometry, wall_ghost_dist);
@@ -120,10 +121,10 @@ WallForceEvaluator::addWall(Pointer<Database> wall_db, double wall_ghost_dist)
 } // addWall
 
 void
-WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
-                                           Pointer<LData> X_data,
-                                           Pointer<LData> /*U_data*/,
-                                           const Pointer<PatchHierarchy<NDIM> > hierarchy,
+WallForceEvaluator::computeLagrangianForce(SAMRAIPointer<LData> F_data,
+                                           SAMRAIPointer<LData> X_data,
+                                           SAMRAIPointer<LData> /*U_data*/,
+                                           const SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                            const int level_number,
                                            const double eval_time,
                                            LDataManager* const l_data_manager)
@@ -143,23 +144,23 @@ WallForceEvaluator::computeLagrangianForce(Pointer<LData> F_data,
         // get axis (which direction the wall is normal to)
         int axis = wall.getAxis();
 
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
-        const IntVector<NDIM>& ratio = level->getRatio();
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(level_number);
+        const IntVectorNd& ratio = level->getRatio();
+        for (PatchLevelNd::Iterator p(level); p; p++)
         { // iterate through patches
 
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<LNodeSetData> current_idx_data = patch->getPatchData(lag_node_idx_current_idx);
-            const Box<NDIM>& patch_box = patch->getBox();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<LNodeSetData> current_idx_data = patch->getPatchData(lag_node_idx_current_idx);
+            const BoxNd& patch_box = patch->getBox();
 
             // get just the area near the wall
-            const Box<NDIM> intersect_box = patch_box * Box<NDIM>::refine(wall.getForceArea(), ratio);
+            const BoxNd intersect_box = patch_box * BoxNd::refine(wall.getForceArea(), ratio);
 
             // iterate through cells in relevant area
             for (LNodeSetData::CellIterator scit(intersect_box); scit; scit++)
             {
                 // get current nodes in the cell.
-                const hier::Index<NDIM>& search_cell_idx = *scit;
+                const hier::IndexNd& search_cell_idx = *scit;
                 LNodeSet* search_node_set = current_idx_data->getItem(search_cell_idx);
 
                 // if particles exist in this cell, add forces to them

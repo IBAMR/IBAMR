@@ -60,9 +60,9 @@ public:
      * PETSc KSP solver framework.
      */
     KrylovFreeBodyMobilitySolver(std::string object_name,
-                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                 IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                  std::string default_options_prefix,
-                                 SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> cib_strategy,
+                                 IBTK::SAMRAIPointer<IBAMR::CIBStrategy> cib_strategy,
                                  MPI_Comm petsc_comm = PETSC_COMM_WORLD);
 
     /*!
@@ -73,7 +73,7 @@ public:
     /*!
      * \brief Set the mobility solver for this class.
      */
-    void setMobilitySolver(SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> mobility_solver);
+    void setMobilitySolver(IBTK::SAMRAIPointer<IBAMR::CIBMobilitySolver> mobility_solver);
 
     /*!
      * \brief Set scale for interp operator.
@@ -239,8 +239,8 @@ private:
     bool d_enable_logging = false;
 
     // Pointers
-    SAMRAI::tbox::Pointer<IBAMR::CIBStrategy> d_cib_strategy;
-    SAMRAI::tbox::Pointer<IBAMR::CIBMobilitySolver> d_mobility_solver;
+    IBTK::SAMRAIPointer<IBAMR::CIBStrategy> d_cib_strategy;
+    IBTK::SAMRAIPointer<IBAMR::CIBMobilitySolver> d_mobility_solver;
 
     // The current, new, solution and time-interval of integration.
     double d_current_time = std::numeric_limits<double>::signaling_NaN(),

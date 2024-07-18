@@ -88,9 +88,9 @@ static const int COARSEN_OP_PRIORITY = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 bool
-CartCellDoubleCubicCoarsen::findCoarsenOperator(const Pointer<Variable<NDIM> >& var, const std::string& op_name) const
+CartCellDoubleCubicCoarsen::findCoarsenOperator(const SAMRAIPointer<VariableNd>& var, const std::string& op_name) const
 {
-    Pointer<CellVariable<NDIM, double> > cc_var = var;
+    SAMRAIPointer<CellVariableNd<double> > cc_var = var;
     return (cc_var && op_name == s_op_name);
 } // findCoarsenOperator
 
@@ -106,19 +106,19 @@ CartCellDoubleCubicCoarsen::getOperatorPriority() const
     return COARSEN_OP_PRIORITY;
 } // getOperatorPriority
 
-IntVector<NDIM>
+IntVectorNd
 CartCellDoubleCubicCoarsen::getStencilWidth() const
 {
     return d_weighted_average_coarsen_op.getStencilWidth();
 } // getStencilWidth
 
 void
-CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
-                                    const Patch<NDIM>& fine,
+CartCellDoubleCubicCoarsen::coarsen(PatchNd& coarse,
+                                    const PatchNd& fine,
                                     const int dst_component,
                                     const int src_component,
-                                    const Box<NDIM>& coarse_box,
-                                    const IntVector<NDIM>& ratio) const
+                                    const BoxNd& coarse_box,
+                                    const IntVectorNd& ratio) const
 {
     if (ratio.min() < 4)
     {
@@ -128,8 +128,8 @@ CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
         d_weighted_average_coarsen_op.coarsen(coarse, fine, dst_component, src_component, coarse_box, ratio);
         return;
     }
-    Pointer<CellData<NDIM, double> > cdata = coarse.getPatchData(dst_component);
-    Pointer<CellData<NDIM, double> > fdata = fine.getPatchData(src_component);
+    SAMRAIPointer<CellDataNd<double> > cdata = coarse.getPatchData(dst_component);
+    SAMRAIPointer<CellDataNd<double> > fdata = fine.getPatchData(src_component);
     const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
     const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
 #if !defined(NDEBUG)
@@ -156,8 +156,8 @@ CartCellDoubleCubicCoarsen::coarsen(Patch<NDIM>& coarse,
 #if !defined(NDEBUG)
     TBOX_ASSERT(data_depth == fdata->getDepth());
 #endif
-    const Box<NDIM>& patch_box_fine = fine.getBox();
-    const Box<NDIM>& patch_box_crse = coarse.getBox();
+    const BoxNd& patch_box_fine = fine.getBox();
+    const BoxNd& patch_box_crse = coarse.getBox();
     for (int depth = 0; depth < data_depth; ++depth)
     {
         double* const U_crse = cdata->getPointer(depth);

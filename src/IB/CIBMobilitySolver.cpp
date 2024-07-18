@@ -46,9 +46,9 @@ static Timer* t_deallocate_solver_state;
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
 CIBMobilitySolver::CIBMobilitySolver(std::string object_name,
-                                     Pointer<Database> input_db,
-                                     Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
-                                     Pointer<CIBStrategy> cib_strategy)
+                                     SAMRAIPointer<Database> input_db,
+                                     SAMRAIPointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator,
+                                     SAMRAIPointer<CIBStrategy> cib_strategy)
     : d_object_name(std::move(object_name)),
       d_num_rigid_parts(cib_strategy->getNumberOfRigidStructures()),
       d_cib_strategy(cib_strategy)
@@ -203,8 +203,8 @@ CIBMobilitySolver::setVelocityPoissonSpecifications(const PoissonSpecifications&
 } // setVelocityPoissonSpecifications
 
 void
-CIBMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs,
-                                      RobinBcCoefStrategy<NDIM>* p_bc_coef)
+CIBMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategyNd*>& u_bc_coefs,
+                                      RobinBcCoefStrategyNd* p_bc_coef)
 {
     if (d_mobility_solver_type == KRYLOV)
     {
@@ -214,7 +214,7 @@ CIBMobilitySolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM
 } // setPhysicalBcCoefs
 
 void
-CIBMobilitySolver::setPhysicalBoundaryHelper(Pointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
+CIBMobilitySolver::setPhysicalBoundaryHelper(SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper)
 {
     if (d_mobility_solver_type == KRYLOV)
     {
@@ -398,7 +398,7 @@ CIBMobilitySolver::solveBodyMobilitySystem(Vec x, Vec b)
 ////////////////////////////// PRIVATE ///////////////////////////////////////
 
 void
-CIBMobilitySolver::getFromInput(Pointer<Database> input_db)
+CIBMobilitySolver::getFromInput(SAMRAIPointer<Database> input_db)
 {
     // Get the mobility solver type.
     const std::string solver_type = input_db->getString("mobility_solver_type");

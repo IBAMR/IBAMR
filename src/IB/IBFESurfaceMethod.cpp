@@ -166,7 +166,7 @@ const std::array<std::string, NDIM> IBFESurfaceMethod::VELOCITY_JUMP_SYSTEM_NAME
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
-                                     Pointer<Database> input_db,
+                                     SAMRAIPointer<Database> input_db,
                                      MeshBase* mesh,
                                      int max_levels,
                                      bool register_for_restart,
@@ -184,7 +184,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
 } // IBFESurfaceMethod
 
 IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
-                                     Pointer<Database> input_db,
+                                     SAMRAIPointer<Database> input_db,
                                      const std::vector<MeshBase*>& meshes,
                                      int max_levels,
                                      bool register_for_restart,
@@ -255,14 +255,14 @@ IBFESurfaceMethod::getSurfaceForceIntegral(const unsigned int part) const
     return d_lag_surface_force_integral[part];
 }
 
-const IntVector<NDIM>&
+const IntVectorNd&
 IBFESurfaceMethod::getMinimumGhostCellWidth() const
 {
     return d_ghosts;
 } // getMinimumGhostCellWidth
 
 void
-IBFESurfaceMethod::setupTagBuffer(Array<int>& tag_buffer, Pointer<GriddingAlgorithm<NDIM> > gridding_alg) const
+IBFESurfaceMethod::setupTagBuffer(Array<int>& tag_buffer, SAMRAIPointer<GriddingAlgorithmNd> gridding_alg) const
 {
     const int finest_hier_ln = gridding_alg->getMaxLevels() - 1;
     const int tsize = tag_buffer.size();
@@ -332,8 +332,8 @@ IBFESurfaceMethod::postprocessIntegrateData(double /*current_time*/, double /*ne
 
 void
 IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
-                                       const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                       const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                       const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& /*u_synch_scheds*/,
+                                       const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                        const double data_time)
 {
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
@@ -420,10 +420,10 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
         std::array<VectorValue<double>, 2> dX_dxi, dx_dxi;
 
         std::vector<libMesh::dof_id_type> dof_id_scratch;
-        Pointer<PatchLevel<NDIM> > level =
+        SAMRAIPointer<PatchLevelNd> level =
             d_hierarchy->getPatchLevel(d_fe_data_managers[part]->getFinestPatchLevelNumber());
         int local_patch_num = 0;
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+        for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
         {
             // The relevant collection of elements.
             const std::vector<Elem*>& patch_elems =
@@ -431,8 +431,8 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             const size_t num_active_patch_elems = patch_elems.size();
             if (!num_active_patch_elems) continue;
 
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             const double patch_dx_min = *std::min_element(patch_dx, patch_dx + NDIM);
 
@@ -487,15 +487,15 @@ IBFESurfaceMethod::interpolateVelocity(const int u_data_idx,
             //
             // NOTE: Values are interpolated only to those quadrature points
             // that are within the patch interior.
-            const Box<NDIM>& interp_box = patch->getBox();
-            Pointer<PatchData<NDIM> > u_data = patch->getPatchData(u_data_idx);
-            Pointer<CellData<NDIM, double> > u_cc_data = u_data;
+            const BoxNd& interp_box = patch->getBox();
+            SAMRAIPointer<PatchDataNd> u_data = patch->getPatchData(u_data_idx);
+            SAMRAIPointer<CellDataNd<double> > u_cc_data = u_data;
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
                     U_qp, NDIM, x_qp, NDIM, u_cc_data, patch, interp_box, d_default_interp_spec.kernel_fcn);
             }
-            Pointer<SideData<NDIM, double> > u_sc_data = u_data;
+            SAMRAIPointer<SideDataNd<double> > u_sc_data = u_data;
             if (u_sc_data)
             {
                 LEInteractor::interpolate(
@@ -948,7 +948,7 @@ IBFESurfaceMethod::computeLagrangianForce(const double data_time)
 void
 IBFESurfaceMethod::spreadForce(const int f_data_idx,
                                RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-                               const std::vector<Pointer<RefineSchedule<NDIM> > >& /*f_prolongation_scheds*/,
+                               const std::vector<SAMRAIPointer<RefineScheduleNd> >& /*f_prolongation_scheds*/,
                                const double data_time)
 {
     const std::string data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
@@ -975,9 +975,9 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
 
     const int ln = d_hierarchy->getFinestLevelNumber();
     const auto f_scratch_data_idx = d_eulerian_data_cache->getCachedPatchDataIndex(f_data_idx);
-    Pointer<hier::Variable<NDIM> > f_var;
-    VariableDatabase<NDIM>::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
-    auto f_active_data_ops = HierarchyDataOpsManager<NDIM>::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
+    SAMRAIPointer<hier::VariableNd> f_var;
+    VariableDatabaseNd::getDatabase()->mapIndexToVariable(f_data_idx, f_var);
+    auto f_active_data_ops = HierarchyDataOpsManagerNd::getManager()->getOperationsDouble(f_var, d_hierarchy, true);
     f_active_data_ops->resetLevels(ln, ln);
     f_active_data_ops->setToScalar(f_scratch_data_idx, 0.0, /*interior_only*/ false);
 
@@ -997,11 +997,11 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
     if (f_phys_bdry_op)
     {
         f_phys_bdry_op->setPatchDataIndex(f_scratch_data_idx);
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_scratch_data_idx);
+            const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(f_scratch_data_idx);
             f_phys_bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
         }
     }
@@ -1065,10 +1065,10 @@ IBFESurfaceMethod::initializeFEEquationSystems()
     d_equation_systems.resize(d_num_parts);
     d_fe_data_managers.resize(d_num_parts);
     d_fe_data.resize(d_num_parts);
-    IntVector<NDIM> min_ghost_width(0);
+    IntVectorNd min_ghost_width(0);
     if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
 
-    Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
+    SAMRAIPointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
     if (d_input_db->keyExists("FEDataManager")) fe_data_manager_db = d_input_db->getDatabase("FEDataManager");
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1156,7 +1156,7 @@ IBFESurfaceMethod::initializeFEEquationSystems()
                                                              min_ghost_width,
                                                              d_eulerian_data_cache);
         d_fe_data_managers[part]->setCurrentCoordinatesSystemName(COORDS_SYSTEM_NAME);
-        d_ghosts = IntVector<NDIM>::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
+        d_ghosts = IntVectorNd::max(d_ghosts, d_fe_data_managers[part]->getGhostCellWidth());
     }
     d_fe_equation_systems_initialized = true;
     return;
@@ -1238,14 +1238,15 @@ IBFESurfaceMethod::registerEulerianVariables()
 } // registerEulerianVariables
 
 void
-IBFESurfaceMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                            Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
-                                            int /*u_data_idx*/,
-                                            const std::vector<Pointer<CoarsenSchedule<NDIM> > >& /*u_synch_scheds*/,
-                                            const std::vector<Pointer<RefineSchedule<NDIM> > >& /*u_ghost_fill_scheds*/,
-                                            int /*integrator_step*/,
-                                            double /*init_data_time*/,
-                                            bool /*initial_time*/)
+IBFESurfaceMethod::initializePatchHierarchy(
+    SAMRAIPointer<PatchHierarchyNd> hierarchy,
+    SAMRAIPointer<GriddingAlgorithmNd> gridding_alg,
+    int /*u_data_idx*/,
+    const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& /*u_synch_scheds*/,
+    const std::vector<SAMRAIPointer<RefineScheduleNd> >& /*u_ghost_fill_scheds*/,
+    int /*integrator_step*/,
+    double /*init_data_time*/,
+    bool /*initial_time*/)
 {
     // Cache pointers to the patch hierarchy and gridding algorithm.
     d_hierarchy = hierarchy;
@@ -1267,7 +1268,7 @@ IBFESurfaceMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hiera
 } // initializePatchHierarchy
 
 void
-IBFESurfaceMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
+IBFESurfaceMethod::registerLoadBalancer(SAMRAIPointer<LoadBalancerNd> load_balancer, int workload_data_idx)
 {
     IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBFESurfaceMethod", "registerLoadBalancer");
     TBOX_ASSERT(load_balancer);
@@ -1277,7 +1278,7 @@ IBFESurfaceMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balanc
 } // registerLoadBalancer
 
 void
-IBFESurfaceMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
+IBFESurfaceMethod::addWorkloadEstimate(SAMRAIPointer<PatchHierarchyNd> hierarchy, const int workload_data_idx)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
@@ -1287,8 +1288,8 @@ IBFESurfaceMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // addWorkloadEstimate
 
 void
-IBFESurfaceMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                           Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBFESurfaceMethod::beginDataRedistribution(SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
+                                           SAMRAIPointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     // clear some things that contain data specific to the current patch hierarchy
     d_ghost_data_accumulator.reset();
@@ -1296,8 +1297,8 @@ IBFESurfaceMethod::beginDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hier
 } // beginDataRedistribution
 
 void
-IBFESurfaceMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
-                                         Pointer<GriddingAlgorithm<NDIM> > /*gridding_alg*/)
+IBFESurfaceMethod::endDataRedistribution(SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
+                                         SAMRAIPointer<GriddingAlgorithmNd> /*gridding_alg*/)
 {
     if (d_is_initialized)
     {
@@ -1317,12 +1318,12 @@ IBFESurfaceMethod::endDataRedistribution(Pointer<PatchHierarchy<NDIM> > /*hierar
 } // endDataRedistribution
 
 void
-IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBFESurfaceMethod::initializeLevelData(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                        int /*level_number*/,
                                        double /*init_data_time*/,
                                        bool /*can_be_refined*/,
                                        bool /*initial_time*/,
-                                       Pointer<BasePatchLevel<NDIM> > /*old_level*/,
+                                       SAMRAIPointer<BasePatchLevelNd> /*old_level*/,
                                        bool /*allocate_data*/)
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
@@ -1333,7 +1334,7 @@ IBFESurfaceMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierar
 } // initializeLevelData
 
 void
-IBFESurfaceMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+IBFESurfaceMethod::resetHierarchyConfiguration(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                                int /*coarsest_level*/,
                                                int /*finest_level*/)
 {
@@ -1346,14 +1347,14 @@ IBFESurfaceMethod::resetHierarchyConfiguration(Pointer<BasePatchHierarchy<NDIM> 
 } // resetHierarchyConfiguration
 
 void
-IBFESurfaceMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+IBFESurfaceMethod::applyGradientDetector(SAMRAIPointer<BasePatchHierarchyNd> base_hierarchy,
                                          int level_number,
                                          double error_data_time,
                                          int tag_index,
                                          bool initial_time,
                                          bool uses_richardson_extrapolation_too)
 {
-    Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
+    SAMRAIPointer<PatchHierarchyNd> hierarchy = base_hierarchy;
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT((level_number >= 0) && (level_number <= hierarchy->getFinestLevelNumber()));
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -1366,7 +1367,7 @@ IBFESurfaceMethod::applyGradientDetector(Pointer<BasePatchHierarchy<NDIM> > base
 } // applyGradientDetector
 
 void
-IBFESurfaceMethod::putToDatabase(Pointer<Database> db)
+IBFESurfaceMethod::putToDatabase(SAMRAIPointer<Database> db)
 {
     db->putInteger("IBFE_METHOD_VERSION", IBFE_METHOD_VERSION);
     db->putInteger("d_num_parts", d_num_parts);
@@ -1399,7 +1400,7 @@ namespace
 {
 struct IndexOrder
 {
-    inline bool operator()(const SAMRAI::hier::Index<NDIM>& lhs, const SAMRAI::hier::Index<NDIM>& rhs) const
+    inline bool operator()(const SAMRAI::hier::IndexNd& lhs, const SAMRAI::hier::IndexNd& rhs) const
     {
         return (lhs(0) < rhs(0)
 #if (NDIM > 1)
@@ -1459,34 +1460,33 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
     VectorValue<double> n;
     std::vector<libMesh::Point> X_node_cache, x_node_cache;
     IBTK::Point x_min, x_max;
-    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_num);
-    const IntVector<NDIM>& ratio = level->getRatio();
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = level->getGridGeometry();
+    SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(level_num);
+    const IntVectorNd& ratio = level->getRatio();
+    const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = level->getGridGeometry();
     int local_patch_num = 0;
-    for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
+    for (PatchLevelNd::Iterator p(level); p; p++, ++local_patch_num)
     {
         // The relevant collection of elements.
         const std::vector<Elem*>& patch_elems = active_patch_element_map[local_patch_num];
         const size_t num_active_patch_elems = patch_elems.size();
         if (num_active_patch_elems == 0) continue;
 
-        const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-        Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_data_idx);
-        const Box<NDIM>& patch_box = patch->getBox();
-        const CellIndex<NDIM>& patch_lower = patch_box.lower();
-        std::array<Box<NDIM>, NDIM> side_ghost_boxes;
+        const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+        SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_data_idx);
+        const BoxNd& patch_box = patch->getBox();
+        const CellIndexNd& patch_lower = patch_box.lower();
+        std::array<BoxNd, NDIM> side_ghost_boxes;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
-            side_ghost_boxes[d] = SideGeometry<NDIM>::toSideBox(f_data->getGhostBox(), d);
+            side_ghost_boxes[d] = SideGeometryNd::toSideBox(f_data->getGhostBox(), d);
         }
-        const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
         const double* const x_lower = patch_geom->getXLower();
         const double* const dx = patch_geom->getDx();
 
-        std::array<std::map<hier::Index<NDIM>, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
+        std::array<std::map<hier::IndexNd, std::vector<libMesh::Point>, IndexOrder>, NDIM> intersection_points,
             intersection_ref_coords;
-        std::array<std::map<hier::Index<NDIM>, std::vector<VectorValue<double> >, IndexOrder>, NDIM>
-            intersection_normals;
+        std::array<std::map<hier::IndexNd, std::vector<VectorValue<double> >, IndexOrder>, NDIM> intersection_normals;
 
         // Loop over the elements.
         for (size_t e_idx = 0; e_idx < num_active_patch_elems; ++e_idx)
@@ -1542,17 +1542,17 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                 }
                 elem->point(k) = x;
             }
-            Box<NDIM> box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
-                          IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
-            box.grow(IntVector<NDIM>(1));
+            BoxNd box(IndexUtilities::getCellIndex(&x_min[0], grid_geom, ratio),
+                      IndexUtilities::getCellIndex(&x_max[0], grid_geom, ratio));
+            box.grow(IntVectorNd(1));
             box = box * patch_box;
 
             // Loop over coordinate directions and look for intersections with
             // the background fluid grid.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                Box<NDIM> extended_box = patch_box;
-                extended_box.grow(IntVector<NDIM>(1));
+                BoxNd extended_box = patch_box;
+                extended_box.grow(IntVectorNd(1));
                 if (patch_geom->getTouchesRegularBoundary(axis, 1)) extended_box.upper(axis) += 1;
 
                 // Setup a unit vector pointing in the coordinate direction of
@@ -1561,12 +1561,12 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                 q(axis) = 1.0;
 
                 // Loop over the relevant range of indices.
-                Box<NDIM> axis_box = box;
+                BoxNd axis_box = box;
                 axis_box.lower(axis) = 0;
                 axis_box.upper(axis) = 0;
-                for (BoxIterator<NDIM> b(axis_box); b; b++)
+                for (BoxIteratorNd b(axis_box); b; b++)
                 {
-                    const hier::Index<NDIM>& i_c = b();
+                    const hier::IndexNd& i_c = b();
                     libMesh::Point r;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
@@ -1585,7 +1585,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                     {
                         const libMesh::Point x = r + intersection.first * q;
                         const libMesh::Point& xi = intersection.second;
-                        SideIndex<NDIM> i_s(i_c, axis, 0);
+                        SideIndexNd i_s(i_c, axis, 0);
                         i_s(axis) =
                             static_cast<int>(std::round((x(axis) - x_lower[axis]) / dx[axis])) + patch_lower[axis];
                         if (extended_box.contains(i_s))
@@ -1611,7 +1611,7 @@ IBFESurfaceMethod::imposeJumpConditions(const int f_data_idx,
                             bool found_same_intersection_point = false;
                             for (int shift = -1; shift <= 1; ++shift)
                             {
-                                SideIndex<NDIM> i_s_prime = i_s;
+                                SideIndexNd i_s_prime = i_s;
                                 i_s_prime(axis) += shift;
                                 const std::vector<libMesh::Point>& candidate_coords =
                                     intersection_points[axis][i_s_prime];
@@ -1716,8 +1716,8 @@ IBFESurfaceMethod::checkDoubleCountingIntersection(const int axis,
                                                    const libMesh::VectorValue<double>& n,
                                                    const libMesh::Point& x,
                                                    const libMesh::Point& xi,
-                                                   const SideIndex<NDIM>& i_s,
-                                                   const SideIndex<NDIM>& i_s_prime,
+                                                   const SideIndexNd& i_s,
+                                                   const SideIndexNd& i_s_prime,
                                                    const std::vector<libMesh::Point>& candidate_coords,
                                                    const std::vector<libMesh::Point>& candidate_ref_coords,
                                                    const std::vector<libMesh::VectorValue<double> >& candidate_normals)
@@ -1874,7 +1874,7 @@ IBFESurfaceMethod::initializeVelocity(const unsigned int part)
 
 void
 IBFESurfaceMethod::commonConstructor(const std::string& object_name,
-                                     Pointer<Database> input_db,
+                                     SAMRAIPointer<Database> input_db,
                                      const std::vector<libMesh::MeshBase*>& meshes,
                                      int max_levels,
                                      bool register_for_restart,
@@ -1923,7 +1923,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
     d_default_quad_type.resize(d_num_parts, INVALID_Q_RULE);
     d_default_quad_order.resize(d_num_parts, INVALID_ORDER);
 
-    // Initialize function data to NULL.
+    // Initialize function data to nullptr.
     d_coordinate_mapping_fcn_data.resize(d_num_parts);
     d_initial_velocity_fcn_data.resize(d_num_parts);
     d_lag_surface_pressure_fcn_data.resize(d_num_parts);
@@ -1992,7 +1992,7 @@ IBFESurfaceMethod::commonConstructor(const std::string& object_name,
 } // commonConstructor
 
 void
-IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
+IBFESurfaceMethod::getFromInput(SAMRAIPointer<Database> db, bool /*is_from_restart*/)
 {
     // Interpolation settings.
     if (db->isString("interp_delta_fcn"))
@@ -2134,8 +2134,8 @@ IBFESurfaceMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
 void
 IBFESurfaceMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

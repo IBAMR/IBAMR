@@ -92,7 +92,7 @@ namespace IBAMR
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CIBMethod::CIBMethod(std::string object_name,
-                     Pointer<Database> input_db,
+                     SAMRAIPointer<Database> input_db,
                      const int no_structures,
                      bool register_for_restart)
     : IBMethod(std::move(object_name), input_db, register_for_restart), CIBStrategy(no_structures)
@@ -215,8 +215,8 @@ CIBMethod::registerEulerianVariables()
 {
     IBMethod::registerEulerianVariables();
 
-    const IntVector<NDIM> ib_ghosts = getMinimumGhostCellWidth();
-    d_eul_lambda_var = new CellVariable<NDIM, double>(d_object_name + "::eul_lambda", NDIM);
+    const IntVectorNd ib_ghosts = getMinimumGhostCellWidth();
+    d_eul_lambda_var = new CellVariableNd<double>(d_object_name + "::eul_lambda", NDIM);
     registerVariable(d_eul_lambda_idx, d_eul_lambda_var, ib_ghosts, d_ib_solver->getCurrentContext());
 
     return;
@@ -227,9 +227,9 @@ CIBMethod::registerEulerianCommunicationAlgorithms()
 {
     IBMethod::registerEulerianCommunicationAlgorithms();
 
-    Pointer<RefineAlgorithm<NDIM> > refine_alg_lambda;
-    Pointer<RefineOperator<NDIM> > refine_op;
-    refine_alg_lambda = new RefineAlgorithm<NDIM>();
+    SAMRAIPointer<RefineAlgorithmNd> refine_alg_lambda;
+    SAMRAIPointer<RefineOperatorNd> refine_op;
+    refine_alg_lambda = new RefineAlgorithmNd();
     refine_op = nullptr;
     refine_alg_lambda->registerRefine(d_eul_lambda_idx, d_eul_lambda_idx, d_eul_lambda_idx, refine_op);
     registerGhostfillRefineAlgorithm(d_object_name + "::eul_lambda", refine_alg_lambda);
@@ -370,7 +370,7 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
 {
     // Compute net rigid generalized force for structures.
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
+    SAMRAIPointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", finest_ln);
     Vec L_vec = ptr_lagmultpr->getVec();
     for (unsigned int part = 0; part < d_num_rigid_parts; ++part)
     {
@@ -429,8 +429,8 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
     if (d_output_eul_lambda)
     {
         // Prepare the LData to spread
-        std::vector<Pointer<LData> > spread_lag_data(finest_ln + 1, Pointer<LData>(nullptr)),
-            position_lag_data(finest_ln + 1, Pointer<LData>(nullptr));
+        std::vector<SAMRAIPointer<LData> > spread_lag_data(finest_ln + 1, SAMRAIPointer<LData>(nullptr)),
+            position_lag_data(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
 
         spread_lag_data[finest_ln] = d_l_data_manager->getLData("lambda", finest_ln);
         ;
@@ -439,11 +439,11 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
         // Initialize the S[lambda] variable to zero.
         for (int ln = 0; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > lambda_data = patch->getPatchData(d_eul_lambda_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<CellDataNd<double> > lambda_data = patch->getPatchData(d_eul_lambda_idx);
                 lambda_data->fillAll(0.0);
             }
         }
@@ -463,12 +463,12 @@ CIBMethod::postprocessIntegrateData(double current_time, double new_time, int nu
 } // postprocessIntegrateData
 
 void
-CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+CIBMethod::initializeLevelData(SAMRAIPointer<BasePatchHierarchyNd> hierarchy,
                                int level_number,
                                double init_data_time,
                                bool can_be_refined,
                                bool initial_time,
-                               Pointer<BasePatchLevel<NDIM> > old_level,
+                               SAMRAIPointer<BasePatchLevelNd> old_level,
                                bool allocate_data)
 {
     IBMethod::initializeLevelData(
@@ -478,14 +478,14 @@ CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
     if (initial_time && d_l_data_manager->levelContainsLagrangianData(level_number))
     {
         // Create Lagrange multiplier and regularization data.
-        Pointer<IBTK::LData> lag_mul_data = d_l_data_manager->createLData("lambda",
-                                                                          level_number,
-                                                                          NDIM,
-                                                                          /*manage_data*/ true);
-        Pointer<IBTK::LData> regulator_data = d_l_data_manager->createLData("regulator",
-                                                                            level_number,
-                                                                            NDIM,
-                                                                            /*manage_data*/ true);
+        SAMRAIPointer<IBTK::LData> lag_mul_data = d_l_data_manager->createLData("lambda",
+                                                                                level_number,
+                                                                                NDIM,
+                                                                                /*manage_data*/ true);
+        SAMRAIPointer<IBTK::LData> regulator_data = d_l_data_manager->createLData("regulator",
+                                                                                  level_number,
+                                                                                  NDIM,
+                                                                                  /*manage_data*/ true);
 
         // Initialize the Lagrange multiplier to zero.
         // Specific value of lambda will be assigned from structure specific input
@@ -493,21 +493,21 @@ CIBMethod::initializeLevelData(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
         VecSet(lag_mul_data->getVec(), 0.0);
 
         // Create unshifted initial position of the structure.
-        Pointer<IBTK::LData> X0_unshifted_data = d_l_data_manager->createLData("X0_unshifted",
-                                                                               level_number,
-                                                                               NDIM,
-                                                                               /*manage_data*/ true);
+        SAMRAIPointer<IBTK::LData> X0_unshifted_data = d_l_data_manager->createLData("X0_unshifted",
+                                                                                     level_number,
+                                                                                     NDIM,
+                                                                                     /*manage_data*/ true);
     }
 
     return;
 } // initializeLevelData
 
 void
-CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                    Pointer<GriddingAlgorithm<NDIM> > gridding_alg,
+CIBMethod::initializePatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                    SAMRAIPointer<GriddingAlgorithmNd> gridding_alg,
                                     int u_data_idx,
-                                    const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                                    const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                                    const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                                    const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                     int integrator_step,
                                     double init_data_time,
                                     bool initial_time)
@@ -546,11 +546,11 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         // Initialize Eulerian lambda (S[lambda]) variable.
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CellData<NDIM, double> > lambda_data = patch->getPatchData(d_eul_lambda_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<CellDataNd<double> > lambda_data = patch->getPatchData(d_eul_lambda_idx);
                 lambda_data->fillAll(0.0);
             }
         }
@@ -562,7 +562,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
-            Pointer<LData> lag_mul_data = d_l_data_manager->getLData("lambda", ln);
+            SAMRAIPointer<LData> lag_mul_data = d_l_data_manager->getLData("lambda", ln);
             d_silo_writer->registerVariableData("lambda", lag_mul_data, ln);
         }
     }
@@ -583,13 +583,13 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
     // Initialize unshifted X0 data.
     {
-        Pointer<LData> X0_unshifted_data = d_l_data_manager->getLData("X0_unshifted", struct_ln);
-        Pointer<LData> X0_data = d_l_data_manager->getLData("X0", struct_ln);
+        SAMRAIPointer<LData> X0_unshifted_data = d_l_data_manager->getLData("X0_unshifted", struct_ln);
+        SAMRAIPointer<LData> X0_data = d_l_data_manager->getLData("X0", struct_ln);
 
         boost::multi_array_ref<double, 2>& X0_unshifted_data_array = *X0_unshifted_data->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& X0_data_array = *X0_data->getLocalFormVecArray();
 
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         for (const auto& node_idx : local_nodes)
         {
@@ -610,7 +610,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
     // Initialize initial center of mass of structures.
     IBTK::EigenAlignedVector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
-    std::vector<Pointer<LData> > X0_unshifted_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
+    std::vector<SAMRAIPointer<LData> > X0_unshifted_data_vec(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
     X0_unshifted_data_vec[finest_ln] = d_l_data_manager->getLData("X0_unshifted", finest_ln);
     computeCOMOfStructures(X0_com, X0_unshifted_data_vec);
     for (unsigned int struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)
@@ -629,8 +629,8 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 
 void
 CIBMethod::interpolateVelocity(const int u_data_idx,
-                               const std::vector<Pointer<CoarsenSchedule<NDIM> > >& u_synch_scheds,
-                               const std::vector<Pointer<RefineSchedule<NDIM> > >& u_ghost_fill_scheds,
+                               const std::vector<SAMRAIPointer<CoarsenScheduleNd> >& u_synch_scheds,
+                               const std::vector<SAMRAIPointer<RefineScheduleNd> >& u_ghost_fill_scheds,
                                const double data_time)
 {
     if (d_lag_velvec_is_initialized)
@@ -638,7 +638,7 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
 #if !defined(NDEBUG)
         TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
 #endif
-        std::vector<Pointer<LData> >*U_half_data, *X_half_data;
+        std::vector<SAMRAIPointer<LData> >*U_half_data, *X_half_data;
         bool* X_half_needs_ghost_fill;
         getVelocityData(&U_half_data, d_half_time);
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
@@ -652,11 +652,10 @@ CIBMethod::interpolateVelocity(const int u_data_idx,
 } // interpolateVelocity
 
 void
-CIBMethod::spreadForce(
-    int f_data_idx,
-    IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
-    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineSchedule<NDIM> > >& f_prolongation_scheds,
-    double data_time)
+CIBMethod::spreadForce(int f_data_idx,
+                       IBTK::RobinPhysBdryPatchStrategy* f_phys_bdry_op,
+                       const std::vector<IBTK::SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd> >& f_prolongation_scheds,
+                       double data_time)
 {
     if (d_constraint_force_is_initialized)
     {
@@ -689,7 +688,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
     setRotationMatrix(d_rot_vel_current, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt);
 
     // Get the domain limits.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     double domain_length[NDIM];
@@ -697,11 +696,11 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
     {
         domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
     }
-    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    const IntVectorNd& periodic_shift = grid_geom->getPeriodicShift();
 
     // Rotate the body with current rotational velocity about origin
     // and translate the body to predicted position X^n+1/2.
-    std::vector<Pointer<LData> >* X_half_data;
+    std::vector<SAMRAIPointer<LData> >* X_half_data;
     bool* X_half_needs_ghost_fill;
     getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
@@ -711,7 +710,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
         boost::multi_array_ref<double, 2>& X_half_array = *((*X_half_data)[ln]->getLocalFormVecArray());
         const boost::multi_array_ref<double, 2>& X0_array =
             *(d_l_data_manager->getLData("X0_unshifted", ln)->getLocalFormVecArray());
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -809,7 +808,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
         d_use_steady_stokes ? d_rot_vel_new : d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
     // Get the grid extents.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     double domain_length[NDIM];
@@ -817,7 +816,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
     {
         domain_length[d] = domain_x_upper[d] - domain_x_lower[d];
     }
-    const IntVector<NDIM>& periodic_shift = grid_geom->getPeriodicShift();
+    const IntVectorNd& periodic_shift = grid_geom->getPeriodicShift();
 
     // Rotate the body with new rotational velocity about origin
     // and translate the body to newer position.
@@ -830,7 +829,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
         boost::multi_array_ref<double, 2>& X_new_array = *d_X_new_data[ln]->getLocalFormVecArray();
         const boost::multi_array_ref<double, 2>& X0_array =
             *(d_l_data_manager->getLData("X0_unshifted", ln)->getLocalFormVecArray());
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -932,14 +931,14 @@ CIBMethod::trapezoidalStep(double /*current_time*/, double /*new_time*/)
 } // trapezoidalStep
 
 void
-CIBMethod::registerVisItDataWriter(Pointer<VisItDataWriter<NDIM> > visit_writer)
+CIBMethod::registerVisItDataWriter(SAMRAIPointer<VisItDataWriterNd> visit_writer)
 {
     d_visit_writer = visit_writer;
     return;
 } // registerVisItDataWriter
 
 void
-CIBMethod::putToDatabase(Pointer<Database> db)
+CIBMethod::putToDatabase(SAMRAIPointer<Database> db)
 {
     IBMethod::putToDatabase(db);
 
@@ -972,7 +971,7 @@ CIBMethod::setConstraintForce(Vec L, const double data_time, const double scale)
 
     const int struct_ln = getStructuresLevelNumber();
 
-    std::vector<Pointer<LData> >* F_half_data;
+    std::vector<SAMRAIPointer<LData> >* F_half_data;
     bool* F_half_needs_ghost_fill;
     getForceData(&F_half_data, &F_half_needs_ghost_fill, d_half_time);
     Vec F_half = (*F_half_data)[struct_ln]->getVec();
@@ -994,7 +993,7 @@ CIBMethod::getConstraintForce(Vec* L, const double data_time)
     NULL_USE(data_time);
 #endif
     const int struct_ln = getStructuresLevelNumber();
-    Pointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", struct_ln);
+    SAMRAIPointer<LData> ptr_lagmultpr = d_l_data_manager->getLData("lambda", struct_ln);
     Vec lambda = ptr_lagmultpr->getVec();
     *L = lambda;
 
@@ -1055,15 +1054,15 @@ CIBMethod::subtractMeanConstraintForce(Vec L, int f_data_idx, const double scale
     const double vol_domain = getHierarchyMathOps()->getVolumeOfPhysicalDomain();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<SideData<NDIM, double> > p_data = patch->getPatchData(f_data_idx);
-            const Box<NDIM>& patch_box = patch->getBox();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<SideDataNd<double> > p_data = patch->getPatchData(f_data_idx);
+            const BoxNd& patch_box = patch->getBox();
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (SideIterator<NDIM> it(patch_box, axis); it; it++)
+                for (SideIteratorNd it(patch_box, axis); it; it++)
                 {
                     (*p_data)(it()) -= F[axis] / vol_domain;
                 }
@@ -1101,7 +1100,7 @@ CIBMethod::getInterpolatedVelocity(Vec V, const double data_time, const double s
 #endif
 
     const int struct_ln = getStructuresLevelNumber();
-    std::vector<Pointer<LData> >* U_half_data;
+    std::vector<SAMRAIPointer<LData> >* U_half_data;
     getVelocityData(&U_half_data, d_half_time);
     VecCopy((*U_half_data)[struct_ln]->getVec(), V);
     VecScale(V, scale);
@@ -1113,7 +1112,7 @@ void
 CIBMethod::computeMobilityRegularization(Vec D, Vec L, const double scale)
 {
     const int struct_ln = getStructuresLevelNumber();
-    Pointer<LData> reg_data = d_l_data_manager->getLData("regulator", struct_ln);
+    SAMRAIPointer<LData> reg_data = d_l_data_manager->getLData("regulator", struct_ln);
     Vec W = reg_data->getVec();
     VecPointwiseMult(D, L, W);
     VecScale(D, scale);
@@ -1159,7 +1158,7 @@ CIBMethod::setRigidBodyVelocity(const unsigned int part, const RigidDOFVector& U
         Eigen::Vector3d R_dr = Eigen::Vector3d::Zero();
 
         // Get mesh nodes.
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
         const std::pair<int, int>& part_idx_range = d_struct_lag_idx_range[part];
         for (const auto& node_idx : local_nodes)
@@ -1215,7 +1214,7 @@ CIBMethod::computeNetRigidGeneralizedForce(const unsigned int part, Vec L, Rigid
 
     // Loop over LMesh.
     F.setZero();
-    const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
+    const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(struct_ln);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (const auto& node_idx : local_nodes)
     {
@@ -1451,7 +1450,7 @@ CIBMethod::constructMobilityMatrix(const std::string& /*mat_name*/,
     }
     else
     {
-        std::vector<Pointer<LData> >* X_half_data;
+        std::vector<SAMRAIPointer<LData> >* X_half_data;
         bool* X_half_needs_ghost_fill;
         getPositionData(&X_half_data, &X_half_needs_ghost_fill, d_half_time);
         X = (*X_half_data)[struct_ln]->getVec();
@@ -1711,7 +1710,7 @@ CIBMethod::flagRegrid() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-CIBMethod::getFromInput(Pointer<Database> input_db)
+CIBMethod::getFromInput(SAMRAIPointer<Database> input_db)
 {
     d_use_steady_stokes = input_db->getBoolWithDefault("use_steady_stokes", d_use_steady_stokes);
     d_output_eul_lambda = input_db->getBoolWithDefault("output_eul_lambda", d_output_eul_lambda);
@@ -1761,8 +1760,8 @@ CIBMethod::getFromInput(Pointer<Database> input_db)
 void
 CIBMethod::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -1795,7 +1794,7 @@ CIBMethod::getFromRestart()
 
 void
 CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& center_of_mass,
-                                  std::vector<Pointer<LData> >& X_data)
+                                  std::vector<SAMRAIPointer<LData> >& X_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1811,7 +1810,7 @@ CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& cen
         if (!d_l_data_manager->levelContainsLagrangianData(ln)) continue;
 
         const boost::multi_array_ref<double, 2>& X_data_array = *X_data[ln]->getLocalFormVecArray();
-        const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
+        const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(ln);
         const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
         // Get structures on this level.
@@ -1849,9 +1848,9 @@ CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& cen
 void
 CIBMethod::setRegularizationWeight(const int level_number)
 {
-    Pointer<LData> reg_data = d_l_data_manager->getLData("regulator", level_number);
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-    const IntVector<NDIM>& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
+    SAMRAIPointer<LData> reg_data = d_l_data_manager->getLData("regulator", level_number);
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
+    const IntVectorNd& ratio = d_hierarchy->getPatchLevel(level_number)->getRatio();
 
     const double* const dx0 = grid_geom->getDx();
     double cell_volume = 1;
@@ -1861,7 +1860,7 @@ CIBMethod::setRegularizationWeight(const int level_number)
     }
 
     boost::multi_array_ref<double, 2>& reg_data_array = *reg_data->getLocalFormVecArray();
-    const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Get structures on this level.
@@ -1975,9 +1974,9 @@ CIBMethod::setRegularizationWeight(const int level_number)
 void
 CIBMethod::setInitialLambda(const int level_number)
 {
-    Pointer<IBTK::LData> lambda_data = d_l_data_manager->getLData("lambda", level_number);
+    SAMRAIPointer<IBTK::LData> lambda_data = d_l_data_manager->getLData("lambda", level_number);
     boost::multi_array_ref<double, 2>& lambda_data_array = *lambda_data->getLocalFormVecArray();
-    const Pointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = d_l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
 
     // Get structures on this level.

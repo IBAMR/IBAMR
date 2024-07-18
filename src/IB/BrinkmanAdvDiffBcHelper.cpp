@@ -61,19 +61,19 @@ static const int NOGHOSTS = 0;
 } // namespace
 /////////////////////////////// PUBLIC //////////////////////////////////////
 BrinkmanAdvDiffBcHelper::BrinkmanAdvDiffBcHelper(std::string object_name,
-                                                 Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver)
+                                                 SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver)
     : d_object_name(object_name), d_adv_diff_solver(adv_diff_solver)
 {
     // Initialize variables
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const IntVector<NDIM> no_ghosts = NOGHOSTS;
-    d_B_var = new SideVariable<NDIM, double>(d_object_name + "::");
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    const IntVectorNd no_ghosts = NOGHOSTS;
+    d_B_var = new SideVariableNd<double>(d_object_name + "::");
     d_B_scratch_idx =
         var_db->registerVariableAndContext(d_B_var, var_db->getContext(d_object_name + "B::SCRATCH"), no_ghosts);
     d_B_chi_scratch_idx =
         var_db->registerVariableAndContext(d_B_var, var_db->getContext(d_object_name + "BCHI::SCRATCH"), no_ghosts);
 
-    d_div_var = new CellVariable<NDIM, double>(d_object_name + "::DIV");
+    d_div_var = new CellVariableNd<double>(d_object_name + "::DIV");
     d_div_B_scratch_idx =
         var_db->registerVariableAndContext(d_div_var, var_db->getContext(d_object_name + "B::SCRATCH"), no_ghosts);
     d_div_B_chi_scratch_idx =
@@ -81,7 +81,7 @@ BrinkmanAdvDiffBcHelper::BrinkmanAdvDiffBcHelper(std::string object_name,
     d_chi_scratch_idx =
         var_db->registerVariableAndContext(d_div_var, var_db->getContext(d_object_name + "CHI::SCRATCH"), no_ghosts);
 
-    d_n_var = new SideVariable<NDIM, double>(d_object_name + "::N");
+    d_n_var = new SideVariableNd<double>(d_object_name + "::N");
     d_n_scratch_idx = var_db->registerVariableAndContext(d_n_var, var_db->getContext(d_object_name + "N::SCRATCH"));
     d_n_chi_scratch_idx =
         var_db->registerVariableAndContext(d_n_var, var_db->getContext(d_object_name + "NCHI::SCRATCH"));
@@ -108,14 +108,14 @@ BrinkmanAdvDiffBcHelper::setTimeInterval(double current_time, double new_time)
 void
 BrinkmanAdvDiffBcHelper::preprocessBrinkmanAdvDiffBcHelper(double current_time, double /*new_time*/, int /*num_cycles*/)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     // Allocate required patch data
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_B_scratch_idx, current_time);
         level->allocatePatchData(d_B_chi_scratch_idx, current_time);
         level->allocatePatchData(d_div_B_scratch_idx, current_time);
@@ -136,14 +136,14 @@ BrinkmanAdvDiffBcHelper::postprocessBrinkmanAdvDiffBcHelper(double /*current_tim
                                                             double /*new_time*/,
                                                             int /*num_cycles*/)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     // Deallocate patch data
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_B_scratch_idx);
         level->deallocatePatchData(d_B_chi_scratch_idx);
         level->deallocatePatchData(d_div_B_scratch_idx);
@@ -191,8 +191,8 @@ BrinkmanAdvDiffBcHelper::setNumInterfaceCells(double num_interface_cells)
 } // setNumInterfaceCells
 
 void
-BrinkmanAdvDiffBcHelper::registerHomogeneousBC(Pointer<CellVariable<NDIM, double> > Q_var,
-                                               Pointer<CellVariable<NDIM, double> > ls_solid_var,
+BrinkmanAdvDiffBcHelper::registerHomogeneousBC(SAMRAIPointer<CellVariableNd<double> > Q_var,
+                                               SAMRAIPointer<CellVariableNd<double> > ls_solid_var,
                                                std::string bc_type,
                                                std::string indicator_func_type,
                                                double num_interface_cells,
@@ -262,8 +262,8 @@ BrinkmanAdvDiffBcHelper::registerHomogeneousBC(Pointer<CellVariable<NDIM, double
 } // registerHomogeneousBC
 
 void
-BrinkmanAdvDiffBcHelper::registerInhomogeneousBC(Pointer<CellVariable<NDIM, double> > Q_var,
-                                                 Pointer<CellVariable<NDIM, double> > ls_solid_var,
+BrinkmanAdvDiffBcHelper::registerInhomogeneousBC(SAMRAIPointer<CellVariableNd<double> > Q_var,
+                                                 SAMRAIPointer<CellVariableNd<double> > ls_solid_var,
                                                  std::string bc_type,
                                                  BrinkmanInhomogeneousBCsFcnPtr callback,
                                                  void* ctx,
@@ -337,35 +337,35 @@ BrinkmanAdvDiffBcHelper::registerInhomogeneousBC(Pointer<CellVariable<NDIM, doub
 } // registerInhomogeneousBC
 
 void
-BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariable<NDIM, double> > Q_var)
+BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<CellVariableNd<double> > Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
 #endif
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     std::vector<BCProperties> brinkman_zones = d_Q_bc[Q_var];
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     // First, deal with Dirichlet BCs, which can be computed pointwise.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const Box<NDIM>& patch_box = patch->getBox();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const BoxNd& patch_box = patch->getBox();
             const double* patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
 
-            Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(C_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            SAMRAIPointer<CellDataNd<double> > C_data = patch->getPatchData(C_idx);
+            for (BoxNd::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                CellIndexNd ci(it());
 
                 // Loop over all the level sets and add up their contributions.
                 // TODO: Pointwise check that level sets don't overlap
@@ -373,7 +373,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
                 for (const auto& bc_prop : brinkman_zones)
                 {
                     // Get the BC specifications for each zone.
-                    Pointer<CellVariable<NDIM, double> > ls_solid_var = bc_prop.ls_solid_var;
+                    SAMRAIPointer<CellVariableNd<double> > ls_solid_var = bc_prop.ls_solid_var;
                     AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
                     if (bc_type != DIRICHLET) continue;
 
@@ -382,7 +382,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
                     const int phi_idx =
                         var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-                    Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_idx);
+                    SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(phi_idx);
                     double phi = (*ls_solid_data)(ci);
 
                     IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;
@@ -405,16 +405,16 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
     }
 
     // Next, deal with Robin bcs which can be computed hierarchy-wise.
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-    HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-    Pointer<HierarchyMathOps> hier_math_ops = d_adv_diff_solver->getHierarchyMathOps();
+    HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+    HierarchySideDataOpsRealNd<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIPointer<HierarchyMathOps> hier_math_ops = d_adv_diff_solver->getHierarchyMathOps();
     for (const auto& bc_prop : brinkman_zones)
     {
         AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
         if (bc_type != ROBIN) continue;
 
         // Get the BC specifications for each zone.
-        Pointer<CellVariable<NDIM, double> > ls_solid_var = bc_prop.ls_solid_var;
+        SAMRAIPointer<CellVariableNd<double> > ls_solid_var = bc_prop.ls_solid_var;
         double num_interface_cells = bc_prop.num_interface_cells;
         const int phi_new_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
         const int phi_scratch_idx =
@@ -432,7 +432,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
                                               "LINEAR",
                                               false,
                                               d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
         hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
         hier_bdry_fill->fillData(d_new_time);
 
@@ -441,27 +441,27 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const Box<NDIM>& patch_box = patch->getBox();
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                const BoxNd& patch_box = patch->getBox();
                 const double* patch_dx = patch_geom->getDx();
                 double vol_cell = 1.0;
                 for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
                 const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_scratch_idx);
-                Pointer<SideData<NDIM, double> > n_data = patch->getPatchData(d_n_scratch_idx);
-                Pointer<SideData<NDIM, double> > n_chi_data = patch->getPatchData(d_n_chi_scratch_idx);
-                Pointer<CellData<NDIM, double> > chi_data = patch->getPatchData(d_chi_scratch_idx);
+                SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(phi_scratch_idx);
+                SAMRAIPointer<SideDataNd<double> > n_data = patch->getPatchData(d_n_scratch_idx);
+                SAMRAIPointer<SideDataNd<double> > n_chi_data = patch->getPatchData(d_n_chi_scratch_idx);
+                SAMRAIPointer<CellDataNd<double> > chi_data = patch->getPatchData(d_chi_scratch_idx);
 
                 for (unsigned int axis = 0; axis < NDIM; ++axis)
                 {
-                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                    for (BoxNd::Iterator it(SideGeometryNd::toSideBox(patch_box, axis)); it; it++)
                     {
-                        SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                        SideIndexNd s_i(it(), axis, SideIndexNd::Lower);
                         const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                         const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                         const double phi = 0.5 * (phi_lower + phi_upper);
@@ -481,9 +481,9 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
                     }
                 }
                 // Compute persistent cell patch data for chi.
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                for (BoxNd::Iterator it(patch_box); it; it++)
                 {
-                    CellIndex<NDIM> ci(it());
+                    CellIndexNd ci(it());
                     double phi = (*ls_solid_data)(ci);
 
                     IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;
@@ -499,8 +499,9 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
         }
         // Compute C += div(chi * n) - chi * div(n) throughout the hierarchy.
         hier_math_ops->div(
-            d_div_n_chi_scratch_idx, d_div_var, 1.0, d_n_chi_scratch_idx, d_n_var, NULL, d_current_time, false);
-        hier_math_ops->div(d_div_n_scratch_idx, d_div_var, 1.0, d_n_scratch_idx, d_n_var, NULL, d_current_time, false);
+            d_div_n_chi_scratch_idx, d_div_var, 1.0, d_n_chi_scratch_idx, d_n_var, nullptr, d_current_time, false);
+        hier_math_ops->div(
+            d_div_n_scratch_idx, d_div_var, 1.0, d_n_scratch_idx, d_n_var, nullptr, d_current_time, false);
         hier_cc_data_ops.multiply(d_div_n_scratch_idx, d_chi_scratch_idx, d_div_n_scratch_idx);
         // Ensure that we don't overwrite contributions from other BCs.
         hier_cc_data_ops.add(C_idx, C_idx, d_div_n_chi_scratch_idx);
@@ -519,17 +520,17 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
 
 void
 BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
-                                                     Pointer<CellVariable<NDIM, double> > Q_var,
+                                                     SAMRAIPointer<CellVariableNd<double> > Q_var,
                                                      int kappa_idx,
                                                      double kappa)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
 #endif
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     std::vector<BCProperties> brinkman_zones = d_Q_bc[Q_var];
     const bool variable_kappa = (kappa_idx != IBTK::invalid_index);
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
     // Fill the ghost cells for each solid level set, which is required to obtain appropriate side-centered data.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
@@ -537,7 +538,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
     for (std::size_t i = 0; i < brinkman_zones.size(); ++i)
     {
         const auto& bc_prop = brinkman_zones[i];
-        Pointer<CellVariable<NDIM, double> > ls_solid_var = bc_prop.ls_solid_var;
+        SAMRAIPointer<CellVariableNd<double> > ls_solid_var = bc_prop.ls_solid_var;
         const int phi_idx = var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
         const int phi_scratch_idx =
             var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
@@ -551,7 +552,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
                                               false,
                                               d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
     }
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
     hier_bdry_fill->fillData(d_new_time);
 
@@ -559,23 +560,23 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const Box<NDIM>& patch_box = patch->getBox();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const BoxNd& patch_box = patch->getBox();
             const double* patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
 
-            Pointer<SideData<NDIM, double> > D_data = patch->getPatchData(D_idx);
-            Pointer<SideData<NDIM, double> > kappa_data = variable_kappa ? patch->getPatchData(kappa_idx) : nullptr;
+            SAMRAIPointer<SideDataNd<double> > D_data = patch->getPatchData(D_idx);
+            SAMRAIPointer<SideDataNd<double> > kappa_data = variable_kappa ? patch->getPatchData(kappa_idx) : nullptr;
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                for (BoxNd::Iterator it(SideGeometryNd::toSideBox(patch_box, axis)); it; it++)
                 {
-                    SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                    SideIndexNd s_i(it(), axis, SideIndexNd::Lower);
 
                     // Loop over all the level sets and add up their contributions.
                     // TODO: Pointwise check that level sets don't overlap
@@ -584,7 +585,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
                     for (const auto& bc_prop : brinkman_zones)
                     {
                         // Get the BC specifications for each zone.
-                        Pointer<CellVariable<NDIM, double> > ls_solid_var = bc_prop.ls_solid_var;
+                        SAMRAIPointer<CellVariableNd<double> > ls_solid_var = bc_prop.ls_solid_var;
                         AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
                         double eta = bc_prop.eta;
                         double num_interface_cells = bc_prop.num_interface_cells;
@@ -593,7 +594,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
                         // Ghost cells for scratch data filled above.
                         const int phi_idx =
                             var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getScratchContext());
-                        Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_idx);
+                        SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(phi_idx);
                         const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                         const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                         const double phi = 0.5 * (phi_lower + phi_upper);
@@ -625,39 +626,39 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
 } // computeDiffusionCoefficient
 
 void
-BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, double> > Q_var)
+BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<CellVariableNd<double> > Q_var)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
 #endif
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     std::vector<BCProperties> brinkman_zones = d_Q_bc[Q_var];
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+    HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
     hier_cc_data_ops.setToScalar(F_idx, 0.0);
 
     // First, deal with Dirichlet, spatially constant g, which can be computed pointwise.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const Box<NDIM>& patch_box = patch->getBox();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const BoxNd& patch_box = patch->getBox();
             const double* patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
 
-            Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_idx);
+            SAMRAIPointer<CellDataNd<double> > F_data = patch->getPatchData(F_idx);
 
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            for (BoxNd::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                CellIndexNd ci(it());
 
                 // Loop over all the level sets and add up their contributions.
                 // TODO: Pointwise check that level sets don't overlap
@@ -665,7 +666,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
                 for (const auto& bc_prop : brinkman_zones)
                 {
                     // Get the BC specifications for each zone.
-                    Pointer<CellVariable<NDIM, double> > ls_solid_var = bc_prop.ls_solid_var;
+                    SAMRAIPointer<CellVariableNd<double> > ls_solid_var = bc_prop.ls_solid_var;
                     AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
                     double bc_val = bc_prop.bc_val;
                     double eta = bc_prop.eta;
@@ -680,7 +681,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
 #endif
                     const int phi_idx =
                         var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-                    Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_idx);
+                    SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(phi_idx);
                     double phi = (*ls_solid_data)(ci);
 
                     IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;
@@ -709,7 +710,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
     // to be computed 'hierarchy-wise'.
     for (const auto& bc_prop : brinkman_zones)
     {
-        Pointer<CellVariable<NDIM, double> > ls_solid_var = bc_prop.ls_solid_var;
+        SAMRAIPointer<CellVariableNd<double> > ls_solid_var = bc_prop.ls_solid_var;
         AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
         bool requires_callback = (bc_prop.callback != nullptr);
         if (!requires_callback) continue;
@@ -721,19 +722,19 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
 #if !defined(NDEBUG)
         TBOX_ASSERT(bp_fcn);
 #endif
-        Pointer<HierarchyMathOps> hier_math_ops = d_adv_diff_solver->getHierarchyMathOps();
+        SAMRAIPointer<HierarchyMathOps> hier_math_ops = d_adv_diff_solver->getHierarchyMathOps();
         if (bc_type == DIRICHLET)
         {
             bp_fcn(d_variable_g_scratch_idx, ls_solid_var, hier_math_ops, d_current_time, bp_ctx);
 
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevelNd::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                    const Box<NDIM>& patch_box = patch->getBox();
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                    const BoxNd& patch_box = patch->getBox();
                     const double* patch_dx = patch_geom->getDx();
                     double vol_cell = 1.0;
                     for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
@@ -741,16 +742,16 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
                     double eta = bc_prop.eta;
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                    Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_idx);
-                    Pointer<CellData<NDIM, double> > g_data = patch->getPatchData(d_variable_g_scratch_idx);
+                    SAMRAIPointer<CellDataNd<double> > F_data = patch->getPatchData(F_idx);
+                    SAMRAIPointer<CellDataNd<double> > g_data = patch->getPatchData(d_variable_g_scratch_idx);
 
-                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                    for (BoxNd::Iterator it(patch_box); it; it++)
                     {
-                        CellIndex<NDIM> ci(it());
+                        CellIndexNd ci(it());
 
                         const int phi_idx =
                             var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-                        Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_idx);
+                        SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(phi_idx);
                         double phi = (*ls_solid_data)(ci);
 
                         IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;
@@ -770,7 +771,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
         }
         else
         {
-            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+            HierarchySideDataOpsRealNd<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             hier_sc_data_ops.setToScalar(d_B_scratch_idx, 0.0);
             bp_fcn(d_B_scratch_idx, ls_solid_var, hier_math_ops, d_current_time, bp_ctx);
 
@@ -792,34 +793,34 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
                                                   "LINEAR",
                                                   false,
                                                   d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
-            Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+            auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
             hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
             hier_bdry_fill->fillData(d_new_time);
 
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevelNd::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                    const Box<NDIM>& patch_box = patch->getBox();
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+                    const BoxNd& patch_box = patch->getBox();
                     const double* patch_dx = patch_geom->getDx();
                     double vol_cell = 1.0;
                     for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
                     double num_interface_cells = bc_prop.num_interface_cells;
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                    Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_scratch_idx);
-                    Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(d_B_scratch_idx);
-                    Pointer<SideData<NDIM, double> > B_chi_data = patch->getPatchData(d_B_chi_scratch_idx);
-                    Pointer<CellData<NDIM, double> > chi_data = patch->getPatchData(d_chi_scratch_idx);
+                    SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(phi_scratch_idx);
+                    SAMRAIPointer<SideDataNd<double> > B_data = patch->getPatchData(d_B_scratch_idx);
+                    SAMRAIPointer<SideDataNd<double> > B_chi_data = patch->getPatchData(d_B_chi_scratch_idx);
+                    SAMRAIPointer<CellDataNd<double> > chi_data = patch->getPatchData(d_chi_scratch_idx);
 
                     for (unsigned int axis = 0; axis < NDIM; ++axis)
                     {
-                        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                        for (BoxNd::Iterator it(SideGeometryNd::toSideBox(patch_box, axis)); it; it++)
                         {
-                            SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                            SideIndexNd s_i(it(), axis, SideIndexNd::Lower);
                             const double phi_lower = (*ls_solid_data)(s_i.toCell(0));
                             const double phi_upper = (*ls_solid_data)(s_i.toCell(1));
                             const double phi = 0.5 * (phi_lower + phi_upper);
@@ -839,9 +840,9 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
                         }
                     }
                     // Compute persistent cell patch data for chi
-                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                    for (BoxNd::Iterator it(patch_box); it; it++)
                     {
-                        CellIndex<NDIM> ci(it());
+                        CellIndexNd ci(it());
                         double phi = (*ls_solid_data)(ci);
 
                         IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;
@@ -857,9 +858,9 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
             }
             // Compute F += div(chi * B) - chi * div(B) throughout the hierarchy.
             hier_math_ops->div(
-                d_div_B_chi_scratch_idx, d_div_var, 1.0, d_B_chi_scratch_idx, d_B_var, NULL, d_current_time, false);
+                d_div_B_chi_scratch_idx, d_div_var, 1.0, d_B_chi_scratch_idx, d_B_var, nullptr, d_current_time, false);
             hier_math_ops->div(
-                d_div_B_scratch_idx, d_div_var, 1.0, d_B_scratch_idx, d_B_var, NULL, d_current_time, false);
+                d_div_B_scratch_idx, d_div_var, 1.0, d_B_scratch_idx, d_B_var, nullptr, d_current_time, false);
             hier_cc_data_ops.multiply(d_div_B_scratch_idx, d_chi_scratch_idx, d_div_B_scratch_idx);
             // Ensure that we don't overwrite contributions from other BCs.
             hier_cc_data_ops.add(F_idx, F_idx, d_div_B_chi_scratch_idx);
@@ -880,34 +881,34 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
 
 void
 BrinkmanAdvDiffBcHelper::maskForcingTerm(int N_idx,
-                                         Pointer<CellVariable<NDIM, double> > Q_var,
+                                         SAMRAIPointer<CellVariableNd<double> > Q_var,
                                          const bool mask_smeared_region)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_Q_bc.find(Q_var) != d_Q_bc.end());
 #endif
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     std::vector<BCProperties> brinkman_zones = d_Q_bc[Q_var];
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const Box<NDIM>& patch_box = patch->getBox();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
+            const BoxNd& patch_box = patch->getBox();
             const double* patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
 
-            Pointer<CellData<NDIM, double> > N_data = patch->getPatchData(N_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            SAMRAIPointer<CellDataNd<double> > N_data = patch->getPatchData(N_idx);
+            for (BoxNd::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                CellIndexNd ci(it());
 
                 // Loop over all the level sets and add up their contributions to the masking term
                 // TODO: Pointwise check that level sets don't overlap
@@ -915,13 +916,13 @@ BrinkmanAdvDiffBcHelper::maskForcingTerm(int N_idx,
                 for (const auto& bc_prop : brinkman_zones)
                 {
                     // Get the BC specifications for each zone
-                    Pointer<CellVariable<NDIM, double> > ls_solid_var = bc_prop.ls_solid_var;
+                    SAMRAIPointer<CellVariableNd<double> > ls_solid_var = bc_prop.ls_solid_var;
                     AdvDiffBrinkmanPenalizationBcType bc_type = bc_prop.bc_type;
                     double num_interface_cells = bc_prop.num_interface_cells;
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
                     const int phi_idx =
                         var_db->mapVariableAndContextToIndex(ls_solid_var, d_adv_diff_solver->getNewContext());
-                    Pointer<CellData<NDIM, double> > ls_solid_data = patch->getPatchData(phi_idx);
+                    SAMRAIPointer<CellDataNd<double> > ls_solid_data = patch->getPatchData(phi_idx);
                     double phi = (*ls_solid_data)(ci);
 
                     IndicatorFunctionType indicator_func_type = bc_prop.indicator_func_type;

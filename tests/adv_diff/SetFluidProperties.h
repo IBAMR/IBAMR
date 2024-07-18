@@ -39,8 +39,8 @@ class HierarchyMathOps;
  */
 
 void callSetFluidDensityCallbackFunction(int rho_idx,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
-                                         SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                         IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> rho_var,
+                                         IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                          const int cycle_num,
                                          const double time,
                                          const double current_time,
@@ -55,8 +55,8 @@ void callSetFluidDensityCallbackFunction(int rho_idx,
  */
 
 void callSetFluidViscosityCallbackFunction(int mu_idx,
-                                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
-                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                           IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> mu_var,
+                                           IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                            const int cycle_num,
                                            const double time,
                                            const double current_time,
@@ -84,8 +84,8 @@ public:
      * Set the density based on the current level set information
      */
     void setDensityPatchData(int rho_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
-                             SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                             IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> rho_var,
+                             IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                              const int cycle_num,
                              const double time,
                              const double current_time,
@@ -95,8 +95,8 @@ public:
      * Set the viscosity based on the current level set information
      */
     void setViscosityPatchData(int mu_idx,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
-                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                               IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> mu_var,
+                               IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int cycle_num,
                                const double time,
                                const double current_time,
@@ -123,8 +123,8 @@ private:
      */
     std::string d_object_name;
 
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchyCellDataOpsRealNd<double> > d_hier_cc_data_ops;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchySideDataOpsRealNd<double> > d_hier_sc_data_ops;
     /*!
      * Density of the fluid.
      */

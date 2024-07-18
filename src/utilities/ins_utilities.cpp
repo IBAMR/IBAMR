@@ -26,33 +26,33 @@
 namespace IBAMR
 {
 double
-computeNetInflowPhysicalBoundary(Pointer<HierarchyMathOps> hier_math_ops, int u_idx, int bdry_loc_idx)
+computeNetInflowPhysicalBoundary(SAMRAIPointer<HierarchyMathOps> hier_math_ops, int u_idx, int bdry_loc_idx)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hier = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hier = hier_math_ops->getPatchHierarchy();
     const int wgt_sc_idx = hier_math_ops->getSideWeightPatchDescriptorIndex();
     const int hier_finest_ln = patch_hier->getFinestLevelNumber();
 
     double integral = 0.0;
     for (int ln = 0; ln <= hier_finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        SAMRAIPointer<PatchLevelNd> patch_level = patch_hier->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(patch_level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = patch_level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
             if (!pgeom->getTouchesRegularBoundary()) continue;
 
-            const tbox::Array<BoundaryBox<NDIM> > physical_codim1_boxes =
+            const tbox::Array<BoundaryBoxNd> physical_codim1_boxes =
                 PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
             if (physical_codim1_boxes.size() == 0) continue;
 
-            Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_idx);
-            Pointer<SideData<NDIM, double> > wgt_data = patch->getPatchData(wgt_sc_idx);
+            SAMRAIPointer<SideDataNd<double> > u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<SideDataNd<double> > wgt_data = patch->getPatchData(wgt_sc_idx);
             const double* const dx = pgeom->getDx();
 
             for (int n = 0; n < physical_codim1_boxes.size(); ++n)
             {
-                const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
+                const BoundaryBoxNd& bdry_box = physical_codim1_boxes[n];
                 const int bdry_box_loc_idx = bdry_box.getLocationIndex();
                 if (bdry_box_loc_idx != bdry_loc_idx) continue;
 
@@ -61,16 +61,16 @@ computeNetInflowPhysicalBoundary(Pointer<HierarchyMathOps> hier_math_ops, int u_
                 const bool is_lower = side == 0;
                 const double axis_normal = is_lower ? -1.0 : 1.0;
 
-                BoundaryBox<NDIM> trimmed_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
-                Box<NDIM> integration_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_box);
+                BoundaryBoxNd trimmed_box = PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
+                BoxNd integration_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_box);
 
                 // Ensure the integration box is of width one in the normal direction
                 integration_box.upper(axis) = integration_box.lower(axis);
 
-                for (Box<NDIM>::Iterator b(integration_box); b; b++)
+                for (BoxNd::Iterator b(integration_box); b; b++)
                 {
-                    const hier::Index<NDIM>& i = b();
-                    const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                    const hier::IndexNd& i = b();
+                    const SideIndexNd i_s(i, axis, SideIndexNd::Lower);
 
                     const double u = (*u_data)(i_s);
 

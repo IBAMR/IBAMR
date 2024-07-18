@@ -60,8 +60,8 @@ public:
     using WallForceFcnPtr = double (*)(double D, const SAMRAI::tbox::Array<double> params);
 
     // Constructor.
-    Wall(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> wall_db,
-         SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry,
+    Wall(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> wall_db,
+         IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry,
          double wall_ghost_dist);
 
     // Copy constructor.
@@ -74,7 +74,7 @@ public:
     void registerWallForceFcn(WallForceFcnPtr wall_force_fcn);
 
     // Get the force area box of the wall.
-    SAMRAI::hier::Box<NDIM> getForceArea();
+    SAMRAI::hier::BoxNd getForceArea();
 
     // Function to get the wall axis.
     int getAxis();
@@ -96,7 +96,7 @@ private:
     SAMRAI::tbox::Array<double> d_parameters;
 
     // The area of the domain that the wall influences:
-    SAMRAI::hier::Box<NDIM> d_force_area;
+    SAMRAI::hier::BoxNd d_force_area;
 
     // Function for applying wall force:
     WallForceFcnPtr d_wall_force_fcn;

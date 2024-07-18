@@ -107,34 +107,32 @@ GeneralOperator::getDt() const
 } // getDt
 
 void
-GeneralOperator::setHierarchyMathOps(Pointer<HierarchyMathOps> hier_math_ops)
+GeneralOperator::setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops)
 {
     d_hier_math_ops = hier_math_ops;
     d_hier_math_ops_external = d_hier_math_ops;
     return;
 } // setHierarchyMathOps
 
-Pointer<HierarchyMathOps>
+SAMRAIPointer<HierarchyMathOps>
 GeneralOperator::getHierarchyMathOps() const
 {
     return d_hier_math_ops;
 } // getHierarchyMathOps
 
 void
-GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
-                          SAMRAIVectorReal<NDIM, double>& y,
-                          SAMRAIVectorReal<NDIM, double>& z)
+GeneralOperator::applyAdd(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<double>& y, SAMRAIVectorRealNd<double>& z)
 {
     // Guard against the case that y == z.
     SAMRAIScopedVectorCopy<double> zz(z);
     apply(x, zz);
-    z.add(Pointer<SAMRAIVectorReal<NDIM, double> >(&y, false), zz);
+    z.add(SAMRAIPointer<SAMRAIVectorRealNd<double> >(&y, false), zz);
     return;
 } // applyAdd
 
 void
-GeneralOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& /*in*/,
-                                         const SAMRAIVectorReal<NDIM, double>& /*out*/)
+GeneralOperator::initializeOperatorState(const SAMRAIVectorRealNd<double>& /*in*/,
+                                         const SAMRAIVectorRealNd<double>& /*out*/)
 {
     d_is_initialized = true;
     return;
@@ -148,14 +146,14 @@ GeneralOperator::deallocateOperatorState()
 } // deallocateOperatorState
 
 void
-GeneralOperator::modifyRhsForBcs(SAMRAIVectorReal<NDIM, double>& /*y*/)
+GeneralOperator::modifyRhsForBcs(SAMRAIVectorRealNd<double>& /*y*/)
 {
     // intentionally blank
     return;
 } // modifyRhsForBcs
 
 void
-GeneralOperator::imposeSolBcs(SAMRAIVectorReal<NDIM, double>& /*u*/)
+GeneralOperator::imposeSolBcs(SAMRAIVectorRealNd<double>& /*u*/)
 {
     // intentionally blank
     return;

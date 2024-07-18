@@ -52,7 +52,7 @@ const int EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION = 0;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FEMechanicsExplicitIntegrator::FEMechanicsExplicitIntegrator(const std::string& object_name,
-                                                             const Pointer<Database>& input_db,
+                                                             const SAMRAIPointer<Database>& input_db,
                                                              MeshBase* mesh,
                                                              bool register_for_restart,
                                                              const std::string& restart_read_dirname,
@@ -63,7 +63,7 @@ FEMechanicsExplicitIntegrator::FEMechanicsExplicitIntegrator(const std::string& 
 }
 
 FEMechanicsExplicitIntegrator::FEMechanicsExplicitIntegrator(const std::string& object_name,
-                                                             const Pointer<Database>& input_db,
+                                                             const SAMRAIPointer<Database>& input_db,
                                                              const std::vector<MeshBase*>& meshes,
                                                              bool register_for_restart,
                                                              const std::string& restart_read_dirname,
@@ -737,7 +737,7 @@ FEMechanicsExplicitIntegrator::computeLagrangianForce(PetscVector<double>& F_vec
 }
 
 void
-FEMechanicsExplicitIntegrator::putToDatabase(Pointer<Database> db)
+FEMechanicsExplicitIntegrator::putToDatabase(SAMRAIPointer<Database> db)
 {
     FEMechanicsBase::putToDatabase(db);
     db->putInteger("EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION", EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION);
@@ -830,7 +830,7 @@ FEMechanicsExplicitIntegrator::doForwardEulerStep(PetscVector<double>& X_new_vec
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-FEMechanicsExplicitIntegrator::commonConstructor(const Pointer<Database>& input_db)
+FEMechanicsExplicitIntegrator::commonConstructor(const SAMRAIPointer<Database>& input_db)
 {
     // Setup timers.
     auto set_timer = [&](const char* name) { return TimerManager::getManager()->getTimer(name); };
@@ -855,7 +855,7 @@ FEMechanicsExplicitIntegrator::commonConstructor(const Pointer<Database>& input_
 }
 
 void
-FEMechanicsExplicitIntegrator::getFromInput(const Pointer<Database>& db, bool /*is_from_restart*/)
+FEMechanicsExplicitIntegrator::getFromInput(const SAMRAIPointer<Database>& db, bool /*is_from_restart*/)
 {
     // Problem parameters.
     if (db->isDouble("mass_density"))
@@ -877,8 +877,8 @@ FEMechanicsExplicitIntegrator::getFromInput(const Pointer<Database>& db, bool /*
 void
 FEMechanicsExplicitIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);

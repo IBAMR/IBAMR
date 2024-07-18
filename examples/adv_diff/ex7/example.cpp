@@ -53,25 +53,25 @@
 // Struct to specify the function required for inhomogeneous Neumann conditions for Brinkman penalization
 struct BrinkmanPenalizationCtx
 {
-    Pointer<BrinkmanAdvDiffSemiImplicitHierarchyIntegrator> adv_diff_hier_integrator;
-    Pointer<SideVariable<NDIM, double> > grad_phi_sc_var;
-    Pointer<CellVariable<NDIM, double> > beta_var;
+    SAMRAIPointer<BrinkmanAdvDiffSemiImplicitHierarchyIntegrator> adv_diff_hier_integrator;
+    SAMRAIPointer<SideVariableNd<double> > grad_phi_sc_var;
+    SAMRAIPointer<CellVariableNd<double> > beta_var;
     int beta_scratch_idx;
     int grad_phi_sc_idx;
 };
 
 void
 evaluate_brinkman_bc_callback_fcn(int B_idx,
-                                  Pointer<CellVariable<NDIM, double> > ls_solid_var,
-                                  Pointer<HierarchyMathOps> hier_math_ops,
+                                  SAMRAIPointer<CellVariableNd<double> > ls_solid_var,
+                                  SAMRAIPointer<HierarchyMathOps> hier_math_ops,
                                   double time,
                                   void* ctx)
 {
     BrinkmanPenalizationCtx* bp_ctx = static_cast<BrinkmanPenalizationCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int phi_idx =
         var_db->mapVariableAndContextToIndex(ls_solid_var, bp_ctx->adv_diff_hier_integrator->getNewContext());
     const int phi_scratch_idx =
@@ -89,33 +89,32 @@ evaluate_brinkman_bc_callback_fcn(int B_idx,
                                           "LINEAR",
                                           false,
                                           bp_ctx->adv_diff_hier_integrator->getPhysicalBcCoefs(ls_solid_var));
-    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
     hier_bdry_fill->fillData(time);
 
     // compute the gradient of signed distance at side center.
     int grad_phi_sc_idx = bp_ctx->grad_phi_sc_idx;
-    Pointer<SideVariable<NDIM, double> > grad_phi_sc_var = bp_ctx->grad_phi_sc_var;
+    SAMRAIPointer<SideVariableNd<double> > grad_phi_sc_var = bp_ctx->grad_phi_sc_var;
     hier_math_ops->grad(grad_phi_sc_idx, grad_phi_sc_var, true, -1.0, phi_scratch_idx, ls_solid_var, nullptr, time);
 
-    Pointer<PatchLevel<NDIM> > finest_level = patch_hierarchy->getPatchLevel(finest_ln);
-    IntVector<NDIM> ratio = finest_level->getRatio();
+    SAMRAIPointer<PatchLevelNd> finest_level = patch_hierarchy->getPatchLevel(finest_ln);
+    IntVectorNd ratio = finest_level->getRatio();
 
-    const Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
-    const SAMRAI::hier::Box<NDIM> domain_box =
-        SAMRAI::hier::Box<NDIM>::refine(grid_geom->getPhysicalDomain()[0], ratio);
+    const SAMRAIPointer<CartesianGridGeometryNd> grid_geom = patch_hierarchy->getGridGeometry();
+    const SAMRAI::hier::BoxNd domain_box = SAMRAI::hier::BoxNd::refine(grid_geom->getPhysicalDomain()[0], ratio);
 
-    for (PatchLevel<NDIM>::Iterator p(finest_level); p; p++)
+    for (PatchLevelNd::Iterator p(finest_level); p; p++)
     {
-        Pointer<Patch<NDIM> > patch = finest_level->getPatch(p());
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<SideData<NDIM, double> > grad_phi_sc_data = patch->getPatchData(grad_phi_sc_idx);
-        Pointer<SideData<NDIM, double> > B_data = patch->getPatchData(B_idx);
+        SAMRAIPointer<PatchNd> patch = finest_level->getPatch(p());
+        const BoxNd& patch_box = patch->getBox();
+        SAMRAIPointer<SideDataNd<double> > grad_phi_sc_data = patch->getPatchData(grad_phi_sc_idx);
+        SAMRAIPointer<SideDataNd<double> > B_data = patch->getPatchData(B_idx);
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+            for (BoxNd::Iterator it(SideGeometryNd::toSideBox(patch_box, axis)); it; it++)
             {
-                SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
+                SideIndexNd si(it(), axis, SideIndexNd::Lower);
 
                 const double outer_radius = 3.0 * M_PI / 4.0;
                 const double inner_radius = M_PI / 4.0;
@@ -153,7 +152,7 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
+    PetscInitialize(&argc, &argv, nullptr, nullptr);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -166,8 +165,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "adv_diff.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -189,67 +188,68 @@ main(int argc, char* argv[])
         const bool dump_timer_data = app_initializer->dumpTimerData();
         const int timer_dump_interval = app_initializer->getTimerDumpInterval();
 
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
         //
 
-        Pointer<AdvDiffHierarchyIntegrator> time_integrator;
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> time_integrator;
         const string solver_type =
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "SEMI_IMPLICIT");
         time_integrator = new BrinkmanAdvDiffSemiImplicitHierarchyIntegrator(
             "BrinkmanAdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("BrinkmanAdvDiffSemiImplicitHierarchyIntegrator"));
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Set up the advected and diffused quantity.
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
 
-        Pointer<CellVariable<NDIM, double> > phi_outer_solid_var =
-            new CellVariable<NDIM, double>("level_set_outer_solid");
+        SAMRAIPointer<CellVariableNd<double> > phi_outer_solid_var =
+            make_samrai_shared<CellVariableNd<double> >("level_set_outer_solid");
         time_integrator->registerTransportedQuantity(phi_outer_solid_var, true);
         time_integrator->setDiffusionCoefficient(phi_outer_solid_var, 0.0);
 
         // Outer circle parameters.
         IBTK::Vector2d origin(M_PI, M_PI);
         const double outer_radius = input_db->getDouble("OUTER_RADIUS");
-        Pointer<CartGridFunction> phi_outer_solid_init =
-            new LevelSetInitialCondition("ls_outer_solid_init", grid_geometry, outer_radius, origin, true);
+        SAMRAIPointer<CartGridFunction> phi_outer_solid_init = make_samrai_shared<LevelSetInitialCondition>(
+            "ls_outer_solid_init", grid_geometry, outer_radius, origin, true);
         time_integrator->setInitialConditions(phi_outer_solid_var, phi_outer_solid_init);
-        std::vector<Pointer<CellVariable<NDIM, double> > > ls_vars;
+        std::vector<SAMRAIPointer<CellVariableNd<double> > > ls_vars;
         ls_vars.push_back(phi_outer_solid_var);
 
         const string& ls_name = "level_set_inner_solid";
-        Pointer<CellVariable<NDIM, double> > phi_inner_solid_var = new CellVariable<NDIM, double>(ls_name);
+        SAMRAIPointer<CellVariableNd<double> > phi_inner_solid_var =
+            make_samrai_shared<CellVariableNd<double> >(ls_name);
         time_integrator->registerTransportedQuantity(phi_inner_solid_var, true);
         time_integrator->setDiffusionCoefficient(phi_inner_solid_var, 0.0);
 
         // Inner circle parameters.
         const double inner_radius = input_db->getDouble("INNER_RADIUS");
-        Pointer<CartGridFunction> phi_inner_solid_init =
-            new LevelSetInitialCondition("ls_inner_solid_init", grid_geometry, inner_radius, origin, false);
+        SAMRAIPointer<CartGridFunction> phi_inner_solid_init = make_samrai_shared<LevelSetInitialCondition>(
+            "ls_inner_solid_init", grid_geometry, inner_radius, origin, false);
         time_integrator->setInitialConditions(phi_inner_solid_var, phi_inner_solid_init);
         ls_vars.push_back(phi_inner_solid_var);
 
-        RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+        RobinBcCoefStrategyNd* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -257,18 +257,18 @@ main(int argc, char* argv[])
             time_integrator->setPhysicalBcCoef(phi_outer_solid_var, phi_bc_coef);
             time_integrator->setPhysicalBcCoef(phi_inner_solid_var, phi_bc_coef);
         }
-        Pointer<CellVariable<NDIM, double> > q_var = new CellVariable<NDIM, double>("q");
+        SAMRAIPointer<CellVariableNd<double> > q_var = make_samrai_shared<CellVariableNd<double> >("q");
         time_integrator->registerTransportedQuantity(q_var, true);
         time_integrator->setDiffusionCoefficient(q_var, input_db->getDouble("KAPPA"));
 
         if (input_db->keyExists("TransportedQuantityInitialConditions"))
         {
-            Pointer<CartGridFunction> q_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> q_init = make_samrai_shared<muParserCartGridFunction>(
                 "q_init", app_initializer->getComponentDatabase("TransportedQuantityInitialConditions"), grid_geometry);
             time_integrator->setInitialConditions(q_var, q_init);
         }
 
-        RobinBcCoefStrategy<NDIM>* q_bc_coef = NULL;
+        RobinBcCoefStrategyNd* q_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TransportedQuantityBcCoefs"))
         {
             q_bc_coef = new muParserRobinBcCoefs(
@@ -277,11 +277,12 @@ main(int argc, char* argv[])
         time_integrator->setPhysicalBcCoef(q_var, q_bc_coef);
 
         // Variables for computing flux-forcing function.
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<CellVariable<NDIM, double> > beta_var = new CellVariable<NDIM, double>("beta", NDIM);
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+        SAMRAIPointer<CellVariableNd<double> > beta_var = make_samrai_shared<CellVariableNd<double> >("beta", NDIM);
         const int beta_scratch_idx =
             var_db->registerVariableAndContext(beta_var, var_db->getContext("beta_context"), 0);
-        Pointer<SideVariable<NDIM, double> > grad_phi_sc_var = new SideVariable<NDIM, double>("grad_phi_sc_var");
+        SAMRAIPointer<SideVariableNd<double> > grad_phi_sc_var =
+            make_samrai_shared<SideVariableNd<double> >("grad_phi_sc_var");
         const int grad_phi_sc_idx =
             var_db->registerVariableAndContext(grad_phi_sc_var, var_db->getContext("grad_phi_sc_context"), 0);
         BrinkmanPenalizationCtx brinkman_ctx;
@@ -293,8 +294,8 @@ main(int argc, char* argv[])
         const string indicator_function_type = input_db->getString("INDICATOR_FUNCTION_TYPE");
         const double eta = input_db->getDouble("ETA");
         const double num_of_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
-        Pointer<BrinkmanAdvDiffBcHelper> brinkman_adv_diff =
-            new BrinkmanAdvDiffBcHelper("BrinkmanAdvDiffBcHelper", time_integrator);
+        auto brinkman_adv_diff =
+            make_samrai_shared<BrinkmanAdvDiffBcHelper>("BrinkmanAdvDiffBcHelper", time_integrator);
 
         brinkman_adv_diff->registerInhomogeneousBC(q_var,
                                                    phi_outer_solid_var,
@@ -314,15 +315,15 @@ main(int argc, char* argv[])
                                                    num_of_interface_cells,
                                                    eta);
 
-        Pointer<BrinkmanAdvDiffSemiImplicitHierarchyIntegrator> bp_adv_diff_hier_integrator = time_integrator;
+        SAMRAIPointer<BrinkmanAdvDiffSemiImplicitHierarchyIntegrator> bp_adv_diff_hier_integrator = time_integrator;
         bp_adv_diff_hier_integrator->registerBrinkmanAdvDiffBcHelper(brinkman_adv_diff);
 
         bp_adv_diff_hier_integrator->setTransportQuantityTimeIndependent(q_var, true /* Q_time_independent */);
 
         if (input_db->keyExists("TransportedQuantityForcingFunction"))
         {
-            Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F", 1);
-            Pointer<CartGridFunction> q_forcing_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CellVariableNd<double> > F_var = make_samrai_shared<CellVariableNd<double> >("F", 1);
+            SAMRAIPointer<CartGridFunction> q_forcing_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "q_forcing_fcn",
                 app_initializer->getComponentDatabase("TransportedQuantityForcingFunction"),
                 grid_geometry);
@@ -331,11 +332,11 @@ main(int argc, char* argv[])
             time_integrator->setSourceTerm(q_var, F_var);
         }
 
-        Pointer<CartGridFunction> T_ex = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> T_ex = make_samrai_shared<muParserCartGridFunction>(
             "T_ex", app_initializer->getComponentDatabase("TransportedQuantityExactSolutions"), grid_geometry);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -360,7 +361,7 @@ main(int argc, char* argv[])
             time_integrator->setupPlotData();
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
-        // VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        // VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         const int q_idx = var_db->mapVariableAndContextToIndex(q_var, time_integrator->getCurrentContext());
         const int q_ex_cloned_idx = var_db->registerClonedPatchDataIndex(q_var, q_idx);
         const int q_err_cloned_idx = var_db->registerClonedPatchDataIndex(q_var, q_idx);
@@ -393,8 +394,8 @@ main(int argc, char* argv[])
         hier_math_ops.resetLevels(coarsest_ln, finest_ln);
 
         const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-        HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-        HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+        HierarchySideDataOpsRealNd<double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -426,25 +427,25 @@ main(int argc, char* argv[])
             // Calculate Heaviside function and mask the error indices.
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
 
-                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                for (PatchLevelNd::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                    const Box<NDIM>& patch_box = patch->getBox();
-                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                    const BoxNd& patch_box = patch->getBox();
+                    const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
 
-                    Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(phi_cloned_idx);
+                    SAMRAIPointer<CellDataNd<double> > H_data = patch->getPatchData(phi_cloned_idx);
 
-                    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                    for (BoxNd::Iterator it(patch_box); it; it++)
                     {
-                        CellIndex<NDIM> ci(it());
+                        CellIndexNd ci(it());
                         double chi = 0.0;
                         for (const auto& phi_solid_var : ls_vars)
                         {
                             const int phi_idx = var_db->mapVariableAndContextToIndex(
                                 phi_solid_var, time_integrator->getCurrentContext());
-                            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+                            SAMRAIPointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_idx);
                             const double phi = (*phi_data)(ci);
                             double Hphi = 0.0;
                             if (phi > 0.0)

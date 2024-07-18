@@ -87,7 +87,7 @@ static double post_deflection_radius = 2.95e-3;       // maximum post deflection
 static double post_rotational_frequency = 1.0 / .006; // post rotational frequency [1/s]
 
 void
-update_target_points(const Pointer<PatchHierarchy<NDIM> >& hierarchy,
+update_target_points(const SAMRAIPointer<PatchHierarchyNd>& hierarchy,
                      const LDataManager* const l_data_manager,
                      const double current_time,
                      const double dt)
@@ -95,7 +95,7 @@ update_target_points(const Pointer<PatchHierarchy<NDIM> >& hierarchy,
     const int finest_ln = hierarchy->getFinestLevelNumber();
     const std ::pair<int, int>& post_lag_idxs =
         l_data_manager->getLagrangianStructureIndexRange(post_struct_id, finest_ln);
-    Pointer<LMesh> mesh = l_data_manager->getLMesh(finest_ln);
+    SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(finest_ln);
 
     // update both the local and ghost nodes.
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
@@ -149,8 +149,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
         const bool dump_viz_data = app_initializer->dumpVizData();
@@ -179,16 +179,16 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+        auto navier_stokes_integrator = make_samrai_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
-        Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator;
         if (simulate_dye_concentration_field)
         {
             const string adv_diff_solver_type = input_db->getStringWithDefault("ADV_DIFF_SOLVER_TYPE", "SEMI_IMPLICIT");
             if (adv_diff_solver_type == "GODUNOV")
             {
-                Pointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+                auto predictor = make_samrai_shared<AdvectorExplicitPredictorPatchOps>(
                     "AdvectorExplicitPredictorPatchOps",
                     app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
                 adv_diff_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
@@ -209,54 +209,55 @@ main(int argc, char* argv[])
             }
             navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
         }
-        Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        auto ib_method_ops =
+            make_samrai_shared<IBMethod>("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Configure the IB solver.
-        Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
+        auto ib_initializer = make_samrai_shared<IBStandardInitializer>(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
-        Pointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
+        auto ib_force_fcn = make_samrai_shared<IBStandardForceGen>();
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -281,14 +282,14 @@ main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            Pointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -299,18 +300,18 @@ main(int argc, char* argv[])
         if (simulate_dye_concentration_field)
         {
             // Setup the advected and diffused quantity.
-            Pointer<CellVariable<NDIM, double> > Q_var = new CellVariable<NDIM, double>("Q");
+            SAMRAIPointer<CellVariableNd<double> > Q_var = make_samrai_shared<CellVariableNd<double> >("Q");
             adv_diff_integrator->registerTransportedQuantity(Q_var);
             adv_diff_integrator->setDiffusionCoefficient(Q_var, input_db->getDouble("D"));
             if (input_db->keyExists("ConcentrationInitialConditions"))
             {
-                Pointer<CartGridFunction> Q_init = new muParserCartGridFunction(
+                SAMRAIPointer<CartGridFunction> Q_init = make_samrai_shared<muParserCartGridFunction>(
                     "Q_init", app_initializer->getComponentDatabase("ConcentrationInitialConditions"), grid_geometry);
                 adv_diff_integrator->setInitialConditions(Q_var, Q_init);
             }
-            Pointer<FaceVariable<NDIM, double> > u_adv_var = navier_stokes_integrator->getAdvectionVelocityVariable();
+            SAMRAIPointer<FaceVariableNd<double> > u_adv_var = navier_stokes_integrator->getAdvectionVelocityVariable();
             adv_diff_integrator->setAdvectionVelocity(Q_var, u_adv_var);
-            std::unique_ptr<RobinBcCoefStrategy<NDIM> > Q_bc_coefs = nullptr;
+            std::unique_ptr<RobinBcCoefStrategyNd> Q_bc_coefs = nullptr;
             if (periodic_shift.min() == 0)
             {
                 Q_bc_coefs.reset(new muParserRobinBcCoefs(
@@ -405,12 +406,12 @@ main(int argc, char* argv[])
 
             // Print the Eulerian Coordinates of the IB points which constitute the Lagrangian structure.
             const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<LData> X_data = ib_method_ops->getLDataManager()->getLData("X", finest_ln);
+            SAMRAIPointer<LData> X_data = ib_method_ops->getLDataManager()->getLData("X", finest_ln);
             Vec X_vec = X_data->getVec();
             double* x_vals;
             int ierr = VecGetArray(X_vec, &x_vals);
             IBTK_CHKERRQ(ierr);
-            Pointer<LMesh> l_mesh = ib_method_ops->getLDataManager()->getLMesh(finest_ln);
+            SAMRAIPointer<LMesh> l_mesh = ib_method_ops->getLDataManager()->getLMesh(finest_ln);
             const std::vector<LNode*>& local_nodes = l_mesh->getLocalNodes();
             int num_nodes = local_nodes.size();
 
@@ -484,9 +485,9 @@ main(int argc, char* argv[])
                 MPI_Gatherv(local_coordinates.data(),
                             local_coordinates.size(),
                             mpi_lag_coords_type,
-                            NULL,
-                            NULL,
-                            NULL,
+                            nullptr,
+                            nullptr,
+                            nullptr,
                             mpi_lag_coords_type,
                             0,
                             IBTK_MPI::getCommunicator());

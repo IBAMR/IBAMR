@@ -19,9 +19,9 @@
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 HeavisideForcingFunction::HeavisideForcingFunction(const std::string& /*object_name*/,
-                                                   const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                                   const Pointer<CellVariable<NDIM, double> > H_var,
-                                                   const Pointer<FaceVariable<NDIM, double> > U_adv_var)
+                                                   const SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                                   const SAMRAIPointer<CellVariableNd<double> > H_var,
+                                                   const SAMRAIPointer<FaceVariableNd<double> > U_adv_var)
     : d_adv_diff_solver(adv_diff_solver), d_H_var(H_var), d_U_adv_var(U_adv_var)
 {
     // intentionally blank
@@ -36,8 +36,8 @@ HeavisideForcingFunction::isTimeDependent() const
 
 void
 HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                  Pointer<Variable<NDIM> > /*var*/,
-                                                  Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                  SAMRAIPointer<VariableNd> /*var*/,
+                                                  SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                   const double data_time,
                                                   const bool initial_time,
                                                   const int coarsest_ln_in,
@@ -48,7 +48,7 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
 #endif
     const int coarsest_ln = (coarsest_ln_in == -1 ? 0 : coarsest_ln_in);
     const int finest_ln = (finest_ln_in == -1 ? hierarchy->getFinestLevelNumber() : finest_ln_in);
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+    HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
     // NOTE: At the initial time we take div u = 0 for the lack of knowledge of the
     // velocity field.
@@ -59,7 +59,7 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
     }
 
     // Compute H*div U which is to be added in Heaviside transport equation.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int U_new_idx = var_db->mapVariableAndContextToIndex(d_U_adv_var, d_adv_diff_solver->getNewContext());
     const int H_new_idx = var_db->mapVariableAndContextToIndex(d_H_var, d_adv_diff_solver->getNewContext());
 
@@ -81,11 +81,11 @@ HeavisideForcingFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 HeavisideForcingFunction::setDataOnPatch(const int /*data_idx*/,
-                                         Pointer<Variable<NDIM> > /*var*/,
-                                         Pointer<Patch<NDIM> > /*patch*/,
+                                         SAMRAIPointer<VariableNd> /*var*/,
+                                         SAMRAIPointer<PatchNd> /*patch*/,
                                          const double /*data_time*/,
                                          const bool /*initial_time*/,
-                                         Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                         SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
     // As we directly compute and set data on the patch hierarchy don't do anything over here.
     return;

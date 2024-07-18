@@ -27,7 +27,8 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StokesWaveGeneratorStrategy::StokesWaveGeneratorStrategy(const std::string& object_name, Pointer<Database> input_db)
+StokesWaveGeneratorStrategy::StokesWaveGeneratorStrategy(const std::string& object_name,
+                                                         SAMRAIPointer<Database> input_db)
 {
     d_object_name = object_name;
 #if !defined(NDEBUG)
@@ -73,9 +74,9 @@ StokesWaveGeneratorStrategy::getGravity() const
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
-StokesWaveGeneratorStrategy::getFromInput(Pointer<Database> input_db)
+StokesWaveGeneratorStrategy::getFromInput(SAMRAIPointer<Database> input_db)
 {
-    Pointer<Database> wave_db = input_db;
+    SAMRAIPointer<Database> wave_db = input_db;
     if (input_db->isDatabase("wave_parameters_db"))
     {
         wave_db = input_db->getDatabase("wave_parameters_db");

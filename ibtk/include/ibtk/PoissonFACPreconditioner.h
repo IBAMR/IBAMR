@@ -64,8 +64,8 @@ public:
      * Constructor.
      */
     PoissonFACPreconditioner(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
-                             SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                             SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_strategy,
+                             SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                              std::string default_options_prefix);
 
     /*!
@@ -83,26 +83,26 @@ public:
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy object used to specify
      * physical boundary conditions.
      *
-     * \note \a bc_coef may be NULL.  In this case, default boundary conditions
+     * \note \a bc_coef may be nullptr.  In this case, default boundary conditions
      * (as supplied to the class constructor) are employed.
      *
      * \param bc_coef  Pointer to an object that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef) override;
+    void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategyNd* bc_coef) override;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
      * physical boundary conditions.
      *
-     * \note Any of the elements of \a bc_coefs may be NULL.  In this case,
+     * \note Any of the elements of \a bc_coefs may be nullptr.  In this case,
      * default boundary conditions (as supplied to the class constructor) are
      * employed for that data depth.
      *
      * \param bc_coefs  Vector of pointers to objects that can set the Robin boundary condition
      *coefficients
      */
-    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs) override;
+    void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs) override;
 
 private:
     /*!

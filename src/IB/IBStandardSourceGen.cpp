@@ -131,7 +131,7 @@ IBStandardSourceGen::getSourcePressures(const int ln) const
 } // getSourcePressures
 
 void
-IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IBStandardSourceGen::initializeLevelData(const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                          const int level_number,
                                          const double /*init_data_time*/,
                                          const bool /*initial_time*/,
@@ -157,7 +157,7 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
     d_P_src[level_number].resize(d_n_src[level_number], 0.0);
 
     std::fill(d_num_perimeter_nodes[level_number].begin(), d_num_perimeter_nodes[level_number].end(), 0);
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (const auto& node_idx : local_nodes)
     {
@@ -172,7 +172,7 @@ IBStandardSourceGen::initializeLevelData(const Pointer<PatchHierarchy<NDIM> > /*
 } // initializeLevelData
 
 unsigned int
-IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+IBStandardSourceGen::getNumSources(const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                    const int level_number,
                                    const double /*data_time*/,
                                    LDataManager* const /*l_data_manager*/)
@@ -186,8 +186,8 @@ IBStandardSourceGen::getNumSources(const Pointer<PatchHierarchy<NDIM> > /*hierar
 void
 IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
                                         std::vector<double>& r_src,
-                                        Pointer<LData> X_data,
-                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                        SAMRAIPointer<LData> X_data,
+                                        const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                         const int level_number,
                                         const double /*data_time*/,
                                         LDataManager* const l_data_manager)
@@ -205,7 +205,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
     // Determine the positions of the sources.
     std::fill(X_src.begin(), X_src.end(), Point::Zero());
     const double* const X_node = X_data->getLocalFormVecArray()->data();
-    const Pointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
+    const SAMRAIPointer<LMesh> mesh = l_data_manager->getLMesh(level_number);
     const std::vector<LNode*>& local_nodes = mesh->getLocalNodes();
     for (const auto& node_idx : local_nodes)
     {
@@ -242,7 +242,7 @@ IBStandardSourceGen::getSourceLocations(std::vector<Point>& X_src,
 
 void
 IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
-                                        const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                        const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                         const int level_number,
                                         const double /*data_time*/,
                                         LDataManager* const /*l_data_manager*/)
@@ -253,7 +253,7 @@ IBStandardSourceGen::setSourcePressures(const std::vector<double>& P_src,
 
 void
 IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
-                                            const Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                            const SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                             const int level_number,
                                             const double /*data_time*/,
                                             LDataManager* const /*l_data_manager*/)
@@ -263,7 +263,7 @@ IBStandardSourceGen::computeSourceStrengths(std::vector<double>& Q_src,
 } // computeSourceStrengths
 
 void
-IBStandardSourceGen::putToDatabase(Pointer<Database> db)
+IBStandardSourceGen::putToDatabase(SAMRAIPointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -306,8 +306,8 @@ IBStandardSourceGen::putToDatabase(Pointer<Database> db)
 void
 IBStandardSourceGen::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase("IBStandardSourceGen")) // TODO: Make this ID string a variable.
     {
         db = restart_db->getDatabase("IBStandardSourceGen");

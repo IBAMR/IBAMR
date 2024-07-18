@@ -85,7 +85,7 @@ public:
      * \brief Method to allow the FACPreconditioner object to register itself
      * with the concrete FACPreconditionerStrategy.
      */
-    virtual void setFACPreconditioner(SAMRAI::tbox::ConstPointer<FACPreconditioner> preconditioner);
+    virtual void setFACPreconditioner(SAMRAIConstPointer<FACPreconditioner> preconditioner);
 
     /*!
      * \brief Set whether the solver should use homogeneous boundary conditions.
@@ -127,7 +127,7 @@ public:
      * \brief Zero-out the provided vector on the specified level of the patch
      * hierarchy.
      */
-    virtual void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error, int level_num) = 0;
+    virtual void setToZero(SAMRAI::solv::SAMRAIVectorRealNd<double>& error, int level_num) = 0;
 
     /*!
      * \brief Restrict the residual from the source vector to the destination
@@ -136,8 +136,8 @@ public:
      * \note Implementations must support the case in which source and dest are
      * the same vector.
      */
-    virtual void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& source,
-                                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dest,
+    virtual void restrictResidual(const SAMRAI::solv::SAMRAIVectorRealNd<double>& source,
+                                  SAMRAI::solv::SAMRAIVectorRealNd<double>& dest,
                                   int dest_level_num) = 0;
 
     /*!
@@ -147,8 +147,8 @@ public:
      * \note Implementations must support the case in which source and dest are
      * the same vector.
      */
-    virtual void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& source,
-                              SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dest,
+    virtual void prolongError(const SAMRAI::solv::SAMRAIVectorRealNd<double>& source,
+                              SAMRAI::solv::SAMRAIVectorRealNd<double>& dest,
                               int dest_level_num) = 0;
 
     /*!
@@ -159,16 +159,16 @@ public:
      * \note Implementations must support the case in which source and dest are
      * the same vector.
      */
-    virtual void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& source,
-                                        SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dest,
+    virtual void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorRealNd<double>& source,
+                                        SAMRAI::solv::SAMRAIVectorRealNd<double>& dest,
                                         int dest_level_num) = 0;
 
     /*!
      * \brief Smooth the error by the specified number of sweeps on the
      * specified level of the patch hierarchy.
      */
-    virtual void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                             const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    virtual void smoothError(SAMRAI::solv::SAMRAIVectorRealNd<double>& error,
+                             const SAMRAI::solv::SAMRAIVectorRealNd<double>& residual,
                              int level_num,
                              int num_sweeps,
                              bool performing_pre_sweeps,
@@ -180,25 +180,25 @@ public:
      *
      * \return true if the solver converged to specified tolerance, false otherwise
      */
-    virtual bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                                    const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    virtual bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorRealNd<double>& error,
+                                    const SAMRAI::solv::SAMRAIVectorRealNd<double>& residual,
                                     int coarsest_level_num) = 0;
 
     /*!
      * \brief Compute the composite-grid residual on the specified range of
      * levels of the patch hierarchy.
      */
-    virtual void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    virtual void computeResidual(SAMRAI::solv::SAMRAIVectorRealNd<double>& residual,
+                                 const SAMRAI::solv::SAMRAIVectorRealNd<double>& solution,
+                                 const SAMRAI::solv::SAMRAIVectorRealNd<double>& rhs,
                                  int coarsest_level_num,
                                  int finest_level_num) = 0;
 
     /*!
      * \brief Initialize any hierarchy-dependent data.
      */
-    virtual void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs);
+    virtual void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& solution,
+                                         const SAMRAI::solv::SAMRAIVectorRealNd<double>& rhs);
 
     /*!
      * \brief Deallocate any hierarchy-dependent data initialized by
@@ -233,11 +233,11 @@ protected:
      * \brief Return a SAMRAIVectorReal object that corresponds to the given
      * object but restricted to a single level of the patch hierarchy.
      */
-    virtual SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >
-    getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) const;
+    virtual SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> >
+    getLevelSAMRAIVectorReal(const SAMRAI::solv::SAMRAIVectorRealNd<double>& vec, int level_num) const;
 
     // Pointer to the FACPreconditioner that is using this operator.
-    SAMRAI::tbox::ConstPointer<IBTK::FACPreconditioner> d_preconditioner;
+    SAMRAIConstPointer<IBTK::FACPreconditioner> d_preconditioner;
 
     // Object name.
     const std::string d_object_name;

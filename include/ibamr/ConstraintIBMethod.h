@@ -90,7 +90,7 @@ public:
      * \brief Constructor
      */
     ConstraintIBMethod(std::string object_name,
-                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                       IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                        const int no_structures,
                        bool register_for_restart = true);
 
@@ -123,7 +123,7 @@ public:
      * \brief Register kinematics of the immersed structure(s) with this class.
      */
     void registerConstraintIBKinematics(
-        const std::vector<SAMRAI::tbox::Pointer<IBAMR::ConstraintIBKinematics> >& ib_kinematics_op);
+        const std::vector<IBTK::SAMRAIPointer<IBAMR::ConstraintIBKinematics> >& ib_kinematics_op);
 
     /*!
      * \brief Register any preprocess fluid solve callback functions.
@@ -172,7 +172,7 @@ public:
     /*!
      * \brief Override the putToDatabase method of the base Serializable class.
      */
-    virtual void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    virtual void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * \brief Get the volume element associated with material points
@@ -194,7 +194,7 @@ public:
     /*!
      * \brief Get LData associated with Lagrange multiplier force field.
      */
-    inline const std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& getLagrangeMultiplier()
+    inline const std::vector<IBTK::SAMRAIPointer<IBTK::LData> >& getLagrangeMultiplier()
     {
         return d_l_data_U_correction;
     }
@@ -297,7 +297,7 @@ private:
     /*!
      * \brief Get values from input file.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db, const bool from_restart);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db, const bool from_restart);
 
     /*!
      * \brief Get values from restart file.
@@ -450,7 +450,7 @@ private:
     /*!
      * Pointer to the kinematics of the immersed structures.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBAMR::ConstraintIBKinematics> > d_ib_kinematics;
+    std::vector<IBTK::SAMRAIPointer<IBAMR::ConstraintIBKinematics> > d_ib_kinematics;
 
     /*!
      * FuRMoRP apply time.
@@ -576,33 +576,33 @@ private:
     /*!
      * Store LData for only those levels which contain immersed structures.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LData> > d_l_data_U_interp, d_l_data_U_correction, d_l_data_U_new,
+    std::vector<IBTK::SAMRAIPointer<IBTK::LData> > d_l_data_U_interp, d_l_data_U_correction, d_l_data_U_new,
         d_l_data_U_current, d_l_data_U_half, d_l_data_X_half_Euler, d_l_data_X_new_MidPoint;
 
     /*!
      * Hierarchy operations object. Needed for projection step.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchySideDataOpsRealNd<double> > d_hier_sc_data_ops;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchyCellDataOpsRealNd<double> > d_hier_cc_data_ops;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
     int d_wgt_cc_idx, d_wgt_sc_idx;
     double d_volume;
 
     /*!
      *  Variables and variable contexts associated with calculating divergence free projection.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_var;
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_u_fluidSolve_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_phi_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_u_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_u_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_u_fluidSolve_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_phi_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_Div_u_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_scratch_context;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> d_scratch_context;
     int d_u_fluidSolve_idx, d_u_fluidSolve_cib_idx, d_phi_idx, d_Div_u_scratch_idx;
 
     /*!
      * Variables associated with the spatially varying density field, which is maintained by an integrator.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_rho_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_rho_var;
     int d_rho_ins_idx = IBTK::invalid_index, d_rho_scratch_idx = IBTK::invalid_index;
 
     /*!
@@ -610,13 +610,13 @@ private:
      * used to project the corrected background fluid velocity on divergence free field to remove kinkiness
      * introduced via FuRMoRP algorithm.
      */
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_velcorrection_projection_bc_coef;
+    SAMRAI::solv::LocationIndexRobinBcCoefsNd d_velcorrection_projection_bc_coef;
     std::unique_ptr<SAMRAI::solv::PoissonSpecifications> d_velcorrection_projection_spec;
-    SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> d_velcorrection_projection_op;
-    SAMRAI::tbox::Pointer<IBTK::PETScKrylovPoissonSolver> d_velcorrection_projection_solver;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_velcorrection_projection_fac_op;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velcorrection_projection_fac_pc_db;
-    SAMRAI::tbox::Pointer<IBTK::FACPreconditioner> d_velcorrection_projection_fac_pc;
+    IBTK::SAMRAIPointer<IBTK::CCLaplaceOperator> d_velcorrection_projection_op;
+    IBTK::SAMRAIPointer<IBTK::PETScKrylovPoissonSolver> d_velcorrection_projection_solver;
+    IBTK::SAMRAIPointer<IBTK::CCPoissonPointRelaxationFACOperator> d_velcorrection_projection_fac_op;
+    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> d_velcorrection_projection_fac_pc_db;
+    IBTK::SAMRAIPointer<IBTK::FACPreconditioner> d_velcorrection_projection_fac_pc;
 
     /*!
      * File streams associated for the output.

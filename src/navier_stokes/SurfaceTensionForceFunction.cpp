@@ -184,9 +184,9 @@ namespace IBAMR
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
 SurfaceTensionForceFunction::SurfaceTensionForceFunction(const std::string& object_name,
-                                                         const Pointer<Database> input_db,
+                                                         const SAMRAIPointer<Database> input_db,
                                                          const AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                                         const Pointer<Variable<NDIM> > level_set_var)
+                                                         const SAMRAIPointer<VariableNd> level_set_var)
     : CartGridFunction(object_name), d_adv_diff_solver(adv_diff_solver), d_ls_var(level_set_var)
 {
     // Set some default values
@@ -244,8 +244,8 @@ SurfaceTensionForceFunction::isTimeDependent() const
 
 void
 SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                     Pointer<Variable<NDIM> > var,
-                                                     Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                     SAMRAIPointer<VariableNd> var,
+                                                     SAMRAIPointer<PatchHierarchyNd> hierarchy,
                                                      const double data_time,
                                                      const bool initial_time,
                                                      const int coarsest_ln_in,
@@ -259,14 +259,14 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     const int finest_ln =
         (finest_ln_in == IBTK::invalid_level_number ? hierarchy->getFinestLevelNumber() : finest_ln_in);
     d_hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
-    d_hier_sc_data_ops = new HierarchySideDataOpsReal<NDIM, double>(hierarchy, coarsest_ln, finest_ln);
+    d_hier_sc_data_ops = new HierarchySideDataOpsRealNd<double>(hierarchy, coarsest_ln, finest_ln);
 
     // Get the newest patch data index for the level set variable
-    Pointer<CellVariable<NDIM, double> > phi_cc_var = d_ls_var;
+    SAMRAIPointer<CellVariableNd<double> > phi_cc_var = d_ls_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!phi_cc_var.isNull());
 #endif
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int phi_adv_diff_new_idx =
         var_db->mapVariableAndContextToIndex(phi_cc_var, d_adv_diff_solver->getNewContext());
     const int phi_adv_diff_current_idx =
@@ -276,7 +276,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     TBOX_ASSERT(phi_adv_diff_current_idx >= 0);
 #endif
 
-    IntVector<NDIM> cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
+    IntVectorNd cell_ghosts = getMinimumGhostWidth(d_kernel_fcn);
     d_C_idx = var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::C"), cell_ghosts);
     d_phi_idx =
         var_db->registerVariableAndContext(phi_cc_var, var_db->getContext(d_object_name + "::Phi"), cell_ghosts);
@@ -288,7 +288,7 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     }
 
     // Copy level set into phi and C.
-    HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
+    HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
     if (d_ts_type == MIDPOINT_RULE)
     {
         hier_cc_data_ops.linearSum(d_phi_idx,
@@ -324,14 +324,14 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
     convertToHeaviside(d_C_idx, coarsest_ln, finest_ln, hierarchy);
 
     // Fill ghost cells
-    RobinBcCoefStrategy<NDIM>* phi_bc_coef = (d_adv_diff_solver->getPhysicalBcCoefs(phi_cc_var)).front();
+    RobinBcCoefStrategyNd* phi_bc_coef = (d_adv_diff_solver->getPhysicalBcCoefs(phi_cc_var)).front();
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent C_transaction(
         d_C_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
     InterpolationTransactionComponent phi_transaction(
         d_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
-    Pointer<HierarchyGhostCellInterpolation> C_fill_op = new HierarchyGhostCellInterpolation();
-    Pointer<HierarchyGhostCellInterpolation> phi_fill_op = new HierarchyGhostCellInterpolation();
+    auto C_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
+    auto phi_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     C_fill_op->initializeOperatorState(C_transaction, hierarchy, coarsest_ln, finest_ln);
     phi_fill_op->initializeOperatorState(phi_transaction, hierarchy, coarsest_ln, finest_ln);
 
@@ -375,18 +375,18 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
-                                            Pointer<Variable<NDIM> > /*var*/,
-                                            Pointer<Patch<NDIM> > patch,
+                                            SAMRAIPointer<VariableNd> /*var*/,
+                                            SAMRAIPointer<PatchNd> patch,
                                             const double data_time,
                                             const bool initial_time,
-                                            Pointer<PatchLevel<NDIM> > level)
+                                            SAMRAIPointer<PatchLevelNd> level)
 {
-    Pointer<PatchData<NDIM> > f_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_data);
 #endif
-    Pointer<CellData<NDIM, double> > f_cc_data = f_data;
-    Pointer<SideData<NDIM, double> > f_sc_data = f_data;
+    SAMRAIPointer<CellDataNd<double> > f_cc_data = f_data;
+    SAMRAIPointer<SideDataNd<double> > f_sc_data = f_data;
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data || f_sc_data);
 #endif
@@ -449,25 +449,25 @@ void
 SurfaceTensionForceFunction::convertToHeaviside(int phi_idx,
                                                 int coarsest_ln,
                                                 int finest_ln,
-                                                Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+                                                SAMRAIPointer<PatchHierarchyNd> patch_hierarchy)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
             double eps = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-            const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            const BoxNd& patch_box = patch->getBox();
+            SAMRAIPointer<CellDataNd<double> > phi_data = patch->getPatchData(phi_idx);
+            for (BoxNd::Iterator it(patch_box); it; it++)
             {
-                CellIndex<NDIM> ci(it());
+                CellIndexNd ci(it());
                 const double phi = (*phi_data)(ci);
                 (*phi_data)(ci) = IBTK::smooth_heaviside(phi, eps);
             }
@@ -481,21 +481,21 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
                                          int coarsest_ln,
                                          int finest_ln,
                                          double data_time,
-                                         Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                         Pointer<HierarchyGhostCellInterpolation> fill_op)
+                                         SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                         SAMRAIPointer<HierarchyGhostCellInterpolation> fill_op)
 {
     if (d_kernel_fcn == "none") return;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+            const BoxNd& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > smooth_C_data = patch->getPatchData(smooth_C_idx);
-            CellData<NDIM, double> C_data(patch_box, /*depth*/ 1, smooth_C_data->getGhostCellWidth());
+            SAMRAIPointer<CellDataNd<double> > smooth_C_data = patch->getPatchData(smooth_C_idx);
+            CellDataNd<double> C_data(patch_box, /*depth*/ 1, smooth_C_data->getGhostCellWidth());
 
             C_data.copy(*smooth_C_data);
 
@@ -534,11 +534,11 @@ SurfaceTensionForceFunction::mollifyData(int smooth_C_idx,
 } // mollifyData
 
 void
-SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> > /*F_data*/,
-                                                Pointer<Patch<NDIM> > /*patch*/,
+SurfaceTensionForceFunction::setDataOnPatchCell(SAMRAIPointer<CellDataNd<double> > /*F_data*/,
+                                                SAMRAIPointer<PatchNd> /*patch*/,
                                                 const double /*data_time*/,
                                                 const bool /*initial_time*/,
-                                                Pointer<PatchLevel<NDIM> > /*level*/)
+                                                SAMRAIPointer<PatchLevelNd> /*level*/)
 {
     TBOX_ERROR(
         "SurfaceTensionForceFunction::setDataOnPatchCell() Cell centered "
@@ -549,22 +549,22 @@ SurfaceTensionForceFunction::setDataOnPatchCell(Pointer<CellData<NDIM, double> >
 } // setDataOnPatchCell
 
 void
-SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> > F_data,
-                                                Pointer<Patch<NDIM> > patch,
+SurfaceTensionForceFunction::setDataOnPatchSide(SAMRAIPointer<SideDataNd<double> > F_data,
+                                                SAMRAIPointer<PatchNd> patch,
                                                 const double /*data_time*/,
                                                 const bool /*initial_time*/,
-                                                Pointer<PatchLevel<NDIM> > /*level*/)
+                                                SAMRAIPointer<PatchLevelNd> /*level*/)
 {
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const BoxNd& patch_box = patch->getBox();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
 
     // First find normal in terms of gradient of phi.
     // N = grad(phi)
-    SideData<NDIM, double> N(patch_box,
-                             /*depth*/ NDIM,
-                             /*gcw*/ IntVector<NDIM>(2));
-    Pointer<CellData<NDIM, double> > Phi = patch->getPatchData(d_phi_idx);
+    SideDataNd<double> N(patch_box,
+                         /*depth*/ NDIM,
+                         /*gcw*/ IntVectorNd(2));
+    SAMRAIPointer<CellDataNd<double> > Phi = patch->getPatchData(d_phi_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),
@@ -594,7 +594,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
 
     // Next find the cell centered curvature.
     // K = -div (N/|N|)
-    CellData<NDIM, double> K(patch_box, /*depth*/ 1, /*gcw*/ IntVector<NDIM>(1));
+    CellDataNd<double> K(patch_box, /*depth*/ 1, /*gcw*/ IntVectorNd(1));
     CC_CURVATURE_FC(K.getPointer(),
                     K.getGhostCellWidth().max(),
                     N.getPointer(0, 0),
@@ -622,7 +622,7 @@ SurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, double> >
                     dx);
 
     // Compute N = grad(C)
-    Pointer<CellData<NDIM, double> > C = patch->getPatchData(d_C_idx);
+    SAMRAIPointer<CellDataNd<double> > C = patch->getPatchData(d_C_idx);
 
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),

@@ -69,7 +69,7 @@ public:
      * \brief Class constructor
      */
     StaggeredStokesBlockFactorizationPreconditioner(const std::string& object_name,
-                                                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                                     const std::string& default_options_prefix);
 
     /*!
@@ -81,9 +81,9 @@ public:
      * \brief Static function to construct a
      * StaggeredStokesBlockFactorizationPreconditioner.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    static IBTK::SAMRAIPointer<StaggeredStokesSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
         return new StaggeredStokesBlockFactorizationPreconditioner(object_name, input_db, default_options_prefix);
@@ -102,8 +102,7 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -122,8 +121,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -190,27 +189,27 @@ private:
     /*!
      * \brief Solve the pressure subsystem.
      */
-    void solvePressureSubsystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
+    void solvePressureSubsystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                                SAMRAI::solv::SAMRAIVectorRealNd<double>& b,
                                 bool initial_guess_nonzero);
 
     /*!
      * \brief Solve the velocity subsystem.
      */
-    void solveVelocitySubsystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b,
+    void solveVelocitySubsystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                                SAMRAI::solv::SAMRAIVectorRealNd<double>& b,
                                 bool initial_guess_nonzero);
 
     // Solver configuration
     FactorizationType d_factorization_type = LOWER_TRIANGULAR;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_P_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_U_var;
     int d_F_U_mod_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_P_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_P_var;
     int d_P_scratch_idx = IBTK::invalid_index, d_F_P_mod_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR

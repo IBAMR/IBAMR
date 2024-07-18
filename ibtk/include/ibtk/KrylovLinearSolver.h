@@ -57,7 +57,7 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the solver.
      */
-    void setHierarchyMathOps(SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops) override;
+    void setHierarchyMathOps(SAMRAIPointer<HierarchyMathOps> hier_math_ops) override;
 
     /*!
      * \name General-purpose solver functionality.
@@ -89,34 +89,34 @@ public:
     /*!
      * \brief Set the linear operator used when solving \f$Ax=b\f$.
      */
-    virtual void setOperator(SAMRAI::tbox::Pointer<LinearOperator> A);
+    virtual void setOperator(SAMRAIPointer<LinearOperator> A);
 
     /*!
      * \brief Retrieve the linear operator used when solving \f$Ax=b\f$.
      */
-    virtual SAMRAI::tbox::Pointer<LinearOperator> getOperator() const;
+    virtual SAMRAIPointer<LinearOperator> getOperator() const;
 
     /*!
      * \brief Set the preconditioner used by the Krylov subspace method when
      * solving \f$Ax=b\f$.
      *
-     * \note If the preconditioner is NULL, no preconditioning is performed.
+     * \note If the preconditioner is nullptr, no preconditioning is performed.
      */
-    virtual void setPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> pc_solver = NULL);
+    virtual void setPreconditioner(SAMRAIPointer<LinearSolver> pc_solver = nullptr);
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method
      * when solving \f$Ax=b\f$.
      */
-    virtual SAMRAI::tbox::Pointer<LinearSolver> getPreconditioner() const;
+    virtual SAMRAIPointer<LinearSolver> getPreconditioner() const;
 
     //\}
 
 protected:
     // Solver components.
-    SAMRAI::tbox::Pointer<LinearOperator> d_A;
-    SAMRAI::tbox::Pointer<LinearSolver> d_pc_solver;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
+    SAMRAIPointer<LinearOperator> d_A;
+    SAMRAIPointer<LinearSolver> d_pc_solver;
+    SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > d_x, d_b;
 
 private:
     /*!

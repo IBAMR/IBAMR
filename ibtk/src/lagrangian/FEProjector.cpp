@@ -143,7 +143,7 @@ qrule_is_nodal(const FEType& fe_type, const QBase* const qrule)
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FEProjector::FEProjector(EquationSystems* equation_systems, const Pointer<Database>& input_db)
+FEProjector::FEProjector(EquationSystems* equation_systems, const SAMRAIPointer<Database>& input_db)
     : d_fe_data(new FEData("FEProjector", *equation_systems, /*register_for_restart*/ false)),
       d_enable_logging(input_db->getBoolWithDefault("enable_logging", false)),
       d_num_fischer_vectors(input_db->getIntegerWithDefault("num_fischer_vectors", 5))
@@ -162,7 +162,7 @@ FEProjector::FEProjector(EquationSystems* equation_systems, const Pointer<Databa
                      TimerManager::getManager()->getTimer("IBTK::FEProjector::computeStabilizedL2Projection()");)
 }
 
-FEProjector::FEProjector(std::shared_ptr<FEData> fe_data, const Pointer<Database>& input_db)
+FEProjector::FEProjector(std::shared_ptr<FEData> fe_data, const SAMRAIPointer<Database>& input_db)
     : d_fe_data(std::move(fe_data)),
       d_enable_logging(input_db->getBoolWithDefault("enable_logging", false)),
       d_num_fischer_vectors(input_db->getIntegerWithDefault("num_fischer_vectors", 5))
@@ -683,7 +683,7 @@ FEProjector::computeL2Projection(PetscVector<double>& U_vec,
                                  const double tol,
                                  const unsigned int max_its)
 {
-    tbox::Pointer<tbox::Timer>& system_timer = d_linear_solve_system_timers[system_name];
+    SAMRAIPointer<tbox::Timer>& system_timer = d_linear_solve_system_timers[system_name];
     if (system_timer.isNull())
     {
         system_timer =

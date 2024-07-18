@@ -80,13 +80,13 @@ public:
     /*!
      * \brief Register physical boundary condition for the level set.
      */
-    virtual void registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* robin_bc_coef);
+    virtual void registerPhysicalBoundaryCondition(SAMRAI::solv::RobinBcCoefStrategyNd* robin_bc_coef);
 
     /*!
      * \brief Function specifying distance function near an interface.
      */
     using LocateInterfaceNeighborhoodFcnPtr = void (*)(int D_idx,
-                                                       SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                       IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                        double time,
                                                        bool initial_time,
                                                        void* ctx);
@@ -100,7 +100,7 @@ public:
      * \brief Initialize level set data.
      */
     virtual void initializeLSData(int dst_idx,
-                                  SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
+                                  IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hierarchy_math_ops,
                                   int integrator_step,
                                   double time,
                                   bool initial_time) = 0;
@@ -115,7 +115,7 @@ public:
      *
      * An empty default implementation is provided.
      */
-    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabase(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
 protected:
     // Book-keeping.
@@ -136,7 +136,7 @@ protected:
     int d_reinit_interval = 0;
 
     // Boundary condition object for level set.
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_bc_coef;
+    SAMRAI::solv::RobinBcCoefStrategyNd* d_bc_coef;
 
     // Neighborhood locating functions.
     std::vector<LocateInterfaceNeighborhoodFcnPtr> d_locate_interface_fcns;

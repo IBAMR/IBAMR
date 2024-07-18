@@ -53,7 +53,7 @@ put_point_in_domain(const libMesh::Point& x, const double* const domain_x_lower,
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-IBFEInstrumentPanel::IBFEInstrumentPanel(tbox::Pointer<tbox::Database> input_db, const int part)
+IBFEInstrumentPanel::IBFEInstrumentPanel(SAMRAIPointer<tbox::Database> input_db, const int part)
     : d_part(part), d_plot_directory_name(NDIM == 2 ? "viz_inst2d" : "viz_inst3d")
 {
     // get input data
@@ -300,7 +300,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
 void
 IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                                         const int P_data_idx,
-                                        const tbox::Pointer<hier::PatchHierarchy<NDIM> > hierarchy,
+                                        const SAMRAIPointer<hier::PatchHierarchyNd> hierarchy,
                                         IBFEMethod* const ib_method_ops,
                                         const double data_time)
 {
@@ -330,12 +330,12 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
             if (meter_x_map[ln].find(p()) == meter_x_map[ln].end()) continue;
 
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             const std::vector<int>& meter_idx = meter_idx_map[ln][p()];
             const std::vector<Vector>& meter_x = meter_x_map[ln][p()];
             const std::vector<Vector>& meter_u_corr = meter_u_corr_map[ln][p()];
@@ -355,8 +355,8 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                 }
             }
 
-            Pointer<CellData<NDIM, double> > u_cc_data = patch->getPatchData(U_data_idx);
-            Pointer<SideData<NDIM, double> > u_sc_data = patch->getPatchData(U_data_idx);
+            SAMRAIPointer<CellDataNd<double> > u_cc_data = patch->getPatchData(U_data_idx);
+            SAMRAIPointer<SideDataNd<double> > u_sc_data = patch->getPatchData(U_data_idx);
             if (u_cc_data)
             {
                 LEInteractor::interpolate(
@@ -371,7 +371,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             {
                 TBOX_ERROR("no velocity data!\n");
             }
-            Pointer<CellData<NDIM, double> > p_cc_data = patch->getPatchData(P_data_idx);
+            SAMRAIPointer<CellDataNd<double> > p_cc_data = patch->getPatchData(P_data_idx);
             if (p_cc_data)
             {
                 LEInteractor::interpolate(
@@ -399,12 +399,12 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
     // Interpolate the pressure at the centroid of each meter mesh.
     //
     // TODO: Factor out common code for finding assignments of points to patches.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+    const BoxNd domain_box = grid_geom->getPhysicalDomain()[0];
     for (unsigned int meter_idx = 0; meter_idx < d_num_meters; ++meter_idx)
     {
         const libMesh::Point x_centroid = put_point_in_domain(
@@ -415,12 +415,12 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
             x_centroid_local_patch_idx = IBTK::invalid_index;
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-            Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
-            const IntVector<NDIM>& ratio = level->getRatio();
-            const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
-            const hier::Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
-            const hier::Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
+            SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<BoxTreeNd> box_tree = level->getBoxTree();
+            const IntVectorNd& ratio = level->getRatio();
+            const BoxNd domain_box_level = BoxNd::refine(domain_box, ratio);
+            const hier::IndexNd& domain_box_level_lower = domain_box_level.lower();
+            const hier::IndexNd& domain_box_level_upper = domain_box_level.upper();
             std::array<double, NDIM> dx;
             for (unsigned int d = 0; d < NDIM; ++d)
             {
@@ -432,7 +432,7 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
                                                         dx.data(),
                                                         domain_box_level_lower,
                                                         domain_box_level_upper);
-            Box<NDIM> cell_box(i, i);
+            BoxNd cell_box(i, i);
             tbox::Array<int> local_patch_idxs;
             box_tree->findLocalOverlapIndices(local_patch_idxs, cell_box);
             if (local_patch_idxs.size() != 0)
@@ -448,11 +448,11 @@ IBFEInstrumentPanel::readInstrumentData(const int U_data_idx,
         {
             // The centroid should be on a patch owned by exactly one processor
             TBOX_ASSERT(bcast_root == IBTK_MPI::getRank());
-            Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(x_centroid_local_ln);
+            SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(x_centroid_local_ln);
             if (x_centroid_local_patch_idx != IBTK::invalid_index)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(x_centroid_local_patch_idx);
-                Pointer<CellData<NDIM, double> > p_cc_data = patch->getPatchData(P_data_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(x_centroid_local_patch_idx);
+                SAMRAIPointer<CellDataNd<double> > p_cc_data = patch->getPatchData(P_data_idx);
                 if (p_cc_data)
                 {
                     LEInteractor::interpolate(&d_centroid_pressure_values[meter_idx],
@@ -560,7 +560,7 @@ IBFEInstrumentPanel::getMeterCentroidPressures() const
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
-IBFEInstrumentPanel::getFromInput(Pointer<Database> db)
+IBFEInstrumentPanel::getFromInput(SAMRAIPointer<Database> db)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(db);
@@ -678,7 +678,7 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
                                                 std::vector<std::map<int, std::vector<Vector> > >& meter_u_corr_map,
                                                 std::vector<std::map<int, std::vector<Vector> > >& meter_normal_map,
                                                 std::vector<std::map<int, std::vector<double> > >& meter_JxW_map,
-                                                SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                                IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                                 const IBFEMethod* const ib_method_ops)
 {
     const int coarsest_ln = 0;
@@ -698,14 +698,14 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
     meter_JxW_map.resize(finest_ln + 1);
 
     // Determine the finest grid spacing in the Cartesian grid hierarchy.
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = hierarchy->getGridGeometry();
     const double* const domain_x_lower = grid_geom->getXLower();
     const double* const domain_x_upper = grid_geom->getXUpper();
     const double* const dx_coarsest = grid_geom->getDx();
     TBOX_ASSERT(grid_geom->getDomainIsSingleBox());
-    const Box<NDIM> domain_box = grid_geom->getPhysicalDomain()[0];
+    const BoxNd domain_box = grid_geom->getPhysicalDomain()[0];
 
-    const IntVector<NDIM>& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
+    const IntVectorNd& ratio_to_level_zero = hierarchy->getPatchLevel(finest_ln)->getRatio();
     std::array<double, NDIM> dx_finest;
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -738,12 +738,12 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
         meter_qp_local_patch_idx(d_num_meters);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
-        Pointer<BoxTree<NDIM> > box_tree = level->getBoxTree();
-        const IntVector<NDIM>& ratio = level->getRatio();
-        const Box<NDIM> domain_box_level = Box<NDIM>::refine(domain_box, ratio);
-        const hier::Index<NDIM>& domain_box_level_lower = domain_box_level.lower();
-        const hier::Index<NDIM>& domain_box_level_upper = domain_box_level.upper();
+        SAMRAIPointer<PatchLevelNd> level = hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<BoxTreeNd> box_tree = level->getBoxTree();
+        const IntVectorNd& ratio = level->getRatio();
+        const BoxNd domain_box_level = BoxNd::refine(domain_box, ratio);
+        const hier::IndexNd& domain_box_level_lower = domain_box_level.lower();
+        const hier::IndexNd& domain_box_level_upper = domain_box_level.upper();
         std::array<double, NDIM> dx;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
@@ -787,7 +787,7 @@ IBFEInstrumentPanel::computeMeterQuadratureData(std::vector<std::map<int, std::v
                                                                 dx.data(),
                                                                 domain_box_level_lower,
                                                                 domain_box_level_upper);
-                    Box<NDIM> cell_box(i, i);
+                    BoxNd cell_box(i, i);
                     tbox::Array<int> local_patch_idxs;
                     box_tree->findLocalOverlapIndices(local_patch_idxs, cell_box);
                     if (local_patch_idxs.size() != 0)

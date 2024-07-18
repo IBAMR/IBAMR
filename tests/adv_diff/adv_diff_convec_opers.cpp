@@ -69,35 +69,35 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
-        Pointer<Database> main_db = app_initializer->getComponentDatabase("Main");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "adv_diff.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Create major algorithm and data objects that comprise the
         // application.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
-        Pointer<VisItDataWriter<NDIM> > visit_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_writer = app_initializer->getVisItDataWriter();
 
-        auto var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<VariableContext> var_ctx = var_db->getContext("Context");
-        Pointer<CellVariable<NDIM, double> > q_var = new CellVariable<NDIM, double>("CC_var");
-        Pointer<CellVariable<NDIM, double> > convec_var = new CellVariable<NDIM, double>("Convec var");
-        Pointer<CellVariable<NDIM, double> > exact_var = new CellVariable<NDIM, double>("Exact var");
-        Pointer<FaceVariable<NDIM, double> > u_var = new FaceVariable<NDIM, double>("U");
+        auto var_db = VariableDatabaseNd::getDatabase();
+        SAMRAIPointer<VariableContext> var_ctx = var_db->getContext("Context");
+        SAMRAIPointer<CellVariableNd<double> > q_var = make_samrai_shared<CellVariableNd<double> >("CC_var");
+        SAMRAIPointer<CellVariableNd<double> > convec_var = make_samrai_shared<CellVariableNd<double> >("Convec var");
+        SAMRAIPointer<CellVariableNd<double> > exact_var = make_samrai_shared<CellVariableNd<double> >("Exact var");
+        SAMRAIPointer<FaceVariableNd<double> > u_var = make_samrai_shared<FaceVariableNd<double> >("U");
 
         const int q_idx = var_db->registerVariableAndContext(q_var, var_ctx);
         const int convec_idx = var_db->registerVariableAndContext(convec_var, var_ctx);
@@ -110,15 +110,15 @@ main(int argc, char* argv[])
         visit_writer->registerPlotQuantity("Error", "SCALAR", exact_idx);
 #endif
 
-        Pointer<muParserCartGridFunction> u_fcn =
-            new muParserCartGridFunction("U", app_initializer->getComponentDatabase("U"), grid_geometry);
-        Pointer<muParserCartGridFunction> q_fcn =
-            new muParserCartGridFunction("Q", app_initializer->getComponentDatabase("Q"), grid_geometry);
-        Pointer<muParserCartGridFunction> exact_fcn =
-            new muParserCartGridFunction("Exact", app_initializer->getComponentDatabase("Exact"), grid_geometry);
+        auto u_fcn = make_samrai_shared<muParserCartGridFunction>(
+            "U", app_initializer->getComponentDatabase("U"), grid_geometry);
+        auto q_fcn = make_samrai_shared<muParserCartGridFunction>(
+            "Q", app_initializer->getComponentDatabase("Q"), grid_geometry);
+        auto exact_fcn = make_samrai_shared<muParserCartGridFunction>(
+            "Exact", app_initializer->getComponentDatabase("Exact"), grid_geometry);
 
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        std::vector<RobinBcCoefStrategy<NDIM>*> q_bc_coefs(1);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        std::vector<RobinBcCoefStrategyNd*> q_bc_coefs(1);
         if (periodic_shift.min() > 0)
             q_bc_coefs[0] = nullptr;
         else
@@ -126,7 +126,7 @@ main(int argc, char* argv[])
                 new muParserRobinBcCoefs("Q_bcs", app_initializer->getComponentDatabase("Q_bcs"), grid_geometry);
 
         std::vector<std::string> convec_oper_types = { "CENTERED", "CUI", "PPM", "WAVE_PROP" };
-        std::vector<Pointer<ConvectiveOperator> > convec_opers(convec_oper_types.size());
+        std::vector<SAMRAIPointer<ConvectiveOperator> > convec_opers(convec_oper_types.size());
         auto oper_manager = AdvDiffConvectiveOperatorManager::getManager();
         int i = 0;
         for (const auto& convec_oper_type : convec_oper_types)
@@ -153,14 +153,14 @@ main(int argc, char* argv[])
         const int finest_level = patch_hierarchy->getFinestLevelNumber();
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(q_idx, 0.0);
             level->allocatePatchData(convec_idx, 0.0);
             level->allocatePatchData(exact_idx, 0.0);
             level->allocatePatchData(u_idx, 0.0);
         }
 
-        solv::SAMRAIVectorReal<NDIM, double> q_vec("Q_vec", patch_hierarchy, 0, finest_level);
+        solv::SAMRAIVectorRealNd<double> q_vec("Q_vec", patch_hierarchy, 0, finest_level);
         q_vec.addComponent(q_var, q_idx);
 
         u_fcn->setDataOnPatchHierarchy(u_idx, u_var, patch_hierarchy, 0.0, false, 0, finest_level);
@@ -169,7 +169,7 @@ main(int argc, char* argv[])
 #ifdef OUTPUT_VIZ_FILES
         int step = 0;
 #endif
-        auto do_test = [&](Pointer<ConvectiveOperator> convec_oper)
+        auto do_test = [&](SAMRAIPointer<ConvectiveOperator> convec_oper)
         {
             convec_oper->initializeOperatorState(q_vec, q_vec);
             convec_oper->setAdvectionVelocity(u_idx);
@@ -180,7 +180,7 @@ main(int argc, char* argv[])
             hier_math_ops.resetLevels(0, finest_level);
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
 
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, 0, finest_level);
+            HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(patch_hierarchy, 0, finest_level);
             hier_cc_data_ops.subtract(exact_idx, convec_idx, exact_idx);
 
             pout << "Error using: " << convec_oper->getName() << ":\n"
@@ -196,7 +196,7 @@ main(int argc, char* argv[])
 
         for (int ln = 0; ln <= finest_level; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->deallocatePatchData(q_idx);
             level->deallocatePatchData(convec_idx);
             level->deallocatePatchData(exact_idx);

@@ -49,7 +49,7 @@ namespace IBTK
  * face-centered ghost region surrounding a patch appropriate for
  * "synchronizing" face-centered values at patch boundaries.
  */
-class FaceSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
+class FaceSynchCopyFillPattern : public SAMRAI::xfer::VariableFillPatternNd
 {
 public:
     /*!
@@ -82,18 +82,18 @@ public:
      *
      * \return                    pointer to the calculated overlap object
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::BoxOverlap<NDIM> >
-    calculateOverlap(const SAMRAI::hier::BoxGeometry<NDIM>& dst_geometry,
-                     const SAMRAI::hier::BoxGeometry<NDIM>& src_geometry,
-                     const SAMRAI::hier::Box<NDIM>& dst_patch_box,
-                     const SAMRAI::hier::Box<NDIM>& src_mask,
+    SAMRAIPointer<SAMRAI::hier::BoxOverlapNd>
+    calculateOverlap(const SAMRAI::hier::BoxGeometryNd& dst_geometry,
+                     const SAMRAI::hier::BoxGeometryNd& src_geometry,
+                     const SAMRAI::hier::BoxNd& dst_patch_box,
+                     const SAMRAI::hier::BoxNd& src_mask,
                      bool overwrite_interior,
-                     const SAMRAI::hier::IntVector<NDIM>& src_offset) const override;
+                     const SAMRAI::hier::IntVectorNd& src_offset) const override;
 
     /*!
      * Returns the stencil width.
      */
-    SAMRAI::hier::IntVector<NDIM>& getStencilWidth() override;
+    SAMRAI::hier::IntVectorNd& getStencilWidth() override;
 
     /*!
      * Returns a string name identifier "FACE_SYNCH_COPY_FILL_PATTERN".
@@ -121,7 +121,7 @@ private:
      */
     FaceSynchCopyFillPattern& operator=(const FaceSynchCopyFillPattern& that) = delete;
 
-    SAMRAI::hier::IntVector<NDIM> d_stencil_width = 1;
+    SAMRAI::hier::IntVectorNd d_stencil_width = 1;
 };
 } // namespace IBTK
 

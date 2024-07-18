@@ -133,21 +133,20 @@ public:
      * \note By default, each registered advection velocity is assumed to be
      * divergence free.
      */
-    virtual void registerAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
+    virtual void registerAdvectionVelocity(IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > u_var);
 
     /*!
      * Indicate whether a particular advection velocity is discretely divergence
      * free.
      */
-    void setAdvectionVelocityIsDivergenceFree(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var,
+    void setAdvectionVelocityIsDivergenceFree(IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > u_var,
                                               bool is_div_free);
 
     /*!
      * Determine whether a particular advection velocity has been indicated to
      * be discretely divergence free.
      */
-    bool
-    getAdvectionVelocityIsDivergenceFree(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var) const;
+    bool getAdvectionVelocityIsDivergenceFree(IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > u_var) const;
 
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
@@ -156,15 +155,15 @@ public:
      * If a function is not provided, it is the responsibility of the user
      * to ensure that the current and new contexts are set correctly.
      */
-    void setAdvectionVelocityFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var,
-                                      SAMRAI::tbox::Pointer<IBTK::CartGridFunction> u_fcn);
+    void setAdvectionVelocityFunction(IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > u_var,
+                                      IBTK::SAMRAIPointer<IBTK::CartGridFunction> u_fcn);
 
     /*!
      * Get the IBTK::CartGridFunction object being used to specify the value of
      * a particular advection velocity.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
-    getAdvectionVelocityFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var) const;
+    IBTK::SAMRAIPointer<IBTK::CartGridFunction>
+    getAdvectionVelocityFunction(IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > u_var) const;
 
     /*!
      * Register a cell-centered source term. Can optionally turn off outputting the source.
@@ -172,22 +171,22 @@ public:
      * Data management for the registered source term will be handled by the
      * hierarchy integrator.
      */
-    virtual void registerSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var,
+    virtual void registerSourceTerm(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > F_var,
                                     const bool output_F = true);
 
     /*!
      * Supply an IBTK::CartGridFunction object to specify the value of a
      * particular source term.
      */
-    void setSourceTermFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var,
-                               SAMRAI::tbox::Pointer<IBTK::CartGridFunction> F_fcn);
+    void setSourceTermFunction(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > F_var,
+                               IBTK::SAMRAIPointer<IBTK::CartGridFunction> F_fcn);
 
     /*!
      * Get the IBTK::CartGridFunction object being used to specify the value of
      * a particular source term.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
-    getSourceTermFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var) const;
+    IBTK::SAMRAIPointer<IBTK::CartGridFunction>
+    getSourceTermFunction(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > F_var) const;
 
     /*!
      * Register a cell-centered quantity to be advected and diffused by the
@@ -196,7 +195,7 @@ public:
      * Data management for the registered quantity will be handled by the
      * hierarchy integrator.
      */
-    virtual void registerTransportedQuantity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    virtual void registerTransportedQuantity(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                                              const bool output_Q = true);
 
     /*!
@@ -206,15 +205,15 @@ public:
      * \note The specified advection velocity must have been already registered
      * with the hierarchy integrator.
      */
-    void setAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                              SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > u_var);
+    void setAdvectionVelocity(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                              IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > u_var);
 
     /*!
      * Get the face-centered advection velocity being used with a particular
      * cell-centered quantity.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >
-    getAdvectionVelocity(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> >
+    getAdvectionVelocity(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * Set the cell-centered source term to be used with a particular
@@ -223,21 +222,21 @@ public:
      * \note The specified source term must have been already registered with
      * the hierarchy integrator.
      */
-    void setSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > F_var);
+    void setSourceTerm(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                       IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > F_var);
 
     /*!
      * Get the cell-centered source term being used with a particular
      * cell-centered quantity.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >
-    getSourceTerm(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >
+    getSourceTerm(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * Set the diffusion time integration scheme for a quantity that has been
      * registered with the hierarchy integrator.
      */
-    void setDiffusionTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setDiffusionTimeSteppingType(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                                       TimeSteppingType time_stepping_type);
 
     /*!
@@ -245,13 +244,13 @@ public:
      * registered with the hierarchy integrator.
      */
     TimeSteppingType
-    getDiffusionTimeSteppingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    getDiffusionTimeSteppingType(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * Set the convective differencing form for a quantity that has been
      * registered with the hierarchy integrator.
      */
-    void setConvectiveDifferencingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void setConvectiveDifferencingType(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                                        ConvectiveDifferencingType difference_form);
 
     /*!
@@ -259,39 +258,39 @@ public:
      * registered with the hierarchy integrator.
      */
     ConvectiveDifferencingType
-    getConvectiveDifferencingType(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    getConvectiveDifferencingType(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * Set the constant scalar diffusion coefficient corresponding to a quantity that has
      * been registered with the hierarchy integrator.
      */
-    void setDiffusionCoefficient(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, double kappa);
+    void setDiffusionCoefficient(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var, double kappa);
 
     /*!
      * Get the constant scalar diffusion coefficient corresponding to a quantity that has
      * been registered with the hierarchy integrator.
      */
-    double getDiffusionCoefficient(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    double getDiffusionCoefficient(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * Register a variable scalar diffusion coefficient corresponding to a quantity
      * that has been registered with the hierarchy integrator.
      */
-    void registerDiffusionCoefficientVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_var);
+    void registerDiffusionCoefficientVariable(IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > D_var);
 
     /*!
      * Supply an IBTK:CartGridFunction object to specify the value of a particular
      * variable diffusion coefficient.
      */
-    void setDiffusionCoefficientFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_var,
-                                         SAMRAI::tbox::Pointer<IBTK::CartGridFunction> D_fcn);
+    void setDiffusionCoefficientFunction(IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > D_var,
+                                         IBTK::SAMRAIPointer<IBTK::CartGridFunction> D_fcn);
 
     /*!
      * Get the IBTK::CartGridFunction object being used to specify the value of
      * a particular variable diffusion coefficient.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
-    getDiffusionCoefficientFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_var) const;
+    IBTK::SAMRAIPointer<IBTK::CartGridFunction>
+    getDiffusionCoefficientFunction(IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > D_var) const;
 
     /*!
      * Set the cell-centered variable diffusion coefficient to be used with a particular
@@ -300,47 +299,47 @@ public:
      * \note The specified source term must have been already registered with
      * the hierarchy integrator.
      */
-    void setDiffusionCoefficientVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > D_var);
+    void setDiffusionCoefficientVariable(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                                         IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > D_var);
 
     /*!
      * Get the cell-centered variable diffusion coefficient being used with a particular
      * cell-centered quantity.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >
-    getDiffusionCoefficientVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> >
+    getDiffusionCoefficientVariable(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*
      * Return whether the diffusion coefficient being used with a particular
      * cell-centered quantity is variable.
      */
-    bool isDiffusionCoefficientVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    bool isDiffusionCoefficientVariable(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * Set the scalar linear damping coefficient corresponding to a quantity
      * that has been registered with the hierarchy integrator.
      */
-    void setDampingCoefficient(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, double lambda);
+    void setDampingCoefficient(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var, double lambda);
 
     /*!
      * Get the scalar linear damping coefficient corresponding to a quantity
      * that has been registered with the hierarchy integrator.
      */
-    double getDampingCoefficient(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    double getDampingCoefficient(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * Set a grid function to provide initial conditions for a quantity that has
      * been registered with the hierarchy integrator.
      */
-    void setInitialConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                              SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_init);
+    void setInitialConditions(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                              IBTK::SAMRAIPointer<IBTK::CartGridFunction> Q_init);
 
     /*!
      * Get the grid function being used to provide initial conditions for a
      * quantity that has been registered with the hierarchy integrator.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction>
-    getInitialConditions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    IBTK::SAMRAIPointer<IBTK::CartGridFunction>
+    getInitialConditions(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * Set an object to provide boundary conditions for a scalar-valued quantity
@@ -348,8 +347,8 @@ public:
      *
      * \see IBTK::muParserRobinBcCoefs
      */
-    void setPhysicalBcCoef(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                           SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_bc_coef);
+    void setPhysicalBcCoef(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                           SAMRAI::solv::RobinBcCoefStrategyNd* Q_bc_coef);
 
     /*!
      * Set objects to provide boundary conditions for a vector-valued quantity
@@ -357,30 +356,30 @@ public:
      *
      * \see IBTK::muParserRobinBcCoefs
      */
-    void setPhysicalBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                            const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coef);
+    void setPhysicalBcCoefs(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                            const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& Q_bc_coef);
 
     /*!
      * Get objects used to provide boundary conditions for a scalar- or
      * vector-valued quantity that has been registered with the hierarchy
      * integrator.
      */
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>
-    getPhysicalBcCoefs(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>
+    getPhysicalBcCoefs(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * Register a solver for the Helmholtz equation (time-discretized diffusion
      * equation).
      */
-    void setHelmholtzSolver(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                            SAMRAI::tbox::Pointer<IBTK::PoissonSolver> helmholtz_solver);
+    void setHelmholtzSolver(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                            IBTK::SAMRAIPointer<IBTK::PoissonSolver> helmholtz_solver);
 
     /*!
      * Get the solver for the Helmholtz equation (time-discretized diffusion
      * equation) used by this solver class.
      */
-    SAMRAI::tbox::Pointer<IBTK::PoissonSolver>
-    getHelmholtzSolver(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    IBTK::SAMRAIPointer<IBTK::PoissonSolver>
+    getHelmholtzSolver(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var);
 
     /*!
      * Indicate that all of the Helmholtz solvers should be (re-)initialized before the
@@ -392,21 +391,21 @@ public:
      * Indicate that the Helmholtz solver should be (re-)initialized before the
      * next time step.
      */
-    void setHelmholtzSolverNeedsInit(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    void setHelmholtzSolverNeedsInit(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var);
 
     /*!
      * Register an operator to use to evaluate the right-hand side for the
      * Helmholtz solver (time-discretized diffusion equation).
      */
-    void setHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                 SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> helmholtz_rhs_operator);
+    void setHelmholtzRHSOperator(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                                 IBTK::SAMRAIPointer<IBTK::LaplaceOperator> helmholtz_rhs_operator);
 
     /*!
      * Get the operator to use to evaluate the right-hand side for the Helmholtz
      * solver (time-discretized diffusion equation).
      */
-    SAMRAI::tbox::Pointer<IBTK::LaplaceOperator>
-    getHelmholtzRHSOperator(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    IBTK::SAMRAIPointer<IBTK::LaplaceOperator>
+    getHelmholtzRHSOperator(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var);
 
     /*!
      * Indicate that all of the operators to evaluate the right-hand side for
@@ -419,7 +418,7 @@ public:
      * Indicate that the operator to evaluate the right-hand side for the
      * Helmholtz solver should be (re-)initialized before the next time step.
      */
-    void setHelmholtzRHSOperatorNeedsInit(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    void setHelmholtzRHSOperatorNeedsInit(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var);
 
     /*!
      * Initialize the variables, basic communications algorithms, solvers, and
@@ -430,9 +429,8 @@ public:
      * users to make an explicit call to initializeHierarchyIntegrator() prior
      * to calling initializePatchHierarchy().
      */
-    void
-    initializeHierarchyIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
-                                  SAMRAI::tbox::Pointer<SAMRAI::mesh::GriddingAlgorithm<NDIM> > gridding_alg) override;
+    void initializeHierarchyIntegrator(IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
+                                       IBTK::SAMRAIPointer<SAMRAI::mesh::GriddingAlgorithmNd> gridding_alg) override;
 
     /*!
      * Prepare to advance the data from current_time to new_time.
@@ -443,7 +441,7 @@ public:
      * \brief Function to reset variables registered by this integrator
      */
     using ResetPropertiesFcnPtr = void (*)(int property_idx,
-                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                           IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                            int integrator_step,
                                            double time,
                                            bool initial_time,
@@ -453,7 +451,7 @@ public:
     /*!
      * \brief Register a reset callback function for a specified variable.
      */
-    void registerResetFunction(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+    void registerResetFunction(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                                ResetPropertiesFcnPtr callback,
                                void* ctx);
 
@@ -465,18 +463,18 @@ public:
      * registered. If no priority is set for a variable, its reset functions will be called after those with priority,
      * in no particular order.
      */
-    void setResetPriority(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var, int priority);
+    void setResetPriority(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var, int priority);
 
     /*!
      * \brief Get the reset callback functions registered with this variable.
      */
     std::vector<ResetPropertiesFcnPtr>
-    getResetFunctions(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    getResetFunctions(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
     /*!
      * \brief Get the reset priority for a particular variable.
      */
-    int getResetPriority(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const;
+    int getResetPriority(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const;
 
 protected:
     /*!
@@ -486,7 +484,7 @@ protected:
      * when requested.
      */
     AdvDiffHierarchyIntegrator(const std::string& object_name,
-                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                               IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                bool register_for_restart);
 
     /*!
@@ -504,15 +502,14 @@ protected:
     /*!
      * Reset cached hierarchy dependent data.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
+    void resetHierarchyConfigurationSpecialized(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
 
     /*!
      * Write out specialized object state to the given database.
      */
-    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+    void putToDatabaseSpecialized(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * Standard variable registration.
@@ -542,88 +539,84 @@ protected:
     /*!
      * Advection velocity data.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > > d_u_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >, bool> d_u_is_div_free;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > > d_u_var;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> >, bool> d_u_is_div_free;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> >, IBTK::SAMRAIPointer<IBTK::CartGridFunction> >
         d_u_fcn;
 
     /*!
      * Source term data.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_F_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > > d_F_var;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, IBTK::SAMRAIPointer<IBTK::CartGridFunction> >
         d_F_fcn;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_F_output;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, bool> d_F_output;
 
     /*!
      * Diffusion coefficient data
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > > d_diffusion_coef_var,
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > > d_diffusion_coef_var,
         d_diffusion_coef_rhs_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> >, IBTK::SAMRAIPointer<IBTK::CartGridFunction> >
         d_diffusion_coef_fcn;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > >
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> >,
+             IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > >
         d_diffusion_coef_rhs_map;
 
     /*!
      * Transported quantities.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_Q_var, d_Q_rhs_var;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > >
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > > d_Q_var, d_Q_rhs_var;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >,
+             IBTK::SAMRAIPointer<SAMRAI::pdat::FaceVariableNd<double> > >
         d_Q_u_map;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >,
+             IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > >
         d_Q_F_map, d_Q_Q_rhs_map;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, TimeSteppingType>
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, TimeSteppingType>
         d_Q_diffusion_time_stepping_type;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, ConvectiveDifferencingType>
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, ConvectiveDifferencingType>
         d_Q_difference_form;
 
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_diffusion_coef;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > >
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, double> d_Q_diffusion_coef;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >,
+             IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > >
         d_Q_diffusion_coef_variable;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_Q_is_diffusion_coef_variable;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, double> d_Q_damping_coef;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, bool> d_Q_is_diffusion_coef_variable;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, double> d_Q_damping_coef;
 
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             SAMRAI::tbox::Pointer<IBTK::CartGridFunction> >
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, IBTK::SAMRAIPointer<IBTK::CartGridFunction> >
         d_Q_init;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >,
-             std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> >
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >,
+             std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> >
         d_Q_bc_coef;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, bool> d_Q_output;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, bool> d_Q_output;
 
     /*!
      * Objects to keep track of the resetting functions.
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<ResetPropertiesFcnPtr> >
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, std::vector<ResetPropertiesFcnPtr> >
         d_Q_reset_fcns;
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<void*> > d_Q_reset_fcns_ctx;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, std::vector<void*> > d_Q_reset_fcns_ctx;
     std::vector<int> d_Q_reset_priority;
 
     /*
      * Hierarchy operations objects.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchyCellDataOpsRealNd<double> > d_hier_cc_data_ops;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchySideDataOpsRealNd<double> > d_hier_sc_data_ops;
+    std::vector<IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> > d_hier_bdry_fill_ops;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_no_fill_op;
 
     /*
      * Linear solvers and associated data.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_sol_vecs, d_rhs_vecs;
+    std::vector<IBTK::SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > > d_sol_vecs, d_rhs_vecs;
     std::string d_helmholtz_solver_type, d_helmholtz_precond_type, d_helmholtz_sub_precond_type;
-    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_helmholtz_solver_db, d_helmholtz_precond_db,
+    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> d_helmholtz_solver_db, d_helmholtz_precond_db,
         d_helmholtz_sub_precond_db;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::PoissonSolver> > d_helmholtz_solvers;
-    std::vector<SAMRAI::tbox::Pointer<IBTK::LaplaceOperator> > d_helmholtz_rhs_ops;
+    std::vector<IBTK::SAMRAIPointer<IBTK::PoissonSolver> > d_helmholtz_solvers;
+    std::vector<IBTK::SAMRAIPointer<IBTK::LaplaceOperator> > d_helmholtz_rhs_ops;
     std::vector<bool> d_helmholtz_solvers_need_init, d_helmholtz_rhs_ops_need_init;
     int d_coarsest_reset_ln = IBTK::invalid_level_number, d_finest_reset_ln = IBTK::invalid_level_number;
 
@@ -658,7 +651,7 @@ private:
     /*!
      * Read input values from a given database.
      */
-    void getFromInput(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db, bool is_from_restart);
+    void getFromInput(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db, bool is_from_restart);
 
     /*!
      * Read object state from the restart file and initialize class data

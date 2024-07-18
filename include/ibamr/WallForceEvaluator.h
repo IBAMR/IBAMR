@@ -59,20 +59,20 @@ class WallForceEvaluator : public IBLagrangianForceStrategy
 {
 public:
     // Constructor.
-    WallForceEvaluator(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                       SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry);
+    WallForceEvaluator(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
+                       IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> grid_geometry);
 
     // Register a WallForceFcnPtr to be used by all walls.
     void registerWallForceFcn(Wall::WallForceFcnPtr wall_force_fcn);
 
     // add a wall to the WallForceEvaluator
-    void addWall(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> wall_db, double wall_ghost_dist);
+    void addWall(IBTK::SAMRAIPointer<SAMRAI::tbox::Database> wall_db, double wall_ghost_dist);
 
     // compute forces from all walls
-    void computeLagrangianForce(SAMRAI::tbox::Pointer<IBTK::LData> F_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> X_data,
-                                SAMRAI::tbox::Pointer<IBTK::LData> U_data,
-                                const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+    void computeLagrangianForce(IBTK::SAMRAIPointer<IBTK::LData> F_data,
+                                IBTK::SAMRAIPointer<IBTK::LData> X_data,
+                                IBTK::SAMRAIPointer<IBTK::LData> U_data,
+                                const IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> hierarchy,
                                 const int level_number,
                                 const double data_time,
                                 IBTK::LDataManager* const l_data_manager) override;
@@ -91,7 +91,7 @@ private:
     std::vector<Wall> d_walls_vec;
 
     // grid geometry, used when making walls:
-    SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > d_grid_geometry;
+    IBTK::SAMRAIPointer<SAMRAI::geom::CartesianGridGeometryNd> d_grid_geometry;
 };
 } // namespace IBAMR
 

@@ -102,7 +102,7 @@ NetExternalForceTorqueInner(double /*data_time*/, IBTK::Vector3d& F_ext, IBTK::V
 } // NetExternalForceTorqueInner
 
 // Function prototypes
-void output_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+void output_data(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
                  LDataManager* l_data_manager,
                  const int iteration_num,
                  const double loop_time,
@@ -149,8 +149,8 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "CIB.log");
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "CIB.log");
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // some variants of this test use the SVD, some don't
         const auto inverse_type = IBAMR::string_to_enum<IBAMR::MobilityMatrixInverseType>(
@@ -160,7 +160,7 @@ main(int argc, char* argv[])
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
@@ -188,49 +188,48 @@ main(int argc, char* argv[])
         // and, if this is a restarted run, from the restart database.
 
         // INS integrator
-        Pointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+        auto navier_stokes_integrator = make_samrai_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
 
         // CIB method
         const unsigned int num_structures = input_db->getIntegerWithDefault("num_structures", 1);
-        Pointer<CIBMethod> ib_method_ops =
-            new CIBMethod("CIBMethod", app_initializer->getComponentDatabase("CIBMethod"), num_structures);
+        auto ib_method_ops = make_samrai_shared<CIBMethod>(
+            "CIBMethod", app_initializer->getComponentDatabase("CIBMethod"), num_structures);
 
         // Krylov solver for INS integrator that solves for [u,p,U,L]
-        Pointer<CIBStaggeredStokesSolver> CIBSolver =
-            new CIBStaggeredStokesSolver("CIBStaggeredStokesSolver",
-                                         input_db->getDatabase("CIBStaggeredStokesSolver"),
-                                         navier_stokes_integrator,
-                                         ib_method_ops,
-                                         "SP_");
+        auto CIBSolver = make_samrai_shared<CIBStaggeredStokesSolver>("CIBStaggeredStokesSolver",
+                                                                      input_db->getDatabase("CIBStaggeredStokesSolver"),
+                                                                      navier_stokes_integrator,
+                                                                      ib_method_ops,
+                                                                      "SP_");
 
         // Register the Krylov solver with INS integrator
         navier_stokes_integrator->setStokesSolver(CIBSolver);
 
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
         // Configure the IB solver.
-        Pointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
+        auto ib_initializer = make_samrai_shared<IBStandardInitializer>(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
@@ -243,23 +242,23 @@ main(int argc, char* argv[])
         ib_method_ops->setSolveRigidBodyVelocity(0, outer_free_dofs);
         ib_method_ops->setSolveRigidBodyVelocity(1, inner_free_dofs);
 
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMOuterVel, NULL, 0);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMInnerVel, NULL, 1);
+        ib_method_ops->registerConstrainedVelocityFunction(nullptr, &ConstrainedCOMOuterVel, nullptr, 0);
+        ib_method_ops->registerConstrainedVelocityFunction(nullptr, &ConstrainedCOMInnerVel, nullptr, 1);
 
-        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorqueOuter, NULL, 0);
-        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorqueInner, NULL, 1);
+        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorqueOuter, nullptr, 0);
+        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorqueInner, nullptr, 1);
 
         // Create initial condition specification objects.
-        Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
-        Pointer<CartGridFunction> p_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
-        Pointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
+        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
+        SAMRAIPointer<LSiloDataWriter> silo_data_writer = app_initializer->getLSiloDataWriter();
         if (uses_visit)
         {
             ib_initializer->registerLSiloDataWriter(silo_data_writer);
@@ -269,13 +268,13 @@ main(int argc, char* argv[])
         }
 
         // Create boundary condition specification objects (when necessary).
-        const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
+        const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -286,7 +285,7 @@ main(int argc, char* argv[])
 
                 const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
 
-                Pointer<Database> bc_coefs_db = app_initializer->getComponentDatabase(bc_coefs_db_name);
+                SAMRAIPointer<Database> bc_coefs_db = app_initializer->getComponentDatabase(bc_coefs_db_name);
                 u_bc_coefs[d] = new muParserRobinBcCoefs(bc_coefs_name, bc_coefs_db, grid_geometry);
             }
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
@@ -316,8 +315,9 @@ main(int argc, char* argv[])
             struct_ids1.push_back(prototype_structs1);
             struct_ids2.push_back(prototype_structs2);
 
-            DirectMobilitySolver* direct_solvers = NULL;
-            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(NULL, &direct_solvers, NULL);
+            DirectMobilitySolver* direct_solvers = nullptr;
+            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(
+                nullptr, &direct_solvers, nullptr);
 
             direct_solvers->registerMobilityMat(
                 mat_name1, prototype_structs1, EMPIRICAL, std::make_pair(inverse_type, inverse_type), 0);
@@ -335,8 +335,8 @@ main(int argc, char* argv[])
         double rho_fluid = input_db->getDouble("RHO");
         double mu_fluid = input_db->getDouble("MU");
         double start_time = time_integrator->getIntegratorTime();
-        Pointer<IBHydrodynamicForceEvaluator> hydro_force =
-            new IBHydrodynamicForceEvaluator("IBHydrodynamicForce", rho_fluid, mu_fluid, start_time, true);
+        auto hydro_force = make_samrai_shared<IBHydrodynamicForceEvaluator>(
+            "IBHydrodynamicForce", rho_fluid, mu_fluid, start_time, true);
 
         // Get the initial box position and velocity from input
         const string init_hydro_force_box_out_db_name = "InitHydroForceBox_0";
@@ -385,14 +385,14 @@ main(int argc, char* argv[])
         input_db->printClassData(plog);
 
         // Get velocity and pressure variables from integrator
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
 
-        const Pointer<Variable<NDIM> > u_var = navier_stokes_integrator->getVelocityVariable();
-        const Pointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
+        const SAMRAIPointer<VariableNd> u_var = navier_stokes_integrator->getVelocityVariable();
+        const SAMRAIPointer<VariableContext> u_ctx = navier_stokes_integrator->getCurrentContext();
         const int u_idx = var_db->mapVariableAndContextToIndex(u_var, u_ctx);
 
-        const Pointer<Variable<NDIM> > p_var = navier_stokes_integrator->getPressureVariable();
-        const Pointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
+        const SAMRAIPointer<VariableNd> p_var = navier_stokes_integrator->getPressureVariable();
+        const SAMRAIPointer<VariableContext> p_ctx = navier_stokes_integrator->getCurrentContext();
         const int p_idx = var_db->mapVariableAndContextToIndex(p_var, p_ctx);
 
         // Write out initial visualization data.
@@ -556,7 +556,7 @@ main(int argc, char* argv[])
 } // main
 
 void
-output_data(Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
+output_data(SAMRAIPointer<PatchHierarchyNd> /*patch_hierarchy*/,
             LDataManager* /*l_data_manager*/,
             const int iteration_num,
             const double loop_time,

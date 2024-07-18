@@ -70,7 +70,7 @@ public:
      * \brief Constructor of the class.
      */
     BrinkmanAdvDiffBcHelper(std::string object_name,
-                            SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver);
+                            IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver);
 
     /*!
      * \brief Destructor of the class.
@@ -125,7 +125,7 @@ public:
      * \brief Function to determine if a transported quantity has Brinkman
      * boundary conditions associated with it.
      */
-    bool hasBrinkmanBoundaryCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var) const
+    bool hasBrinkmanBoundaryCondition(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var) const
     {
         return d_Q_bc.find(Q_var) != d_Q_bc.end();
     } // hasBrinkmanBoundaryCondition
@@ -138,12 +138,11 @@ public:
      * The applied forcing term is then computed internally as \f$ \nabla \dot (\chi B) - \chi \nabla \dot B \f$.
      * Note that B_idx contains side-centered patch data.
      */
-    using BrinkmanInhomogeneousBCsFcnPtr =
-        void (*)(int B_idx,
-                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
-                 SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                 double time,
-                 void* ctx);
+    using BrinkmanInhomogeneousBCsFcnPtr = void (*)(int B_idx,
+                                                    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > ls_var,
+                                                    IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
+                                                    double time,
+                                                    void* ctx);
 
     /*!
      * \brief Register a transported quantity with this object, along with the solid level set
@@ -152,8 +151,8 @@ public:
      * \note This function can only be used to register homogeneous Dirichlet, Neumann and Robin
      * BCs.
      */
-    void registerHomogeneousBC(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
+    void registerHomogeneousBC(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                               IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > ls_solid_var,
                                std::string bc_type,
                                std::string indicator_func_type = "SMOOTH",
                                double num_interface_cells = 2.0,
@@ -167,8 +166,8 @@ public:
      * \note Inhomogeneous BCs are treated uniquely within this class and require
      * additional user callback inputs.
      */
-    void registerInhomogeneousBC(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var,
+    void registerInhomogeneousBC(IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
+                                 IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > ls_solid_var,
                                  std::string bc_type,
                                  BrinkmanInhomogeneousBCsFcnPtr callback = nullptr,
                                  void* ctx = nullptr,
@@ -189,7 +188,7 @@ public:
      * Neumann BCs do not contribute anything to this term.
      *
      */
-    void computeDampingCoefficient(int C_idx, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    void computeDampingCoefficient(int C_idx, IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var);
 
     /*!
      * \brief Function to compute the side-centered coefficient to the diffusion linear operator
@@ -204,7 +203,7 @@ public:
      * all level sets with Neumann and Robin BCs . Note that Dirichlet BCs do not contribute anything to this term.
      */
     void computeDiffusionCoefficient(int D_idx,
-                                     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                                     IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                                      int kappa_idx,
                                      double kappa);
 
@@ -217,7 +216,7 @@ public:
      * with a user defined \f$B_i\f$.
      * The overall functional form of the Brinkman body force is \f$F = \sum_{i} F_i\f$.
      */
-    void computeForcing(int F_idx, SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var);
+    void computeForcing(int F_idx, IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var);
 
     /*!
      * \brief Function to mask the additional forcing terms on the RHS of the advection-diffusion solver
@@ -229,7 +228,7 @@ public:
      * not mask this term presently.
      */
     void maskForcingTerm(int N_idx,
-                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                         IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > Q_var,
                          const bool mask_smeared_region = false);
 
 private:
@@ -258,7 +257,7 @@ private:
      */
     struct BCProperties
     {
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_solid_var;
+        IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > ls_solid_var;
         AdvDiffBrinkmanPenalizationBcType bc_type;
         double bc_val;
         double num_interface_cells;
@@ -276,7 +275,7 @@ private:
     /*!
      * Pointer to the adv-diff solver.
      */
-    SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
+    IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> d_adv_diff_solver;
 
     /*!
      * Time interval
@@ -287,17 +286,17 @@ private:
     /*!
      * Map for storing transported variables and various registered BCs
      */
-    std::map<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> >, std::vector<BCProperties> > d_Q_bc;
+    std::map<IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> >, std::vector<BCProperties> > d_Q_bc;
 
     /*!
      * Patch data required for computing additional forcing for inhomogeneous Neumann and Robin BCs
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_B_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_B_var;
     int d_B_scratch_idx = IBTK::invalid_index, d_B_chi_scratch_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_div_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_div_var;
     int d_div_B_scratch_idx = IBTK::invalid_index, d_div_B_chi_scratch_idx = IBTK::invalid_index,
         d_chi_scratch_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_n_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::SideVariableNd<double> > d_n_var;
     int d_n_scratch_idx = IBTK::invalid_index, d_n_chi_scratch_idx = IBTK::invalid_index;
     int d_div_n_scratch_idx = IBTK::invalid_index, d_div_n_chi_scratch_idx = IBTK::invalid_index;
     int d_variable_g_scratch_idx = IBTK::invalid_index;

@@ -207,11 +207,11 @@ static Timer* t_deallocate_operator_state;
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
-                                               Pointer<CellVariable<NDIM, double> > Q_cell_var,
+                                               SAMRAIPointer<CellVariableNd<double> > Q_cell_var,
                                                const int Q_min_ghost_cell_width,
-                                               Pointer<Database> input_db,
+                                               SAMRAIPointer<Database> input_db,
                                                const ConvectiveDifferencingType difference_form,
-                                               std::vector<RobinBcCoefStrategy<NDIM>*> bc_coefs)
+                                               std::vector<RobinBcCoefStrategyNd*> bc_coefs)
 
     : ConvectiveOperator(std::move(object_name), difference_form),
       d_bc_coefs(std::move(bc_coefs)),
@@ -233,11 +233,11 @@ CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
 
     if (d_Q_cell_var)
     {
-        Pointer<CellDataFactory<NDIM, double> > Q_pdat_fac = d_Q_cell_var->getPatchDataFactory();
+        SAMRAIPointer<CellDataFactoryNd<double> > Q_pdat_fac = d_Q_cell_var->getPatchDataFactory();
         const int Q_depth = Q_pdat_fac->getDefaultDepth();
 
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        Pointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+        SAMRAIPointer<VariableContext> context = var_db->getContext(d_object_name + "::CONTEXT");
         d_Q_scratch_idx = var_db->registerVariableAndContext(d_Q_cell_var, context, Q_min_ghost_cell_width);
         d_Q_ghost_idx = var_db->registerClonedPatchDataIndex(d_Q_cell_var, d_Q_scratch_idx);
 
@@ -249,8 +249,8 @@ CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
         }
         else
         {
-            d_q_flux_var = new FaceVariable<NDIM, double>(q_flux_var_name, Q_depth);
-            d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVector<NDIM>(0));
+            d_q_flux_var = new FaceVariableNd<double>(q_flux_var_name, Q_depth);
+            d_q_flux_idx = var_db->registerVariableAndContext(d_q_flux_var, context, IntVectorNd(0));
         }
         TBOX_ASSERT(d_q_flux_idx >= 0);
 
@@ -262,8 +262,8 @@ CellConvectiveOperator::CellConvectiveOperator(std::string object_name,
         }
         else
         {
-            d_q_interp_var = new FaceVariable<NDIM, double>(q_interp_var_name, Q_depth);
-            d_q_interp_idx = var_db->registerVariableAndContext(d_q_interp_var, context, IntVector<NDIM>(0));
+            d_q_interp_var = new FaceVariableNd<double>(q_interp_var_name, Q_depth);
+            d_q_interp_idx = var_db->registerVariableAndContext(d_q_interp_var, context, IntVectorNd(0));
         }
         TBOX_ASSERT(d_q_interp_idx >= 0);
     }
@@ -288,9 +288,9 @@ CellConvectiveOperator::interpolateToFaceOnHierarchy(int q_interp_idx, int Q_cel
     }
 
     // Setup communications algorithms.
-    RefineAlgorithm<NDIM> refine_alg;
+    RefineAlgorithmNd refine_alg;
     refine_alg.registerRefine(d_Q_ghost_idx, Q_cell_idx, d_Q_scratch_idx, d_Q_cell_refine_op);
-    CoarsenAlgorithm<NDIM> coarsen_alg;
+    CoarsenAlgorithmNd coarsen_alg;
     coarsen_alg.registerCoarsen(q_interp_idx, q_interp_idx, d_q_interp_coarsen_op);
 
     // Interpolate data from cell centers to cell faces.
@@ -300,13 +300,13 @@ CellConvectiveOperator::interpolateToFaceOnHierarchy(int q_interp_idx, int Q_cel
         refine_alg.resetSchedule(d_Q_cell_refine_scheds[ln]);
         d_Q_cell_refine_scheds[ln]->fillData(d_solution_time);
         d_Q_cell_refine_alg->resetSchedule(d_Q_cell_refine_scheds[ln]);
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
             auto patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > Q_ghost_data = patch->getPatchData(d_Q_ghost_idx);
-            Pointer<FaceData<NDIM, double> > q_interp_data = patch->getPatchData(q_interp_idx);
-            Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<CellDataNd<double> > Q_ghost_data = patch->getPatchData(d_Q_ghost_idx);
+            SAMRAIPointer<FaceDataNd<double> > q_interp_data = patch->getPatchData(q_interp_idx);
+            SAMRAIPointer<FaceDataNd<double> > u_data = patch->getPatchData(u_idx);
 
             // Enforce physical boundary conditions at inflow boundaries.
             //
@@ -348,9 +348,9 @@ CellConvectiveOperator::evaluateAdvectiveFluxOnHierarchy(int q_flux_idx, int Q_c
     }
 
     // Setup communications algorithms.
-    RefineAlgorithm<NDIM> refine_alg;
+    RefineAlgorithmNd refine_alg;
     refine_alg.registerRefine(d_Q_ghost_idx, Q_cell_idx, d_Q_scratch_idx, d_Q_cell_refine_op);
-    CoarsenAlgorithm<NDIM> coarsen_alg;
+    CoarsenAlgorithmNd coarsen_alg;
     coarsen_alg.registerCoarsen(q_flux_idx, q_flux_idx, d_q_flux_coarsen_op);
 
     // Interpolate data from cell centers to cell faces.
@@ -360,13 +360,13 @@ CellConvectiveOperator::evaluateAdvectiveFluxOnHierarchy(int q_flux_idx, int Q_c
         refine_alg.resetSchedule(d_Q_cell_refine_scheds[ln]);
         d_Q_cell_refine_scheds[ln]->fillData(d_solution_time);
         d_Q_cell_refine_alg->resetSchedule(d_Q_cell_refine_scheds[ln]);
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
             auto patch = level->getPatch(p());
-            Pointer<CellData<NDIM, double> > Q_ghost_data = patch->getPatchData(d_Q_ghost_idx);
-            Pointer<FaceData<NDIM, double> > q_flux_data = patch->getPatchData(q_flux_idx);
-            Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<CellDataNd<double> > Q_ghost_data = patch->getPatchData(d_Q_ghost_idx);
+            SAMRAIPointer<FaceDataNd<double> > q_flux_data = patch->getPatchData(q_flux_idx);
+            SAMRAIPointer<FaceDataNd<double> > u_data = patch->getPatchData(u_idx);
 
             // Enforce physical boundary conditions at inflow boundaries.
             //
@@ -411,7 +411,7 @@ CellConvectiveOperator::computeAdvectiveDerivativeOnHierarchy(int N_cell_idx,
     }
 
     // Setup communications algorithms.
-    CoarsenAlgorithm<NDIM> coarsen_alg;
+    CoarsenAlgorithmNd coarsen_alg;
     coarsen_alg.registerCoarsen(q_interp_idx, q_interp_idx, d_q_interp_coarsen_op);
 
     // Difference values on the patches.
@@ -426,8 +426,8 @@ CellConvectiveOperator::computeAdvectiveDerivativeOnHierarchy(int N_cell_idx,
             d_q_interp_coarsen_alg->resetSchedule(d_q_interp_coarsen_scheds[ln]);
         }
 
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
             auto patch = level->getPatch(p());
 
@@ -435,14 +435,14 @@ CellConvectiveOperator::computeAdvectiveDerivativeOnHierarchy(int N_cell_idx,
             const auto& patch_lower = patch_box.lower();
             const auto& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, double> > N_cell_data = patch->getPatchData(N_cell_idx);
+            SAMRAIPointer<CellDataNd<double> > N_cell_data = patch->getPatchData(N_cell_idx);
             const auto& N_cell_data_gcw = N_cell_data->getGhostCellWidth();
-            Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<FaceDataNd<double> > u_data = patch->getPatchData(u_idx);
             const auto& u_data_gcw = u_data->getGhostCellWidth();
-            Pointer<FaceData<NDIM, double> > q_interp_data = patch->getPatchData(q_interp_idx);
+            SAMRAIPointer<FaceDataNd<double> > q_interp_data = patch->getPatchData(q_interp_idx);
             const auto& q_interp_data_gcw = q_interp_data->getGhostCellWidth();
 
             for (int d = 0; d < N_cell_data->getDepth(); ++d)
@@ -504,7 +504,7 @@ CellConvectiveOperator::computeConservativeDerivativeOnHierarchy(int N_cell_idx,
     }
 
     // Setup communications algorithms.
-    CoarsenAlgorithm<NDIM> coarsen_alg;
+    CoarsenAlgorithmNd coarsen_alg;
     coarsen_alg.registerCoarsen(q_flux_idx, q_flux_idx, d_q_flux_coarsen_op);
 
     // Difference values on the patches.
@@ -519,8 +519,8 @@ CellConvectiveOperator::computeConservativeDerivativeOnHierarchy(int N_cell_idx,
             d_q_flux_coarsen_alg->resetSchedule(d_q_flux_coarsen_scheds[ln]);
         }
 
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
             auto patch = level->getPatch(p());
 
@@ -528,15 +528,15 @@ CellConvectiveOperator::computeConservativeDerivativeOnHierarchy(int N_cell_idx,
             const auto& patch_lower = patch_box.lower();
             const auto& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, double> > N_cell_data = patch->getPatchData(N_cell_idx);
+            SAMRAIPointer<CellDataNd<double> > N_cell_data = patch->getPatchData(N_cell_idx);
             const auto& N_cell_data_gcw = N_cell_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(N_cell_data_gcw.min() == N_cell_data_gcw.max());
 #endif
-            Pointer<FaceData<NDIM, double> > q_flux_data = patch->getPatchData(q_flux_idx);
+            SAMRAIPointer<FaceDataNd<double> > q_flux_data = patch->getPatchData(q_flux_idx);
             const auto& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(q_flux_data_gcw.min() == q_flux_data_gcw.max());
@@ -589,7 +589,7 @@ CellConvectiveOperator::computeSkewSymmetricDerivativeOnHierarchy(int N_cell_idx
     }
 
     // Setup communications algorithms.
-    CoarsenAlgorithm<NDIM> flux_coarsen_alg, interp_coarsen_alg;
+    CoarsenAlgorithmNd flux_coarsen_alg, interp_coarsen_alg;
     flux_coarsen_alg.registerCoarsen(q_flux_idx, q_flux_idx, d_q_flux_coarsen_op);
     interp_coarsen_alg.registerCoarsen(q_interp_idx, q_interp_idx, d_q_interp_coarsen_op);
 
@@ -608,8 +608,8 @@ CellConvectiveOperator::computeSkewSymmetricDerivativeOnHierarchy(int N_cell_idx
             d_q_interp_coarsen_alg->resetSchedule(d_q_interp_coarsen_scheds[ln]);
         }
 
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevelNd::Iterator p(level); p; p++)
         {
             auto patch = level->getPatch(p());
 
@@ -617,25 +617,25 @@ CellConvectiveOperator::computeSkewSymmetricDerivativeOnHierarchy(int N_cell_idx
             const auto& patch_lower = patch_box.lower();
             const auto& patch_upper = patch_box.upper();
 
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const dx = patch_geom->getDx();
 
-            Pointer<CellData<NDIM, double> > N_cell_data = patch->getPatchData(N_cell_idx);
+            SAMRAIPointer<CellDataNd<double> > N_cell_data = patch->getPatchData(N_cell_idx);
             const auto& N_cell_data_gcw = N_cell_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(N_cell_data_gcw.min() == N_cell_data_gcw.max());
 #endif
-            Pointer<FaceData<NDIM, double> > q_flux_data = patch->getPatchData(q_flux_idx);
+            SAMRAIPointer<FaceDataNd<double> > q_flux_data = patch->getPatchData(q_flux_idx);
             const auto& q_flux_data_gcw = q_flux_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(q_flux_data_gcw.min() == q_flux_data_gcw.max());
 #endif
-            Pointer<FaceData<NDIM, double> > q_interp_data = patch->getPatchData(q_interp_idx);
+            SAMRAIPointer<FaceDataNd<double> > q_interp_data = patch->getPatchData(q_interp_idx);
             const auto& q_interp_data_gcw = q_interp_data->getGhostCellWidth();
 #if !defined(NDEBUG)
             TBOX_ASSERT(q_interp_data_gcw.min() == q_interp_data_gcw.max());
 #endif
-            Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(u_idx);
+            SAMRAIPointer<FaceDataNd<double> > u_data = patch->getPatchData(u_idx);
             const auto& u_data_gcw = u_data->getGhostCellWidth();
             for (int d = 0; d < N_cell_data->getDepth(); ++d)
             {
@@ -720,10 +720,10 @@ CellConvectiveOperator::computeSkewSymmetricDerivativeOnHierarchy(int N_cell_idx
 } // computeSkewSymmetricDerivativeOnHierarchy
 
 void
-CellConvectiveOperator::evaluateAdvectiveFluxOnPatch(FaceData<NDIM, double>& q_flux_data,
-                                                     const CellData<NDIM, double>& Q_cell_data,
-                                                     const FaceData<NDIM, double>& u_data,
-                                                     const Patch<NDIM>& patch)
+CellConvectiveOperator::evaluateAdvectiveFluxOnPatch(FaceDataNd<double>& q_flux_data,
+                                                     const CellDataNd<double>& Q_cell_data,
+                                                     const FaceDataNd<double>& u_data,
+                                                     const PatchNd& patch)
 {
     if (!d_is_initialized)
     {
@@ -737,9 +737,9 @@ CellConvectiveOperator::evaluateAdvectiveFluxOnPatch(FaceData<NDIM, double>& q_f
     const auto& patch_upper = patch_box.upper();
 
     const auto& u_data_gcw = u_data.getGhostCellWidth();
-    const IntVector<NDIM>& q_flux_data_gcw = q_flux_data.getGhostCellWidth();
-    FaceData<NDIM, double> q_interp_data(patch_box, q_flux_data.getDepth(), q_flux_data_gcw);
-    const IntVector<NDIM>& q_interp_data_gcw = q_interp_data.getGhostCellWidth();
+    const IntVectorNd& q_flux_data_gcw = q_flux_data.getGhostCellWidth();
+    FaceDataNd<double> q_interp_data(patch_box, q_flux_data.getDepth(), q_flux_data_gcw);
+    const IntVectorNd& q_interp_data_gcw = q_interp_data.getGhostCellWidth();
 
     // Interpolate from cell centers to cell faces.
     interpolateToFaceOnPatch(q_interp_data, Q_cell_data, u_data, patch);
@@ -829,8 +829,8 @@ CellConvectiveOperator::applyConvectiveOperator(int Q_idx, int N_idx)
 } // applyConvectiveOperator
 
 void
-CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                const SAMRAIVectorReal<NDIM, double>& out)
+CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorRealNd<double>& in,
+                                                const SAMRAIVectorRealNd<double>& out)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
@@ -846,13 +846,13 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
 #else
     NULL_USE(out);
 #endif
-    Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
 
     // Setup the communication operators, algorithms, and schedules.
     //
     // TODO: Make the choice of refine and coarsen operators more flexible.
     d_Q_cell_refine_op = grid_geom->lookupRefineOperator(d_Q_cell_var, "CONSERVATIVE_LINEAR_REFINE");
-    d_Q_cell_refine_alg = new RefineAlgorithm<NDIM>();
+    d_Q_cell_refine_alg = new RefineAlgorithmNd();
     d_Q_cell_refine_alg->registerRefine(
         d_Q_ghost_idx, in.getComponentDescriptorIndex(0), d_Q_scratch_idx, d_Q_cell_refine_op);
     if (d_outflow_bdry_extrap_type != "NONE")
@@ -862,11 +862,11 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
     }
 
     d_q_flux_coarsen_op = grid_geom->lookupCoarsenOperator(d_q_flux_var, "CONSERVATIVE_COARSEN");
-    d_q_flux_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_q_flux_coarsen_alg = new CoarsenAlgorithmNd();
     d_q_flux_coarsen_alg->registerCoarsen(d_q_flux_idx, d_q_flux_idx, d_q_flux_coarsen_op);
 
     d_q_interp_coarsen_op = grid_geom->lookupCoarsenOperator(d_q_interp_var, "CONSERVATIVE_COARSEN");
-    d_q_interp_coarsen_alg = new CoarsenAlgorithm<NDIM>();
+    d_q_interp_coarsen_alg = new CoarsenAlgorithmNd();
     d_q_interp_coarsen_alg->registerCoarsen(d_q_interp_idx, d_q_interp_idx, d_q_interp_coarsen_op);
 
     d_Q_cell_refine_scheds.resize(finest_ln + 1);
@@ -875,8 +875,8 @@ CellConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, dou
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        Pointer<PatchLevel<NDIM> > coarser_level = (ln > coarsest_ln) ? d_hierarchy->getPatchLevel(ln - 1) : nullptr;
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> coarser_level = (ln > coarsest_ln) ? d_hierarchy->getPatchLevel(ln - 1) : nullptr;
         level->allocatePatchData(d_Q_ghost_idx);
         level->allocatePatchData(d_Q_scratch_idx);
         level->allocatePatchData(d_q_flux_idx);
@@ -921,7 +921,7 @@ CellConvectiveOperator::deallocateOperatorState()
     const int coarsest_ln = 0, finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_Q_ghost_idx);
         level->deallocatePatchData(d_Q_scratch_idx);
         level->deallocatePatchData(d_q_flux_idx);

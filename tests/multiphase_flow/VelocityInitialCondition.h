@@ -91,8 +91,8 @@ public:
      * levels of the patch hierarchy.
      */
     void setDataOnPatchHierarchy(const int /*data_idx*/,
-                                 SAMRAI::tbox::Pointer<Variable<NDIM> > /*var*/,
-                                 SAMRAI::tbox::Pointer<PatchHierarchy<NDIM> > /*hierarchy*/,
+                                 IBTK::SAMRAIPointer<VariableNd> /*var*/,
+                                 IBTK::SAMRAIPointer<PatchHierarchyNd> /*hierarchy*/,
                                  const double /*data_time*/,
                                  const bool /*initial_time*/,
                                  const int /*coarsest_ln_in*/,
@@ -106,11 +106,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        SAMRAI::tbox::Pointer<Variable<NDIM> > /*var*/,
-                        SAMRAI::tbox::Pointer<Patch<NDIM> > patch,
+                        IBTK::SAMRAIPointer<VariableNd> /*var*/,
+                        IBTK::SAMRAIPointer<PatchNd> patch,
                         const double /*data_time*/,
                         const bool initial_time,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > /*patch_level*/)
+                        IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> /*patch_level*/)
     {
         // Set the initial velocity inside and outside the level set
         if (initial_time)
@@ -120,32 +120,32 @@ public:
             const IBTK::Vector3d& X0 = d_init_circle.X0;
 
             // Initial velocity patch data
-            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(data_idx);
+            SAMRAIPointer<SideDataNd<double> > U_data = patch->getPatchData(data_idx);
 
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
             double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
-            const Box<NDIM>& patch_box = patch->getBox();
+            const BoxNd& patch_box = patch->getBox();
             for (int axis = 0; axis < NDIM; ++axis)
             {
-                for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                for (BoxNd::Iterator it(SideGeometryNd::toSideBox(patch_box, axis)); it; it++)
                 {
-                    SideIndex<NDIM> s_i(it(), axis, /*lower index*/ 0);
+                    SideIndexNd s_i(it(), axis, /*lower index*/ 0);
                     double h;
                     double u_inside = d_inside_velocity[axis];
                     double u_outside = d_outside_velocity[axis];
 
                     // Get the values of the distance function of adjacent cell centers
-                    CellIndex<NDIM> c_l = s_i.toCell(0);
-                    CellIndex<NDIM> c_u = s_i.toCell(1);
+                    CellIndexNd c_l = s_i.toCell(0);
+                    CellIndexNd c_u = s_i.toCell(1);
 
                     // Get physical coordinates
                     IBTK::Vector coord_lower = IBTK::Vector::Zero();
                     IBTK::Vector coord_upper = IBTK::Vector::Zero();
                     const double* patch_X_lower = patch_geom->getXLower();
-                    const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+                    const hier::IndexNd& patch_lower_idx = patch_box.lower();
                     const double* const patch_dx = patch_geom->getDx();
                     for (int d = 0; d < NDIM; ++d)
                     {

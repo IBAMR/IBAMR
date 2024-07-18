@@ -64,7 +64,7 @@ public:
      * \brief Class constructor
      */
     VCStaggeredStokesProjectionPreconditioner(const std::string& object_name,
-                                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                              IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                               const std::string& default_options_prefix);
 
     /*!
@@ -76,9 +76,9 @@ public:
      * \brief Static function to construct a
      * VCStaggeredStokesProjectionPreconditioner.
      */
-    static SAMRAI::tbox::Pointer<StaggeredStokesSolver>
+    static IBTK::SAMRAIPointer<StaggeredStokesSolver>
     allocate_solver(const std::string& object_name,
-                    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                     const std::string& default_options_prefix)
     {
         return new VCStaggeredStokesProjectionPreconditioner(object_name, input_db, default_options_prefix);
@@ -92,8 +92,7 @@ public:
     /*!
      * \brief Compute the action of the preconditioner.
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -112,8 +111,8 @@ public:
      *
      * \note A default implementation is provided which does nothing.
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -184,10 +183,10 @@ private:
     operator=(const VCStaggeredStokesProjectionPreconditioner& that) = delete;
 
     // Boundary condition objects.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_Phi_bdry_fill_op, d_no_fill_op;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var;
+    IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx, d_F_Phi_idx, d_velocity_D_cc_idx;
 };
 } // namespace IBAMR

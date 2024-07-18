@@ -43,11 +43,11 @@ LevelSetSolidInitialCondition::isTimeDependent() const
 
 void
 LevelSetSolidInitialCondition::setDataOnPatch(const int data_idx,
-                                              Pointer<Variable<NDIM> > /*var*/,
-                                              Pointer<Patch<NDIM> > patch,
+                                              SAMRAIPointer<VariableNd> /*var*/,
+                                              SAMRAIPointer<PatchNd> patch,
                                               const double /*data_time*/,
                                               const bool initial_time,
-                                              Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                              SAMRAIPointer<PatchLevelNd> /*patch_level*/)
 {
     // Set the level set function throughout the domain
     if (initial_time && d_init_wedge->wedge_locate_method == "GEOMETRY_METHOD")
@@ -71,17 +71,17 @@ LevelSetSolidInitialCondition::setDataOnPatch(const int data_idx,
         // Set the initial condition for locating the interface
         IBTK::Vector& X0 = d_init_wedge->X0;
 
-        const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(data_idx);
-        for (Box<NDIM>::Iterator it(patch_box); it; it++)
+        const BoxNd& patch_box = patch->getBox();
+        SAMRAIPointer<CellDataNd<double> > D_data = patch->getPatchData(data_idx);
+        for (BoxNd::Iterator it(patch_box); it; it++)
         {
-            CellIndex<NDIM> ci(it());
+            CellIndexNd ci(it());
 
             // Get physical coordinates
             IBTK::Vector X = IBTK::Vector::Zero();
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             const double* patch_X_lower = patch_geom->getXLower();
-            const SAMRAI::hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+            const SAMRAI::hier::IndexNd& patch_lower_idx = patch_box.lower();
             const double* const patch_dx = patch_geom->getDx();
             for (int d = 0; d < NDIM; ++d)
             {

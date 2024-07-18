@@ -74,7 +74,7 @@ public:
      * \brief Constructor.
      */
     BJacobiPreconditioner(std::string object_name,
-                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                          SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                           const std::string& default_options_prefix);
 
     /*!
@@ -86,7 +86,7 @@ public:
      * \brief Set the preconditioner to be employed on the specified vector
      * component.
      */
-    void setComponentPreconditioner(SAMRAI::tbox::Pointer<LinearSolver> preconditioner, unsigned int component);
+    void setComponentPreconditioner(SAMRAIPointer<LinearSolver> preconditioner, unsigned int component);
 
     /*!
      * \name Linear solver functionality.
@@ -130,8 +130,7 @@ public:
      * \return \p true if the solver converged to the specified tolerances, \p
      * false otherwise
      */
-    bool solveSystem(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                     SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    bool solveSystem(SAMRAI::solv::SAMRAIVectorRealNd<double>& x, SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Compute hierarchy dependent data required for solving \f$Ax=b\f$.
@@ -170,8 +169,8 @@ public:
      *
      * \see deallocateSolverState
      */
-    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
-                               const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& b) override;
+    void initializeSolverState(const SAMRAI::solv::SAMRAIVectorRealNd<double>& x,
+                               const SAMRAI::solv::SAMRAIVectorRealNd<double>& b) override;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -251,7 +250,7 @@ private:
     /*!
      * The component preconditioners.
      */
-    std::map<unsigned int, SAMRAI::tbox::Pointer<LinearSolver> > d_pc_map;
+    std::map<unsigned int, SAMRAIPointer<LinearSolver> > d_pc_map;
 };
 } // namespace IBTK
 

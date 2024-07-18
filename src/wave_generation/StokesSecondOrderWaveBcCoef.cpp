@@ -45,8 +45,8 @@ static const int EXTENSIONS_FILLABLE = 128;
 
 StokesSecondOrderWaveBcCoef::StokesSecondOrderWaveBcCoef(std::string object_name,
                                                          const int comp_idx,
-                                                         Pointer<Database> input_db,
-                                                         Pointer<CartesianGridGeometry<NDIM> > grid_geom)
+                                                         SAMRAIPointer<Database> input_db,
+                                                         SAMRAIPointer<CartesianGridGeometryNd> grid_geom)
     : d_object_name(std::move(object_name)),
       d_comp_idx(comp_idx),
       d_muparser_bcs(d_object_name + "::muParser", input_db, grid_geom),
@@ -69,18 +69,18 @@ StokesSecondOrderWaveBcCoef::~StokesSecondOrderWaveBcCoef()
 } // ~StokesSecondOrderWaveBcCoef
 
 void
-StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_data,
-                                        Pointer<ArrayData<NDIM, double> >& bcoef_data,
-                                        Pointer<ArrayData<NDIM, double> >& gcoef_data,
-                                        const Pointer<Variable<NDIM> >& variable,
-                                        const Patch<NDIM>& patch,
-                                        const BoundaryBox<NDIM>& bdry_box,
+StokesSecondOrderWaveBcCoef::setBcCoefs(SAMRAIPointer<ArrayDataNd<double> >& acoef_data,
+                                        SAMRAIPointer<ArrayDataNd<double> >& bcoef_data,
+                                        SAMRAIPointer<ArrayDataNd<double> >& gcoef_data,
+                                        const SAMRAIPointer<VariableNd>& variable,
+                                        const PatchNd& patch,
+                                        const BoundaryBoxNd& bdry_box,
                                         double fill_time) const
 {
     // Get pgeom info.
-    const Box<NDIM>& patch_box = patch.getBox();
-    const SAMRAI::hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+    const BoxNd& patch_box = patch.getBox();
+    const SAMRAI::hier::IndexNd& patch_lower = patch_box.lower();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch.getPatchGeometry();
     const double* const x_lower = pgeom->getXLower();
     const double* const dx = pgeom->getDx();
 
@@ -100,10 +100,10 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
     else
     {
         const unsigned int bdry_normal_axis = location_index / 2;
-        const Box<NDIM>& bc_coef_box = (acoef_data ? acoef_data->getBox() :
-                                        bcoef_data ? bcoef_data->getBox() :
-                                        gcoef_data ? gcoef_data->getBox() :
-                                                     Box<NDIM>());
+        const BoxNd& bc_coef_box = (acoef_data ? acoef_data->getBox() :
+                                    bcoef_data ? bcoef_data->getBox() :
+                                    gcoef_data ? gcoef_data->getBox() :
+                                                 BoxNd());
 #if !defined(NDEBUG)
         TBOX_ASSERT(!acoef_data || bc_coef_box == acoef_data->getBox());
         TBOX_ASSERT(!bcoef_data || bc_coef_box == bcoef_data->getBox());
@@ -114,9 +114,9 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
         const double fac1 = (0.5 * H * d_gravity * d_wave_number) / d_omega;
         const double fac2 = (3.0 * H * H * d_omega * d_wave_number) / 16.0;
         double dof_posn[NDIM];
-        for (Box<NDIM>::Iterator b(bc_coef_box); b; b++)
+        for (BoxNd::Iterator b(bc_coef_box); b; b++)
         {
-            const hier::Index<NDIM>& i = b();
+            const hier::IndexNd& i = b();
             if (acoef_data) (*acoef_data)(i, 0) = 1.0;
             if (bcoef_data) (*bcoef_data)(i, 0) = 0.0;
 
@@ -188,7 +188,7 @@ StokesSecondOrderWaveBcCoef::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef
     return;
 } // setBcCoefs
 
-IntVector<NDIM>
+IntVectorNd
 StokesSecondOrderWaveBcCoef::numberOfExtensionsFillable() const
 {
     return EXTENSIONS_FILLABLE;
@@ -198,9 +198,9 @@ StokesSecondOrderWaveBcCoef::numberOfExtensionsFillable() const
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
-StokesSecondOrderWaveBcCoef::getFromInput(Pointer<Database> input_db)
+StokesSecondOrderWaveBcCoef::getFromInput(SAMRAIPointer<Database> input_db)
 {
-    Pointer<Database> wave_db = input_db->getDatabase("wave_parameters_db");
+    SAMRAIPointer<Database> wave_db = input_db->getDatabase("wave_parameters_db");
 #if !defined(NDEBUG)
     TBOX_ASSERT(input_db->isDatabase("wave_parameters_db"));
 #endif

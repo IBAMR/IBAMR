@@ -50,7 +50,7 @@ namespace IBTK
  * double precision patch data via conservative linear interpolation with an
  * additional bounds preservation repair step.
  */
-class CartCellDoubleBoundsPreservingConservativeLinearRefine : public SAMRAI::xfer::RefineOperator<NDIM>
+class CartCellDoubleBoundsPreservingConservativeLinearRefine : public SAMRAI::xfer::RefineOperatorNd
 {
 public:
     /*!
@@ -72,7 +72,7 @@ public:
      * Return true if the refining operation matches the variable and name
      * string identifier request; false, otherwise.
      */
-    bool findRefineOperator(const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> >& var,
+    bool findRefineOperator(const SAMRAIPointer<SAMRAI::hier::VariableNd>& var,
                             const std::string& op_name) const override;
 
     /*!
@@ -94,7 +94,7 @@ public:
      * sufficient ghost cell data surrounding the interior to satisfy the
      * stencil width requirements for each refining operator.
      */
-    SAMRAI::hier::IntVector<NDIM> getStencilWidth() const override;
+    SAMRAI::hier::IntVectorNd getStencilWidth() const override;
 
     /*!
      * Refine the source component on the fine patch to the destination
@@ -103,12 +103,12 @@ public:
      * is guaranteed to contain sufficient data for the stencil width of the
      * refining operator.
      */
-    void refine(SAMRAI::hier::Patch<NDIM>& fine,
-                const SAMRAI::hier::Patch<NDIM>& coarse,
+    void refine(SAMRAI::hier::PatchNd& fine,
+                const SAMRAI::hier::PatchNd& coarse,
                 int dst_component,
                 int src_component,
-                const SAMRAI::hier::Box<NDIM>& fine_box,
-                const SAMRAI::hier::IntVector<NDIM>& ratio) const override;
+                const SAMRAI::hier::BoxNd& fine_box,
+                const SAMRAI::hier::IntVectorNd& ratio) const override;
 
     //\}
 
@@ -144,12 +144,12 @@ private:
     /*!
      * The basic, non-bounds preserving conservative linear refine operator.
      */
-    SAMRAI::geom::CartesianCellDoubleConservativeLinearRefine<NDIM> d_conservative_linear_refine_op;
+    SAMRAI::geom::CartesianCellDoubleConservativeLinearRefineNd d_conservative_linear_refine_op;
 
     /*!
      * The constant refine operator.
      */
-    SAMRAI::pdat::CellDoubleConstantRefine<NDIM> d_constant_refine_op;
+    SAMRAI::pdat::CellDoubleConstantRefineNd d_constant_refine_op;
 };
 } // namespace IBTK
 

@@ -57,7 +57,7 @@ namespace IBTK
  * class corresponding to patch data of type LSetData.
  */
 template <class T>
-class LSetDataFactory : public SAMRAI::pdat::IndexDataFactory<NDIM, LSet<T>, SAMRAI::pdat::CellGeometry<NDIM> >
+class LSetDataFactory : public SAMRAI::pdat::IndexDataFactoryNd<LSet<T>, SAMRAI::pdat::CellGeometryNd>
 {
 public:
     /*!
@@ -65,7 +65,7 @@ public:
      * width argument gives the default width for all data objects created with
      * this factory.
      */
-    LSetDataFactory(SAMRAI::hier::IntVector<NDIM> ghosts);
+    LSetDataFactory(SAMRAI::hier::IntVectorNd ghosts);
 
     /*!
      * Virtual destructor for the data factory class.
@@ -78,8 +78,8 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(const SAMRAI::hier::Box<NDIM>& box, SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const override;
+    SAMRAIPointer<SAMRAI::hier::PatchDataNd> allocate(const SAMRAI::hier::BoxNd& box,
+                                                      SAMRAIPointer<SAMRAI::tbox::Arena> pool = nullptr) const override;
 
     /*!
      * Virtual factory function to allocate a concrete data object.  The default
@@ -87,15 +87,14 @@ public:
      * factory.  If no memory pool is provided, the allocation routine assumes
      * some default memory pool.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchData<NDIM> >
-    allocate(const SAMRAI::hier::Patch<NDIM>& patch,
-             SAMRAI::tbox::Pointer<SAMRAI::tbox::Arena> pool = NULL) const override;
+    SAMRAIPointer<SAMRAI::hier::PatchDataNd> allocate(const SAMRAI::hier::PatchNd& patch,
+                                                      SAMRAIPointer<SAMRAI::tbox::Arena> pool = nullptr) const override;
 
     /*!
      * Calculate the amount of memory needed to store the data object, including
      * object data but not dynamically allocated data.
      */
-    size_t getSizeOfMemory(const SAMRAI::hier::Box<NDIM>& box) const override;
+    size_t getSizeOfMemory(const SAMRAI::hier::BoxNd& box) const override;
 
     /*!
      * Virtual function to clone the data factory.  This will return a new
@@ -103,15 +102,14 @@ public:
      * The properties of the cloned factory can then be changed without
      * modifying the original.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >
-    cloneFactory(const SAMRAI::hier::IntVector<NDIM>& ghosts) override;
+    SAMRAIPointer<SAMRAI::hier::PatchDataFactoryNd> cloneFactory(const SAMRAI::hier::IntVectorNd& ghosts) override;
 
     /*!
      * Return whether it is valid to copy this LSetDataFactory to the supplied
      * destination patch data factory. It will return true if dst_pdf is a
      * LSetDataFactory, false otherwise.
      */
-    bool validCopyTo(const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchDataFactory<NDIM> >& dst_pdf) const override;
+    bool validCopyTo(const SAMRAIPointer<SAMRAI::hier::PatchDataFactoryNd>& dst_pdf) const override;
 
 private:
     /*!

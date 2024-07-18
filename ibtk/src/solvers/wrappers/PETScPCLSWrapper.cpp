@@ -64,13 +64,13 @@ PETScPCLSWrapper::getPETScPC() const
 } // getPETScPC
 
 bool
-PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+PETScPCLSWrapper::solveSystem(SAMRAIVectorRealNd<double>& x, SAMRAIVectorRealNd<double>& b)
 {
     if (!d_is_initialized) initializeSolverState(x, b);
 
     // Update the PETSc Vec wrappers.
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, Pointer<SAMRAIVectorReal<NDIM, double> >(&x, false));
-    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, Pointer<SAMRAIVectorReal<NDIM, double> >(&b, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_x, SAMRAIPointer<SAMRAIVectorRealNd<double> >(&x, false));
+    PETScSAMRAIVectorReal::replaceSAMRAIVector(d_petsc_b, SAMRAIPointer<SAMRAIVectorRealNd<double> >(&b, false));
 
     // Apply the preconditioner.
     int ierr = PCApply(d_petsc_pc, d_petsc_x, d_petsc_b);
@@ -79,8 +79,7 @@ PETScPCLSWrapper::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRea
 } // solveSystem
 
 void
-PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
-                                        const SAMRAIVectorReal<NDIM, double>& b)
+PETScPCLSWrapper::initializeSolverState(const SAMRAIVectorRealNd<double>& x, const SAMRAIVectorRealNd<double>& b)
 {
     if (d_is_initialized) deallocateSolverState();
     d_x = x.cloneVector("");

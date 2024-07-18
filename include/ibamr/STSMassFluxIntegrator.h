@@ -103,7 +103,7 @@ public:
     /*!
      * \brief Class constructor.
      */
-    STSMassFluxIntegrator(std::string object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    STSMassFluxIntegrator(std::string object_name, IBTK::SAMRAIPointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -123,8 +123,7 @@ public:
     /*!
      * \brief Compute hierarchy dependent data required for time integrating variables.
      */
-    virtual void
-    initializeSTSIntegrator(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > base_hierarchy) = 0;
+    virtual void initializeSTSIntegrator(IBTK::SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> base_hierarchy) = 0;
 
     /*!
      * \brief Remove all hierarchy dependent data allocated by
@@ -152,7 +151,7 @@ public:
     /*!
      * \brief Set the boundary condition object for the density.
      */
-    void setDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_sc_bc_coefs);
+    void setDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& rho_sc_bc_coefs);
 
     /*!
      * \brief Get the newly constructed density patch data index.
@@ -205,62 +204,62 @@ public:
     /*!
      * \brief Set the HierarchyMathOps object used by the operator.
      */
-    void setHierarchyMathOps(SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops);
+    void setHierarchyMathOps(IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops);
 
     /*!
      * \brief Get the HierarchyMathOps object used by the operator.
      */
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> getHierarchyMathOps() const;
+    IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> getHierarchyMathOps() const;
 
 protected:
     // Book keeping
     std::string d_object_name;
 
     // Boundary condition helper object.
-    SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
+    IBTK::SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
     // Cached communications operators.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_bc_coefs;
     std::string d_density_bdry_extrap_type = "CONSTANT";
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_rho_transaction_comps;
-    SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_rho_bdry_fill;
+    IBTK::SAMRAIPointer<IBTK::HierarchyGhostCellInterpolation> d_hier_rho_bdry_fill;
 
     // Hierarchy configuration.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    IBTK::SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Boundary condition object for velocity field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_u_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_u_bc_coefs;
 
     // Boundary condition object for side-centered density field.
-    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_bc_coefs;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*> d_rho_bc_coefs;
 
     // Hierarchy operation objects.
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyFaceDataOpsReal<NDIM, double> > d_hier_fc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchySideDataOpsReal<NDIM, double> > d_hier_sc_data_ops;
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyCellDataOpsReal<NDIM, double> > d_hier_cc_data_ops;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchyFaceDataOpsRealNd<double> > d_hier_fc_data_ops;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchySideDataOpsRealNd<double> > d_hier_sc_data_ops;
+    IBTK::SAMRAIPointer<SAMRAI::math::HierarchyCellDataOpsRealNd<double> > d_hier_cc_data_ops;
 
     // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_V_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_V_var;
     int d_V_scratch_idx = IBTK::invalid_index, d_V_old_idx = IBTK::invalid_index, d_V_current_idx = IBTK::invalid_index,
         d_V_new_idx = IBTK::invalid_index, d_V_composite_idx = IBTK::invalid_index;
 
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_rho_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_rho_var;
     int d_rho_current_idx = IBTK::invalid_index, d_rho_scratch_idx = IBTK::invalid_index,
         d_rho_new_idx = IBTK::invalid_index, d_rho_composite_idx = IBTK::invalid_index;
     int d_N_idx = IBTK::invalid_index;
 
     // Source term variable and function for the mass density update.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_S_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_S_var;
     int d_S_scratch_idx = IBTK::invalid_index;
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_S_fcn;
+    IBTK::SAMRAIPointer<IBTK::CartGridFunction> d_S_fcn;
 
     // Variable and index to store the error of mass conservation equation.
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_E_var;
+    IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> d_E_var;
     int d_E_scratch_idx = IBTK::invalid_index;
 
     // Mathematical operators.
-    SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> d_hier_math_ops;
+    IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> d_hier_math_ops;
     bool d_hier_math_ops_external = false;
 
     // Boolean value to indicate whether the integrator is presently

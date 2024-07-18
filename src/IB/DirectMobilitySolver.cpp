@@ -71,8 +71,8 @@ static Timer* t_deallocate_solver_state;
 ////////////////////////////// PUBLIC ////////////////////////////////////////
 
 DirectMobilitySolver::DirectMobilitySolver(std::string object_name,
-                                           Pointer<Database> input_db,
-                                           Pointer<CIBStrategy> cib_strategy)
+                                           SAMRAIPointer<Database> input_db,
+                                           SAMRAIPointer<CIBStrategy> cib_strategy)
     : d_object_name(std::move(object_name)), d_cib_strategy(cib_strategy)
 {
     // Get from input
@@ -390,14 +390,14 @@ DirectMobilitySolver::initializeSolverState(Vec x, Vec /*b*/)
         // Get grid-info
         Vec* vx;
         VecNestGetSubVecs(x, nullptr, &vx);
-        Pointer<SAMRAIVectorReal<NDIM, double> > vx0;
+        SAMRAIPointer<SAMRAIVectorRealNd<double> > vx0;
         IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(vx[0], &vx0);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = vx0->getPatchHierarchy();
+        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = vx0->getPatchHierarchy();
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         IBTK::PETScSAMRAIVectorReal::restoreSAMRAIVectorRead(vx[0], &vx0);
-        Pointer<PatchLevel<NDIM> > struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
-        const IntVector<NDIM>& ratio = struct_patch_level->getRatio();
-        Pointer<CartesianGridGeometry<NDIM> > grid_geom = patch_hierarchy->getGridGeometry();
+        SAMRAIPointer<PatchLevelNd> struct_patch_level = patch_hierarchy->getPatchLevel(finest_ln);
+        const IntVectorNd& ratio = struct_patch_level->getRatio();
+        SAMRAIPointer<CartesianGridGeometryNd> grid_geom = patch_hierarchy->getGridGeometry();
         const double* dx0 = grid_geom->getDx();
         const double* X_upper = grid_geom->getXUpper();
         const double* X_lower = grid_geom->getXLower();
@@ -497,10 +497,11 @@ DirectMobilitySolver::getStructIDs(const std::string& mat_name)
 ///////////////////////////// PRIVATE ////////////////////////////////////////
 
 void
-DirectMobilitySolver::getFromInput(Pointer<Database> input_db)
+DirectMobilitySolver::getFromInput(SAMRAIPointer<Database> input_db)
 {
-    Pointer<Database> comp_db;
-    comp_db = input_db->isDatabase("LAPACK_SVD") ? input_db->getDatabase("LAPACK_SVD") : Pointer<Database>(nullptr);
+    SAMRAIPointer<Database> comp_db;
+    comp_db =
+        input_db->isDatabase("LAPACK_SVD") ? input_db->getDatabase("LAPACK_SVD") : SAMRAIPointer<Database>(nullptr);
     if (comp_db)
     {
         d_svd_replace_value = comp_db->getDouble("eigenvalue_replace_value");

@@ -126,9 +126,9 @@ static const int pwl_interp_stencil = 2;
 
 IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
     const std::string& object_name,
-    Pointer<Database> input_db,
-    Pointer<IBImplicitStrategy> ib_implicit_ops,
-    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
+    SAMRAIPointer<Database> input_db,
+    SAMRAIPointer<IBImplicitStrategy> ib_implicit_ops,
+    SAMRAIPointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator,
     bool register_for_restart)
     : IBHierarchyIntegrator(object_name, input_db, ib_implicit_ops, ins_hier_integrator, register_for_restart),
       d_ib_implicit_ops(ib_implicit_ops)
@@ -160,7 +160,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBImplicitStaggeredHierarchyIntegrator(
 
     if (!d_solve_for_position)
     {
-        Pointer<Database> stokes_ib_pc_db = input_db->getDatabase("stokes_ib_precond_db");
+        SAMRAIPointer<Database> stokes_ib_pc_db = input_db->getDatabase("stokes_ib_precond_db");
         d_stokes_solver = new IBImplicitStaggeredStokesSolver(object_name, stokes_ib_pc_db);
         ins_hier_integrator->setStokesSolver(d_stokes_solver);
     }
@@ -202,7 +202,7 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
     d_num_dofs_per_proc.resize(finest_ln + 1);
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(d_u_idx, current_time);
         level->allocatePatchData(d_f_idx, current_time);
         level->allocatePatchData(d_scratch_data, current_time);
@@ -262,7 +262,7 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
                                                                       const int num_cycles)
 {
     // The last thing we need to do (before we really postprocess) is update the structure velocity:
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const int u_new_idx = var_db->mapVariableAndContextToIndex(d_ins_hier_integrator->getVelocityVariable(),
                                                                d_ins_hier_integrator->getNewContext());
     d_hier_velocity_data_ops->copyData(d_u_idx, u_new_idx);
@@ -282,7 +282,7 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        SAMRAIPointer<PatchLevelNd> level = d_hierarchy->getPatchLevel(ln);
         level->deallocatePatchData(d_u_idx);
         level->deallocatePatchData(d_f_idx);
         if (!d_solve_for_position && ln == finest_ln)
@@ -303,17 +303,17 @@ IBImplicitStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const doub
 } // postprocessIntegrateHierarchy
 
 void
-IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                                      Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+IBImplicitStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<PatchHierarchyNd> hierarchy,
+                                                                      SAMRAIPointer<GriddingAlgorithmNd> gridding_alg)
 {
     if (d_integrator_is_initialized) return;
 
     // Register u and p DOF variables.
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    d_u_dof_index_var = new SideVariable<NDIM, int>(d_object_name + "::u_dof_index");
-    d_p_dof_index_var = new CellVariable<NDIM, int>(d_object_name + "::p_dof_index");
-    const IntVector<NDIM> ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
-    const IntVector<NDIM> no_ghosts = 0;
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    d_u_dof_index_var = new SideVariableNd<int>(d_object_name + "::u_dof_index");
+    d_p_dof_index_var = new CellVariableNd<int>(d_object_name + "::p_dof_index");
+    const IntVectorNd ib_ghosts = d_ib_method_ops->getMinimumGhostCellWidth();
+    const IntVectorNd no_ghosts = 0;
     d_u_dof_index_idx = var_db->registerVariableAndContext(d_u_dof_index_var, getScratchContext(), ib_ghosts);
     d_p_dof_index_idx = var_db->registerVariableAndContext(d_p_dof_index_var, getScratchContext(), no_ghosts);
 
@@ -334,7 +334,7 @@ IBImplicitStaggeredHierarchyIntegrator::getNumberOfCycles() const
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(SAMRAIPointer<Database> db)
 {
     IBHierarchyIntegrator::putToDatabaseSpecialized(db);
     db->putInteger("IB_IMPLICIT_STAGGERED_HIERARCHY_INTEGRATOR_VERSION",
@@ -347,8 +347,8 @@ IBImplicitStaggeredHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Databas
 void
 IBImplicitStaggeredHierarchyIntegrator::getFromRestart()
 {
-    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
-    Pointer<Database> db;
+    SAMRAIPointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    SAMRAIPointer<Database> db;
     if (restart_db->isDatabase(d_object_name))
     {
         db = restart_db->getDatabase(d_object_name);
@@ -373,7 +373,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
-    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
+    SAMRAIPointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
     TBOX_ASSERT(ins_hier_integrator);
 
     PetscErrorCode ierr;
@@ -382,28 +382,28 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    SAMRAIPointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
 
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
 
-    Pointer<Variable<NDIM> > u_var = ins_hier_integrator->getVelocityVariable();
+    SAMRAIPointer<VariableNd> u_var = ins_hier_integrator->getVelocityVariable();
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, scratch_ctx);
 
-    Pointer<Variable<NDIM> > p_var = ins_hier_integrator->getPressureVariable();
+    SAMRAIPointer<VariableNd> p_var = ins_hier_integrator->getPressureVariable();
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, scratch_ctx);
 
     // Skip all cycles in the INS solver --- we advance the state data here.
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
-    Pointer<SAMRAIVectorReal<NDIM, double> > eul_sol_vec =
-        new SAMRAIVectorReal<NDIM, double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_sol_vec = make_samrai_shared<SAMRAIVectorRealNd<double> >(
+        d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
     eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > eul_rhs_vec =
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_rhs_vec =
         eul_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
     eul_rhs_vec->allocateVectorData(current_time);
 
@@ -415,7 +415,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
     ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
     d_stokes_solver = ins_hier_integrator->getStokesSolver();
-    Pointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
+    SAMRAIPointer<KrylovLinearSolver> p_stokes_solver = d_stokes_solver;
     TBOX_ASSERT(p_stokes_solver);
     d_stokes_op = p_stokes_solver->getOperator();
     TBOX_ASSERT(d_stokes_op);
@@ -554,7 +554,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
 {
     IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
 
-    Pointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
+    SAMRAIPointer<INSStaggeredHierarchyIntegrator> ins_hier_integrator = d_ins_hier_integrator;
     TBOX_ASSERT(ins_hier_integrator);
 
     PetscErrorCode ierr;
@@ -564,30 +564,30 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double half_time = current_time + 0.5 * (new_time - current_time);
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
-    Pointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    SAMRAIPointer<VariableContext> current_ctx = ins_hier_integrator->getCurrentContext();
+    SAMRAIPointer<VariableContext> scratch_ctx = ins_hier_integrator->getScratchContext();
 
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     const int wgt_sc_idx = d_hier_math_ops->getSideWeightPatchDescriptorIndex();
 
-    Pointer<Variable<NDIM> > u_var = ins_hier_integrator->getVelocityVariable();
+    SAMRAIPointer<VariableNd> u_var = ins_hier_integrator->getVelocityVariable();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_scratch_idx = var_db->mapVariableAndContextToIndex(u_var, scratch_ctx);
 
-    Pointer<Variable<NDIM> > p_var = ins_hier_integrator->getPressureVariable();
+    SAMRAIPointer<VariableNd> p_var = ins_hier_integrator->getPressureVariable();
     const int p_scratch_idx = var_db->mapVariableAndContextToIndex(p_var, scratch_ctx);
 
     // Skip all cycles in the INS solver --- we advance the state data here.
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
-    Pointer<SAMRAIVectorReal<NDIM, double> > eul_sol_vec =
-        new SAMRAIVectorReal<NDIM, double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_sol_vec = make_samrai_shared<SAMRAIVectorRealNd<double> >(
+        d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
     eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > eul_rhs_vec =
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_rhs_vec =
         eul_sol_vec->cloneVector(d_object_name + "::eulerian_rhs_vec");
     eul_rhs_vec->allocateVectorData(current_time);
 
@@ -598,7 +598,7 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     ins_hier_integrator->setupSolverVectors(eul_sol_vec, eul_rhs_vec, current_time, new_time, cycle_num);
 
     // Setup Stokes operator.
-    Pointer<IBImplicitStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
+    SAMRAIPointer<IBImplicitStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
     TBOX_ASSERT(p_stokes_solver);
     d_stokes_op = p_stokes_solver->getStaggeredStokesOperator();
     d_stokes_op->setSolutionTime(new_time);
@@ -606,12 +606,14 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     d_stokes_op->initializeOperatorState(*eul_sol_vec, *eul_rhs_vec);
 
     // Setup Stokes-IB preconditioner.
-    Pointer<StaggeredStokesFACPreconditioner> stokes_fac_pc = p_stokes_solver->getStaggeredStokesFACPreconditioner();
+    SAMRAIPointer<StaggeredStokesFACPreconditioner> stokes_fac_pc =
+        p_stokes_solver->getStaggeredStokesFACPreconditioner();
     stokes_fac_pc->setSolutionTime(new_time);
     stokes_fac_pc->setTimeInterval(current_time, new_time);
     stokes_fac_pc->setPhysicalBcCoefs(d_ins_hier_integrator->getIntermediateVelocityBoundaryConditions(),
                                       d_ins_hier_integrator->getProjectionBoundaryConditions());
-    Pointer<StaggeredStokesIBLevelRelaxationFACOperator> stokes_fac_op = stokes_fac_pc->getFACPreconditionerStrategy();
+    SAMRAIPointer<StaggeredStokesIBLevelRelaxationFACOperator> stokes_fac_op =
+        stokes_fac_pc->getFACPreconditionerStrategy();
     Mat elastic_op = nullptr;
     double data_time = std::numeric_limits<double>::quiet_NaN();
     switch (d_time_stepping_type)
@@ -832,13 +834,13 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_position(SNES /*snes*/, Vec x
     ierr = VecNestGetSubVecs(f, nullptr, &component_rhs_vecs);
     CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(component_sol_vecs[0], &u);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0], &f_u);
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
-    Pointer<Variable<NDIM> > u_var = d_ins_hier_integrator->getVelocityVariable();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    SAMRAIPointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
+    SAMRAIPointer<VariableNd> u_var = d_ins_hier_integrator->getVelocityVariable();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_new_idx = u->getComponentDescriptorIndex(0);
     const int f_u_idx = f_u->getComponentDescriptorIndex(0);
@@ -921,13 +923,13 @@ IBImplicitStaggeredHierarchyIntegrator::IBFunction_velocity(SNES /*snes*/, Vec x
     const double new_time = current_time + d_current_dt;
     const double half_time = current_time + 0.5 * d_current_dt;
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &u);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(f, &f_u);
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
-    Pointer<Variable<NDIM> > u_var = d_ins_hier_integrator->getVelocityVariable();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    SAMRAIPointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
+    SAMRAIPointer<VariableNd> u_var = d_ins_hier_integrator->getVelocityVariable();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_new_idx = u->getComponentDescriptorIndex(0);
     const int f_u_idx = f_u->getComponentDescriptorIndex(0);
@@ -1084,11 +1086,11 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianSetup_velocity(SNES /*snes*/, 
     ierr = VecDuplicate(d_X_current, &X_new);
     CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &u);
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
-    Pointer<Variable<NDIM> > u_var = d_ins_hier_integrator->getVelocityVariable();
+    VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+    SAMRAIPointer<VariableContext> current_ctx = d_ins_hier_integrator->getCurrentContext();
+    SAMRAIPointer<VariableNd> u_var = d_ins_hier_integrator->getVelocityVariable();
     const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, current_ctx);
     const int u_new_idx = u->getComponentDescriptorIndex(0);
     double velocity_time = std::numeric_limits<double>::quiet_NaN();
@@ -1157,11 +1159,11 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_position(Vec x, Vec f)
     ierr = VecNestGetSubVecs(f, nullptr, &component_rhs_vecs);
     CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(component_sol_vecs[0], &u);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_rhs_vecs[0], &f_u);
 
-    Pointer<Variable<NDIM> > u_var = d_ins_hier_integrator->getVelocityVariable();
+    SAMRAIPointer<VariableNd> u_var = d_ins_hier_integrator->getVelocityVariable();
     const int u_idx = u->getComponentDescriptorIndex(0);
     const int f_u_idx = f_u->getComponentDescriptorIndex(0);
 
@@ -1235,7 +1237,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBJacobianApply_velocity(Vec x, Vec f)
     const double new_time = current_time + d_current_dt;
     const double half_time = current_time + 0.5 * d_current_dt;
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > u, f_u;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > u, f_u;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &u);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(f, &f_u);
 
@@ -1337,7 +1339,7 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
     ierr = VecNestGetSubVecs(y, nullptr, &component_y_vecs);
     CHKERRQ(ierr);
 
-    Pointer<SAMRAIVectorReal<NDIM, double> > eul_x, eul_y;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_x, eul_y;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(component_x_vecs[0], &eul_x);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(component_y_vecs[0], &eul_y);
 
@@ -1435,10 +1437,10 @@ IBImplicitStaggeredHierarchyIntegrator::IBPCApply_position(Vec x, Vec y)
 PetscErrorCode
 IBImplicitStaggeredHierarchyIntegrator::IBPCApply_velocity(Vec x, Vec y)
 {
-    Pointer<SAMRAIVectorReal<NDIM, double> > f_g, u_p;
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > f_g, u_p;
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVectorRead(x, &f_g);
     IBTK::PETScSAMRAIVectorReal::getSAMRAIVector(y, &u_p);
-    Pointer<IBImplicitStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
+    SAMRAIPointer<IBImplicitStaggeredStokesSolver> p_stokes_solver = d_stokes_solver;
 #if !defined(NDEBUG)
     TBOX_ASSERT(p_stokes_solver);
 #endif

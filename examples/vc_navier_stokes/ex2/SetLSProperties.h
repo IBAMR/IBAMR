@@ -37,7 +37,7 @@ class HierarchyMathOps;
  */
 
 void callSetLSCallbackFunction(int ls_idx,
-                               SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                               IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int integrator_step,
                                const double current_time,
                                const bool initial_time,
@@ -52,7 +52,7 @@ public:
     /*!
      * The only constructor of this class.
      */
-    SetLSProperties(const std::string& object_name, SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> ls_ops);
+    SetLSProperties(const std::string& object_name, IBTK::SAMRAIPointer<IBAMR::LSInitStrategy> ls_ops);
 
     /*!
      * Destructor for this class.
@@ -63,7 +63,7 @@ public:
      * Set the density based on the current level set information
      */
     void setLSPatchData(int ls_idx,
-                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
+                        IBTK::SAMRAIPointer<IBTK::HierarchyMathOps> hier_math_ops,
                         const int integrator_step,
                         const double current_time,
                         const bool initial_time,
@@ -90,7 +90,7 @@ private:
      */
     std::string d_object_name;
 
-    SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> d_ls_ops;
+    IBTK::SAMRAIPointer<IBAMR::LSInitStrategy> d_ls_ops;
 
 }; // SetLSProperties
 

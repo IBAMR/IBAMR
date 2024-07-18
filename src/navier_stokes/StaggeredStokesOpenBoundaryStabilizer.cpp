@@ -70,9 +70,9 @@ smooth_kernel(const double r)
 
 StaggeredStokesOpenBoundaryStabilizer::StaggeredStokesOpenBoundaryStabilizer(
     const std::string& object_name,
-    Pointer<Database> input_db,
+    SAMRAIPointer<Database> input_db,
     const INSHierarchyIntegrator* fluid_solver,
-    Pointer<CartesianGridGeometry<NDIM> > grid_geometry)
+    SAMRAIPointer<CartesianGridGeometryNd> grid_geometry)
     : CartGridFunction(object_name),
       d_open_bdry(array_constant<bool, 2 * NDIM>(false)),
       d_inflow_bdry(array_constant<bool, 2 * NDIM>(false)),
@@ -129,13 +129,13 @@ StaggeredStokesOpenBoundaryStabilizer::isTimeDependent() const
 
 void
 StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
-                                                      Pointer<Variable<NDIM> > /*var*/,
-                                                      Pointer<Patch<NDIM> > patch,
+                                                      SAMRAIPointer<VariableNd> /*var*/,
+                                                      SAMRAIPointer<PatchNd> patch,
                                                       const double /*data_time*/,
                                                       const bool initial_time,
-                                                      Pointer<PatchLevel<NDIM> > /*level*/)
+                                                      SAMRAIPointer<PatchLevelNd> /*level*/)
 {
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(data_idx);
+    SAMRAIPointer<SideDataNd<double> > F_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(F_data);
 #endif
@@ -145,20 +145,20 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
     const double dt = d_fluid_solver->getCurrentTimeStepSize();
     const double rho = d_fluid_solver->getStokesSpecifications()->getRho();
     const double kappa = cycle_num >= 0 ? 0.5 * rho / dt : 0.0;
-    Pointer<SideData<NDIM, double> > U_current_data =
+    SAMRAIPointer<SideDataNd<double> > U_current_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getCurrentContext());
-    Pointer<SideData<NDIM, double> > U_new_data =
+    SAMRAIPointer<SideDataNd<double> > U_new_data =
         patch->getPatchData(d_fluid_solver->getVelocityVariable(), d_fluid_solver->getNewContext());
 #if !defined(NDEBUG)
     TBOX_ASSERT(U_current_data);
 #endif
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+    const BoxNd& patch_box = patch->getBox();
+    SAMRAIPointer<CartesianPatchGeometryNd> pgeom = patch->getPatchGeometry();
     const double* const dx = pgeom->getDx();
     const double* const x_lower = pgeom->getXLower();
     const double* const x_upper = pgeom->getXUpper();
-    const IntVector<NDIM>& ratio = pgeom->getRatio();
-    const Box<NDIM> domain_box = Box<NDIM>::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
+    const IntVectorNd& ratio = pgeom->getRatio();
+    const BoxNd domain_box = BoxNd::refine(d_grid_geometry->getPhysicalDomain()[0], ratio);
     for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
     {
         const unsigned int axis = location_index / 2;
@@ -166,7 +166,7 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
         const bool is_lower = side == 0;
         if (d_open_bdry[location_index] && pgeom->getTouchesRegularBoundary(axis, side))
         {
-            Box<NDIM> bdry_box = domain_box;
+            BoxNd bdry_box = domain_box;
             const int offset = static_cast<int>(d_width[location_index] / dx[axis]);
             if (is_lower)
             {
@@ -176,10 +176,10 @@ StaggeredStokesOpenBoundaryStabilizer::setDataOnPatch(const int data_idx,
             {
                 bdry_box.lower(axis) = domain_box.upper(axis) - offset;
             }
-            for (Box<NDIM>::Iterator b(SideGeometry<NDIM>::toSideBox(bdry_box * patch_box, axis)); b; b++)
+            for (BoxNd::Iterator b(SideGeometryNd::toSideBox(bdry_box * patch_box, axis)); b; b++)
             {
-                const hier::Index<NDIM>& i = b();
-                const SideIndex<NDIM> i_s(i, axis, SideIndex<NDIM>::Lower);
+                const hier::IndexNd& i = b();
+                const SideIndexNd i_s(i, axis, SideIndexNd::Lower);
                 const double U_current = U_current_data ? (*U_current_data)(i_s) : 0.0;
                 const double U_new = U_new_data ? (*U_new_data)(i_s) : 0.0;
                 const double U = (cycle_num > 0) ? 0.5 * (U_new + U_current) : U_current;

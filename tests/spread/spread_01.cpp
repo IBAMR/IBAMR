@@ -112,9 +112,9 @@ main(int argc, char** argv)
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
 
-        Pointer<Database> input_db = app_initializer->getInputDatabase();
+        SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create a simple FE mesh.
         std::vector<std::unique_ptr<ReplicatedMesh> > meshes;
@@ -227,15 +227,14 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy =
-            new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry, false);
-        Pointer<LoadBalancer<NDIM> > load_balancer =
-            new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry, false);
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
 
-        Pointer<INSHierarchyIntegrator> navier_stokes_integrator;
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
         if (solver_type == "STAGGERED")
         {
@@ -262,30 +261,30 @@ main(int argc, char** argv)
         {
             mesh_ptrs.emplace_back(mesh.get());
         }
-        Pointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           mesh_ptrs,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
-                           false);
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator,
-                                              false);
+        auto ib_method_ops = make_samrai_shared<IBFEMethod>(
+            "IBFEMethod",
+            app_initializer->getComponentDatabase("IBFEMethod"),
+            mesh_ptrs,
+            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+            false);
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_method_ops,
+            navier_stokes_integrator,
+            false);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
-            new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
-                                               time_integrator,
-                                               app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
-            new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
-                                        app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                        error_detector,
-                                        box_generator,
-                                        load_balancer,
-                                        false);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer,
+                                                    false);
 
         // Configure the IBFE solver.
         if (geometry == "sphere")
@@ -319,9 +318,9 @@ main(int argc, char** argv)
         if (IBTK_MPI::getNodes() != 1) time_integrator->regridHierarchy();
 
         // Now for the actual test. Set up a new variable containing ghost data:
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const Pointer<SAMRAI::hier::Variable<NDIM> > f_var = time_integrator->getBodyForceVariable();
-        const Pointer<VariableContext> f_ghost_ctx = var_db->getContext("f_ghost");
+        VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
+        const SAMRAIPointer<SAMRAI::hier::VariableNd> f_var = time_integrator->getBodyForceVariable();
+        const SAMRAIPointer<VariableContext> f_ghost_ctx = var_db->getContext("f_ghost");
 
         int n_ghosts = input_db->keyExists("IB_DELTA_FUNCTION") ?
                            LEInteractor::getMinimumGhostWidth(input_db->getString("IB_DELTA_FUNCTION")) :
@@ -334,12 +333,12 @@ main(int argc, char** argv)
 
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
             level->allocatePatchData(f_ghost_idx);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_ghost_idx);
                 f_data->fillAll(0.0);
             }
         }
@@ -405,11 +404,11 @@ main(int argc, char** argv)
             // computed by these two combined calls would be wrong.
             bdry_op->setPatchDataIndex(f_ghost_idx);
             const int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
-                const Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<PatchData<NDIM> > f_data = patch->getPatchData(f_ghost_idx);
+                const SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<PatchDataNd> f_data = patch->getPatchData(f_ghost_idx);
                 bdry_op->accumulateFromPhysicalBoundaryData(*patch, data_time, f_data->getGhostCellWidth());
             }
         }
@@ -417,22 +416,22 @@ main(int argc, char** argv)
         std::ostringstream out;
         {
             const int ln = patch_hierarchy->getFinestLevelNumber();
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            SAMRAIPointer<PatchLevelNd> level = patch_hierarchy->getPatchLevel(ln);
 
             // We don't need to print this if we are running in serial
             if (IBTK_MPI::getNodes() != 1)
             {
                 out << "\nrank: " << IBTK_MPI::getRank() << '\n';
             }
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (PatchLevelNd::Iterator p(level); p; p++)
             {
                 bool printed_value = false;
                 std::ostringstream patch_out;
                 patch_out << "patch number " << p() << '\n';
                 patch_out.precision(16);
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_ghost_idx);
-                const Box<NDIM> patch_box = patch->getBox();
+                SAMRAIPointer<PatchNd> patch = level->getPatch(p());
+                SAMRAIPointer<SideDataNd<double> > f_data = patch->getPatchData(f_ghost_idx);
+                const BoxNd patch_box = patch->getBox();
 
                 // same as SideData::print, but elides zero values. We don't
                 // print any information about the patch when no values are
@@ -443,8 +442,8 @@ main(int argc, char** argv)
                     for (int d = 0; d < f_data->getDepth(); ++d)
                     {
                         patch_out << "Array depth = " << d << std::endl;
-                        const ArrayData<NDIM, double>& data = f_data->getArrayData(axis);
-                        for (SideIterator<NDIM> i(patch_box, axis); i; i++)
+                        const ArrayDataNd<double>& data = f_data->getArrayData(axis);
+                        for (SideIteratorNd i(patch_box, axis); i; i++)
                         {
                             const double value = data(i(), d);
                             if (std::abs(value) > cutoff)
