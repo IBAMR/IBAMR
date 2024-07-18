@@ -337,8 +337,10 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                 const BoxNd bc_coef_box = compute_tangential_extension(
                     PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
 
-                SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > acoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > bcoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
                 SAMRAIPointer<ArrayDataNd<double> > gcoef_data;
 
                 // Temporarily reset the patch geometry object associated with
@@ -458,8 +460,10 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelMACStokesOp(Mat& mat,
                     PhysicalBoundaryUtilities::trimBoundaryCodim1Box(bdry_box, *patch);
                 const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
 
-                SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > acoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > bcoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
                 SAMRAIPointer<ArrayDataNd<double> > gcoef_data;
 
                 // Set the boundary condition coefficients.
@@ -624,12 +628,12 @@ StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains(
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    SAMRAIPointer<SideVariableNd<int> > patch_num_var = new SideVariableNd<int>(
+    SAMRAIPointer<SideVariableNd<int> > patch_num_var = make_samrai_shared<SideVariableNd<int> >(
         "StaggeredStokesPETScMatUtilities::constructPatchLevelASMSubdomains()::"
         "patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    SAMRAIPointer<SideVariableNd<bool> > u_mastr_loc_var = new SideVariableNd<bool>(
+    SAMRAIPointer<SideVariableNd<bool> > u_mastr_loc_var = make_samrai_shared<SideVariableNd<bool> >(
         "StaggeredStokesPETScMatUtilities::"
         "constructPatchLevelASMSubdomains()::u_"
         "mastr_loc_var");

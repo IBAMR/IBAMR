@@ -1222,7 +1222,7 @@ CCPoissonHypreLevelSolver::destroyHypreSolver()
             }
         }
 
-        // Set the solver and preconditioner pointers to NULL.
+        // Set the solver and preconditioner pointers to nullptr.
         d_solvers[k] = nullptr;
         d_preconds[k] = nullptr;
     }

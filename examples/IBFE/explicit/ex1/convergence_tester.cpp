@@ -77,7 +77,7 @@ main(int argc, char* argv[])
         tbox::plog << "input_filename = " << input_filename << endl;
 
         // Create input database and parse all data in input file.
-        SAMRAIPointer<tbox::Database> input_db = new tbox::InputDatabase("input_db");
+        SAMRAIPointer<tbox::Database> input_db = make_samrai_shared<tbox::InputDatabase>("input_db");
         tbox::InputManager::getManager()->parseInputFile(input_filename, input_db);
 
         // Retrieve "Main" section of the input database.
@@ -121,8 +121,8 @@ main(int argc, char* argv[])
         }
 
         // Create major algorithm and data objects which comprise application.
-        SAMRAIPointer<geom::CartesianGridGeometryNd> grid_geom =
-            new geom::CartesianGridGeometryNd("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+        auto grid_geom = make_samrai_shared<geom::CartesianGridGeometryNd>("CartesianGeometry",
+                                                                           input_db->getDatabase("CartesianGeometry"));
 
         // Initialize variables.
         hier::VariableDatabaseNd* var_db = hier::VariableDatabaseNd::getDatabase();
@@ -133,22 +133,22 @@ main(int argc, char* argv[])
             var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
         SAMRAIPointer<pdat::SideVariableNd<double> > U_var =
-            new pdat::SideVariableNd<double>("INSStaggeredHierarchyIntegrator::U");
+            make_samrai_shared<pdat::SideVariableNd<double> >("INSStaggeredHierarchyIntegrator::U");
         const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
         const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
         const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
 
         SAMRAIPointer<pdat::CellVariableNd<double> > P_var =
-            new pdat::CellVariableNd<double>("INSStaggeredHierarchyIntegrator::P");
-        //     SAMRAIPointer<pdat::CellVariableNd<double> > P_var = new
-        //     pdat::CellVariableNd<double>("INSStaggeredHierarchyIntegrator::P_extrap");
+            make_samrai_shared<pdat::CellVariableNd<double> >("INSStaggeredHierarchyIntegrator::P");
+        //     SAMRAIPointer<pdat::CellVariableNd<double> > P_var = make_samrai_shared<//
+        //     pdat::CellVariableNd<double>>("INSStaggeredHierarchyIntegrator::P_extrap");
         const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
         const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
         const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
 
         // Set up visualization plot file writer.
-        SAMRAIPointer<appu::VisItDataWriterNd> visit_data_writer =
-            new appu::VisItDataWriterNd("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+        auto visit_data_writer =
+            make_samrai_shared<appu::VisItDataWriterNd>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
         visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
         visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
 
@@ -203,21 +203,21 @@ main(int argc, char* argv[])
             hier_data.setFlag(U_idx);
             hier_data.setFlag(P_idx);
 
-            SAMRAIPointer<tbox::HDFDatabase> coarse_hier_db = new tbox::HDFDatabase("coarse_hier_db");
+            auto coarse_hier_db = make_samrai_shared<tbox::HDFDatabase>("coarse_hier_db");
             coarse_hier_db->open(coarse_file_name);
 
-            SAMRAIPointer<hier::PatchHierarchyNd> coarse_patch_hierarchy =
-                new hier::PatchHierarchyNd("CoarsePatchHierarchy", grid_geom, false);
+            auto coarse_patch_hierarchy =
+                make_samrai_shared<hier::PatchHierarchyNd>("CoarsePatchHierarchy", grid_geom, false);
             coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
             const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
 
             coarse_hier_db->close();
 
-            SAMRAIPointer<tbox::HDFDatabase> fine_hier_db = new tbox::HDFDatabase("fine_hier_db");
+            auto fine_hier_db = make_samrai_shared<tbox::HDFDatabase>("fine_hier_db");
             fine_hier_db->open(fine_file_name);
 
-            SAMRAIPointer<hier::PatchHierarchyNd> fine_patch_hierarchy = new hier::PatchHierarchyNd(
+            auto fine_patch_hierarchy = make_samrai_shared<hier::PatchHierarchyNd>(
                 "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
             fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 

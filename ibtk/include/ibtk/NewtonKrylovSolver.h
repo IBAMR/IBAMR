@@ -102,7 +102,7 @@ public:
      * \brief Return the vector in which the approximate solution is stored.
      *
      * \note Implementations of this member function are permitted to return a
-     * NULL pointer if the solver is not initialized.
+     * nullptr pointer if the solver is not initialized.
      */
     virtual SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getSolutionVector() const = 0;
 
@@ -111,7 +111,7 @@ public:
      * stored.
      *
      * \note Implementations of this member function are permitted to return a
-     * NULL pointer if the solver is not initialized.
+     * nullptr pointer if the solver is not initialized.
      */
     virtual SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getFunctionVector() const = 0;
 

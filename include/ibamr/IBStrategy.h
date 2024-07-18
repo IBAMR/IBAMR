@@ -532,7 +532,7 @@ protected:
         const SAMRAI::hier::IntVectorNd& scratch_ghosts = SAMRAI::hier::IntVectorNd(0),
         const std::string& coarsen_name = "NO_COARSEN",
         const std::string& refine_name = "NO_REFINE",
-        IBTK::SAMRAIPointer<IBTK::CartGridFunction> init_fcn = IBTK::SAMRAIPointer<IBTK::CartGridFunction>(NULL),
+        IBTK::SAMRAIPointer<IBTK::CartGridFunction> init_fcn = IBTK::SAMRAIPointer<IBTK::CartGridFunction>(nullptr),
         const bool register_for_restart = true);
 
     /*!
@@ -546,7 +546,7 @@ protected:
                           IBTK::SAMRAIPointer<SAMRAI::hier::VariableNd> variable,
                           const SAMRAI::hier::IntVectorNd& ghosts = SAMRAI::hier::IntVectorNd(0),
                           IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext> ctx =
-                              IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext>(NULL),
+                              IBTK::SAMRAIPointer<SAMRAI::hier::VariableContext>(nullptr),
                           const bool register_for_restart = true);
 
     /*!

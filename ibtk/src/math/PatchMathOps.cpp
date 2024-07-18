@@ -8229,9 +8229,10 @@ PatchMathOps::strain_rate(SAMRAIPointer<CellDataNd<double> > dst,
     }
     else if (E_depth == NDIM * NDIM)
     {
-        SAMRAIPointer<CellDataNd<double> > E_diag = new CellDataNd<double>(patch_box, NDIM, IntVectorNd(E_ghosts));
+        SAMRAIPointer<CellDataNd<double> > E_diag =
+            make_samrai_shared<CellDataNd<double> >(patch_box, NDIM, IntVectorNd(E_ghosts));
         SAMRAIPointer<CellDataNd<double> > E_offDiag =
-            new CellDataNd<double>(patch_box, NDIM == 2 ? 1 : 3, IntVectorNd(E_ghosts));
+            make_samrai_shared<CellDataNd<double> >(patch_box, NDIM == 2 ? 1 : 3, IntVectorNd(E_ghosts));
 
         S_TO_C_STRAIN_FC(E_diag->getPointer(),
                          E_ghosts,

@@ -404,14 +404,15 @@ AdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPoin
         SAMRAIPointer<CellDataFactoryNd<double> > Q_factory = Q_var->getPatchDataFactory();
         const int Q_depth = Q_factory->getDefaultDepth();
 
-        SAMRAIPointer<CellVariableNd<double> > N_var = new CellVariableNd<double>(Q_var->getName() + "::N", Q_depth);
+        SAMRAIPointer<CellVariableNd<double> > N_var =
+            make_samrai_shared<CellVariableNd<double> >(Q_var->getName() + "::N", Q_depth);
         d_N_var.insert(N_var);
         d_Q_N_map[Q_var] = N_var;
         int N_scratch_idx;
         registerVariable(N_scratch_idx, N_var, cell_ghosts, getScratchContext());
 
         SAMRAIPointer<CellVariableNd<double> > N_old_var =
-            new CellVariableNd<double>(Q_var->getName() + "::N_old", Q_depth);
+            make_samrai_shared<CellVariableNd<double> >(Q_var->getName() + "::N_old", Q_depth);
         d_N_old_var.insert(N_old_var);
         d_Q_N_old_map[Q_var] = N_old_var;
         int N_old_current_idx, N_old_new_idx, N_old_scratch_idx;

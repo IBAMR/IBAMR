@@ -53,26 +53,26 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_poisson.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "sc_poisson.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
 
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Setup the Boundary Conditions
         const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
@@ -102,16 +102,16 @@ main(int argc, char* argv[])
 
         // State variables: Velocity and pressure. Need to get both cell sides and centers
         // since we are using the MAC scheme.
-        SAMRAIPointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
-        SAMRAIPointer<CellVariableNd<double> > p_cc_var = new CellVariableNd<double>("p_cc");
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = make_samrai_shared<SideVariableNd<double> >("u_sc");
+        SAMRAIPointer<CellVariableNd<double> > p_cc_var = make_samrai_shared<CellVariableNd<double> >("p_cc");
 
         // Results of operator "forces" and "divergence"
-        SAMRAIPointer<SideVariableNd<double> > f_sc_var = new SideVariableNd<double>("f_sc");
-        SAMRAIPointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc");
+        SAMRAIPointer<SideVariableNd<double> > f_sc_var = make_samrai_shared<SideVariableNd<double> >("f_sc");
+        SAMRAIPointer<CellVariableNd<double> > f_cc_var = make_samrai_shared<CellVariableNd<double> >("f_cc");
 
         // Error terms.
-        SAMRAIPointer<SideVariableNd<double> > e_sc_var = new SideVariableNd<double>("e_sc");
-        SAMRAIPointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc");
+        SAMRAIPointer<SideVariableNd<double> > e_sc_var = make_samrai_shared<SideVariableNd<double> >("e_sc");
+        SAMRAIPointer<CellVariableNd<double> > e_cc_var = make_samrai_shared<CellVariableNd<double> >("e_cc");
 
         // Register patch data indices...
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVectorNd(1));
@@ -197,8 +197,7 @@ main(int argc, char* argv[])
         }
         else
         {
-            SAMRAIPointer<StaggeredStokesPhysicalBoundaryHelper> bc_helper =
-                new StaggeredStokesPhysicalBoundaryHelper();
+            auto bc_helper = make_samrai_shared<StaggeredStokesPhysicalBoundaryHelper>();
             bc_helper->cacheBcCoefData(u_bc_coefs, 0.0, patch_hierarchy);
             bc_helper->copyDataAtDirichletBoundaries(e_sc_idx, u_sc_idx);
             // Setup the stokes operator

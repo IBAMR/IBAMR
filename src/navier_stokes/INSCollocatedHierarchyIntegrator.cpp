@@ -815,7 +815,7 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<Pa
     }
 
     // Setup a specialized coarsen algorithm.
-    SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+    auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
     SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
     SAMRAIPointer<CoarsenOperatorNd> coarsen_op;
     coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
@@ -1005,7 +1005,7 @@ INSCollocatedHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
         d_hier_fc_data_ops->copyData(d_u_ADV_scratch_idx, d_u_ADV_current_idx);
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+            auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
             SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
             SAMRAIPointer<CoarsenOperatorNd> coarsen_op;
             coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
@@ -1149,7 +1149,7 @@ INSCollocatedHierarchyIntegrator::integrateHierarchySpecialized(const double cur
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
-                SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+                auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
                 SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
                 SAMRAIPointer<CoarsenOperatorNd> coarsen_op;
                 coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
@@ -1862,7 +1862,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
                                                        d_bdry_extrap_type,
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    auto Phi_bdry_bc_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);

@@ -2745,7 +2745,7 @@ IBFEMethod::getProlongationSchedule(const int level_number, const int coarse_dat
     {
         SAMRAIPointer<PatchHierarchyNd> hierarchy =
             d_use_scratch_hierarchy ? d_secondary_hierarchy->getSecondaryHierarchy() : d_hierarchy;
-        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        auto refine_algorithm = make_samrai_shared<RefineAlgorithmNd>();
         SAMRAIPointer<RefineOperatorNd> refine_op;
 
         SAMRAIPointer<hier::VariableNd> f_var;
@@ -2817,7 +2817,7 @@ IBFEMethod::commonConstructor(const SAMRAIPointer<Database>& input_db, int max_l
                                                       use_nodal_quadrature,
                                                       allow_rules_with_negative_weights);
 
-    // Initialize function data to NULL.
+    // Initialize function data to nullptr.
     d_lag_body_source_part.resize(n_parts, false);
     d_lag_body_source_fcn_data.resize(n_parts);
     d_direct_forcing_kinematics_data.resize(n_parts, SAMRAIPointer<IBFEDirectForcingKinematics>(nullptr));

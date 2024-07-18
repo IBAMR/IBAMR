@@ -49,34 +49,34 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "curl_01.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "curl_01.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         const std::string src_var_type = input_db->getStringWithDefault("src_var_type", "SIDE");
         const std::string dst_var_type = input_db->getStringWithDefault("dst_var_type", "NODE");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
         SAMRAIPointer<VariableNd> u_var;
-        SAMRAIPointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = make_samrai_shared<SideVariableNd<double> >("u_sc");
 
         if (src_var_type == "SIDE")
         {
@@ -91,9 +91,9 @@ main(int argc, char* argv[])
         const unsigned int curl_dim = (NDIM == 2 ? 1 : NDIM);
         SAMRAIPointer<VariableNd> curl_u_var, e_var;
         SAMRAIPointer<NodeVariableNd<double> > curl_u_nc_var =
-            new NodeVariableNd<double>("curl_u_nc", curl_dim, fine_boundary_represents_var);
+            make_samrai_shared<NodeVariableNd<double> >("curl_u_nc", curl_dim, fine_boundary_represents_var);
         SAMRAIPointer<NodeVariableNd<double> > e_nc_var =
-            new NodeVariableNd<double>("e_nc", curl_dim, fine_boundary_represents_var);
+            make_samrai_shared<NodeVariableNd<double> >("e_nc", curl_dim, fine_boundary_represents_var);
 
         if (dst_var_type == "NODE")
         {
@@ -176,7 +176,7 @@ main(int argc, char* argv[])
         std::vector<InterpolationTransactionComponent> output_transaction_comps;
         output_transaction_comps.emplace_back(
             u_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false);
-        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
         hier_bdry_fill->initializeOperatorState(output_transaction_comps, patch_hierarchy);
         hier_bdry_fill->fillData(0.0);
 
@@ -185,8 +185,14 @@ main(int argc, char* argv[])
         const bool synch_dst_cf_interface = input_db->getBoolWithDefault("synch_dst_cf_interface", false);
         if (dst_var_type == "NODE" && src_var_type == "SIDE")
         {
-            hier_math_ops.curl(
-                curl_u_idx, curl_u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, NULL, 0.0, synch_src_cf_interface);
+            hier_math_ops.curl(curl_u_idx,
+                               curl_u_nc_var,
+                               synch_dst_cf_interface,
+                               u_idx,
+                               u_sc_var,
+                               nullptr,
+                               0.0,
+                               synch_src_cf_interface);
         }
         else
         {

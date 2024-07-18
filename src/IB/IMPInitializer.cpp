@@ -419,10 +419,10 @@ IMPInitializer::initializeDataOnPatchLevel(const int lag_node_index_idx,
             LNodeSet* const node_set = index_data->getItem(idx);
             static const IntVectorNd periodic_offset(0);
             static const IBTK::Point periodic_displacement(IBTK::Point::Zero());
-            SAMRAIPointer<MaterialPointSpec> point_spec =
-                new MaterialPointSpec(lagrangian_idx,
-                                      d_vertex_wgt[level_number][point_idx.first][point_idx.second],
-                                      d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
+            auto point_spec = make_samrai_shared<MaterialPointSpec>(
+                lagrangian_idx,
+                d_vertex_wgt[level_number][point_idx.first][point_idx.second],
+                d_vertex_subdomain_id[level_number][point_idx.first][point_idx.second]);
             std::vector<SAMRAIPointer<Streamable> > node_data(1, point_spec);
             node_set->push_back(new LNode(lagrangian_idx,
                                           global_petsc_idx,

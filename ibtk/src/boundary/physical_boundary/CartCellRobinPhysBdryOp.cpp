@@ -509,9 +509,9 @@ CartCellRobinPhysBdryOp::fillGhostCellValuesCodim1(const int patch_data_idx,
         const BoundaryBoxNd trimmed_bdry_box(
             bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), bdry_box.getLocationIndex());
         const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-        SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > acoef_data = make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > bcoef_data = make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > gcoef_data = make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
         for (int d = 0; d < patch_data_depth; ++d)
         {
             RobinBcCoefStrategyNd* bc_coef = d_bc_coefs[d];

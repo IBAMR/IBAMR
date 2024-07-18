@@ -476,7 +476,7 @@ CCPoissonBoxRelaxationFACOperator::computeResidual(SAMRAIVectorRealNd<double>& r
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    SAMRAIPointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    auto fill_pattern = make_samrai_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,

@@ -71,7 +71,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "INS.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -136,23 +136,23 @@ main(int argc, char* argv[])
         }
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
 
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Setup level set information
         CircularInterface circle;
@@ -164,14 +164,14 @@ main(int argc, char* argv[])
 #endif
 
         const string& ls_name = "level_set";
-        SAMRAIPointer<CellVariableNd<double> > phi_var = new CellVariableNd<double>(ls_name);
+        SAMRAIPointer<CellVariableNd<double> > phi_var = make_samrai_shared<CellVariableNd<double> >(ls_name);
         adv_diff_integrator->registerTransportedQuantity(phi_var);
         adv_diff_integrator->setDiffusionCoefficient(phi_var, 0.0);
         // Set the advection velocity of the bubble.
         adv_diff_integrator->setAdvectionVelocity(phi_var, time_integrator->getAdvectionVelocityVariable());
 
-        SAMRAIPointer<RelaxationLSMethod> level_set_ops =
-            new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
+        auto level_set_ops = make_samrai_shared<RelaxationLSMethod>(
+            "RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
         LSLocateCircularInterface setLSLocateCircularInterface(
             "LSLocateCircularInterface", adv_diff_integrator, phi_var, &circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateCircularInterfaceCallbackFunction,
@@ -184,7 +184,7 @@ main(int argc, char* argv[])
         // LS initial conditions
         if (input_db->keyExists("LevelSetInitialConditions"))
         {
-            SAMRAIPointer<CartGridFunction> phi_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> phi_init = make_samrai_shared<muParserCartGridFunction>(
                 "phi_init", app_initializer->getComponentDatabase("LevelSetInitialConditions"), grid_geometry);
             adv_diff_integrator->setInitialConditions(phi_var, phi_init);
         }
@@ -202,7 +202,7 @@ main(int argc, char* argv[])
 
         time_integrator->registerMassDensityVariable(rho_var);
 
-        SAMRAIPointer<CellVariableNd<double> > mu_var = new CellVariableNd<double>("mu");
+        SAMRAIPointer<CellVariableNd<double> > mu_var = make_samrai_shared<CellVariableNd<double> >("mu");
         time_integrator->registerViscosityVariable(mu_var);
 
         // Array for input into callback function
@@ -230,13 +230,13 @@ main(int argc, char* argv[])
                                                         static_cast<void*>(&setSetFluidProperties));
 
         // Create Eulerian initial condition specification objects.
-        SAMRAIPointer<CartGridFunction> u_init =
-            new VelocityInitialCondition("u_init", num_interface_cells, inside_velocity, outside_velocity, circle);
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<VelocityInitialCondition>(
+            "u_init", num_interface_cells, inside_velocity, outside_velocity, circle);
         time_integrator->registerVelocityInitialConditions(u_init);
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             time_integrator->registerPressureInitialConditions(p_init);
         }
@@ -248,7 +248,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -265,7 +265,7 @@ main(int argc, char* argv[])
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        RobinBcCoefStrategyNd* phi_bc_coef = NULL;
+        RobinBcCoefStrategyNd* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -273,7 +273,7 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(phi_var, phi_bc_coef);
         }
 
-        RobinBcCoefStrategyNd* rho_bc_coef = NULL;
+        RobinBcCoefStrategyNd* rho_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("RhoBcCoefs"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -281,7 +281,7 @@ main(int argc, char* argv[])
             time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategyNd* mu_bc_coef = NULL;
+        RobinBcCoefStrategyNd* mu_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("MuBcCoefs"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(

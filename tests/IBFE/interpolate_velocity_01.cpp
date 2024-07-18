@@ -153,7 +153,7 @@ main(int argc, char** argv)
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
 
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
@@ -226,12 +226,12 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry, false);
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry, false);
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
 
         SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -254,30 +254,30 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        SAMRAIPointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
-                           false);
-        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator,
-                                              false);
+        auto ib_method_ops = make_samrai_shared<IBFEMethod>(
+            "IBFEMethod",
+            app_initializer->getComponentDatabase("IBFEMethod"),
+            &mesh,
+            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+            false);
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_method_ops,
+            navier_stokes_integrator,
+            false);
 
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer,
-                                    false);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer,
+                                                    false);
 
         // Configure the IBFE solver.
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
@@ -285,7 +285,7 @@ main(int argc, char** argv)
         ib_method_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
-        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Now for the actual test. The stored velocity field does not contain

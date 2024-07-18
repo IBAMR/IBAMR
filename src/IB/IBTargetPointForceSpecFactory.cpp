@@ -61,7 +61,7 @@ IBTargetPointForceSpec::Factory::setStreamableClassID(const int class_id)
 SAMRAIPointer<Streamable>
 IBTargetPointForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd& /*offset*/)
 {
-    SAMRAIPointer<IBTargetPointForceSpec> ret_val = new IBTargetPointForceSpec();
+    auto ret_val = make_samrai_shared<IBTargetPointForceSpec>();
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_kappa_target, 1);
     stream.unpack(&ret_val->d_eta_target, 1);

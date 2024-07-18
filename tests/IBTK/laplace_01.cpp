@@ -45,7 +45,7 @@ main(int argc, char* argv[])
     {
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "cc_laplace.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         const bool test_copied_vector = input_db->getBoolWithDefault("test_copied_vector", false);
         const bool test_duplicated_vector = input_db->getBoolWithDefault("test_duplicated_vector", false);
@@ -55,20 +55,20 @@ main(int argc, char* argv[])
         // application. These objects are configured from the input
         // database. Nearly all SAMRAI applications (at least those in IBAMR)
         // start by setting up the same half-dozen objects.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
@@ -77,10 +77,11 @@ main(int argc, char* argv[])
         // We create a variable for every vector we ultimately declare,
         // instead of creating and then cloning vectors. The rationale for
         // this is given below.
-        SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc");
-        SAMRAIPointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc");
-        SAMRAIPointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc");
-        SAMRAIPointer<CellVariableNd<double> > f_approx_cc_var = new CellVariableNd<double>("f_approx_cc");
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = make_samrai_shared<CellVariableNd<double> >("u_cc");
+        SAMRAIPointer<CellVariableNd<double> > f_cc_var = make_samrai_shared<CellVariableNd<double> >("f_cc");
+        SAMRAIPointer<CellVariableNd<double> > e_cc_var = make_samrai_shared<CellVariableNd<double> >("e_cc");
+        SAMRAIPointer<CellVariableNd<double> > f_approx_cc_var =
+            make_samrai_shared<CellVariableNd<double> >("f_approx_cc");
 
         // Internally, SAMRAI keeps track of variables (and their
         // corresponding vectors, data, etc.) by converting them to
@@ -187,7 +188,7 @@ main(int argc, char* argv[])
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
-        RobinBcCoefStrategyNd* bc_coef = NULL;
+        RobinBcCoefStrategyNd* bc_coef = nullptr;
         CCLaplaceOperator laplace_op("laplace op");
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoef(bc_coef);

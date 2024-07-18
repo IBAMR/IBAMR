@@ -51,36 +51,36 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "nodalinterp.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "nodalinterp.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         const std::string var_type = input_db->getStringWithDefault("var_type", "SIDE");
         const auto N = input_db->getInteger("N");
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
         SAMRAIPointer<hier::VariableNd> u_var, e_var;
-        SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc", NDIM);
-        SAMRAIPointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
-        SAMRAIPointer<FaceVariableNd<double> > u_fc_var = new FaceVariableNd<double>("u_fc");
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = make_samrai_shared<CellVariableNd<double> >("u_cc", NDIM);
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = make_samrai_shared<SideVariableNd<double> >("u_sc");
+        SAMRAIPointer<FaceVariableNd<double> > u_fc_var = make_samrai_shared<FaceVariableNd<double> >("u_fc");
 
         if (var_type == "CELL")
         {
@@ -103,10 +103,10 @@ main(int argc, char* argv[])
 
         const bool fine_boundary_represents_var = input_db->getBoolWithDefault("fine_boundary_represents_var", false);
         SAMRAIPointer<NodeVariableNd<double> > u_nc_var =
-            new NodeVariableNd<double>("u_nc", NDIM, fine_boundary_represents_var);
+            make_samrai_shared<NodeVariableNd<double> >("u_nc", NDIM, fine_boundary_represents_var);
         SAMRAIPointer<NodeVariableNd<double> > e_nc_var =
-            new NodeVariableNd<double>("e_nc", NDIM, fine_boundary_represents_var);
-        SAMRAIPointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc", NDIM);
+            make_samrai_shared<NodeVariableNd<double> >("e_nc", NDIM, fine_boundary_represents_var);
+        SAMRAIPointer<CellVariableNd<double> > e_cc_var = make_samrai_shared<CellVariableNd<double> >("e_cc", NDIM);
 
         // Don't add more ghosts unless we need them to interpolate_back
         const bool interp_back = input_db->getBoolWithDefault("interp_back", false);
@@ -203,17 +203,17 @@ main(int argc, char* argv[])
         const bool synch_src_cf_interface = true;
         if (var_type == "CELL")
         {
-            hier_math_ops.interp(u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_cc_var, NULL, 0.0);
+            hier_math_ops.interp(u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_cc_var, nullptr, 0.0);
         }
         else if (var_type == "SIDE")
         {
             hier_math_ops.interp(
-                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, NULL, 0.0, synch_src_cf_interface);
+                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, nullptr, 0.0, synch_src_cf_interface);
         }
         else if (var_type == "FACE")
         {
             hier_math_ops.interp(
-                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_fc_var, NULL, 0.0, synch_src_cf_interface);
+                u_nc_idx, u_nc_var, synch_dst_cf_interface, u_idx, u_fc_var, nullptr, 0.0, synch_src_cf_interface);
         }
 
         if (interp_back)

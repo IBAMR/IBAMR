@@ -55,7 +55,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "INS.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -67,35 +67,35 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<INSHierarchyIntegrator> time_integrator = new INSStaggeredHierarchyIntegrator(
+        SAMRAIPointer<INSHierarchyIntegrator> time_integrator = make_samrai_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         SAMRAIPointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator;
         adv_diff_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
             "AdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
         // Create initial condition specification objects.
-        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         time_integrator->registerVelocityInitialConditions(u_init);
-        SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         time_integrator->registerPressureInitialConditions(p_init);
 
@@ -105,7 +105,7 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
         // Create body force function specification objects (when necessary).
-        SAMRAIPointer<CartGridFunctionSet> external_functions = new CartGridFunctionSet("ExternalFunctions");
+        auto external_functions = make_samrai_shared<CartGridFunctionSet>("ExternalFunctions");
         SAMRAIPointer<CFINSForcing> polymericStressForcing;
         SAMRAIPointer<CartGridFunction> f_fcn;
         if (input_db->keyExists("ForcingFunction"))
@@ -148,9 +148,9 @@ main(int argc, char* argv[])
         }
 
         SAMRAIPointer<CellVariableNd<double> > s_var = polymericStressForcing->getVariable();
-        SAMRAIPointer<CellVariableNd<double> > sxx_var = new CellVariableNd<double>("Sxx");
-        SAMRAIPointer<CellVariableNd<double> > syy_var = new CellVariableNd<double>("Syy");
-        SAMRAIPointer<CellVariableNd<double> > sxy_var = new CellVariableNd<double>("Sxy");
+        SAMRAIPointer<CellVariableNd<double> > sxx_var = make_samrai_shared<CellVariableNd<double> >("Sxx");
+        SAMRAIPointer<CellVariableNd<double> > syy_var = make_samrai_shared<CellVariableNd<double> >("Syy");
+        SAMRAIPointer<CellVariableNd<double> > sxy_var = make_samrai_shared<CellVariableNd<double> >("Sxy");
         const SAMRAIPointer<VariableContext> s_ctx = adv_diff_integrator->getCurrentContext();
 
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();

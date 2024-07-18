@@ -135,7 +135,7 @@ main(int argc, char** argv)
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
 
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
@@ -199,12 +199,12 @@ main(int argc, char** argv)
         // Create major algorithm and data objects that comprise the
         // application. These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"), false);
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry, false);
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry, false);
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
 
         SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const std::string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -227,30 +227,30 @@ main(int argc, char** argv)
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        SAMRAIPointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
-                           false);
-        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator,
-                                              false);
+        auto ib_method_ops = make_samrai_shared<IBFEMethod>(
+            "IBFEMethod",
+            app_initializer->getComponentDatabase("IBFEMethod"),
+            &mesh,
+            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+            false);
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_method_ops,
+            navier_stokes_integrator,
+            false);
 
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer,
-                                    false);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer,
+                                                    false);
 
         // Configure the IBFE solver.
         ib_method_ops->initializeFEEquationSystems();
@@ -258,14 +258,14 @@ main(int argc, char** argv)
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -277,7 +277,7 @@ main(int argc, char** argv)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -301,7 +301,7 @@ main(int argc, char** argv)
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
@@ -320,7 +320,7 @@ main(int argc, char** argv)
         // Force the velocity and pressure to agree with the analytic solutions.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
             SAMRAIPointer<hier::VariableNd> u_var = navier_stokes_integrator->getVelocityVariable();
@@ -331,7 +331,7 @@ main(int argc, char** argv)
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
             SAMRAIPointer<hier::VariableNd> p_var = navier_stokes_integrator->getPressureVariable();
@@ -350,8 +350,8 @@ main(int argc, char** argv)
         SAMRAIPointer<VariableContext> u_current_ctx = navier_stokes_integrator->getCurrentContext();
         const int p_current_idx = var_db->mapVariableAndContextToIndex(p_var, p_current_ctx);
         const int u_current_idx = var_db->mapVariableAndContextToIndex(u_var, u_current_ctx);
-        SAMRAIPointer<SideVariableNd<double> > u_copy_var = new SideVariableNd<double>("u_copy");
-        SAMRAIPointer<CellVariableNd<double> > p_copy_var = new CellVariableNd<double>("p_copy");
+        SAMRAIPointer<SideVariableNd<double> > u_copy_var = make_samrai_shared<SideVariableNd<double> >("u_copy");
+        SAMRAIPointer<CellVariableNd<double> > p_copy_var = make_samrai_shared<CellVariableNd<double> >("p_copy");
         const IntVectorNd ib_ghosts = ib_method_ops->getMinimumGhostCellWidth();
         const int u_copy_idx =
             var_db->registerVariableAndContext(u_copy_var, time_integrator->getScratchContext(), ib_ghosts);
@@ -386,7 +386,7 @@ main(int argc, char** argv)
                                                                   "CONSERVATIVE_COARSEN",
                                                                   "LINEAR");
 
-        SAMRAIPointer<HierarchyGhostCellInterpolation> p_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        auto p_hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
         p_hier_bdry_fill->initializeOperatorState(p_transaction_comp, patch_hierarchy);
         p_hier_bdry_fill->fillData(0.0);
 
@@ -398,7 +398,7 @@ main(int argc, char** argv)
                                                                   "CONSERVATIVE_COARSEN",
                                                                   "LINEAR");
 
-        SAMRAIPointer<HierarchyGhostCellInterpolation> u_hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        auto u_hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
         u_hier_bdry_fill->initializeOperatorState(u_transaction_comp, patch_hierarchy);
         u_hier_bdry_fill->fillData(0.0);
 

@@ -175,7 +175,7 @@ public:
 
         // Create ghost fill schedules
         {
-            d_ghost_fill_alg.registerRefine(d_u_idx, d_u_idx, d_u_idx, NULL);
+            d_ghost_fill_alg.registerRefine(d_u_idx, d_u_idx, d_u_idx, nullptr);
             d_ghost_fill_schd = d_ghost_fill_alg.createSchedule(d_hierarchy->getPatchLevel(d_finest_ln));
         }
 
@@ -200,13 +200,13 @@ public:
             PetscBool nz_init_guess;
             KSPGetInitialGuessNonzero(d_petsc_ksp, &nz_init_guess);
             d_initial_guess_nonzero = (nz_init_guess == PETSC_TRUE);
-            KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+            KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
 
             // Set the KSP operator.
             if (d_ksp_mat)
             {
                 MatDestroy(&d_ksp_mat);
-                d_ksp_mat = NULL;
+                d_ksp_mat = nullptr;
             }
             if (!d_ksp_mat)
             {
@@ -228,7 +228,7 @@ public:
             static const size_t len = 255;
             char pc_type_str[len];
             PetscBool flg;
-            PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+            PetscOptionsGetString(nullptr, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
             std::string pc_type = "shell";
             if (flg)
             {
@@ -280,7 +280,7 @@ public:
         if (d_ksp_mat)
         {
             MatDestroy(&d_ksp_mat);
-            d_ksp_mat = NULL;
+            d_ksp_mat = nullptr;
         }
 
         return;
@@ -361,7 +361,7 @@ private:
         // Compute position residual X = dt*J*[u/2] = 0 - dt*J*[-u/2]
         Vec X, X0;
         solver->d_ib_ops->createSolverVecs(&X, &X0);
-        solver->d_ib_ops->setupSolverVecs(NULL, &X0);
+        solver->d_ib_ops->setupSolverVecs(nullptr, &X0);
 
         solver->d_hier_velocity_data_ops->scale(solver->d_u_idx, -0.5, u_idx);
         solver->d_ghost_fill_schd->fillData(half_time);
@@ -375,7 +375,7 @@ private:
         solver->d_ib_ops->computeLinearizedLagrangianForce(X, half_time);
         solver->d_hier_velocity_data_ops->setToScalar(solver->d_f_idx, 0.0);
         solver->d_ib_ops->spreadLinearizedForce(
-            solver->d_f_idx, NULL, std::vector<SAMRAIPointer<RefineScheduleNd> >(), half_time);
+            solver->d_f_idx, nullptr, std::vector<SAMRAIPointer<RefineScheduleNd> >(), half_time);
         solver->d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, solver->d_f_idx);
         PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
         PetscFunctionReturn(0);
@@ -486,14 +486,14 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Read default Petsc options
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
@@ -512,62 +512,61 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+        auto navier_stokes_integrator = make_samrai_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
 
-        SAMRAIPointer<IBMethod> ib_method_ops =
-            new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        auto ib_method_ops =
+            make_samrai_shared<IBMethod>("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
 
         SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
-            new IBImplicitStaggeredHierarchyIntegrator("IBHierarchyIntegrator",
-                                                       app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                                       ib_method_ops,
-                                                       navier_stokes_integrator);
+            make_samrai_shared<IBImplicitStaggeredHierarchyIntegrator>(
+                "IBHierarchyIntegrator",
+                app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                ib_method_ops,
+                navier_stokes_integrator);
 
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Configure the IB solver.
-        SAMRAIPointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
+        auto ib_initializer = make_samrai_shared<IBStandardInitializer>(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
-        SAMRAIPointer<IBStandardForceGen> ib_force_fcn = new IBStandardForceGen();
+        auto ib_force_fcn = make_samrai_shared<IBStandardForceGen>();
         ib_method_ops->registerIBLagrangianForceFunction(ib_force_fcn);
 
         // Create the IB FAC op/pc and StokesIBSolver.
         SAMRAIPointer<Database> stokes_ib_precond_db = input_db->getDatabase("stokes_ib_precond_db");
-        SAMRAIPointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op =
-            new StaggeredStokesIBLevelRelaxationFACOperator(
-                "StaggeredStokesIBBoxRelaxationFACOperator", stokes_ib_precond_db, "stokes_ib_pc_");
-        SAMRAIPointer<StaggeredStokesFACPreconditioner> fac_pc =
-            new StaggeredStokesFACPreconditioner("StaggeredStokesFACPC", fac_op, stokes_ib_precond_db, "stokes_ib_pc_");
-        SAMRAIPointer<StokesIBSolver> stokes_ib_solver =
-            new StokesIBSolver(patch_hierarchy, fac_op, fac_pc, ib_method_ops);
+        auto fac_op = make_samrai_shared<StaggeredStokesIBLevelRelaxationFACOperator>(
+            "StaggeredStokesIBBoxRelaxationFACOperator", stokes_ib_precond_db, "stokes_ib_pc_");
+        auto fac_pc = make_samrai_shared<StaggeredStokesFACPreconditioner>(
+            "StaggeredStokesFACPC", fac_op, stokes_ib_precond_db, "stokes_ib_pc_");
+        auto stokes_ib_solver = make_samrai_shared<StokesIBSolver>(patch_hierarchy, fac_op, fac_pc, ib_method_ops);
         navier_stokes_integrator->setStokesSolver(stokes_ib_solver);
 
         // Create Eulerian initial condition specification objects.  These
         // objects also are used to specify exact solution values for error
         // analysis.
-        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         // navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
-        SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         // navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
@@ -578,7 +577,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -598,7 +597,7 @@ main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
@@ -654,9 +653,9 @@ main(int argc, char* argv[])
 
         // Compute u and p DOFs per processor.
         std::vector<std::vector<int> > num_dofs_per_proc;
-        SAMRAIPointer<SideVariableNd<int> > u_dof_index_var = new SideVariableNd<int>("u_dof_index");
+        SAMRAIPointer<SideVariableNd<int> > u_dof_index_var = make_samrai_shared<SideVariableNd<int> >("u_dof_index");
         ;
-        SAMRAIPointer<CellVariableNd<int> > p_dof_index_var = new CellVariableNd<int>("p_dof_index");
+        SAMRAIPointer<CellVariableNd<int> > p_dof_index_var = make_samrai_shared<CellVariableNd<int> >("p_dof_index");
         const IntVectorNd ib_ghosts = ib_method_ops->getMinimumGhostCellWidth();
         const IntVectorNd no_ghosts = 0;
         const int u_dof_index_idx =
@@ -686,7 +685,7 @@ main(int argc, char* argv[])
         PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT);
 
         // Get the matrix/matrix-free representation of force Jacobian (A).
-        Mat A = NULL, A_MFFD = NULL;
+        Mat A = nullptr, A_MFFD = nullptr;
         ib_method_ops->constructLagrangianForceJacobian(A, MATAIJ, new_time);
         ib_method_ops->constructLagrangianForceJacobian(A_MFFD, MATSHELL, new_time);
 
@@ -701,7 +700,7 @@ main(int argc, char* argv[])
         //====================================================================
 
         // Get the matrix representation of J at the finest level
-        Mat J = NULL;
+        Mat J = nullptr;
         ib_method_ops->constructInterpOp(J,
                                          PETScMatUtilities::ib_4_interp_fcn,
                                          PETScMatUtilities::ib_4_interp_stencil,
@@ -738,10 +737,10 @@ main(int argc, char* argv[])
         // Create variables for velocity, force, pressure and incompressibility.
         SAMRAIPointer<VariableContext> ib_ctx = var_db->getContext("ib_ctx");
         SAMRAIPointer<VariableContext> ins_ctx = var_db->getContext("ins_ctx");
-        SAMRAIPointer<SideVariableNd<double> > u_var = new SideVariableNd<double>("u_var");
-        SAMRAIPointer<SideVariableNd<double> > f_var = new SideVariableNd<double>("f_var");
-        SAMRAIPointer<CellVariableNd<double> > p_var = new CellVariableNd<double>("p_var");
-        SAMRAIPointer<CellVariableNd<double> > g_var = new CellVariableNd<double>("g_var");
+        SAMRAIPointer<SideVariableNd<double> > u_var = make_samrai_shared<SideVariableNd<double> >("u_var");
+        SAMRAIPointer<SideVariableNd<double> > f_var = make_samrai_shared<SideVariableNd<double> >("f_var");
+        SAMRAIPointer<CellVariableNd<double> > p_var = make_samrai_shared<CellVariableNd<double> >("p_var");
+        SAMRAIPointer<CellVariableNd<double> > g_var = make_samrai_shared<CellVariableNd<double> >("g_var");
         const int u_ib_idx = var_db->registerVariableAndContext(u_var, ib_ctx, lag_data_manager->getGhostCellWidth());
         const int f_ib_idx = var_db->registerVariableAndContext(f_var, ib_ctx, lag_data_manager->getGhostCellWidth());
         const int u_ins_idx = var_db->registerVariableAndContext(u_var, ins_ctx, 1);
@@ -750,9 +749,9 @@ main(int argc, char* argv[])
         const int g_ins_idx = var_db->registerVariableAndContext(g_var, ins_ctx, 1);
 
         SAMRAIPointer<HierarchySideDataOpsRealNd<double> > hier_velocity_data_ops =
-            new HierarchySideDataOpsRealNd<double>(patch_hierarchy, coarsest_ln, finest_ln);
+            make_samrai_shared<HierarchySideDataOpsRealNd<double> >(patch_hierarchy, coarsest_ln, finest_ln);
         SAMRAIPointer<HierarchyCellDataOpsRealNd<double> > hier_pressure_data_ops =
-            new HierarchyCellDataOpsRealNd<double>(patch_hierarchy, coarsest_ln, finest_ln);
+            make_samrai_shared<HierarchyCellDataOpsRealNd<double> >(patch_hierarchy, coarsest_ln, finest_ln);
 
         SAMRAIPointer<HierarchyMathOps> hier_math_ops = time_integrator->getHierarchyMathOps();
         const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
@@ -760,13 +759,13 @@ main(int argc, char* argv[])
 
         // Setup Eulerian vectors used in solving the linear implicit IB equations.
         SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_sol_vec =
-            new SAMRAIVectorRealNd<double>("eul_sol_vec", patch_hierarchy, coarsest_ln, finest_ln);
+            make_samrai_shared<SAMRAIVectorRealNd<double> >("eul_sol_vec", patch_hierarchy, coarsest_ln, finest_ln);
         eul_sol_vec->addComponent(u_var, u_ins_idx, wgt_sc_idx, hier_velocity_data_ops);
         eul_sol_vec->addComponent(p_var, p_ins_idx, wgt_cc_idx, hier_pressure_data_ops);
         eul_sol_vec->allocateVectorData();
 
         SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_rhs_vec =
-            new SAMRAIVectorRealNd<double>("eul_rhs_vec", patch_hierarchy, coarsest_ln, finest_ln);
+            make_samrai_shared<SAMRAIVectorRealNd<double> >("eul_rhs_vec", patch_hierarchy, coarsest_ln, finest_ln);
         eul_rhs_vec->addComponent(f_var, f_ins_idx, wgt_sc_idx, hier_velocity_data_ops);
         eul_rhs_vec->addComponent(g_var, g_ins_idx, wgt_cc_idx, hier_pressure_data_ops);
         eul_rhs_vec->allocateVectorData();
@@ -799,7 +798,7 @@ main(int argc, char* argv[])
 
         // Interpolate the Eulerian velocity to the curvilinear mesh.
         RefineAlgorithmNd ghost_fill_alg;
-        ghost_fill_alg.registerRefine(u_ib_idx, u_ib_idx, u_ib_idx, NULL);
+        ghost_fill_alg.registerRefine(u_ib_idx, u_ib_idx, u_ib_idx, nullptr);
         SAMRAIPointer<RefineScheduleNd> ghost_fill_schd =
             ghost_fill_alg.createSchedule(patch_hierarchy->getPatchLevel(finest_ln));
 
@@ -916,12 +915,12 @@ buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
     SAMRAIPointer<CoarsenOperatorNd> restriction_op = geometry->lookupCoarsenOperator(u_var, "RT0_COARSEN");
 
     // Define the prolongation and refine algorithms
-    SAMRAIPointer<RefineAlgorithmNd> prolongation_refine_algorithm = new RefineAlgorithmNd();
-    SAMRAIPointer<CoarsenAlgorithmNd> restriction_coarsen_algorithm = new CoarsenAlgorithmNd();
-    prolongation_refine_algorithm->registerRefine(u_idx, u_idx, u_idx, prolongation_op, NULL);
-    restriction_coarsen_algorithm->registerCoarsen(u_idx, u_idx, restriction_op, NULL);
+    auto prolongation_refine_algorithm = make_samrai_shared<RefineAlgorithmNd>();
+    auto restriction_coarsen_algorithm = make_samrai_shared<CoarsenAlgorithmNd>();
+    prolongation_refine_algorithm->registerRefine(u_idx, u_idx, u_idx, prolongation_op, nullptr);
+    restriction_coarsen_algorithm->registerCoarsen(u_idx, u_idx, restriction_op, nullptr);
     SAMRAIPointer<RefineScheduleNd> prolongation_schedule = prolongation_refine_algorithm->createSchedule(
-        finest_level, SAMRAIPointer<PatchLevelNd>(), coarsest_ln, patch_hierarchy, NULL);
+        finest_level, SAMRAIPointer<PatchLevelNd>(), coarsest_ln, patch_hierarchy, nullptr);
     SAMRAIPointer<CoarsenScheduleNd> restriction_schedule =
         restriction_coarsen_algorithm->createSchedule(coarsest_level, finest_level);
 

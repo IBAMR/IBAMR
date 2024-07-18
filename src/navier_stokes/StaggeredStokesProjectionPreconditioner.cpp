@@ -339,7 +339,8 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
     StaggeredStokesBlockPreconditioner::initializeSolverState(x, b);
 
     // Setup hierarchy operators.
-    SAMRAIPointer<VariableFillPatternNd> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    SAMRAIPointer<VariableFillPatternNd> fill_pattern =
+        make_samrai_shared<CellNoCornersFillPattern>(CELLG, false, false, true);
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
                                                           DATA_REFINE_TYPE,

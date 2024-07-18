@@ -531,14 +531,14 @@ public:
      *
      * \see SAMRAI::mesh::StandardTagAndInitStrategy::initializeLevelData
      */
-    void initializeLevelData(
-        SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> old_level = SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd>(NULL),
-        bool allocate_data = true) override;
+    void initializeLevelData(SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+                             int level_number,
+                             double init_data_time,
+                             bool can_be_refined,
+                             bool initial_time,
+                             SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> old_level =
+                                 SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd>(nullptr),
+                             bool allocate_data = true) override;
 
     /*!
      * Reset cached hierarchy dependent data.
@@ -666,7 +666,7 @@ public:
                           const SAMRAI::hier::IntVectorNd& scratch_ghosts = SAMRAI::hier::IntVectorNd(0),
                           const std::string& coarsen_name = "NO_COARSEN",
                           const std::string& refine_name = "NO_REFINE",
-                          SAMRAIPointer<CartGridFunction> init_fcn = SAMRAIPointer<CartGridFunction>(NULL),
+                          SAMRAIPointer<CartGridFunction> init_fcn = SAMRAIPointer<CartGridFunction>(nullptr),
                           const bool register_for_restart = true);
 
     /*!
@@ -680,7 +680,7 @@ public:
         int& idx,
         SAMRAIPointer<SAMRAI::hier::VariableNd> variable,
         const SAMRAI::hier::IntVectorNd& ghosts = SAMRAI::hier::IntVectorNd(0),
-        SAMRAIPointer<SAMRAI::hier::VariableContext> ctx = SAMRAIPointer<SAMRAI::hier::VariableContext>(NULL),
+        SAMRAIPointer<SAMRAI::hier::VariableContext> ctx = SAMRAIPointer<SAMRAI::hier::VariableContext>(nullptr),
         const bool register_for_restart = true);
 
     ///

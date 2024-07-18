@@ -58,25 +58,25 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "ghost_cells.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "ghost_cells.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -92,8 +92,8 @@ main(int argc, char* argv[])
 
         // Create cell-centered and node-centered quantities, and initialize them with a function read from the input
         // file
-        SAMRAIPointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
-        SAMRAIPointer<NodeVariableNd<double> > N_var = new NodeVariableNd<double>("Q Node");
+        SAMRAIPointer<CellVariableNd<double> > Q_var = make_samrai_shared<CellVariableNd<double> >("Q");
+        SAMRAIPointer<NodeVariableNd<double> > N_var = make_samrai_shared<NodeVariableNd<double> >("Q Node");
 
         auto var_db = VariableDatabaseNd::getDatabase();
         // Total amount patch indices. Note we need a single ghost cell width on the cell centered quantity.
@@ -105,7 +105,7 @@ main(int argc, char* argv[])
         const int Q_avg_idx =
             var_db->registerVariableAndContext(Q_var, var_db->getContext("Average Amount"), IntVectorNd(1));
         // Output some components
-        SAMRAIPointer<VisItDataWriterNd> visit_data_writer = new VisItDataWriterNd(
+        auto visit_data_writer = make_samrai_shared<VisItDataWriterNd>(
             "data writer", app_initializer->getComponentDatabase("Main")->getString("viz_dump_dirname"));
         visit_data_writer->registerPlotQuantity("Q_total", "SCALAR", Q_tot_idx);
         visit_data_writer->registerPlotQuantity("Q_avg", "SCALAR", Q_avg_idx);
@@ -124,7 +124,7 @@ main(int argc, char* argv[])
         }
 
         // Fill in initial data
-        SAMRAIPointer<CartGridFunction> init_fcn = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> init_fcn = make_samrai_shared<muParserCartGridFunction>(
             "Initial data", app_initializer->getComponentDatabase("InitialFcn"), grid_geometry);
         init_fcn->setDataOnPatchHierarchy(Q_avg_idx, Q_var, patch_hierarchy, 0.0);
         // Note that CartGridFunction will fill in cell concentrations, we must manually convert this to cell amounts
@@ -220,7 +220,7 @@ main(int argc, char* argv[])
          */
         SAMRAIPointer<CoarsenOperatorNd> coarsen_op =
             grid_geometry->lookupCoarsenOperator(Q_var, "AMOUNT_CONSTANT_COARSEN");
-        SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+        auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
         coarsen_alg->registerCoarsen(Q_tot_idx, Q_tot_idx, coarsen_op);
         std::vector<SAMRAIPointer<CoarsenScheduleNd> > coarsen_scheds(finest_ln + 1);
         for (int ln = coarsest_ln + 1; ln <= finest_ln; ++ln)
@@ -238,7 +238,7 @@ main(int argc, char* argv[])
          */
         SAMRAIPointer<RefineOperatorNd> refine_op =
             grid_geometry->lookupRefineOperator(Q_var, "AMOUNT_CONSTANT_REFINE");
-        SAMRAIPointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+        auto refine_alg = make_samrai_shared<RefineAlgorithmNd>();
         refine_alg->registerRefine(Q_tot_idx, Q_tot_idx, Q_tot_idx, refine_op);
         std::vector<SAMRAIPointer<RefineScheduleNd> > refine_scheds(finest_ln + 1);
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

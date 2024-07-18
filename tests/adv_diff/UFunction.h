@@ -86,7 +86,7 @@ public:
                         SAMRAIPointer<PatchNd> patch,
                         const double /*data_time*/,
                         const bool /*initial_time*/,
-                        SAMRAIPointer<PatchLevelNd> /*level*/ = SAMRAIPointer<PatchLevelNd>(NULL))
+                        SAMRAIPointer<PatchLevelNd> /*level*/ = SAMRAIPointer<PatchLevelNd>(nullptr))
     {
         SAMRAIPointer<FaceDataNd<double> > u_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)

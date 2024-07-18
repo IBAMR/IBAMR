@@ -159,7 +159,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     d_context = var_db->getContext(d_object_name + "::CONTEXT");
     const IntVectorNd side_ghosts = d_gcw;
     SAMRAIPointer<SideVariableNd<double> > side_scratch_var =
-        new SideVariableNd<double>(d_object_name + "::side_scratch");
+        make_samrai_shared<SideVariableNd<double> >(d_object_name + "::side_scratch");
     if (var_db->checkVariableExists(side_scratch_var->getName()))
     {
         side_scratch_var = var_db->getVariable(side_scratch_var->getName());
@@ -169,7 +169,7 @@ StaggeredStokesFACPreconditionerStrategy::StaggeredStokesFACPreconditionerStrate
     d_side_scratch_idx = var_db->registerVariableAndContext(side_scratch_var, d_context, side_ghosts);
     const IntVectorNd cell_ghosts = d_gcw;
     SAMRAIPointer<CellVariableNd<double> > cell_scratch_var =
-        new CellVariableNd<double>(d_object_name + "::cell_scratch");
+        make_samrai_shared<CellVariableNd<double> >(d_object_name + "::cell_scratch");
     if (var_db->checkVariableExists(cell_scratch_var->getName()))
     {
         cell_scratch_var = var_db->getVariable(cell_scratch_var->getName());
@@ -536,8 +536,10 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorRealNd<dou
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    SAMRAIPointer<VariableFillPatternNd> sc_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, true);
-    SAMRAIPointer<VariableFillPatternNd> cc_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, true);
+    SAMRAIPointer<VariableFillPatternNd> sc_fill_pattern =
+        make_samrai_shared<SideNoCornersFillPattern>(d_gcw, false, false, true);
+    SAMRAIPointer<VariableFillPatternNd> cc_fill_pattern =
+        make_samrai_shared<CellNoCornersFillPattern>(d_gcw, false, false, true);
     InterpolationTransactionComponent U_scratch_component(U_sol_idx,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,

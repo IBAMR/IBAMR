@@ -66,7 +66,7 @@ main(int argc, char** argv)
     Logger::getInstance()->setWarning(false);
 
     const auto rank = IBTK_MPI::getRank();
-    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv);
     SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
     SAMRAIPointer<Database> test_db = input_db->keyExists("test") ? input_db->getDatabase("test") : nullptr;
     const bool set_velocity = test_db && test_db->getBoolWithDefault("set_velocity", false);
@@ -89,23 +89,23 @@ main(int argc, char** argv)
         u_idx = var_db->registerVariableAndContext(u_var, ctx, IntVectorNd(ghost_width));
     }
 
-    SAMRAIPointer<CartesianGridGeometryNd> grid_geometry =
-        new CartesianGridGeometryNd("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+    auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
+        "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
     grid_geometry->addSpatialRefineOperator(new CartesianCellDoubleLinearRefineNd());
     grid_geometry->addSpatialRefineOperator(new CartSideDoubleSpecializedLinearRefine());
 
-    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-    SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-        "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-    SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-    SAMRAIPointer<LoadBalancerNd> load_balancer =
-        new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-    SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-        new GriddingAlgorithmNd("GriddingAlgorithm",
-                                app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                error_detector,
-                                box_generator,
-                                load_balancer);
+    auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+    auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+        "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+    auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+    auto load_balancer =
+        make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+    auto gridding_algorithm =
+        make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                error_detector,
+                                                box_generator,
+                                                load_balancer);
 
     // Initialize the AMR patch hierarchy.
     gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);

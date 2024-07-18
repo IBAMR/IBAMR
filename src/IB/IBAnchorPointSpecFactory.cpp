@@ -60,7 +60,7 @@ IBAnchorPointSpec::Factory::setStreamableClassID(const int class_id)
 SAMRAIPointer<Streamable>
 IBAnchorPointSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd& /*offset*/)
 {
-    SAMRAIPointer<IBAnchorPointSpec> ret_val = new IBAnchorPointSpec();
+    auto ret_val = make_samrai_shared<IBAnchorPointSpec>();
     stream.unpack(&ret_val->d_node_idx, 1);
     return ret_val;
 } // unpackStream

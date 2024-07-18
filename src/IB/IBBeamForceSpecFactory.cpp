@@ -65,7 +65,7 @@ IBBeamForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd
 {
     int num_beams;
     stream.unpack(&num_beams, 1);
-    SAMRAIPointer<IBBeamForceSpec> ret_val = new IBBeamForceSpec(num_beams);
+    auto ret_val = make_samrai_shared<IBBeamForceSpec>(num_beams);
     stream.unpack(&ret_val->d_master_idx, 1);
     std::vector<int> tmp_neighbor_idxs(2 * num_beams);
     stream.unpack(tmp_neighbor_idxs.data(), 2 * num_beams);

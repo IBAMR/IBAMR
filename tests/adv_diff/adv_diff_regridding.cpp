@@ -60,7 +60,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "adv_diff.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -80,31 +80,32 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<AdvDiffHierarchyIntegrator> time_integrator = new AdvDiffSemiImplicitHierarchyIntegrator(
-            "AdvDiffSemiImplicitHierarchyIntegrator",
-            app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> time_integrator =
+            make_samrai_shared<AdvDiffSemiImplicitHierarchyIntegrator>(
+                "AdvDiffSemiImplicitHierarchyIntegrator",
+                app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Create an initial condition specification object.
-        SAMRAIPointer<CartGridFunction> Q_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> Q_init = make_samrai_shared<muParserCartGridFunction>(
             "Q_init", app_initializer->getComponentDatabase("QInitialConditions"), grid_geometry);
 
-        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Create boundary condition specification objects (when necessary).
@@ -121,21 +122,21 @@ main(int argc, char* argv[])
         }
 
         // Set up the advected and diffused quantity.
-        SAMRAIPointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
+        SAMRAIPointer<CellVariableNd<double> > Q_var = make_samrai_shared<CellVariableNd<double> >("Q");
         time_integrator->registerTransportedQuantity(Q_var);
         time_integrator->setDiffusionCoefficient(Q_var, input_db->getDouble("DIFF_Q"));
         time_integrator->setInitialConditions(Q_var, Q_init);
         time_integrator->setPhysicalBcCoefs(Q_var, Q_bc_coefs);
 
-        SAMRAIPointer<FaceVariableNd<double> > u_adv_var = new FaceVariableNd<double>("u_adv");
+        SAMRAIPointer<FaceVariableNd<double> > u_adv_var = make_samrai_shared<FaceVariableNd<double> >("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(u_adv_var, u_init);
         time_integrator->setAdvectionVelocity(Q_var, u_adv_var);
 
         if (input_db->keyExists("ForcingFunction"))
         {
-            SAMRAIPointer<CellVariableNd<double> > F_var = new CellVariableNd<double>("F", 1);
-            SAMRAIPointer<CartGridFunction> F_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CellVariableNd<double> > F_var = make_samrai_shared<CellVariableNd<double> >("F", 1);
+            SAMRAIPointer<CartGridFunction> F_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "F_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerSourceTerm(F_var);
             time_integrator->setSourceTermFunction(F_var, F_fcn);

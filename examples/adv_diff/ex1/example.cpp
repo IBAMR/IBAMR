@@ -57,7 +57,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "adv_diff.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -81,7 +81,7 @@ main(int argc, char* argv[])
         const string solver_type = main_db->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
-            SAMRAIPointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+            auto predictor = make_samrai_shared<AdvectorExplicitPredictorPatchOps>(
                 "AdvectorExplicitPredictorPatchOps",
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
@@ -100,25 +100,25 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Create an initial condition specification object.
-        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
 
         // Create boundary condition specification objects (when necessary).
@@ -128,7 +128,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -143,21 +143,21 @@ main(int argc, char* argv[])
         }
 
         // Set up the advected and diffused quantity.
-        SAMRAIPointer<CellVariableNd<double> > U_var = new CellVariableNd<double>("U", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > U_var = make_samrai_shared<CellVariableNd<double> >("U", NDIM);
         time_integrator->registerTransportedQuantity(U_var);
         time_integrator->setDiffusionCoefficient(U_var, input_db->getDouble("MU") / input_db->getDouble("RHO"));
         time_integrator->setInitialConditions(U_var, u_init);
         time_integrator->setPhysicalBcCoefs(U_var, u_bc_coefs);
 
-        SAMRAIPointer<FaceVariableNd<double> > u_adv_var = new FaceVariableNd<double>("u_adv");
+        SAMRAIPointer<FaceVariableNd<double> > u_adv_var = make_samrai_shared<FaceVariableNd<double> >("u_adv");
         time_integrator->registerAdvectionVelocity(u_adv_var);
         time_integrator->setAdvectionVelocityFunction(u_adv_var, u_init);
         time_integrator->setAdvectionVelocity(U_var, u_adv_var);
 
         if (input_db->keyExists("ForcingFunction"))
         {
-            SAMRAIPointer<CellVariableNd<double> > F_var = new CellVariableNd<double>("F", NDIM);
-            SAMRAIPointer<CartGridFunction> F_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CellVariableNd<double> > F_var = make_samrai_shared<CellVariableNd<double> >("F", NDIM);
+            SAMRAIPointer<CartGridFunction> F_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "F_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerSourceTerm(F_var);
             time_integrator->setSourceTermFunction(F_var, F_fcn);

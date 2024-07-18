@@ -100,9 +100,9 @@ public:
      * \brief Set the preconditioner used by the Krylov subspace method when
      * solving \f$Ax=b\f$.
      *
-     * \note If the preconditioner is NULL, no preconditioning is performed.
+     * \note If the preconditioner is nullptr, no preconditioning is performed.
      */
-    virtual void setPreconditioner(SAMRAIPointer<LinearSolver> pc_solver = NULL);
+    virtual void setPreconditioner(SAMRAIPointer<LinearSolver> pc_solver = nullptr);
 
     /*!
      * \brief Retrieve the preconditioner used by the Krylov subspace method

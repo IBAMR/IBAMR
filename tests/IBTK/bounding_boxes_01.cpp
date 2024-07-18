@@ -197,7 +197,7 @@ main(int argc, char** argv)
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
     LibMeshInit& init = ibtk_init.getLibMeshInit();
 
-    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_laplace.log");
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "cc_laplace.log");
     SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
     const bool use_amr = input_db->getBoolWithDefault("use_amr", false);

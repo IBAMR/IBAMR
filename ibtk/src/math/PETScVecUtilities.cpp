@@ -482,12 +482,12 @@ PETScVecUtilities::constructPatchLevelDOFIndices_side(std::vector<int>& num_dofs
     // Create variables to keep track of whether a particular location is the
     // "master" location.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    SAMRAIPointer<SideVariableNd<int> > patch_num_var =
-        new SideVariableNd<int>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
+    SAMRAIPointer<SideVariableNd<int> > patch_num_var = make_samrai_shared<SideVariableNd<int> >(
+        "PETScVecUtilities::constructPatchLevelDOFIndices_side()::patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    SAMRAIPointer<SideVariableNd<bool> > mastr_loc_var =
-        new SideVariableNd<bool>("PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
+    SAMRAIPointer<SideVariableNd<bool> > mastr_loc_var = make_samrai_shared<SideVariableNd<bool> >(
+        "PETScVecUtilities::constructPatchLevelDOFIndices_side()::mastr_loc_var");
     static const int mastr_loc_idx = var_db->registerPatchDataIndex(mastr_loc_var);
     patch_level->allocatePatchData(mastr_loc_idx);
     int counter = 0;

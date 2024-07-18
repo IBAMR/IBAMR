@@ -60,7 +60,7 @@ main(int argc, char* argv[])
     {
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv);
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         std::string restart_file_name = app_initializer->getRestartDumpDirectory();
 
@@ -70,29 +70,33 @@ main(int argc, char* argv[])
         // start by setting up the same half-dozen objects.
         // Note we generate two patch hierarchies. We want to test our code that interpolates snapshots from one
         // hierarchy onto a different hierarchy.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> old_patch_hierarchy = new PatchHierarchyNd("OldPatchHierarchy", grid_geometry);
-        SAMRAIPointer<PatchHierarchyNd> new_patch_hierarchy = new PatchHierarchyNd("NewPatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> old_error_detector = new StandardTagAndInitializeNd(
-            "OldStandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("OldStandardTagAndInitialize"));
-        SAMRAIPointer<StandardTagAndInitializeNd> new_error_detector = new StandardTagAndInitializeNd(
-            "NewStandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("NewStandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> old_gridding_algorithm =
-            new GriddingAlgorithmNd("OldGriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    old_error_detector,
-                                    box_generator,
-                                    load_balancer);
-        SAMRAIPointer<GriddingAlgorithmNd> new_gridding_alg =
-            new GriddingAlgorithmNd("NewGriddingAlg",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    new_error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto old_patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("OldPatchHierarchy", grid_geometry);
+        auto new_patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("NewPatchHierarchy", grid_geometry);
+        auto old_error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "OldStandardTagAndInitialize",
+            nullptr,
+            app_initializer->getComponentDatabase("OldStandardTagAndInitialize"));
+        auto new_error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "NewStandardTagAndInitialize",
+            nullptr,
+            app_initializer->getComponentDatabase("NewStandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto old_gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("OldGriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    old_error_detector,
+                                                    box_generator,
+                                                    load_balancer);
+        auto new_gridding_alg =
+            make_samrai_shared<GriddingAlgorithmNd>("NewGriddingAlg",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    new_error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Generate the two grids.
         std::array<std::pair<SAMRAIPointer<GriddingAlgorithmNd>, SAMRAIPointer<PatchHierarchyNd> >, 2>
@@ -110,8 +114,8 @@ main(int argc, char* argv[])
             }
         }
 
-        SAMRAIPointer<muParserCartGridFunction> fcn =
-            new muParserCartGridFunction("Fcn", app_initializer->getComponentDatabase("fcn"), grid_geometry);
+        auto fcn = make_samrai_shared<muParserCartGridFunction>(
+            "Fcn", app_initializer->getComponentDatabase("fcn"), grid_geometry);
         const double t_start = input_db->getDouble("t_start");
         const double t_end = input_db->getDouble("t_end");
         const unsigned int num_snaps = input_db->getInteger("num_snaps");
@@ -124,15 +128,15 @@ main(int argc, char* argv[])
         bool register_for_restart = input_db->getBool("register_for_restart");
 
         // First fill in the data
-        SAMRAIPointer<CellVariableNd<double> > c_var = new CellVariableNd<double>("c_var");
+        SAMRAIPointer<CellVariableNd<double> > c_var = make_samrai_shared<CellVariableNd<double> >("c_var");
         std::unique_ptr<SnapshotCache> c_cache = nullptr;
-        SAMRAIPointer<NodeVariableNd<double> > n_var = new NodeVariableNd<double>("n_var");
+        SAMRAIPointer<NodeVariableNd<double> > n_var = make_samrai_shared<NodeVariableNd<double> >("n_var");
         std::unique_ptr<SnapshotCache> n_cache = nullptr;
-        SAMRAIPointer<SideVariableNd<double> > s_var = new SideVariableNd<double>("s_var");
+        SAMRAIPointer<SideVariableNd<double> > s_var = make_samrai_shared<SideVariableNd<double> >("s_var");
         std::unique_ptr<SnapshotCache> s_cache = nullptr;
-        SAMRAIPointer<EdgeVariableNd<double> > e_var = new EdgeVariableNd<double>("e_var");
+        SAMRAIPointer<EdgeVariableNd<double> > e_var = make_samrai_shared<EdgeVariableNd<double> >("e_var");
         std::unique_ptr<SnapshotCache> e_cache = nullptr;
-        SAMRAIPointer<FaceVariableNd<double> > f_var = new FaceVariableNd<double>("face");
+        SAMRAIPointer<FaceVariableNd<double> > f_var = make_samrai_shared<FaceVariableNd<double> >("face");
         std::unique_ptr<SnapshotCache> f_cache = nullptr;
 
         auto var_db = VariableDatabaseNd::getDatabase();

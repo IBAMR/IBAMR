@@ -135,7 +135,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -234,12 +234,12 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
 
         SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator;
         const string solver_type = app_initializer->getComponentDatabase("Main")->getString("solver_type");
@@ -260,31 +260,31 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
-        SAMRAIPointer<IBFEMethod> ib_method_ops =
-            new IBFEMethod("IBFEMethod",
-                           app_initializer->getComponentDatabase("IBFEMethod"),
-                           &mesh,
-                           app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
-                           /*register_for_restart*/ true,
-                           restart_read_dirname,
-                           restart_restore_num);
-        SAMRAIPointer<IBExplicitHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
+        auto ib_method_ops = make_samrai_shared<IBFEMethod>(
+            "IBFEMethod",
+            app_initializer->getComponentDatabase("IBFEMethod"),
+            &mesh,
+            app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"),
+            /*register_for_restart*/ true,
+            restart_read_dirname,
+            restart_restore_num);
+        auto time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_method_ops,
+            navier_stokes_integrator);
         time_integrator->registerLoadBalancer(load_balancer);
 
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Configure the IBFE solver.
         ib_method_ops->registerInitialCoordinateMappingFunction(coordinate_mapping_function);
@@ -308,11 +308,12 @@ main(int argc, char* argv[])
         FEDataManager* fe_data_manager = ib_method_ops->getFEDataManager();
 
         SAMRAIPointer<IBFEPostProcessor> ib_post_processor =
-            new IBFECentroidPostProcessor("IBFEPostProcessor", fe_data_manager);
+            make_samrai_shared<IBFECentroidPostProcessor>("IBFEPostProcessor", fe_data_manager);
 
         ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
-        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function, static_cast<void*>(NULL));
+        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
+                                                                    static_cast<void*>(nullptr));
         ib_post_processor->registerTensorVariable("sigma_dev",
                                                   MONOMIAL,
                                                   CONSTANT,
@@ -320,7 +321,8 @@ main(int argc, char* argv[])
                                                   vector<SystemData>(),
                                                   &PK1_dev_stress_fcn_data);
 
-        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function, static_cast<void*>(NULL));
+        pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
+                                                                    static_cast<void*>(nullptr));
         ib_post_processor->registerTensorVariable("sigma_dil",
                                                   MONOMIAL,
                                                   CONSTANT,
@@ -346,14 +348,14 @@ main(int argc, char* argv[])
         // Create Eulerian initial condition specification objects.
         if (input_db->keyExists("VelocityInitialConditions"))
         {
-            SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
                 "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerVelocityInitialConditions(u_init);
         }
 
         if (input_db->keyExists("PressureInitialConditions"))
         {
-            SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
                 "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
             navier_stokes_integrator->registerPressureInitialConditions(p_init);
         }
@@ -365,7 +367,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -385,7 +387,7 @@ main(int argc, char* argv[])
         // Create Eulerian body force function specification objects.
         if (input_db->keyExists("ForcingFunction"))
         {
-            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
@@ -397,7 +399,7 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
             visit_data_writer->registerPlotQuantity("workload", "SCALAR", time_integrator->getWorkloadDataIndex());
         }
-        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : nullptr);
 
         // Check to see if this is a restarted run to append current exodus files
         if (uses_exodus)
@@ -629,7 +631,7 @@ output_data(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
     char temp_buf[128];
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
-    SAMRAIPointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
+    auto hier_db = make_samrai_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     ComponentSelector hier_data;

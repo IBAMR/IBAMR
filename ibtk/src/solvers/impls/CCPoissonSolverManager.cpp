@@ -90,8 +90,7 @@ allocate_petsc_krylov_solver(const std::string& object_name,
                              SAMRAIPointer<Database> input_db,
                              const std::string& default_options_prefix)
 {
-    SAMRAIPointer<PETScKrylovPoissonSolver> krylov_solver =
-        new PETScKrylovPoissonSolver(object_name, input_db, default_options_prefix);
+    auto krylov_solver = make_samrai_shared<PETScKrylovPoissonSolver>(object_name, input_db, default_options_prefix);
     krylov_solver->setOperator(new CCLaplaceOperator(object_name + "::CCLaplaceOperator"));
     return krylov_solver;
 } // allocate_petsc_krylov_solver

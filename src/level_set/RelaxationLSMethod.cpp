@@ -327,10 +327,10 @@ RelaxationLSMethod::initializeLSData(int D_idx,
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> D_fill_op = new HierarchyGhostCellInterpolation();
+    auto D_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     InterpolationTransactionComponent H_transcation(
         H_init_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, nullptr);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> H_fill_op = new HierarchyGhostCellInterpolation();
+    auto H_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 
     // Carry out relaxation

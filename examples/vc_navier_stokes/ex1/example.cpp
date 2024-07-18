@@ -79,7 +79,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "INS.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -115,28 +115,28 @@ main(int argc, char* argv[])
             TBOX_ERROR("NON_CONSERVATIVE discretization form not supported for this example");
         }
 
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Create initial condition specification objects.
-        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         time_integrator->registerVelocityInitialConditions(u_init);
-        SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         time_integrator->registerPressureInitialConditions(p_init);
 
@@ -147,7 +147,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -165,13 +165,13 @@ main(int argc, char* argv[])
         }
 
         // Create a density and viscosity field for testing purposes
-        SAMRAIPointer<SideVariableNd<double> > rho_var = new SideVariableNd<double>("rho_var");
-        SAMRAIPointer<CellVariableNd<double> > mu_var = new CellVariableNd<double>("mu_var");
+        SAMRAIPointer<SideVariableNd<double> > rho_var = make_samrai_shared<SideVariableNd<double> >("rho_var");
+        SAMRAIPointer<CellVariableNd<double> > mu_var = make_samrai_shared<CellVariableNd<double> >("mu_var");
         time_integrator->registerMassDensityVariable(rho_var);
         time_integrator->registerViscosityVariable(mu_var);
-        SAMRAIPointer<CartGridFunction> rho_fcn = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> rho_fcn = make_samrai_shared<muParserCartGridFunction>(
             "rho_fcn", app_initializer->getComponentDatabase("DensityFunction"), grid_geometry);
-        SAMRAIPointer<CartGridFunction> mu_fcn = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> mu_fcn = make_samrai_shared<muParserCartGridFunction>(
             "mu_fcn", app_initializer->getComponentDatabase("ViscosityFunction"), grid_geometry);
         SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties", rho_fcn, mu_fcn);
 
@@ -183,7 +183,7 @@ main(int argc, char* argv[])
         RobinBcCoefStrategyNd* rho_bc_coef;
         if (periodic_shift.min() > 0)
         {
-            rho_bc_coef = NULL;
+            rho_bc_coef = nullptr;
         }
         else
         {
@@ -202,7 +202,7 @@ main(int argc, char* argv[])
         RobinBcCoefStrategyNd* mu_bc_coef;
         if (periodic_shift.min() > 0)
         {
-            mu_bc_coef = NULL;
+            mu_bc_coef = nullptr;
         }
         else
         {
@@ -233,7 +233,7 @@ main(int argc, char* argv[])
         // Create body force function specification objects (when necessary).
         if (input_db->keyExists("ForcingFunction"))
         {
-            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
@@ -241,7 +241,7 @@ main(int argc, char* argv[])
         // Create mass density source function object for this manufactured solution
         if (input_db->keyExists("DensitySourceFunction"))
         {
-            SAMRAIPointer<CartGridFunction> rho_src = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> rho_src = make_samrai_shared<muParserCartGridFunction>(
                 "rho_src", app_initializer->getComponentDatabase("DensitySourceFunction"), grid_geometry);
             time_integrator->registerMassDensitySourceTerm(rho_src);
         }
@@ -451,7 +451,7 @@ output_data(SAMRAIPointer<PatchHierarchyNd> patch_hierarchy,
     char temp_buf[128];
     sprintf(temp_buf, "%05d.samrai.%05d", iteration_num, IBTK_MPI::getRank());
     file_name += temp_buf;
-    SAMRAIPointer<HDFDatabase> hier_db = new HDFDatabase("hier_db");
+    auto hier_db = make_samrai_shared<HDFDatabase>("hier_db");
     hier_db->create(file_name);
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     ComponentSelector hier_data;

@@ -2116,17 +2116,17 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::interpolateSideQuantity(
     case PPM:
         for (unsigned int axis = 0; axis < NDIM; ++axis)
         {
-            SAMRAIPointer<SideDataNd<double> > dQ_data =
-                new SideDataNd<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            SAMRAIPointer<SideDataNd<double> > Q_L_data =
-                new SideDataNd<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            SAMRAIPointer<SideDataNd<double> > Q_R_data =
-                new SideDataNd<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
-            SAMRAIPointer<SideDataNd<double> > Q_scratch1_data =
-                new SideDataNd<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SideDataNd<double> > dQ_data = make_samrai_shared<SideDataNd<double> >(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SideDataNd<double> > Q_L_data = make_samrai_shared<SideDataNd<double> >(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SideDataNd<double> > Q_R_data = make_samrai_shared<SideDataNd<double> >(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SideDataNd<double> > Q_scratch1_data = make_samrai_shared<SideDataNd<double> >(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
 #if (NDIM == 3)
-            SAMRAIPointer<SideDataNd<double> > Q_scratch2_data =
-                new SideDataNd<double>(Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
+            SAMRAIPointer<SideDataNd<double> > Q_scratch2_data = make_samrai_shared<SideDataNd<double> >(
+                Q_data->getBox(), Q_data->getDepth(), Q_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
             GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),

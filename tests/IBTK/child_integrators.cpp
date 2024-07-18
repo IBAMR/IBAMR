@@ -166,7 +166,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "adv_diff.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
@@ -185,10 +185,10 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator =
-            new DummyAdvDiffIntegrator("DummyAdvDiff", app_initializer->getComponentDatabase("DummyAdvDiff"));
+        SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator = make_samrai_shared<DummyAdvDiffIntegrator>(
+            "DummyAdvDiff", app_initializer->getComponentDatabase("DummyAdvDiff"));
         SAMRAIPointer<AdvDiffHierarchyIntegrator> adv_diff_integrator_2;
-        SAMRAIPointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+        auto navier_stokes_integrator = make_samrai_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
@@ -199,31 +199,31 @@ main(int argc, char* argv[])
                 new DummyAdvDiffIntegrator("DummyAdvDiff2", app_initializer->getComponentDatabase("DummyAdvDiff"));
             navier_stokes_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator_2);
         }
-        SAMRAIPointer<IBMethod> ib_method_ops =
-            new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
-        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto ib_method_ops =
+            make_samrai_shared<IBMethod>("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
         // Configure the IB solver.
-        SAMRAIPointer<IBRedundantInitializer> ib_initializer = new IBRedundantInitializer(
+        auto ib_initializer = make_samrai_shared<IBRedundantInitializer>(
             "IBRedundantInitializer", app_initializer->getComponentDatabase("IBRedundantInitializer"));
         std::vector<std::string> struct_list_vec = { "dummy" };
         ib_initializer->setStructureNamesOnLevel(input_db->getInteger("MAX_LEVELS") - 1, struct_list_vec);

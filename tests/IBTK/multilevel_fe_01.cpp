@@ -182,24 +182,24 @@ main(int argc, char** argv)
 
     // Parse command line options, set some standard options from the input
     // file, and enable file logging.
-    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "multilevel_fe_01.log");
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "multilevel_fe_01.log");
     SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
     TestTag tag(init.comm(), input_db);
 
-    SAMRAIPointer<CartesianGridGeometryNd> grid_geometry =
-        new CartesianGridGeometryNd("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-    SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-    SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+    auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
+        "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+    auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+    auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
         "StandardTagAndInitialize", &tag, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-    SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-    SAMRAIPointer<LoadBalancerNd> load_balancer =
-        new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-    SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-        new GriddingAlgorithmNd("GriddingAlgorithm",
-                                app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                error_detector,
-                                box_generator,
-                                load_balancer);
+    auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+    auto load_balancer =
+        make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+    auto gridding_algorithm =
+        make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                error_detector,
+                                                box_generator,
+                                                load_balancer);
 
     gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
     int level_number = 0;
@@ -220,7 +220,7 @@ main(int argc, char** argv)
     // plot stuff
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
-    SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc");
+    SAMRAIPointer<CellVariableNd<double> > u_cc_var = make_samrai_shared<CellVariableNd<double> >("u_cc");
     const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVectorNd(1));
     for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
     {

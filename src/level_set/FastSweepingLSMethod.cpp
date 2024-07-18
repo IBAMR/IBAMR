@@ -159,7 +159,7 @@ FastSweepingLSMethod::initializeLSData(int D_idx,
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent D_transaction(
         D_scratch_idx, "LINEAR_REFINE", true, "NONE", "LINEAR", false, d_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> fill_op = new HierarchyGhostCellInterpolation();
+    auto fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     fill_op->initializeOperatorState(D_transaction, hierarchy);
     HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(hierarchy, coarsest_ln, finest_ln);
 

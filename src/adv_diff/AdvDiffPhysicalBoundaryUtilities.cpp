@@ -95,9 +95,9 @@ AdvDiffPhysicalBoundaryUtilities::setPhysicalBoundaryConditions(SAMRAIPointer<Ce
                 bc_coef_box.upper(d) = std::min(bc_coef_box.upper(d), patch_box.upper(d));
             }
         }
-        SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > acoef_data = make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > bcoef_data = make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > gcoef_data = make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
         for (int depth = 0; depth < Q_data->getDepth(); ++depth)
         {
             if (bc_coefs[depth] == nullptr) continue;

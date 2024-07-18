@@ -922,7 +922,7 @@ VCSCViscousOpPointRelaxationFACOperator::initializeOperatorStateSpecialized(cons
     SCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(
         solution, rhs, coarsest_reset_ln, finest_reset_ln);
 
-    // Set stencil fill pattern to NULL if the base class
+    // Set stencil fill pattern to nullptr if the base class
     // has set it to non-null.
     d_op_stencil_fill_pattern = nullptr;
 

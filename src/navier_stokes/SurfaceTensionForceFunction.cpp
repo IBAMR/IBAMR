@@ -330,8 +330,8 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
         d_C_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
     InterpolationTransactionComponent phi_transaction(
         d_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> C_fill_op = new HierarchyGhostCellInterpolation();
-    SAMRAIPointer<HierarchyGhostCellInterpolation> phi_fill_op = new HierarchyGhostCellInterpolation();
+    auto C_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
+    auto phi_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     C_fill_op->initializeOperatorState(C_transaction, hierarchy, coarsest_ln, finest_ln);
     phi_fill_op->initializeOperatorState(phi_transaction, hierarchy, coarsest_ln, finest_ln);
 

@@ -222,7 +222,7 @@ public:
     /*!
      * \brief Configure the class to interpolate the requested variables / gradients for the given system.
      *
-     * If the system data vector is NULL, then this class will use system.current_local_solution.
+     * If the system data vector is nullptr, then this class will use system.current_local_solution.
      *
      * NOTE: The same system can be registered multiple times with different sets of variables/gradients and system data
      * vectors.

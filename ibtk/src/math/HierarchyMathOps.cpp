@@ -340,13 +340,13 @@ HierarchyMathOps::setPatchHierarchy(SAMRAIPointer<PatchHierarchyNd> hierarchy)
     // Obtain the hierarchy data operations objects.
     HierarchyDataOpsManagerNd* hier_ops_manager = HierarchyDataOpsManagerNd::getManager();
 
-    SAMRAIPointer<CellVariableNd<double> > cc_var = new CellVariableNd<double>("cc_var");
+    SAMRAIPointer<CellVariableNd<double> > cc_var = make_samrai_shared<CellVariableNd<double> >("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
 
-    SAMRAIPointer<FaceVariableNd<double> > fc_var = new FaceVariableNd<double>("fc_var");
+    SAMRAIPointer<FaceVariableNd<double> > fc_var = make_samrai_shared<FaceVariableNd<double> >("fc_var");
     d_hier_fc_data_ops = hier_ops_manager->getOperationsDouble(fc_var, d_hierarchy, true);
 
-    SAMRAIPointer<SideVariableNd<double> > sc_var = new SideVariableNd<double>("sc_var");
+    SAMRAIPointer<SideVariableNd<double> > sc_var = make_samrai_shared<SideVariableNd<double> >("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
 
     // Reset the communications operators.
@@ -3966,7 +3966,7 @@ HierarchyMathOps::xeqScheduleOuterfaceRestriction(const int dst_idx, const int s
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
 #endif
-    SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+    auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
     coarsen_alg->registerCoarsen(dst_idx, src_idx, d_of_coarsen_op);
     if (coarsen_alg->checkConsistency(d_of_coarsen_scheds[dst_ln]))
     {
@@ -3992,7 +3992,7 @@ HierarchyMathOps::xeqScheduleOuternodeRestriction(const int dst_idx, const int s
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
 #endif
     const bool is_scalar = src_idx == d_on_s_idx;
-    SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+    auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
     coarsen_alg->registerCoarsen(dst_idx, src_idx, is_scalar ? d_on_s_coarsen_op : d_on_v_coarsen_op);
     auto sched = is_scalar ? d_on_s_coarsen_scheds[dst_ln] : d_on_v_coarsen_scheds[dst_ln];
     if (coarsen_alg->checkConsistency(sched))
@@ -4020,7 +4020,7 @@ HierarchyMathOps::xeqScheduleOutersideRestriction(const int dst_idx, const int s
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
 #endif
-    SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+    auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
     coarsen_alg->registerCoarsen(dst_idx, src_idx, d_os_coarsen_op);
     if (coarsen_alg->checkConsistency(d_os_coarsen_scheds[dst_ln]))
     {
@@ -4044,7 +4044,7 @@ HierarchyMathOps::xeqScheduleOuteredgeRestriction(const int dst_idx, const int s
     TBOX_ASSERT(dst_ln >= d_coarsest_ln);
     TBOX_ASSERT(dst_ln + 1 <= d_finest_ln);
 #endif
-    SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+    auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
     coarsen_alg->registerCoarsen(dst_idx, src_idx, d_oe_coarsen_op);
     if (coarsen_alg->checkConsistency(d_oe_coarsen_scheds[dst_ln]))
     {

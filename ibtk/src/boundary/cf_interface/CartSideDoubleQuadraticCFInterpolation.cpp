@@ -384,7 +384,7 @@ CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(SAMRAIPointer<PatchHie
         d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
     }
 
-    SAMRAIPointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+    auto refine_alg = make_samrai_shared<RefineAlgorithmNd>();
     SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
     refine_alg->registerRefine(d_sc_indicator_idx, // destination
                                d_sc_indicator_idx, // source

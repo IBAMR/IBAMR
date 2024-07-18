@@ -131,7 +131,7 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
                                                                  false,
                                                                  d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
-    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
     hier_bdry_fill->fillData(time);
 
@@ -240,7 +240,7 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
                                                                  false,
                                                                  d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
-    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
     hier_bdry_fill->fillData(time);
 

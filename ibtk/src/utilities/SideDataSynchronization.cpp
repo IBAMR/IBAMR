@@ -145,7 +145,7 @@ SideDataSynchronization::initializeOperatorState(
                        << "  only double-precision side-centered data is supported." << std::endl);
         }
         SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
-        SAMRAIPointer<VariableFillPatternNd> fill_pattern = new SideSynchCopyFillPattern();
+        SAMRAIPointer<VariableFillPatternNd> fill_pattern = make_samrai_shared<SideSynchCopyFillPattern>();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space
@@ -246,7 +246,7 @@ SideDataSynchronization::resetTransactionComponents(
                        << "  only double-precision side-centered data is supported." << std::endl);
         }
         SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
-        SAMRAIPointer<VariableFillPatternNd> fill_pattern = new SideSynchCopyFillPattern();
+        SAMRAIPointer<VariableFillPatternNd> fill_pattern = make_samrai_shared<SideSynchCopyFillPattern>();
         d_refine_alg->registerRefine(data_idx, // destination
                                      data_idx, // source
                                      data_idx, // temporary work space

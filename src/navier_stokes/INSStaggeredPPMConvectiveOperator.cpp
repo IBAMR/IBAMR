@@ -655,17 +655,17 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
 #endif
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                SAMRAIPointer<SideDataNd<double> > dU_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                SAMRAIPointer<SideDataNd<double> > U_L_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                SAMRAIPointer<SideDataNd<double> > U_R_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                SAMRAIPointer<SideDataNd<double> > U_scratch1_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > dU_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > U_L_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > U_R_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > U_scratch1_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #if (NDIM == 3)
-                SAMRAIPointer<SideDataNd<double> > U_scratch2_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > U_scratch2_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),

@@ -91,7 +91,7 @@ AppInitializer::AppInitializer(int argc, char* argv[], const std::string& defaul
     }
 
     // Process "Main" section of the input database.
-    SAMRAIPointer<Database> main_db = new NullDatabase();
+    SAMRAIPointer<Database> main_db = make_samrai_shared<NullDatabase>();
     if (d_input_db->isDatabase("Main"))
     {
         main_db = d_input_db->getDatabase("Main");

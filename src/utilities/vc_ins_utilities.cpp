@@ -201,7 +201,7 @@ SetFluidProperties::setDensityPatchData2PhaseFlows(int rho_idx,
                                                          "LINEAR",
                                                          false,
                                                          ls_bc_coef);
-        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
         hier_bdry_fill->initializeOperatorState(ls_transaction, patch_hierarchy);
         hier_bdry_fill->fillData(time);
 
@@ -393,7 +393,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                                                                     "LINEAR",
                                                                     false,
                                                                     ls_gas_bc_coef);
-        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
         hier_bdry_fill->initializeOperatorState(ls_transaction_comps, patch_hierarchy);
         hier_bdry_fill->fillData(time);
 
@@ -750,7 +750,7 @@ SetFluidProperties::setDensityPatchData3PhaseFlows(int rho_idx,
                                                   "LINEAR",
                                                   false,
                                                   d_adv_diff_hierarchy_integrator->getPhysicalBcCoefs(d_ls_gas_var));
-            SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+            auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
             hier_bdry_fill->initializeOperatorState(ls_transaction_comp, hierarchy);
             hier_bdry_fill->fillData(data_time);
         }

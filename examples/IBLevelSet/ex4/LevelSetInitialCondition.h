@@ -69,7 +69,7 @@ public:
                         SAMRAIPointer<PatchNd> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        SAMRAIPointer<PatchLevelNd> patch_level = SAMRAIPointer<PatchLevelNd>(NULL));
+                        SAMRAIPointer<PatchLevelNd> patch_level = SAMRAIPointer<PatchLevelNd>(nullptr));
 
     //\}
 

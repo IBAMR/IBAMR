@@ -245,8 +245,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::initializeHierarchyIntegrator(
         d_rho_init_fcn = nullptr;
 
         SAMRAIPointer<CellVariableNd<double> > rho_cc_scratch_var =
-            new CellVariableNd<double>(d_object_name + "_rho_cc_scratch_var",
-                                       /*depth*/ 1);
+            make_samrai_shared<CellVariableNd<double> >(d_object_name + "_rho_cc_scratch_var",
+                                                        /*depth*/ 1);
         d_rho_scratch_idx = var_db->registerVariableAndContext(rho_cc_scratch_var, getScratchContext(), cell_ghosts);
     }
 
@@ -528,7 +528,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::preprocessIntegrateHierarchy(c
         d_hier_sc_data_ops->copyData(U_adv_idx, d_U_current_idx);
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+            auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
             SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
             SAMRAIPointer<CoarsenOperatorNd> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
@@ -1152,7 +1152,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::regridProjection()
                                                        d_bdry_extrap_type, // TODO: update variable name
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    auto Phi_bdry_bc_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);
@@ -1554,7 +1554,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::setupSolverVectors(
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
-                SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+                auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
                 SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
                 SAMRAIPointer<CoarsenOperatorNd> coarsen_op =
                     grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);

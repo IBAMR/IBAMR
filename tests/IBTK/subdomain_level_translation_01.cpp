@@ -32,7 +32,7 @@ main(int argc, char** argv)
     SAMRAIPointer<Logger::Appender> abort_append(new TestAppender());
     Logger::getInstance()->setAbortAppender(abort_append);
 
-    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "test.log");
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "test.log");
     SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
     std::set<libMesh::subdomain_id_type> ids;

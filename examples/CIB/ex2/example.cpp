@@ -104,14 +104,14 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "CIB.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "CIB.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Read default Petsc options
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
@@ -139,49 +139,48 @@ main(int argc, char* argv[])
         // and, if this is a restarted run, from the restart database.
 
         // INS integrator
-        SAMRAIPointer<INSStaggeredHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
+        auto navier_stokes_integrator = make_samrai_shared<INSStaggeredHierarchyIntegrator>(
             "INSStaggeredHierarchyIntegrator",
             app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
 
         // CIB method
         const unsigned int num_structures = input_db->getIntegerWithDefault("num_structures", 1);
-        SAMRAIPointer<CIBMethod> ib_method_ops =
-            new CIBMethod("CIBMethod", app_initializer->getComponentDatabase("CIBMethod"), num_structures);
+        auto ib_method_ops = make_samrai_shared<CIBMethod>(
+            "CIBMethod", app_initializer->getComponentDatabase("CIBMethod"), num_structures);
 
         // Krylov solver for INS integrator that solves for [u,p,U,L]
-        SAMRAIPointer<CIBStaggeredStokesSolver> CIBSolver =
-            new CIBStaggeredStokesSolver("CIBStaggeredStokesSolver",
-                                         input_db->getDatabase("CIBStaggeredStokesSolver"),
-                                         navier_stokes_integrator,
-                                         ib_method_ops,
-                                         "SP_");
+        auto CIBSolver = make_samrai_shared<CIBStaggeredStokesSolver>("CIBStaggeredStokesSolver",
+                                                                      input_db->getDatabase("CIBStaggeredStokesSolver"),
+                                                                      navier_stokes_integrator,
+                                                                      ib_method_ops,
+                                                                      "SP_");
 
         // Register the Krylov solver with INS integrator
         navier_stokes_integrator->setStokesSolver(CIBSolver);
 
-        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_method_ops,
+            navier_stokes_integrator);
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
         // Configure the IB solver.
-        SAMRAIPointer<IBStandardInitializer> ib_initializer = new IBStandardInitializer(
+        auto ib_initializer = make_samrai_shared<IBStandardInitializer>(
             "IBStandardInitializer", app_initializer->getComponentDatabase("IBStandardInitializer"));
         ib_method_ops->registerLInitStrategy(ib_initializer);
 
@@ -190,14 +189,14 @@ main(int argc, char* argv[])
         plate_free_dofs << 0, 0, 0;
         ib_method_ops->setSolveRigidBodyVelocity(0, plate_free_dofs);
 
-        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorque, NULL, 0);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel, NULL, 0);
+        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorque, nullptr, 0);
+        ib_method_ops->registerConstrainedVelocityFunction(nullptr, &ConstrainedCOMVel, nullptr, 0);
 
         // Create initial condition specification objects.
-        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
-        SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
@@ -219,7 +218,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -257,8 +256,9 @@ main(int argc, char* argv[])
             struct_ids.push_back(prototype_structs);
 
             // Register the dense matrix with direct solver
-            DirectMobilitySolver* direct_solvers = NULL;
-            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(NULL, &direct_solvers, NULL);
+            DirectMobilitySolver* direct_solvers = nullptr;
+            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(
+                nullptr, &direct_solvers, nullptr);
 
             direct_solvers->registerMobilityMat(
                 mat_name, prototype_structs, EMPIRICAL, std::make_pair(LAPACK_LU, LAPACK_LU), 0);

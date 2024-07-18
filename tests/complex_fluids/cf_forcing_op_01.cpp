@@ -70,38 +70,37 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "cc_poisson.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        SAMRAIPointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator =
-            new AdvDiffSemiImplicitHierarchyIntegrator(
-                "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"));
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto adv_diff_integrator = make_samrai_shared<AdvDiffSemiImplicitHierarchyIntegrator>(
+            "AdvDiffHierarchyIntegrator", app_initializer->getComponentDatabase("AdvDiffHierarchyIntegrator"));
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           adv_diff_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            adv_diff_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
         SAMRAIPointer<CartGridFunction> u_fcn = nullptr;
-        SAMRAIPointer<CFINSForcing> cf_forcing = new CFINSForcing("ComplexFluid",
-                                                                  app_initializer->getComponentDatabase("ComplexFluid"),
-                                                                  u_fcn,
-                                                                  grid_geometry,
-                                                                  adv_diff_integrator,
-                                                                  app_initializer->getVisItDataWriter());
-        SAMRAIPointer<CartGridFunction> exact_fcn = new muParserCartGridFunction(
+        auto cf_forcing = make_samrai_shared<CFINSForcing>("ComplexFluid",
+                                                           app_initializer->getComponentDatabase("ComplexFluid"),
+                                                           u_fcn,
+                                                           grid_geometry,
+                                                           adv_diff_integrator,
+                                                           app_initializer->getVisItDataWriter());
+        SAMRAIPointer<CartGridFunction> exact_fcn = make_samrai_shared<muParserCartGridFunction>(
             "ComplexFluid", app_initializer->getComponentDatabase("ComplexFluid")->getDatabase("FCN"), grid_geometry);
 
         // Initialize the AMR patch hierarchy.

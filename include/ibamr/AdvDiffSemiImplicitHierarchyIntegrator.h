@@ -21,6 +21,7 @@
 #include <ibamr/config.h>
 
 #include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/ConvectiveOperator.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
 
@@ -34,10 +35,6 @@
 #include <set>
 #include <string>
 
-namespace IBAMR
-{
-class ConvectiveOperator;
-} // namespace IBAMR
 namespace SAMRAI
 {
 namespace hier

@@ -171,14 +171,14 @@ public:
      * Get a vector of pointers to the velocity boundary condition specification
      * objects.
      *
-     * \note Implementations may return a vector of NULL pointers.
+     * \note Implementations may return a vector of nullptr pointers.
      */
     virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& getVelocityBoundaryConditions() const;
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.
      *
-     * \note Implementations may return a NULL pointer.
+     * \note Implementations may return a nullptr pointer.
      */
     virtual SAMRAI::solv::RobinBcCoefStrategyNd* getPressureBoundaryConditions() const;
 
@@ -303,7 +303,7 @@ public:
      * Register an operator to compute the convective acceleration term u*grad
      * u.
      *
-     * If the supplied operator is NULL, then the integrator will solve the
+     * If the supplied operator is nullptr, then the integrator will solve the
      * time-dependent (creeping) Stokes equations instead of the Navier-Stokes
      * equations.
      */
@@ -313,7 +313,7 @@ public:
      * Get the convective operator being used by this solver class.
      *
      * If the time integrator is configured to solve the time-dependent
-     * (creeping) Stokes equations, then the returned pointer will be NULL.
+     * (creeping) Stokes equations, then the returned pointer will be nullptr.
      *
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.

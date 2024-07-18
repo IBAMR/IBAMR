@@ -63,7 +63,7 @@ main(int argc, char** argv)
     const LibMeshInit& init = ibtk_init.getLibMeshInit();
 
     {
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
 
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         const double radius = 2.0;

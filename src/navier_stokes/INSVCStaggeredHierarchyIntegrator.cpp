@@ -277,8 +277,8 @@ allocate_vc_stokes_krylov_solver(const std::string& solver_object_name,
                                  IBTK::SAMRAIPointer<SAMRAI::tbox::Database> solver_input_db,
                                  const std::string& solver_default_options_prefix)
 {
-    SAMRAIPointer<PETScKrylovStaggeredStokesSolver> krylov_solver =
-        new PETScKrylovStaggeredStokesSolver(solver_object_name, solver_input_db, solver_default_options_prefix);
+    auto krylov_solver = make_samrai_shared<PETScKrylovStaggeredStokesSolver>(
+        solver_object_name, solver_input_db, solver_default_options_prefix);
     krylov_solver->setOperator(new VCStaggeredStokesOperator(solver_object_name + "::vc_staggered_stokes_operator"));
     return krylov_solver;
 }
@@ -288,8 +288,8 @@ allocate_vc_velocity_krylov_solver(const std::string& solver_object_name,
                                    IBTK::SAMRAIPointer<SAMRAI::tbox::Database> solver_input_db,
                                    const std::string& solver_default_options_prefix)
 {
-    SAMRAIPointer<PETScKrylovPoissonSolver> krylov_solver =
-        new PETScKrylovPoissonSolver(solver_object_name, solver_input_db, solver_default_options_prefix);
+    auto krylov_solver = make_samrai_shared<PETScKrylovPoissonSolver>(
+        solver_object_name, solver_input_db, solver_default_options_prefix);
     krylov_solver->setOperator(new VCSCViscousOperator(solver_object_name + "::vc_viscous_operator"));
     return krylov_solver;
 }
@@ -905,8 +905,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<P
         d_mu_init_fcn = nullptr;
 
         SAMRAIPointer<CellVariableNd<double> > mu_cc_scratch_var =
-            new CellVariableNd<double>(d_object_name + "_mu_cc_scratch_var",
-                                       /*depth*/ 1);
+            make_samrai_shared<CellVariableNd<double> >(d_object_name + "_mu_cc_scratch_var",
+                                                        /*depth*/ 1);
         d_mu_scratch_idx = var_db->registerVariableAndContext(mu_cc_scratch_var, getScratchContext(), mu_cell_ghosts);
     }
 
@@ -1049,8 +1049,8 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<P
     // applications.
     // Note: these will not be deallocated.
     SAMRAIPointer<CellVariableNd<double> > mu_cc_linear_op_var =
-        new CellVariableNd<double>(d_object_name + "_mu_cc_linear_op_var",
-                                   /*depth*/ 1);
+        make_samrai_shared<CellVariableNd<double> >(d_object_name + "_mu_cc_linear_op_var",
+                                                    /*depth*/ 1);
     d_mu_linear_op_idx = var_db->registerVariableAndContext(
         mu_cc_linear_op_var, var_db->getContext(d_object_name + "::mu_linear_op"), mu_cell_ghosts);
     d_mu_interp_linear_op_idx =
@@ -1058,13 +1058,13 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<P
                                            var_db->getContext(d_object_name + "::mu_interp_linear_op"),
                                            NDIM == 2 ? node_ghosts : edge_ghosts);
     SAMRAIPointer<SideVariableNd<double> > rho_sc_linear_op_var =
-        new SideVariableNd<double>(d_object_name + "_rho_sc_linear_op_var",
-                                   /*depth*/ 1);
+        make_samrai_shared<SideVariableNd<double> >(d_object_name + "_rho_sc_linear_op_var",
+                                                    /*depth*/ 1);
     d_rho_linear_op_idx = var_db->registerVariableAndContext(
         rho_sc_linear_op_var, var_db->getContext(d_object_name + "::rho_linear_op_var"), no_ghosts);
 
     // Setup a specialized coarsen algorithm.
-    SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+    auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
     SAMRAIPointer<CoarsenOperatorNd> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
     registerCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP", coarsen_alg);

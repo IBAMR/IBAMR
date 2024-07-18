@@ -60,7 +60,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "advect.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "advect.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
@@ -90,43 +90,42 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<AdvectorExplicitPredictorPatchOps> explicit_predictor = new AdvectorExplicitPredictorPatchOps(
+        auto explicit_predictor = make_samrai_shared<AdvectorExplicitPredictorPatchOps>(
             "AdvectorExplicitPredictorPatchOps",
             app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<AdvectorPredictorCorrectorHyperbolicPatchOps> hyp_patch_ops =
-            new AdvectorPredictorCorrectorHyperbolicPatchOps(
-                "AdvectorPredictorCorrectorHyperbolicPatchOps",
-                app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"),
-                explicit_predictor,
-                grid_geometry);
-        SAMRAIPointer<HyperbolicLevelIntegratorNd> hyp_level_integrator =
-            new HyperbolicLevelIntegratorNd("HyperbolicLevelIntegrator",
-                                            app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
-                                            hyp_patch_ops,
-                                            true,
-                                            using_refined_timestepping);
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           hyp_level_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
-        SAMRAIPointer<TimeRefinementIntegratorNd> time_integrator =
-            new TimeRefinementIntegratorNd("TimeRefinementIntegrator",
-                                           app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
-                                           patch_hierarchy,
-                                           hyp_level_integrator,
-                                           gridding_algorithm);
+        auto hyp_patch_ops = make_samrai_shared<AdvectorPredictorCorrectorHyperbolicPatchOps>(
+            "AdvectorPredictorCorrectorHyperbolicPatchOps",
+            app_initializer->getComponentDatabase("AdvectorPredictorCorrectorHyperbolicPatchOps"),
+            explicit_predictor,
+            grid_geometry);
+        auto hyp_level_integrator = make_samrai_shared<HyperbolicLevelIntegratorNd>(
+            "HyperbolicLevelIntegrator",
+            app_initializer->getComponentDatabase("HyperbolicLevelIntegrator"),
+            hyp_patch_ops,
+            true,
+            using_refined_timestepping);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            hyp_level_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
+        auto time_integrator = make_samrai_shared<TimeRefinementIntegratorNd>(
+            "TimeRefinementIntegrator",
+            app_initializer->getComponentDatabase("TimeRefinementIntegrator"),
+            patch_hierarchy,
+            hyp_level_integrator,
+            gridding_algorithm);
 
         // Setup the advection velocity.
         const bool u_is_div_free = main_db->getBoolWithDefault("u_is_div_free", false);
@@ -138,7 +137,7 @@ main(int argc, char* argv[])
         {
             output << "advection velocity u is NOT discretely divergence free.\n";
         }
-        SAMRAIPointer<FaceVariableNd<double> > u_var = new FaceVariableNd<double>("u");
+        SAMRAIPointer<FaceVariableNd<double> > u_var = make_samrai_shared<FaceVariableNd<double> >("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         hyp_patch_ops->registerAdvectionVelocity(u_var);
         hyp_patch_ops->setAdvectionVelocityIsDivergenceFree(u_var, u_is_div_free);
@@ -150,7 +149,7 @@ main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         output << "solving the advection equation in "
                << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        SAMRAIPointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
+        SAMRAIPointer<CellVariableNd<double> > Q_var = make_samrai_shared<CellVariableNd<double> >("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
         LocationIndexRobinBcCoefsNd physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));

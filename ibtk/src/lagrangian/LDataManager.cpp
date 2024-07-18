@@ -888,8 +888,8 @@ LDataManager::createLData(const std::string& quantity_name,
     TBOX_ASSERT(d_coarsest_ln <= level_number && d_finest_ln >= level_number);
     TBOX_ASSERT(depth > 0);
 #endif
-    SAMRAIPointer<LData> ret_val =
-        new LData(quantity_name, getNumberOfLocalNodes(level_number), depth, d_nonlocal_petsc_indices[level_number]);
+    auto ret_val = make_samrai_shared<LData>(
+        quantity_name, getNumberOfLocalNodes(level_number), depth, d_nonlocal_petsc_indices[level_number]);
     if (maintain_data)
     {
         d_lag_mesh_data[level_number][quantity_name] = ret_val;
@@ -1457,8 +1457,8 @@ LDataManager::beginDataRedistribution(const int coarsest_ln_in, const int finest
         {
             SAMRAIPointer<PatchNd> patch = level->getPatch(p());
             SAMRAIPointer<LNodeSetData> current_idx_data = patch->getPatchData(d_lag_node_index_current_idx);
-            SAMRAIPointer<LNodeSetData> new_idx_data =
-                new LNodeSetData(current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
+            auto new_idx_data =
+                make_samrai_shared<LNodeSetData>(current_idx_data->getBox(), current_idx_data->getGhostCellWidth());
             const BoxNd& patch_box = patch->getBox();
             const SAMRAIPointer<CartesianPatchGeometryNd> patch_geom = patch->getPatchGeometry();
             std::set<int> registered_periodic_idx;
@@ -1850,7 +1850,7 @@ LDataManager::endDataRedistribution(const int coarsest_ln_in, const int finest_l
         const int num_ghost_nodes = getNumberOfGhostNodes(level_number);
         const int num_local_and_ghost_nodes = num_local_nodes + num_ghost_nodes;
         SAMRAIPointer<std::vector<LNode> > new_local_and_ghost_nodes =
-            new std::vector<LNode>(num_local_and_ghost_nodes);
+            make_samrai_shared<std::vector<LNode> >(num_local_and_ghost_nodes);
         std::vector<SAMRAIPointer<LNode> > local_and_ghost_node_ptrs(num_local_and_ghost_nodes);
         for (int k = 0; k < num_local_and_ghost_nodes; ++k)
         {
@@ -2684,7 +2684,7 @@ LDataManager::LDataManager(std::string object_name,
         var_db->registerPatchDataForRestart(d_node_count_idx);
     }
 
-    SAMRAIPointer<CoarsenOperatorNd> node_count_coarsen_op = new CartesianCellDoubleWeightedAverageNd();
+    SAMRAIPointer<CoarsenOperatorNd> node_count_coarsen_op = make_samrai_shared<CartesianCellDoubleWeightedAverageNd>();
     d_node_count_coarsen_alg = new CoarsenAlgorithmNd();
     d_node_count_coarsen_alg->registerCoarsen(d_node_count_idx, d_node_count_idx, node_count_coarsen_op);
 

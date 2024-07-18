@@ -168,12 +168,12 @@ AdvDiffWavePropConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
     }
     SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
     // Set up refine algorithms for Q and u.
-    SAMRAIPointer<RefineAlgorithmNd> refine_alg_Q = new RefineAlgorithmNd();
+    auto refine_alg_Q = make_samrai_shared<RefineAlgorithmNd>();
     SAMRAIPointer<RefineOperatorNd> refine_op_Q =
         grid_geom->lookupRefineOperator(d_Q_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg_Q->registerRefine(d_Q_scratch_idx, Q_idx, d_Q_scratch_idx, refine_op_Q);
     // Set up coarsen algorithms for Q and u.
-    SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg_Q = new CoarsenAlgorithmNd();
+    auto coarsen_alg_Q = make_samrai_shared<CoarsenAlgorithmNd>();
     SAMRAIPointer<CoarsenOperatorNd> coarsen_op_Q = grid_geom->lookupCoarsenOperator(d_Q_var, "CONSERVATIVE_COARSEN");
     coarsen_alg_Q->registerCoarsen(d_Q_scratch_idx, d_Q_scratch_idx, coarsen_op_Q);
     // Refine the data for Q and u

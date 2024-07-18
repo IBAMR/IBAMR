@@ -106,7 +106,7 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
+    PetscInitialize(&argc, &argv, nullptr, nullptr);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -119,7 +119,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "adv_diff.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -155,41 +155,42 @@ main(int argc, char* argv[])
             "BrinkmanAdvDiffSemiImplicitHierarchyIntegrator",
             app_initializer->getComponentDatabase("BrinkmanAdvDiffSemiImplicitHierarchyIntegrator"));
 
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Set up the advected and diffused quantity.
         const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
 
         SAMRAIPointer<CellVariableNd<double> > phi_outer_solid_var =
-            new CellVariableNd<double>("level_set_outer_solid");
+            make_samrai_shared<CellVariableNd<double> >("level_set_outer_solid");
         time_integrator->registerTransportedQuantity(phi_outer_solid_var, true);
         time_integrator->setDiffusionCoefficient(phi_outer_solid_var, 0.0);
 
         // Origin of the Hexagram.
         IBTK::Vector2d origin1(M_PI, M_PI);
         SAMRAIPointer<CartGridFunction> phi_outer_solid_init =
-            new LevelSetInitialConditionHexagram("ls_outer_solid_init", grid_geometry, origin1);
+            make_samrai_shared<LevelSetInitialConditionHexagram>("ls_outer_solid_init", grid_geometry, origin1);
         time_integrator->setInitialConditions(phi_outer_solid_var, phi_outer_solid_init);
         std::vector<SAMRAIPointer<CellVariableNd<double> > > ls_vars;
         ls_vars.push_back(phi_outer_solid_var);
 
         const string& ls_name = "level_set_inner_solid";
-        SAMRAIPointer<CellVariableNd<double> > phi_inner_solid_var = new CellVariableNd<double>(ls_name);
+        SAMRAIPointer<CellVariableNd<double> > phi_inner_solid_var =
+            make_samrai_shared<CellVariableNd<double> >(ls_name);
         time_integrator->registerTransportedQuantity(phi_inner_solid_var, true);
         time_integrator->setDiffusionCoefficient(phi_inner_solid_var, 0.0);
 
@@ -197,11 +198,11 @@ main(int argc, char* argv[])
         IBTK::Vector2d origin2(M_PI, M_PI);
         const double radius = input_db->getDouble("RADIUS");
         SAMRAIPointer<CartGridFunction> phi_inner_solid_init =
-            new LevelSetInitialConditionCircle("ls_inner_solid_init", grid_geometry, radius, origin2);
+            make_samrai_shared<LevelSetInitialConditionCircle>("ls_inner_solid_init", grid_geometry, radius, origin2);
         time_integrator->setInitialConditions(phi_inner_solid_var, phi_inner_solid_init);
         ls_vars.push_back(phi_inner_solid_var);
 
-        RobinBcCoefStrategyNd* phi_bc_coef = NULL;
+        RobinBcCoefStrategyNd* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -209,18 +210,18 @@ main(int argc, char* argv[])
             time_integrator->setPhysicalBcCoef(phi_outer_solid_var, phi_bc_coef);
             time_integrator->setPhysicalBcCoef(phi_inner_solid_var, phi_bc_coef);
         }
-        SAMRAIPointer<CellVariableNd<double> > q_var = new CellVariableNd<double>("q");
+        SAMRAIPointer<CellVariableNd<double> > q_var = make_samrai_shared<CellVariableNd<double> >("q");
         time_integrator->registerTransportedQuantity(q_var, true);
         time_integrator->setDiffusionCoefficient(q_var, input_db->getDouble("KAPPA"));
 
         if (input_db->keyExists("TransportedQuantityInitialConditions"))
         {
-            SAMRAIPointer<CartGridFunction> q_init = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> q_init = make_samrai_shared<muParserCartGridFunction>(
                 "q_init", app_initializer->getComponentDatabase("TransportedQuantityInitialConditions"), grid_geometry);
             time_integrator->setInitialConditions(q_var, q_init);
         }
 
-        RobinBcCoefStrategyNd* q_bc_coef = NULL;
+        RobinBcCoefStrategyNd* q_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TransportedQuantityBcCoefs"))
         {
             q_bc_coef = new muParserRobinBcCoefs(
@@ -232,8 +233,8 @@ main(int argc, char* argv[])
         const string indicator_function_type = input_db->getString("INDICATOR_FUNCTION_TYPE");
         const double eta = input_db->getDouble("ETA");
         const double num_of_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
-        SAMRAIPointer<BrinkmanAdvDiffBcHelper> brinkman_adv_diff =
-            new BrinkmanAdvDiffBcHelper("BrinkmanAdvDiffBcHelper", time_integrator);
+        auto brinkman_adv_diff =
+            make_samrai_shared<BrinkmanAdvDiffBcHelper>("BrinkmanAdvDiffBcHelper", time_integrator);
 
         // setting inhomogeneous Neumann at the lower cylinder surface.
         brinkman_adv_diff->registerInhomogeneousBC(q_var,
@@ -261,8 +262,8 @@ main(int argc, char* argv[])
 
         if (input_db->keyExists("TransportedQuantityForcingFunction"))
         {
-            SAMRAIPointer<CellVariableNd<double> > F_var = new CellVariableNd<double>("F");
-            SAMRAIPointer<CartGridFunction> q_forcing_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CellVariableNd<double> > F_var = make_samrai_shared<CellVariableNd<double> >("F");
+            SAMRAIPointer<CartGridFunction> q_forcing_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "q_forcing_fcn",
                 app_initializer->getComponentDatabase("TransportedQuantityForcingFunction"),
                 grid_geometry);
@@ -271,7 +272,7 @@ main(int argc, char* argv[])
             time_integrator->setSourceTerm(q_var, F_var);
         }
 
-        SAMRAIPointer<CartGridFunction> q_ex = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> q_ex = make_samrai_shared<muParserCartGridFunction>(
             "q_ex", app_initializer->getComponentDatabase("TransportedQuantityExactSolutions"), grid_geometry);
 
         // Set up visualization plot file writers.

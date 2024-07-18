@@ -174,7 +174,7 @@ apply_initial_jacobian(EquationSystems& es, const string& system_name)
     libmesh_assert_equal_to(system_name, "JacobianDeterminant");
     ExplicitSystem& system = es.get_system<ExplicitSystem>("JacobianDeterminant");
     es.parameters.set<Real>("time") = system.time = 0;
-    system.project_solution(initial_jacobian, NULL, es.parameters);
+    system.project_solution(initial_jacobian, nullptr, es.parameters);
 }
 
 double
@@ -217,7 +217,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -308,10 +308,10 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<FEMechanicsExplicitIntegrator> fem_solver =
-            new FEMechanicsExplicitIntegrator("FEMechanicsExplicitIntegrator",
-                                              app_initializer->getComponentDatabase("FEMechanicsExplicitIntegrator"),
-                                              &mesh);
+        auto fem_solver = make_samrai_shared<FEMechanicsExplicitIntegrator>(
+            "FEMechanicsExplicitIntegrator",
+            app_initializer->getComponentDatabase("FEMechanicsExplicitIntegrator"),
+            &mesh);
 
         // attach velocity
         std::vector<int> vars(NDIM);
@@ -380,7 +380,7 @@ main(int argc, char* argv[])
             input_db->getStringWithDefault("TIME_STEPPING_SCHEME", "MODIFIED_TRAPEZOIDAL_RULE");
 
         // Set up visualization plot file writers.
-        unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : nullptr);
 
         // Initialize solver data.
         fem_solver->initializeFEData();

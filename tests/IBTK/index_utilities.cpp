@@ -22,7 +22,7 @@ main(int argc, char** argv)
     using namespace IBTK;
 
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
-    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv);
 
     auto tuple = setup_hierarchy<NDIM>(app_initializer);
     auto patch_hierarchy = std::get<0>(tuple);

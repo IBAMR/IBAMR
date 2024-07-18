@@ -70,7 +70,7 @@ public:
      * \brief Constructor.
      */
     FastSweepingLSMethod(std::string object_name,
-                         IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db = NULL,
+                         IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db = nullptr,
                          bool register_for_restart = true);
 
     /*!

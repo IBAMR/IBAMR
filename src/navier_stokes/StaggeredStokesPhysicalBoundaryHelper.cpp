@@ -96,9 +96,12 @@ StaggeredStokesPhysicalBoundaryHelper::enforceNormalVelocityBoundaryConditions(
                     const BoundaryBoxNd& bdry_box = physical_codim1_boxes[n];
                     StaggeredPhysicalBoundaryHelper::setupBcCoefBoxes(bc_coef_box, trimmed_bdry_box, bdry_box, patch);
                     const unsigned int bdry_normal_axis = bdry_box.getLocationIndex() / 2;
-                    SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                    SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                    SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > acoef_data =
+                        make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > bcoef_data =
+                        make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > gcoef_data =
+                        make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
                     u_bc_coefs[bdry_normal_axis]->setBcCoefs(acoef_data,
                                                              bcoef_data,
                                                              gcoef_data,

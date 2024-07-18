@@ -115,7 +115,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level =
-                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(nullptr)) override;
 
     /*!
      * \brief Callback function to compute the marangoni coefficient as a function of temperature and

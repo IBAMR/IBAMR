@@ -65,7 +65,7 @@ IBRodForceSpec::Factory::unpackStream(AbstractStream& stream, const IntVectorNd&
 {
     int num_rods;
     stream.unpack(&num_rods, 1);
-    SAMRAIPointer<IBRodForceSpec> ret_val = new IBRodForceSpec(num_rods);
+    auto ret_val = make_samrai_shared<IBRodForceSpec>(num_rods);
     stream.unpack(&ret_val->d_master_idx, 1);
     stream.unpack(&ret_val->d_next_idxs[0], num_rods);
     for (int k = 0; k < num_rods; ++k)

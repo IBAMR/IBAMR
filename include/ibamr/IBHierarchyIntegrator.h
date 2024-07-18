@@ -461,7 +461,7 @@ protected:
                             double data_time,
                             bool initial_time = false,
                             IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level =
-                                IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
+                                IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(nullptr)) override;
 
         //\}
 
@@ -535,7 +535,7 @@ protected:
                             double data_time,
                             bool initial_time = false,
                             IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level =
-                                IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
+                                IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(nullptr)) override;
 
         //\}
 

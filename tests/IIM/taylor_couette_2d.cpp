@@ -155,7 +155,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Setup user-defined kernel function.
@@ -253,36 +253,37 @@ main(int argc, char* argv[])
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database
         // and, if this is a restarted run, from the restart database.
-        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator = new INSStaggeredHierarchyIntegrator(
-            "INSStaggeredHierarchyIntegrator",
-            app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
+        SAMRAIPointer<INSHierarchyIntegrator> navier_stokes_integrator =
+            make_samrai_shared<INSStaggeredHierarchyIntegrator>(
+                "INSStaggeredHierarchyIntegrator",
+                app_initializer->getComponentDatabase("INSStaggeredHierarchyIntegrator"));
         SAMRAIPointer<IBStrategy> ib_ops;
         ib_ops = new IIMethod("IIMethod",
                               app_initializer->getComponentDatabase("IIMethod"),
                               &inner_mesh,
                               app_initializer->getComponentDatabase("GriddingAlgorithm")->getInteger("max_levels"));
-        SAMRAIPointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_ops,
-                                              navier_stokes_integrator);
+        SAMRAIPointer<IBHierarchyIntegrator> time_integrator = make_samrai_shared<IBExplicitHierarchyIntegrator>(
+            "IBHierarchyIntegrator",
+            app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+            ib_ops,
+            navier_stokes_integrator);
 
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Configure the IBFE solver.
 
@@ -299,22 +300,22 @@ main(int argc, char* argv[])
 
         // Create Eulerian initial condition specification objects.
 
-        SAMRAIPointer<CartGridFunction> u_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> u_init = make_samrai_shared<muParserCartGridFunction>(
             "u_init", app_initializer->getComponentDatabase("VelocityInitialConditions"), grid_geometry);
         navier_stokes_integrator->registerVelocityInitialConditions(u_init);
 
-        SAMRAIPointer<CartGridFunction> p_init = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> p_init = make_samrai_shared<muParserCartGridFunction>(
             "p_init", app_initializer->getComponentDatabase("PressureInitialConditions"), grid_geometry);
 
         if (input_db->keyExists("ForcingFunction"))
         {
-            SAMRAIPointer<CartGridFunction> f_fcn = new muParserCartGridFunction(
+            SAMRAIPointer<CartGridFunction> f_fcn = make_samrai_shared<muParserCartGridFunction>(
                 "f_fcn", app_initializer->getComponentDatabase("ForcingFunction"), grid_geometry);
             time_integrator->registerBodyForceFunction(f_fcn);
         }
 
         // Create Eulerian boundary condition specification objects (when necessary).
-        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(NULL));
+        vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(nullptr));
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
         if (!periodic_domain)
         {
@@ -339,7 +340,7 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        std::unique_ptr<ExodusII_IO> inner_exodus_io(uses_exodus ? new ExodusII_IO(inner_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> inner_exodus_io(uses_exodus ? new ExodusII_IO(inner_mesh) : nullptr);
 
         // Initialize hierarchy configuration and data on all patches.
         ibfe_ops->initializeFEData();
@@ -796,7 +797,7 @@ postprocess_data(SAMRAIPointer<PatchHierarchyNd> /*patch_hierarchy*/,
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
     std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
-    void* force_fcn_ctx = NULL;
+    void* force_fcn_ctx = nullptr;
 
     TensorValue<double> FF_qp;
     boost::multi_array<double, 2> x_node, X_node, U_node, P_o_node, P_j_node;

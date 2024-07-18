@@ -62,7 +62,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "INS.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -106,7 +106,7 @@ main(int argc, char* argv[])
             main_db->getStringWithDefault("adv_diff_solver_type", "PREDICTOR_CORRECTOR");
         if (adv_diff_solver_type == "PREDICTOR_CORRECTOR")
         {
-            SAMRAIPointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+            auto predictor = make_samrai_shared<AdvectorExplicitPredictorPatchOps>(
                 "AdvectorExplicitPredictorPatchOps",
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             adv_diff_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
@@ -126,33 +126,33 @@ main(int argc, char* argv[])
                                                    << "Valid options are: PREDICTOR_CORRECTOR, SEMI_IMPLICIT");
         }
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Setup the advected and diffused quantity.
-        SAMRAIPointer<CellVariableNd<double> > T_var = new CellVariableNd<double>("T");
+        SAMRAIPointer<CellVariableNd<double> > T_var = make_samrai_shared<CellVariableNd<double> >("T");
         adv_diff_integrator->registerTransportedQuantity(T_var);
         adv_diff_integrator->setDiffusionCoefficient(T_var, input_db->getDouble("KAPPA"));
         adv_diff_integrator->setInitialConditions(
             T_var,
             new muParserCartGridFunction(
                 "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry));
-        RobinBcCoefStrategyNd* T_bc_coef = NULL;
+        RobinBcCoefStrategyNd* T_bc_coef = nullptr;
         if (!periodic_domain)
         {
             T_bc_coef = new muParserRobinBcCoefs(
@@ -165,7 +165,7 @@ main(int argc, char* argv[])
         time_integrator->registerBodyForceFunction(
             new BoussinesqForcing(T_var, adv_diff_integrator, input_db->getDouble("GAMMA")));
         vector<RobinBcCoefStrategyNd*> u_bc_coefs(NDIM);
-        for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = NULL;
+        for (unsigned int d = 0; d < NDIM; ++d) u_bc_coefs[d] = nullptr;
         if (!periodic_domain)
         {
             for (unsigned int d = 0; d < NDIM; ++d)

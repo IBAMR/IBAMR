@@ -71,7 +71,7 @@ main(int argc, char** argv)
     // Initialize IBAMR and libraries. Deinitialization is handled by this object as well.
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
 
-    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "IB.log");
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "IB.log");
 
     size_check<double>();
     size_check<int>();

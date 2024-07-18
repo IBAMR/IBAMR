@@ -357,7 +357,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
                                                                  "LINEAR",
                                                                  false,
                                                                  d_conc_bc_coefs_ptrs,
-                                                                 NULL,
+                                                                 nullptr,
                                                                  d_interp_type);
     HierarchyGhostCellInterpolation ghost_fill_op;
     ghost_fill_op.initializeOperatorState(ghost_cell_components, hierarchy);

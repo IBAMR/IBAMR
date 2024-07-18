@@ -291,7 +291,8 @@ private:
     /*!
      * Refine operator employed to fill coarse grid ghost cell values.
      */
-    SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> d_refine_op = new SAMRAI::geom::CartesianCellDoubleLinearRefineNd();
+    SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> d_refine_op =
+        make_samrai_shared<SAMRAI::geom::CartesianCellDoubleLinearRefineNd>();
 
     /*!
      * Cached hierarchy-related information.

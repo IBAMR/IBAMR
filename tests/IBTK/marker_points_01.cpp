@@ -70,7 +70,7 @@ int
 main(int argc, char** argv)
 {
     IBTK::IBTKInit ibtk_init(argc, argv);
-    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv);
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv);
     SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
     const int N = input_db->getInteger("N");
 
@@ -85,8 +85,8 @@ main(int argc, char** argv)
         nonoverlapping_patch_boxes.emplace_back(lower, mid);
         nonoverlapping_patch_boxes.emplace_back(mid, upper);
     }
-    SAMRAIPointer<CartesianGridGeometryNd> grid_geometry =
-        new CartesianGridGeometryNd("CartesianGridGeometry", input_db->getDatabase("CartesianGeometry"), true);
+    auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
+        "CartesianGridGeometry", input_db->getDatabase("CartesianGeometry"), true);
 
     std::ofstream output("output");
     {

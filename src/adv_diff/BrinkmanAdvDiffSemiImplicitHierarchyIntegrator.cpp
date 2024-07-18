@@ -140,15 +140,15 @@ BrinkmanAdvDiffSemiImplicitHierarchyIntegrator::initializeHierarchyIntegrator(
         if (apply_brinkman)
         {
             SAMRAIPointer<CellVariableNd<double> > Cb_var =
-                new CellVariableNd<double>(Q_var->getName() + "::Cb", Q_depth);
+                make_samrai_shared<CellVariableNd<double> >(Q_var->getName() + "::Cb", Q_depth);
             SAMRAIPointer<CellVariableNd<double> > Cb_rhs_var =
-                new CellVariableNd<double>(Q_var->getName() + "::Cb_RHS", Q_depth);
+                make_samrai_shared<CellVariableNd<double> >(Q_var->getName() + "::Cb_RHS", Q_depth);
             SAMRAIPointer<SideVariableNd<double> > Db_var =
-                new SideVariableNd<double>(Q_var->getName() + "::Db", Q_depth);
+                make_samrai_shared<SideVariableNd<double> >(Q_var->getName() + "::Db", Q_depth);
             SAMRAIPointer<SideVariableNd<double> > Db_rhs_var =
-                new SideVariableNd<double>(Q_var->getName() + "::Db_RHS", Q_depth);
+                make_samrai_shared<SideVariableNd<double> >(Q_var->getName() + "::Db_RHS", Q_depth);
             SAMRAIPointer<CellVariableNd<double> > Fb_var =
-                new CellVariableNd<double>(Q_var->getName() + "::Fb", Q_depth);
+                make_samrai_shared<CellVariableNd<double> >(Q_var->getName() + "::Fb", Q_depth);
             d_Q_Cb_map[Q_var] = Cb_var;
             d_Q_Cb_rhs_map[Q_var] = Cb_rhs_var;
             d_Q_Db_map[Q_var] = Db_var;

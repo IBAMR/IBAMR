@@ -95,7 +95,7 @@ public:
                                         IBTK::SAMRAIPointer<SAMRAI::pdat::CellVariableNd<double> > ls_solid_var,
                                         IBTK::SAMRAIPointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
                                         IBTK::SAMRAIPointer<IBAMR::INSHierarchyIntegrator> fluid_solver,
-                                        IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db = NULL);
+                                        IBTK::SAMRAIPointer<SAMRAI::tbox::Database> db = nullptr);
 
     /*!
      * \brief Virtual destructor.

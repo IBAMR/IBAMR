@@ -398,8 +398,8 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_position(const double
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
-    SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_sol_vec =
-        new SAMRAIVectorRealNd<double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_sol_vec = make_samrai_shared<SAMRAIVectorRealNd<double> >(
+        d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
     eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 
@@ -582,8 +582,8 @@ IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy_velocity(const double
     ins_hier_integrator->skipCycle(current_time, new_time, cycle_num);
 
     // Setup Eulerian vectors used in solving the implicit IB equations.
-    SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_sol_vec =
-        new SAMRAIVectorRealNd<double>(d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
+    SAMRAIPointer<SAMRAIVectorRealNd<double> > eul_sol_vec = make_samrai_shared<SAMRAIVectorRealNd<double> >(
+        d_object_name + "::eulerian_sol_vec", d_hierarchy, coarsest_ln, finest_ln);
     eul_sol_vec->addComponent(u_var, u_scratch_idx, wgt_sc_idx, d_hier_velocity_data_ops);
     eul_sol_vec->addComponent(p_var, p_scratch_idx, wgt_cc_idx, d_hier_pressure_data_ops);
 

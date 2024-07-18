@@ -908,10 +908,14 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::integrate(double dt)
             // volumes centered about side-centered staggered velocity
             // components
             const IntVectorNd ghosts = IntVectorNd(1);
-            SAMRAIPointer<FaceDataNd<double> > C_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
-            SAMRAIPointer<FaceDataNd<double> > Q_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
-            SAMRAIPointer<FaceDataNd<double> > R_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
-            SAMRAIPointer<FaceDataNd<double> > P_half_data = new FaceDataNd<double>(patch_box, 1, ghosts);
+            SAMRAIPointer<FaceDataNd<double> > C_half_data =
+                make_samrai_shared<FaceDataNd<double> >(patch_box, 1, ghosts);
+            SAMRAIPointer<FaceDataNd<double> > Q_half_data =
+                make_samrai_shared<FaceDataNd<double> >(patch_box, 1, ghosts);
+            SAMRAIPointer<FaceDataNd<double> > R_half_data =
+                make_samrai_shared<FaceDataNd<double> >(patch_box, 1, ghosts);
+            SAMRAIPointer<FaceDataNd<double> > P_half_data =
+                make_samrai_shared<FaceDataNd<double> >(patch_box, 1, ghosts);
 
             std::vector<RobinBcCoefStrategyNd*> rho_cc_bc_coefs(1, d_rho_cc_bc_coefs);
 
@@ -1472,7 +1476,8 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::computeConvectiveDerivative(
     const double* const dx)
 {
     static const double dt = 1.0;
-    SAMRAIPointer<FaceDataNd<double> > GQ_half_data = new FaceDataNd<double>(patch_box, 1, 1); // to store (G*Q)^n+half
+    SAMRAIPointer<FaceDataNd<double> > GQ_half_data =
+        make_samrai_shared<FaceDataNd<double> >(patch_box, 1, 1); // to store (G*Q)^n+half
     const IntVectorNd& U_adv_data_gcw = U_adv_data->getGhostCellWidth();
     const IntVectorNd& P_half_data_gcw = P_half_data->getGhostCellWidth();
     const IntVectorNd& R_half_data_gcw = R_half_data->getGhostCellWidth();

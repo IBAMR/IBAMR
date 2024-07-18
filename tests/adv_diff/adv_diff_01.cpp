@@ -62,7 +62,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "adv_diff.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
@@ -86,7 +86,7 @@ main(int argc, char* argv[])
             app_initializer->getComponentDatabase("Main")->getStringWithDefault("solver_type", "GODUNOV");
         if (solver_type == "GODUNOV")
         {
-            SAMRAIPointer<AdvectorExplicitPredictorPatchOps> predictor = new AdvectorExplicitPredictorPatchOps(
+            auto predictor = make_samrai_shared<AdvectorExplicitPredictorPatchOps>(
                 "AdvectorExplicitPredictorPatchOps",
                 app_initializer->getComponentDatabase("AdvectorExplicitPredictorPatchOps"));
             time_integrator = new AdvDiffPredictorCorrectorHierarchyIntegrator(
@@ -105,25 +105,25 @@ main(int argc, char* argv[])
             TBOX_ERROR("Unsupported solver type: " << solver_type << "\n"
                                                    << "Valid options are: GODUNOV, SEMI_IMPLICIT");
         }
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector =
-            new StandardTagAndInitializeNd("StandardTagAndInitialize",
-                                           time_integrator,
-                                           app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize",
+            time_integrator,
+            app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Setup the advection velocity.
-        SAMRAIPointer<FaceVariableNd<double> > u_var = new FaceVariableNd<double>("u");
+        SAMRAIPointer<FaceVariableNd<double> > u_var = make_samrai_shared<FaceVariableNd<double> >("u");
         UFunction u_fcn("UFunction", grid_geometry, app_initializer->getComponentDatabase("UFunction"));
         const bool u_is_div_free = true;
         time_integrator->registerAdvectionVelocity(u_var);
@@ -136,7 +136,7 @@ main(int argc, char* argv[])
                 "difference_form", IBAMR::enum_to_string<ConvectiveDifferencingType>(ADVECTIVE)));
         pout << "solving the advection-diffusion equation in "
              << IBAMR::enum_to_string<ConvectiveDifferencingType>(difference_form) << " form.\n";
-        SAMRAIPointer<CellVariableNd<double> > Q_var = new CellVariableNd<double>("Q");
+        SAMRAIPointer<CellVariableNd<double> > Q_var = make_samrai_shared<CellVariableNd<double> >("Q");
         QInit Q_init("QInit", grid_geometry, app_initializer->getComponentDatabase("QInit"));
         LocationIndexRobinBcCoefsNd physical_bc_coef(
             "physical_bc_coef", app_initializer->getComponentDatabase("LocationIndexRobinBcCoefs"));

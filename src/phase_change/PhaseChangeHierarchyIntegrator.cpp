@@ -683,12 +683,13 @@ PhaseChangeHierarchyIntegrator::registerTemperatureVariable(SAMRAIPointer<CellVa
     SAMRAIPointer<CellDataFactoryNd<double> > T_factory = T_var->getPatchDataFactory();
     const int T_depth = T_factory->getDefaultDepth();
     SAMRAIPointer<CellVariableNd<double> > T_rhs_var =
-        new CellVariableNd<double>(T_var->getName() + "::T_rhs", T_depth);
-    SAMRAIPointer<CellVariableNd<double> > T_F_var = new CellVariableNd<double>(T_var->getName() + "::F", T_depth);
+        make_samrai_shared<CellVariableNd<double> >(T_var->getName() + "::T_rhs", T_depth);
+    SAMRAIPointer<CellVariableNd<double> > T_F_var =
+        make_samrai_shared<CellVariableNd<double> >(T_var->getName() + "::F", T_depth);
     SAMRAIPointer<SideVariableNd<double> > T_diffusion_coef_var =
-        new SideVariableNd<double>(T_var->getName() + "::diff_coef", T_depth);
+        make_samrai_shared<SideVariableNd<double> >(T_var->getName() + "::diff_coef", T_depth);
     SAMRAIPointer<CellVariableNd<double> > T_diffusion_coef_cc_var =
-        new CellVariableNd<double>(T_var->getName() + "::diff_coef_cc", T_depth);
+        make_samrai_shared<CellVariableNd<double> >(T_var->getName() + "::diff_coef_cc", T_depth);
 
     // Set default values.
     d_u_adv_var = nullptr;

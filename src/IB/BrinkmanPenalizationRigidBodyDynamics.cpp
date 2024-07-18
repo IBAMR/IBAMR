@@ -303,7 +303,7 @@ BrinkmanPenalizationRigidBodyDynamics::computeBrinkmanVelocity(int u_idx, double
                                           "LINEAR",
                                           false,
                                           d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var)));
-    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = d_adv_diff_solver->getPatchHierarchy();
 
     if (!d_split_penalty)
@@ -366,7 +366,7 @@ BrinkmanPenalizationRigidBodyDynamics::demarcateBrinkmanZone(int u_idx, double t
                                                                  "LINEAR",
                                                                  false,
                                                                  d_adv_diff_solver->getPhysicalBcCoefs(d_ls_solid_var));
-    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
     hier_bdry_fill->fillData(time);
 

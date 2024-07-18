@@ -655,9 +655,9 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Normal(const int patch_data_id
         const BoundaryBoxNd trimmed_bdry_box(
             bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
         const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-        SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-        SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > acoef_data = make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > bcoef_data = make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+        SAMRAIPointer<ArrayDataNd<double> > gcoef_data = make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
         for (int d = 0; d < patch_data_depth; ++d)
         {
             RobinBcCoefStrategyNd* bc_coef = d_bc_coefs[NDIM * d + bdry_normal_axis];
@@ -905,9 +905,12 @@ CartSideRobinPhysBdryOp::fillGhostCellValuesCodim1Transverse(const int patch_dat
             {
                 const BoxNd bc_coef_box = compute_tangential_extension(
                     PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box), axis);
-                SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > acoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > bcoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > gcoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
 
                 // Temporarily reset the patch geometry object associated with
                 // the patch so that boundary conditions are set at the correct

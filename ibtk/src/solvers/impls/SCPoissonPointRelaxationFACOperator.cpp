@@ -308,7 +308,7 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
 
     // Construct a variable to store any needed masking data.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    SAMRAIPointer<SideVariableNd<int> > mask_var = new SideVariableNd<int>(object_name + "::mask");
+    SAMRAIPointer<SideVariableNd<int> > mask_var = make_samrai_shared<SideVariableNd<int> >(object_name + "::mask");
     if (var_db->checkVariableExists(mask_var->getName()))
     {
         mask_var = var_db->getVariable(mask_var->getName());
@@ -669,8 +669,7 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorRealNd<double>&
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    SAMRAIPointer<SideNoCornersFillPattern> fill_pattern =
-        new SideNoCornersFillPattern(d_gcw.max(), false, false, true);
+    auto fill_pattern = make_samrai_shared<SideNoCornersFillPattern>(d_gcw.max(), false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,

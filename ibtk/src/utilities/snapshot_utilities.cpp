@@ -59,13 +59,13 @@ update_snapshot(SnapshotCache& cache,
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         snapshot_hierarchy->removePatchLevel(ln);
-        SAMRAIPointer<PatchLevelNd> new_level = new PatchLevelNd();
+        auto new_level = make_samrai_shared<PatchLevelNd>();
         SAMRAIPointer<PatchLevelNd> current_level = current_hierarchy->getPatchLevel(ln);
         new_level->setRefinedPatchLevel(current_level, 1, new_geometry);
 
         // Now allocate data on the new level
         new_level->allocatePatchData(snapshot_idx, time);
-        SAMRAIPointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+        auto refine_alg = make_samrai_shared<RefineAlgorithmNd>();
         SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
         refine_alg->registerRefine(snapshot_idx, u_idx, u_idx, refine_op);
         SAMRAIPointer<RefineScheduleNd> schedule = refine_alg->createSchedule(new_level, current_level);
@@ -111,7 +111,7 @@ fill_snapshot_on_hierarchy(SnapshotCache& cache,
         snp_level->setTime(allocated_time, snapshot_idx);
 
         // Now copy the data.
-        SAMRAIPointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+        auto refine_alg = make_samrai_shared<RefineAlgorithmNd>();
         SAMRAIPointer<CartesianGridGeometryNd> grid_geom = current_hierarchy->getGridGeometry();
         SAMRAIPointer<RefineOperatorNd> refine_op =
             grid_geom->lookupRefineOperator(cache.getVariable(), snapshot_refine_type);

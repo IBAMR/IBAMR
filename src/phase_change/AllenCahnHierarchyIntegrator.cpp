@@ -1136,10 +1136,11 @@ AllenCahnHierarchyIntegrator::registerLiquidFractionVariable(SAMRAIPointer<CellV
     SAMRAIPointer<CellDataFactoryNd<double> > lf_factory = lf_var->getPatchDataFactory();
     const int lf_depth = lf_factory->getDefaultDepth();
     SAMRAIPointer<CellVariableNd<double> > lf_rhs_var =
-        new CellVariableNd<double>(lf_var->getName() + "::lf_rhs", lf_depth);
-    SAMRAIPointer<CellVariableNd<double> > lf_F_var = new CellVariableNd<double>(lf_var->getName() + "::F", lf_depth);
+        make_samrai_shared<CellVariableNd<double> >(lf_var->getName() + "::lf_rhs", lf_depth);
+    SAMRAIPointer<CellVariableNd<double> > lf_F_var =
+        make_samrai_shared<CellVariableNd<double> >(lf_var->getName() + "::F", lf_depth);
     SAMRAIPointer<SideVariableNd<double> > lf_diff_coef_var =
-        new SideVariableNd<double>(lf_var->getName() + "::diff_coef", lf_depth);
+        make_samrai_shared<SideVariableNd<double> >(lf_var->getName() + "::diff_coef", lf_depth);
 
     // Set default values.
     d_u_adv_var = nullptr;
@@ -1312,7 +1313,7 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
                                                                 "LINEAR",
                                                                 false,
                                                                 d_lf_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     hier_bdry_fill->initializeOperatorState(lf_transaction_comps, d_hierarchy);
     hier_bdry_fill->fillData(new_time);
 

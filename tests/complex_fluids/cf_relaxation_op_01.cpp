@@ -68,25 +68,25 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "cc_poisson.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
         SAMRAIPointer<CFStrategy> cf_op;
         std::string relax_op = input_db->getString("RELAX_OP");
         if (relax_op == "OLDROYDB")
@@ -107,7 +107,7 @@ main(int argc, char* argv[])
         }
         TensorEvolutionType evolve_type =
             IBAMR::string_to_enum<TensorEvolutionType>(input_db->getString("EVOLUTION_TYPE"));
-        SAMRAIPointer<CartGridFunction> exact_fcn = new muParserCartGridFunction(
+        SAMRAIPointer<CartGridFunction> exact_fcn = make_samrai_shared<muParserCartGridFunction>(
             "ComplexFluid", app_initializer->getComponentDatabase("ComplexFluid")->getDatabase("FCN"), grid_geometry);
 
         // Initialize the AMR patch hierarchy.
@@ -122,7 +122,8 @@ main(int argc, char* argv[])
             ++level_number;
         }
 
-        SAMRAIPointer<CellVariableNd<double> > c_var = new CellVariableNd<double>("C", NDIM * (NDIM + 1) / 2);
+        SAMRAIPointer<CellVariableNd<double> > c_var =
+            make_samrai_shared<CellVariableNd<double> >("C", NDIM * (NDIM + 1) / 2);
         auto var_db = VariableDatabaseNd::getDatabase();
         int c_idx = var_db->registerVariableAndContext(c_var, var_db->getContext("CTX"));
         int r_idx = var_db->registerClonedPatchDataIndex(c_var, c_idx);

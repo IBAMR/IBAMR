@@ -274,7 +274,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent T_transaction(
         d_T_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_T_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> T_fill_op = new HierarchyGhostCellInterpolation();
+    auto T_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     T_fill_op->initializeOperatorState(T_transaction, hierarchy, coarsest_ln, finest_ln);
 
     T_fill_op->fillData(data_time);

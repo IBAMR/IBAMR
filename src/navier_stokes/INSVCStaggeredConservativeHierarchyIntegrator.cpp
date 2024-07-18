@@ -1096,7 +1096,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
                                                        d_bdry_extrap_type, // TODO: update variable name
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    auto Phi_bdry_bc_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);

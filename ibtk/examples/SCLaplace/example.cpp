@@ -51,41 +51,41 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_laplace.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "sc_laplace.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
-        SAMRAIPointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
-        SAMRAIPointer<SideVariableNd<double> > f_sc_var = new SideVariableNd<double>("f_sc");
-        SAMRAIPointer<SideVariableNd<double> > e_sc_var = new SideVariableNd<double>("e_sc");
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = make_samrai_shared<SideVariableNd<double> >("u_sc");
+        SAMRAIPointer<SideVariableNd<double> > f_sc_var = make_samrai_shared<SideVariableNd<double> >("f_sc");
+        SAMRAIPointer<SideVariableNd<double> > e_sc_var = make_samrai_shared<SideVariableNd<double> >("e_sc");
 
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVectorNd(1));
         const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVectorNd(1));
         const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVectorNd(1));
 
-        SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc", NDIM);
-        SAMRAIPointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc", NDIM);
-        SAMRAIPointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = make_samrai_shared<CellVariableNd<double> >("u_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > f_cc_var = make_samrai_shared<CellVariableNd<double> >("f_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > e_cc_var = make_samrai_shared<CellVariableNd<double> >("e_cc", NDIM);
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVectorNd(0));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVectorNd(0));
@@ -164,7 +164,7 @@ main(int argc, char* argv[])
         PoissonSpecifications poisson_spec("poisson_spec");
         poisson_spec.setCConstant(0.0);
         poisson_spec.setDConstant(-1.0);
-        std::vector<RobinBcCoefStrategyNd*> bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(NULL));
+        std::vector<RobinBcCoefStrategyNd*> bc_coefs(NDIM, static_cast<RobinBcCoefStrategyNd*>(nullptr));
         SCLaplaceOperator laplace_op("laplace op");
         laplace_op.setPoissonSpecifications(poisson_spec);
         laplace_op.setPhysicalBcCoefs(bc_coefs);
@@ -180,9 +180,9 @@ main(int argc, char* argv[])
 
         // Interpolate the side-centered data to cell centers for output.
         static const bool synch_cf_interface = true;
-        hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, NULL, 0.0, synch_cf_interface);
-        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, NULL, 0.0, synch_cf_interface);
+        hier_math_ops.interp(u_cc_idx, u_cc_var, u_sc_idx, u_sc_var, nullptr, 0.0, synch_cf_interface);
+        hier_math_ops.interp(f_cc_idx, f_cc_var, f_sc_idx, f_sc_var, nullptr, 0.0, synch_cf_interface);
+        hier_math_ops.interp(e_cc_idx, e_cc_var, e_sc_idx, e_sc_var, nullptr, 0.0, synch_cf_interface);
 
         // Set invalid values on coarse levels (i.e., coarse-grid values that
         // are covered by finer grid patches) to equal zero.

@@ -1000,7 +1000,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<Pat
     }
 
     // Setup a specialized coarsen algorithm.
-    SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+    auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
     SAMRAIPointer<CoarsenOperatorNd> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
     coarsen_alg->registerCoarsen(d_U_scratch_idx, d_U_scratch_idx, coarsen_op);
     registerCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP", coarsen_alg);
@@ -1219,7 +1219,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         d_hier_sc_data_ops->copyData(U_adv_idx, d_U_current_idx);
         for (int ln = finest_ln; ln > coarsest_ln; --ln)
         {
-            SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+            auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
             SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
             SAMRAIPointer<CoarsenOperatorNd> coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
             coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
@@ -1423,7 +1423,7 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const SAMRAIPointer<SAMRAIVe
             }
             for (int ln = finest_ln; ln > coarsest_ln; --ln)
             {
-                SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+                auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
                 SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
                 SAMRAIPointer<CoarsenOperatorNd> coarsen_op =
                     grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
@@ -2040,7 +2040,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                    "LINEAR",
                                                    false,
                                                    getVelocityBoundaryConditions());
-            SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+            auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
             hier_bdry_fill->initializeOperatorState(comp, d_hierarchy);
             hier_bdry_fill->fillData(d_integrator_time);
         }
@@ -2072,7 +2072,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
                                                    "LINEAR",
                                                    false,
                                                    nullptr);
-            SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+            auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
             hier_bdry_fill->initializeOperatorState(comp, d_hierarchy);
             hier_bdry_fill->fillData(d_integrator_time);
         }
@@ -2242,7 +2242,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
                                                        d_bdry_extrap_type, // TODO: update variable name
                                                        CONSISTENT_TYPE_2_BDRY,
                                                        &Phi_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    auto Phi_bdry_bc_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
     Phi_bdry_bc_fill_op->fillData(d_integrator_time);

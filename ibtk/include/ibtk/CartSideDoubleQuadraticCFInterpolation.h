@@ -298,7 +298,7 @@ private:
      * Refine operator employed to fill coarse grid ghost cell values.
      */
     SAMRAIPointer<SAMRAI::xfer::RefineOperatorNd> d_refine_op =
-        new SAMRAI::geom::CartesianSideDoubleConservativeLinearRefineNd();
+        make_samrai_shared<SAMRAI::geom::CartesianSideDoubleConservativeLinearRefineNd>();
 
     /*!
      * Cached hierarchy-related information.
@@ -306,7 +306,8 @@ private:
     SAMRAIPointer<SAMRAI::hier::PatchHierarchyNd> d_hierarchy;
     std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
     SAMRAIPointer<SAMRAI::pdat::SideVariableNd<int> > d_sc_indicator_var =
-        new SAMRAI::pdat::SideVariableNd<int>("CartSideDoubleQuadraticCFInterpolation::sc_indicator_var");
+        make_samrai_shared<SAMRAI::pdat::SideVariableNd<int> >(
+            "CartSideDoubleQuadraticCFInterpolation::sc_indicator_var");
     int d_sc_indicator_idx = IBTK::invalid_index;
 };
 } // namespace IBTK

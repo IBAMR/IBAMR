@@ -121,7 +121,7 @@ public:
      * Return a VisIt data writer object to be used to output Cartesian grid
      * data.
      *
-     * If the application is not configured to use VisIt, a NULL pointer will be
+     * If the application is not configured to use VisIt, a nullptr pointer will be
      * returned.
      */
     SAMRAIPointer<SAMRAI::appu::VisItDataWriterNd> getVisItDataWriter() const;
@@ -129,7 +129,7 @@ public:
     /*!
      * Return a VisIt data writer object to be used to output Lagrangian data.
      *
-     * If the application is not configured to use VisIt, a NULL pointer will be
+     * If the application is not configured to use VisIt, a nullptr pointer will be
      * returned.
      */
     SAMRAIPointer<LSiloDataWriter> getLSiloDataWriter() const;

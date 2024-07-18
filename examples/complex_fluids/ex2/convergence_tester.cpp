@@ -47,7 +47,7 @@ main(int argc, char* argv[])
 
     // Parse command line options, set some standard options from the input
     // file, and enable file logging.
-    SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "INS.log");
+    auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "INS.log");
     SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
     // Retrieve "Main" section of the input database.
@@ -91,8 +91,8 @@ main(int argc, char* argv[])
     }
 
     // Create major algorithm and data objects that comprise application.
-    SAMRAIPointer<CartesianGridGeometryNd> grid_geom =
-        new CartesianGridGeometryNd("CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
+    auto grid_geom = make_samrai_shared<CartesianGridGeometryNd>(
+        "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
 
     // Initialize variables.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
@@ -100,15 +100,17 @@ main(int argc, char* argv[])
     SAMRAIPointer<VariableContext> current_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::CURRENT");
     SAMRAIPointer<VariableContext> scratch_ctx = var_db->getContext("INSStaggeredHierarchyIntegrator::SCRATCH");
 
-    SAMRAIPointer<SideVariableNd<double> > U_var = new SideVariableNd<double>("INSStaggeredHierarchyIntegrator::U");
+    SAMRAIPointer<SideVariableNd<double> > U_var =
+        make_samrai_shared<SideVariableNd<double> >("INSStaggeredHierarchyIntegrator::U");
     const int U_idx = var_db->registerVariableAndContext(U_var, current_ctx);
     const int U_interp_idx = var_db->registerClonedPatchDataIndex(U_var, U_idx);
     const int U_scratch_idx = var_db->registerVariableAndContext(U_var, scratch_ctx, 2);
 
-    SAMRAIPointer<CellVariableNd<double> > IDX_var = new CellVariableNd<double>("Indicator");
+    SAMRAIPointer<CellVariableNd<double> > IDX_var = make_samrai_shared<CellVariableNd<double> >("Indicator");
     const int I_idx = var_db->registerVariableAndContext(IDX_var, current_ctx);
 
-    SAMRAIPointer<CellVariableNd<double> > P_var = new CellVariableNd<double>("INSStaggeredHierarchyIntegrator::P");
+    SAMRAIPointer<CellVariableNd<double> > P_var =
+        make_samrai_shared<CellVariableNd<double> >("INSStaggeredHierarchyIntegrator::P");
     const int P_idx = var_db->registerVariableAndContext(P_var, current_ctx);
     const int P_interp_idx = var_db->registerClonedPatchDataIndex(P_var, P_idx);
     const int P_scratch_idx = var_db->registerVariableAndContext(P_var, scratch_ctx, 2);
@@ -117,22 +119,22 @@ main(int argc, char* argv[])
     SAMRAIPointer<VariableContext> s_s_ctx = var_db->getContext("AdvDiffSemiImplicitHierarchyIntegrator::SCRATCH");
 
     SAMRAIPointer<CellVariableNd<double> > S_var =
-        new CellVariableNd<double>("ComplexFluidForcing::W_cc", NDIM * (NDIM + 1) / 2);
+        make_samrai_shared<CellVariableNd<double> >("ComplexFluidForcing::W_cc", NDIM * (NDIM + 1) / 2);
     const int S_idx = var_db->registerVariableAndContext(S_var, s_c_ctx);
     const int S_interp_idx = var_db->registerClonedPatchDataIndex(S_var, S_idx);
     const int S_scratch_idx = var_db->registerVariableAndContext(S_var, scratch_ctx, 2);
 
-    SAMRAIPointer<CellVariableNd<double> > Sxx_var = new CellVariableNd<double>("Sxx");
-    SAMRAIPointer<CellVariableNd<double> > Syy_var = new CellVariableNd<double>("Syy");
-    SAMRAIPointer<CellVariableNd<double> > Sxy_var = new CellVariableNd<double>("Sxy");
-    SAMRAIPointer<CellVariableNd<double> > U_draw_var = new CellVariableNd<double>("U", NDIM);
+    SAMRAIPointer<CellVariableNd<double> > Sxx_var = make_samrai_shared<CellVariableNd<double> >("Sxx");
+    SAMRAIPointer<CellVariableNd<double> > Syy_var = make_samrai_shared<CellVariableNd<double> >("Syy");
+    SAMRAIPointer<CellVariableNd<double> > Sxy_var = make_samrai_shared<CellVariableNd<double> >("Sxy");
+    SAMRAIPointer<CellVariableNd<double> > U_draw_var = make_samrai_shared<CellVariableNd<double> >("U", NDIM);
     const int Sxx_idx = var_db->registerVariableAndContext(Sxx_var, s_c_ctx);
     const int Syy_idx = var_db->registerVariableAndContext(Syy_var, s_c_ctx);
     const int Sxy_idx = var_db->registerVariableAndContext(Sxy_var, s_c_ctx);
     const int U_draw_idx = var_db->registerVariableAndContext(U_draw_var, s_c_ctx);
     // Set up visualization plot file writer.
-    SAMRAIPointer<VisItDataWriterNd> visit_data_writer =
-        new VisItDataWriterNd("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
+    auto visit_data_writer =
+        make_samrai_shared<VisItDataWriterNd>("VisIt Writer", main_db->getString("viz_dump_dirname"), 1);
     visit_data_writer->registerPlotQuantity("Indicator", "SCALAR", I_idx);
     visit_data_writer->registerPlotQuantity("P", "SCALAR", P_idx);
     visit_data_writer->registerPlotQuantity("P interp", "SCALAR", P_interp_idx);
@@ -202,21 +204,20 @@ main(int argc, char* argv[])
         hier_data.setFlag(P_idx);
         hier_data.setFlag(S_idx);
 
-        SAMRAIPointer<HDFDatabase> coarse_hier_db = new HDFDatabase("coarse_hier_db");
+        auto coarse_hier_db = make_samrai_shared<HDFDatabase>("coarse_hier_db");
         coarse_hier_db->open(coarse_file_name);
 
-        SAMRAIPointer<PatchHierarchyNd> coarse_patch_hierarchy =
-            new PatchHierarchyNd("CoarsePatchHierarchy", grid_geom, false);
+        auto coarse_patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("CoarsePatchHierarchy", grid_geom, false);
         coarse_patch_hierarchy->getFromDatabase(coarse_hier_db->getDatabase("PatchHierarchy"), hier_data);
 
         const double coarse_loop_time = coarse_hier_db->getDouble("loop_time");
 
         coarse_hier_db->close();
 
-        SAMRAIPointer<HDFDatabase> fine_hier_db = new HDFDatabase("fine_hier_db");
+        auto fine_hier_db = make_samrai_shared<HDFDatabase>("fine_hier_db");
         fine_hier_db->open(fine_file_name);
 
-        SAMRAIPointer<PatchHierarchyNd> fine_patch_hierarchy = new PatchHierarchyNd(
+        auto fine_patch_hierarchy = make_samrai_shared<PatchHierarchyNd>(
             "FinePatchHierarchy", grid_geom->makeRefinedGridGeometry("FineGridGeometry", 2, false), false);
         fine_patch_hierarchy->getFromDatabase(fine_hier_db->getDatabase("PatchHierarchy"), hier_data);
 

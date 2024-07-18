@@ -316,7 +316,7 @@ AdvDiffHierarchyIntegrator::registerTransportedQuantity(SAMRAIPointer<CellVariab
     SAMRAIPointer<CellDataFactoryNd<double> > Q_factory = Q_var->getPatchDataFactory();
     const int Q_depth = Q_factory->getDefaultDepth();
     SAMRAIPointer<CellVariableNd<double> > Q_rhs_var =
-        new CellVariableNd<double>(Q_var->getName() + "::Q_rhs", Q_depth);
+        make_samrai_shared<CellVariableNd<double> >(Q_var->getName() + "::Q_rhs", Q_depth);
 
     // Set default values.
     d_Q_u_map[Q_var] = nullptr;
@@ -470,7 +470,7 @@ AdvDiffHierarchyIntegrator::registerDiffusionCoefficientVariable(SAMRAIPointer<S
     SAMRAIPointer<SideDataFactoryNd<double> > D_factory = D_var->getPatchDataFactory();
     const int D_depth = D_factory->getDefaultDepth();
     SAMRAIPointer<SideVariableNd<double> > D_rhs_var =
-        new SideVariableNd<double>(D_var->getName() + "::D_rhs", D_depth);
+        make_samrai_shared<SideVariableNd<double> >(D_var->getName() + "::D_rhs", D_depth);
 
     // Set default values.
     d_diffusion_coef_fcn[D_var] = nullptr;
@@ -765,9 +765,9 @@ AdvDiffHierarchyIntegrator::initializeHierarchyIntegrator(SAMRAIPointer<PatchHie
 
     // Setup hierarchy data operations objects.
     HierarchyDataOpsManagerNd* hier_ops_manager = HierarchyDataOpsManagerNd::getManager();
-    SAMRAIPointer<CellVariableNd<double> > cc_var = new CellVariableNd<double>("cc_var");
+    SAMRAIPointer<CellVariableNd<double> > cc_var = make_samrai_shared<CellVariableNd<double> >("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    SAMRAIPointer<SideVariableNd<double> > sc_var = new SideVariableNd<double>("sc_var");
+    SAMRAIPointer<SideVariableNd<double> > sc_var = make_samrai_shared<SideVariableNd<double> >("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
 
     // Setup coarsening communications algorithms, used in synchronizing refined

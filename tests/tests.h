@@ -270,7 +270,8 @@ setup_hierarchy(IBTK::SAMRAIPointer<IBTK::AppInitializer> app_initializer,
 
     // Set up basic SAMRAI stuff:
     SAMRAIPointer<geom::CartesianGridGeometry<spacedim> > grid_geometry =
-        new geom::CartesianGridGeometry<spacedim>("CartesianGeometry", input_db->getDatabase("CartesianGeometry"));
+        make_samrai_shared<geom::CartesianGridGeometry<spacedim> >("CartesianGeometry",
+                                                                   input_db->getDatabase("CartesianGeometry"));
 
     // More questionable SAMRAI design decisions - we have to register refine
     // operations associated with different variables with the grid geometry class
@@ -278,16 +279,21 @@ setup_hierarchy(IBTK::SAMRAIPointer<IBTK::AppInitializer> app_initializer,
     grid_geometry->addSpatialRefineOperator(new IBTK::CartSideDoubleSpecializedLinearRefine());
 
     SAMRAIPointer<hier::PatchHierarchy<spacedim> > patch_hierarchy =
-        new hier::PatchHierarchy<spacedim>("PatchHierarchy", grid_geometry);
+        make_samrai_shared<hier::PatchHierarchy<spacedim> >("PatchHierarchy", grid_geometry);
     SAMRAIPointer<mesh::StandardTagAndInitialize<spacedim> > error_detector =
-        new mesh::StandardTagAndInitialize<spacedim>(
+        make_samrai_shared<mesh::StandardTagAndInitialize<spacedim> >(
             "StandardTagAndInitialize", tag, input_db->getDatabase("StandardTagAndInitialize"));
 
-    SAMRAIPointer<mesh::BergerRigoutsos<spacedim> > box_generator = new mesh::BergerRigoutsos<spacedim>();
+    SAMRAIPointer<mesh::BergerRigoutsos<spacedim> > box_generator =
+        make_samrai_shared<mesh::BergerRigoutsos<spacedim> >();
     SAMRAIPointer<mesh::LoadBalancer<spacedim> > load_balancer =
-        new mesh::LoadBalancer<spacedim>("LoadBalancer", input_db->getDatabase("LoadBalancer"));
-    SAMRAIPointer<mesh::GriddingAlgorithm<spacedim> > gridding_algorithm = new mesh::GriddingAlgorithm<spacedim>(
-        "GriddingAlgorithm", input_db->getDatabase("GriddingAlgorithm"), error_detector, box_generator, load_balancer);
+        make_samrai_shared<mesh::LoadBalancer<spacedim> >("LoadBalancer", input_db->getDatabase("LoadBalancer"));
+    SAMRAIPointer<mesh::GriddingAlgorithm<spacedim> > gridding_algorithm =
+        make_samrai_shared<mesh::GriddingAlgorithm<spacedim> >("GriddingAlgorithm",
+                                                               input_db->getDatabase("GriddingAlgorithm"),
+                                                               error_detector,
+                                                               box_generator,
+                                                               load_balancer);
 
     // Set up a variable so that we can actually output the grid. Note that this
     // has to happen before we make any levels since this is where we set the

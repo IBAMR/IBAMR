@@ -102,7 +102,7 @@ public:
                         SAMRAIPointer<PatchNd> patch,
                         double data_time,
                         bool /*initial_time*/ = false,
-                        SAMRAIPointer<PatchLevelNd> /*level*/ = SAMRAIPointer<PatchLevelNd>(NULL))
+                        SAMRAIPointer<PatchLevelNd> /*level*/ = SAMRAIPointer<PatchLevelNd>(nullptr))
     {
         SAMRAIPointer<CellDataNd<double> > Q_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)

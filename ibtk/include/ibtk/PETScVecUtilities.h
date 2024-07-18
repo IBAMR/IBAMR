@@ -80,7 +80,7 @@ public:
      * be used in conjunction with copyFromPatchLevelVec().
      *
      * \note Synchronization is not required for all data centerings.  For cases
-     * in which it is not needed, this method will return a NULL pointer.
+     * in which it is not needed, this method will return a nullptr pointer.
      */
     static SAMRAIPointer<SAMRAI::xfer::RefineScheduleNd>
     constructDataSynchSchedule(int data_idx, SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level);

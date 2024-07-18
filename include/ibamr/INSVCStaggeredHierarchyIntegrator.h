@@ -135,7 +135,7 @@ public:
      * Get the convective operator being used by this solver class.
      *
      * If the time integrator is configured to solve the time-dependent
-     * (creeping) Stokes equations, then the returned pointer will be NULL.
+     * (creeping) Stokes equations, then the returned pointer will be nullptr.
      *
      * If the convective operator has not already been constructed, and if the
      * time integrator is not configured to solve the time-dependent (creeping)

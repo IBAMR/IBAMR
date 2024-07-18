@@ -90,7 +90,7 @@ public:
                     const std::string& default_options_prefix)
     {
         IBTK::SAMRAIPointer<StaggeredStokesFACPreconditionerStrategy> fac_operator =
-            new StaggeredStokesLevelRelaxationFACOperator(
+            IBTK::make_samrai_shared<StaggeredStokesLevelRelaxationFACOperator>(
                 object_name + "::StaggeredStokesLevelRelaxationFACOperator", input_db, default_options_prefix);
         return new StaggeredStokesFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate_solver

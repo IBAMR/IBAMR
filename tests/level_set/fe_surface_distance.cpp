@@ -181,7 +181,7 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "FESurfaceDistance.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "FESurfaceDistance.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Get various standard options set in the input file.
@@ -298,25 +298,25 @@ main(int argc, char* argv[])
 
         Mesh& mesh = solid_mesh;
 
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Compute distance function from FE mesh.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-        SAMRAIPointer<CellVariableNd<double> > n_var = new CellVariableNd<double>("num_elements", 1);
-        SAMRAIPointer<CellVariableNd<double> > d_var = new CellVariableNd<double>("distance", 1);
+        SAMRAIPointer<CellVariableNd<double> > n_var = make_samrai_shared<CellVariableNd<double> >("num_elements", 1);
+        SAMRAIPointer<CellVariableNd<double> > d_var = make_samrai_shared<CellVariableNd<double> >("distance", 1);
         const IntVectorNd no_width = 0;
         SAMRAIPointer<VariableContext> main_ctx = var_db->getContext("Main");
         const int n_idx = var_db->registerVariableAndContext(n_var, main_ctx, no_width);
@@ -347,7 +347,7 @@ main(int argc, char* argv[])
 
         // Set up visualization plot file writers.
         SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
-        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : nullptr);
 
         visit_data_writer->registerPlotQuantity(d_var->getName(), "SCALAR", d_idx);
         const int gcw = input_db->getIntegerWithDefault("GCW", 1);
@@ -371,7 +371,7 @@ main(int argc, char* argv[])
         pout << "Finished updating sign" << std::endl;
 
         // Compute the error.
-        SAMRAIPointer<CellVariableNd<double> > E_var = new CellVariableNd<double>("E");
+        SAMRAIPointer<CellVariableNd<double> > E_var = make_samrai_shared<CellVariableNd<double> >("E");
         const int E_idx = var_db->registerVariableAndContext(E_var, main_ctx);
         for (int ln = 0; ln <= hier_finest_ln; ++ln)
         {
@@ -379,8 +379,8 @@ main(int argc, char* argv[])
             if (!level->checkAllocated(E_idx)) level->allocatePatchData(E_idx, 0.0);
         }
 
-        SAMRAIPointer<HierarchyMathOps> hier_math_ops =
-            new HierarchyMathOps("HierarchyMathOps", patch_hierarchy, coarsest_ln, hier_finest_ln);
+        auto hier_math_ops =
+            make_samrai_shared<HierarchyMathOps>("HierarchyMathOps", patch_hierarchy, coarsest_ln, hier_finest_ln);
         const int wgt_cc_idx = hier_math_ops->getCellWeightPatchDescriptorIndex();
 
         double E_interface = 0.0;

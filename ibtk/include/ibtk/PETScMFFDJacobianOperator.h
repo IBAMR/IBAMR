@@ -83,7 +83,7 @@ public:
     /*!
      * \brief Return the vector where the Jacobian is evaluated.
      *
-     * \note This member function returns a NULL pointer if the operator is not
+     * \note This member function returns a nullptr pointer if the operator is not
      * initialized, or if formJacobian() has not been called.
      */
     SAMRAIPointer<SAMRAI::solv::SAMRAIVectorRealNd<double> > getBaseVector() const override;

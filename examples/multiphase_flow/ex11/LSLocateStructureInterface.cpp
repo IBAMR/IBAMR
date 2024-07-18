@@ -187,7 +187,7 @@ LSLocateStructureInterface::getExtremeCoords(std::vector<IBTK::Vector>& corners,
     SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-    std::vector<SAMRAIPointer<LData> > X_data(finest_ln + 1, SAMRAIPointer<LData>(NULL));
+    std::vector<SAMRAIPointer<LData> > X_data(finest_ln + 1, SAMRAIPointer<LData>(nullptr));
     X_data[finest_ln] = d_lag_data_manager->getLData("X", finest_ln);
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

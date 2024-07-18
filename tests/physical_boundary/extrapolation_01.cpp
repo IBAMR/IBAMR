@@ -86,25 +86,25 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "cc_poisson.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "cc_poisson.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Initialize the AMR patch hierarchy.
         gridding_algorithm->makeCoarsestLevel(patch_hierarchy, 0.0);
@@ -129,10 +129,10 @@ main(int argc, char* argv[])
         // boundaries to obtain ghost cell values.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         SAMRAIPointer<VariableContext> context = var_db->getContext("CONTEXT");
-        SAMRAIPointer<CellVariableNd<double> > c_var = new CellVariableNd<double>("c_u");
-        SAMRAIPointer<SideVariableNd<double> > s_var = new SideVariableNd<double>("s_u");
-        SAMRAIPointer<FaceVariableNd<double> > f_var = new FaceVariableNd<double>("f_u");
-        SAMRAIPointer<NodeVariableNd<double> > n_var = new NodeVariableNd<double>("n_u");
+        SAMRAIPointer<CellVariableNd<double> > c_var = make_samrai_shared<CellVariableNd<double> >("c_u");
+        SAMRAIPointer<SideVariableNd<double> > s_var = make_samrai_shared<SideVariableNd<double> >("s_u");
+        SAMRAIPointer<FaceVariableNd<double> > f_var = make_samrai_shared<FaceVariableNd<double> >("f_u");
+        SAMRAIPointer<NodeVariableNd<double> > n_var = make_samrai_shared<NodeVariableNd<double> >("n_u");
         const int gcw = 4;
         const int c_idx = var_db->registerVariableAndContext(c_var, context, gcw);
         const int s_idx = var_db->registerVariableAndContext(s_var, context, gcw);

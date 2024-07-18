@@ -306,7 +306,7 @@ PETScNewtonKrylovSolver::initializeSolverState(const SAMRAIVectorRealNd<double>&
     {
         TBOX_ERROR(d_object_name << "::initializeSolverState()\n"
                                  << "  cannot initialize solver state for wrapped PETSc SNES "
-                                    "object if the wrapped object is NULL"
+                                    "object if the wrapped object is nullptr"
                                  << std::endl);
     }
 

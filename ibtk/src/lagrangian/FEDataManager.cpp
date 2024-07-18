@@ -2697,8 +2697,8 @@ FEDataManager::applyGradientDetector(const SAMRAIPointer<BasePatchHierarchyNd> h
             const int coarser_ln = finer_ln - 1;
             TBOX_ASSERT(coarser_ln >= level_number);
             SAMRAIPointer<PatchLevelNd> coarser_level = d_hierarchy->getPatchLevel(coarser_ln);
-            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = new CartesianCellDoubleWeightedAverageNd();
-            SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = make_samrai_shared<CartesianCellDoubleWeightedAverageNd>();
+            auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
             // Coarsen into the scratch index and then add that to the quadrature count.
             coarsen_alg->registerCoarsen(qp_scratch_idx, d_qp_count_idx, coarsen_op);
             coarsen_alg->createSchedule(coarser_level, finer_level)->coarsenData();

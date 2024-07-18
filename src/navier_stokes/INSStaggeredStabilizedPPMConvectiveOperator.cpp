@@ -609,8 +609,8 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             const IntVectorNd& patch_upper = patch_box.upper();
 
             SAMRAIPointer<SideDataNd<double> > N_data = patch->getPatchData(N_idx);
-            SAMRAIPointer<SideDataNd<double> > N_upwind_data =
-                new SideDataNd<double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
+            SAMRAIPointer<SideDataNd<double> > N_upwind_data = make_samrai_shared<SideDataNd<double> >(
+                N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
             SAMRAIPointer<SideDataNd<double> > U_data = patch->getPatchData(d_U_scratch_idx);
 
             const IntVectorNd ghosts = IntVectorNd(1);
@@ -879,17 +879,17 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             // Compute the xsPPM7 discretization.
             for (unsigned int axis = 0; axis < NDIM; ++axis)
             {
-                SAMRAIPointer<SideDataNd<double> > dU_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                SAMRAIPointer<SideDataNd<double> > U_L_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                SAMRAIPointer<SideDataNd<double> > U_R_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
-                SAMRAIPointer<SideDataNd<double> > U_scratch1_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > dU_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > U_L_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > U_R_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > U_scratch1_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #if (NDIM == 3)
-                SAMRAIPointer<SideDataNd<double> > U_scratch2_data =
-                    new SideDataNd<double>(U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > U_scratch2_data = make_samrai_shared<SideDataNd<double> >(
+                    U_data->getBox(), U_data->getDepth(), U_data->getGhostCellWidth());
 #endif
 #if (NDIM == 2)
                 GODUNOV_EXTRAPOLATE_FC(side_boxes[axis].lower(0),
@@ -1196,8 +1196,8 @@ INSStaggeredStabilizedPPMConvectiveOperator::applyConvectiveOperator(const int U
             }
             if (patch_geom->getTouchesRegularBoundary())
             {
-                SAMRAIPointer<SideDataNd<double> > N_PPM_data =
-                    new SideDataNd<double>(N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
+                SAMRAIPointer<SideDataNd<double> > N_PPM_data = make_samrai_shared<SideDataNd<double> >(
+                    N_data->getBox(), N_data->getDepth(), N_data->getGhostCellWidth());
                 N_PPM_data->copy(*N_data);
                 for (unsigned int location_index = 0; location_index < 2 * NDIM; ++location_index)
                 {

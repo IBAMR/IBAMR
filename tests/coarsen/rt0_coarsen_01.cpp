@@ -43,7 +43,7 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
+    PetscInitialize(&argc, &argv, nullptr, nullptr);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -51,41 +51,42 @@ main(int argc, char* argv[])
     // prevent a warning about timer initializations
     TimerManager::createManager(nullptr);
     {
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "rt0.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "rt0.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         SAMRAIPointer<VisItDataWriterNd> visit_data_writer = app_initializer->getVisItDataWriter();
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
-        SAMRAIPointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = make_samrai_shared<SideVariableNd<double> >("u_sc");
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVectorNd(4));
-        SAMRAIPointer<SideVariableNd<double> > exact_sc_var = new SideVariableNd<double>("exact_sc");
+        SAMRAIPointer<SideVariableNd<double> > exact_sc_var = make_samrai_shared<SideVariableNd<double> >("exact_sc");
         const int exact_sc_idx = var_db->registerVariableAndContext(exact_sc_var, ctx, IntVectorNd(4));
         // TODO u_cc_var is only for plotting (and testing): remove later
         // #define DO_PLOT
 #ifdef DO_PLOT
-        SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = make_samrai_shared<CellVariableNd<double> >("u_cc", NDIM);
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx);
-        SAMRAIPointer<CellVariableNd<double> > exact_cc_var = new CellVariableNd<double>("exact_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > exact_cc_var =
+            make_samrai_shared<CellVariableNd<double> >("exact_cc", NDIM);
         const int exact_cc_idx = var_db->registerVariableAndContext(exact_cc_var, ctx);
 #endif
 
@@ -165,8 +166,8 @@ main(int argc, char* argv[])
         {
             IntVectorNd ratio;
             for (int d = 0; d < NDIM; ++d) ratio(d) = 4;
-            SAMRAIPointer<CoarsenAlgorithmNd> coarsen_alg = new CoarsenAlgorithmNd();
-            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = new IBTK::CartSideDoubleRT0Coarsen(ratio);
+            auto coarsen_alg = make_samrai_shared<CoarsenAlgorithmNd>();
+            SAMRAIPointer<CoarsenOperatorNd> coarsen_op = make_samrai_shared<IBTK::CartSideDoubleRT0Coarsen>(ratio);
             coarsen_alg->registerCoarsen(u_sc_idx, u_sc_idx, coarsen_op);
             SAMRAIPointer<CoarsenScheduleNd> coarsen_sched =
                 coarsen_alg->createSchedule(patch_hierarchy->getPatchLevel(0), patch_hierarchy->getPatchLevel(1));

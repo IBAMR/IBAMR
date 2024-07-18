@@ -685,7 +685,7 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
                                                                "LINEAR",
                                                                false,
                                                                d_T_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     hier_bdry_fill->initializeOperatorState(T_transaction_comps, d_hierarchy);
     hier_bdry_fill->fillData(new_time);
 

@@ -143,7 +143,7 @@ EdgeDataSynchronization::initializeOperatorState(
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
             SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
-            SAMRAIPointer<VariableFillPatternNd> fill_pattern = new EdgeSynchCopyFillPattern(axis);
+            SAMRAIPointer<VariableFillPatternNd> fill_pattern = make_samrai_shared<EdgeSynchCopyFillPattern>(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space
@@ -247,7 +247,7 @@ EdgeDataSynchronization::resetTransactionComponents(
                            << "  only double-precision edge-centered data is supported." << std::endl);
             }
             SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
-            SAMRAIPointer<VariableFillPatternNd> fill_pattern = new EdgeSynchCopyFillPattern(axis);
+            SAMRAIPointer<VariableFillPatternNd> fill_pattern = make_samrai_shared<EdgeSynchCopyFillPattern>(axis);
             d_refine_alg[axis]->registerRefine(data_idx, // destination
                                                data_idx, // source
                                                data_idx, // temporary work space

@@ -126,8 +126,9 @@ public:
                                                         SAMRAIPointer<SAMRAI::tbox::Database> input_db,
                                                         const std::string& default_options_prefix)
     {
-        SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonPointRelaxationFACOperator(
-            object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+        SAMRAIPointer<PoissonFACPreconditionerStrategy> fac_operator =
+            make_samrai_shared<CCPoissonPointRelaxationFACOperator>(
+                object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
 

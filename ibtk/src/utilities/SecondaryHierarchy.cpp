@@ -214,7 +214,7 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
         SAMRAIPointer<PatchLevelNd> new_level = new_secondary_hierarchy->getPatchLevel(ln);
         new_level->allocatePatchData(workload_idx);
 
-        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        auto refine_algorithm = make_samrai_shared<RefineAlgorithmNd>();
         SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
         refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
         auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level);
@@ -252,7 +252,7 @@ SecondaryHierarchy::reinit(int coarsest_patch_level_number,
         HierarchyCellDataOpsRealNd<double> hier_cc_data_ops(d_secondary_hierarchy, ln, ln);
         hier_cc_data_ops.setToScalar(workload_idx, 0.0, false);
 
-        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        auto refine_algorithm = make_samrai_shared<RefineAlgorithmNd>();
         SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
         refine_algorithm->registerRefine(workload_idx, workload_idx, workload_idx, refine_op);
         auto schedule = refine_algorithm->createSchedule("DEFAULT_FILL", new_level, old_level);
@@ -276,7 +276,7 @@ SecondaryHierarchy::transferPrimaryToSecondary(const int level_number,
         SAMRAIPointer<PatchLevelNd> level = d_primary_hierarchy->getPatchLevel(level_number);
         SAMRAIPointer<PatchLevelNd> scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
         if (!scratch_level->checkAllocated(scratch_data_idx)) scratch_level->allocatePatchData(scratch_data_idx, 0.0);
-        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        auto refine_algorithm = make_samrai_shared<RefineAlgorithmNd>();
         SAMRAIPointer<RefineOperatorNd> refine_op_f = nullptr;
         refine_algorithm->registerRefine(scratch_data_idx, primary_data_idx, scratch_data_idx, refine_op_f);
         d_transfer_forward_schedules[key] =
@@ -300,7 +300,7 @@ SecondaryHierarchy::transferSecondaryToPrimary(const int level_number,
     {
         SAMRAIPointer<PatchLevelNd> level = d_primary_hierarchy->getPatchLevel(level_number);
         SAMRAIPointer<PatchLevelNd> scratch_level = d_secondary_hierarchy->getPatchLevel(level_number);
-        SAMRAIPointer<RefineAlgorithmNd> refine_algorithm = new RefineAlgorithmNd();
+        auto refine_algorithm = make_samrai_shared<RefineAlgorithmNd>();
         SAMRAIPointer<RefineOperatorNd> refine_op_b = nullptr;
         refine_algorithm->registerRefine(primary_data_idx, scratch_data_idx, primary_data_idx, refine_op_b);
         d_transfer_backward_schedules[key] =

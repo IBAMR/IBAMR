@@ -86,7 +86,7 @@ public:
      * \brief Reset the Robin boundary condition specification object employed
      * by this class to set physical boundary conditions.
      *
-     * \note \a bc_coef cannot be NULL.
+     * \note \a bc_coef cannot be nullptr.
      */
     void setPhysicalBcCoef(SAMRAI::solv::RobinBcCoefStrategyNd* bc_coef);
 
@@ -94,7 +94,7 @@ public:
      * \brief Reset the Robin boundary condition specification object employed
      * by this class to set physical boundary conditions.
      *
-     * \note None of the elements of \a bc_coefs can be NULL.
+     * \note None of the elements of \a bc_coefs can be nullptr.
      */
     void setPhysicalBcCoefs(const std::vector<SAMRAI::solv::RobinBcCoefStrategyNd*>& bc_coefs);
 

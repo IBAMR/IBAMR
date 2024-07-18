@@ -114,7 +114,7 @@ public:
                         const double data_time,
                         const bool initial_time = false,
                         IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd> patch_level =
-                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
+                            IBTK::SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(nullptr)) override;
 
     //\}
 

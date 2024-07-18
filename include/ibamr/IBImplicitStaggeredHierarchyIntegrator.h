@@ -160,7 +160,8 @@ private:
         {
             d_stokes_op = new StaggeredStokesOperator(object_name + "::stokes_op", false);
             IBTK::SAMRAIPointer<StaggeredStokesIBLevelRelaxationFACOperator> fac_op =
-                new StaggeredStokesIBLevelRelaxationFACOperator(object_name + "::fac_op", input_db, "stokes_ib_pc_");
+                IBTK::make_samrai_shared<StaggeredStokesIBLevelRelaxationFACOperator>(
+                    object_name + "::fac_op", input_db, "stokes_ib_pc_");
             d_stokes_fac_pc =
                 new StaggeredStokesFACPreconditioner(object_name + "::fac_pc", fac_op, input_db, "stokes_ib_pc_");
             return;

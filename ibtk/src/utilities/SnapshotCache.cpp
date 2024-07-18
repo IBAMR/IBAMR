@@ -120,7 +120,7 @@ SnapshotCache::storeSnapshot(const int u_idx, const double time, SAMRAIPointer<P
         SAMRAIPointer<PatchLevelNd> old_level = hierarchy->getPatchLevel(ln);
         {
             // First fill in from the snapshot hierarchy
-            SAMRAIPointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+            auto refine_alg = make_samrai_shared<RefineAlgorithmNd>();
             SAMRAIPointer<RefineOperatorNd> refine_op = nullptr;
             refine_alg->registerRefine(d_snapshot_idx, u_idx, u_idx, refine_op);
             SAMRAIPointer<RefineScheduleNd> schedule = refine_alg->createSchedule(snapshot_level, old_level);
@@ -175,8 +175,8 @@ SnapshotCache::getFromRestart(SAMRAIPointer<GridGeometryNd> grid_geom)
     for (unsigned int i = 0; i < num_snapshots_stored; ++i)
     {
         const double time = db->getDouble("time_" + std::to_string(i));
-        SAMRAIPointer<PatchHierarchyNd> hierarchy =
-            new PatchHierarchyNd(d_object_name + "::SnapshotHierarchy_" + std::to_string(i), grid_geom, false);
+        auto hierarchy = make_samrai_shared<PatchHierarchyNd>(
+            d_object_name + "::SnapshotHierarchy_" + std::to_string(i), grid_geom, false);
         hierarchy->getFromDatabase(db->getDatabase("snapshot_hierarchy_" + std::to_string(i)), comp_selector);
         d_snapshots.push_back(std::make_pair(time, hierarchy));
     }

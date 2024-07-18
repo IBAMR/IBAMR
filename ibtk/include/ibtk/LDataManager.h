@@ -923,14 +923,14 @@ public:
      * level in the hierarchy, or the old level number does not match the level
      * number (if the old level pointer is non-null).
      */
-    void initializeLevelData(
-        SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
-        int level_number,
-        double init_data_time,
-        bool can_be_refined,
-        bool initial_time,
-        SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> old_level = SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd>(NULL),
-        bool allocate_data = true) override;
+    void initializeLevelData(SAMRAIPointer<SAMRAI::hier::BasePatchHierarchyNd> hierarchy,
+                             int level_number,
+                             double init_data_time,
+                             bool can_be_refined,
+                             bool initial_time,
+                             SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd> old_level =
+                                 SAMRAIPointer<SAMRAI::hier::BasePatchLevelNd>(nullptr),
+                             bool allocate_data = true) override;
 
     /*!
      * Reset cached communication schedules after the hierarchy has changed (for

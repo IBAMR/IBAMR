@@ -397,7 +397,7 @@ INSCollocatedCenteredConvectiveOperator::applyConvectiveOperator(const int U_idx
 
     // Setup communications algorithm.
     SAMRAIPointer<CartesianGridGeometryNd> grid_geom = d_hierarchy->getGridGeometry();
-    SAMRAIPointer<RefineAlgorithmNd> refine_alg = new RefineAlgorithmNd();
+    auto refine_alg = make_samrai_shared<RefineAlgorithmNd>();
     SAMRAIPointer<RefineOperatorNd> refine_op = grid_geom->lookupRefineOperator(d_U_var, "CONSERVATIVE_LINEAR_REFINE");
     refine_alg->registerRefine(d_U_scratch_idx, U_idx, d_U_scratch_idx, refine_op);
 

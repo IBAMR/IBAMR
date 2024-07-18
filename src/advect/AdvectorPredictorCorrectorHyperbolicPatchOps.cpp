@@ -1299,9 +1299,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::setInflowBoundaryConditions(PatchN
             // interior index.
             for (int depth = 0; depth < q_integral_data->getDepth(); ++depth)
             {
-                SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > acoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > bcoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                SAMRAIPointer<ArrayDataNd<double> > gcoef_data =
+                    make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
                 d_Q_bc_coef[Q_var][depth]->setBcCoefs(
                     acoef_data, bcoef_data, gcoef_data, Q_var, patch, trimmed_bdry_box, fill_time);
                 for (BoxNd::Iterator b(bc_coef_box); b; b++)

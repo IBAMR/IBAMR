@@ -582,12 +582,12 @@ StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_MAC(std::vector<
     // Create variables to keep track of whether a particular velocity location
     // is the "master" location.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
-    SAMRAIPointer<SideVariableNd<int> > patch_num_var = new SideVariableNd<int>(
+    SAMRAIPointer<SideVariableNd<int> > patch_num_var = make_samrai_shared<SideVariableNd<int> >(
         "StaggeredStokesPETScVecUtilities::constructPatchLevelDOFIndices_side()::"
         "patch_num_var");
     static const int patch_num_idx = var_db->registerPatchDataIndex(patch_num_var);
     patch_level->allocatePatchData(patch_num_idx);
-    SAMRAIPointer<SideVariableNd<bool> > u_mastr_loc_var = new SideVariableNd<bool>(
+    SAMRAIPointer<SideVariableNd<bool> > u_mastr_loc_var = make_samrai_shared<SideVariableNd<bool> >(
         "StaggeredStokesPETScVecUtilities::"
         "constructPatchLevelDOFIndices_side()::u_"
         "mastr_loc_var");

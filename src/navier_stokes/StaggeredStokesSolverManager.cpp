@@ -93,8 +93,8 @@ allocate_petsc_krylov_solver(const std::string& object_name,
                              SAMRAIPointer<Database> input_db,
                              const std::string& default_options_prefix)
 {
-    SAMRAIPointer<PETScKrylovStaggeredStokesSolver> krylov_solver =
-        new PETScKrylovStaggeredStokesSolver(object_name, input_db, default_options_prefix);
+    auto krylov_solver =
+        make_samrai_shared<PETScKrylovStaggeredStokesSolver>(object_name, input_db, default_options_prefix);
     krylov_solver->setOperator(new StaggeredStokesOperator(object_name + "::StokesOperator", true, input_db));
     return krylov_solver;
 } // allocate_petsc_krylov_solver

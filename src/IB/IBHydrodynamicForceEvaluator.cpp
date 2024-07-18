@@ -88,7 +88,8 @@ IBHydrodynamicForceEvaluator::IBHydrodynamicForceEvaluator(std::string object_na
     d_u_idx = var_db->registerVariableAndContext(d_u_var, u_ctx, /*ghost_width*/ 1);
     d_p_idx = var_db->registerVariableAndContext(d_p_var, p_ctx, /*ghost_width*/ 1);
 
-    SAMRAIPointer<SideVariableNd<double> > wgt_var = new SideVariableNd<double>(d_object_name + "::wgt_var", 1);
+    SAMRAIPointer<SideVariableNd<double> > wgt_var =
+        make_samrai_shared<SideVariableNd<double> >(d_object_name + "::wgt_var", 1);
     SAMRAIPointer<VariableContext> face_wgt_ctx = var_db->getContext(d_object_name + "::face_wgt_ctx");
     SAMRAIPointer<VariableContext> vol_wgt_ctx = var_db->getContext(d_object_name + "::vol_wgt_ctx");
     d_face_wgt_sc_idx = var_db->registerVariableAndContext(wgt_var, face_wgt_ctx, /*ghost_width*/ 0);
@@ -855,7 +856,8 @@ IBAMR::IBHydrodynamicForceEvaluator::registerStructurePlotData(SAMRAIPointer<Vis
     std::stringstream strct_id_stream;
     strct_id_stream << strct_id;
     std::string struct_no = strct_id_stream.str();
-    SAMRAIPointer<CellVariableNd<double> > inside_strct_var = new CellVariableNd<double>("box" + struct_no, 1);
+    SAMRAIPointer<CellVariableNd<double> > inside_strct_var =
+        make_samrai_shared<CellVariableNd<double> >("box" + struct_no, 1);
     SAMRAIPointer<VariableContext> ctx = var_db->getContext("box" + struct_no);
     fobj.inside_strct_idx = var_db->registerVariableAndContext(inside_strct_var, ctx, (IntVectorNd)0);
 
@@ -1223,7 +1225,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
                                                                 u_src_bc_coef,
                                                                 SAMRAIPointer<VariableFillPatternNd>(nullptr));
 
-        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
         hier_bdry_fill->setHomogeneousBc(false);
         hier_bdry_fill->fillData(fill_time);
@@ -1255,7 +1257,7 @@ IBHydrodynamicForceEvaluator::fillPatchData(const int u_src_idx,
                                                                 /*CONSISTENT_TYPE_2_BDRY*/ false,
                                                                 p_ins_bc_coef,
                                                                 SAMRAIPointer<VariableFillPatternNd>(nullptr));
-        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
         hier_bdry_fill->initializeOperatorState(transaction_comp, patch_hierarchy);
         hier_bdry_fill->setHomogeneousBc(false);
         hier_bdry_fill->fillData(fill_time);

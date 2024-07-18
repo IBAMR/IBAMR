@@ -394,7 +394,8 @@ CIBStaggeredStokesOperator::modifyRhsForBcs(Vec y)
                                                                    d_U_bc_coefs,
                                                                    d_U_fill_pattern,
                                                                    d_bdry_interp_type);
-        SAMRAIPointer<HierarchyGhostCellInterpolation> U_bdry_fill = new IBTK::HierarchyGhostCellInterpolation();
+        SAMRAIPointer<HierarchyGhostCellInterpolation> U_bdry_fill =
+            make_samrai_shared<IBTK::HierarchyGhostCellInterpolation>();
         U_bdry_fill->initializeOperatorState(U_transaction_comps, x->getPatchHierarchy());
         U_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
         U_bdry_fill->fillData(d_solution_time);

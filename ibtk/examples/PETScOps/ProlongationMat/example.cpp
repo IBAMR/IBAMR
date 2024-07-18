@@ -60,41 +60,41 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "sc_prolongation.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "sc_prolongation.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
-        SAMRAIPointer<SideVariableNd<double> > u_sc_var = new SideVariableNd<double>("u_sc");
-        SAMRAIPointer<SideVariableNd<double> > f_sc_var = new SideVariableNd<double>("f_sc");
-        SAMRAIPointer<SideVariableNd<double> > e_sc_var = new SideVariableNd<double>("e_sc");
+        SAMRAIPointer<SideVariableNd<double> > u_sc_var = make_samrai_shared<SideVariableNd<double> >("u_sc");
+        SAMRAIPointer<SideVariableNd<double> > f_sc_var = make_samrai_shared<SideVariableNd<double> >("f_sc");
+        SAMRAIPointer<SideVariableNd<double> > e_sc_var = make_samrai_shared<SideVariableNd<double> >("e_sc");
 
         const int u_sc_idx = var_db->registerVariableAndContext(u_sc_var, ctx, IntVectorNd(1));
         const int f_sc_idx = var_db->registerVariableAndContext(f_sc_var, ctx, IntVectorNd(1));
         const int e_sc_idx = var_db->registerVariableAndContext(e_sc_var, ctx, IntVectorNd(1));
 
-        SAMRAIPointer<CellVariableNd<double> > u_cc_var = new CellVariableNd<double>("u_cc", NDIM);
-        SAMRAIPointer<CellVariableNd<double> > f_cc_var = new CellVariableNd<double>("f_cc", NDIM);
-        SAMRAIPointer<CellVariableNd<double> > e_cc_var = new CellVariableNd<double>("e_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > u_cc_var = make_samrai_shared<CellVariableNd<double> >("u_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > f_cc_var = make_samrai_shared<CellVariableNd<double> >("f_cc", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > e_cc_var = make_samrai_shared<CellVariableNd<double> >("e_cc", NDIM);
 
         const int u_cc_idx = var_db->registerVariableAndContext(u_cc_var, ctx, IntVectorNd(0));
         const int f_cc_idx = var_db->registerVariableAndContext(f_cc_var, ctx, IntVectorNd(0));
@@ -154,7 +154,7 @@ main(int argc, char* argv[])
 
         // Compute u DOFs per processor.
         std::vector<std::vector<int> > num_dofs_per_proc;
-        SAMRAIPointer<SideVariableNd<int> > u_dof_index_var = new SideVariableNd<int>("u_dof_index");
+        SAMRAIPointer<SideVariableNd<int> > u_dof_index_var = make_samrai_shared<SideVariableNd<int> >("u_dof_index");
         ;
         const IntVectorNd no_ghosts = 0;
         const int u_dof_index_idx = var_db->registerVariableAndContext(u_dof_index_var, ctx, no_ghosts);
@@ -194,13 +194,13 @@ main(int argc, char* argv[])
 
         // Construct PETSc prolongation mat.
         std::string prolongation_op_type = input_db->getString("prolongation_op_type");
-        AO coarse_level_ao = NULL;
+        AO coarse_level_ao = nullptr;
         PETScVecUtilities::constructPatchLevelAO(coarse_level_ao,
                                                  num_dofs_per_proc[coarsest_ln],
                                                  u_dof_index_idx,
                                                  patch_hierarchy->getPatchLevel(coarsest_ln),
                                                  /*ao_offset*/ 0);
-        Mat prolongation_mat = NULL;
+        Mat prolongation_mat = nullptr;
         PETScMatUtilities::constructProlongationOp(prolongation_mat,
                                                    prolongation_op_type,
                                                    u_dof_index_idx,
@@ -239,7 +239,7 @@ main(int argc, char* argv[])
                                                  u_dof_index_idx,
                                                  patch_hierarchy->getPatchLevel(finest_ln),
                                                  data_synch_sched,
-                                                 SAMRAIPointer<RefineScheduleNd>(NULL));
+                                                 SAMRAIPointer<RefineScheduleNd>(nullptr));
 
         // Setup SAMRAI vector objects.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
@@ -264,21 +264,21 @@ main(int argc, char* argv[])
                              u_cc_var,
                              u_sc_idx,
                              u_sc_var,
-                             SAMRAIPointer<HierarchyGhostCellInterpolation>(NULL),
+                             SAMRAIPointer<HierarchyGhostCellInterpolation>(nullptr),
                              0.0,
                              synch_cf_interface);
         hier_math_ops.interp(f_cc_idx,
                              f_cc_var,
                              f_sc_idx,
                              f_sc_var,
-                             SAMRAIPointer<HierarchyGhostCellInterpolation>(NULL),
+                             SAMRAIPointer<HierarchyGhostCellInterpolation>(nullptr),
                              0.0,
                              synch_cf_interface);
         hier_math_ops.interp(e_cc_idx,
                              e_cc_var,
                              e_sc_idx,
                              e_sc_var,
-                             SAMRAIPointer<HierarchyGhostCellInterpolation>(NULL),
+                             SAMRAIPointer<HierarchyGhostCellInterpolation>(nullptr),
                              0.0,
                              synch_cf_interface);
 

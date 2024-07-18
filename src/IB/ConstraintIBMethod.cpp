@@ -628,9 +628,9 @@ ConstraintIBMethod::initializeHierarchyOperatorsandData()
 {
     // Obtain the Hierarchy data operations objects
     HierarchyDataOpsManagerNd* hier_ops_manager = HierarchyDataOpsManagerNd::getManager();
-    SAMRAIPointer<CellVariableNd<double> > cc_var = new CellVariableNd<double>("cc_var");
+    SAMRAIPointer<CellVariableNd<double> > cc_var = make_samrai_shared<CellVariableNd<double> >("cc_var");
     d_hier_cc_data_ops = hier_ops_manager->getOperationsDouble(cc_var, d_hierarchy, true);
-    SAMRAIPointer<SideVariableNd<double> > sc_var = new SideVariableNd<double>("sc_var");
+    SAMRAIPointer<SideVariableNd<double> > sc_var = make_samrai_shared<SideVariableNd<double> >("sc_var");
     d_hier_sc_data_ops = hier_ops_manager->getOperationsDouble(sc_var, d_hierarchy, true);
     d_wgt_cc_idx = getHierarchyMathOps()->getCellWeightPatchDescriptorIndex();
     d_wgt_sc_idx = getHierarchyMathOps()->getSideWeightPatchDescriptorIndex();
@@ -660,7 +660,7 @@ ConstraintIBMethod::registerConstraintIBKinematics(
         for (int struct_no = 0; struct_no < d_no_structures; ++struct_no)
         {
             if (ib_kinematics[struct_no].isNull())
-                TBOX_ERROR("NULL ConstraintIBKinematics encountered in vector at " << struct_no << std::endl);
+                TBOX_ERROR("nullptr ConstraintIBKinematics encountered in vector at " << struct_no << std::endl);
             else
                 d_ib_kinematics[struct_no] = ib_kinematics[struct_no];
         }
@@ -1387,7 +1387,8 @@ ConstraintIBMethod::calculateVolumeElement()
     // tracking of the Lagrangian points.
     VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
     const IntVectorNd cell_ghosts = 0;
-    SAMRAIPointer<CellVariableNd<int> > vol_cc_var = new CellVariableNd<int>(d_object_name + "::vol_cc_var");
+    SAMRAIPointer<CellVariableNd<int> > vol_cc_var =
+        make_samrai_shared<CellVariableNd<int> >(d_object_name + "::vol_cc_var");
     const int vol_cc_scratch_idx = var_db->registerVariableAndContext(vol_cc_var, d_scratch_context, cell_ghosts);
 
     const int coarsest_ln = 0;
@@ -2005,7 +2006,7 @@ ConstraintIBMethod::applyProjection()
         using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
         SynchronizationTransactionComponent coef_synch_transaction =
             SynchronizationTransactionComponent(d_rho_scratch_idx, "CONSERVATIVE_COARSEN");
-        SAMRAIPointer<SideDataSynchronization> side_synch_op = new SideDataSynchronization();
+        auto side_synch_op = make_samrai_shared<SideDataSynchronization>();
         side_synch_op->initializeOperatorState(coef_synch_transaction, d_hierarchy);
         side_synch_op->synchronizeData(d_FuRMoRP_new_time);
         d_velcorrection_projection_spec->setDPatchDataId(d_rho_scratch_idx);
@@ -2039,7 +2040,7 @@ ConstraintIBMethod::applyProjection()
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent Phi_bc_component(
         d_phi_idx, "LINEAR_REFINE", true, "CUBIC_COARSEN", "LINEAR", false, &d_velcorrection_projection_bc_coef);
-    SAMRAIPointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
+    auto Phi_bdry_bc_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
     Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
 
     // Fill the physical boundary conditions for Phi.
@@ -2374,7 +2375,7 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
                                                 nullptr);
     transaction_comps.push_back(component);
 
-    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
     const bool homogeneous_bc = true;
     hier_bdry_fill->setHomogeneousBc(homogeneous_bc);

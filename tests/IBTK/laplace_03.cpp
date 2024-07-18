@@ -59,54 +59,54 @@ main(int argc, char* argv[])
 
         // Parse command line options, set some standard options from the input
         // file, and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "vc_laplace.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "vc_laplace.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
 
         // Create major algorithm and data objects that comprise the
         // application.  These objects are configured from the input database.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         // Create variables and register them with the variable database.
         VariableDatabaseNd* var_db = VariableDatabaseNd::getDatabase();
         SAMRAIPointer<VariableContext> ctx = var_db->getContext("context");
 
-        SAMRAIPointer<SideVariableNd<double> > u_side_var = new SideVariableNd<double>("u_side");
-        SAMRAIPointer<SideVariableNd<double> > f_side_var = new SideVariableNd<double>("f_side");
-        SAMRAIPointer<SideVariableNd<double> > e_side_var = new SideVariableNd<double>("e_side");
+        SAMRAIPointer<SideVariableNd<double> > u_side_var = make_samrai_shared<SideVariableNd<double> >("u_side");
+        SAMRAIPointer<SideVariableNd<double> > f_side_var = make_samrai_shared<SideVariableNd<double> >("f_side");
+        SAMRAIPointer<SideVariableNd<double> > e_side_var = make_samrai_shared<SideVariableNd<double> >("e_side");
 
         const int u_side_idx = var_db->registerVariableAndContext(u_side_var, ctx, IntVectorNd(1));
         const int f_side_idx = var_db->registerVariableAndContext(f_side_var, ctx, IntVectorNd(1));
         const int e_side_idx = var_db->registerVariableAndContext(e_side_var, ctx, IntVectorNd(1));
 
-        SAMRAIPointer<CellVariableNd<double> > u_cell_var = new CellVariableNd<double>("u_cell", NDIM);
-        SAMRAIPointer<CellVariableNd<double> > f_cell_var = new CellVariableNd<double>("f_cell", NDIM);
-        SAMRAIPointer<CellVariableNd<double> > e_cell_var = new CellVariableNd<double>("e_cell", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > u_cell_var = make_samrai_shared<CellVariableNd<double> >("u_cell", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > f_cell_var = make_samrai_shared<CellVariableNd<double> >("f_cell", NDIM);
+        SAMRAIPointer<CellVariableNd<double> > e_cell_var = make_samrai_shared<CellVariableNd<double> >("e_cell", NDIM);
 
         const int u_cell_idx = var_db->registerVariableAndContext(u_cell_var, ctx, IntVectorNd(0));
         const int f_cell_idx = var_db->registerVariableAndContext(f_cell_var, ctx, IntVectorNd(0));
         const int e_cell_idx = var_db->registerVariableAndContext(e_cell_var, ctx, IntVectorNd(0));
 
 #if (NDIM == 2)
-        SAMRAIPointer<NodeVariableNd<double> > mu_node_var = new NodeVariableNd<double>("mu_node");
+        SAMRAIPointer<NodeVariableNd<double> > mu_node_var = make_samrai_shared<NodeVariableNd<double> >("mu_node");
         const int mu_node_idx = var_db->registerVariableAndContext(mu_node_var, ctx, IntVectorNd(1));
 #endif
 #if (NDIM == 3)
-        SAMRAIPointer<EdgeVariableNd<double> > mu_edge_var = new EdgeVariableNd<double>("mu_edge");
+        SAMRAIPointer<EdgeVariableNd<double> > mu_edge_var = make_samrai_shared<EdgeVariableNd<double> >("mu_edge");
         const int mu_edge_idx = var_db->registerVariableAndContext(mu_edge_var, ctx, IntVectorNd(1));
-        SAMRAIPointer<CellVariableNd<double> > mu_cell_var = new CellVariableNd<double>("mu_cell");
+        SAMRAIPointer<CellVariableNd<double> > mu_cell_var = make_samrai_shared<CellVariableNd<double> >("mu_cell");
         const int mu_cell_idx = var_db->registerVariableAndContext(mu_cell_var, ctx, IntVectorNd(0));
 #endif
         // Register variables for plotting.
@@ -191,7 +191,7 @@ main(int argc, char* argv[])
         vector<InterpolationTransactionComponent> transactions(2);
         transactions[0] = u_transaction;
         transactions[1] = mu_transaction;
-        SAMRAIPointer<HierarchyGhostCellInterpolation> bdry_fill_op = new HierarchyGhostCellInterpolation();
+        auto bdry_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
         bdry_fill_op->initializeOperatorState(transactions, patch_hierarchy);
 #endif
 #if (NDIM == 3)
@@ -200,7 +200,7 @@ main(int argc, char* argv[])
         vector<InterpolationTransactionComponent> transactions(2);
         transactions[0] = u_transaction;
         transactions[1] = mu_transaction;
-        SAMRAIPointer<HierarchyGhostCellInterpolation> bdry_fill_op = new HierarchyGhostCellInterpolation();
+        auto bdry_fill_op = make_samrai_shared<HierarchyGhostCellInterpolation>();
         bdry_fill_op->initializeOperatorState(transactions, patch_hierarchy);
 #endif
         // Fill ghost cells
@@ -258,9 +258,9 @@ main(int argc, char* argv[])
 
         // Interpolate the side-centered data to cell centers for output.
         static const bool synch_cf_interface = true;
-        hier_math_ops.interp(u_cell_idx, u_cell_var, u_side_idx, u_side_var, NULL, data_time, synch_cf_interface);
-        hier_math_ops.interp(f_cell_idx, f_cell_var, f_side_idx, f_side_var, NULL, data_time, synch_cf_interface);
-        hier_math_ops.interp(e_cell_idx, e_cell_var, e_side_idx, e_side_var, NULL, data_time, synch_cf_interface);
+        hier_math_ops.interp(u_cell_idx, u_cell_var, u_side_idx, u_side_var, nullptr, data_time, synch_cf_interface);
+        hier_math_ops.interp(f_cell_idx, f_cell_var, f_side_idx, f_side_var, nullptr, data_time, synch_cf_interface);
+        hier_math_ops.interp(e_cell_idx, e_cell_var, e_side_idx, e_side_var, nullptr, data_time, synch_cf_interface);
 
 #if (NDIM == 3)
         // Interpolate the edge-centered data to cell centers for output.

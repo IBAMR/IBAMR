@@ -302,9 +302,12 @@ AdvDiffStochasticForcing::setDataOnPatchHierarchy(const int data_idx,
                     const BoundaryBoxNd trimmed_bdry_box(
                         bdry_box.getBox() * bc_fill_box, bdry_box.getBoundaryType(), location_index);
                     const BoxNd bc_coef_box = PhysicalBoundaryUtilities::makeSideBoundaryCodim1Box(trimmed_bdry_box);
-                    SAMRAIPointer<ArrayDataNd<double> > acoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                    SAMRAIPointer<ArrayDataNd<double> > bcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
-                    SAMRAIPointer<ArrayDataNd<double> > gcoef_data = new ArrayDataNd<double>(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > acoef_data =
+                        make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > bcoef_data =
+                        make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
+                    SAMRAIPointer<ArrayDataNd<double> > gcoef_data =
+                        make_samrai_shared<ArrayDataNd<double> >(bc_coef_box, 1);
 
                     // Set the boundary condition coefficients and use them to
                     // rescale the stochastic fluxes.

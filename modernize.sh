@@ -216,6 +216,17 @@ perl -pi -e 's/SAMRAISAMRAIPointer/SAMRAIPointer/g' `(find . -name \*.cpp -o -na
 perl -pi -e 's/SAMRAISAMRAIConstPointer/SAMRAIConstPointer/g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
 perl -pi -e 's/SAMRAIConstSAMRAIPointer/SAMRAIConstPointer/g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep -v contrib)`
 
+perl -pi -e 's/IBTK::SAMRAIPointer/SAMRAIPointer/g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep ibtk)`
+perl -pi -e 's/IBTK::SAMRAIConstPointer/SAMRAIConstPointer/g' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h | grep ibtk)`
 
-perl -i~ -0pe 's/IBTK::SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+[^\s]+\(/auto $2 = IBTK::make_samrai_shared<$1>\(/gm' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h)`
-perl -i~ -0pe 's/SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+[^\s]+\(/auto $2 = make_samrai_shared<$1>\(/gm' `(find . -name \*.cpp -o -name \*.h | grep -v samrai_compatability.h)`
+# do not use "new" to initialize a SAMRAIPointer
+perl -i~ -0pe 's/IBTK::SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+([^(]+)\(/IBTK::SAMRAIPointer<$1> $2 = IBTK::make_samrai_shared\<$3\>\(/gm' `(find . -name \*.h | grep -v samrai_compatability.h)`
+perl -i~ -0pe 's/SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+([^(]+)\(/SAMRAIPointer<$1> $2 = make_samrai_shared\<$3\>\(/gm' `(find . -name \*.h | grep -v samrai_compatability.h)`
+
+# use auto if the types on the LHS and the RHS are the same:
+perl -i~ -0pe 's/IBTK::SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+\1\(/auto $2 = IBTK::make_samrai_shared\<$1\>\(/gm' `(find . -name \*.cpp | grep -v samrai_compatability.h)`
+perl -i~ -0pe 's/SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+\1\(/auto $2 = make_samrai_shared\<$1\>\(/gm' `(find . -name \*.cpp | grep -v samrai_compatability.h)`
+
+# but don't use auto if the types on the LHS and RHS are different; conversion of Pointer<T> is not robust:
+perl -i~ -0pe 's/IBTK::SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+([^(]+)\(/IBTK::SAMRAIPointer\<$1\> $2 = IBTK::make_samrai_shared\<$3\>\(/gm' `(find . -name \*.cpp | grep -v samrai_compatability.h)`
+perl -i~ -0pe 's/SAMRAIPointer\<(.*)\>\s+([^,\s]+)\s+=\s+new\s+([^(]+)\(/SAMRAIPointer\<$1\> $2 = make_samrai_shared\<$3\>\(/gm' `(find . -name \*.cpp | grep -v samrai_compatability.h)`

@@ -208,8 +208,8 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
             if (!d_level->checkAllocated(d_u_nullspace_idx)) d_level->allocatePatchData(d_u_nullspace_idx);
             if (!d_level->checkAllocated(d_p_nullspace_idx)) d_level->allocatePatchData(d_p_nullspace_idx);
 
-            SAMRAIPointer<SAMRAIVectorRealNd<double> > nullspace_vec =
-                new SAMRAIVectorRealNd<double>(d_object_name + "nullspace_vec", d_hierarchy, d_level_num, d_level_num);
+            SAMRAIPointer<SAMRAIVectorRealNd<double> > nullspace_vec = make_samrai_shared<SAMRAIVectorRealNd<double> >(
+                d_object_name + "nullspace_vec", d_hierarchy, d_level_num, d_level_num);
             nullspace_vec->addComponent(d_u_nullspace_var, d_u_nullspace_idx);
             nullspace_vec->addComponent(d_p_nullspace_var, d_p_nullspace_idx);
             for (PatchLevelNd::Iterator p(d_level); p; p++)

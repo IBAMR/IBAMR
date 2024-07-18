@@ -93,7 +93,7 @@ public:
         SAMRAIPointer<SAMRAI::hier::PatchNd> patch,
         double data_time,
         bool initial_time = false,
-        SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level = SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(NULL)) override;
+        SAMRAIPointer<SAMRAI::hier::PatchLevelNd> level = SAMRAIPointer<SAMRAI::hier::PatchLevelNd>(nullptr)) override;
 
     //\}
 

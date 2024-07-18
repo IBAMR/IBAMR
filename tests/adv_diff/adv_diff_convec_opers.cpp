@@ -69,35 +69,35 @@ main(int argc, char* argv[])
         // Parse command line options, set some standard options from the input
         // file, initialize the restart database (if this is a restarted run),
         // and enable file logging.
-        SAMRAIPointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "adv_diff.log");
+        auto app_initializer = make_samrai_shared<AppInitializer>(argc, argv, "adv_diff.log");
         SAMRAIPointer<Database> input_db = app_initializer->getInputDatabase();
         SAMRAIPointer<Database> main_db = app_initializer->getComponentDatabase("Main");
 
         // Create major algorithm and data objects that comprise the
         // application.
-        SAMRAIPointer<CartesianGridGeometryNd> grid_geometry = new CartesianGridGeometryNd(
+        auto grid_geometry = make_samrai_shared<CartesianGridGeometryNd>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        SAMRAIPointer<PatchHierarchyNd> patch_hierarchy = new PatchHierarchyNd("PatchHierarchy", grid_geometry);
-        SAMRAIPointer<StandardTagAndInitializeNd> error_detector = new StandardTagAndInitializeNd(
+        auto patch_hierarchy = make_samrai_shared<PatchHierarchyNd>("PatchHierarchy", grid_geometry);
+        auto error_detector = make_samrai_shared<StandardTagAndInitializeNd>(
             "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        SAMRAIPointer<BergerRigoutsosNd> box_generator = new BergerRigoutsosNd();
-        SAMRAIPointer<LoadBalancerNd> load_balancer =
-            new LoadBalancerNd("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        SAMRAIPointer<GriddingAlgorithmNd> gridding_algorithm =
-            new GriddingAlgorithmNd("GriddingAlgorithm",
-                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
-                                    error_detector,
-                                    box_generator,
-                                    load_balancer);
+        auto box_generator = make_samrai_shared<BergerRigoutsosNd>();
+        auto load_balancer =
+            make_samrai_shared<LoadBalancerNd>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
+        auto gridding_algorithm =
+            make_samrai_shared<GriddingAlgorithmNd>("GriddingAlgorithm",
+                                                    app_initializer->getComponentDatabase("GriddingAlgorithm"),
+                                                    error_detector,
+                                                    box_generator,
+                                                    load_balancer);
 
         SAMRAIPointer<VisItDataWriterNd> visit_writer = app_initializer->getVisItDataWriter();
 
         auto var_db = VariableDatabaseNd::getDatabase();
         SAMRAIPointer<VariableContext> var_ctx = var_db->getContext("Context");
-        SAMRAIPointer<CellVariableNd<double> > q_var = new CellVariableNd<double>("CC_var");
-        SAMRAIPointer<CellVariableNd<double> > convec_var = new CellVariableNd<double>("Convec var");
-        SAMRAIPointer<CellVariableNd<double> > exact_var = new CellVariableNd<double>("Exact var");
-        SAMRAIPointer<FaceVariableNd<double> > u_var = new FaceVariableNd<double>("U");
+        SAMRAIPointer<CellVariableNd<double> > q_var = make_samrai_shared<CellVariableNd<double> >("CC_var");
+        SAMRAIPointer<CellVariableNd<double> > convec_var = make_samrai_shared<CellVariableNd<double> >("Convec var");
+        SAMRAIPointer<CellVariableNd<double> > exact_var = make_samrai_shared<CellVariableNd<double> >("Exact var");
+        SAMRAIPointer<FaceVariableNd<double> > u_var = make_samrai_shared<FaceVariableNd<double> >("U");
 
         const int q_idx = var_db->registerVariableAndContext(q_var, var_ctx);
         const int convec_idx = var_db->registerVariableAndContext(convec_var, var_ctx);
@@ -110,12 +110,12 @@ main(int argc, char* argv[])
         visit_writer->registerPlotQuantity("Error", "SCALAR", exact_idx);
 #endif
 
-        SAMRAIPointer<muParserCartGridFunction> u_fcn =
-            new muParserCartGridFunction("U", app_initializer->getComponentDatabase("U"), grid_geometry);
-        SAMRAIPointer<muParserCartGridFunction> q_fcn =
-            new muParserCartGridFunction("Q", app_initializer->getComponentDatabase("Q"), grid_geometry);
-        SAMRAIPointer<muParserCartGridFunction> exact_fcn =
-            new muParserCartGridFunction("Exact", app_initializer->getComponentDatabase("Exact"), grid_geometry);
+        auto u_fcn = make_samrai_shared<muParserCartGridFunction>(
+            "U", app_initializer->getComponentDatabase("U"), grid_geometry);
+        auto q_fcn = make_samrai_shared<muParserCartGridFunction>(
+            "Q", app_initializer->getComponentDatabase("Q"), grid_geometry);
+        auto exact_fcn = make_samrai_shared<muParserCartGridFunction>(
+            "Exact", app_initializer->getComponentDatabase("Exact"), grid_geometry);
 
         const IntVectorNd& periodic_shift = grid_geometry->getPeriodicShift();
         std::vector<RobinBcCoefStrategyNd*> q_bc_coefs(1);

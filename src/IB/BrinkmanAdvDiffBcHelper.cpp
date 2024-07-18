@@ -432,7 +432,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<Cell
                                               "LINEAR",
                                               false,
                                               d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
-        SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
         hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
         hier_bdry_fill->fillData(d_new_time);
 
@@ -499,8 +499,9 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, SAMRAIPointer<Cell
         }
         // Compute C += div(chi * n) - chi * div(n) throughout the hierarchy.
         hier_math_ops->div(
-            d_div_n_chi_scratch_idx, d_div_var, 1.0, d_n_chi_scratch_idx, d_n_var, NULL, d_current_time, false);
-        hier_math_ops->div(d_div_n_scratch_idx, d_div_var, 1.0, d_n_scratch_idx, d_n_var, NULL, d_current_time, false);
+            d_div_n_chi_scratch_idx, d_div_var, 1.0, d_n_chi_scratch_idx, d_n_var, nullptr, d_current_time, false);
+        hier_math_ops->div(
+            d_div_n_scratch_idx, d_div_var, 1.0, d_n_scratch_idx, d_n_var, nullptr, d_current_time, false);
         hier_cc_data_ops.multiply(d_div_n_scratch_idx, d_chi_scratch_idx, d_div_n_scratch_idx);
         // Ensure that we don't overwrite contributions from other BCs.
         hier_cc_data_ops.add(C_idx, C_idx, d_div_n_chi_scratch_idx);
@@ -551,7 +552,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
                                               false,
                                               d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
     }
-    SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
     hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
     hier_bdry_fill->fillData(d_new_time);
 
@@ -792,7 +793,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<CellVariableNd<
                                                   "LINEAR",
                                                   false,
                                                   d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
-            SAMRAIPointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+            auto hier_bdry_fill = make_samrai_shared<HierarchyGhostCellInterpolation>();
             hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
             hier_bdry_fill->fillData(d_new_time);
 
@@ -857,9 +858,9 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, SAMRAIPointer<CellVariableNd<
             }
             // Compute F += div(chi * B) - chi * div(B) throughout the hierarchy.
             hier_math_ops->div(
-                d_div_B_chi_scratch_idx, d_div_var, 1.0, d_B_chi_scratch_idx, d_B_var, NULL, d_current_time, false);
+                d_div_B_chi_scratch_idx, d_div_var, 1.0, d_B_chi_scratch_idx, d_B_var, nullptr, d_current_time, false);
             hier_math_ops->div(
-                d_div_B_scratch_idx, d_div_var, 1.0, d_B_scratch_idx, d_B_var, NULL, d_current_time, false);
+                d_div_B_scratch_idx, d_div_var, 1.0, d_B_scratch_idx, d_B_var, nullptr, d_current_time, false);
             hier_cc_data_ops.multiply(d_div_B_scratch_idx, d_chi_scratch_idx, d_div_B_scratch_idx);
             // Ensure that we don't overwrite contributions from other BCs.
             hier_cc_data_ops.add(F_idx, F_idx, d_div_B_chi_scratch_idx);
