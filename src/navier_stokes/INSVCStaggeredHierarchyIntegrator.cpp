@@ -860,7 +860,7 @@ INSVCStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHi
             TBOX_ASSERT(!d_mu_var);
             TBOX_ASSERT(!d_mu_init_fcn);
 #endif
-            d_mu_var = Pointer<CellVariable<NDIM, double> >(nullptr);
+            d_mu_var = nullptr;
             // Ensure that boundary conditions are provided by the advection-diffusion
             // integrator
             d_mu_bc_coef =

@@ -86,7 +86,7 @@ public:
                         Pointer<Patch<NDIM> > patch,
                         const double /*data_time*/,
                         const bool /*initial_time*/,
-                        Pointer<PatchLevel<NDIM> > /*level*/ = Pointer<PatchLevel<NDIM> >(nullptr))
+                        Pointer<PatchLevel<NDIM> > /*level*/ = nullptr)
     {
         Pointer<FaceData<NDIM, double> > u_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
