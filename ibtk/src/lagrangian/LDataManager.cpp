@@ -2666,7 +2666,7 @@ LDataManager::LDataManager(std::string object_name,
     d_scratch_data.setFlag(d_lag_node_index_scratch_idx);
 
     // Setup a refine algorithm, used to fill LNode boundary data.
-    Pointer<RefineOperator<NDIM> > lag_node_index_bdry_fill_op = Pointer<RefineOperator<NDIM> >(nullptr);
+    Pointer<RefineOperator<NDIM> > lag_node_index_bdry_fill_op = nullptr;
     d_lag_node_index_bdry_fill_alg = new RefineAlgorithm<NDIM>();
     d_lag_node_index_bdry_fill_alg->registerRefine(d_lag_node_index_current_idx,
                                                    d_lag_node_index_current_idx,
