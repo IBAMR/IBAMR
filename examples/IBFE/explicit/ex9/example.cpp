@@ -283,7 +283,7 @@ main(int argc, char* argv[])
         EquationSystems* bndry_equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
 
         // Setup solid systems.
-        std::unique_ptr<EquationSystems> solid_equation_systems(new EquationSystems(solid_mesh));
+        std::unique_ptr<EquationSystems> solid_equation_systems = std::make_unique<EquationSystems>(solid_mesh);
         x_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("position");
         u_solid_system = &solid_equation_systems->add_system<ExplicitSystem>("velocity");
         Order order = SECOND;
@@ -385,8 +385,10 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        std::unique_ptr<ExodusII_IO> exodus_solid_io(uses_exodus ? new ExodusII_IO(solid_mesh) : nullptr);
-        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(boundary_mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_solid_io =
+            uses_exodus ? std::make_unique<ExodusII_IO>(solid_mesh) : nullptr;
+        std::unique_ptr<ExodusII_IO> exodus_bndry_io =
+            uses_exodus ? std::make_unique<ExodusII_IO>(boundary_mesh) : nullptr;
 
         // Check to see if this is a restarted run to append current exodus files
         if (uses_exodus)
