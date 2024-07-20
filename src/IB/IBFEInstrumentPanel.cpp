@@ -260,7 +260,7 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
         // Create triangular elements.
         for (unsigned int i = 0; i < d_num_perim_nodes[meter_idx]; ++i)
         {
-            Elem* elem = new Tri3;
+            Elem* elem = new Tri3();
             elem->set_id(i);
             // libMesh will delete elem
             elem = d_meter_meshes[meter_idx]->add_elem(elem);
