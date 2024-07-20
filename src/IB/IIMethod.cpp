@@ -3021,7 +3021,7 @@ IIMethod::initializeFEEquationSystems()
     d_equation_systems.resize(d_num_parts, nullptr);
     d_fe_data_managers.resize(d_num_parts, nullptr);
     IntVector<NDIM> min_ghost_width(0);
-    if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
+    if (!d_eulerian_data_cache) d_eulerian_data_cache = std::make_unique<SAMRAIDataCache>();
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE equation systems objects and corresponding variables.

@@ -518,7 +518,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
     {
         d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d, d_bc_coefs);
     }
-    d_Phi_bc_coef.reset(new INSProjectionBcCoef(d_bc_coefs));
+    d_Phi_bc_coef = std::make_unique<INSProjectionBcCoef>(d_bc_coefs);
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();

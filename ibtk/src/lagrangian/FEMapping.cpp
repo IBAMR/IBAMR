@@ -129,15 +129,15 @@ FEMapping<2, 2>::build(const key_type key, const FEUpdateFlags update_flags)
     switch (std::get<0>(key))
     {
     case libMesh::ElemType::TRI3:
-        return std::unique_ptr<FEMapping<2, 2> >(new Tri3Mapping(key, update_flags));
+        return std::make_unique<Tri3Mapping>(key, update_flags);
     case libMesh::ElemType::TRI6:
-        return std::unique_ptr<FEMapping<2, 2> >(new Tri6Mapping(key, update_flags));
+        return std::make_unique<Tri6Mapping>(key, update_flags);
     case libMesh::ElemType::QUAD4:
-        return std::unique_ptr<FEMapping<2, 2> >(new Quad4Mapping(key, update_flags));
+        return std::make_unique<Quad4Mapping>(key, update_flags);
     case libMesh::ElemType::QUAD9:
-        return std::unique_ptr<FEMapping<2, 2> >(new Quad9Mapping(key, update_flags));
+        return std::make_unique<Quad9Mapping>(key, update_flags);
     default:
-        return std::unique_ptr<FEMapping<2, 2> >(new FELagrangeMapping<2, 2>(key, std::get<0>(key), update_flags));
+        return std::make_unique<FELagrangeMapping<2, 2> >(key, std::get<0>(key), update_flags);
     }
 
     return {};
@@ -150,16 +150,15 @@ FEMapping<3, 3>::build(const key_type key, const FEUpdateFlags update_flags)
     switch (std::get<0>(key))
     {
     case libMesh::ElemType::TET4:
-        return std::unique_ptr<FEMapping<3, 3> >(new Tet4Mapping(key, update_flags));
+        return std::make_unique<Tet4Mapping>(key, update_flags);
     case libMesh::ElemType::TET10:
-        return std::unique_ptr<FEMapping<3, 3> >(new Tet10Mapping(key, update_flags));
+        return std::make_unique<Tet10Mapping>(key, update_flags);
     case libMesh::ElemType::HEX8:
-        return std::unique_ptr<FEMapping<3, 3> >(
-            new FELagrangeMapping<3, 3, 8>(key, libMesh::ElemType::HEX8, update_flags));
+        return std::make_unique<FELagrangeMapping<3, 3, 8> >(key, libMesh::ElemType::HEX8, update_flags);
     case libMesh::ElemType::HEX27:
-        return std::unique_ptr<FEMapping<3, 3> >(new Hex27Mapping(key, update_flags));
+        return std::make_unique<Hex27Mapping>(key, update_flags);
     default:
-        return std::unique_ptr<FEMapping<3, 3> >(new FELagrangeMapping<3, 3>(key, std::get<0>(key), update_flags));
+        return std::make_unique<FELagrangeMapping<3, 3> >(key, std::get<0>(key), update_flags);
     }
 
     return {};
@@ -169,8 +168,7 @@ template <int dim, int spacedim>
 std::unique_ptr<FEMapping<dim, spacedim> >
 FEMapping<dim, spacedim>::build(const key_type key, const FEUpdateFlags update_flags)
 {
-    return std::unique_ptr<FEMapping<dim, spacedim> >(
-        new FELagrangeMapping<dim, spacedim>(key, std::get<0>(key), update_flags));
+    return std::make_unique<FELagrangeMapping<dim, spacedim> >(key, std::get<0>(key), update_flags);
 }
 
 //

@@ -144,7 +144,7 @@ qrule_is_nodal(const FEType& fe_type, const QBase* const qrule)
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 FEProjector::FEProjector(EquationSystems* equation_systems, const Pointer<Database>& input_db)
-    : d_fe_data(new FEData("FEProjector", *equation_systems, /*register_for_restart*/ false)),
+    : d_fe_data(std::make_shared<FEData>("FEProjector", *equation_systems, /*register_for_restart*/ false)),
       d_enable_logging(input_db->getBoolWithDefault("enable_logging", false)),
       d_num_fischer_vectors(input_db->getIntegerWithDefault("num_fischer_vectors", 5))
 {
@@ -214,9 +214,9 @@ FEProjector::buildL2ProjectionSolver(const std::string& system_name)
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Build solver components.
-        std::unique_ptr<PetscLinearSolver<double> > solver(new PetscLinearSolver<double>(comm));
+        std::unique_ptr<PetscLinearSolver<double> > solver = std::make_unique<PetscLinearSolver<double> >(comm);
 
-        std::unique_ptr<PetscMatrix<double> > M_mat(new PetscMatrix<double>(comm));
+        std::unique_ptr<PetscMatrix<double> > M_mat = std::make_unique<PetscMatrix<double> >(comm);
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
 
@@ -355,10 +355,10 @@ FEProjector::buildLumpedL2ProjectionSolver(const std::string& system_name)
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Build solver components.
-        std::unique_ptr<PetscLinearSolver<double> > solver(new PetscLinearSolver<double>(comm));
+        std::unique_ptr<PetscLinearSolver<double> > solver = std::make_unique<PetscLinearSolver<double> >(comm);
         solver->init();
 
-        std::unique_ptr<PetscMatrix<double> > M_mat(new PetscMatrix<double>(comm));
+        std::unique_ptr<PetscMatrix<double> > M_mat = std::make_unique<PetscMatrix<double> >(comm);
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
         MatSetOption(M_mat->mat(), MAT_IGNORE_ZERO_ENTRIES, PETSC_TRUE);
@@ -457,9 +457,9 @@ FEProjector::buildStabilizedL2ProjectionSolver(const std::string& system_name, c
         const std::vector<std::vector<double> >& phi = fe->get_phi();
 
         // Build solver components.
-        std::unique_ptr<PetscLinearSolver<double> > solver(new PetscLinearSolver<double>(comm));
+        std::unique_ptr<PetscLinearSolver<double> > solver = std::make_unique<PetscLinearSolver<double> >(comm);
 
-        std::unique_ptr<PetscMatrix<double> > M_mat(new PetscMatrix<double>(comm));
+        std::unique_ptr<PetscMatrix<double> > M_mat = std::make_unique<PetscMatrix<double> >(comm);
         M_mat->attach_dof_map(dof_map);
         M_mat->init();
 

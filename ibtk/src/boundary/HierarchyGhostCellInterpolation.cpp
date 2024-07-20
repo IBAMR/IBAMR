@@ -329,8 +329,8 @@ HierarchyGhostCellInterpolation::initializeOperatorState(
         }
     }
 
-    d_refine_strategy.reset(
-        new RefinePatchStrategySet(refine_patch_strategies.begin(), refine_patch_strategies.end(), false));
+    d_refine_strategy =
+        std::make_unique<RefinePatchStrategySet>(refine_patch_strategies.begin(), refine_patch_strategies.end(), false);
 
     d_refine_scheds.resize(d_finest_ln + 1);
     for (int dst_ln = d_coarsest_ln; dst_ln <= d_finest_ln; ++dst_ln)

@@ -398,7 +398,7 @@ main(int argc, char* argv[])
             input_db->getStringWithDefault("TIME_STEPPING_SCHEME", "MODIFIED_TRAPEZOIDAL_RULE");
 
         // Set up visualization plot file writers.
-        unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : nullptr);
+        unique_ptr<ExodusII_IO> exodus_io = uses_exodus ? std::make_unique<ExodusII_IO>(mesh) : nullptr;
 
         // Initialize solver data.
         fem_solver->initializeFEData();

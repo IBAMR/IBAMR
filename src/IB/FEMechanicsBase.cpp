@@ -501,7 +501,7 @@ FEMechanicsBase::doInitializeFEEquationSystems()
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         // Create FE equation systems objects and corresponding variables.
-        d_equation_systems[part].reset(new EquationSystems(*d_meshes[part]));
+        d_equation_systems[part] = std::make_unique<EquationSystems>(*d_meshes[part]);
         EquationSystems& equation_systems = *d_equation_systems[part];
         d_fe_data[part] = std::make_shared<FEData>(
             d_object_name + "::FEData::" + std::to_string(part), equation_systems, d_registered_for_restart);

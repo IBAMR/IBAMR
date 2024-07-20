@@ -133,7 +133,7 @@ SecondaryHierarchy::SecondaryHierarchy(std::string name,
                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> gridding_algorithm_db,
                                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> load_balancer_db)
     : d_object_name(name),
-      d_tag_strategy(std::unique_ptr<CopyRefinementTags>(new CopyRefinementTags())),
+      d_tag_strategy(std::make_unique<CopyRefinementTags>()),
       d_eulerian_data_cache(std::make_shared<SAMRAIDataCache>())
 {
     auto set_timer = [&](const char* name) { return tbox::TimerManager::getManager()->getTimer(name); };

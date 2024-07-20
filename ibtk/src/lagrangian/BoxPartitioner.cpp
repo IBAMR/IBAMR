@@ -60,7 +60,7 @@ BoxPartitioner::BoxPartitioner(const PartitioningBoxes& bounding_boxes, const Sy
 std::unique_ptr<Partitioner>
 BoxPartitioner::clone() const
 {
-    return std::unique_ptr<Partitioner>(new BoxPartitioner(d_partitioning_boxes, *d_position_system));
+    return std::make_unique<BoxPartitioner>(d_partitioning_boxes, *d_position_system);
 } // clone
 
 void

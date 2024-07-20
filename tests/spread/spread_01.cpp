@@ -118,7 +118,7 @@ main(int argc, char** argv)
 
         // Create a simple FE mesh.
         std::vector<std::unique_ptr<ReplicatedMesh> > meshes;
-        meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+        meshes.emplace_back(std::make_unique<ReplicatedMesh>(init.comm(), NDIM));
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         const std::string elem_str = input_db->getString("ELEM_TYPE");

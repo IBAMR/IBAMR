@@ -245,8 +245,8 @@ CFINSForcing::commonConstructor(const Pointer<Database> input_db,
         {
             const std::string bc_coefs_name = "c_bc_coef_" + std::to_string(d);
             const std::string bc_coefs_db_name = "ExtraStressBoundaryConditions_" + std::to_string(d);
-            d_conc_bc_coefs[d].reset(
-                new muParserRobinBcCoefs(bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geom));
+            d_conc_bc_coefs[d] = std::make_unique<muParserRobinBcCoefs>(
+                bc_coefs_name, input_db->getDatabase(bc_coefs_db_name), grid_geom);
             d_conc_bc_coefs_ptrs.push_back(d_conc_bc_coefs[d].get());
         }
         d_adv_diff_integrator->setPhysicalBcCoefs(d_C_cc_var, d_conc_bc_coefs_ptrs);
