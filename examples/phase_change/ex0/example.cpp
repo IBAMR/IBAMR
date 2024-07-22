@@ -26,6 +26,7 @@
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/EnthalpyHierarchyIntegrator.h>
 #include <ibamr/INSStaggeredHierarchyIntegrator.h>
+#include <ibamr/PhaseChangeUtilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
@@ -34,10 +35,6 @@
 #include <ibtk/muParserRobinBcCoefs.h>
 
 #include <ibamr/app_namespaces.h>
-
-// Application
-#include "SetFluidProperties.h"
-#include "TagInterfaceRefinementCells.h"
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -202,34 +199,48 @@ main(int argc, char* argv[])
         const double rho_liquid = input_db->getDouble("RHO_L");
         const double rho_solid = input_db->getDouble("RHO_S");
 
+        // There are no gas phase in this example. So Heaviside is already set to 1 to denote PCM. So the properties in
+        // the gas phase are arbitrary.
+        const double kappa_gas = 0.0;
+        const double Cp_gas = 0.0;
+        const double rho_gas = 0.0;
+
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
-        SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
-                                                                            time_integrator,
-                                                                            lf_var,
-                                                                            lf_bc_coef,
-                                                                            rho_liquid,
-                                                                            rho_solid,
-                                                                            kappa_liquid,
-                                                                            kappa_solid,
-                                                                            Cp_liquid,
-                                                                            Cp_solid);
+        IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
+                                                                              time_integrator,
+                                                                              H_var,
+                                                                              H_bc_coef,
+                                                                              lf_var,
+                                                                              lf_bc_coef,
+                                                                              rho_liquid,
+                                                                              rho_solid,
+                                                                              rho_gas,
+                                                                              kappa_liquid,
+                                                                              kappa_solid,
+                                                                              kappa_gas,
+                                                                              Cp_liquid,
+                                                                              Cp_solid,
+                                                                              Cp_gas);
 
-        enthalpy_hier_integrator->registerResetDiffusionCoefficientFcn(&callSetLiquidSolidConductivityCallbackFunction,
-                                                                       static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
+                                                          static_cast<void*>(&setSetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetSpecificHeatFcn(&callSetLiquidSolidSpecificHeatCallbackFunction,
-                                                               static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetDiffusionCoefficientFcn(
+            &IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction,
+            static_cast<void*>(&setSetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetDensityFcn(&callSetLiquidSolidDensityCallbackFunction,
-                                                          static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetSpecificHeatFcn(
+            &IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,
+            static_cast<void*>(&setSetFluidProperties));
 
         // Tag cells for refinement
         const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
         const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
-        TagInterfaceRefinementCells tagger(enthalpy_hier_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
+        IBAMR::PhaseChangeUtilities::TagLiquidFractionRefinementCells tagger(
+            enthalpy_hier_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
         enthalpy_hier_integrator->registerApplyGradientDetectorCallback(
-            &callTagInterfaceRefinementCellsCallbackFunction, static_cast<void*>(&tagger));
+            &IBAMR::PhaseChangeUtilities::calltagLiquidFractionCellsCallbackFunction, static_cast<void*>(&tagger));
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -303,10 +314,6 @@ main(int argc, char* argv[])
                 TimerManager::getManager()->print(plog);
             }
         }
-
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        delete ptr_SetFluidProperties;
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main
