@@ -46,8 +46,6 @@
 // Application
 #include "LSLocateInterface.h"
 #include "LevelSetInitialCondition.h"
-#include "SetFluidProperties.h"
-#include "TagInterfaceRefinementCells.h"
 
 struct SynchronizeLevelSetCtx
 {

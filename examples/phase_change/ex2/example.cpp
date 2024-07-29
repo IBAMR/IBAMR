@@ -28,7 +28,9 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
+#include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 
 #include <ibtk/AppInitializer.h>
@@ -43,8 +45,6 @@
 // Application
 #include "LSLocateInterface.h"
 #include "LevelSetInitialCondition.h"
-#include "SetFluidProperties.h"
-#include "SetLSProperties.h"
 
 struct SynchronizeLevelSetCtx
 {
@@ -189,9 +189,9 @@ main(int argc, char* argv[])
             new LSLocateInterface("LSLocateInterface", adv_diff_integrator, ls_var, bubble_radius);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            ls_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // register liquid fraction
         Pointer<CellVariable<NDIM, double> > lf_var = new CellVariable<NDIM, double>("lf_var");
@@ -367,7 +367,6 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(ls_var, ls_bc_coef);
         }
 
-        // Array for input into callback function
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
         const double kappa_solid = input_db->getDouble("KAPPA_S");
         const double kappa_gas = input_db->getDouble("KAPPA_G");
@@ -383,12 +382,12 @@ main(int argc, char* argv[])
 
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
-        SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
+        IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
                                                                             adv_diff_integrator,
-                                                                            lf_var,
-                                                                            lf_bc_coef,
                                                                             H_var,
                                                                             H_bc_coef,
+                                                                            lf_var,
+                                                                            lf_bc_coef,
                                                                             rho_liquid,
                                                                             rho_solid,
                                                                             rho_gas,
@@ -402,19 +401,19 @@ main(int argc, char* argv[])
                                                                             mu_solid,
                                                                             mu_gas);
 
-        time_integrator->registerResetFluidDensityFcn(&callSetLiquidSolidGasDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&callSetLiquidGasSolidViscosityCallbackFunction,
-                                                        static_cast<void*>(ptr_SetFluidProperties));
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
+                                                      static_cast<void*>(&setSetFluidProperties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::PhaseChangeUtilities::callSetViscosityCallbackFunction,
+                                                        static_cast<void*>(&setSetFluidProperties));
 
         enthalpy_hier_integrator->registerResetDiffusionCoefficientFcn(
-            &callSetLiquidSolidGasConductivityCallbackFunction, static_cast<void*>(ptr_SetFluidProperties));
+            &IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction, static_cast<void*>(&setSetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetSpecificHeatFcn(&callSetLiquidSolidGasSpecificHeatCallbackFunction,
-                                                               static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetSpecificHeatFcn(&IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,
+                                                               static_cast<void*>(&setSetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetDensityFcn(&callSetLiquidSolidGasDensityCallbackFunction,
-                                                          static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
+                                                          static_cast<void*>(&setSetFluidProperties));
 
         // Register H Div U term in the Heaviside equation.
         Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F");
@@ -501,10 +500,6 @@ main(int argc, char* argv[])
                 TimerManager::getManager()->print(plog);
             }
         }
-
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        delete ptr_SetFluidProperties;
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

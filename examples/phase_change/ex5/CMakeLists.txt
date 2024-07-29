@@ -21,7 +21,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-phase_change
   SOURCES
-    example.cpp LiquidFractionInitialCondition.cpp SetFluidProperties.cpp TemperatureInitialCondition.cpp TagInterfaceRefinementCells.cpp
+    example.cpp LiquidFractionInitialCondition.cpp TemperatureInitialCondition.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES

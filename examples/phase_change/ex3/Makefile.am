@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp GravityForcing.cpp GravityForcing.h LSLocateInterface.cpp LSLocateInterface.h LevelSetInitialCondition.cpp LevelSetInitialCondition.h LiquidFractionInitialCondition.cpp LiquidFractionInitialCondition.h SetFluidProperties.cpp SetFluidProperties.h SetLSProperties.cpp SetLSProperties.h TemperatureInitialCondition.cpp TemperatureInitialCondition.h
+EXAMPLE_DRIVER = example.cpp LSLocateInterface.cpp LSLocateInterface.h LevelSetInitialCondition.cpp LevelSetInitialCondition.h LiquidFractionInitialCondition.cpp LiquidFractionInitialCondition.h TemperatureInitialCondition.cpp TemperatureInitialCondition.h
 
 EXTRA_DIST = input2d
 #EXTRA_DIST += input3d

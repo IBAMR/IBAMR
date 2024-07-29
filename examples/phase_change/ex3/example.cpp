@@ -29,8 +29,11 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
+#include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyMathOps.h>
@@ -42,12 +45,9 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "GravityForcing.h"
 #include "LSLocateInterface.h"
 #include "LevelSetInitialCondition.h"
 #include "LiquidFractionInitialCondition.h"
-#include "SetFluidProperties.h"
-#include "SetLSProperties.h"
 #include "TemperatureInitialCondition.h"
 
 struct SynchronizeLevelSetCtx
@@ -193,9 +193,9 @@ main(int argc, char* argv[])
             new LSLocateInterface("LSLocateInterface", adv_diff_integrator, ls_var, initial_gas_pcm_interface_position);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            ls_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+                    ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // register liquid fraction
         Pointer<CellVariable<NDIM, double> > lf_var = new CellVariable<NDIM, double>("lf_var");
@@ -375,7 +375,6 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(ls_var, ls_bc_coef);
         }
 
-        // Array for input into callback function
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
         const double kappa_solid = input_db->getDouble("KAPPA_S");
         const double kappa_gas = input_db->getDouble("KAPPA_G");
@@ -391,12 +390,12 @@ main(int argc, char* argv[])
 
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
-        SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
+        IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
                                                                             adv_diff_integrator,
-                                                                            lf_var,
-                                                                            lf_bc_coef,
                                                                             H_var,
                                                                             H_bc_coef,
+                                                                            lf_var,
+                                                                            lf_bc_coef,
                                                                             rho_liquid,
                                                                             rho_solid,
                                                                             rho_gas,
@@ -410,19 +409,19 @@ main(int argc, char* argv[])
                                                                             mu_solid,
                                                                             mu_gas);
 
-        time_integrator->registerResetFluidDensityFcn(&callSetLiquidSolidGasDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&callSetLiquidGasSolidViscosityCallbackFunction,
-                                                        static_cast<void*>(ptr_SetFluidProperties));
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
+                                                              static_cast<void*>(&setSetFluidProperties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::PhaseChangeUtilities::callSetViscosityCallbackFunction,
+                                                        static_cast<void*>(&setSetFluidProperties));
 
         enthalpy_hier_integrator->registerResetDiffusionCoefficientFcn(
-            &callSetLiquidSolidGasConductivityCallbackFunction, static_cast<void*>(ptr_SetFluidProperties));
+            &IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction, static_cast<void*>(&setSetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetSpecificHeatFcn(&callSetLiquidSolidGasSpecificHeatCallbackFunction,
-                                                               static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetSpecificHeatFcn(&IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,
+                                                               static_cast<void*>(&setSetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetDensityFcn(&callSetLiquidSolidGasDensityCallbackFunction,
-                                                          static_cast<void*>(ptr_SetFluidProperties));
+        enthalpy_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
+                                                          static_cast<void*>(&setSetFluidProperties));
 
         // Register H Div U term in the Heaviside equation.
         Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>(H_var->getName() + "_F");
@@ -440,12 +439,7 @@ main(int argc, char* argv[])
         // Register gravity force.
         std::vector<double> grav_const(NDIM);
         input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
-        const string grav_type = input_db->getStringWithDefault("GRAV_TYPE", "FULL");
-        Pointer<CartGridFunction> grav_force;
-        if (grav_type == "FULL")
-        {
-            grav_force = new GravityForcing("GravityForcing", time_integrator, grav_const);
-        }
+        Pointer<CartGridFunction> grav_force = new IBAMR::VCINSUtilities::GravityForcing("GravityForcing", time_integrator, grav_const);
         time_integrator->registerBodyForceFunction(grav_force);
 
         // Configure the drag force object to enforce solid velocity to be zero.
@@ -564,8 +558,10 @@ main(int argc, char* argv[])
 
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
-        delete ptr_SetFluidProperties;
         pcm_mass_file.close();
+
+        // Cleanup pointers
+        delete ptr_LSLocateInterface;
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

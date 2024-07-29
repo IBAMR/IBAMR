@@ -191,7 +191,6 @@ main(int argc, char* argv[])
             enthalpy_hier_integrator->registerThermalConductivityBoundaryConditions(k_bc_coef);
         }
 
-        // Array for input into callback function
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
         const double kappa_solid = input_db->getDouble("KAPPA_S");
         const double Cp_liquid = input_db->getDouble("CP_L");
