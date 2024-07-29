@@ -30,7 +30,6 @@ MASS_CONSERVATION_FILE_NAME = "pcm_mass"
 
 G          =  9.81
 GRAV_CONST = 0.0,-G
-GRAV_TYPE  = "FULL"
 
 // grid spacing parameters
 L          = 1.0e-2
