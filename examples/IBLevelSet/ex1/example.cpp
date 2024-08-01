@@ -462,7 +462,7 @@ main(int argc, char* argv[])
 
                 rbd_stream.precision(12);
                 rbd_stream.setf(ios::fixed, ios::floatfield);
-                rbd_stream << loop_time << "\t" << rbd_posn[1] << "\t" << rbd_trans_vel[1] << std::endl;
+                rbd_stream << loop_time << "\t" << rbd_posn[0] << "\t" << rbd_trans_vel[0] << std::endl;
 
                 Eigen::Vector3d hydro_force_pressure, hydro_force_viscous, hydro_torque_pressure, hydro_torque_viscous;
                 bp_rbd->getHydrodynamicForceTorque(
