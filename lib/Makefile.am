@@ -108,6 +108,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
 ../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 ../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -339,6 +340,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/RelaxationLSBcCoefs.h \
 ../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
+../include/ibamr/SOAcousticStreamingBcCoefs.h \
 ../include/ibamr/STSMassFluxIntegrator.h \
 ../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 ../include/ibamr/StaggeredStokesBlockPreconditioner.h \

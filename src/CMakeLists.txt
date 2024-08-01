@@ -60,6 +60,7 @@ SET(CXX_SRC
   acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
   acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
   acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp 
+  acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
 
   # adv diff
   adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp

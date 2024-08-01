@@ -193,6 +193,8 @@ main(int argc, char* argv[])
         time_integrator->registerFirstOrderPhysicalBoundaryConditions(u1_bc_coefs);
 
         // Create boundary condition specification objects for the second-order system.
+        // If the first- and second-order system is specified to be coupled, user specified BCs
+        // for the second-order system are ignored. The first-order system provides BCs for the second-order system.
         std::vector<RobinBcCoefStrategy<NDIM>*> u2_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
@@ -234,15 +236,25 @@ main(int argc, char* argv[])
                 "mu_bc_coef", app_initializer->getComponentDatabase("ShearViscosityBcCoefs"), grid_geometry);
         }
 
+        RobinBcCoefStrategy<NDIM>* lambda_bc_coef = nullptr;
+        if (!(periodic_shift.min() > 0) && input_db->keyExists("BulkViscosityBcCoefs"))
+        {
+            lambda_bc_coef = new muParserRobinBcCoefs(
+                "lambda_bc_coef", app_initializer->getComponentDatabase("BulkViscosityBcCoefs"), grid_geometry);
+        }
+
         // Setup the integrator maintained material properties.
         Pointer<SideVariable<NDIM, double> > rho_var = new SideVariable<NDIM, double>("rho_var");
         time_integrator->registerMassDensityVariable(rho_var);
+        time_integrator->registerMassDensityBoundaryConditions(rho_bc_coefs);
 
         Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
         time_integrator->registerShearViscosityVariable(mu_var);
+        time_integrator->registerShearViscosityBoundaryConditions(mu_bc_coef);
 
         Pointer<CellVariable<NDIM, double> > lambda_var = new CellVariable<NDIM, double>("lambda");
         time_integrator->registerBulkViscosityVariable(lambda_var);
+        time_integrator->registerBulkViscosityBoundaryConditions(lambda_bc_coef);
 
         // Callback fncs to reset fluid material properties
         time_integrator->registerResetFluidDensityFcn(&callSetFluidPropertyCallbackFunction,
@@ -265,7 +277,7 @@ main(int argc, char* argv[])
         time_integrator->registerFirstOrderBodyForceFunction(F1_fcn);
         time_integrator->registerSecondOrderBodyForceFunction(F2_fcn);
         time_integrator->registerFirstOrderVelocityDivergenceFunction(Q1_fcn);
-        time_integrator->registerSecondOrderVelocityDivergenceFunction(Q2_fcn);
+        // time_integrator->registerSecondOrderVelocityDivergenceFunction(Q2_fcn);
 
         // Get exact solutions to compute errors
         muParserCartGridFunction u1_exact(
@@ -489,5 +501,6 @@ main(int argc, char* argv[])
         }
 
         delete mu_bc_coef;
+        delete lambda_bc_coef;
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

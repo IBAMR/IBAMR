@@ -179,6 +179,8 @@ SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 # acoustic_streaming:
 SETUP_2D(fo_acoustic_streaming fo_acoustic_streaming_solver.cpp)
 SETUP_3D(fo_acoustic_streaming fo_acoustic_streaming_solver.cpp)
+SETUP_2D(acoustic_streaming_hier_integrator acoustic_streaming_hier_integrator.cpp)
+SETUP_3D(acoustic_streaming_hier_integrator acoustic_streaming_hier_integrator.cpp)
 
 # wave_tank:
 IF(${IBAMR_HAVE_LIBMESH})

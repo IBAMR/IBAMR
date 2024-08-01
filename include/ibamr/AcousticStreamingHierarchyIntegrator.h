@@ -20,6 +20,7 @@
 
 #include <ibamr/config.h>
 
+#include "ibamr/SOAcousticStreamingBcCoefs.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesSolverManager.h"
@@ -342,7 +343,8 @@ public:
      * \brief Supply boundary conditions for the density field, if maintained by the fluid
      * integrator.
      */
-    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coef);
+    void
+    registerMassDensityBoundaryConditions(const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& rho_bc_coefs);
 
     /*
      * \brief Supply boundary conditions for the shear viscosity field, if maintained by the fluid integrator.
@@ -439,11 +441,11 @@ public:
     } // getBulkViscosityBoundaryConditions
 
     /*!
-     * \brief Get density boundary condition
+     * \brief Get density boundary conditions
      */
-    inline SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getMassDensityBoundaryBoundaryConditions() const
+    inline const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getMassDensityBoundaryBoundaryConditions() const
     {
-        return d_rho_bc_coef;
+        return d_rho_bc_coefs;
     } // getMassDensityBoundaryBoundaryConditions
 
     /*!
@@ -525,6 +527,11 @@ protected:
     virtual void setupPlotDataSpecialized() override;
 
     /*!
+     * Write out specialized object state to the given database.
+     */
+    virtual void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
      * \name Parameters specific to the first order acoustic streaming system.
      */
     double d_acoustic_freq = std::numeric_limits<double>::signaling_NaN(),
@@ -543,7 +550,7 @@ protected:
      */
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_U1_init, d_P1_init, d_U2_init, d_P2_init;
     std::array<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>, 2> d_U1_bc_coefs;
-    SAMRAI::solv::LocationIndexRobinBcCoefs<NDIM> d_default_so_bc_coefs;
+    std::array<IBAMR::SOAcousticStreamingBcCoefs, NDIM> d_default_so_bc_coefs;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_so_bc_coefs, d_U2_bc_coefs, d_U2_star_bc_coefs;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_P2_bc_coef;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_Phi_bc_coef;
@@ -656,6 +663,12 @@ protected:
     std::vector<void*> d_reset_rho_fcns_ctx, d_reset_mu_fcns_ctx, d_reset_lambda_fcns_ctx;
 
     /*!
+     * Whether to couple first and second order systems.
+     * By default they are coupled.
+     */
+    bool d_coupled_system = true;
+
+    /*!
      * The maximum CFL number.
      */
     double d_cfl_max = 1.0;
@@ -698,6 +711,15 @@ protected:
     int d_mu_current_idx, d_mu_new_idx, d_mu_scratch_idx;
     int d_lambda_current_idx, d_lambda_new_idx, d_lambda_scratch_idx;
     int d_rho_current_idx, d_rho_new_idx, d_rho_scratch_idx;
+
+    /*
+     * Components of U1 and P1 stored as scratch indices.
+     * These are used to compute coupling terms for the first- and
+     * second-order systems, as well to fill boundary conditions for the
+     * second-order velocity.
+     */
+    int d_U1_real_idx, d_U1_imag_idx;
+    int d_p1_real_idx, d_p1_imag_idx;
 
     /*!
      * Cell tagging criteria based on the relative and absolute magnitudes of
@@ -772,10 +794,10 @@ protected:
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_rho_init_fcn, d_mu_init_fcn, d_lambda_init_fcn;
 
     /*
-     * Boundary condition objects for viscosity and density
+     * Boundary condition objects for viscosity and density.
      */
-    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*d_mu_bc_coef = nullptr, *d_rho_bc_coef = nullptr,
-    *d_lambda_bc_coef = nullptr;
+    SAMRAI::solv::RobinBcCoefStrategy<NDIM>*d_mu_bc_coef = nullptr, *d_lambda_bc_coef = nullptr;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_rho_bc_coefs;
 
     /*
      * Problem specification object for VCStaggeredStokesOperator for the second order system.
