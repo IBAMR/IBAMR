@@ -180,6 +180,7 @@ static const int SIDEG = 1;
 static const int NODEG = 1;
 static const int EDGEG = 1;
 static const int MUCELLG = 2;
+static const int WIDEG = 2;
 
 // Real and imaginary component naming
 static const int REAL = 0;
@@ -388,7 +389,6 @@ AcousticStreamingHierarchyIntegrator::AcousticStreamingHierarchyIntegrator(std::
                                                                            Pointer<Database> input_db,
                                                                            bool register_for_restart)
     : HierarchyIntegrator(std::move(object_name), input_db, register_for_restart),
-      d_default_so_bc_coefs(d_object_name + "::default_so_bc_coefs", Pointer<Database>(nullptr)),
       d_so_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr)),
       d_vc_stokes_op_spec(),
       d_vc_projection_pc_spec()
@@ -435,17 +435,11 @@ AcousticStreamingHierarchyIntegrator::AcousticStreamingHierarchyIntegrator(std::
     }
 
     // Setup physical boundary conditions objects for the second-order system.
-
-    // First, setup default boundary condition objects that specify homogeneous
-    // Dirichlet (solid-wall) boundary conditions for the velocity.
-    // These BCs will be replaced further downstream during the problem setup (e.g., in main.cpp)
+    // By default we assume coupling between the first- and second-order velocity components.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_default_so_bc_coefs.setBoundaryValue(2 * d, 0.0);
-        d_default_so_bc_coefs.setBoundaryValue(2 * d + 1, 0.0);
+        d_so_bc_coefs[d] = &d_default_so_bc_coefs[d];
     }
-    registerSecondOrderPhysicalBoundaryConditions(
-        std::vector<RobinBcCoefStrategy<NDIM>*>(NDIM, &d_default_so_bc_coefs));
 
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();
     d_U2_bc_coefs.resize(NDIM);
@@ -518,6 +512,15 @@ void
 AcousticStreamingHierarchyIntegrator::registerSecondOrderPhysicalBoundaryConditions(
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
+    if (d_coupled_system)
+    {
+        pout << d_object_name << "::registerSecondOrderPhysicalBoundaryConditions(): WARNING:\n"
+             << "The first- and second-order systems are specified to be coupled.\n"
+             << "Ignoring user-specified boundary conditions for the second-order system.\n"
+             << "The first-order system provides boundary conditions for the second-order system.\n";
+        return;
+    }
+
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
     TBOX_ASSERT(bc_coefs.size() == NDIM);
@@ -819,12 +822,13 @@ AcousticStreamingHierarchyIntegrator::registerBulkViscosityInitialConditions(
 } // registerBulkViscosityInitialConditions
 
 void
-AcousticStreamingHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>* rho_bc_coef)
+AcousticStreamingHierarchyIntegrator::registerMassDensityBoundaryConditions(
+    const std::vector<RobinBcCoefStrategy<NDIM>*>& rho_bc_coefs)
 {
 #if !defined(NDEBUG)
-    TBOX_ASSERT(rho_bc_coef);
+    TBOX_ASSERT(rho_bc_coefs.size() == NDIM);
 #endif
-    d_rho_bc_coef = rho_bc_coef;
+    d_rho_bc_coefs = rho_bc_coefs;
     return;
 } // registerMassDensityBoundaryConditions
 
@@ -944,6 +948,7 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
     const IntVector<NDIM> cell_ghosts = CELLG;
+    const IntVector<NDIM> wide_ghosts = WIDEG;
     const IntVector<NDIM> side_ghosts = SIDEG;
     const IntVector<NDIM> node_ghosts = NODEG;
     const IntVector<NDIM> edge_ghosts = EDGEG;
@@ -1215,6 +1220,20 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
         }
     }
 
+    // Scratch patch data indices for the first order components. These are used to compute coupling
+    // force terms and to fill boundary conditions for the second-order system.
+    Pointer<SideVariable<NDIM, double> > U1_comp_var = new SideVariable<NDIM, double>("U1_comp_var", /*depth*/ 1);
+    d_U1_real_idx = var_db->registerVariableAndContext(
+        U1_comp_var, var_db->getContext(d_object_name + "::COUPLING_REAL"), wide_ghosts);
+    d_U1_imag_idx = var_db->registerVariableAndContext(
+        U1_comp_var, var_db->getContext(d_object_name + "::COUPLING_IMAG"), wide_ghosts);
+
+    Pointer<CellVariable<NDIM, double> > p1_comp_var = new CellVariable<NDIM, double>("p1_comp_var", /*depth*/ 1);
+    d_p1_real_idx = var_db->registerVariableAndContext(
+        p1_comp_var, var_db->getContext(d_object_name + "::COUPLING_REAL"), wide_ghosts);
+    d_p1_imag_idx = var_db->registerVariableAndContext(
+        p1_comp_var, var_db->getContext(d_object_name + "::COUPLING_IMAG"), wide_ghosts);
+
     // Initialize and register variables used to compute second-order solver coefficients
     d_pressure_D_var = new SideVariable<NDIM, double>(d_object_name + "::pressure_D");
     d_pressure_D_idx = var_db->registerVariableAndContext(d_pressure_D_var, getCurrentContext(), side_ghosts);
@@ -1263,7 +1282,7 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
         new SideVariable<NDIM, double>(d_object_name + "_rho_sc_linear_op_var",
                                        /*depth*/ 1);
     d_rho_linear_op_idx = var_db->registerVariableAndContext(
-        rho_sc_linear_op_var, var_db->getContext(d_object_name + "::rho_linear_op_var"), side_ghosts);
+        rho_sc_linear_op_var, var_db->getContext(d_object_name + "::rho_linear_op_var"), wide_ghosts);
 
     // Setup a specialized coarsen algorithm.
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
@@ -1308,6 +1327,17 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
 
         Pointer<VCSCViscousDilatationalOperator> p_velocity_op = p_velocity_solver->getOperator();
         p_velocity_op->setDPatchDataInterpolationType(d_mu_vc_interp_type);
+
+        // Configure the default boundary condition objects for the second-order system.
+        for (unsigned int d = 0; d < NDIM; ++d)
+        {
+            auto& so_bc_coef = d_default_so_bc_coefs[d];
+            so_bc_coef.setSOVelocityComponent(d);
+            so_bc_coef.setFOVelocityPressurePatchDataIndices(
+                d_U1_real_idx, d_U1_imag_idx, d_p1_real_idx, d_p1_imag_idx);
+            so_bc_coef.setDensityPatchDataIndex(d_rho_linear_op_idx);
+            so_bc_coef.setSoundSpeed(d_sound_speed);
+        }
     }
 
     // Setup a boundary op to set velocity boundary conditions on regrid.
@@ -1350,10 +1380,16 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         level->allocatePatchData(d_pressure_D_idx, current_time);
         level->allocatePatchData(d_projection_D_idx, current_time);
         level->allocatePatchData(d_mu_interp_idx, current_time);
+
+        // These variables should persist even after integrateHierarchy(). We do not deallocate them explicitly.
         if (!level->checkAllocated(d_mu_linear_op_idx)) level->allocatePatchData(d_mu_linear_op_idx, current_time);
         if (!level->checkAllocated(d_mu_interp_linear_op_idx))
             level->allocatePatchData(d_mu_interp_linear_op_idx, current_time);
         if (!level->checkAllocated(d_rho_linear_op_idx)) level->allocatePatchData(d_rho_linear_op_idx, current_time);
+        if (!level->checkAllocated(d_U1_real_idx)) level->allocatePatchData(d_U1_real_idx, current_time);
+        if (!level->checkAllocated(d_U1_imag_idx)) level->allocatePatchData(d_U1_imag_idx, current_time);
+        if (!level->checkAllocated(d_p1_real_idx)) level->allocatePatchData(d_p1_real_idx, current_time);
+        if (!level->checkAllocated(d_p1_imag_idx)) level->allocatePatchData(d_p1_imag_idx, current_time);
     }
 
     // Preprocess the operators and solvers
@@ -1399,10 +1435,6 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchy(const double current_ti
                                                          const int cycle_num)
 {
     HierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-
-    // Get the coarsest and finest level numbers.
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
 
     // Update density
     const double apply_time = new_time;
@@ -1500,6 +1532,8 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchy(const double current_ti
     d_side_synch2_op->resetTransactionComponent(default_synch_transaction);
 
     // Store density for later use (e.g., apps defining gravity body force)
+    // We will fill ghost cells of d_rho_linear_op_idx later when needed
+    // in computeCouplingSourceTerms().
     d_hier_sc_data_ops->copyData(d_rho_linear_op_idx,
                                  d_rho_scratch_idx,
                                  /*interior_only*/ true);
@@ -1514,7 +1548,10 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchy(const double current_ti
     d_first_order_solver->solveSystem(*d_sol1_vec, *d_rhs1_vec);
 
     // Compute src terms for the 2nd order system due to 1st order
-    // computeCouplingSourceTerms(d_sol1_vec, d_rhs2_vec, current_time, new_time, cycle_num);
+    if (d_coupled_system)
+    {
+        computeCouplingSourceTerms(d_sol1_vec, d_rhs2_vec, current_time, new_time, cycle_num);
+    }
 
     // Setup the remainder of the solution and right-hand-side vector for the 2nd order system.
     setupSolverVectorsSOSystem(d_sol2_vec, d_rhs2_vec, current_time, new_time, cycle_num);
@@ -1934,7 +1971,7 @@ AcousticStreamingHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     }
 
     InterpolationTransactionComponent rho_bc_component(
-        d_rho_scratch_idx, d_rho_refine_type, false, d_rho_coarsen_type, d_rho_bdry_extrap_type, false, d_rho_bc_coef);
+        d_rho_scratch_idx, d_rho_refine_type, false, d_rho_coarsen_type, d_rho_bdry_extrap_type, false, d_rho_bc_coefs);
     d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
 
@@ -2076,11 +2113,73 @@ AcousticStreamingHierarchyIntegrator::setupPlotDataSpecialized()
                                 synch_cf_interface);
     }
 
+    // Allocate the data needed to apply boundary conditions for U2
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    bool U2_bdry_fill_data_allocated = false;
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        U2_bdry_fill_data_allocated = level->checkAllocated(d_U1_real_idx) && level->checkAllocated(d_U1_imag_idx) &&
+                                      level->checkAllocated(d_p1_real_idx) && level->checkAllocated(d_p1_imag_idx) &&
+                                      level->checkAllocated(d_rho_linear_op_idx);
+        if (!U2_bdry_fill_data_allocated) break;
+    }
+
+    if (!U2_bdry_fill_data_allocated)
+    {
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            if (!level->checkAllocated(d_U1_real_idx)) level->allocatePatchData(d_U1_real_idx, d_integrator_time);
+            if (!level->checkAllocated(d_U1_imag_idx)) level->allocatePatchData(d_U1_imag_idx, d_integrator_time);
+            if (!level->checkAllocated(d_p1_real_idx)) level->allocatePatchData(d_p1_real_idx, d_integrator_time);
+            if (!level->checkAllocated(d_p1_imag_idx)) level->allocatePatchData(d_p1_imag_idx, d_integrator_time);
+            if (!level->checkAllocated(d_rho_linear_op_idx))
+                level->allocatePatchData(d_rho_linear_op_idx, d_integrator_time);
+        }
+        copy_to_comps_side(d_U1_current_idx, d_U1_real_idx, d_U1_imag_idx, d_hierarchy);
+        copy_to_comps_cell(d_P1_current_idx, d_p1_real_idx, d_p1_imag_idx, d_hierarchy);
+        d_hier_sc_data_ops->copyData(d_rho_linear_op_idx,
+                                     d_rho_current_idx,
+                                     /*interior_only*/ true);
+
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        std::vector<InterpolationTransactionComponent> comp_transactions(5);
+        comp_transactions[0] = InterpolationTransactionComponent(d_U1_real_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 true,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 d_U1_bc_coefs[REAL]);
+        comp_transactions[1] = InterpolationTransactionComponent(d_U1_imag_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 true,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 d_U1_bc_coefs[IMAG]);
+        comp_transactions[2] = InterpolationTransactionComponent(
+            d_p1_real_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
+        comp_transactions[3] = InterpolationTransactionComponent(
+            d_p1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
+        comp_transactions[4] = InterpolationTransactionComponent(d_rho_linear_op_idx,
+                                                                 d_rho_refine_type,
+                                                                 false,
+                                                                 d_rho_coarsen_type,
+                                                                 d_rho_bdry_extrap_type,
+                                                                 false,
+                                                                 d_rho_bc_coefs);
+
+        Pointer<HierarchyGhostCellInterpolation> comp_fill_op = new HierarchyGhostCellInterpolation();
+        comp_fill_op->initializeOperatorState(comp_transactions, d_hierarchy);
+        comp_fill_op->fillData(d_integrator_time);
+    }
+
     // Compute Omega = curl U.
     if (d_output_Omega2)
     {
-        const int coarsest_ln = 0;
-        const int finest_ln = d_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2099,18 +2198,56 @@ AcousticStreamingHierarchyIntegrator::setupPlotDataSpecialized()
     return;
 } // setupPlotDataSpecialized
 
+void
+AcousticStreamingHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
+{
+    db->putInteger("ACOUSTIC_STREAMING_HIERARCHY_INTEGRATOR_VERSION", ACOUSTIC_STREAMING_HIERARCHY_INTEGRATOR_VERSION);
+    db->putDouble("acoustic_angular_frequency", d_acoustic_freq);
+    db->putDouble("sound_speed", d_sound_speed);
+    db->putInteger("num_cycles", d_num_cycles);
+    db->putDouble("cfl_max", d_cfl_max);
+    db->putBool("normalize_pressure", d_normalize_pressure);
+    db->putBool("normalize_velocity", d_normalize_velocity);
+    db->putBool("coupled_system", d_coupled_system);
+    db->putBool("explicitly_remove_nullspace", d_explicitly_remove_so_nullspace);
+    return;
+} // putToDatabaseSpecialized
+
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
 void
 AcousticStreamingHierarchyIntegrator::getFromInput(Pointer<Database> input_db, const bool is_from_restart)
 {
-    if (input_db->keyExists("acoustic_frequency"))
-        d_acoustic_freq = 2.0 * M_PI * input_db->getDouble("acoustic_frequency");
-    if (input_db->keyExists("frequency")) d_acoustic_freq = 2.0 * M_PI * input_db->getDouble("frequency");
-    if (input_db->keyExists("acoustic_angular_frequency"))
-        d_acoustic_freq = input_db->getDouble("acoustic_angular_frequency");
-    if (input_db->keyExists("angular_frequency")) d_acoustic_freq = input_db->getDouble("angular_frequency");
-    if (input_db->keyExists("sound_speed")) d_sound_speed = input_db->getDouble("sound_speed");
+    if (!is_from_restart)
+    {
+        if (input_db->keyExists("acoustic_frequency"))
+            d_acoustic_freq = 2.0 * M_PI * input_db->getDouble("acoustic_frequency");
+        if (input_db->keyExists("frequency")) d_acoustic_freq = 2.0 * M_PI * input_db->getDouble("frequency");
+        if (input_db->keyExists("acoustic_angular_frequency"))
+            d_acoustic_freq = input_db->getDouble("acoustic_angular_frequency");
+        if (input_db->keyExists("angular_frequency")) d_acoustic_freq = input_db->getDouble("angular_frequency");
+        if (input_db->keyExists("sound_speed")) d_sound_speed = input_db->getDouble("sound_speed");
+        if (input_db->keyExists("coupled_system")) d_coupled_system = input_db->getBool("coupled_system");
+
+        if (input_db->keyExists("num_cycles")) d_num_cycles = input_db->getInteger("num_cycles");
+        if (input_db->keyExists("cfl"))
+            d_cfl_max = input_db->getDouble("cfl");
+        else if (input_db->keyExists("cfl_max"))
+            d_cfl_max = input_db->getDouble("cfl_max");
+        else if (input_db->keyExists("CFL"))
+            d_cfl_max = input_db->getDouble("CFL");
+        else if (input_db->keyExists("CFL_max"))
+            d_cfl_max = input_db->getDouble("CFL_max");
+
+        if (input_db->keyExists("normalize_pressure")) d_normalize_pressure = input_db->getBool("normalize_pressure");
+        if (input_db->keyExists("normalize_velocity")) d_normalize_velocity = input_db->getBool("normalize_velocity");
+        if (input_db->keyExists("explicitly_remove_nullspace"))
+            d_explicitly_remove_so_nullspace = input_db->getBool("explicitly_remove_nullspace");
+        else if (input_db->keyExists("explicitly_remove_so_nullspace"))
+            d_explicitly_remove_so_nullspace = input_db->getBool("explicitly_remove_so_nullspace");
+        else if (input_db->keyExists("explicitly_remove_second_order_nullspace"))
+            d_explicitly_remove_so_nullspace = input_db->getBool("explicitly_remove_second_order_nullspace");
+    }
 
     // Get the interpolation type for the material properties
     if (input_db->keyExists("vc_interpolation_type"))
@@ -2228,26 +2365,6 @@ AcousticStreamingHierarchyIntegrator::getFromInput(Pointer<Database> input_db, c
         d_pressure_precond_db->putInteger("max_iterations", 1);
     }
 
-    if (input_db->keyExists("num_cycles")) d_num_cycles = input_db->getInteger("num_cycles");
-
-    if (input_db->keyExists("cfl"))
-        d_cfl_max = input_db->getDouble("cfl");
-    else if (input_db->keyExists("cfl_max"))
-        d_cfl_max = input_db->getDouble("cfl_max");
-    else if (input_db->keyExists("CFL"))
-        d_cfl_max = input_db->getDouble("CFL");
-    else if (input_db->keyExists("CFL_max"))
-        d_cfl_max = input_db->getDouble("CFL_max");
-
-    if (input_db->keyExists("normalize_pressure")) d_normalize_pressure = input_db->getBool("normalize_pressure");
-    if (input_db->keyExists("normalize_velocity")) d_normalize_velocity = input_db->getBool("normalize_velocity");
-    if (input_db->keyExists("explicitly_remove_nullspace"))
-        d_explicitly_remove_so_nullspace = input_db->getBool("explicitly_remove_nullspace");
-    else if (input_db->keyExists("explicitly_remove_so_nullspace"))
-        d_explicitly_remove_so_nullspace = input_db->getBool("explicitly_remove_so_nullspace");
-    else if (input_db->keyExists("explicitly_remove_second_order_nullspace"))
-        d_explicitly_remove_so_nullspace = input_db->getBool("explicitly_remove_second_order_nullspace");
-
     if (input_db->keyExists("output_U1")) d_output_U1 = input_db->getBool("output_U1");
     if (input_db->keyExists("output_U2")) d_output_U2 = input_db->getBool("output_U2");
     if (input_db->keyExists("output_P1")) d_output_P1 = input_db->getBool("output_P1");
@@ -2288,6 +2405,10 @@ AcousticStreamingHierarchyIntegrator::getFromRestart()
 
     d_normalize_pressure = db->getBool("normalize_pressure");
     d_normalize_velocity = db->getBool("normalize_velocity");
+    d_explicitly_remove_so_nullspace = db->getBool("explicitly_remove_nullspace");
+
+    d_coupled_system = db->getBool("coupled_system");
+
     return;
 } // getFromRestart
 
@@ -2727,57 +2848,43 @@ AcousticStreamingHierarchyIntegrator::computeCouplingSourceTerms(Pointer<SAMRAIV
                                                                  double new_time,
                                                                  int /*cycle_num*/)
 {
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const IntVector<NDIM> side_ghosts = SIDEG;
-    const IntVector<NDIM> cell_ghosts = CELLG;
-
-    Pointer<SideVariable<NDIM, double> > U1_sol_var = sol1_vec->getComponentVariable(0);
     const int U1_sol_idx = sol1_vec->getComponentDescriptorIndex(0);
-    const int U1_real_idx = var_db->registerVariableAndContext(
-        U1_sol_var, var_db->getContext(d_object_name + "::COUPLING_REAL"), side_ghosts);
-    const int U1_imag_idx = var_db->registerVariableAndContext(
-        U1_sol_var, var_db->getContext(d_object_name + "::COUPLING_IMAG"), side_ghosts);
-
-    Pointer<CellVariable<NDIM, double> > p1_sol_var = sol1_vec->getComponentVariable(1);
     const int p1_sol_idx = sol1_vec->getComponentDescriptorIndex(1);
-    const int p1_real_idx = var_db->registerVariableAndContext(
-        p1_sol_var, var_db->getContext(d_object_name + "::COUPLING_REAL"), cell_ghosts);
-    const int p1_imag_idx = var_db->registerVariableAndContext(
-        p1_sol_var, var_db->getContext(d_object_name + "::COUPLING_IMAG"), cell_ghosts);
 
-    // Allocate data and copy components
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        d_hierarchy->getPatchLevel(ln)->allocatePatchData(U1_real_idx, new_time);
-        d_hierarchy->getPatchLevel(ln)->allocatePatchData(U1_imag_idx, new_time);
-        d_hierarchy->getPatchLevel(ln)->allocatePatchData(p1_real_idx, new_time);
-        d_hierarchy->getPatchLevel(ln)->allocatePatchData(p1_imag_idx, new_time);
-    }
-    copy_to_comps_side(U1_sol_idx, U1_real_idx, U1_imag_idx, d_hierarchy);
-    copy_to_comps_cell(p1_sol_idx, p1_real_idx, p1_imag_idx, d_hierarchy);
-
-    // Setup  boundary condition objects that specify homogeneous
-    // Neumann (constant extrapolation) boundary conditions for p1 components.
-    LocationIndexRobinBcCoefs<NDIM> p1_bc_coefs(d_object_name + "::p1_coupling_bc_coefs", Pointer<Database>(nullptr));
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        p1_bc_coefs.setBoundarySlope(2 * d, 0.0);
-        p1_bc_coefs.setBoundarySlope(2 * d + 1, 0.0);
-    }
+    // Copy components
+    copy_to_comps_side(U1_sol_idx, d_U1_real_idx, d_U1_imag_idx, d_hierarchy);
+    copy_to_comps_cell(p1_sol_idx, d_p1_real_idx, d_p1_imag_idx, d_hierarchy);
 
     // Set hierarchy ghost filling objects and fill ghost cells.
+    // For first-order pressure we rely on "QUADRATIC" extrapolation as there
+    // is no good boundary condition for it.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    std::vector<InterpolationTransactionComponent> comp_transactions(4);
-    comp_transactions[0] = InterpolationTransactionComponent(
-        U1_real_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_U1_bc_coefs[REAL]);
-    comp_transactions[1] = InterpolationTransactionComponent(
-        U1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, d_U1_bc_coefs[IMAG]);
+    std::vector<InterpolationTransactionComponent> comp_transactions(5);
+    comp_transactions[0] = InterpolationTransactionComponent(d_U1_real_idx,
+                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                             true,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             "LINEAR",
+                                                             false,
+                                                             d_U1_bc_coefs[REAL]);
+    comp_transactions[1] = InterpolationTransactionComponent(d_U1_imag_idx,
+                                                             "CONSERVATIVE_LINEAR_REFINE",
+                                                             true,
+                                                             "CONSERVATIVE_COARSEN",
+                                                             "LINEAR",
+                                                             false,
+                                                             d_U1_bc_coefs[IMAG]);
     comp_transactions[2] = InterpolationTransactionComponent(
-        p1_real_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, &p1_bc_coefs);
+        d_p1_real_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
     comp_transactions[3] = InterpolationTransactionComponent(
-        p1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, &p1_bc_coefs);
+        d_p1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
+    comp_transactions[4] = InterpolationTransactionComponent(d_rho_linear_op_idx,
+                                                             d_rho_refine_type,
+                                                             false,
+                                                             d_rho_coarsen_type,
+                                                             d_rho_bdry_extrap_type,
+                                                             false,
+                                                             d_rho_bc_coefs);
 
     Pointer<HierarchyGhostCellInterpolation> comp_fill_op = new HierarchyGhostCellInterpolation();
     comp_fill_op->initializeOperatorState(comp_transactions, d_hierarchy);
@@ -2791,6 +2898,8 @@ AcousticStreamingHierarchyIntegrator::computeCouplingSourceTerms(Pointer<SAMRAIV
     int f_idx = rhs2_vec->getComponentDescriptorIndex(0);
     int m_idx = rhs2_vec->getComponentDescriptorIndex(1);
 
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2799,10 +2908,12 @@ AcousticStreamingHierarchyIntegrator::computeCouplingSourceTerms(Pointer<SAMRAIV
             Pointer<Patch<NDIM> > patch = level->getPatch(p());
             Pointer<SideData<NDIM, double> > f_data = patch->getPatchData(f_idx);
             Pointer<CellData<NDIM, double> > m_data = patch->getPatchData(m_idx);
-            Pointer<SideData<NDIM, double> > U1_real_data = patch->getPatchData(U1_real_idx);
-            Pointer<SideData<NDIM, double> > U1_imag_data = patch->getPatchData(U1_imag_idx);
-            Pointer<SideData<NDIM, double> > p1_real_data = patch->getPatchData(p1_real_idx);
-            Pointer<SideData<NDIM, double> > p1_imag_data = patch->getPatchData(p1_imag_idx);
+
+            Pointer<SideData<NDIM, double> > U1_real_data = patch->getPatchData(d_U1_real_idx);
+            Pointer<SideData<NDIM, double> > U1_imag_data = patch->getPatchData(d_U1_imag_idx);
+            Pointer<CellData<NDIM, double> > p1_real_data = patch->getPatchData(d_p1_real_idx);
+            Pointer<CellData<NDIM, double> > p1_imag_data = patch->getPatchData(d_p1_imag_idx);
+
             Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
 
             const Box<NDIM>& patch_box = patch->getBox();
@@ -2811,8 +2922,9 @@ AcousticStreamingHierarchyIntegrator::computeCouplingSourceTerms(Pointer<SAMRAIV
 
             const int U_real_gcw = (U1_real_data->getGhostCellWidth()).max();
             const int U_imag_gcw = (U1_imag_data->getGhostCellWidth()).max();
-            const int p_real_gcw = (U1_real_data->getGhostCellWidth()).max();
-            const int p_imag_gcw = (U1_imag_data->getGhostCellWidth()).max();
+            const int p_real_gcw = (p1_real_data->getGhostCellWidth()).max();
+            const int p_imag_gcw = (p1_imag_data->getGhostCellWidth()).max();
+
             const int f_gcw = (f_data->getGhostCellWidth()).max();
             const int m_gcw = (m_data->getGhostCellWidth()).max();
             const int rho_gcw = (rho_data->getGhostCellWidth()).max();
@@ -2911,19 +3023,6 @@ AcousticStreamingHierarchyIntegrator::computeCouplingSourceTerms(Pointer<SAMRAIV
         }
     }
 
-    // Deallocate the temporary variable.
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        d_hierarchy->getPatchLevel(ln)->deallocatePatchData(U1_real_idx);
-        d_hierarchy->getPatchLevel(ln)->deallocatePatchData(U1_imag_idx);
-        d_hierarchy->getPatchLevel(ln)->deallocatePatchData(p1_real_idx);
-        d_hierarchy->getPatchLevel(ln)->deallocatePatchData(p1_imag_idx);
-    }
-    var_db->removePatchDataIndex(U1_real_idx);
-    var_db->removePatchDataIndex(U1_imag_idx);
-    var_db->removePatchDataIndex(p1_real_idx);
-    var_db->removePatchDataIndex(p1_imag_idx);
-
     return;
 } // computeCouplingSourceTerms
 
@@ -2945,9 +3044,15 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectorsSOSystem(Pointer<SAMRAIV
     // Account for mass source/sink terms.
     if (d_Q2_fcn)
     {
+        const int m_cc_idx = rhs2_vec->getComponentDescriptorIndex(1);
         d_Q2_fcn->setDataOnPatchHierarchy(d_Q2_new_idx, d_Q2_var, d_hierarchy, new_time);
-        d_hier_cc_data_ops->subtract(
-            rhs2_vec->getComponentDescriptorIndex(1), rhs2_vec->getComponentDescriptorIndex(1), d_Q2_new_idx);
+        d_hier_cc_data_ops->subtract(m_cc_idx, m_cc_idx, d_Q2_new_idx);
+
+        // // Ensure that the RHS of the mass source term has a zero mean (numerically)
+        // const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+        // const double mean_mass_src = d_hier_cc_data_ops->integral(m_cc_idx,
+        // wgt_cc_idx)/d_hier_math_ops->getVolumeOfPhysicalDomain(); d_hier_cc_data_ops->addScalar(m_cc_idx, m_cc_idx,
+        // -mean_mass_src, /*interior_only*/true);
     }
 
     // Compute and add the Brinkman term to the RHS vector.

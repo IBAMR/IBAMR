@@ -41,7 +41,7 @@ class SAMRAIVectorReal;
 
 namespace IBTK
 {
-class ProblemSpecification;
+struct ProblemSpecification;
 } // namespace IBTK
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
