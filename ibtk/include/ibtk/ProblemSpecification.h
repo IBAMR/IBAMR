@@ -20,6 +20,10 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/ibtk_utilities.h"
+
+#include <limits>
+
 /////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
 
 namespace IBTK
