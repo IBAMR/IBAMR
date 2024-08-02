@@ -26,8 +26,8 @@ p {
    c = sound_speed
    L = LENGTH
 
-   function_0 = "c^2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"      // pr 
-   function_1 = "2*c^2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"    // pi 
+   function_0 = "c^2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"      // pr
+   function_1 = "2*c^2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"    // pi
 
 }
 
@@ -37,12 +37,12 @@ fu {
    mu     = MU
    rho0   = RHO0
    omega  = acoustic_angular_freq
-   c      = sound_speed 
+   c      = sound_speed
 
    L = LENGTH
 
    function_0 = "1.0/L^2*((8*PI^2*(lambda+3*mu)+omega*rho0*L^2)*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)+4*PI*cos(2*PI*X_0/L)*(c^2*L*sin(2*PI*X_1/L)-2*PI*(lambda+mu)*cos(2*PI*X_1/L)))"     // fur x-component
-   
+
    function_1 = "1.0/L^2*(4*PI*c^2*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)+8*PI^2*(lambda+mu)*cos(2*PI*X_0/L)*sin(2*PI*X_1/L)+8*PI^2*(lambda+3*mu)*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)+omega*rho0*L^2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L) )"     // fvr y-component
 
    function_2 = "1.0/L^2*((4*PI^2*(lambda+3*mu)-2*omega*rho0*L^2)*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)+2*PI*cos(2*PI*X_0/L)*(c^2*L*sin(2*PI*X_1/L)-2*PI*(lambda+mu)*cos(2*PI*X_1/L)))"   // fui x-component
@@ -86,9 +86,9 @@ VelocityRealBcCoefs_0 {
 
    L = LENGTH
 
-   u_fcn = "sin(2*PI*X_0/L)*cos(2*PI*X_1/L)" 
+   u_fcn = "sin(2*PI*X_0/L)*cos(2*PI*X_1/L)"
 
-   
+
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -135,9 +135,9 @@ VelocityImagBcCoefs_0 {
 
    L = LENGTH
 
-   u_fcn = "2*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)" 
+   u_fcn = "2*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)"
 
-   
+
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"

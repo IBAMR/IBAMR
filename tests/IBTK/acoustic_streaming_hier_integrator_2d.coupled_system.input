@@ -46,15 +46,15 @@ SOVelocityInitialConditions {
 U2 = "-(X0^3 + X1^3)"
 V2 = "-(X1^2 + X0^2)"
 SOVelocityExact {
- 
+
    function_0 = U2     // u x-component
    function_1 = V2    // v y-component
 }
 
 FOPressureInitialConditions {
 
-   function_0 = "0.0"      // pr 
-   function_1 = "0.0"     // pi 
+   function_0 = "0.0"      // pr
+   function_1 = "0.0"     // pi
 
 }
 
@@ -62,19 +62,19 @@ FOPressureExact {
 
    c = C0
    rho0 = RHO0
-  
-   function_0 = "c^2*(X0^2*X1 + rho0)"      // pr 
-   function_1 = "c^2*(X0^2*X1 + rho0)"    // pi 
+
+   function_0 = "c^2*(X0^2*X1 + rho0)"      // pr
+   function_1 = "c^2*(X0^2*X1 + rho0)"    // pi
 
 }
 
 SOPressureInitialConditions {
-   function = "0.0"       
+   function = "0.0"
 }
 
 SOPressureExact {
 
-   function = "X0*X1 + X0^2*X1^2 - 1.0/4.0 - 1.0/9.0"       
+   function = "X0*X1 + X0^2*X1^2 - 1.0/4.0 - 1.0/9.0"
 }
 
 F1_fcn {
@@ -86,10 +86,10 @@ F1_fcn {
    lambda0 = LAMBDA0
    lambda1 = LAMBDA1
    omega = OMEGA0
-   c     = C0 
+   c     = C0
 
    function_0 =  "-6*mu0*X1 + 2*c^2*X0*X1 + omega*X0^5*X1 + omega*rho0*X1^3 - 2*X0*(3*lambda0 + 6*mu0 + 2*lambda1*X1^2) + X0^2*(-9*mu1*X1^2 + omega*X1^4) + X0^3*(omega*rho0 - 2*(mu1 + 6*(lambda1 + 2*mu1)*X1))"   // fur x-component
-   
+
    function_1 = "-2*lambda0 - 6*mu0 + c^2*X0^2 + omega*(rho0 + X0^2*X1)*(X0^2 + X1^2) - X0*(3*lambda1*X0^3 + 4*lambda1*X0*X1 + 14*mu1*X0*X1 + 6*mu1*X1^3)"     // fvr y-component
 
    function_2 = "-6*lambda0*X0 - 12*mu0*X0 - 2*mu1*X0^3 - 6*mu0*X1 + 2*c^2*X0*X1 - 12*lambda1*X0^3*X1 - 24*mu1*X0^3*X1 - 4*lambda1*X0*X1^2 - 9*mu1*X0^2*X1^2 - omega*(rho0 + X0^2*X1)*(X0^3 + X1^3)"   // fui x-component
@@ -106,9 +106,9 @@ F2_fcn {
    mu1  = MU1
    lambda0 = LAMBDA0
    lambda1 = LAMBDA1
-   theta = 1.0   
+   theta = 1.0
 
-   function_0 = "2*X0*(3*lambda0 + 6*mu0 + mu1*X0^2) + X1 + 6*mu0*X1 + 12*(lambda1 + 2*mu1)*X0^3*X1 + X0*(2 + 4*lambda1 + 9*mu1*X0)*X1^2 + theta*(2*rho0*X0^3*X1 + 5*rho0*X1^4 + 2*X0*X1^7 + 2*X0^4*X1^3*(2 + 5*X1) + X0^7*(1 + 8*X1) + 3*X0^5*(2*rho0 + X1^2) + 3*X0^2*X1^2*(rho0 + 2*X1*(rho0 + X1^2)))"    //fx 
+   function_0 = "2*X0*(3*lambda0 + 6*mu0 + mu1*X0^2) + X1 + 6*mu0*X1 + 12*(lambda1 + 2*mu1)*X0^3*X1 + X0*(2 + 4*lambda1 + 9*mu1*X0)*X1^2 + theta*(2*rho0*X0^3*X1 + 5*rho0*X1^4 + 2*X0*X1^7 + 2*X0^4*X1^3*(2 + 5*X1) + X0^7*(1 + 8*X1) + 3*X0^5*(2*rho0 + X1^2) + 3*X0^2*X1^2*(rho0 + 2*X1*(rho0 + X1^2)))"    //fx
 
    function_1 = "X0 + 4*theta*X0^3*X1^4 + X0^6*(theta + 7*theta*X1) + 2*(lambda0 + 3*mu0 + 2*rho0*theta*X1^3) + X0^2*X1*(2 + 4*lambda1 + 14*mu1 + 5*theta*X1^3 + rho0*theta*(4 + 3*X1)) + X0^4*(3*lambda1 + 5*rho0*theta + theta*X1^2*(6 + 5*X1)) + 2*X0*X1^3*(3*mu1 + theta*(rho0 + X1^3))"  //fy
 
@@ -128,7 +128,7 @@ Q1_fcn  {
 }
 
 Q2_fcn  {
-     
+
      function = "0.0"
 }
 
@@ -155,7 +155,7 @@ rho {
 
 // u1r velocity
 FOVelocityRealBcCoefs_0 {
- 
+
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -234,7 +234,7 @@ FOVelocityImagBcCoefs_1 {
 
 // u2 velocity
 SOVelocityBcCoefs_0 {
- 
+
    rho0 = RHO0
    rho1 = RHO1
 
@@ -260,7 +260,7 @@ SOVelocityBcCoefs_1 {
 
    rho0 = RHO0
    rho1 = RHO1
- 
+
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -359,13 +359,13 @@ END_TIME                            =  1.5e0     // final simulation time
 GROW_DT                             =  2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS                =  1         // max number of simulation timesteps
 REGRID_INTERVAL                     =  5
-CFL_MAX                             =  1.0   
+CFL_MAX                             =  1.0
 NUM_INS_CYCLES                      =  1
-PRECOND_REINIT_INTERVAL             =  1  
-ENABLE_LOGGING                      = TRUE 
-NORMALIZE_PRESSURE                  = TRUE 
-NORMALIZE_VELOCITY                  = FALSE   
-EXPLICITLY_REMOVE_NULLSPACE         = TRUE 
+PRECOND_REINIT_INTERVAL             =  1
+ENABLE_LOGGING                      = TRUE
+NORMALIZE_PRESSURE                  = TRUE
+NORMALIZE_VELOCITY                  = FALSE
+EXPLICITLY_REMOVE_NULLSPACE         = TRUE
 VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
 DT_MAX                              = 10
@@ -376,7 +376,7 @@ OUTPUT_P2                           = TRUE
 OUTPUT_OMEGA2                       = TRUE
 OUTPUT_RHO                          = TRUE
 OUTPUT_MU                           = TRUE
-COUPLE_FIRST_SECOND_ORDER_SYTEM     = TRUE
+COUPLE_FIRST_SECOND_ORDER_SYSTEM    = TRUE
 
 AcousticStreamingHierarchyIntegrator {
 
@@ -384,7 +384,7 @@ AcousticStreamingHierarchyIntegrator {
    end_time                    = END_TIME
    grow_dt                     = GROW_DT
    normalize_pressure          = NORMALIZE_PRESSURE
-   normalize_velocity          = NORMALIZE_VELOCITY 
+   normalize_velocity          = NORMALIZE_VELOCITY
    cfl                         = CFL_MAX
    dt_max                      = DT_MAX
    using_vorticity_tagging     = VORTICITY_TAGGING
@@ -406,7 +406,7 @@ AcousticStreamingHierarchyIntegrator {
 
    acoustic_angular_frequency = OMEGA0
    sound_speed    = C0
-   coupled_system = COUPLE_FIRST_SECOND_ORDER_SYTEM
+   coupled_system = COUPLE_FIRST_SECOND_ORDER_SYSTEM
    rho_vc_interpolation_type = "VC_AVERAGE_INTERP"
    mu_vc_interpolation_type  = "VC_AVERAGE_INTERP"
 
@@ -438,7 +438,7 @@ AcousticStreamingHierarchyIntegrator {
       max_iterations = 100
       ksp_type = "gmres"
       pc_type = "sor"
-   }  
+   }
 
    pressure_solver_db {
       ksp_type = "richardson"
@@ -454,7 +454,7 @@ AcousticStreamingHierarchyIntegrator {
       rel_residual_tol = 1.0e-8
       abs_residual_tol = 1.0e-9
       max_iterations = 100
-   } 
+   }
 
 }
 
@@ -477,7 +477,7 @@ Main {
    // timer dump parameters
    timer_dump_interval  = 0                 // zero to turn off
    timer_enabled = FALSE
-   
+
 }
 
 
