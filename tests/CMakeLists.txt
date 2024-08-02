@@ -18,9 +18,9 @@ ADD_CUSTOM_TARGET(tests)
 #    only compiles the IBFE tests.
 # 2. all input and output files in these source directories are symlinked into
 #    their corresponding build directories.
-SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IIM IMP IBTK adv_diff advect coarsen
-  complex_fluids external fe_mechanics interpolate level_set multiphase_flow
-  navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank)
+SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IIM IMP IBTK adv_diff advect coarsen complex_fluids
+  external fe_mechanics interpolate level_set multiphase_flow navier_stokes physical_boundary
+  refine spread vc_navier_stokes wave_tank)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_TARGET("tests-${_dir}")
@@ -176,12 +176,6 @@ ENDIF()
 SETUP_2D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
 
-# acoustic_streaming:
-SETUP_2D(fo_acoustic_streaming fo_acoustic_streaming_solver.cpp)
-SETUP_3D(fo_acoustic_streaming fo_acoustic_streaming_solver.cpp)
-SETUP_2D(acoustic_streaming_hier_integrator acoustic_streaming_hier_integrator.cpp)
-SETUP_3D(acoustic_streaming_hier_integrator acoustic_streaming_hier_integrator.cpp)
-
 # wave_tank:
 IF(${IBAMR_HAVE_LIBMESH})
   SETUP(wave_tank nwt_cylinder.cpp IBAMR2d)
@@ -285,6 +279,10 @@ SETUP_2D(IBTK index_utilities.cpp)
 SETUP_2D(IBTK marker_points_01.cpp)
 SETUP_2D(IBTK marker_points_02.cpp)
 SETUP_2D(IBTK cf_interface.cpp)
+SETUP_2D(IBTK fo_acoustic_streaming_solver.cpp)
+SETUP_3D(IBTK fo_acoustic_streaming_solver.cpp)
+SETUP_2D(IBTK acoustic_streaming_hier_integrator.cpp)
+SETUP_3D(IBTK acoustic_streaming_hier_integrator.cpp)
 
 IF(${IBAMR_HAVE_LIBMESH})
   SETUP_3D(IBTK bounding_boxes_01.cpp)
