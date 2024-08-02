@@ -1430,12 +1430,121 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
 } // preprocessIntegrateHierarchy
 
 void
-AcousticStreamingHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                         const double new_time,
-                                                         const int cycle_num)
+AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double current_time,
+                                                                    double new_time,
+                                                                    bool skip_synchronize_new_state_data,
+                                                                    int num_cycles)
 {
-    HierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
+    HierarchyIntegrator::postprocessIntegrateHierarchy(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
 
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time - current_time;
+
+    // Synchronize new state data.
+    if (!skip_synchronize_new_state_data)
+    {
+        if (d_enable_logging)
+            plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
+        synchronizeHierarchyData(NEW_DATA);
+    }
+
+    // Determine the CFL number.
+    if (!d_parent_integrator)
+    {
+        double cfl_max = 0.0;
+        PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
+        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                const double* const dx = pgeom->getDx();
+                const double dx_min = *(std::min_element(dx, dx + NDIM));
+                Pointer<SideData<NDIM, double> > u2_sc_new_data = patch->getPatchData(d_U2_new_idx);
+                double u2_max = 0.0;
+                u2_max = patch_sc_ops.maxNorm(u2_sc_new_data, patch_box);
+                cfl_max = std::max(cfl_max, u2_max * dt / dx_min);
+            }
+        }
+        cfl_max = IBTK_MPI::maxReduction(cfl_max);
+        if (d_enable_logging)
+            plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
+    }
+
+    // Compute max |Omega|_2.
+    if (d_using_vorticity_tagging)
+    {
+        d_hier_sc_data_ops->copyData(d_U2_scratch_idx, d_U2_new_idx);
+        d_hier_math_ops->curl(d_Omega2_idx, d_Omega2_var, d_U2_scratch_idx, d_U2_var, d_U2_bdry_bc_fill_op, new_time);
+
+#if (NDIM == 3)
+        d_hier_math_ops->pointwiseL2Norm(d_Omega2_Norm_idx, d_Omega2_Norm_var, d_Omega2_idx, d_Omega2_var);
+#endif
+        const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+#if (NDIM == 2)
+        d_Omega2_max = d_hier_cc_data_ops->maxNorm(d_Omega2_idx, wgt_cc_idx);
+#endif
+#if (NDIM == 3)
+        d_Omega2_max = d_hier_cc_data_ops->max(d_Omega2_Norm_idx, wgt_cc_idx);
+#endif
+    }
+
+    // Deallocate scratch data.
+    deallocate_vector_data(*d_U2_rhs_vec);
+    deallocate_vector_data(*d_P2_rhs_vec);
+
+    // Deallocate any temporary data used to compute coefficients
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_velocity_C_idx);
+        level->deallocatePatchData(d_velocity_L_idx);
+        level->deallocatePatchData(d_velocity_D_idx);
+        level->deallocatePatchData(d_velocity_D_cc_idx);
+        level->deallocatePatchData(d_pressure_D_idx);
+        level->deallocatePatchData(d_projection_D_idx);
+        level->deallocatePatchData(d_mu_interp_idx);
+    }
+
+    // Postprocess Brinkman penalization objects.
+    for (auto& brinkman_force : d_brinkman_force)
+    {
+        brinkman_force->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
+    }
+
+    // Execute any registered callbacks.
+    executePostprocessIntegrateHierarchyCallbackFcns(
+        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+    return;
+
+} // postprocessIntegrateHierarchy
+
+void
+AcousticStreamingHierarchyIntegrator::removeSecondOrderNullSpace(
+    const Pointer<SAMRAIVectorReal<NDIM, double> >& sol2_vec)
+{
+    if (d_nul2_vecs.empty()) return;
+    for (const auto& nul2_vec : d_nul2_vecs)
+    {
+        const double sol2_dot_nul2 = sol2_vec->dot(nul2_vec);
+        const double nul2_L2_norm_square = nul2_vec->dot(nul2_vec);
+        sol2_vec->axpy(-sol2_dot_nul2 / nul2_L2_norm_square, nul2_vec, sol2_vec);
+    }
+    return;
+} // removeSecondOrderNullSpace
+
+/////////////////////////////// PROTECTED //////////////////////////////////////
+
+void
+AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                                    const double new_time,
+                                                                    const int cycle_num)
+{
     // Update density
     const double apply_time = new_time;
     for (unsigned k = 0; k < d_reset_rho_fcns.size(); ++k)
@@ -1589,121 +1698,9 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchy(const double current_ti
         }
     }
 
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
-} // integrateHierarchy
+} // integrateHierarchySpecialized
 
-void
-AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double current_time,
-                                                                    double new_time,
-                                                                    bool skip_synchronize_new_state_data,
-                                                                    int num_cycles)
-{
-    HierarchyIntegrator::postprocessIntegrateHierarchy(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    const double dt = new_time - current_time;
-
-    // Synchronize new state data.
-    if (!skip_synchronize_new_state_data)
-    {
-        if (d_enable_logging)
-            plog << d_object_name << "::postprocessIntegrateHierarchy(): synchronizing updated data\n";
-        synchronizeHierarchyData(NEW_DATA);
-    }
-
-    // Determine the CFL number.
-    if (!d_parent_integrator)
-    {
-        double cfl_max = 0.0;
-        PatchSideDataOpsReal<NDIM, double> patch_sc_ops;
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
-            {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-                const double* const dx = pgeom->getDx();
-                const double dx_min = *(std::min_element(dx, dx + NDIM));
-                Pointer<SideData<NDIM, double> > u2_sc_new_data = patch->getPatchData(d_U2_new_idx);
-                double u2_max = 0.0;
-                u2_max = patch_sc_ops.maxNorm(u2_sc_new_data, patch_box);
-                cfl_max = std::max(cfl_max, u2_max * dt / dx_min);
-            }
-        }
-        cfl_max = IBTK_MPI::maxReduction(cfl_max);
-        if (d_enable_logging)
-            plog << d_object_name << "::postprocessIntegrateHierarchy(): CFL number = " << cfl_max << "\n";
-    }
-
-    // Compute max |Omega|_2.
-    if (d_using_vorticity_tagging)
-    {
-        d_hier_sc_data_ops->copyData(d_U2_scratch_idx, d_U2_new_idx);
-        d_hier_math_ops->curl(d_Omega2_idx, d_Omega2_var, d_U2_scratch_idx, d_U2_var, d_U2_bdry_bc_fill_op, new_time);
-
-#if (NDIM == 3)
-        d_hier_math_ops->pointwiseL2Norm(d_Omega2_Norm_idx, d_Omega2_Norm_var, d_Omega2_idx, d_Omega2_var);
-#endif
-        const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-#if (NDIM == 2)
-        d_Omega2_max = d_hier_cc_data_ops->maxNorm(d_Omega2_idx, wgt_cc_idx);
-#endif
-#if (NDIM == 3)
-        d_Omega2_max = d_hier_cc_data_ops->max(d_Omega2_Norm_idx, wgt_cc_idx);
-#endif
-    }
-
-    // Deallocate scratch data.
-    deallocate_vector_data(*d_U2_rhs_vec);
-    deallocate_vector_data(*d_P2_rhs_vec);
-
-    // Deallocate any temporary data used to compute coefficients
-    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_velocity_C_idx);
-        level->deallocatePatchData(d_velocity_L_idx);
-        level->deallocatePatchData(d_velocity_D_idx);
-        level->deallocatePatchData(d_velocity_D_cc_idx);
-        level->deallocatePatchData(d_pressure_D_idx);
-        level->deallocatePatchData(d_projection_D_idx);
-        level->deallocatePatchData(d_mu_interp_idx);
-    }
-
-    // Postprocess Brinkman penalization objects.
-    for (auto& brinkman_force : d_brinkman_force)
-    {
-        brinkman_force->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
-    }
-
-    // Execute any registered callbacks.
-    executePostprocessIntegrateHierarchyCallbackFcns(
-        current_time, new_time, skip_synchronize_new_state_data, num_cycles);
-    return;
-
-} // postprocessIntegrateHierarchy
-
-void
-AcousticStreamingHierarchyIntegrator::removeSecondOrderNullSpace(
-    const Pointer<SAMRAIVectorReal<NDIM, double> >& sol2_vec)
-{
-    if (d_nul2_vecs.empty()) return;
-    for (const auto& nul2_vec : d_nul2_vecs)
-    {
-        const double sol2_dot_nul2 = sol2_vec->dot(nul2_vec);
-        const double nul2_L2_norm_square = nul2_vec->dot(nul2_vec);
-        sol2_vec->axpy(-sol2_dot_nul2 / nul2_L2_norm_square, nul2_vec, sol2_vec);
-    }
-    return;
-} // removeSecondOrderNullSpace
-
-/////////////////////////////// PROTECTED //////////////////////////////////////
 void
 AcousticStreamingHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {

@@ -237,12 +237,6 @@ public:
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
-     * Synchronously advance each level in the hierarchy over the given time
-     * increment.
-     */
-    void integrateHierarchy(const double current_time, const double new_time, const int cycle_num = 0) override;
-
-    /*!
      * Virtual method to clean up data following call(s) to integrateHierarchy().
      */
     void postprocessIntegrateHierarchy(double current_time,
@@ -469,6 +463,13 @@ protected:
      * Whether we need to perform a regrid projection when (re-)initializing composite hierarchy data.
      */
     bool d_do_regrid_projection = false;
+
+    /*!
+     * Synchronously advance each level in the hierarchy over the given time
+     * increment.
+     */
+    void
+    integrateHierarchySpecialized(const double current_time, const double new_time, const int cycle_num = 0) override;
 
     /*!
      * Prepare the current hierarchy for regridding. Here we calculate the divergence.
