@@ -46,7 +46,7 @@ struct VCStaggeredStokesOpSpec : public IBTK::VCViscousDilatationalOpSpec
         d_div_coef_idx = IBTK::invalid_index;
     } // reset
 
-    operator VCViscousDilatationalOpSpec()
+    VCViscousDilatationalOpSpec getVCViscousDilatationalOpSpec() const
     {
         VCViscousDilatationalOpSpec obj;
         obj.d_C_idx = this->d_C_idx;
@@ -60,7 +60,7 @@ struct VCStaggeredStokesOpSpec : public IBTK::VCViscousDilatationalOpSpec
         obj.d_L_is_const = this->d_L_is_const;
 
         return obj;
-    } // operator VCViscousDilatationalOpSpec
+    } // getVCViscousDilatationalOpSpec
 
     // The coefficient multiplying the velocity variable in the divergence of velocity condition.
     int d_div_coef_idx = IBTK::invalid_index;

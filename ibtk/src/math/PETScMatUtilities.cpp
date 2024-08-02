@@ -1173,7 +1173,6 @@ PETScMatUtilities::constructPatchLevelVCSCViscousDilatationalOp(Mat& mat,
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
                 const unsigned int location_index = bdry_box.getLocationIndex();
                 const unsigned int bdry_normal_axis = location_index / 2;
-                const bool is_lower = location_index % 2 == 0;
 
                 if (bdry_normal_axis != axis) continue;
 

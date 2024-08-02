@@ -387,7 +387,7 @@ c
      &            fac2*(u2(i0,i1,i2) - u2(i0,i1,i2-1)) 
 
             f2(i0,i1,i2) = alpha*fac2*(lambda(i0,i1,i2)*div_upper -
-     &            lambda(i0,i1,i2-1)*div_lower)+ beta*v1(i0,i1,i2) 
+     &            lambda(i0,i1,i2-1)*div_lower)+ beta*v2(i0,i1,i2) 
 
             enddo
          enddo
