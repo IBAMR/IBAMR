@@ -416,7 +416,7 @@ main(int argc, char* argv[])
                                                                 static_cast<void*>(ptr_LSLocateInterface));
         IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-                    ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
+            ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // register liquid fraction
         Pointer<CellVariable<NDIM, double> > lf_var = new CellVariable<NDIM, double>("lf_var");
@@ -617,29 +617,29 @@ main(int argc, char* argv[])
         const double ref_temperature = input_db->getDouble("REFERENCE_TEMP_SIGMA");
         const double temperature_gradient = input_db->getDouble("TEMPERATURE_GRADIENT");
 
-        // There are no solid phase in this example. So liquid fraction is already set to 1 to denote the liquid. So the properties in
-        // the solid phase are arbitrary.
+        // There are no solid phase in this example. So liquid fraction is already set to 1 to denote the liquid. So the
+        // properties in the solid phase are arbitrary.
         const double rho_solid = 0.0;
         const double kappa_solid = 0.0;
         const double Cp_solid = 0.0;
 
         // Callback functions can either be registered with the NS integrator, or
-       // the advection-diffusion integrator
-       IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
-                                                                             adv_diff_integrator,
-                                                                             H_var,
-                                                                             H_bc_coef,
-                                                                             lf_var,
-                                                                             lf_bc_coef,
-                                                                             rho_liquid,
-                                                                             rho_solid,
-                                                                             rho_gas,
-                                                                             kappa_liquid,
-                                                                             kappa_solid,
-                                                                             kappa_gas,
-                                                                             Cp_liquid,
-                                                                             Cp_solid,
-                                                                             Cp_gas);
+        // the advection-diffusion integrator
+        IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
+                                                                              adv_diff_integrator,
+                                                                              H_var,
+                                                                              H_bc_coef,
+                                                                              lf_var,
+                                                                              lf_bc_coef,
+                                                                              rho_liquid,
+                                                                              rho_solid,
+                                                                              rho_gas,
+                                                                              kappa_liquid,
+                                                                              kappa_solid,
+                                                                              kappa_gas,
+                                                                              Cp_liquid,
+                                                                              Cp_solid,
+                                                                              Cp_gas);
 
         time_integrator->registerResetFluidDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                       static_cast<void*>(&setSetFluidProperties));
@@ -647,11 +647,13 @@ main(int argc, char* argv[])
         time_integrator->registerResetFluidViscosityFcn(&IBAMR::PhaseChangeUtilities::callSetViscosityCallbackFunction,
                                                         static_cast<void*>(&setSetFluidProperties));
 
-        ac_hier_integrator->registerResetDiffusionCoefficientFcn(&IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction,
-                                                                 static_cast<void*>(&setSetFluidProperties));
+        ac_hier_integrator->registerResetDiffusionCoefficientFcn(
+            &IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction,
+            static_cast<void*>(&setSetFluidProperties));
 
-        ac_hier_integrator->registerResetSpecificHeatFcn(&IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,
-                                                         static_cast<void*>(&setSetFluidProperties));
+        ac_hier_integrator->registerResetSpecificHeatFcn(
+            &IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,
+            static_cast<void*>(&setSetFluidProperties));
 
         ac_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                     static_cast<void*>(&setSetFluidProperties));

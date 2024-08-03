@@ -90,6 +90,6 @@ private:
 
     SAMRAI::tbox::Pointer<IBAMR::LSInitStrategy> d_ls_ops;
 
-};     // SetLSProperties
+}; // SetLSProperties
 
 #endif // #ifndef included_SetLSProperties
