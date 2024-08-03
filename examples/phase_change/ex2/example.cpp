@@ -383,23 +383,23 @@ main(int argc, char* argv[])
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
         IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
-                                                                            adv_diff_integrator,
-                                                                            H_var,
-                                                                            H_bc_coef,
-                                                                            lf_var,
-                                                                            lf_bc_coef,
-                                                                            rho_liquid,
-                                                                            rho_solid,
-                                                                            rho_gas,
-                                                                            kappa_liquid,
-                                                                            kappa_solid,
-                                                                            kappa_gas,
-                                                                            Cp_liquid,
-                                                                            Cp_solid,
-                                                                            Cp_gas,
-                                                                            mu_liquid,
-                                                                            mu_solid,
-                                                                            mu_gas);
+                                                                              adv_diff_integrator,
+                                                                              H_var,
+                                                                              H_bc_coef,
+                                                                              lf_var,
+                                                                              lf_bc_coef,
+                                                                              rho_liquid,
+                                                                              rho_solid,
+                                                                              rho_gas,
+                                                                              kappa_liquid,
+                                                                              kappa_solid,
+                                                                              kappa_gas,
+                                                                              Cp_liquid,
+                                                                              Cp_solid,
+                                                                              Cp_gas,
+                                                                              mu_liquid,
+                                                                              mu_solid,
+                                                                              mu_gas);
 
         time_integrator->registerResetFluidDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                       static_cast<void*>(&setSetFluidProperties));
@@ -407,10 +407,12 @@ main(int argc, char* argv[])
                                                         static_cast<void*>(&setSetFluidProperties));
 
         enthalpy_hier_integrator->registerResetDiffusionCoefficientFcn(
-            &IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction, static_cast<void*>(&setSetFluidProperties));
+            &IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction,
+            static_cast<void*>(&setSetFluidProperties));
 
-        enthalpy_hier_integrator->registerResetSpecificHeatFcn(&IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,
-                                                               static_cast<void*>(&setSetFluidProperties));
+        enthalpy_hier_integrator->registerResetSpecificHeatFcn(
+            &IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,
+            static_cast<void*>(&setSetFluidProperties));
 
         enthalpy_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                           static_cast<void*>(&setSetFluidProperties));

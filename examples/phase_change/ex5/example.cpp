@@ -225,22 +225,24 @@ main(int argc, char* argv[])
                                                                               Cp_solid,
                                                                               Cp_gas);
 
-        ac_hier_integrator->registerResetDiffusionCoefficientFcn(&IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction,
-                                                                static_cast<void*>(&setSetFluidProperties));
+        ac_hier_integrator->registerResetDiffusionCoefficientFcn(
+            &IBAMR::PhaseChangeUtilities::callSetThermalConductivityCallbackFunction,
+            static_cast<void*>(&setSetFluidProperties));
 
-        ac_hier_integrator->registerResetSpecificHeatFcn(&IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,
-                                                        static_cast<void*>(&setSetFluidProperties));
+        ac_hier_integrator->registerResetSpecificHeatFcn(
+            &IBAMR::PhaseChangeUtilities::callSetSpecificHeatCallbackFunction,
+            static_cast<void*>(&setSetFluidProperties));
 
         ac_hier_integrator->registerResetDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                     static_cast<void*>(&setSetFluidProperties));
 
         // Tag cells for refinement
-       const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
-      const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
-      IBAMR::PhaseChangeUtilities::TagLiquidFractionRefinementCells tagger(
-          ac_hier_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
-        ac_hier_integrator->registerApplyGradientDetectorCallback(&IBAMR::PhaseChangeUtilities::calltagLiquidFractionCellsCallbackFunction,
-                                                                  static_cast<void*>(&tagger));
+        const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
+        const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
+        IBAMR::PhaseChangeUtilities::TagLiquidFractionRefinementCells tagger(
+            ac_hier_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
+        ac_hier_integrator->registerApplyGradientDetectorCallback(
+            &IBAMR::PhaseChangeUtilities::calltagLiquidFractionCellsCallbackFunction, static_cast<void*>(&tagger));
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
