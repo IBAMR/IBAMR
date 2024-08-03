@@ -49,6 +49,25 @@ c     Local variables.
 c
       INTEGER i0,i1
 
+cccccccccccccccccccccccccccc
+      U_gcw = U_gcw 
+      V_gcw = V_gcw
+      ilower0 = ilower0 
+      iupper0 = iupper0
+      ilower1 = ilower1 
+      iupper1 = iupper1
+      ilower2 = ilower2 
+      iupper2 = iupper2
+      U0 = U0
+      U1 = U1
+      U2 = U2
+      V0 = V0
+      V1 = V1
+      V2 = V2
+      i0 = 0
+      i1 = 0
+cccccccccccccccccccccccccccc      
+
 c
 c     Copy the components of U to V.
 c
@@ -91,6 +110,20 @@ c
 c     Copy the components of U to V.
 c
 
+cccccccccccccccccccccccccccc
+      U_gcw = U_gcw 
+      V_gcw = V_gcw
+      ilower0 = ilower0 
+      iupper0 = iupper0
+      ilower1 = ilower1 
+      iupper1 = iupper1
+      ilower2 = ilower2 
+      iupper2 = iupper2
+      U = U
+      V = V
+      i0 = 0
+      i1 = 0
+cccccccccccccccccccccccccccc      
 
 c
       return
@@ -150,6 +183,34 @@ c
 c     Compute the coupling source term.
 c
 
+cccccccccccccccccccccccccccc
+      Ur_gcw = Ur_gcw 
+      Ui_gcw = Ui_gcw
+      rho_gcw = rho_gcw
+      f_gcw = f_gcw
+      ilower0 = ilower0 
+      iupper0 = iupper0
+      ilower1 = ilower1 
+      iupper1 = iupper1
+      ilower2 = ilower2 
+      iupper2 = iupper2
+      rho0 = rho0
+      rho1 = rho1
+      rho2 = rho2
+      U0r = U0r
+      U1r = U1r
+      U2r = U2r
+      U0i = U0i
+      U1i = U1i
+      U2i = U2i
+      f0 = f0
+      f1 = f1
+      f2 = f2
+      g1 = 0
+      g2 = 0
+      i0 = 0
+      i1 = 0
+cccccccccccccccccccccccccccc      
            
 c     
       return
@@ -209,6 +270,33 @@ c     Local variables
 c
 c     Compute the coupling source term.
 c
+
+cccccccccccccccccccccccccccc
+      Ur_gcw = Ur_gcw 
+      Ui_gcw = Ui_gcw
+      pr_gcw = pr_gcw 
+      pi_gcw = pi_gcw
+      m_gcw = m_gcw
+      ilower0 = ilower0 
+      iupper0 = iupper0
+      ilower1 = ilower1 
+      iupper1 = iupper1
+      ilower2 = ilower2 
+      iupper2 = iupper2
+      U0r = U0r
+      U1r = U1r
+      U2r = U2r
+      U0i = U0i
+      U1i = U1i
+      U2i = U2i
+      pr = pr
+      pi = pi
+      m = m
+      g1 = 0
+      g2 = 0
+      i0 = 0
+      i1 = 0
+cccccccccccccccccccccccccccc
 
 c     
       return

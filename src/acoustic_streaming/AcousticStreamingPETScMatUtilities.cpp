@@ -541,9 +541,6 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
-        const Array<BoundaryBox<NDIM> > physical_codim1_boxes =
-            PhysicalBoundaryUtilities::getPhysicalBoundaryCodim1Boxes(*patch);
-        const int n_physical_codim1_boxes = physical_codim1_boxes.size();
 
         Pointer<SideData<NDIM, int> > u_dof_index_data = patch->getPatchData(u_dof_index_idx);
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
@@ -763,7 +760,6 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
                 const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
                 const unsigned int location_index = bdry_box.getLocationIndex();
                 const unsigned int bdry_normal_axis = location_index / 2;
-                const bool is_lower = location_index % 2 == 0;
 
                 if (bdry_normal_axis != axis) continue;
 
