@@ -411,7 +411,7 @@ AcousticStreamingHierarchyIntegrator {
    mu_vc_interpolation_type  = "VC_AVERAGE_INTERP"
 
    first_order_solver_db {
-      ksp_type          = "preonly"
+      ksp_type          = "fgmres"
       pc_type           = "lu"
       rel_residual_tol  = 1.0e-14
       abs_residual_tol  = 1.0e-15
@@ -421,7 +421,7 @@ AcousticStreamingHierarchyIntegrator {
    stokes_solver_db {
       ksp_type       = "fgmres"
       max_iterations = 1000
-      rel_residual_tol = 1e-10
+      rel_residual_tol = 1e-12
    }
 
    stokes_precond_db {
