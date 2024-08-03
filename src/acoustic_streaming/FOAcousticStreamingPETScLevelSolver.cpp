@@ -278,7 +278,6 @@ FOAcousticStreamingPETScLevelSolver::enforceNormalVelocityBoundaryConditions(
 #endif
 
     Pointer<PatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
-    const Box<NDIM>& patch_box = patch->getBox();
     Pointer<SideData<NDIM, double> > u_data = patch->getPatchData(u_data_idx);
 
     // Data structures required to set physical boundary conditions.

@@ -2797,7 +2797,7 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectorsFOSystem(Pointer<SAMRAIV
                                                                  Pointer<SAMRAIVectorReal<NDIM, double> >& rhs1_vec,
                                                                  double current_time,
                                                                  double new_time,
-                                                                 int cycle_num)
+                                                                 int /*cycle_num*/)
 {
     // Account for body forcing terms.
     if (d_F1_fcn)
