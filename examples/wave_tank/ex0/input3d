@@ -24,10 +24,10 @@ X_ZONE_END = Lx
 ALPHA = 2.0
 
 // material properties
-MU_I       = 1.137e-3
-MU_O       = 1.78e-5
-RHO_I      = 1.0e3
-RHO_O      = 1.226
+MU_I       = 1.78e-5
+MU_O       = 1.137e-3
+RHO_I      = 1.226
+RHO_O      = 1.0e3
 
 NUM_INTERFACE_CELLS = 1.0
 
@@ -60,7 +60,7 @@ VORTICITY_REL_THRESH = 0.5
 // Level set initial conditions
 LevelSetInitialConditions {
   depth = DEPTH
-  function = "X_2 - depth" 
+  function = "depth - X_2" 
 }
 
 

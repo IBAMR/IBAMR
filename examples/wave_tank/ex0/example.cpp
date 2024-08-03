@@ -316,6 +316,7 @@ main(int argc, char* argv[])
         wave_damper.d_x_zone_end = x_zone_end;
         wave_damper.d_depth = depth;
         wave_damper.d_alpha = alpha;
+        wave_damper.d_sign_gas_phase = -1;
         wave_damper.d_ins_hier_integrator = time_integrator;
         wave_damper.d_adv_diff_hier_integrator = adv_diff_integrator;
         wave_damper.d_phi_var = phi_var;
@@ -364,6 +365,7 @@ main(int argc, char* argv[])
             wave_generator->d_wave_gen_data.d_x_zone_start = inlet_zone_start;
             wave_generator->d_wave_gen_data.d_x_zone_end = inlet_zone_end;
             wave_generator->d_wave_gen_data.d_alpha = alpha;
+            wave_generator->d_wave_gen_data.d_sign_gas_phase = -1;
             wave_generator->d_wave_gen_data.d_ins_hier_integrator = time_integrator;
             wave_generator->d_wave_gen_data.d_adv_diff_hier_integrator = adv_diff_integrator;
             wave_generator->d_wave_gen_data.d_phi_var = phi_var;

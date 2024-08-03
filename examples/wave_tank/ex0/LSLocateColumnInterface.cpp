@@ -93,7 +93,7 @@ LSLocateColumnInterface::setLevelSetPatchData(int D_idx,
                 {
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
-                (*D_data)(ci) = coord[NDIM - 1] - depth;
+                (*D_data)(ci) = depth - coord[NDIM - 1];
             }
         }
     }
