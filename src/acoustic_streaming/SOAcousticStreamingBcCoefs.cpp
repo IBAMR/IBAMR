@@ -108,15 +108,8 @@ SOAcousticStreamingBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
                                        const Pointer<Variable<NDIM> >& /*variable*/,
                                        const Patch<NDIM>& patch,
                                        const BoundaryBox<NDIM>& bdry_box,
-                                       double fill_time) const
+                                       double /*fill_time*/) const
 {
-    const Box<NDIM>& patch_box = patch.getBox();
-    const hier::Index<NDIM>& patch_lower = patch_box.lower();
-    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
-
-    const double* const x_lower = pgeom->getXLower();
-    const double* const dx = pgeom->getDx();
-
     // Patch data for first-order velocity and density
     Pointer<SideData<NDIM, double> > U1_real_data = patch.getPatchData(d_U1_real_idx);
     Pointer<SideData<NDIM, double> > U1_imag_data = patch.getPatchData(d_U1_imag_idx);
@@ -126,8 +119,7 @@ SOAcousticStreamingBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
 
     // Loop over the boundary box and set the coefficients.
     const unsigned int location_index = bdry_box.getLocationIndex();
-    const unsigned int bdry_normal_axis = location_index / 2;
-    const unsigned int side = location_index % 2;
+    const int bdry_normal_axis = location_index / 2;
     const bool normal_comp = (d_U2_comp == bdry_normal_axis);
 
     const Box<NDIM>& bc_coef_box = (acoef_data ? acoef_data->getBox() :
