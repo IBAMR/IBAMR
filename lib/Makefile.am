@@ -104,6 +104,11 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/NonbondedForceEvaluator.cpp \
 ../src/IB/Wall.cpp \
 ../src/IB/WallForceEvaluator.cpp \
+../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp \
+../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
+../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
+../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -222,6 +227,9 @@ if LIBMESH_ENABLED
 endif
 
 pkg_include_HEADERS += \
+../include/ibamr/AcousticStreamingHierarchyIntegrator.h \
+../include/ibamr/AcousticStreamingPETScMatUtilities.h \
+../include/ibamr/AcousticStreamingPETScVecUtilities.h \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 ../include/ibamr/AdvDiffCUIConvectiveOperator.h \
 ../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
@@ -253,6 +261,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/DirectMobilitySolver.h \
 ../include/ibamr/EnthalpyHierarchyIntegrator.h \
+../include/ibamr/FOAcousticStreamingPETScLevelSolver.h \
 ../include/ibamr/FastSweepingLSMethod.h \
 ../include/ibamr/FifthOrderStokesWaveGenerator.h \
 ../include/ibamr/FirstOrderStokesWaveGenerator.h \
@@ -331,6 +340,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/RelaxationLSBcCoefs.h \
 ../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
+../include/ibamr/SOAcousticStreamingBcCoefs.h \
 ../include/ibamr/STSMassFluxIntegrator.h \
 ../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 ../include/ibamr/StaggeredStokesBlockPreconditioner.h \
