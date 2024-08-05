@@ -357,6 +357,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
+../include/ibamr/VCStaggeredStokesSpec.h \
 ../include/ibamr/vc_ins_utilities.h \
 ../include/ibamr/Wall.h \
 ../include/ibamr/WallForceEvaluator.h \
