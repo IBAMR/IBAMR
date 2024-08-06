@@ -298,6 +298,7 @@ AC_CONFIG_FILES([
   src/wave_generation/Makefile
   tests/attest.conf
   tests/Makefile
+  tests/acoustic_streaming/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
   tests/coarsen/Makefile
