@@ -396,6 +396,7 @@ endif
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
@@ -420,6 +421,7 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
