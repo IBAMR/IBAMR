@@ -481,7 +481,7 @@ IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
 EXAMPLE_DRIVER = example.cpp LiquidFractionInitialCondition.cpp LiquidFractionInitialCondition.h TemperatureInitialCondition.cpp TemperatureInitialCondition.h
-EXTRA_DIST = input2d
+EXTRA_DIST = input2d.amr
 #EXTRA_DIST += input3d
 EXAMPLES = $(am__append_1)
 #if SAMRAI3D_ENABLED

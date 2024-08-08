@@ -17,6 +17,7 @@
 #define included_IBAMR_EnthalpyHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+#include "ibamr/CellConvectiveOperator.h"
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
 
 namespace IBTK
@@ -28,7 +29,7 @@ class PoissonSolver;
 
 namespace IBAMR
 {
-class ConvectiveOperator;
+class CellConvectiveOperator;
 } // namespace IBAMR
 
 namespace SAMRAI
@@ -117,6 +118,13 @@ public:
     void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) override;
 
     /*!
+     * \brief Register specific enthalpy variable \f$ h \f$.
+     */
+    virtual void
+    registerSpecificEnthalpyVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > h_var,
+                                     const bool output_h_var = true);
+
+    /*!
      * Set boundary conditions for \f$ h \f$ variable.
      */
     void setEnthalpyBcCoef(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* h_bc_coef);
@@ -125,6 +133,17 @@ public:
      * Write out specialized object state to the given database.
      */
     void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
+
+    /*!
+     * \brief Register LevelSet variable \f$ \phi \f$ maintained by AdvDiffHierarchyIntegrator.
+     */
+    void registerLevelSetVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > phi_var);
+
+    /*!
+     * \brief Register liquid fraction variable for extrapolation.
+     */
+    void registerLiquidFractionVariableForExtrapolation(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
 
 protected:
     /*!
@@ -199,6 +218,30 @@ private:
     void computeLiquidFraction(int lf_idx, const int h_idx, const int H_idx);
 
     /*!
+     * \brief The surface tension force is multiplied by a liquid fraction to zero out the surface tension
+     * contribution in the liquid-solid and gas-solid interfaces. However, the liquid fraction is arbitrary in the gas
+     * phase. so extrapolation of liquid fraction from PCM into the gas is necessary to get the correct results. Forward
+     * Euler time stepping scheme is used to perfom constant extrapolation with fixed 15 iterations and CFL = 0.3.
+     */
+    void extrapolateLiquidFractionToGasRegion(int lf_new_idx);
+
+    /*!
+     * \brief Compute advection velocity \f$ u_{\rm adv} = H(-\phi) n \f$.
+     */
+    void computeAdvectionVelocityForExtrapolation(int u_adv_fc_lf_extrap_current_idx,
+                                                  const double current_time,
+                                                  const double new_time);
+
+    /*!
+     * Get the convective operator for solving lf extrapolation equation.
+     *
+     * If the convective operator has not already been constructed, then this
+     * function will initialize a default convective operator.
+     */
+    SAMRAI::tbox::Pointer<CellConvectiveOperator> getLiquidFractionExtrapConvectiveOperator(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_extrap_var);
+
+    /*!
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_h_var;
@@ -227,6 +270,11 @@ private:
     int d_dh_dT_scratch_idx = IBTK::invalid_index;
 
     /*!
+     * Boolean to output the enthalpy in visit.
+     */
+    bool d_output_h = false;
+
+    /*!
      * Energy equation parameters.
      */
     double d_liquidus_temperature, d_solidus_temperature, d_reference_temperature, d_specific_heat_liquid,
@@ -242,6 +290,39 @@ private:
      */
     int d_max_inner_iterations = 5;
     double d_lf_iteration_error_tolerance = 1e-8;
+
+    /*!
+     * Machineries related to constant extrapolation.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_extrap_var, d_lf_extrap_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_extrap_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_adv_fc_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_adv_sc_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_u_adv_cc_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_normal_lf_extrap_var;
+
+    int d_lf_extrap_current_idx = IBTK::invalid_index, d_lf_extrap_new_idx = IBTK::invalid_index,
+        d_lf_extrap_scratch_idx = IBTK::invalid_index;
+    int d_lf_extrap_interp_idx = IBTK::invalid_index;
+    int d_u_adv_fc_lf_extrap_current_idx = IBTK::invalid_index;
+    int d_u_adv_sc_lf_extrap_current_idx = IBTK::invalid_index;
+    int d_u_adv_cc_lf_extrap_current_idx = IBTK::invalid_index;
+    int d_normal_lf_extrap_current_idx = IBTK::invalid_index;
+    int d_lf_extrap_rhs_scratch_idx = IBTK::invalid_index;
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_extrap_convective_op_input_db = d_default_convective_op_input_db;
+    SAMRAI::tbox::Pointer<CellConvectiveOperator> d_lf_extrap_convective_op = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_lf_extrap_sol, d_lf_extrap_rhs;
+
+    int d_lf_extrap_max_num_time_steps = 15;
+    double d_lf_extrap_cell_size;
+
+    /*!
+     * Specify whether liquid fraction value should be extrapolated into the gas phase.
+     */
+
+    bool d_extrapolate_lf;
 };
 } // namespace IBAMR
 
