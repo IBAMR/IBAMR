@@ -13,11 +13,13 @@ KAPPA_G = 0.5*KAPPA_L
 CP_G    = 0.5*CP_L
 MU_G    = 0.5*MU_L
 
-OUTPUT_FILE_NAME = "normalized_rise_velocity"
+OUTPUT_FILE_NAME = "normalized_rise_velocity_3d"
 
 MELT_TEMPERATURE = 265.0
 NUMBER_OF_INTERFACE_CELLS  = 2
-GAS_LIQUID_FRACTION = 1.0
+
+GAS_LIQUID_FRACTION = 0.0
+LF_EXTRAP_MAX_TS = 15
 
 LIQUIDUS_TEMPERATURE = 270.0
 SOLIDUS_TEMPERATURE = 260.0
@@ -514,8 +516,10 @@ EnthalpyHierarchyIntegrator {
    liquidus_temperature            = LIQUIDUS_TEMPERATURE
    solidus_temperature             = SOLIDUS_TEMPERATURE
    reference_temperature           = REFERENCE_TEMPERATURE
-   gas_liquid_fraction             = GAS_LIQUID_FRACTION
    output_Div_U_F                  = OUTPUT_DIV_U_F
+   gas_liquid_fraction             = GAS_LIQUID_FRACTION
+   lf_extrap_max_num_time_steps    = LF_EXTRAP_MAX_TS
+   lf_extrap_cell_size             = HFINEST
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
       T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"

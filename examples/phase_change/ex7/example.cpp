@@ -53,7 +53,7 @@ struct SynchronizeLevelSetCtx
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
     Pointer<CellVariable<NDIM, double> > ls_var;
     Pointer<CellVariable<NDIM, double> > H_var;
-    int num_interface_cells;
+    double num_interface_cells;
 };
 
 void
@@ -85,7 +85,7 @@ synchronize_levelset_with_heaviside_fcn(int H_current_idx,
             const double* patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            const int num_interface_cells = sync_ls_ctx->num_interface_cells;
+            const double num_interface_cells = sync_ls_ctx->num_interface_cells;
             const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_current_idx);
@@ -260,7 +260,6 @@ compute_surface_tension_coef_function(int F_idx,
                     SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
 
                     const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
-
                     const double sigma = sigma_0 + dsigma_dT0 * (T_sc - T_ref);
                     (*F_data)(si) *= sigma;
                 }
@@ -286,7 +285,6 @@ compute_marangoni_coef_function(int F_idx,
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
-    // parameters
     const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

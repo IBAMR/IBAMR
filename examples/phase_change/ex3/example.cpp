@@ -55,7 +55,7 @@ struct SynchronizeLevelSetCtx
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
     Pointer<CellVariable<NDIM, double> > ls_var;
     Pointer<CellVariable<NDIM, double> > H_var;
-    int num_interface_cells;
+    double num_interface_cells;
 };
 
 void
@@ -87,7 +87,7 @@ synchronize_levelset_with_heaviside_fcn(int H_current_idx,
             const double* patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-            const int num_interface_cells = sync_ls_ctx->num_interface_cells;
+            const double num_interface_cells = sync_ls_ctx->num_interface_cells;
             const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_current_idx);
@@ -201,6 +201,10 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > lf_var = new CellVariable<NDIM, double>("lf_var");
         Pointer<EnthalpyHierarchyIntegrator> enthalpy_hier_integrator = adv_diff_integrator;
         enthalpy_hier_integrator->registerLiquidFractionVariable(lf_var, true);
+
+        // register specific enthalpy
+        Pointer<CellVariable<NDIM, double> > h_var = new CellVariable<NDIM, double>("h_var");
+        enthalpy_hier_integrator->registerSpecificEnthalpyVariable(h_var, true);
 
         // register Heaviside
         Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("heaviside_var");
@@ -499,7 +503,14 @@ main(int argc, char* argv[])
             new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
         std::string FILE_NAME = input_db->getString("MASS_CONSERVATION_FILE_NAME");
         std::ofstream pcm_mass_file;
-        pcm_mass_file.open(FILE_NAME);
+
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            pcm_mass_file.open(FILE_NAME, ios_base::out | ios_base::app);
+            pcm_mass_file.precision(16);
+            pcm_mass_file.setf(ios::fixed, ios::floatfield);
+        }
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -527,7 +538,8 @@ main(int argc, char* argv[])
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const double mass = hier_cc_data_ops->integral(pcm_mass_idx, wgt_cc_idx);
-            pcm_mass_file << loop_time << "\t" << mass << "\n";
+
+            if (SAMRAI_MPI::getRank() == 0) pcm_mass_file << loop_time << "\t" << mass << std::endl;
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -559,12 +571,11 @@ main(int argc, char* argv[])
 
         var_db->removePatchDataIndex(pcm_mass_idx);
 
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        pcm_mass_file.close();
-
-        // Cleanup pointers
+        // Cleanup pointers, bc objects.
         delete ptr_LSLocateInterface;
+
+        // Close the logging streams.
+        if (SAMRAI_MPI::getRank() == 0) pcm_mass_file.close();
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

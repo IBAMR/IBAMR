@@ -25,5 +25,5 @@ IBAMR_ADD_EXAMPLE(
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
-    input2d
+    input2d.amr
   )
