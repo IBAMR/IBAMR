@@ -324,6 +324,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
         Pointer<SideData<NDIM, double> > f_marangoni_sc_data = patch->getPatchData(d_F_cloned_idx);
         setDataOnPatchSide(f_marangoni_sc_data, patch, data_time, initial_time, level);
 
+        PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
         if (d_compute_marangoni_coef)
         {
             // Use the callback function to compute F = marangoni_coef*F.
@@ -331,7 +332,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
             const double current_time = data_time;
             const double new_time = data_time;
             d_compute_marangoni_coef(d_F_cloned_idx,
-                                     d_hier_math_ops,
+                                     patch,
                                      -1 /*cycle_num*/,
                                      apply_time,
                                      current_time,
@@ -340,11 +341,11 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
         }
         else
         {
-            d_hier_sc_data_ops->scale(d_F_cloned_idx, d_marangoni_coefficient, d_F_cloned_idx, /*interior_only*/ true);
+            patch_sc_data_ops.scale(f_marangoni_sc_data, d_marangoni_coefficient, f_marangoni_sc_data, patch->getBox());
         }
 
         // Add Marangoni force with the surface tension force.
-        d_hier_sc_data_ops->add(data_idx, data_idx, d_F_cloned_idx, /*interior_only*/ true);
+        patch_sc_data_ops.add(f_sc_data, f_sc_data, f_marangoni_sc_data, patch->getBox());
     }
     return;
 } // setDataOnPatch
