@@ -161,11 +161,9 @@ ENDIF()
 # ---------------------------------------------------------------------------- #
 
 #
-# We require at least C++11. Boost and libMesh may require higher C++ standards:
-# those parts of this CMake script will increment this variable to C++14 or 
-# newer as needed.
+# We require at least C++17.
 #
-SET(IBAMR_CXX_STANDARD "11")
+SET(IBAMR_CXX_STANDARD "17")
 
 #
 # We and our dependencies require MPI so set that up first:
@@ -288,12 +286,8 @@ IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   MESSAGE(STATUS "Found external boost ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
   TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
 
-  # Verify that we can compile some basic Boost headers
-  #
-  # Boost.Math 1.82 will require C++14 so turn it on here if needed
-  IF(${Boost_VERSION} VERSION_GREATER_EQUAL 1.82.0)
-    SET(IBAMR_CXX_STANDARD "14")
-  ENDIF()
+# Verify that we can compile some basic Boost headers
+#
   SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
   # Do not use -Werror at this point, even if the user requested it for IBAMR
   SET(_old_cxx_flags "${CMAKE_CXX_FLAGS}")
@@ -707,15 +701,6 @@ CMake.")
       LIBMESH_WITH_CXX17
       )
 
-    # Boost presently requires at most C++14, so setting the standard to 14 or
-    # higher will not conflict here.
-    IF(${LIBMESH_WITH_CXX17})
-      SET(LIBMESH_CXX_STANDARD 17)
-      SET(IBAMR_CXX_STANDARD 17)
-    ELSEIF(${LIBMESH_WITH_CXX14})
-      SET(LIBMESH_CXX_STANDARD 14)
-      SET(IBAMR_CXX_STANDARD 14)
-    ENDIF()
 
     # We are not compatible with libMesh's bundled version of boost, so make
     # sure that doesn't happen:
@@ -1172,9 +1157,6 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   MESSAGE(STATUS "Adding flag -DNDIM=${_d} to target ${target_library}")
   TARGET_COMPILE_OPTIONS(${target_library} PUBLIC -DNDIM=${_d})
 
-  IF(${IBAMR_HAVE_LIBMESH})
-    MESSAGE(STATUS "libMesh expects C++${LIBMESH_CXX_STANDARD}, so ${target_library} will be built with C++${IBAMR_CXX_STANDARD} as a requirement.")
-  ENDIF()
   SET_PROPERTY(TARGET ${target_library} PROPERTY CXX_STANDARD ${IBAMR_CXX_STANDARD})
   TARGET_COMPILE_FEATURES(${target_library} PUBLIC "cxx_std_${IBAMR_CXX_STANDARD}")
 
