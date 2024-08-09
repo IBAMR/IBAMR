@@ -317,6 +317,7 @@ am__libIBTK2d_a_SOURCES_DIST =  \
 	../src/utilities/FaceDataSynchronization.cpp \
 	../src/utilities/FaceSynchCopyFillPattern.cpp \
 	../src/utilities/FixedSizedStream.cpp \
+	../src/utilities/HierarchyAveragedDataManager.cpp \
 	../src/utilities/HierarchyIntegrator.cpp \
 	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
 	../src/utilities/IndexUtilities.cpp \
@@ -497,6 +498,7 @@ am__objects_4 = ../src/boundary/libIBTK2d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK2d_a-FaceDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-FixedSizedStream.$(OBJEXT) \
+	../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-HierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-IBTK_MPI.$(OBJEXT) \
 	../src/utilities/libIBTK2d_a-IBTKInit.$(OBJEXT) \
@@ -647,6 +649,7 @@ am__libIBTK3d_a_SOURCES_DIST =  \
 	../src/utilities/FaceDataSynchronization.cpp \
 	../src/utilities/FaceSynchCopyFillPattern.cpp \
 	../src/utilities/FixedSizedStream.cpp \
+	../src/utilities/HierarchyAveragedDataManager.cpp \
 	../src/utilities/HierarchyIntegrator.cpp \
 	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
 	../src/utilities/IndexUtilities.cpp \
@@ -825,6 +828,7 @@ am__objects_6 = ../src/boundary/libIBTK3d_a-HierarchyGhostCellInterpolation.$(OB
 	../src/utilities/libIBTK3d_a-FaceDataSynchronization.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-FaceSynchCopyFillPattern.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-FixedSizedStream.$(OBJEXT) \
+	../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-HierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-IBTK_MPI.$(OBJEXT) \
 	../src/utilities/libIBTK3d_a-IBTKInit.$(OBJEXT) \
@@ -1103,6 +1107,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po \
+	../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po \
 	../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po \
@@ -1146,6 +1151,7 @@ am__depfiles_remade = ../contrib/muparser/src/$(DEPDIR)/muParser.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po \
+	../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po \
 	../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po \
@@ -1768,6 +1774,7 @@ DIM_DEPENDENT_SOURCES =  \
 	../src/utilities/FaceDataSynchronization.cpp \
 	../src/utilities/FaceSynchCopyFillPattern.cpp \
 	../src/utilities/FixedSizedStream.cpp \
+	../src/utilities/HierarchyAveragedDataManager.cpp \
 	../src/utilities/HierarchyIntegrator.cpp \
 	../src/utilities/IBTK_MPI.cpp ../src/utilities/IBTKInit.cpp \
 	../src/utilities/IndexUtilities.cpp \
@@ -2332,6 +2339,9 @@ $(top_builddir)/src/utilities/fortran/averaging.$(OBJEXT):  \
 ../src/utilities/libIBTK2d_a-FixedSizedStream.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK2d_a-HierarchyIntegrator.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -2850,6 +2860,9 @@ libIBTK2d.a: $(libIBTK2d_a_OBJECTS) $(libIBTK2d_a_DEPENDENCIES) $(EXTRA_libIBTK2
 ../src/utilities/libIBTK3d_a-FixedSizedStream.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBTK3d_a-HierarchyIntegrator.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3268,6 +3281,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po@am__quote@ # am--include-marker
@@ -3311,6 +3325,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po@am__quote@ # am--include-marker
@@ -4771,6 +4786,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/FixedSizedStream.cpp' object='../src/utilities/libIBTK2d_a-FixedSizedStream.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
+
+../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.o: ../src/utilities/HierarchyAveragedDataManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Tpo -c -o ../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.o `test -f '../src/utilities/HierarchyAveragedDataManager.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyAveragedDataManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/HierarchyAveragedDataManager.cpp' object='../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.o `test -f '../src/utilities/HierarchyAveragedDataManager.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyAveragedDataManager.cpp
+
+../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.obj: ../src/utilities/HierarchyAveragedDataManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Tpo -c -o ../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.obj `if test -f '../src/utilities/HierarchyAveragedDataManager.cpp'; then $(CYGPATH_W) '../src/utilities/HierarchyAveragedDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/HierarchyAveragedDataManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Tpo ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/HierarchyAveragedDataManager.cpp' object='../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK2d_a-HierarchyAveragedDataManager.obj `if test -f '../src/utilities/HierarchyAveragedDataManager.cpp'; then $(CYGPATH_W) '../src/utilities/HierarchyAveragedDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/HierarchyAveragedDataManager.cpp'; fi`
 
 ../src/utilities/libIBTK2d_a-HierarchyIntegrator.o: ../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK2d_a-HierarchyIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Tpo -c -o ../src/utilities/libIBTK2d_a-HierarchyIntegrator.o `test -f '../src/utilities/HierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyIntegrator.cpp
@@ -6704,6 +6733,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-FixedSizedStream.obj `if test -f '../src/utilities/FixedSizedStream.cpp'; then $(CYGPATH_W) '../src/utilities/FixedSizedStream.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/FixedSizedStream.cpp'; fi`
 
+../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.o: ../src/utilities/HierarchyAveragedDataManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Tpo -c -o ../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.o `test -f '../src/utilities/HierarchyAveragedDataManager.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyAveragedDataManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/HierarchyAveragedDataManager.cpp' object='../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.o `test -f '../src/utilities/HierarchyAveragedDataManager.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyAveragedDataManager.cpp
+
+../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.obj: ../src/utilities/HierarchyAveragedDataManager.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Tpo -c -o ../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.obj `if test -f '../src/utilities/HierarchyAveragedDataManager.cpp'; then $(CYGPATH_W) '../src/utilities/HierarchyAveragedDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/HierarchyAveragedDataManager.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/HierarchyAveragedDataManager.cpp' object='../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBTK3d_a-HierarchyAveragedDataManager.obj `if test -f '../src/utilities/HierarchyAveragedDataManager.cpp'; then $(CYGPATH_W) '../src/utilities/HierarchyAveragedDataManager.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/HierarchyAveragedDataManager.cpp'; fi`
+
 ../src/utilities/libIBTK3d_a-HierarchyIntegrator.o: ../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBTK3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBTK3d_a-HierarchyIntegrator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo -c -o ../src/utilities/libIBTK3d_a-HierarchyIntegrator.o `test -f '../src/utilities/HierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/utilities/HierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Tpo ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
@@ -7658,6 +7701,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
@@ -7701,6 +7745,7 @@ distclean: distclean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
@@ -7989,6 +8034,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FaceSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-FixedSizedStream.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyAveragedDataManager.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK2d_a-IBTK_MPI.Po
@@ -8032,6 +8078,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceDataSynchronization.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FaceSynchCopyFillPattern.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-FixedSizedStream.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyAveragedDataManager.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-HierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTKInit.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBTK3d_a-IBTK_MPI.Po
