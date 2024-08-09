@@ -770,16 +770,18 @@ FEMechanicsExplicitIntegrator::doInitializeFESystemVectors()
     FEMechanicsBase::doInitializeFESystemVectors();
     std::vector<EquationSystems*> equation_systems;
     for (const auto& es : d_equation_systems) equation_systems.push_back(es.get());
-    d_X_vecs.reset(new LibMeshSystemVectors(equation_systems, getCurrentCoordinatesSystemName()));
-    d_U_vecs.reset(new LibMeshSystemVectors(equation_systems, getVelocitySystemName()));
-    d_F_vecs.reset(new LibMeshSystemVectors(equation_systems, getForceSystemName()));
+    d_X_vecs = std::make_unique<LibMeshSystemVectors>(equation_systems, getCurrentCoordinatesSystemName());
+    d_U_vecs = std::make_unique<LibMeshSystemVectors>(equation_systems, getVelocitySystemName());
+    d_F_vecs = std::make_unique<LibMeshSystemVectors>(equation_systems, getForceSystemName());
     if (d_has_static_pressure_parts)
     {
-        d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_static_pressure_part, getPressureSystemName()));
+        d_P_vecs =
+            std::make_unique<LibMeshSystemVectors>(equation_systems, d_static_pressure_part, getPressureSystemName());
     }
     if (d_has_dynamic_pressure_parts)
     {
-        d_P_vecs.reset(new LibMeshSystemVectors(equation_systems, d_dynamic_pressure_part, getPressureSystemName()));
+        d_P_vecs =
+            std::make_unique<LibMeshSystemVectors>(equation_systems, d_dynamic_pressure_part, getPressureSystemName());
     }
 }
 

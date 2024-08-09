@@ -377,7 +377,7 @@ main(int argc, char* argv[])
             relaxation_time = input_db->getDatabase("ComplexFluid")->getDouble("relaxation_time");
         }
 
-        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_io = uses_exodus ? std::make_unique<ExodusII_IO>(mesh) : nullptr;
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();

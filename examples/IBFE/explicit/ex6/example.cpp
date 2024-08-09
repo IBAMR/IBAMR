@@ -429,8 +429,9 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        std::unique_ptr<ExodusII_IO> block_exodus_io(uses_exodus ? new ExodusII_IO(block_mesh) : nullptr);
-        std::unique_ptr<ExodusII_IO> beam_exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> block_exodus_io =
+            uses_exodus ? std::make_unique<ExodusII_IO>(block_mesh) : nullptr;
+        std::unique_ptr<ExodusII_IO> beam_exodus_io = uses_exodus ? std::make_unique<ExodusII_IO>(beam_mesh) : nullptr;
 
         // Check to see if this is a restarted run to append current exodus files
         if (uses_exodus)

@@ -418,8 +418,8 @@ IBHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM
     ComponentSelector instrumentation_data_fill_bc_idxs;
     instrumentation_data_fill_bc_idxs.setFlag(u_scratch_idx);
     instrumentation_data_fill_bc_idxs.setFlag(p_scratch_idx);
-    std::unique_ptr<RefinePatchStrategy<NDIM> > refine_patch_bdry_op(
-        new CartExtrapPhysBdryOp(instrumentation_data_fill_bc_idxs, "LINEAR"));
+    std::unique_ptr<RefinePatchStrategy<NDIM> > refine_patch_bdry_op =
+        std::make_unique<CartExtrapPhysBdryOp>(instrumentation_data_fill_bc_idxs, "LINEAR");
     registerGhostfillRefineAlgorithm(
         d_object_name + "::INSTRUMENTATION_DATA_FILL", refine_alg, std::move(refine_patch_bdry_op));
 

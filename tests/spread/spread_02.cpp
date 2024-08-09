@@ -99,7 +99,7 @@ main(int argc, char** argv)
 
         // Create a simple FE mesh.
         std::vector<std::unique_ptr<ReplicatedMesh> > meshes;
-        meshes.emplace_back(new ReplicatedMesh(init.comm(), NDIM));
+        meshes.emplace_back(std::make_unique<ReplicatedMesh>(init.comm(), NDIM));
         const double dx = input_db->getDouble("DX");
         const double ds = input_db->getDouble("MFAC") * dx;
         const std::string elem_str = input_db->getString("ELEM_TYPE");
@@ -373,7 +373,7 @@ main(int argc, char** argv)
 
 #ifdef LIBMESH_HAVE_EXODUS_API
         {
-            std::unique_ptr<ExodusII_IO> exodus_io(new ExodusII_IO(*meshes[0]));
+            std::unique_ptr<ExodusII_IO> exodus_io = std::make_unique<ExodusII_IO>(*meshes[0]);
             EquationSystems* equation_systems = ib_method_ops->getFEDataManager()->getEquationSystems();
             exodus_io->write_timestep("out.ex2", *equation_systems, 1, 0.0);
         }

@@ -380,7 +380,8 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        std::unique_ptr<ExodusII_IO> exodus_io_thin(uses_exodus ? new ExodusII_IO(cylinder_mesh_thin) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_io_thin =
+            uses_exodus ? std::make_unique<ExodusII_IO>(cylinder_mesh_thin) : nullptr;
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();

@@ -41,7 +41,7 @@ namespace IBTK
 std::unique_ptr<Partitioner>
 StableCentroidPartitioner::clone() const
 {
-    return std::unique_ptr<Partitioner>(new StableCentroidPartitioner());
+    return std::make_unique<StableCentroidPartitioner>();
 } // clone
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

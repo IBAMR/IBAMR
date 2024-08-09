@@ -1008,11 +1008,8 @@ IBFESurfaceMethod::spreadForce(const int f_data_idx,
 
     {
         if (!d_ghost_data_accumulator)
-            d_ghost_data_accumulator.reset(new SAMRAIGhostDataAccumulator(d_hierarchy,
-                                                                          f_var,
-                                                                          d_ghosts,
-                                                                          d_hierarchy->getFinestLevelNumber(),
-                                                                          d_hierarchy->getFinestLevelNumber()));
+            d_ghost_data_accumulator = std::make_unique<SAMRAIGhostDataAccumulator>(
+                d_hierarchy, f_var, d_ghosts, d_hierarchy->getFinestLevelNumber(), d_hierarchy->getFinestLevelNumber());
         d_ghost_data_accumulator->accumulateGhostData(f_scratch_data_idx);
     }
 
@@ -1066,14 +1063,14 @@ IBFESurfaceMethod::initializeFEEquationSystems()
     d_fe_data_managers.resize(d_num_parts);
     d_fe_data.resize(d_num_parts);
     IntVector<NDIM> min_ghost_width(0);
-    if (!d_eulerian_data_cache) d_eulerian_data_cache.reset(new SAMRAIDataCache());
+    if (!d_eulerian_data_cache) d_eulerian_data_cache = std::make_unique<SAMRAIDataCache>();
 
     Pointer<Database> fe_data_manager_db(new InputDatabase("fe_data_manager_db"));
     if (d_input_db->keyExists("FEDataManager")) fe_data_manager_db = d_input_db->getDatabase("FEDataManager");
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         // Create FE equation systems objects and corresponding variables.
-        d_equation_systems[part].reset(new EquationSystems(*d_meshes[part]));
+        d_equation_systems[part] = std::make_unique<EquationSystems>(*d_meshes[part]);
         EquationSystems* equation_systems = d_equation_systems[part].get();
         if (from_restart)
         {
@@ -1167,13 +1164,13 @@ IBFESurfaceMethod::initializeFEData()
 {
     if (d_fe_data_initialized) return;
     initializeFEEquationSystems();
-    d_X_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, COORDS_SYSTEM_NAME));
-    d_U_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, VELOCITY_SYSTEM_NAME));
-    d_U_n_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, NORMAL_VELOCITY_SYSTEM_NAME));
-    d_U_t_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, TANGENTIAL_VELOCITY_SYSTEM_NAME));
-    d_F_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, FORCE_SYSTEM_NAME));
+    d_X_vecs = std::make_unique<LibMeshSystemIBVectors>(d_fe_data_managers, COORDS_SYSTEM_NAME);
+    d_U_vecs = std::make_unique<LibMeshSystemIBVectors>(d_fe_data_managers, VELOCITY_SYSTEM_NAME);
+    d_U_n_vecs = std::make_unique<LibMeshSystemIBVectors>(d_fe_data_managers, NORMAL_VELOCITY_SYSTEM_NAME);
+    d_U_t_vecs = std::make_unique<LibMeshSystemIBVectors>(d_fe_data_managers, TANGENTIAL_VELOCITY_SYSTEM_NAME);
+    d_F_vecs = std::make_unique<LibMeshSystemIBVectors>(d_fe_data_managers, FORCE_SYSTEM_NAME);
     if (d_use_pressure_jump_conditions)
-        d_DP_vecs.reset(new LibMeshSystemIBVectors(d_fe_data_managers, PRESSURE_JUMP_SYSTEM_NAME));
+        d_DP_vecs = std::make_unique<LibMeshSystemIBVectors>(d_fe_data_managers, PRESSURE_JUMP_SYSTEM_NAME);
 
     const bool from_restart = RestartManager::getManager()->isFromRestart();
     for (unsigned int part = 0; part < d_num_parts; ++part)
