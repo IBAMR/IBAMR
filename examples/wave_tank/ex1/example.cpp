@@ -390,6 +390,7 @@ main(int argc, char* argv[])
         wave_damper.d_x_zone_end = x_zone_end;
         wave_damper.d_depth = depth;
         wave_damper.d_alpha = alpha;
+        wave_damper.d_sign_gas_phase = -1;
         wave_damper.d_ins_hier_integrator = navier_stokes_integrator;
         wave_damper.d_adv_diff_hier_integrator = adv_diff_integrator;
         wave_damper.d_phi_var = phi_var_gas;
