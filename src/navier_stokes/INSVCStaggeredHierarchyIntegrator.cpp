@@ -316,7 +316,9 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
                              "CONSTANT_REFINE",
                              register_for_restart),
       d_rho_vc_interp_type(VC_HARMONIC_INTERP),
-      d_mu_vc_interp_type(VC_HARMONIC_INTERP)
+      d_mu_vc_interp_type(VC_HARMONIC_INTERP),
+      d_vc_stokes_op_spec(),
+      d_vc_projection_pc_spec()
 {
     // Get plotting options from database
     if (input_db->keyExists("rho_scale")) d_rho_scale = input_db->getDouble("rho_scale");

@@ -30,9 +30,12 @@
 
 #include <vector>
 
+namespace IBTK
+{
+class HierarchyIntegrator;
+}
 namespace IBAMR
 {
-class INSVCStaggeredHierarchyIntegrator;
 class StokesSpecifications;
 } // namespace IBAMR
 namespace SAMRAI
@@ -79,7 +82,7 @@ public:
     /*!
      * \brief Constructor.
      */
-    INSVCStaggeredPressureBcCoef(const INSVCStaggeredHierarchyIntegrator* fluid_solver,
+    INSVCStaggeredPressureBcCoef(const IBTK::HierarchyIntegrator* fluid_solver,
                                  const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                  TractionBcType traction_bc_type,
                                  bool homogeneous_bc = false);
@@ -270,7 +273,7 @@ private:
     /*
      * The fluid solver.
      */
-    const INSVCStaggeredHierarchyIntegrator* d_fluid_solver;
+    const IBTK::HierarchyIntegrator* d_fluid_solver;
 
     /*
      * The boundary condition specification objects for the velocity.

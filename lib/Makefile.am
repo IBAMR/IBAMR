@@ -104,6 +104,11 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/IB/NonbondedForceEvaluator.cpp \
 ../src/IB/Wall.cpp \
 ../src/IB/WallForceEvaluator.cpp \
+../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp \
+../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
+../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
+../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -222,6 +227,9 @@ if LIBMESH_ENABLED
 endif
 
 pkg_include_HEADERS += \
+../include/ibamr/AcousticStreamingHierarchyIntegrator.h \
+../include/ibamr/AcousticStreamingPETScMatUtilities.h \
+../include/ibamr/AcousticStreamingPETScVecUtilities.h \
 ../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 ../include/ibamr/AdvDiffCUIConvectiveOperator.h \
 ../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
@@ -253,6 +261,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/ConvectiveOperator.h \
 ../include/ibamr/DirectMobilitySolver.h \
 ../include/ibamr/EnthalpyHierarchyIntegrator.h \
+../include/ibamr/FOAcousticStreamingPETScLevelSolver.h \
 ../include/ibamr/FastSweepingLSMethod.h \
 ../include/ibamr/FifthOrderStokesWaveGenerator.h \
 ../include/ibamr/FirstOrderStokesWaveGenerator.h \
@@ -331,6 +340,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/RelaxationLSBcCoefs.h \
 ../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
+../include/ibamr/SOAcousticStreamingBcCoefs.h \
 ../include/ibamr/STSMassFluxIntegrator.h \
 ../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 ../include/ibamr/StaggeredStokesBlockPreconditioner.h \
@@ -357,6 +367,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
+../include/ibamr/VCStaggeredStokesSpec.h \
 ../include/ibamr/vc_ins_utilities.h \
 ../include/ibamr/Wall.h \
 ../include/ibamr/WallForceEvaluator.h \
@@ -385,6 +396,7 @@ endif
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
@@ -409,6 +421,7 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \

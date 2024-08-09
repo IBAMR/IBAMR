@@ -17,6 +17,7 @@ ADD_LIBRARY(IBAMR3d)
 # 'base' names (without, 2d.f.m4 or 3d.f.m4) for all the fortran that is
 # explicitly compiled
 SET(FORTRAN_SRC_BASE
+  acoustic_streaming/fortran/acoustic_streaming_helpers
   adv_diff/fortran/adv_diff_consdiff
   adv_diff/fortran/adv_diff_wp_convective_op
   advect/fortran/advect_centered_derivatives
@@ -54,6 +55,13 @@ ENDFOREACH()
 # set up C++:
 #
 SET(CXX_SRC
+  # acoustic_streaming
+  acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+  acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+  acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+  acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
+  acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+
   # adv diff
   adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp
   adv_diff/AdvDiffConvectiveOperatorManager.cpp

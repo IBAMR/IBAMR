@@ -1,0 +1,535 @@
+// Scalar parameters
+
+LENGTH = 1.0
+LAMBDA0 = 10.0
+LAMBDA1 = 1.0
+MU0 = 10.0
+MU1 = 1.0
+RHO0 = 10.0
+RHO1 = 1.0
+OMEGA0 = 1.0  // acoustic_angular_frequency
+C0 = 1.0      // speed of sound
+
+N = 64
+PERIODIC_BC = 0
+
+FOVelocityInitialConditions {
+
+   function_0 = "0.0"     // ur x-component
+   function_1 = "0.0"     // vr y-component
+
+   function_2 = "0.0"   // ui x-component
+   function_3 = "0.0"   // vi y-component
+
+}
+
+U1Real = "X0^3 + X1^3"
+V1Real = "X1^2 + X0^2"
+U1Imag = "(X0^3 + X1^3)"
+V1Imag = "(X1^2 + X0^2)"
+
+FOVelocityExact {
+
+   function_0 = U1Real     // ur x-component
+   function_1 = V1Real     // vr y-component
+
+   function_2 = U1Imag   // ui x-component
+   function_3 = V1Imag   // vi y-component
+}
+
+SOVelocityInitialConditions {
+
+   function_0 = "0.0"     // u x-component
+   function_1 = "0.0"     // v y-component
+}
+
+U2 = "-(X0^3 + X1^3)"
+V2 = "-(X1^2 + X0^2)"
+SOVelocityExact {
+
+   function_0 = U2     // u x-component
+   function_1 = V2    // v y-component
+}
+
+FOPressureInitialConditions {
+
+   function_0 = "0.0"      // pr
+   function_1 = "0.0"     // pi
+
+}
+
+FOPressureExact {
+
+   c = C0
+   rho0 = RHO0
+
+   function_0 = "c^2*(X0^2*X1 + rho0)"      // pr
+   function_1 = "c^2*(X0^2*X1 + rho0)"    // pi
+
+}
+
+SOPressureInitialConditions {
+   function = "0.0"
+}
+
+SOPressureExact {
+
+   function = "X0*X1 + X0^2*X1^2 - 1.0/4.0 - 1.0/9.0"
+}
+
+F1_fcn {
+
+   rho0 = RHO0
+   rho1 = RHO1
+   mu0  = MU0
+   mu1  = MU1
+   lambda0 = LAMBDA0
+   lambda1 = LAMBDA1
+   omega = OMEGA0
+   c     = C0
+
+   function_0 =  "-6*mu0*X1 + 2*c^2*X0*X1 + omega*X0^5*X1 + omega*rho0*X1^3 - 2*X0*(3*lambda0 + 6*mu0 + 2*lambda1*X1^2) + X0^2*(-9*mu1*X1^2 + omega*X1^4) + X0^3*(omega*rho0 - 2*(mu1 + 6*(lambda1 + 2*mu1)*X1))"   // fur x-component
+
+   function_1 = "-2*lambda0 - 6*mu0 + c^2*X0^2 + omega*(rho0 + X0^2*X1)*(X0^2 + X1^2) - X0*(3*lambda1*X0^3 + 4*lambda1*X0*X1 + 14*mu1*X0*X1 + 6*mu1*X1^3)"     // fvr y-component
+
+   function_2 = "-6*lambda0*X0 - 12*mu0*X0 - 2*mu1*X0^3 - 6*mu0*X1 + 2*c^2*X0*X1 - 12*lambda1*X0^3*X1 - 24*mu1*X0^3*X1 - 4*lambda1*X0*X1^2 - 9*mu1*X0^2*X1^2 - omega*(rho0 + X0^2*X1)*(X0^3 + X1^3)"   // fui x-component
+
+   function_3 = "-2*lambda0 - 6*mu0 + c^2*X0^2 - omega*(rho0 + X0^2*X1)*(X0^2 + X1^2) - X0*(3*lambda1*X0^3 + 4*lambda1*X0*X1 + 14*mu1*X0*X1 + 6*mu1*X1^3)"   // fvi y-component
+
+}
+
+F2_fcn {
+
+   rho0 = RHO0
+   rho1 = RHO1
+   mu0  = MU0
+   mu1  = MU1
+   lambda0 = LAMBDA0
+   lambda1 = LAMBDA1
+   theta = 1.0
+
+   function_0 = "2*X0*(3*lambda0 + 6*mu0 + mu1*X0^2) + X1 + 6*mu0*X1 + 12*(lambda1 + 2*mu1)*X0^3*X1 + X0*(2 + 4*lambda1 + 9*mu1*X0)*X1^2 + theta*(2*rho0*X0^3*X1 + 5*rho0*X1^4 + 2*X0*X1^7 + 2*X0^4*X1^3*(2 + 5*X1) + X0^7*(1 + 8*X1) + 3*X0^5*(2*rho0 + X1^2) + 3*X0^2*X1^2*(rho0 + 2*X1*(rho0 + X1^2)))"    //fx
+
+   function_1 = "X0 + 4*theta*X0^3*X1^4 + X0^6*(theta + 7*theta*X1) + 2*(lambda0 + 3*mu0 + 2*rho0*theta*X1^3) + X0^2*X1*(2 + 4*lambda1 + 14*mu1 + 5*theta*X1^3 + rho0*theta*(4 + 3*X1)) + X0^4*(3*lambda1 + 5*rho0*theta + theta*X1^2*(6 + 5*X1)) + 2*X0*X1^3*(3*mu1 + theta*(rho0 + X1^3))"  //fy
+
+}
+
+Q1_fcn  {
+
+   rho0 = RHO0
+   rho1 = RHO1
+   omega = OMEGA0
+   c     = C0
+
+   function_0 = "2*X0*X1^4 + rho0*(omega + 2*X1) + X0^4*(1 + 5*X1) + X0^2*(omega*X1 + 3*(rho0 + X1^2))"   // fpr
+
+   function_1 = "2*X0*X1^4 + rho0*(-omega + 2*X1) + X0^4*(1 + 5*X1) + X0^2*(-(omega*X1) + 3*(rho0 + X1^2))"    // fpi
+
+}
+
+Q2_fcn  {
+
+     function = "0.0"
+}
+
+mu {
+
+   mu0 = MU0
+   mu1 = MU1
+   function = "mu0 + mu1*X0^2*X1"
+}
+
+lambda {
+
+   lambda0 = LAMBDA0
+   lambda1 = LAMBDA1
+   function = "lambda0 + lambda1*X0^2*X1"
+}
+
+rho {
+
+   rho0 = RHO0
+   function = "X0^2*X1 + rho0"
+}
+
+
+// u1r velocity
+FOVelocityRealBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = U1Real
+   gcoef_function_1 = U1Real
+   gcoef_function_2 = U1Real
+   gcoef_function_3 = U1Real
+
+}
+
+// v1r velocity
+FOVelocityRealBcCoefs_1 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = V1Real
+   gcoef_function_1 = V1Real
+   gcoef_function_2 = V1Real
+   gcoef_function_3 = V1Real
+
+}
+
+// u1i velocity
+FOVelocityImagBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = U1Imag
+   gcoef_function_1 = U1Imag
+   gcoef_function_2 = U1Imag
+   gcoef_function_3 = U1Imag
+
+}
+
+FOVelocityImagBcCoefs_1 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = V1Imag
+   gcoef_function_1 = V1Imag
+   gcoef_function_2 = V1Imag
+   gcoef_function_3 = V1Imag
+
+}
+
+// u2 velocity
+SOVelocityBcCoefs_0 {
+
+   rho0 = RHO0
+   rho1 = RHO1
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = U2
+   gcoef_function_1 = U2
+   gcoef_function_2 = U2
+   gcoef_function_3 = U2
+
+}
+
+// v2
+SOVelocityBcCoefs_1 {
+
+   rho0 = RHO0
+   rho1 = RHO1
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = V2
+   gcoef_function_1 = V2
+   gcoef_function_2 = V2
+   gcoef_function_3 = V2
+
+}
+
+DensityBcCoefs_0 {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+DensityBcCoefs_1 {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+ShearViscosityBcCoefs {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+BulkViscosityBcCoefs {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+START_TIME                          =  0.0e0     // initial simulation time
+END_TIME                            =  1.5e0     // final simulation time
+GROW_DT                             =  2.0e0     // growth factor for timesteps
+MAX_INTEGRATOR_STEPS                =  1         // max number of simulation timesteps
+REGRID_INTERVAL                     =  5
+CFL_MAX                             =  1.0
+NUM_INS_CYCLES                      =  1
+PRECOND_REINIT_INTERVAL             =  1
+ENABLE_LOGGING                      = TRUE
+NORMALIZE_PRESSURE                  = TRUE
+NORMALIZE_VELOCITY                  = FALSE
+EXPLICITLY_REMOVE_NULLSPACE         = TRUE
+VORTICITY_TAGGING                   = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
+TAG_BUFFER                          = 2                          // size of tag buffer used by grid generation algorithm
+DT_MAX                              = 10
+OUTPUT_U1                           = TRUE
+OUTPUT_U2                           = TRUE
+OUTPUT_P1                           = TRUE
+OUTPUT_P2                           = TRUE
+OUTPUT_OMEGA2                       = TRUE
+OUTPUT_RHO                          = TRUE
+OUTPUT_MU                           = TRUE
+COUPLE_FIRST_SECOND_ORDER_SYSTEM    = TRUE
+
+AcousticStreamingHierarchyIntegrator {
+
+   start_time                  = START_TIME
+   end_time                    = END_TIME
+   grow_dt                     = GROW_DT
+   normalize_pressure          = NORMALIZE_PRESSURE
+   normalize_velocity          = NORMALIZE_VELOCITY
+   cfl                         = CFL_MAX
+   dt_max                      = DT_MAX
+   using_vorticity_tagging     = VORTICITY_TAGGING
+   vorticity_rel_thresh        = 0.25
+   tag_buffer                  = TAG_BUFFER
+   regrid_interval             = REGRID_INTERVAL
+   output_U1                   = OUTPUT_U1
+   output_U2                   = OUTPUT_U2
+   output_P1                   = OUTPUT_P1
+   output_P2                   = OUTPUT_P2
+   output_Omega2               = OUTPUT_OMEGA2
+   output_rho                  = OUTPUT_RHO
+   output_mu                   = OUTPUT_MU
+   precond_reinit_interval     = PRECOND_REINIT_INTERVAL
+   enable_logging              = ENABLE_LOGGING
+   max_integrator_steps        = MAX_INTEGRATOR_STEPS
+   explicitly_remove_nullspace = EXPLICITLY_REMOVE_NULLSPACE
+   num_cycles                  = NUM_INS_CYCLES
+
+   acoustic_angular_frequency = OMEGA0
+   sound_speed    = C0
+   coupled_system = COUPLE_FIRST_SECOND_ORDER_SYSTEM
+   rho_vc_interpolation_type = "VC_AVERAGE_INTERP"
+   mu_vc_interpolation_type  = "VC_AVERAGE_INTERP"
+
+   first_order_solver_db {
+      ksp_type          = "fgmres"
+      pc_type           = "lu"
+      rel_residual_tol  = 1.0e-14
+      abs_residual_tol  = 1.0e-15
+      initial_guess_nonzero = FALSE
+   }
+
+   stokes_solver_db {
+      ksp_type       = "fgmres"
+      max_iterations = 1000
+      rel_residual_tol = 1e-12
+   }
+
+   stokes_precond_db {
+      max_iterations = 1
+   }
+
+   velocity_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+      rel_residual_tol = 1.0e-1
+   }
+
+   velocity_precond_db {
+      max_iterations = 100
+      ksp_type = "gmres"
+      pc_type = "sor"
+   }
+
+   pressure_solver_db {
+      ksp_type = "richardson"
+      max_iterations = 1
+      rel_residual_tol = 1.0e-1
+   }
+
+   pressure_precond_db {
+      solver_type     = "PFMG"
+      enable_logging  = FALSE
+      num_pre_sweeps  = 0
+      num_post_sweeps = 2
+      rel_residual_tol = 1.0e-8
+      abs_residual_tol = 1.0e-9
+      max_iterations = 100
+   }
+
+}
+
+Main {
+
+   // log file parameters
+   log_file_name = "acoustic_hier_2d.log"
+   log_all_nodes = FALSE
+
+   // visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_interval = 1               //zero to turn off
+   viz_dump_dirname = "viz2d_acoustic_hier"
+   visit_number_procs_per_file = 1
+
+   // restart dump parameters
+   restart_interval      = 0                 // zero to turn off
+   restart_write_dirname = "restart_acoustic_2d"
+
+   // timer dump parameters
+   timer_dump_interval  = 0                 // zero to turn off
+   timer_enabled = FALSE
+
+}
+
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0      // lower end of computational domain.
+   x_up               = LENGTH, LENGTH      // upper end of computational domain.
+   periodic_dimension = PERIODIC_BC, PERIODIC_BC
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4              // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512          // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   4,   4          // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+//    level_0 = [( N/4 , 0 ),( 3*N/4 - 1 , N - 1 )]
+//    level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( N/2 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )]
+      level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::*::*"
+}

@@ -1,0 +1,334 @@
+// Scalar parameters
+
+LENGTH = 1.0
+LAMBDA = 1.0
+MU = 1.0
+RHO0 = 1.0
+acoustic_angular_freq = 1.0
+sound_speed = 1.0
+
+N = 64
+PERIODIC_BC = 0
+
+u {
+
+   L = LENGTH
+
+   function_0 = "sin(2*PI*X_0/L)*cos(2*PI*X_1/L)"     // ur x-component
+   function_1 = "sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"     // vr y-component
+
+   function_2 = "2*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)"   // ui x-component
+   function_3 = "2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"   // vi y-component
+}
+
+p {
+
+   c = sound_speed
+   L = LENGTH
+
+   function_0 = "c^2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"      // pr
+   function_1 = "2*c^2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"    // pi
+
+}
+
+fu {
+
+   lambda = LAMBDA
+   mu     = MU
+   rho0   = RHO0
+   omega  = acoustic_angular_freq
+   c      = sound_speed
+
+   L = LENGTH
+
+   function_0 = "1.0/L^2*((8*PI^2*(lambda+3*mu)+omega*rho0*L^2)*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)+4*PI*cos(2*PI*X_0/L)*(c^2*L*sin(2*PI*X_1/L)-2*PI*(lambda+mu)*cos(2*PI*X_1/L)))"     // fur x-component
+
+   function_1 = "1.0/L^2*(4*PI*c^2*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)+8*PI^2*(lambda+mu)*cos(2*PI*X_0/L)*sin(2*PI*X_1/L)+8*PI^2*(lambda+3*mu)*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)+omega*rho0*L^2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L) )"     // fvr y-component
+
+   function_2 = "1.0/L^2*((4*PI^2*(lambda+3*mu)-2*omega*rho0*L^2)*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)+2*PI*cos(2*PI*X_0/L)*(c^2*L*sin(2*PI*X_1/L)-2*PI*(lambda+mu)*cos(2*PI*X_1/L)))"   // fui x-component
+
+   function_3 = "1.0/L^2*(2*PI*c^2*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)+4*PI^2*(lambda+mu)*cos(2*PI*X_0/L)*sin(2*PI*X_1/L)+4*PI^2*(lambda+3*mu)*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)-2*omega*rho0*L^2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L) )"   // fvi y-component
+}
+
+fp  {
+
+   L     = LENGTH
+   rho0  = RHO0
+   omega = acoustic_angular_freq
+
+   function_0 = "4.0/L*PI*rho0*cos(2*PI*X_1/L)*(cos(2*PI*X_0/L) + sin(2*PI*X_0/L)) + omega*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"     // fpr
+   function_1 = "2.0/L*PI*rho0*cos(2*PI*X_1/L)*(cos(2*PI*X_0/L) + sin(2*PI*X_0/L))- 2*omega*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"    // fpi
+}
+
+mu {
+
+   c = MU
+   function = "c"
+}
+
+lambda {
+
+   c = LAMBDA
+   function = "c"
+}
+
+rho {
+
+   c = RHO0
+   function = "c"
+}
+
+
+
+
+// ur velocity
+VelocityRealBcCoefs_0 {
+
+   L = LENGTH
+
+   u_fcn = "sin(2*PI*X_0/L)*cos(2*PI*X_1/L)"
+
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = u_fcn
+   gcoef_function_1 = u_fcn
+   gcoef_function_2 = u_fcn
+   gcoef_function_3 = u_fcn
+
+}
+
+// vr velocity
+VelocityRealBcCoefs_1 {
+
+   L = LENGTH
+
+   v_fcn = "sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = v_fcn
+   gcoef_function_1 = v_fcn
+   gcoef_function_2 = v_fcn
+   gcoef_function_3 = v_fcn
+
+}
+
+// ui velocity
+VelocityImagBcCoefs_0 {
+
+   L = LENGTH
+
+   u_fcn = "2*sin(2*PI*X_0/L)*cos(2*PI*X_1/L)"
+
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = u_fcn
+   gcoef_function_1 = u_fcn
+   gcoef_function_2 = u_fcn
+   gcoef_function_3 = u_fcn
+
+}
+
+// vi velocity
+VelocityImagBcCoefs_1 {
+
+   L = LENGTH
+
+   v_fcn = "2*sin(2*PI*X_0/L)*sin(2*PI*X_1/L)"
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = v_fcn
+   gcoef_function_1 = v_fcn
+   gcoef_function_2 = v_fcn
+   gcoef_function_3 = v_fcn
+
+}
+
+DensityBcCoefs_0 {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+DensityBcCoefs_1 {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+ShearViscosityBcCoefs {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+BulkViscosityBcCoefs {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+
+FOAcousticStreamingPETScLevelSolver {
+   ksp_type          = "fgmres"
+   pc_type           = "lu"
+   rel_residual_tol  = 1.0e-14
+   abs_residual_tol  = 1.0e-15
+   initial_guess_nonzero = FALSE
+}
+
+
+Main {
+// log file parameters
+   log_file_name = "fo_acoustic_streaming_solver.log"
+   log_all_nodes = FALSE
+
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d_acoustic"
+   visit_number_procs_per_file = 1
+
+// timer dump parameters
+   timer_enabled = TRUE
+}
+
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0      // lower end of computational domain.
+   x_up               = 1, 1      // upper end of computational domain.
+   periodic_dimension = PERIODIC_BC, PERIODIC_BC
+}
+
+GriddingAlgorithm {
+   max_levels = 1                 // Maximum number of levels in hierarchy.
+
+   ratio_to_coarser {
+      level_1 = 4, 4              // vector ratio to next coarser level
+   }
+
+   largest_patch_size {
+      level_0 = 512, 512          // largest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   smallest_patch_size {
+      level_0 =   4,   4          // smallest patch allowed in hierarchy
+                                  // all finer levels will use same values as level_0...
+   }
+
+   efficiency_tolerance = 0.70e0  // min % of tag cells in new patch level
+   combine_efficiency   = 0.85e0  // chop box if sum of volumes of smaller
+                                  // boxes < efficiency * vol of large box
+}
+
+StandardTagAndInitialize {
+   tagging_method = "REFINE_BOXES"
+   RefineBoxes {
+//    level_0 = [( N/4 , 0 ),( 3*N/4 - 1 , N - 1 )]
+//    level_0 = [( 0 , N/4 ),( N - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+//    level_0 = [( N/4 , N/4 ),( N/2 - 1 , 3*N/4 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )]
+      level_0 = [( N/4 , N/4 ),( N/2 - 1 , N/2 - 1 )] , [( N/2 , N/4 ),( 3*N/4 - 1 , N/2 - 1 )] , [( N/4 , N/2 ),( N/2 - 1 , 3*N/4 - 1 )]
+   }
+}
+
+LoadBalancer {
+   bin_pack_method = "SPATIAL"
+   max_workload_factor = 1
+}
+
+TimerManager{
+   print_exclusive = FALSE
+   print_total = TRUE
+   print_threshold = 1.0
+   timer_list = "IBTK::*::*"
+}
