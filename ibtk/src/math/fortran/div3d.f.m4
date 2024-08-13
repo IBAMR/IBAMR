@@ -348,6 +348,76 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
+c     Computes D = alpha div (c u).
+c
+c     Uses centered differences to compute the cell centered divergence
+c     of product of two side centered variable u=(u0,u1,u2) and c=(c0,c1,c2).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine sstocdiv3d(
+     &     D,D_gcw,
+     &     alpha,
+     &     u0,u1,u2,u_gcw,
+     &     c0,c1,c2,c_gcw,    
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER D_gcw,u_gcw,c_gcw
+
+      REAL alpha
+
+      REAL u0(SIDE3d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE3d1(ilower,iupper,u_gcw))
+      REAL u2(SIDE3d2(ilower,iupper,u_gcw))
+      REAL c0(SIDE3d0(ilower,iupper,c_gcw))
+      REAL c1(SIDE3d1(ilower,iupper,c_gcw))
+      REAL c2(SIDE3d2(ilower,iupper,c_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL D(CELL3d(ilower,iupper,D_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL    fac0,fac1,fac2
+c
+c     Compute the cell centered divergence of u.
+c
+      fac0 = alpha/dx(0)
+      fac1 = alpha/dx(1)
+      fac2 = alpha/dx(2)
+
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               D(i0,i1,i2) =
+     &              fac0*(c0(i0+1,i1,i2)*u0(i0+1,i1,i2)
+     &                    - c0(i0,i1,i2)*u0(i0,i1,i2)) +
+     &              fac1*(c1(i0,i1+1,i2)*u1(i0,i1+1,i2)
+     &                    - c1(i0,i1,i2)*u1(i0,i1,i2)) +
+     &              fac2*(c2(i0,i1,i2+1)*u2(i0,i1,i2+1)  
+     &                    - c2(i0,i1,i2)*u2(i0,i1,i2))
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
 c     Computes D = alpha div u + beta V.
 c
 c     Uses centered differences to compute the cell centered divergence
@@ -409,6 +479,84 @@ c
      &              fac0*(u0(i0+1,i1,i2)-u0(i0,i1,i2)) +
      &              fac1*(u1(i0,i1+1,i2)-u1(i0,i1,i2)) +
      &              fac2*(u2(i0,i1,i2+1)-u2(i0,i1,i2)) +
+     &              beta*V(i0,i1,i2)
+            enddo
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes D = alpha div (c u) + beta V.
+c
+c     Uses centered differences to compute the cell centered divergence
+c     of product of two side centered variable u=(u0,u1,u2) and c=(c0,c1,c2).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine sstocdivadd3d(
+     &     D,D_gcw,
+     &     alpha,
+     &     u0,u1,u2,u_gcw,
+     &     c0,c1,c2,c_gcw,
+     &     beta,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     ilower2,iupper2,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER ilower2,iupper2
+      INTEGER D_gcw,u_gcw,c_gcw,V_gcw
+
+      REAL alpha
+
+      REAL u0(SIDE3d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE3d1(ilower,iupper,u_gcw))
+      REAL u2(SIDE3d2(ilower,iupper,u_gcw))
+      REAL c0(SIDE3d0(ilower,iupper,c_gcw))
+      REAL c1(SIDE3d1(ilower,iupper,c_gcw))
+      REAL c2(SIDE3d2(ilower,iupper,c_gcw))
+
+      REAL beta
+
+      REAL V(CELL3d(ilower,iupper,V_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL D(CELL3d(ilower,iupper,D_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1,i2
+      REAL    fac0,fac1,fac2
+c
+c     Compute the cell centered divergence of u.
+c
+      fac0 = alpha/dx(0)
+      fac1 = alpha/dx(1)
+      fac2 = alpha/dx(2)
+
+      do i2 = ilower2,iupper2
+         do i1 = ilower1,iupper1
+            do i0 = ilower0,iupper0
+               D(i0,i1,i2) =
+     &              fac0*(c0(i0+1,i1,i2)*u0(i0+1,i1,i2)
+     &                    - c0(i0,i1,i2)*u0(i0,i1,i2)) +
+     &              fac1*(c1(i0,i1+1,i2)*u1(i0,i1+1,i2)
+     &                    - c1(i0,i1,i2)*u1(i0,i1,i2)) +
+     &              fac2*(c2(i0,i1,i2+1)*u2(i0,i1,i2+1)
+     &                    - c2(i0,i1,i2)*u2(i0,i1,i2)) +
      &              beta*V(i0,i1,i2)
             enddo
          enddo

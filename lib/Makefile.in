@@ -247,6 +247,11 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
+	../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp \
+	../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
+	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
+	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+	../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -298,8 +303,6 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
-	../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
-	../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
 	../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
@@ -322,7 +325,9 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/StokesSpecifications.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
+	../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+	../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp \
 	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
 	../src/phase_change/CarmanKozenyDragForce.cpp \
 	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
@@ -355,6 +360,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
 	../src/level_set/FESurfaceDistanceEvaluator.cpp \
+	$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
@@ -447,6 +453,11 @@ am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-NonbondedForceEvaluator.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-WallForceEvaluator.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT) \
@@ -498,8 +509,6 @@ am__objects_2 =  \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.$(OBJEXT) \
-	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.$(OBJEXT) \
-	../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT) \
@@ -522,7 +531,9 @@ am__objects_2 =  \
 	../src/navier_stokes/libIBAMR2d_a-StokesSpecifications.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-SurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.$(OBJEXT) \
 	../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.$(OBJEXT) \
 	../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.$(OBJEXT) \
 	../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.$(OBJEXT) \
@@ -547,6 +558,7 @@ am__objects_2 =  \
 	../src/utilities/libIBAMR2d_a-vc_ins_utilities.$(OBJEXT) \
 	$(am__objects_1)
 am_libIBAMR2d_a_OBJECTS = $(am__objects_2) \
+	$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.$(OBJEXT) \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.$(OBJEXT) \
@@ -620,6 +632,11 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
+	../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp \
+	../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
+	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
+	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+	../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -671,8 +688,6 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
-	../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
-	../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
 	../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
@@ -695,7 +710,9 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/StokesSpecifications.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
+	../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+	../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp \
 	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
 	../src/phase_change/CarmanKozenyDragForce.cpp \
 	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
@@ -728,6 +745,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/MaterialPointSpec.cpp \
 	../src/IB/MaterialPointSpecFactory.cpp \
 	../src/level_set/FESurfaceDistanceEvaluator.cpp \
+	$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
@@ -820,6 +838,11 @@ am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-NonbondedForceEvaluator.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-Wall.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT) \
@@ -871,8 +894,6 @@ am__objects_4 =  \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.$(OBJEXT) \
-	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.$(OBJEXT) \
-	../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.$(OBJEXT) \
@@ -895,7 +916,9 @@ am__objects_4 =  \
 	../src/navier_stokes/libIBAMR3d_a-StokesSpecifications.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-SurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
+	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.$(OBJEXT) \
 	../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.$(OBJEXT) \
 	../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.$(OBJEXT) \
 	../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.$(OBJEXT) \
@@ -920,6 +943,7 @@ am__objects_4 =  \
 	../src/utilities/libIBAMR3d_a-vc_ins_utilities.$(OBJEXT) \
 	$(am__objects_3)
 am_libIBAMR3d_a_OBJECTS = $(am__objects_4) \
+	$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.$(OBJEXT) \
 	$(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.$(OBJEXT) \
@@ -1097,6 +1121,16 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po \
@@ -1176,8 +1210,6 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po \
-	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po \
-	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po \
@@ -1200,7 +1232,9 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesSpecifications.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po \
@@ -1226,8 +1260,6 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po \
-	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po \
-	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po \
@@ -1250,7 +1282,9 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesSpecifications.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po \
+	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Po \
 	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po \
 	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po \
 	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po \
@@ -1364,6 +1398,9 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ibamr_enums.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h \
+	../include/ibamr/AcousticStreamingHierarchyIntegrator.h \
+	../include/ibamr/AcousticStreamingPETScMatUtilities.h \
+	../include/ibamr/AcousticStreamingPETScVecUtilities.h \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 	../include/ibamr/AdvDiffCUIConvectiveOperator.h \
 	../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
@@ -1395,6 +1432,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/DirectMobilitySolver.h \
 	../include/ibamr/EnthalpyHierarchyIntegrator.h \
+	../include/ibamr/FOAcousticStreamingPETScLevelSolver.h \
 	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/FifthOrderStokesWaveGenerator.h \
 	../include/ibamr/FirstOrderStokesWaveGenerator.h \
@@ -1452,8 +1490,6 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h \
 	../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
 	../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredPressureBcCoef.h \
-	../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 	../include/ibamr/IrregularWaveBcCoef.h \
 	../include/ibamr/IrregularWaveGenerator.h \
 	../include/ibamr/ins_utilities.h \
@@ -1472,6 +1508,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/RelaxationLSBcCoefs.h \
 	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
+	../include/ibamr/SOAcousticStreamingBcCoefs.h \
 	../include/ibamr/STSMassFluxIntegrator.h \
 	../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
@@ -1496,7 +1533,10 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/StokesWaveGeneratorStrategy.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
+	../include/ibamr/VCStaggeredStokesPressureBcCoef.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
+	../include/ibamr/VCStaggeredStokesSpec.h \
+	../include/ibamr/VCStaggeredStokesVelocityBcCoef.h \
 	../include/ibamr/vc_ins_utilities.h ../include/ibamr/Wall.h \
 	../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/WaveDampingFunctions.h \
@@ -1801,6 +1841,9 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ibamr_enums.h \
 	../include/ibamr/ibamr_utilities.h \
 	../include/ibamr/namespaces.h $(am__append_3) \
+	../include/ibamr/AcousticStreamingHierarchyIntegrator.h \
+	../include/ibamr/AcousticStreamingPETScMatUtilities.h \
+	../include/ibamr/AcousticStreamingPETScVecUtilities.h \
 	../include/ibamr/AdvDiffCenteredConvectiveOperator.h \
 	../include/ibamr/AdvDiffCUIConvectiveOperator.h \
 	../include/ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h \
@@ -1832,6 +1875,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/ConvectiveOperator.h \
 	../include/ibamr/DirectMobilitySolver.h \
 	../include/ibamr/EnthalpyHierarchyIntegrator.h \
+	../include/ibamr/FOAcousticStreamingPETScLevelSolver.h \
 	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/FifthOrderStokesWaveGenerator.h \
 	../include/ibamr/FirstOrderStokesWaveGenerator.h \
@@ -1889,8 +1933,6 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h \
 	../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
 	../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
-	../include/ibamr/INSVCStaggeredPressureBcCoef.h \
-	../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 	../include/ibamr/IrregularWaveBcCoef.h \
 	../include/ibamr/IrregularWaveGenerator.h \
 	../include/ibamr/ins_utilities.h \
@@ -1909,6 +1951,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/RelaxationLSBcCoefs.h \
 	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
+	../include/ibamr/SOAcousticStreamingBcCoefs.h \
 	../include/ibamr/STSMassFluxIntegrator.h \
 	../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
@@ -1934,7 +1977,10 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/StokesWaveGeneratorStrategy.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
+	../include/ibamr/VCStaggeredStokesPressureBcCoef.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
+	../include/ibamr/VCStaggeredStokesSpec.h \
+	../include/ibamr/VCStaggeredStokesVelocityBcCoef.h \
 	../include/ibamr/vc_ins_utilities.h ../include/ibamr/Wall.h \
 	../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/WaveDampingFunctions.h \
@@ -1990,6 +2036,11 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/IB/StaggeredStokesIBLevelRelaxationFACOperator.cpp \
 	../src/IB/NonbondedForceEvaluator.cpp ../src/IB/Wall.cpp \
 	../src/IB/WallForceEvaluator.cpp \
+	../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp \
+	../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp \
+	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
+	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
+	../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -2041,8 +2092,6 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 	../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
-	../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
-	../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
 	../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
 	../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
@@ -2065,7 +2114,9 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/StokesSpecifications.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
+	../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+	../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp \
 	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
 	../src/phase_change/CarmanKozenyDragForce.cpp \
 	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
@@ -2090,6 +2141,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives2d.f \
@@ -2114,6 +2166,7 @@ $(top_builddir)/src/navier_stokes/fortran/navier_stokes_surface_tension_forcing2
 libIBAMR3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBAMR3d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=3
 libIBAMR3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.f \
 $(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.f \
 $(top_builddir)/src/advect/fortran/advect_centered_derivatives3d.f \
@@ -2333,6 +2386,27 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-WallForceEvaluator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/$(am__dirstamp):
+	@$(MKDIR_P) ../src/acoustic_streaming
+	@: > ../src/acoustic_streaming/$(am__dirstamp)
+../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../src/acoustic_streaming/$(DEPDIR)
+	@: > ../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/$(am__dirstamp):
 	@$(MKDIR_P) ../src/adv_diff
 	@: > ../src/adv_diff/$(am__dirstamp)
@@ -2516,12 +2590,6 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.$(OBJEXT):  \
-	../src/navier_stokes/$(am__dirstamp) \
-	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.$(OBJEXT):  \
-	../src/navier_stokes/$(am__dirstamp) \
-	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
@@ -2588,7 +2656,13 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/phase_change/$(am__dirstamp):
@@ -2704,6 +2778,14 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.$(OBJEXT):  \
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/acoustic_streaming/fortran
+	@: > $(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp)
+$(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)
+	@: > $(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers2d.$(OBJEXT): $(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/adv_diff/fortran/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/src/adv_diff/fortran
 	@: > $(top_builddir)/src/adv_diff/fortran/$(am__dirstamp)
@@ -2913,6 +2995,21 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-WallForceEvaluator.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT):  \
 	../src/adv_diff/$(am__dirstamp) \
 	../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
@@ -3066,12 +3163,6 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.$(OBJEXT):  \
-	../src/navier_stokes/$(am__dirstamp) \
-	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.$(OBJEXT):  \
-	../src/navier_stokes/$(am__dirstamp) \
-	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
@@ -3138,7 +3229,13 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT):  \
+	../src/navier_stokes/$(am__dirstamp) \
+	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.$(OBJEXT):  \
@@ -3236,6 +3333,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.$(OBJEXT):  \
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/src/acoustic_streaming/fortran/acoustic_streaming_helpers3d.$(OBJEXT): $(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp) \
+	$(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.$(OBJEXT):  \
 	$(top_builddir)/src/adv_diff/fortran/$(am__dirstamp) \
 	$(top_builddir)/src/adv_diff/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -3304,6 +3403,7 @@ libIBAMR3d.a: $(libIBAMR3d_a_OBJECTS) $(libIBAMR3d_a_DEPENDENCIES) $(EXTRA_libIB
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
+	-rm -f $(top_builddir)/src/acoustic_streaming/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/adv_diff/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/advect/fortran/*.$(OBJEXT)
 	-rm -f $(top_builddir)/src/complex_fluids/fortran/*.$(OBJEXT)
@@ -3311,6 +3411,7 @@ mostlyclean-compile:
 	-rm -f $(top_builddir)/src/navier_stokes/fortran/*.$(OBJEXT)
 	-rm -f ../src/*.$(OBJEXT)
 	-rm -f ../src/IB/*.$(OBJEXT)
+	-rm -f ../src/acoustic_streaming/*.$(OBJEXT)
 	-rm -f ../src/adv_diff/*.$(OBJEXT)
 	-rm -f ../src/advect/*.$(OBJEXT)
 	-rm -f ../src/complex_fluids/*.$(OBJEXT)
@@ -3464,6 +3565,16 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po@am__quote@ # am--include-marker
@@ -3543,8 +3654,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@ # am--include-marker
@@ -3567,7 +3676,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesSpecifications.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po@am__quote@ # am--include-marker
@@ -3593,8 +3704,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po@am__quote@ # am--include-marker
@@ -3617,7 +3726,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesSpecifications.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po@am__quote@ # am--include-marker
@@ -4491,6 +4602,76 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-WallForceEvaluator.obj `if test -f '../src/IB/WallForceEvaluator.cpp'; then $(CYGPATH_W) '../src/IB/WallForceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/WallForceEvaluator.cpp'; fi`
 
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o: ../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o `test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.o `test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj: ../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj `if test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.obj `if test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.o: ../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.obj: ../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.obj `if test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.obj `if test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.o: ../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+
+../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.obj: ../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.obj `if test -f '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.obj `if test -f '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.o: ../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.o `test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.o `test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
+
+../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.obj: ../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.o: ../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+
+../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.obj: ../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; fi`
+
 ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o: ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
@@ -5205,34 +5386,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp'; fi`
 
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.o: ../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.o `test -f '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.o `test -f '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp
-
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.obj: ../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.obj `if test -f '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.obj `if test -f '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; fi`
-
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.o: ../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.o `test -f '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.o `test -f '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp
-
-../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.obj: ../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.obj `if test -f '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp' object='../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.obj `if test -f '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; fi`
-
 ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.o: ../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.o `test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' || echo '$(srcdir)/'`../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po
@@ -5541,6 +5694,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.obj `if test -f '../src/navier_stokes/VCStaggeredStokesOperator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesOperator.cpp'; fi`
 
+../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.o: ../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.o `test -f '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.o `test -f '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp
+
+../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.obj: ../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.obj `if test -f '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.obj `if test -f '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; fi`
+
 ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.o: ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.o `test -f '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po
@@ -5554,6 +5721,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; fi`
+
+../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.o: ../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.o `test -f '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.o `test -f '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp
+
+../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.obj: ../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.obj `if test -f '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp' object='../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.obj `if test -f '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; fi`
 
 ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
@@ -6857,6 +7038,76 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-WallForceEvaluator.obj `if test -f '../src/IB/WallForceEvaluator.cpp'; then $(CYGPATH_W) '../src/IB/WallForceEvaluator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/WallForceEvaluator.cpp'; fi`
 
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o: ../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o `test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.o `test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj: ../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj `if test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.obj `if test -f '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingHierarchyIntegrator.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.o: ../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.obj: ../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.obj `if test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.obj `if test -f '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingPETScMatUtilities.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.o: ../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.o `test -f '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+
+../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.obj: ../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.obj `if test -f '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.obj `if test -f '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.o: ../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.o `test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.o `test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
+
+../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.obj: ../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.obj `if test -f '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.o: ../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+
+../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.obj: ../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; fi`
+
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o: ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Tpo ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Po
@@ -7571,34 +7822,6 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.obj `if test -f '../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp'; fi`
 
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.o: ../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.o `test -f '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.o `test -f '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp
-
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.obj: ../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.obj `if test -f '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.obj `if test -f '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp'; fi`
-
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.o: ../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.o `test -f '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.o `test -f '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp
-
-../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.obj: ../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.obj `if test -f '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp' object='../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.obj `if test -f '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp'; fi`
-
 ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.o: ../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.o `test -f '../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp' || echo '$(srcdir)/'`../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po
@@ -7907,6 +8130,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.obj `if test -f '../src/navier_stokes/VCStaggeredStokesOperator.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesOperator.cpp'; fi`
 
+../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.o: ../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.o `test -f '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp' object='../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.o `test -f '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp
+
+../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.obj: ../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.obj `if test -f '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp' object='../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.obj `if test -f '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp'; fi`
+
 ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.o: ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.o `test -f '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
@@ -7920,6 +8157,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp' object='../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; fi`
+
+../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.o: ../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.o -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.o `test -f '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp' object='../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.o `test -f '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp' || echo '$(srcdir)/'`../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp
+
+../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.obj: ../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.obj -MD -MP -MF ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Tpo -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.obj `if test -f '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Tpo ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp' object='../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.obj `if test -f '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp'; fi`
 
 ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
@@ -8583,6 +8834,8 @@ distclean-generic:
 	-rm -f ../src/$(am__dirstamp)
 	-rm -f ../src/IB/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/IB/$(am__dirstamp)
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ../src/acoustic_streaming/$(am__dirstamp)
 	-rm -f ../src/adv_diff/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/adv_diff/$(am__dirstamp)
 	-rm -f ../src/advect/$(DEPDIR)/$(am__dirstamp)
@@ -8599,6 +8852,8 @@ distclean-generic:
 	-rm -f ../src/utilities/$(am__dirstamp)
 	-rm -f ../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/wave_generation/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/acoustic_streaming/fortran/$(DEPDIR)/$(am__dirstamp)
+	-test -z "$(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/acoustic_streaming/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/adv_diff/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/adv_diff/fortran/$(DEPDIR)/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/adv_diff/fortran/$(am__dirstamp)" || rm -f $(top_builddir)/src/adv_diff/fortran/$(am__dirstamp)
 	-test -z "$(top_builddir)/src/advect/fortran/$(DEPDIR)/$(am__dirstamp)" || rm -f $(top_builddir)/src/advect/fortran/$(DEPDIR)/$(am__dirstamp)
@@ -8761,6 +9016,16 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
@@ -8840,8 +9105,6 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po
@@ -8864,7 +9127,9 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po
@@ -8890,8 +9155,6 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po
@@ -8914,7 +9177,9 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Po
 	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
 	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
@@ -9145,6 +9410,16 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-StaggeredStokesIBLevelRelaxationFACOperator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-WallForceEvaluator.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingHierarchyIntegrator.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScMatUtilities.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
@@ -9224,8 +9499,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredPressureBcCoef.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSVCStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-MarangoniSurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-PETScKrylovStaggeredStokesSolver.Po
@@ -9248,7 +9521,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-VCStaggeredStokesVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedCenteredConvectiveOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedConvectiveOperatorManager.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSCollocatedHierarchyIntegrator.Po
@@ -9274,8 +9549,6 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredHierarchyIntegrator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredNonConservativeHierarchyIntegrator.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredPressureBcCoef.Po
-	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-INSVCStaggeredVelocityBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-KrylovLinearSolverStaggeredStokesSolverInterface.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-MarangoniSurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-PETScKrylovStaggeredStokesSolver.Po
@@ -9298,7 +9571,9 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-StokesSpecifications.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesPressureBcCoef.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesVelocityBcCoef.Po
 	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
 	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
 	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po

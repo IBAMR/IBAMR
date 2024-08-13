@@ -278,6 +278,8 @@ AC_CONFIG_FILES([
   src/Makefile
   src/fortran/Makefile
   src/IB/Makefile
+  src/acoustic_streaming/Makefile
+  src/acoustic_streaming/fortran/Makefile
   src/adv_diff/Makefile
   src/adv_diff/fortran/Makefile
   src/advect/Makefile
@@ -293,6 +295,7 @@ AC_CONFIG_FILES([
   src/wave_generation/Makefile
   tests/attest.conf
   tests/Makefile
+  tests/acoustic_streaming/Makefile
   tests/adv_diff/Makefile
   tests/advect/Makefile
   tests/coarsen/Makefile
