@@ -156,7 +156,7 @@ SOAcousticStreamingBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
                 const double rho1_imag =
                     0.5 * ((*p1_imag_data)(i) + (*p1_imag_data)(i + shift_w)) / (d_sound_speed * d_sound_speed);
 
-                (*gcoef_data)(i, 0) = -1 / rho0 * 0.5 * (rho1_real * U1_real + rho1_imag * U1_imag);
+                (*gcoef_data)(i, 0) = (-1.0 / rho0) * 0.5 * (rho1_real * U1_real + rho1_imag * U1_imag);
             }
             else
             {
@@ -181,7 +181,7 @@ SOAcousticStreamingBcCoefs::setBcCoefs(Pointer<ArrayData<NDIM, double> >& acoef_
                                           (*p1_imag_data)(i + shift_s) + (*p1_imag_data)(i + shift_sw)) /
                                          (d_sound_speed * d_sound_speed);
 
-                (*gcoef_data)(i, 0) = -1 / rho0 * 0.5 * (rho1_real * U1_real + rho1_imag * U1_imag);
+                (*gcoef_data)(i, 0) = (-1.0 / rho0) * 0.5 * (rho1_real * U1_real + rho1_imag * U1_imag);
             }
         }
     }

@@ -18,11 +18,11 @@
 #include "ibamr/FOAcousticStreamingPETScLevelSolver.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/VCStaggeredStokesOperator.h"
+#include "ibamr/VCStaggeredStokesPressureBcCoef.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/VCStaggeredStokesVelocityBcCoef.h"
 
 #include "ibtk/CartGridFunctionSet.h"
 #include "ibtk/CartSideDoubleDivPreservingRefine.h"
@@ -445,9 +445,9 @@ AcousticStreamingHierarchyIntegrator::AcousticStreamingHierarchyIntegrator(std::
     d_U2_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U2_bc_coefs[d] = new INSVCStaggeredVelocityBcCoef(d, this, d_so_bc_coefs, IBAMR::TRACTION);
+        d_U2_bc_coefs[d] = new VCStaggeredStokesVelocityBcCoef(d, this, d_so_bc_coefs, IBAMR::TRACTION);
     }
-    d_P2_bc_coef = new INSVCStaggeredPressureBcCoef(this, d_so_bc_coefs, IBAMR::TRACTION);
+    d_P2_bc_coef = new VCStaggeredStokesPressureBcCoef(this, d_so_bc_coefs, IBAMR::TRACTION);
 
     d_U2_star_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
@@ -2513,13 +2513,13 @@ AcousticStreamingHierarchyIntegrator::preprocessOperatorsAndSolvers(const double
     // Setup boundary conditions objects for the second order system.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto U2_bc_coef = dynamic_cast<INSVCStaggeredVelocityBcCoef*>(d_U2_bc_coefs[d]);
+        auto U2_bc_coef = dynamic_cast<VCStaggeredStokesVelocityBcCoef*>(d_U2_bc_coefs[d]);
         // U2_bc_coef->setStokesSpecifications(nullptr); // intentionally set to a nullptr to throw an error if used
         U2_bc_coef->setPhysicalBcCoefs(d_so_bc_coefs);
         U2_bc_coef->setSolutionTime(new_time);
         U2_bc_coef->setTimeInterval(current_time, new_time);
     }
-    auto P2_bc_coef = dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_P2_bc_coef);
+    auto P2_bc_coef = dynamic_cast<VCStaggeredStokesPressureBcCoef*>(d_P2_bc_coef);
     // P2_bc_coef->setStokesSpecifications(nullptr); // intentionally set to a nullptr to throw an error if used
     P2_bc_coef->setPhysicalBcCoefs(d_so_bc_coefs);
     P2_bc_coef->setSolutionTime(new_time);
