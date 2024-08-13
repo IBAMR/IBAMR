@@ -121,7 +121,7 @@ SET(CXX_SRC
   navier_stokes/INSStaggeredStabilizedPPMConvectiveOperator.cpp
   navier_stokes/INSCollocatedWavePropConvectiveOperator.cpp
   navier_stokes/SpongeLayerForceFunction.cpp
-  navier_stokes/INSVCStaggeredVelocityBcCoef.cpp
+  navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp
   navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp
   navier_stokes/StaggeredStokesFACPreconditioner.cpp
   navier_stokes/INSStaggeredPPMConvectiveOperator.cpp
@@ -130,7 +130,7 @@ SET(CXX_SRC
   navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp
   navier_stokes/SurfaceTensionForceFunction.cpp
   navier_stokes/StaggeredStokesLevelRelaxationFACOperator.cpp
-  navier_stokes/INSVCStaggeredPressureBcCoef.cpp
+  navier_stokes/VCStaggeredStokesPressureBcCoef.cpp
   navier_stokes/StaggeredStokesProjectionPreconditioner.cpp
   navier_stokes/StaggeredStokesFACPreconditionerStrategy.cpp
   navier_stokes/INSVCStaggeredConservativeMassMomentumRKIntegrator.cpp
