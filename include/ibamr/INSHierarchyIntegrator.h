@@ -78,6 +78,12 @@ public:
     ~INSHierarchyIntegrator();
 
     /*!
+     * Compute the current CFL number for the given velocity field and time step size.
+     */
+    static double
+    compute_CFL_number(const int data_idx, const double dt, const SAMRAI::hier::PatchHierarchy<NDIM>* patch_hierarchy);
+
+    /*!
      * Set the type of viscous time integration scheme being employed by the
      * incompressible flow solver.
      *
@@ -370,6 +376,11 @@ public:
      * Returns the number of cycles to perform for the present time step.
      */
     int getNumberOfCycles() const override;
+
+    /*!
+     * Returns the maximum CFL number.
+     */
+    double getMaximumCFLNumber() const { return d_cfl_max; }
 
     /*!
      * Finish postprocessing the hierarchy by computing the current CFL number.

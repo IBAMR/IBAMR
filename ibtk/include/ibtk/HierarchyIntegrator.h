@@ -141,9 +141,11 @@ public:
 
     /*!
      * Integrate data on all patches on all levels of the patch hierarchy over
-     * the specified time increment.
+     * the requested time increment.
+     *
+     * The actual time increment may be reduced to satisfy solver requirements.  The increment that was executed is returned.
      */
-    virtual void advanceHierarchy(double dt);
+    virtual double advanceHierarchy(double dt_requested);
 
     /*!
      * Return the current value of the minimum time step size for the integrator
@@ -399,6 +401,12 @@ public:
      * numeric_limits<>::quiet_NaN() when it is not advancing the hierarchy.
      */
     virtual double getCurrentTimeStepSize() const;
+
+    /*!
+     * Skip enforcing that we do the prescribed number of cycles in each time
+     * step.
+     */
+    void setSkipEnforceNumCycles(bool set_skip_enforce_num_cycles = true);
 
     /*!
      * Virtual method to prepare to advance data from current_time to new_time.
@@ -1081,7 +1089,7 @@ protected:
     double d_integrator_time = std::numeric_limits<double>::quiet_NaN(), d_start_time = 0.0,
            d_end_time = std::numeric_limits<double>::max();
     double d_dt_init = std::numeric_limits<double>::max(), d_dt_min = 0.0,
-           d_dt_max = std::numeric_limits<double>::max(), d_dt_growth_factor = 2.0;
+           d_dt_max = std::numeric_limits<double>::max(), d_dt_growth_factor = 2.0, d_dt_shrink_factor = 0.5;
     int d_integrator_step = 0, d_max_integrator_steps = std::numeric_limits<int>::max();
     std::deque<double> d_dt_previous;
 
@@ -1096,6 +1104,8 @@ protected:
      */
     int d_current_num_cycles = -1, d_current_cycle_num = -1;
     double d_current_dt = std::numeric_limits<double>::quiet_NaN();
+    bool d_skip_enforce_num_cycles = false;
+    bool d_redo_time_step = false;
 
     /*
      * The number of integration steps taken between invocations of the

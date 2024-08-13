@@ -216,6 +216,8 @@ IBExplicitHierarchyIntegrator::integrateHierarchySpecialized(const double curren
 
     // Compute the Lagrangian source/sink strengths and spread them to the
     // Eulerian grid.
+    //
+    // TODO: Should this be "half_time" or "new_time"?
     if (d_ib_method_ops->hasFluidSources())
     {
         if (d_enable_logging)

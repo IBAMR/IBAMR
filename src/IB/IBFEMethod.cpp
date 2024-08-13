@@ -689,10 +689,16 @@ IBFEMethod::interpolateVelocity(const int u_data_idx,
     }
 
     std::vector<PetscVector<double>*> U_vecs = d_U_vecs->get(data_time_str);
-    std::vector<PetscVector<double>*> X_vecs = d_X_vecs->get(data_time_str);
     std::vector<PetscVector<double>*> U_rhs_vecs = d_U_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
-    batch_vec_copy(X_vecs, X_IB_ghost_vecs);
+    if (d_use_fixed_coupling_ops)
+    {
+        batch_vec_copy(d_X_IB_vecs->get(data_time_str), X_IB_ghost_vecs);
+    }
+    else
+    {
+        batch_vec_copy(d_X_vecs->get(data_time_str), X_IB_ghost_vecs);
+    }
     batch_vec_ghost_update(X_IB_ghost_vecs, INSERT_VALUES, SCATTER_FORWARD);
 
     // Build the right-hand-sides to compute the interpolated data.
@@ -945,8 +951,16 @@ IBFEMethod::spreadForce(const int f_data_idx,
     // Communicate ghost data.
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> F_IB_ghost_vecs = d_F_IB_vecs->getIBGhosted("tmp");
-    batch_vec_copy({ d_X_vecs->get(data_time_str), d_F_vecs->get(data_time_str) },
-                   { X_IB_ghost_vecs, F_IB_ghost_vecs });
+    if (d_use_fixed_coupling_ops)
+    {
+        batch_vec_copy({ d_X_IB_vecs->get(data_time_str), d_F_vecs->get(data_time_str) },
+                       { X_IB_ghost_vecs, F_IB_ghost_vecs });
+    }
+    else
+    {
+        batch_vec_copy({ d_X_vecs->get(data_time_str), d_F_vecs->get(data_time_str) },
+                       { X_IB_ghost_vecs, F_IB_ghost_vecs });
+    }
     batch_vec_ghost_update({ X_IB_ghost_vecs, F_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     // set up a new data index for computing forces on the active hierarchy.
@@ -1200,7 +1214,14 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> Q_IB_ghost_vecs = d_Q_IB_vecs->getIBGhosted("tmp");
     TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
-    batch_vec_copy({ d_X_vecs->get("half"), d_Q_vecs->get("half") }, { X_IB_ghost_vecs, Q_IB_ghost_vecs });
+    if (d_use_fixed_coupling_ops)
+    {
+        batch_vec_copy({ d_X_IB_vecs->get("half"), d_Q_vecs->get("half") }, { X_IB_ghost_vecs, Q_IB_ghost_vecs });
+    }
+    else
+    {
+        batch_vec_copy({ d_X_vecs->get("half"), d_Q_vecs->get("half") }, { X_IB_ghost_vecs, Q_IB_ghost_vecs });
+    }
     batch_vec_ghost_update({ X_IB_ghost_vecs, Q_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     if (d_use_scratch_hierarchy)
@@ -1234,6 +1255,252 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     IBAMR_TIMER_STOP(t_spread_fluid_source);
     return;
 } // spreadFluidSource
+
+void
+IBFEMethod::createSolutionVec(Vec* X_vec)
+{
+    // TODO: Don't rebuild these vectors each time.
+    d_implicit_X_vecs.clear();
+    std::vector<Vec> X_vecs;
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        d_implicit_X_vecs.push_back(std::unique_ptr<PetscVector<double> >(
+            dynamic_cast<PetscVector<double>*>(d_X_vecs->get("new", part).clone().release())));
+        X_vecs.push_back(d_implicit_X_vecs[part]->vec());
+    }
+    PetscErrorCode ierr;
+    ierr = VecCreateNest(PETSC_COMM_WORLD, d_meshes.size(), nullptr, X_vecs.data(), X_vec);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
+IBFEMethod::createSolverVecs(Vec* X_vec, Vec* F_vec, Vec* R_vec)
+{
+    // TODO: Don't rebuild these vectors each time.
+    d_implicit_X_vecs.clear();
+    d_implicit_F_vecs.clear();
+    d_implicit_R_vecs.clear();
+    std::vector<Vec> X_vecs, F_vecs, R_vecs;
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        d_implicit_X_vecs.push_back(std::unique_ptr<PetscVector<double> >(
+            dynamic_cast<PetscVector<double>*>(d_X_vecs->get("new", part).clone().release())));
+        X_vecs.push_back(d_implicit_X_vecs[part]->vec());
+
+        d_implicit_F_vecs.push_back(std::unique_ptr<PetscVector<double> >(
+            dynamic_cast<PetscVector<double>*>(d_F_vecs->get("new", part).clone().release())));
+        F_vecs.push_back(d_implicit_F_vecs[part]->vec());
+
+        d_implicit_R_vecs.push_back(std::unique_ptr<PetscVector<double> >(
+            dynamic_cast<PetscVector<double>*>(d_X_vecs->get("RHS Vector", part).clone().release())));
+        R_vecs.push_back(d_implicit_R_vecs[part]->vec());
+    }
+    PetscErrorCode ierr;
+    ierr = VecCreateNest(PETSC_COMM_WORLD, d_meshes.size(), nullptr, X_vecs.data(), X_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecCreateNest(PETSC_COMM_WORLD, d_meshes.size(), nullptr, F_vecs.data(), F_vec);
+    IBTK_CHKERRQ(ierr);
+    ierr = VecCreateNest(PETSC_COMM_WORLD, d_meshes.size(), nullptr, R_vecs.data(), R_vec);
+    IBTK_CHKERRQ(ierr);
+}
+
+void
+IBFEMethod::setupSolverVecs(Vec& X_vec, Vec& F_vec, Vec& R_vec)
+{
+    PetscErrorCode ierr;
+    PetscInt N;
+    Vec *X_sub_vecs, *F_sub_vecs, *R_sub_vecs;
+    ierr = VecNestGetSubVecs(X_vec, &N, &X_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    ierr = VecNestGetSubVecs(F_vec, &N, &F_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    ierr = VecNestGetSubVecs(R_vec, &N, &R_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        auto& X_new_petsc_vec = d_X_vecs->get("new", part);
+        ierr = VecCopy(X_new_petsc_vec.vec(), X_sub_vecs[part]);
+        auto& F_new_petsc_vec = d_F_vecs->get("new", part);
+        ierr = VecCopy(F_new_petsc_vec.vec(), F_sub_vecs[part]);
+        IBTK_CHKERRQ(ierr);
+        ierr = VecZeroEntries(R_sub_vecs[part]);
+        IBTK_CHKERRQ(ierr);
+    }
+}
+
+void
+IBFEMethod::setUpdatedPosition(Vec& X_new_vec)
+{
+    PetscErrorCode ierr;
+    PetscInt N;
+    Vec* X_new_sub_vecs;
+    ierr = VecNestGetSubVecs(X_new_vec, &N, &X_new_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        ierr = VecCopy(X_new_sub_vecs[part], d_X_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(d_X_vecs->get("half", part).vec(),
+                           0.5,
+                           0.5,
+                           0.0,
+                           d_X_vecs->get("current", part).vec(),
+                           d_X_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // setUpdatedPosition
+
+void
+IBFEMethod::setUpdatedForce(Vec& F_new_vec)
+{
+    PetscErrorCode ierr;
+    PetscInt N;
+    Vec* F_new_sub_vecs;
+    ierr = VecNestGetSubVecs(F_new_vec, &N, &F_new_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        ierr = VecCopy(F_new_sub_vecs[part], d_F_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPBYPCZ(d_F_vecs->get("half", part).vec(),
+                           0.5,
+                           0.5,
+                           0.0,
+                           d_F_vecs->get("current", part).vec(),
+                           d_F_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // setUpdatedForce
+
+void
+IBFEMethod::getUpdatedPosition(Vec& X_new_vec)
+{
+    PetscErrorCode ierr;
+    PetscInt N;
+    Vec* X_new_sub_vecs;
+    ierr = VecNestGetSubVecs(X_new_vec, &N, &X_new_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        ierr = VecCopy(d_X_vecs->get("new", part).vec(), X_new_sub_vecs[part]);
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // getUpdatedPosition
+
+void
+IBFEMethod::getUpdatedVelocity(Vec& U_new_vec)
+{
+    PetscErrorCode ierr;
+    PetscInt N;
+    Vec* U_new_sub_vecs;
+    ierr = VecNestGetSubVecs(U_new_vec, &N, &U_new_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        ierr = VecCopy(d_U_vecs->get("new", part).vec(), U_new_sub_vecs[part]);
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // getUpdatedVelocity
+
+void
+IBFEMethod::getUpdatedForce(Vec& F_new_vec)
+{
+    PetscErrorCode ierr;
+    PetscInt N;
+    Vec* F_new_sub_vecs;
+    ierr = VecNestGetSubVecs(F_new_vec, &N, &F_new_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        ierr = VecCopy(d_F_vecs->get("new", part).vec(), F_new_sub_vecs[part]);
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // getUpdatedForce
+
+void
+IBFEMethod::computeResidualBackwardEuler(Vec& R_vec)
+{
+    PetscErrorCode ierr;
+    PetscInt N;
+    Vec* R_sub_vecs;
+    ierr = VecNestGetSubVecs(R_vec, &N, &R_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        const double dt = d_new_time - d_current_time;
+        ierr = VecWAXPY(R_sub_vecs[part], -dt, d_U_vecs->get("new", part).vec(), d_X_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(R_sub_vecs[part], -1.0, d_X_vecs->get("current", part).vec());
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // computeResidualBackwardEuler
+
+void
+IBFEMethod::computeResidualMidpointRule(Vec& R_vec)
+{
+    PetscErrorCode ierr;
+    PetscInt N;
+    Vec* R_sub_vecs;
+    ierr = VecNestGetSubVecs(R_vec, &N, &R_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        const double dt = d_new_time - d_current_time;
+        ierr = VecWAXPY(R_sub_vecs[part], -dt, d_U_vecs->get("half", part).vec(), d_X_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(R_sub_vecs[part], -1.0, d_X_vecs->get("current", part).vec());
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // computeResidualMidpointRule
+
+void
+IBFEMethod::computeResidualTrapezoidalRule(Vec& R_vec)
+{
+    PetscErrorCode ierr;
+    PetscInt N;
+    Vec* R_sub_vecs;
+    ierr = VecNestGetSubVecs(R_vec, &N, &R_sub_vecs);
+    IBTK_CHKERRQ(ierr);
+    TBOX_ASSERT(static_cast<unsigned int>(N) == d_meshes.size());
+    for (unsigned int part = 0; part < d_meshes.size(); ++part)
+    {
+        const double dt = d_new_time - d_current_time;
+        ierr = VecWAXPY(
+            R_sub_vecs[part], -0.5 * dt, d_U_vecs->get("current", part).vec(), d_X_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(R_sub_vecs[part], -0.5 * dt, d_U_vecs->get("new", part).vec());
+        IBTK_CHKERRQ(ierr);
+        ierr = VecAXPY(R_sub_vecs[part], -1.0, d_X_vecs->get("current", part).vec());
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // computeResidualTrapezoidalRule
+
+void
+IBFEMethod::updateFixedLEOperators()
+{
+    if (!d_use_fixed_coupling_ops) return;
+    batch_vec_copy({ d_X_vecs->get("current"), d_X_vecs->get("half"), d_X_vecs->get("new") },
+                   { d_X_IB_vecs->get("current"), d_X_IB_vecs->get("half"), d_X_IB_vecs->get("new") });
+    return;
+}
 
 FEDataManager::InterpSpec
 IBFEMethod::getDefaultInterpSpec() const

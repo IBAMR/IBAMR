@@ -25,6 +25,7 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include <ibamr/IBExplicitHierarchyIntegrator.h>
+#include <ibamr/IBImplicitHierarchyIntegrator.h>
 #include <ibamr/IBMethod.h>
 #include <ibamr/IBStandardForceGen.h>
 #include <ibamr/IBStandardInitializer.h>
@@ -111,11 +112,25 @@ main(int argc, char* argv[])
                                                    << "Valid options are: COLLOCATED, STAGGERED");
         }
         Pointer<IBMethod> ib_method_ops = new IBMethod("IBMethod", app_initializer->getComponentDatabase("IBMethod"));
-        Pointer<IBHierarchyIntegrator> time_integrator =
-            new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
-                                              app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
-                                              ib_method_ops,
-                                              navier_stokes_integrator);
+        Pointer<IBHierarchyIntegrator> time_integrator;
+        const string ib_time_stepping_type =
+            app_initializer->getComponentDatabase("Main")->getStringWithDefault("ib_time_stepping_type", "EXPLICIT");
+        if (ib_time_stepping_type == "EXPLICIT")
+        {
+            time_integrator =
+                new IBExplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                                  app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                                  ib_method_ops,
+                                                  navier_stokes_integrator);
+        }
+        else
+        {
+            time_integrator =
+                new IBImplicitHierarchyIntegrator("IBHierarchyIntegrator",
+                                                  app_initializer->getComponentDatabase("IBHierarchyIntegrator"),
+                                                  ib_method_ops,
+                                                  navier_stokes_integrator);
+        }
         Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
