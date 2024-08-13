@@ -160,8 +160,6 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp \
 ../src/navier_stokes/INSVCStaggeredNonConservativeHierarchyIntegrator.cpp \
-../src/navier_stokes/INSVCStaggeredPressureBcCoef.cpp \
-../src/navier_stokes/INSVCStaggeredVelocityBcCoef.cpp \
 ../src/navier_stokes/MarangoniSurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/KrylovLinearSolverStaggeredStokesSolverInterface.cpp \
 ../src/navier_stokes/PETScKrylovStaggeredStokesSolver.cpp \
@@ -184,7 +182,9 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/StokesSpecifications.cpp \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
+../src/navier_stokes/VCStaggeredStokesPressureBcCoef.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+../src/navier_stokes/VCStaggeredStokesVelocityBcCoef.cpp \
 ../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
 ../src/phase_change/CarmanKozenyDragForce.cpp \
 ../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
@@ -320,8 +320,6 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSVCStaggeredConservativeMassMomentumSSPRKIntegrator.h \
 ../include/ibamr/INSVCStaggeredHierarchyIntegrator.h \
 ../include/ibamr/INSVCStaggeredNonConservativeHierarchyIntegrator.h \
-../include/ibamr/INSVCStaggeredPressureBcCoef.h \
-../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 ../include/ibamr/IrregularWaveBcCoef.h \
 ../include/ibamr/IrregularWaveGenerator.h \
 ../include/ibamr/ins_utilities.h \
@@ -366,8 +364,10 @@ pkg_include_HEADERS += \
 ../include/ibamr/StokesWaveGeneratorStrategy.h \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
+../include/ibamr/VCStaggeredStokesPressureBcCoef.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
 ../include/ibamr/VCStaggeredStokesSpec.h \
+../include/ibamr/VCStaggeredStokesVelocityBcCoef.h \
 ../include/ibamr/vc_ins_utilities.h \
 ../include/ibamr/Wall.h \
 ../include/ibamr/WallForceEvaluator.h \

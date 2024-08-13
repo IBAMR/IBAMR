@@ -17,8 +17,8 @@
 #include "ibamr/INSStaggeredHierarchyIntegrator.h"
 #include "ibamr/INSStaggeredPressureBcCoef.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/VCStaggeredStokesPressureBcCoef.h"
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
 #include "ibtk/IBTK_MPI.h"
@@ -524,7 +524,7 @@ IBHydrodynamicSurfaceForceEvaluator::fillPatchData(Pointer<PatchHierarchy<NDIM> 
                                     IBTK::invalid_index;
     auto p_ins_bc_coef = dynamic_cast<INSStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
     auto p_vc_ins_bc_coef =
-        dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
+        dynamic_cast<VCStaggeredStokesPressureBcCoef*>(d_fluid_solver->getPressureBoundaryConditions());
     InterpolationTransactionComponent p_transaction_comp;
     if (p_ins_bc_coef)
     {

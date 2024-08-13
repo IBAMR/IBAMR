@@ -21,8 +21,6 @@
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/INSStaggeredConvectiveOperatorManager.h"
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/INSVCStaggeredPressureBcCoef.h"
-#include "ibamr/INSVCStaggeredVelocityBcCoef.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
 #include "ibamr/StaggeredStokesBlockPreconditioner.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
@@ -30,7 +28,9 @@
 #include "ibamr/StaggeredStokesSolverManager.h"
 #include "ibamr/StokesSpecifications.h"
 #include "ibamr/VCStaggeredStokesOperator.h"
+#include "ibamr/VCStaggeredStokesPressureBcCoef.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
+#include "ibamr/VCStaggeredStokesVelocityBcCoef.h"
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CCPoissonSolverManager.h"
@@ -485,9 +485,9 @@ INSVCStaggeredHierarchyIntegrator::INSVCStaggeredHierarchyIntegrator(std::string
     d_U_bc_coefs.resize(NDIM);
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        d_U_bc_coefs[d] = new INSVCStaggeredVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
+        d_U_bc_coefs[d] = new VCStaggeredStokesVelocityBcCoef(d, this, d_bc_coefs, d_traction_bc_type);
     }
-    d_P_bc_coef = new INSVCStaggeredPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
+    d_P_bc_coef = new VCStaggeredStokesPressureBcCoef(this, d_bc_coefs, d_traction_bc_type);
 
     // Get coarsen and refine operator types.
     if (input_db->keyExists("N_coarsen_type")) d_N_coarsen_type = input_db->getString("N_coarsen_type");
@@ -1957,13 +1957,13 @@ INSVCStaggeredHierarchyIntegrator::preprocessOperatorsAndSolvers(const double cu
     // Setup boundary conditions objects.
     for (unsigned int d = 0; d < NDIM; ++d)
     {
-        auto U_bc_coef = dynamic_cast<INSVCStaggeredVelocityBcCoef*>(d_U_bc_coefs[d]);
+        auto U_bc_coef = dynamic_cast<VCStaggeredStokesVelocityBcCoef*>(d_U_bc_coefs[d]);
         U_bc_coef->setStokesSpecifications(&d_problem_coefs);
         U_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
         U_bc_coef->setSolutionTime(new_time);
         U_bc_coef->setTimeInterval(current_time, new_time);
     }
-    auto P_bc_coef = dynamic_cast<INSVCStaggeredPressureBcCoef*>(d_P_bc_coef);
+    auto P_bc_coef = dynamic_cast<VCStaggeredStokesPressureBcCoef*>(d_P_bc_coef);
     P_bc_coef->setStokesSpecifications(&d_problem_coefs);
     P_bc_coef->setPhysicalBcCoefs(d_bc_coefs);
     P_bc_coef->setSolutionTime(new_time);
