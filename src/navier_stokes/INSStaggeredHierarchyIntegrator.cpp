@@ -1047,7 +1047,8 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
     d_convective_op = getConvectiveOperator();
 
     // Setup a boundary op to set velocity boundary conditions on regrid.
-    d_fill_after_regrid_phys_bdry_bc_op.reset(new CartSideRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false));
+    d_fill_after_regrid_phys_bdry_bc_op =
+        std::make_unique<CartSideRobinPhysBdryOp>(d_U_scratch_idx, d_U_bc_coefs, false);
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;

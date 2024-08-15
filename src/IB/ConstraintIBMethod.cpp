@@ -316,53 +316,53 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
             const std::string struct_no_str = std::to_string(struct_no);
 
             if (from_restart)
-                d_trans_vel_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::app));
+                d_trans_vel_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_trans_vel_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::out));
+                d_trans_vel_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Trans_vel_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_rot_vel_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::app));
+                d_rot_vel_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_rot_vel_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::out));
+                d_rot_vel_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Rot_vel_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_drag_force_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::app));
+                d_drag_force_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_drag_force_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::out));
+                d_drag_force_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Drag_force_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_moment_of_inertia_stream[struct_no].reset(
-                    new std::ofstream(d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::app));
+                d_moment_of_inertia_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_moment_of_inertia_stream[struct_no].reset(
-                    new std::ofstream(d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::out));
+                d_moment_of_inertia_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_MOI_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_torque_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::app));
+                d_torque_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_torque_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::out));
+                d_torque_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Torque_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_position_COM_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::app));
+                d_position_COM_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_position_COM_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::out));
+                d_position_COM_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_COM_coordinates_struct_no_" + struct_no_str, std::fstream::out);
 
             if (from_restart)
-                d_power_spent_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::app));
+                d_power_spent_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::app);
             else
-                d_power_spent_stream[struct_no].reset(new std::ofstream(
-                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::out));
+                d_power_spent_stream[struct_no] = std::make_unique<std::ofstream>(
+                    d_base_output_filename + "_Power_spent_struct_no_" + struct_no_str, std::fstream::out);
         }
 
         // Output Eulerian momentum.

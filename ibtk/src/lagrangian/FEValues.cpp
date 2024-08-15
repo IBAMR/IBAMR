@@ -101,11 +101,11 @@ FEValuesBase::build(const int dim,
         switch (spacedim)
         {
         case 1:
-            return std::unique_ptr<FEValuesBase>(new FEValues<1, 1>(qrule, fe_type, update_flags));
+            return std::make_unique<FEValues<1, 1> >(qrule, fe_type, update_flags);
         case 2:
-            return std::unique_ptr<FEValuesBase>(new FEValues<1, 2>(qrule, fe_type, update_flags));
+            return std::make_unique<FEValues<1, 2> >(qrule, fe_type, update_flags);
         case 3:
-            return std::unique_ptr<FEValuesBase>(new FEValues<1, 3>(qrule, fe_type, update_flags));
+            return std::make_unique<FEValues<1, 3> >(qrule, fe_type, update_flags);
         default:
             break;
         }
@@ -114,16 +114,16 @@ FEValuesBase::build(const int dim,
         switch (spacedim)
         {
         case 2:
-            return std::unique_ptr<FEValuesBase>(new FEValues<2, 2>(qrule, fe_type, update_flags));
+            return std::make_unique<FEValues<2, 2> >(qrule, fe_type, update_flags);
         case 3:
-            return std::unique_ptr<FEValuesBase>(new FEValues<2, 3>(qrule, fe_type, update_flags));
+            return std::make_unique<FEValues<2, 3> >(qrule, fe_type, update_flags);
         default:
             break;
         }
         break;
     case 3:
         TBOX_ASSERT(spacedim == dim);
-        return std::unique_ptr<FEValuesBase>(new FEValues<3, 3>(qrule, fe_type, update_flags));
+        return std::make_unique<FEValues<3, 3> >(qrule, fe_type, update_flags);
     default:
         break;
     }

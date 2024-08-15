@@ -159,16 +159,16 @@ main(int argc, char* argv[])
         {
             // Read data from restart.
             // Generate the cache directly
-            c_cache.reset(
-                new SnapshotCache("cell::SnapshotCache", c_var, nullptr, grid_geometry, register_for_restart));
-            n_cache.reset(
-                new SnapshotCache("node::SnapshotCache", n_var, nullptr, grid_geometry, register_for_restart));
-            s_cache.reset(
-                new SnapshotCache("side::SnapshotCache", s_var, nullptr, grid_geometry, register_for_restart));
-            e_cache.reset(
-                new SnapshotCache("edge::SnapshotCache", e_var, nullptr, grid_geometry, register_for_restart));
-            f_cache.reset(
-                new SnapshotCache("face::SnapshotCache", f_var, nullptr, grid_geometry, register_for_restart));
+            c_cache = std::make_unique<SnapshotCache>(
+                "cell::SnapshotCache", c_var, nullptr, grid_geometry, register_for_restart);
+            n_cache = std::make_unique<SnapshotCache>(
+                "node::SnapshotCache", n_var, nullptr, grid_geometry, register_for_restart);
+            s_cache = std::make_unique<SnapshotCache>(
+                "side::SnapshotCache", s_var, nullptr, grid_geometry, register_for_restart);
+            e_cache = std::make_unique<SnapshotCache>(
+                "edge::SnapshotCache", e_var, nullptr, grid_geometry, register_for_restart);
+            f_cache = std::make_unique<SnapshotCache>(
+                "face::SnapshotCache", f_var, nullptr, grid_geometry, register_for_restart);
         }
         else
         {
@@ -216,8 +216,8 @@ fill_data(const std::string& test_name,
 
     // Create a SnapshotCache to store snapshots on the "old" hierarchy.
     Pointer<GridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
-    std::unique_ptr<SnapshotCache> snapshot_cache(
-        new SnapshotCache(test_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart));
+    std::unique_ptr<SnapshotCache> snapshot_cache =
+        std::make_unique<SnapshotCache>(test_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart);
 
     // Fill in snapshot cache with several values.
     for (const auto& t : time_pts)

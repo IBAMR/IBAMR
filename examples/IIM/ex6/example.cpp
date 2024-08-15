@@ -611,8 +611,9 @@ main(int argc, char* argv[])
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
 
-        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : nullptr);
-        std::unique_ptr<ExodusII_IO> exodus_bndry_io(uses_exodus ? new ExodusII_IO(boundary_mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> exodus_io = uses_exodus ? std::make_unique<ExodusII_IO>(beam_mesh) : nullptr;
+        std::unique_ptr<ExodusII_IO> exodus_bndry_io =
+            uses_exodus ? std::make_unique<ExodusII_IO>(boundary_mesh) : nullptr;
 
         ibfe_bndry_ops->initializeFEData();
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
