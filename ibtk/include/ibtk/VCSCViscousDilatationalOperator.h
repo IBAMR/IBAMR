@@ -13,64 +13,45 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_VCStaggeredStokesOperator
-#define included_IBAMR_VCStaggeredStokesOperator
+#ifndef included_IBTK_VCSCViscousDilatationalOperator
+#define included_IBTK_VCSCViscousDilatationalOperator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include <ibamr/config.h>
+#include <ibtk/config.h>
 
-#include "ibamr/StaggeredStokesOperator.h"
-
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/ibtk_enums.h"
-
-#include "IntVector.h"
-#include "SAMRAIVectorReal.h"
-#include "tbox/Pointer.h"
-
-#include <string>
-#include <vector>
-
-namespace SAMRAI
-{
-namespace solv
-{
-template <int DIM>
-class RobinBcCoefStrategy;
-template <int DIM, class TYPE>
-class SAMRAIVectorReal;
-} // namespace solv
-} // namespace SAMRAI
+#include "ibtk/SCLaplaceOperator.h"
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 
-namespace IBAMR
+namespace IBTK
 {
 /*!
- * \brief Class VCStaggeredStokesOperator is a concrete IBTK::LinearOperator which
- * implements a staggered-grid (MAC) discretization of the incompressible Stokes
- * operator with variable coefficients.
+ * \brief Class VCSCViscousDilatationalOperator is a subclass of SCLaplaceOperator
+ * which implements a globally second-order accurate side-centered finite
+ * difference discretization of a vector elliptic operator of the form
+ * \f$ L = \beta C I +  \nabla \cdot \mu ( (\nabla u) + (\nabla u)^T ) + \nabla (\lambda \nabla \cdot u) = \f$.
  *
- * This class is intended to be used with an iterative (Krylov or Newton-Krylov)
- * incompressible flow solver.
+ * Here \f$ u \f$ and \f$ C \f$ are vector valued side-centered fields,
+ * \f$ \mu \f$ is a node-(2D) or edge-(3D) centered scalar field, and \f$ \lambda\f$
+ * is a cell-centered field.
  *
- * \see INSVCStaggeredHierarchyIntegrator
+ * The scaling factors of \f$ C \f$ and \f$ \mu \f$ variables are passed separately
+ * and are denoted by \f$ \beta \f$ and \f$ \alpha \f$, respectively.
  */
-class VCStaggeredStokesOperator : public IBAMR::StaggeredStokesOperator
+class VCSCViscousDilatationalOperator : public SCLaplaceOperator
 {
 public:
     /*!
-     * \brief Class constructor.
+     * \brief Constructor for class VCSCViscousDilatationalOperator initializes the operator
+     * coefficients and boundary conditions to default values.
      */
-    VCStaggeredStokesOperator(const std::string& object_name,
-                              bool homogeneous_bc = true,
-                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr);
+    VCSCViscousDilatationalOperator(std::string object_name, bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
      */
-    ~VCStaggeredStokesOperator();
+    ~VCSCViscousDilatationalOperator();
 
     /*!
      * \name Linear operator functionality.
@@ -106,6 +87,31 @@ public:
     void apply(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& y) override;
 
+    /*!
+     * \brief Compute hierarchy-dependent data required for computing y=Ax (and
+     * y=A'x).
+     *
+     * \param in input vector
+     * \param out output vector
+     *
+     * \see KrylovLinearSolver::initializeSolverState
+     */
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& in,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& out) override;
+
+    /*!
+     * \brief Remove all hierarchy-dependent data computed by
+     * initializeOperatorState().
+     *
+     * Remove all hierarchy-dependent data set by initializeOperatorState().  It
+     * is safe to call deallocateOperatorState() even if the state is already
+     * deallocated.
+     *
+     * \see initializeOperatorState
+     * \see KrylovLinearSolver::deallocateSolverState
+     */
+    void deallocateOperatorState() override;
+
     //\}
 
     /*!
@@ -114,19 +120,13 @@ public:
      */
     void setDPatchDataInterpolationType(IBTK::VCInterpType D_interp_type);
 
-protected:
-    /*
-     * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
-     */
-    IBTK::VCInterpType d_D_interp_type;
-
 private:
     /*!
      * \brief Default constructor.
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCStaggeredStokesOperator() = delete;
+    VCSCViscousDilatationalOperator() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -135,7 +135,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCStaggeredStokesOperator(const VCStaggeredStokesOperator& from) = delete;
+    VCSCViscousDilatationalOperator(const VCSCViscousDilatationalOperator& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -146,10 +146,15 @@ private:
      *
      * \return A reference to this object.
      */
-    VCStaggeredStokesOperator& operator=(const VCStaggeredStokesOperator& that) = delete;
+    VCSCViscousDilatationalOperator& operator=(const VCSCViscousDilatationalOperator& that) = delete;
+
+    /*
+     * The interpolation type to be used in computing the variable coefficient viscous Laplacian.
+     */
+    IBTK::VCInterpType d_D_interp_type;
 };
-} // namespace IBAMR
+} // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_VCStaggeredStokesOperator
+#endif // #ifndef included_IBTK_VCSCViscousDilatationalOperator
