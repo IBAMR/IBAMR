@@ -308,7 +308,7 @@ private:
  * \param ctx is the pointer to the TagLiquidFractionRefinementCells class object.
  */
 void
-calltagLiquidFractionCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+callTagLiquidFractionCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                            const int level_number,
                                            const double error_data_time,
                                            const int tag_index,

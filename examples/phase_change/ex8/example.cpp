@@ -572,6 +572,7 @@ main(int argc, char* argv[])
         const double rho_solid = 0.0;
         const double kappa_solid = 0.0;
         const double Cp_solid = 0.0;
+        const double mu_solid = 0.0;
 
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
@@ -589,7 +590,10 @@ main(int argc, char* argv[])
                                                                               kappa_gas,
                                                                               Cp_liquid,
                                                                               Cp_solid,
-                                                                              Cp_gas);
+                                                                              Cp_gas,
+                                                                              mu_liquid,
+                                                                              mu_solid,
+                                                                              mu_gas);
 
         time_integrator->registerResetFluidDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                       static_cast<void*>(&setSetFluidProperties));

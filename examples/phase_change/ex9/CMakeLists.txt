@@ -13,35 +13,17 @@
 
 IBAMR_ADD_EXAMPLE(
   TARGET_NAME
-    "phase_change-ex7-2d"
+    "phase_change-ex9-2d"
   OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/phase_change/ex7"
+    "${CMAKE_BINARY_DIR}/examples/phase_change/ex9"
   OUTPUT_NAME
     main2d
   EXAMPLE_GROUP
     examples-phase_change
   SOURCES
-    example.cpp LSLocateInterface.cpp
+    example.cpp LSLocateInterface.cpp LevelSetInitialCondition.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES
-    input2d.amr
-  )
-
-
-IBAMR_ADD_EXAMPLE(
-  TARGET_NAME
-    "phase_change-ex7-3d"
-  OUTPUT_DIRECTORY
-    "${CMAKE_BINARY_DIR}/examples/phase_change/ex7"
-  OUTPUT_NAME
-    main3d
-  EXAMPLE_GROUP
-    examples-phase_change
-  SOURCES
-    example.cpp LSLocateInterface.cpp
-  LINK_TARGETS
-    IBAMR3d
-  INPUT_FILES
-    input3d.amr
+    input2d_2phase.amr input2d_3phase.amr
   )

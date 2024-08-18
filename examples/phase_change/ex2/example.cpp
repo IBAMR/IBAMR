@@ -454,7 +454,7 @@ main(int argc, char* argv[])
         IBAMR::PhaseChangeUtilities::TagLiquidFractionRefinementCells tagger(
             enthalpy_hier_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
         enthalpy_hier_integrator->registerApplyGradientDetectorCallback(
-            &IBAMR::PhaseChangeUtilities::calltagLiquidFractionCellsCallbackFunction, static_cast<void*>(&tagger));
+            &IBAMR::PhaseChangeUtilities::callTagLiquidFractionCellsCallbackFunction, static_cast<void*>(&tagger));
 
         // Register H Div U term in the Heaviside equation.
         Pointer<CellVariable<NDIM, double> > F_var = new CellVariable<NDIM, double>("F");

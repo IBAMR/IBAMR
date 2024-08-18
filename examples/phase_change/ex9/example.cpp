@@ -29,6 +29,7 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LaserBeamForceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
@@ -100,6 +101,58 @@ synchronize_levelset_with_heaviside_fcn(int H_current_idx,
         }
     }
 }
+
+struct HeatFluxCtx
+{
+    double kappa_liquid;
+    double T_melt;
+    double T_liquid;
+    double alpha_liquid;
+    double alpha_solid;
+    double lambda;
+};
+
+void
+compute_heat_flux(int F_idx,
+                  Pointer<Patch<NDIM> > patch,
+                  int /*integrator_step*/,
+                  double time,
+                  double /*current_time*/,
+                  double /*new_time*/,
+                  void* ctx)
+{
+    HeatFluxCtx* heat_flux_ctx = static_cast<HeatFluxCtx*>(ctx);
+    const double kappa_liquid = heat_flux_ctx->kappa_liquid;
+    const double T_m = heat_flux_ctx->T_melt;
+    const double T_0 = heat_flux_ctx->T_liquid;
+    const double alpha_liquid = heat_flux_ctx->alpha_liquid;
+    const double alpha_solid = heat_flux_ctx->alpha_solid;
+    const double lambda = heat_flux_ctx->lambda;
+
+    const Box<NDIM>& patch_box = patch->getBox();
+    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+    const double* patch_X_lower = patch_geom->getXLower();
+    const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+    const double* patch_dx = patch_geom->getDx();
+
+    Pointer<CellData<NDIM, double> > F_data = patch->getPatchData(F_idx);
+    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+    {
+        CellIndex<NDIM> ci(it());
+
+        IBTK::Vector coord = IBTK::Vector::Zero();
+        for (int d = 0; d < NDIM; ++d)
+        {
+            coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
+        }
+
+        const double flux = -kappa_liquid * (T_m - T_0) * exp(-(std::pow(0.0, 2.0) / (4.0 * alpha_liquid * time))) /
+                            (erf(lambda * sqrt(alpha_solid / alpha_liquid)) * sqrt(M_PI * alpha_liquid * time));
+        (*F_data)(ci) = flux;
+    }
+    return;
+}
+
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -288,7 +341,16 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > Cp_var = new CellVariable<NDIM, double>("Cp");
         enthalpy_hier_integrator->registerSpecificHeatVariable(Cp_var, true);
 
-        // Tag cells for refinement
+        // Register callback function for tagging refined cells for level set data
+        const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
+        const double tag_min_value = -tag_thresh;
+        const double tag_max_value = tag_thresh;
+        IBAMR::LevelSetUtilities::TagLSRefinementCells ls_tagger(
+            adv_diff_integrator, ls_var, tag_min_value, tag_max_value);
+        time_integrator->registerApplyGradientDetectorCallback(&IBAMR::LevelSetUtilities::tagLSCells,
+                                                               static_cast<void*>(&ls_tagger));
+
+        // Register callback function for tagging refined cells for liquid fraction
         const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
         const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
         IBAMR::PhaseChangeUtilities::TagLiquidFractionRefinementCells tagger(
@@ -450,7 +512,7 @@ main(int argc, char* argv[])
             new PhaseChangeDivUSourceFunction("Div_U_forcing_fcn", enthalpy_hier_integrator);
         time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
-        // Configure the drag force object to enforce solid velocity to be zero.
+        // Configure the drag force object to enforce liquid velocity to be zero in this example.
         Pointer<CarmanKozenyDragForce> drag_force =
             new CarmanKozenyDragForce("drag_force",
                                       H_var,
@@ -460,6 +522,23 @@ main(int argc, char* argv[])
                                       app_initializer->getComponentDatabase("CarmanKozenyDragForce"),
                                       /*register_for_restart*/ true);
         time_integrator->registerBrinkmanPenalizationStrategy(drag_force);
+
+        Pointer<LaserBeamForceFunction> laser_beam_force =
+            new LaserBeamForceFunction("LaserBeamForceFunction",
+                                       app_initializer->getComponentDatabase("LaserBeamForce"),
+                                       enthalpy_hier_integrator,
+                                       ls_var);
+
+        HeatFluxCtx heat_flux_ctx;
+        heat_flux_ctx.kappa_liquid = kappa_liquid;
+        heat_flux_ctx.T_melt = input_db->getDouble("MELT_TEMPERATURE");
+        heat_flux_ctx.T_liquid = input_db->getDouble("LIQUID_TEMPERATURE");
+        heat_flux_ctx.alpha_liquid = input_db->getDouble("ALPHA_LIQUID");
+        heat_flux_ctx.alpha_solid = input_db->getDouble("ALPHA_SOLID");
+        heat_flux_ctx.lambda = input_db->getDouble("LAMBDA");
+
+        laser_beam_force->registerHeatFlux(&compute_heat_flux, static_cast<void*>(&heat_flux_ctx));
+        enthalpy_hier_integrator->setEnergyEquationSourceTermFunction(laser_beam_force);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();

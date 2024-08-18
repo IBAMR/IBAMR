@@ -98,7 +98,7 @@ callSetViscosityCallbackFunction(int mu_idx,
 } // callSetViscosityCallBackFunction
 
 void
-calltagLiquidFractionCellsCallbackFunction(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+callTagLiquidFractionCellsCallbackFunction(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
                                            const int level_number,
                                            const double error_data_time,
                                            const int tag_index,
@@ -112,7 +112,7 @@ calltagLiquidFractionCellsCallbackFunction(Pointer<BasePatchHierarchy<NDIM> > hi
         hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too, ctx);
 
     return;
-} // calltagLiquidFractionCellsCallbackFunction
+} // callTagLiquidFractionCellsCallbackFunction
 
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,

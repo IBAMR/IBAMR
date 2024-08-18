@@ -87,12 +87,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-EXTRA_PROGRAMS = $(am__EXEEXT_4) $(am__EXEEXT_5)
+EXTRA_PROGRAMS = $(am__EXEEXT_3)
 @SAMRAI2D_ENABLED_TRUE@am__append_1 = main2d
 @SAMRAI2D_ENABLED_TRUE@am__append_2 = $(EXAMPLES)
-@SAMRAI3D_ENABLED_TRUE@am__append_3 = main3d
-@SAMRAI3D_ENABLED_TRUE@am__append_4 = $(EXAMPLES)
-subdir = examples/phase_change/ex7
+subdir = examples/phase_change/ex9
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
 	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
@@ -123,12 +121,11 @@ CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 @SAMRAI2D_ENABLED_TRUE@am__EXEEXT_1 = main2d$(EXEEXT)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_2 = main3d$(EXEEXT)
-am__EXEEXT_3 = $(am__EXEEXT_1) $(am__EXEEXT_2)
-@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_4 = $(am__EXEEXT_3)
-@SAMRAI3D_ENABLED_TRUE@am__EXEEXT_5 = $(am__EXEEXT_3)
+am__EXEEXT_2 = $(am__EXEEXT_1)
+@SAMRAI2D_ENABLED_TRUE@am__EXEEXT_3 = $(am__EXEEXT_2)
 am__objects_1 = main2d-example.$(OBJEXT) \
-	main2d-LSLocateInterface.$(OBJEXT)
+	main2d-LSLocateInterface.$(OBJEXT) \
+	main2d-LevelSetInitialCondition.$(OBJEXT)
 am_main2d_OBJECTS = $(am__objects_1)
 main2d_OBJECTS = $(am_main2d_OBJECTS)
 main2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -138,14 +135,6 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 main2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main2d_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-am__objects_2 = main3d-example.$(OBJEXT) \
-	main3d-LSLocateInterface.$(OBJEXT)
-am_main3d_OBJECTS = $(am__objects_2)
-main3d_OBJECTS = $(am_main3d_OBJECTS)
-main3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-main3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(main3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -163,9 +152,8 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ./$(DEPDIR)/main2d-LSLocateInterface.Po \
-	./$(DEPDIR)/main2d-example.Po \
-	./$(DEPDIR)/main3d-LSLocateInterface.Po \
-	./$(DEPDIR)/main3d-example.Po
+	./$(DEPDIR)/main2d-LevelSetInitialCondition.Po \
+	./$(DEPDIR)/main2d-example.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -203,8 +191,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
-DIST_SOURCES = $(main2d_SOURCES) $(main3d_SOURCES)
+SOURCES = $(main2d_SOURCES)
+DIST_SOURCES = $(main2d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -230,8 +218,7 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 am__DIST_COMMON = $(srcdir)/Makefile.in \
-	$(top_srcdir)/config/Make-rules $(top_srcdir)/config/depcomp \
-	README
+	$(top_srcdir)/config/Make-rules $(top_srcdir)/config/depcomp
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
@@ -491,15 +478,17 @@ IBAMR2d_LIBS = ${top_builddir}/lib/libIBAMR2d.a ${top_builddir}/ibtk/lib/libIBTK
 IBAMR3d_LIBS = ${top_builddir}/lib/libIBAMR3d.a ${top_builddir}/ibtk/lib/libIBTK3d.a
 pkg_includedir = $(includedir)/@PACKAGE@
 SUFFIXES = .f.m4
-EXAMPLE_DRIVER = example.cpp LSLocateInterface.cpp LSLocateInterface.h
-EXTRA_DIST = input2d.amr input3d.amr
-EXAMPLES = $(am__append_1) $(am__append_3)
+EXAMPLE_DRIVER = example.cpp LSLocateInterface.cpp LSLocateInterface.h LevelSetInitialCondition.cpp LevelSetInitialCondition.h
+EXTRA_DIST = input2d_3phase.amr input2d_2phase.amr
+#EXTRA_DIST += input3d
+EXAMPLES = $(am__append_1)
+#if SAMRAI3D_ENABLED
+#EXAMPLES += main3d
+#EXTRA_PROGRAMS += $(EXAMPLES)
+#endif
 main2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 main2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 main2d_SOURCES = $(EXAMPLE_DRIVER)
-main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
-main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
-main3d_SOURCES = $(EXAMPLE_DRIVER)
 all: all-am
 
 .SUFFIXES:
@@ -513,9 +502,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am $(top_srcdir
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/phase_change/ex7/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign examples/phase_change/ex9/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign examples/phase_change/ex7/Makefile
+	  $(AUTOMAKE) --foreign examples/phase_change/ex9/Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
 	  *config.status*) \
@@ -539,10 +528,6 @@ main2d$(EXEEXT): $(main2d_OBJECTS) $(main2d_DEPENDENCIES) $(EXTRA_main2d_DEPENDE
 	@rm -f main2d$(EXEEXT)
 	$(AM_V_CXXLD)$(main2d_LINK) $(main2d_OBJECTS) $(main2d_LDADD) $(LIBS)
 
-main3d$(EXEEXT): $(main3d_OBJECTS) $(main3d_DEPENDENCIES) $(EXTRA_main3d_DEPENDENCIES) 
-	@rm -f main3d$(EXEEXT)
-	$(AM_V_CXXLD)$(main3d_LINK) $(main3d_OBJECTS) $(main3d_LDADD) $(LIBS)
-
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -550,9 +535,8 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LSLocateInterface.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-LevelSetInitialCondition.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main2d-example.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-LSLocateInterface.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main3d-example.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -612,33 +596,19 @@ main2d-LSLocateInterface.obj: LSLocateInterface.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-LSLocateInterface.obj `if test -f 'LSLocateInterface.cpp'; then $(CYGPATH_W) 'LSLocateInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateInterface.cpp'; fi`
 
-main3d-example.o: example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-example.o -MD -MP -MF $(DEPDIR)/main3d-example.Tpo -c -o main3d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-example.Tpo $(DEPDIR)/main3d-example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main3d-example.o' libtool=no @AMDEPBACKSLASH@
+main2d-LevelSetInitialCondition.o: LevelSetInitialCondition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-LevelSetInitialCondition.o -MD -MP -MF $(DEPDIR)/main2d-LevelSetInitialCondition.Tpo -c -o main2d-LevelSetInitialCondition.o `test -f 'LevelSetInitialCondition.cpp' || echo '$(srcdir)/'`LevelSetInitialCondition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-LevelSetInitialCondition.Tpo $(DEPDIR)/main2d-LevelSetInitialCondition.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LevelSetInitialCondition.cpp' object='main2d-LevelSetInitialCondition.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-example.o `test -f 'example.cpp' || echo '$(srcdir)/'`example.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-LevelSetInitialCondition.o `test -f 'LevelSetInitialCondition.cpp' || echo '$(srcdir)/'`LevelSetInitialCondition.cpp
 
-main3d-example.obj: example.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-example.obj -MD -MP -MF $(DEPDIR)/main3d-example.Tpo -c -o main3d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-example.Tpo $(DEPDIR)/main3d-example.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='example.cpp' object='main3d-example.obj' libtool=no @AMDEPBACKSLASH@
+main2d-LevelSetInitialCondition.obj: LevelSetInitialCondition.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -MT main2d-LevelSetInitialCondition.obj -MD -MP -MF $(DEPDIR)/main2d-LevelSetInitialCondition.Tpo -c -o main2d-LevelSetInitialCondition.obj `if test -f 'LevelSetInitialCondition.cpp'; then $(CYGPATH_W) 'LevelSetInitialCondition.cpp'; else $(CYGPATH_W) '$(srcdir)/LevelSetInitialCondition.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main2d-LevelSetInitialCondition.Tpo $(DEPDIR)/main2d-LevelSetInitialCondition.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LevelSetInitialCondition.cpp' object='main2d-LevelSetInitialCondition.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-example.obj `if test -f 'example.cpp'; then $(CYGPATH_W) 'example.cpp'; else $(CYGPATH_W) '$(srcdir)/example.cpp'; fi`
-
-main3d-LSLocateInterface.o: LSLocateInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-LSLocateInterface.o -MD -MP -MF $(DEPDIR)/main3d-LSLocateInterface.Tpo -c -o main3d-LSLocateInterface.o `test -f 'LSLocateInterface.cpp' || echo '$(srcdir)/'`LSLocateInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-LSLocateInterface.Tpo $(DEPDIR)/main3d-LSLocateInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateInterface.cpp' object='main3d-LSLocateInterface.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-LSLocateInterface.o `test -f 'LSLocateInterface.cpp' || echo '$(srcdir)/'`LSLocateInterface.cpp
-
-main3d-LSLocateInterface.obj: LSLocateInterface.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -MT main3d-LSLocateInterface.obj -MD -MP -MF $(DEPDIR)/main3d-LSLocateInterface.Tpo -c -o main3d-LSLocateInterface.obj `if test -f 'LSLocateInterface.cpp'; then $(CYGPATH_W) 'LSLocateInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateInterface.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/main3d-LSLocateInterface.Tpo $(DEPDIR)/main3d-LSLocateInterface.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='LSLocateInterface.cpp' object='main3d-LSLocateInterface.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main3d_CXXFLAGS) $(CXXFLAGS) -c -o main3d-LSLocateInterface.obj `if test -f 'LSLocateInterface.cpp'; then $(CYGPATH_W) 'LSLocateInterface.cpp'; else $(CYGPATH_W) '$(srcdir)/LSLocateInterface.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(main2d_CXXFLAGS) $(CXXFLAGS) -c -o main2d-LevelSetInitialCondition.obj `if test -f 'LevelSetInitialCondition.cpp'; then $(CYGPATH_W) 'LevelSetInitialCondition.cpp'; else $(CYGPATH_W) '$(srcdir)/LevelSetInitialCondition.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -772,9 +742,8 @@ clean-am: clean-generic clean-libtool clean-local mostlyclean-am
 
 distclean: distclean-am
 		-rm -f ./$(DEPDIR)/main2d-LSLocateInterface.Po
+	-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
-	-rm -f ./$(DEPDIR)/main3d-LSLocateInterface.Po
-	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -821,9 +790,8 @@ installcheck-am:
 
 maintainer-clean: maintainer-clean-am
 		-rm -f ./$(DEPDIR)/main2d-LSLocateInterface.Po
+	-rm -f ./$(DEPDIR)/main2d-LevelSetInitialCondition.Po
 	-rm -f ./$(DEPDIR)/main2d-example.Po
-	-rm -f ./$(DEPDIR)/main3d-LSLocateInterface.Po
-	-rm -f ./$(DEPDIR)/main3d-example.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -864,6 +832,10 @@ uninstall-am:
 	$(M4) $(FM4FLAGS) $(AM_FM4FLAGS) -DTOP_SRCDIR=$(top_srcdir) -DCURRENT_SRCDIR=$(srcdir) \
 		-DSAMRAI_FORTDIR=@SAMRAI_FORTDIR@ $< > $@
 
+#main3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+#main3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+#main3d_SOURCES = $(EXAMPLE_DRIVER)
+
 examples: $(EXAMPLES)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
 	  cp -f $(srcdir)/input[23]d* $(PWD) ; \
@@ -872,7 +844,7 @@ examples: $(EXAMPLES)
 clean-local:
 	rm -f $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \
-	  rm -f $(builddir)/input[23]d ; \
+	  rm -f $(builddir)/input[23]d* ; \
 	fi ;
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
