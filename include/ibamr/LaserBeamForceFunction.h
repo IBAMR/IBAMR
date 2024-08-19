@@ -192,15 +192,15 @@ private:
                      SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
 
     /*!
+     * Pointer to phase change solver.
+     */
+    SAMRAI::tbox::Pointer<PhaseChangeHierarchyIntegrator> d_phase_change_solver;
+
+    /*!
      *  Variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_phi_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_grad_H_var;
-
-    /*!
-     * Pointer to phase change solver.
-     */
-    SAMRAI::tbox::Pointer<PhaseChangeHierarchyIntegrator> d_phase_change_solver;
 
     /*!
      * Scratch data.

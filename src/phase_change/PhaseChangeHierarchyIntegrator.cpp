@@ -486,6 +486,7 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
         // Set various objects with conservative time integrator.
         Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         rho_p_cc_integrator->setCellCenteredDensityBoundaryConditions(d_rho_bc_coef);
+        d_rho_p_integrator->initializeSTSIntegrator(d_hierarchy); // This is required while restarting.
     }
 
     // Indicate that the integrator has been initialized.

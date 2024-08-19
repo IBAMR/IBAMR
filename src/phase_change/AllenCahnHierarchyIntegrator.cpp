@@ -92,8 +92,8 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 namespace
 {
-// Version of INSHierarchyIntegrator restart file data.
-static const int IEP_HIERARCHY_INTEGRATOR_VERSION = 4;
+// Version of AllenCahnHierarchyIntegrator restart file data.
+static const int AC_PC_HIERARCHY_INTEGRATOR_VERSION = 5;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
@@ -1234,7 +1234,7 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationConvectiveOperator(Pointer<Cel
 void
 AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 {
-    db->putInteger("IEP_HIERARCHY_INTEGRATOR_VERSION", IEP_HIERARCHY_INTEGRATOR_VERSION);
+    db->putInteger("AC_PC_HIERARCHY_INTEGRATOR_VERSION", AC_PC_HIERARCHY_INTEGRATOR_VERSION);
     db->putString("lf_diffusion_time_stepping_type",
                   enum_to_string<TimeSteppingType>(d_lf_diffusion_time_stepping_type));
     db->putString("lf_convective_time_stepping_type",
@@ -1686,8 +1686,8 @@ AllenCahnHierarchyIntegrator::getFromRestart()
         TBOX_ERROR(d_object_name << ":  Restart database corresponding to " << d_object_name
                                  << " not found in restart file." << std::endl);
     }
-    int ver = db->getInteger("IEP_HIERARCHY_INTEGRATOR_VERSION");
-    if (ver != IEP_HIERARCHY_INTEGRATOR_VERSION)
+    int ver = db->getInteger("AC_PC_HIERARCHY_INTEGRATOR_VERSION");
+    if (ver != AC_PC_HIERARCHY_INTEGRATOR_VERSION)
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }

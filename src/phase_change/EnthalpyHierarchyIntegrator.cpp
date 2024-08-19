@@ -158,8 +158,8 @@ namespace IBAMR
 /////////////////////////////// STATIC ///////////////////////////////////////
 namespace
 {
-// Version of INSHierarchyIntegrator restart file data.
-static const int ENTHALPY_PC_HIERARCHY_INTEGRATOR_VERSION = 4;
+// Version of EnthalpyHierarchyIntegrator restart file data.
+static const int ENTHALPY_PC_HIERARCHY_INTEGRATOR_VERSION = 6;
 
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
@@ -232,8 +232,8 @@ EnthalpyHierarchyIntegrator::EnthalpyHierarchyIntegrator(const std::string& obje
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
 
-    getFromInput(input_db, from_restart);
     if (from_restart) getFromRestart();
+    getFromInput(input_db, from_restart);
 
     return;
 } // EnthalpyHierarchyIntegrator
@@ -262,17 +262,17 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
                      "CONSERVATIVE_LINEAR_REFINE");
     if (d_visit_writer) d_visit_writer->registerPlotQuantity("enthalpy", "SCALAR", d_h_current_idx);
 
-    registerVariable(d_lf_extrap_current_idx,
-                     d_lf_extrap_new_idx,
-                     d_lf_extrap_scratch_idx,
-                     d_lf_extrap_var,
-                     cell_ghosts,
-                     "CONSERVATIVE_COARSEN",
-                     "CONSERVATIVE_LINEAR_REFINE");
-    if (d_visit_writer) d_visit_writer->registerPlotQuantity("lf_extrap", "SCALAR", d_lf_extrap_current_idx);
-
-    if (d_extrapolate_lf)
+    if (d_lf_extrap_var)
     {
+        registerVariable(d_lf_extrap_current_idx,
+                         d_lf_extrap_new_idx,
+                         d_lf_extrap_scratch_idx,
+                         d_lf_extrap_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
+        if (d_visit_writer) d_visit_writer->registerPlotQuantity("lf_extrap", "SCALAR", d_lf_extrap_current_idx);
+
         const IntVector<NDIM> side_ghosts = SIDEG;
         const IntVector<NDIM> face_ghosts = FACEG;
 
@@ -337,7 +337,7 @@ EnthalpyHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarch
     }
 
     // For extrapolating the lf_var from PCM into the gas phase.
-    if (d_extrapolate_lf) d_lf_extrap_convective_op = getLiquidFractionExtrapConvectiveOperator(d_lf_extrap_var);
+    if (d_lf_extrap_var) d_lf_extrap_convective_op = getLiquidFractionExtrapConvectiveOperator(d_lf_extrap_var);
 
     // Indicate that the integrator has been initialized.
     d_integrator_is_initialized = true;
@@ -364,7 +364,7 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
         if (!level->checkAllocated(d_dh_dT_scratch_idx)) level->allocatePatchData(d_dh_dT_scratch_idx, current_time);
         if (!level->checkAllocated(d_T_pre_idx)) level->allocatePatchData(d_T_pre_idx, current_time);
         if (!level->checkAllocated(d_grad_T_idx)) level->allocatePatchData(d_grad_T_idx, current_time);
-        if (d_extrapolate_lf)
+        if (d_lf_extrap_var)
         {
             if (!level->checkAllocated(d_u_adv_fc_lf_extrap_current_idx))
                 level->allocatePatchData(d_u_adv_fc_lf_extrap_current_idx, current_time);
@@ -765,7 +765,7 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
     computeDivergenceVelocitySourceTerm(d_Div_U_F_idx, new_time);
 
     // extrapolate the liquid fraction to gas region.
-    if (d_extrapolate_lf) extrapolateLiquidFractionToGasRegion(d_lf_new_idx);
+    if (d_lf_extrap_var) extrapolateLiquidFractionToGasRegion(d_lf_new_idx);
 
     return;
 } // integrateHierarchy
@@ -786,10 +786,13 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
         level->deallocatePatchData(d_T_pre_idx);
         level->deallocatePatchData(d_dh_dT_scratch_idx);
         level->deallocatePatchData(d_grad_T_idx);
-        level->deallocatePatchData(d_u_adv_fc_lf_extrap_current_idx);
-        level->deallocatePatchData(d_u_adv_sc_lf_extrap_current_idx);
-        level->deallocatePatchData(d_normal_lf_extrap_current_idx);
-        level->deallocatePatchData(d_lf_extrap_interp_idx);
+        if (d_lf_extrap_var)
+        {
+            level->deallocatePatchData(d_u_adv_fc_lf_extrap_current_idx);
+            level->deallocatePatchData(d_u_adv_sc_lf_extrap_current_idx);
+            level->deallocatePatchData(d_normal_lf_extrap_current_idx);
+            level->deallocatePatchData(d_lf_extrap_interp_idx);
+        }
     }
 
     PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -832,14 +835,13 @@ EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("gas_liquid_fraction", d_gas_liquid_fraction);
     db->putInteger("max_inner_iterations", d_max_inner_iterations);
     db->putDouble("lf_iteration_error_tolerance", d_lf_iteration_error_tolerance);
-    db->putDouble("extrapolate_lf", d_extrapolate_lf);
-    if (d_extrapolate_lf)
+    if (d_lf_extrap_var)
     {
         db->putInteger("lf_extrap_max_num_time_steps", d_lf_extrap_max_num_time_steps);
         db->putDouble("lf_extrap_cell_size", d_lf_extrap_cell_size);
     }
 
-    AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
+    PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
 } // putToDatabaseSpecialized
 
@@ -1395,8 +1397,7 @@ EnthalpyHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_fr
             d_max_inner_iterations = input_db->getInteger("max_inner_iterations");
         if (input_db->keyExists("lf_iteration_error_tolerance"))
             d_lf_iteration_error_tolerance = input_db->getDouble("lf_iteration_error_tolerance");
-        if (input_db->keyExists("extrapolate_liquid_fraction")) d_extrapolate_lf = input_db->getBool("extrapolate_lf");
-        if (d_extrapolate_lf)
+        if (d_lf_extrap_var)
         {
             d_lf_extrap_max_num_time_steps = input_db->getInteger("lf_extrap_max_num_time_steps");
             d_lf_extrap_cell_size = input_db->getDouble("lf_extrap_cell_size");
@@ -1435,8 +1436,7 @@ EnthalpyHierarchyIntegrator::getFromRestart()
     d_gas_liquid_fraction = db->getDouble("gas_liquid_fraction");
     d_max_inner_iterations = db->getInteger("max_inner_iterations");
     d_lf_iteration_error_tolerance = db->getDouble("lf_iteration_error_tolerance");
-    d_extrapolate_lf = db->getBool("extrapolate_lf");
-    if (d_extrapolate_lf)
+    if (d_lf_extrap_var)
     {
         d_lf_extrap_max_num_time_steps = db->getInteger("lf_extrap_max_num_time_steps");
         d_lf_extrap_cell_size = db->getDouble("lf_extrap_cell_size");

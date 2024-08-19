@@ -388,6 +388,7 @@ main(int argc, char* argv[])
                 "ls_bc_coef", app_initializer->getComponentDatabase("LevelSetBcCoefs"), grid_geometry);
             adv_diff_integrator->setPhysicalBcCoef(ls_var, ls_bc_coef);
         }
+        level_set_ops->registerPhysicalBoundaryCondition(ls_bc_coef);
 
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
         const double kappa_solid = input_db->getDouble("KAPPA_S");

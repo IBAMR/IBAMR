@@ -418,7 +418,7 @@ EnthalpyHierarchyIntegrator {
    k_vc_interpolation_type          = K_VC_INTERPOLATION_TYPE
    liquidus_temperature             = LIQUIDUS_TEMPERATURE
    solidus_temperature              = SOLIDUS_TEMPERATURE
-   reference_temperature            = REFERENCE_TEMPERATU
+   reference_temperature            = REFERENCE_TEMPERATURE
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
       T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
