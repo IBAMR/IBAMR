@@ -1,0 +1,3 @@
+New: added IMEX-BDF2-type timestepping (similar to VSSBDF2 in https://steveruuth.org/wp-content/uploads/2020/10/vsimex_Wang_Ruuth_jcm.pdf).
+<br>
+(Boyce Griffith and Aaron Barrett, 2024/08/19)

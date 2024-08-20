@@ -279,6 +279,16 @@ public:
         double data_time) = 0;
 
     /*!
+     * Indicate that multistep time stepping will be used.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     *
+     * @param[in] n_previous_steps Number of previous solution values that can be used by the multistep scheme.
+     */
+    virtual void setUseMultistepTimeStepping(unsigned int n_previous_steps = 1);
+
+    /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
@@ -304,6 +314,15 @@ public:
      * trapezoidal rule.
      */
     virtual void trapezoidalStep(double current_time, double new_time) = 0;
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the standard
+     * 2nd-order Adams-Bashforth rule.
+     *
+     * A default implementation is provided that emits an unrecoverable
+     * exception.
+     */
+    virtual void AB2Step(double current_time, double new_time);
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
