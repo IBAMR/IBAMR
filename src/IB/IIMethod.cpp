@@ -284,7 +284,6 @@ IIMethod::getMeshCoordinates(bool is_current_configuration, std::string time, un
 
 } // getMeshCoordinates
 
-
 void
 IIMethod::registerDisconElemFamilyForTraction(const unsigned int part,
                                               libMesh::FEFamily fe_family,
@@ -2987,9 +2986,9 @@ IIMethod::spreadForce(const int f_data_idx,
 
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        auto X_vec = static_cast<PetscVector<double*> >(
-            getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "half", part)) ;
-        auto X_ghost_vec = static_cast<PetscVector<double*> >(
+        auto X_vec = static_cast<PetscVector<double>*>(
+            getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "half", part));
+        auto X_ghost_vec = static_cast<PetscVector<double>*>(
             getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "ib_ghost", part));
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
