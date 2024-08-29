@@ -636,9 +636,16 @@ main(int argc, char* argv[])
         }
         Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
             new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
-        std::string FILE_NAME = input_db->getString("MASS_CONSERVATION_FILE_NAME");
+
         std::ofstream pcm_mass_file;
-        pcm_mass_file.open(FILE_NAME);
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            std::string FILE_NAME = input_db->getString("MASS_CONSERVATION_FILE_NAME");
+            pcm_mass_file.open(FILE_NAME, ios_base::out | ios_base::app);
+            pcm_mass_file.precision(16);
+            pcm_mass_file.setf(ios::fixed, ios::floatfield);
+        }
+
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
         double dt = 0.0;
@@ -666,7 +673,13 @@ main(int argc, char* argv[])
             HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             const double mass = hier_cc_data_ops->integral(pcm_mass_idx, wgt_cc_idx);
-            pcm_mass_file << loop_time << "\t" << mass << "\n";
+
+            if (SAMRAI_MPI::getRank() == 0)
+            {
+                pcm_mass_file.precision(16);
+                pcm_mass_file.setf(ios::fixed, ios::floatfield);
+                pcm_mass_file << loop_time << "\t" << mass << "\n";
+            }
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
@@ -698,12 +711,14 @@ main(int argc, char* argv[])
 
         var_db->removePatchDataIndex(pcm_mass_idx);
 
-        // Cleanup Eulerian boundary condition specification objects (when
-        // necessary).
-        pcm_mass_file.close();
-
         // Cleanup pointers.
         delete ptr_LSLocateInterface;
+
+        // Close the logging streams.
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            pcm_mass_file.close();
+        }
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

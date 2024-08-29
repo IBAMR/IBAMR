@@ -1244,7 +1244,7 @@ AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putString("lf_convective_difference_form",
                   enum_to_string<ConvectiveDifferencingType>(d_lf_convective_difference_form));
     db->putString("lf_convective_op_type", d_lf_convective_op_type);
-    d_lf_convective_op_input_db = db->putDatabase("lf_convective_op_input_db");
+    d_lf_convective_op_input_db = db->putDatabase("lf_convective_op_db");
 
     db->putDouble("mobility_lf", d_mobility_lf);
     db->putDouble("mixing_energy_density_lf", d_mixing_energy_density_lf);
@@ -1253,7 +1253,7 @@ AllenCahnHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("numerical_diffusion", d_numerical_diffusion);
     db->putString("interpolation_function_profile", d_interpolation_function_profile);
 
-    AdvDiffSemiImplicitHierarchyIntegrator::putToDatabaseSpecialized(db);
+    PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(db);
     return;
 } // putToDatabaseSpecialized
 
@@ -1379,24 +1379,13 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-AllenCahnHierarchyIntegrator::regridHierarchyBeginSpecialized()
+AllenCahnHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const int coarsest_level,
+    const int finest_level)
 {
-    PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized();
-
-    d_lf_rhs_op->deallocateOperatorState();
-    d_lf_solver->deallocateSolverState();
-
-    d_lf_solver_needs_init = true;
-    d_lf_rhs_op_needs_init = true;
-    d_lf_convective_op_needs_init = true;
-
-    return;
-} // regridHierarchyBeginSpecialized
-
-void
-AllenCahnHierarchyIntegrator::regridHierarchyEndSpecialized()
-{
-    PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized();
+    PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+        base_hierarchy, coarsest_level, finest_level);
 
     std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef = getPhysicalBcCoefs(d_H_var);
 
@@ -1418,7 +1407,7 @@ AllenCahnHierarchyIntegrator::regridHierarchyEndSpecialized()
     d_lf_rhs_op_needs_init = true;
     d_lf_convective_op_needs_init = true;
     return;
-} // regridHierarchyEndSpecialized
+} // resetHierarchyConfigurationSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

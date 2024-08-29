@@ -335,14 +335,12 @@ protected:
     void getFromRestart();
 
     /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     * Reset cached hierarchy dependent data for solvers and operators.
      */
-    virtual void regridHierarchyBeginSpecialized() override;
-
-    /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
-     */
-    virtual void regridHierarchyEndSpecialized() override;
+    void
+    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                           int coarsest_level,
+                                           int finest_level) override;
 
     /*!
      * Bound the liquid fraction, if necessary.

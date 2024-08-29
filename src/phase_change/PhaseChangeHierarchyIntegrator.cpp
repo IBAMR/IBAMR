@@ -486,7 +486,6 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
         // Set various objects with conservative time integrator.
         Pointer<AdvDiffConservativeMassScalarTransportRKIntegrator> rho_p_cc_integrator = d_rho_p_integrator;
         rho_p_cc_integrator->setCellCenteredDensityBoundaryConditions(d_rho_bc_coef);
-        d_rho_p_integrator->initializeSTSIntegrator(d_hierarchy); // This is required while restarting.
     }
 
     // Indicate that the integrator has been initialized.
@@ -852,26 +851,14 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 } // putToDatabaseSpecialized
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
-
 void
-PhaseChangeHierarchyIntegrator::regridHierarchyBeginSpecialized()
+PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const int coarsest_level,
+    const int finest_level)
 {
-    AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyBeginSpecialized();
-
-    d_T_rhs_op->deallocateOperatorState();
-    d_T_solver->deallocateSolverState();
-
-    d_T_solver_needs_init = true;
-    d_T_rhs_op_needs_init = true;
-    d_T_convective_op_needs_init = true;
-
-    return;
-} // regridHierarchyBeginSpecialized
-
-void
-PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
-{
-    AdvDiffSemiImplicitHierarchyIntegrator::regridHierarchyEndSpecialized();
+    AdvDiffSemiImplicitHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+        base_hierarchy, coarsest_level, finest_level);
 
     const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
     const int coarsest_hier_level = 0;
@@ -924,7 +911,7 @@ PhaseChangeHierarchyIntegrator::regridHierarchyEndSpecialized()
         d_rho_p_integrator->initializeSTSIntegrator(d_hierarchy);
     }
     return;
-} // regridHierarchyEndSpecialized
+} // resetHierarchyConfigurationSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void

@@ -152,6 +152,14 @@ protected:
      */
     void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
 
+    /*!
+     * Reset cached hierarchy dependent data for solvers and operators.
+     */
+    void
+    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                           int coarsest_level,
+                                           int finest_level) override;
+
 private:
     /*!
      * \brief Default constructor.
@@ -314,15 +322,10 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_extrap_convective_op_input_db = d_default_convective_op_input_db;
     SAMRAI::tbox::Pointer<CellConvectiveOperator> d_lf_extrap_convective_op = nullptr;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_lf_extrap_sol, d_lf_extrap_rhs;
+    bool d_lf_extrap_convective_op_needs_init;
 
     int d_lf_extrap_max_num_time_steps = 15;
     double d_lf_extrap_cell_size;
-
-    /*!
-     * Specify whether liquid fraction value should be extrapolated into the gas phase.
-     */
-
-    bool d_extrapolate_lf;
 };
 } // namespace IBAMR
 

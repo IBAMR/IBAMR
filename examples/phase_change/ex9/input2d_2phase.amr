@@ -56,10 +56,6 @@ Ny = 32                               // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
 
-// LS parameters for tagging
-LS_TAG_VALUE          = 0.0
-LS_TAG_ABS_THRESH     = 2*L/Nx
-
 LiquidFractionInitialConditions{
   function = "0.0"
 }

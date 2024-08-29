@@ -162,14 +162,12 @@ protected:
     void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
 
     /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     * Reset cached hierarchy dependent data for solvers and operators.
      */
-    virtual void regridHierarchyBeginSpecialized() override;
-
-    /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
-     */
-    virtual void regridHierarchyEndSpecialized() override;
+    void
+    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                           int coarsest_level,
+                                           int finest_level) override;
 
 private:
     /*!

@@ -503,6 +503,9 @@ EnthalpyHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
     d_hier_cc_data_ops->copyData(d_T_diffusion_coef_cc_new_idx, d_T_diffusion_coef_cc_current_idx);
     d_hier_cc_data_ops->copyData(d_lf_new_idx, d_lf_current_idx);
 
+    // Initializing operator state.
+    if (d_lf_extrap_var) d_lf_extrap_convective_op->initializeOperatorState(*d_lf_extrap_sol, *d_lf_extrap_rhs);
+
     // Execute any registered callbacks.
     executePreprocessIntegrateHierarchyCallbackFcns(current_time, new_time, num_cycles);
     return;
@@ -859,6 +862,43 @@ EnthalpyHierarchyIntegrator::registerLiquidFractionVariableForExtrapolation(
     d_lf_extrap_var = lf_extrap_var;
     return;
 } // registerLiquidFractionVariableForExtrapolation
+
+/////////////////////////////// PROTECTED //////////////////////////////////////
+
+void
+EnthalpyHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const int coarsest_level,
+    const int finest_level)
+{
+    PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
+        base_hierarchy, coarsest_level, finest_level);
+
+    if (d_lf_extrap_var)
+    {
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+
+        // Setup the patch boundary filling objects.
+        const int finest_hier_level = d_hierarchy->getFinestLevelNumber();
+
+        // Reset the solution and rhs vectors.
+        const int wgt_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+
+        const int lf_extrap_scratch_idx = var_db->mapVariableAndContextToIndex(d_lf_extrap_var, getScratchContext());
+        d_lf_extrap_sol = new SAMRAIVectorReal<NDIM, double>(
+            d_object_name + "::sol_vec::" + d_lf_var->getName(), d_hierarchy, 0, finest_hier_level);
+        d_lf_extrap_sol->addComponent(d_lf_extrap_var, lf_extrap_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+
+        const int lf_extrap_rhs_scratch_idx =
+            var_db->mapVariableAndContextToIndex(d_lf_extrap_rhs_var, getScratchContext());
+        d_lf_extrap_rhs = new SAMRAIVectorReal<NDIM, double>(
+            d_object_name + "::rhs_vec::" + d_lf_extrap_var->getName(), d_hierarchy, 0, finest_hier_level);
+        d_lf_extrap_rhs->addComponent(d_lf_extrap_rhs_var, lf_extrap_rhs_scratch_idx, wgt_idx, d_hier_cc_data_ops);
+
+        d_lf_extrap_convective_op_needs_init = true;
+    }
+    return;
+} // resetHierarchyConfigurationSpecialized
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

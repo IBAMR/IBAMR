@@ -444,7 +444,7 @@ main(int argc, char* argv[])
         sync_ls_ctx.adv_diff_hier_integrator = adv_diff_integrator;
         sync_ls_ctx.ls_var = ls_var;
         sync_ls_ctx.H_var = H_var;
-        sync_ls_ctx.num_interface_cells = input_db->getInteger("NUMBER_OF_INTERFACE_CELLS");
+        sync_ls_ctx.num_interface_cells = input_db->getDouble("NUMBER_OF_INTERFACE_CELLS");
 
         adv_diff_integrator->registerResetFunction(
             H_var, &synchronize_levelset_with_heaviside_fcn, static_cast<void*>(&sync_ls_ctx));
@@ -679,8 +679,6 @@ main(int argc, char* argv[])
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
-        string output_file_name = input_db->getString("OUTPUT_FILE_NAME");
-
         // Remove the AppInitializer
         app_initializer.setNull();
 
@@ -725,9 +723,15 @@ main(int argc, char* argv[])
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(v_idx, loop_time);
         }
 
-        // File to write to for fluid mass data
-        ofstream output_file;
-        if (IBTK_MPI::getRank() == 0) output_file.open(output_file_name);
+        // File to write rise velocity of a bubble.
+        std::ofstream output_file;
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            string output_file_name = input_db->getString("OUTPUT_FILE_NAME");
+            output_file.open(output_file_name, ios_base::out | ios_base::app);
+            output_file.precision(16);
+            output_file.setf(ios::fixed, ios::floatfield);
+        }
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -790,17 +794,14 @@ main(int argc, char* argv[])
             }
 
             double vol = hier_cc_data_ops.integral(H_cloned_idx, wgt_cc_idx);
-
-            // Get volume weights in the region
             hier_cc_data_ops.multiply(H_cloned_idx, H_cloned_idx, wgt_cc_idx);
             double v_integral = hier_cc_data_ops.integral(v_idx, H_cloned_idx);
-            pout << "vol is\t" << vol << "\n";
-            pout << "Rise velocity is\t" << v_integral / vol << "\t at time \t" << loop_time << "\t"
-                 << loop_time / t_ref << "\n";
-            // Write the rise velocity and time to a file
-            if (IBTK_MPI::getRank() == 0)
+
+            if (SAMRAI_MPI::getRank() == 0)
             {
-                output_file << std::setprecision(13) << loop_time / t_ref << "\t" << v_integral / vol << std::endl;
+                output_file.precision(16);
+                output_file.setf(ios::fixed, ios::floatfield);
+                output_file << loop_time / t_ref << "\t" << v_integral / vol << "\n";
             }
 
             // At specified intervals, write visualization and restart files,
@@ -835,12 +836,22 @@ main(int argc, char* argv[])
             patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(v_idx);
         }
 
+        var_db->removePatchDataIndex(H_cloned_idx);
+        var_db->removePatchDataIndex(U_cc_idx);
+        var_db->removePatchDataIndex(v_idx);
+
         // Cleanup Eulerian boundary condition specification objects (when
         // necessary).
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
         // Cleanup pointers.
         delete ptr_LSLocateInterface;
+
+        // Close the logging streams.
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            output_file.close();
+        }
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main
