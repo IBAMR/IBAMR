@@ -1246,9 +1246,7 @@ EnthalpyHierarchyIntegrator::extrapolateLiquidFractionToGasRegion(int lf_new_idx
     d_hier_cc_data_ops->copyData(d_lf_extrap_current_idx, lf_new_idx);
     d_hier_cc_data_ops->copyData(d_lf_extrap_scratch_idx, d_lf_extrap_current_idx);
 
-    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
-
-    // Initializing with zero for the safety.
+    // Initializing with zero.
     d_hier_cc_data_ops->setToScalar(d_lf_extrap_rhs_scratch_idx, 0.0);
     while (current_time_step < d_lf_extrap_max_num_time_steps)
     {

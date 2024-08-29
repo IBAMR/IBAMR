@@ -211,11 +211,11 @@ LS_TAG_VALUE = 0.0
 LS_TAG_ABS_THRESH = 2.0*H/Ny
 
 // AdvDiff solver parameters
-ADV_DIFF_SOLVER_TYPE        = "SEMI_IMPLICIT"   // the advection-diffusion solver to use
+ADV_DIFF_SOLVER_TYPE        = "SEMI_IMPLICIT"  // the advection-diffusion solver to use
 ADV_DIFF_NUM_CYCLES         = 2                // number of cycles of fixed-point iteration
-ADV_DIFF_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE" // "FORWARD_EULER" // "MIDPOINT_RULE" // convective time stepping type
-ADV_DIFF_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing discretization type
-ADV_DIFF_CONVECTIVE_FORM    = "ADVECTIVE"       // how to compute the convective terms
+ADV_DIFF_CONVECTIVE_TS_TYPE = "MIDPOINT_RULE"  // convective time stepping type
+ADV_DIFF_CONVECTIVE_OP_TYPE = "CUI"            // convective differencing discretization type
+ADV_DIFF_CONVECTIVE_FORM    = "ADVECTIVE"      // how to compute the convective terms
 
 INSVCStaggeredConservativeHierarchyIntegrator {
    start_time                 = START_TIME

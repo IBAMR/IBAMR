@@ -200,7 +200,7 @@ void
 compute_surface_tension_coef_function(int F_idx,
                                       Pointer<Patch<NDIM> > patch,
                                       int /*integrator_step*/,
-                                      double time,
+                                      double /*time*/,
                                       double /*current_time*/,
                                       double /*new_time*/,
                                       void* ctx)

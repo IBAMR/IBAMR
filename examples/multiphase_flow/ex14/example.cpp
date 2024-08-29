@@ -27,9 +27,11 @@
 #include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 #include <ibamr/MarangoniSurfaceTensionForceFunction.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -43,8 +45,6 @@
 
 // Application
 #include "LSLocateInterface.h"
-#include "SetFluidProperties.h"
-#include "SetLSProperties.h"
 
 struct MaskSurfaceTensionForceCtx
 {
@@ -113,7 +113,7 @@ void
 compute_surface_tension_coef_function(int F_idx,
                                       Pointer<Patch<NDIM> > patch,
                                       int /*integrator_step*/,
-                                      double time,
+                                      double /*time*/,
                                       double /*current_time*/,
                                       double /*new_time*/,
                                       void* ctx)
@@ -279,9 +279,9 @@ main(int argc, char* argv[])
             new LSLocateInterface("LSLocateInterface", adv_diff_integrator, ls_var, circle);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateInterface));
-        SetLSProperties* ptr_SetLSProperties = new SetLSProperties("SetLSProperties", level_set_ops);
+        IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
         adv_diff_integrator->registerResetFunction(
-            ls_var, &callSetLSCallbackFunction, static_cast<void*>(ptr_SetLSProperties));
+            ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // register temperature
         Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("Temperature");
@@ -402,19 +402,18 @@ main(int argc, char* argv[])
 
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
-        SetFluidProperties* ptr_SetFluidProperties = new SetFluidProperties("SetFluidProperties",
-                                                                            adv_diff_integrator,
-                                                                            ls_var,
-                                                                            rho_liquid,
-                                                                            rho_gas,
-                                                                            mu_liquid,
-                                                                            mu_gas,
-                                                                            num_interface_cells);
-
-        time_integrator->registerResetFluidDensityFcn(&callSetFluidDensityCallbackFunction,
-                                                      static_cast<void*>(ptr_SetFluidProperties));
-        time_integrator->registerResetFluidViscosityFcn(&callSetFluidViscosityCallbackFunction,
-                                                        static_cast<void*>(ptr_SetFluidProperties));
+        IBAMR::VCINSUtilities::SetFluidProperties SetFluidProperties("SetFluidProperties",
+                                                                     adv_diff_integrator,
+                                                                     ls_var,
+                                                                     rho_liquid,
+                                                                     rho_gas,
+                                                                     mu_liquid,
+                                                                     mu_gas,
+                                                                     num_interface_cells);
+        time_integrator->registerResetFluidDensityFcn(&IBAMR::VCINSUtilities::callSetDensityCallbackFunction,
+                                                      static_cast<void*>(&SetFluidProperties));
+        time_integrator->registerResetFluidViscosityFcn(&IBAMR::VCINSUtilities::callSetViscosityCallbackFunction,
+                                                        static_cast<void*>(&SetFluidProperties));
 
         // Register surface tension force.
         Pointer<SurfaceTensionForceFunction> surface_tension_force = new MarangoniSurfaceTensionForceFunction(
@@ -467,7 +466,6 @@ main(int argc, char* argv[])
         // Initialize hierarchy configuration and data on all patches.
         time_integrator->initializePatchHierarchy(patch_hierarchy, gridding_algorithm);
 
-        string output_file_name = input_db->getString("OUTPUT_FILE_NAME");
         // Remove the AppInitializer
         app_initializer.setNull();
 
@@ -510,9 +508,15 @@ main(int argc, char* argv[])
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(v_idx, loop_time);
         }
 
-        // File to write to for fluid mass data
-        ofstream output_file;
-        if (IBTK_MPI::getRank() == 0) output_file.open(output_file_name);
+        // File to write rise velocity of a bubble.
+        std::ofstream output_file;
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            string output_file_name = input_db->getString("OUTPUT_FILE_NAME");
+            output_file.open(output_file_name, ios_base::out | ios_base::app);
+            output_file.precision(16);
+            output_file.setf(ios::fixed, ios::floatfield);
+        }
 
         // Main time step loop.
         double loop_time_end = time_integrator->getEndTime();
@@ -582,17 +586,14 @@ main(int argc, char* argv[])
             }
 
             double vol = hier_cc_data_ops.integral(H_cloned_idx, wgt_cc_idx);
-
-            // Get volume weights in the region
             hier_cc_data_ops.multiply(H_cloned_idx, H_cloned_idx, wgt_cc_idx);
             double v_integral = hier_cc_data_ops.integral(v_idx, H_cloned_idx);
-            pout << "vol is\t" << vol << "\n";
-            pout << "Rise velocity is\t" << v_integral / vol << "\t at time \t" << loop_time << "\t"
-                 << loop_time / t_ref << "\n";
-            // Write the rise velocity and time to a file
-            if (IBTK_MPI::getRank() == 0)
+
+            if (SAMRAI_MPI::getRank() == 0)
             {
-                output_file << std::setprecision(13) << loop_time / t_ref << "\t" << v_integral / vol << std::endl;
+                output_file.precision(16);
+                output_file.setf(ios::fixed, ios::floatfield);
+                output_file << loop_time / t_ref << "\t" << v_integral / vol << "\n";
             }
 
             // At specified intervals, write visualization and restart files,
@@ -618,8 +619,6 @@ main(int argc, char* argv[])
             }
         }
 
-        if (IBTK_MPI::getRank() == 0) output_file.close();
-
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(H_cloned_idx);
@@ -632,9 +631,13 @@ main(int argc, char* argv[])
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
 
         // Cleanup other dumb pointers
-        delete ptr_SetLSProperties;
-        delete ptr_SetFluidProperties;
         delete ptr_LSLocateInterface;
+
+        // Close the logging streams.
+        if (SAMRAI_MPI::getRank() == 0)
+        {
+            output_file.close();
+        }
 
     } // cleanup dynamically allocated objects prior to shutdown
 } // main

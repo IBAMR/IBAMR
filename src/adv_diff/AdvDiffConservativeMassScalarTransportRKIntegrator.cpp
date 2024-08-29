@@ -1067,8 +1067,6 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
 {
     IBAMR_TIMER_START(t_initialize_integrator);
 
-    pout << "Do I enter initializeSTSIntegrator\t" << "\n";
-
     // Get the hierarchy configuration.
     Pointer<PatchHierarchy<NDIM> > hierarchy = base_hierarchy;
     d_hierarchy = hierarchy;
@@ -1078,8 +1076,6 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
     // Update the level numbers.
     d_coarsest_ln = 0;
     d_finest_ln = d_hierarchy->getFinestLevelNumber();
-
-    pout << "d_coarsest_ln\t" << d_coarsest_ln << "\t d_finest_ln" << d_finest_ln << "\n";
 
     VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
 
@@ -1145,7 +1141,6 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
         if (!level->checkAllocated(d_rho_scratch_idx)) level->allocatePatchData(d_rho_scratch_idx);
         if (!level->checkAllocated(d_rho_new_idx)) level->allocatePatchData(d_rho_new_idx);
         if (!level->checkAllocated(d_rho_composite_idx)) level->allocatePatchData(d_rho_composite_idx);
-        pout << "d_rho_composite_idx is allocated\t" << level->checkAllocated(d_rho_composite_idx) << "\n";
         if (d_gamma_cc_var)
         {
             if (!level->checkAllocated(d_gamma_cc_scratch_idx)) level->allocatePatchData(d_gamma_cc_scratch_idx);
