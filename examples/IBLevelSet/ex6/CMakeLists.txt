@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2019 - 2022 by the IBAMR developers
+## Copyright (c) 2021 - 2021 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -11,17 +11,21 @@
 ##
 ## ---------------------------------------------------------------------
 
-## Process this file with automake to produce Makefile.in
-include $(top_srcdir)/config/Make-rules
-SUBDIRS = ex0 ex1 ex2 ex3 ex4 ex5 ex6
-
-COMPLETE_EXAMPLES = $(SUBDIRS)
-INCOMPLETE_EXAMPLES =
-.PHONY: examples $(COMPLETE_EXAMPLES)
-examples: $(COMPLETE_EXAMPLES)
-
-$(COMPLETE_EXAMPLES):
-	cd $@ && $(MAKE) $(AM_MAKEFLAGS) examples
-
-
-
+IBAMR_ADD_EXAMPLE(
+  TARGET_NAME
+    "IBLevelSet-ex6"
+  OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/examples/IBLevelSet/ex6"
+  OUTPUT_NAME
+    main2d
+  EXAMPLE_GROUP
+    examples-IBLevelSet
+  SOURCES
+    LevelSetInitialCondition.cpp
+    LSLocateGasInterface.cpp
+    example.cpp
+  LINK_TARGETS
+    IBAMR2d
+  INPUT_FILES
+    input2d
+    )
