@@ -692,6 +692,17 @@ protected:
     bool d_integrator_is_initialized = false;
 
     /*
+     * Boolean to indicate if we are solving a steady-state system at the second-order level.
+     */
+    bool d_steady_state_system = true;
+
+    /*!
+     * Temporary storage variables that contain intermediate quantities
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_temp_sc_var;
+    int d_temp_sc_idx;
+
+    /*
      * Patch data descriptor indices for all "state" variables managed by the
      * integrator.
      *
