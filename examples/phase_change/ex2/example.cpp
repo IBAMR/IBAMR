@@ -501,9 +501,6 @@ main(int argc, char* argv[])
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         const int rho_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, adv_diff_integrator->getCurrentContext());
         const int h_idx = var_db->mapVariableAndContextToIndex(h_var, adv_diff_integrator->getCurrentContext());
-        const int ls_idx = var_db->mapVariableAndContextToIndex(ls_var, adv_diff_integrator->getCurrentContext());
-        const int H_idx = var_db->mapVariableAndContextToIndex(H_var, adv_diff_integrator->getCurrentContext());
-        const int lf_idx = var_db->mapVariableAndContextToIndex(lf_var, adv_diff_integrator->getCurrentContext());
         const int total_enthalpy_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
         const int x_mom_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
         const int y_mom_idx = var_db->registerClonedPatchDataIndex(h_var, h_idx);
@@ -625,12 +622,6 @@ main(int argc, char* argv[])
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                    const double* patch_dx = patch_geom->getDx();
-                    double vol_cell = 1.0;
-                    for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
-                    const double num_interface_cells = sync_ls_ctx.num_interface_cells;
-                    const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
                     Pointer<CellData<NDIM, double> > U_cc_data = patch->getPatchData(U_cc_idx);
                     Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
