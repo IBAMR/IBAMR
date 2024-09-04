@@ -74,7 +74,7 @@ public:
                                          AdvDiffHierarchyIntegrator* adv_diff_solver,
                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > level_set_var,
                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > T_var,
-                                         SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& T_bc_coef);
+                                         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* T_bc_coef);
 
     /*!
      * \brief Destructor.

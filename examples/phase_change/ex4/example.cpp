@@ -377,92 +377,95 @@ main(int argc, char* argv[])
         // necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
-        RobinBcCoefStrategy<NDIM>* H_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > H_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
         {
-            H_bc_coef = new muParserRobinBcCoefs(
+            H_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "H_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
-            adv_diff_integrator->setPhysicalBcCoef(H_var, H_bc_coef);
+            adv_diff_integrator->setPhysicalBcCoef(H_var, H_bc_coef.get());
         }
 
-        RobinBcCoefStrategy<NDIM>* T_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > T_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TemperatureBcCoefs"))
         {
-            T_bc_coef = new muParserRobinBcCoefs(
+            T_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "T_bc_coef", app_initializer->getComponentDatabase("TemperatureBcCoefs"), grid_geometry);
-            enthalpy_hier_integrator->setTemperaturePhysicalBcCoef(T_var, T_bc_coef);
+            enthalpy_hier_integrator->setTemperaturePhysicalBcCoef(T_var, T_bc_coef.get());
         }
 
-        RobinBcCoefStrategy<NDIM>* h_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > h_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("EnthalpyBcCoefs"))
         {
-            h_bc_coef = new muParserRobinBcCoefs(
+            h_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "h_bc_coef", app_initializer->getComponentDatabase("EnthalpyBcCoefs"), grid_geometry);
-            enthalpy_hier_integrator->setEnthalpyBcCoef(h_bc_coef);
+            enthalpy_hier_integrator->setEnthalpyBcCoef(h_bc_coef.get());
         }
 
-        RobinBcCoefStrategy<NDIM>* lf_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > lf_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("LiquidFractionBcCoefs"))
         {
-            lf_bc_coef = new muParserRobinBcCoefs(
+            lf_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "lf_bc_coef", app_initializer->getComponentDatabase("LiquidFractionBcCoefs"), grid_geometry);
         }
 
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM);
-        if (periodic_shift.min() > 0)
+        vector<std::unique_ptr<RobinBcCoefStrategy<NDIM> > > u_bc_coefs(NDIM);
+        if (periodic_shift.min() == 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
-            }
-        }
-        else
-        {
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                const std::string bc_coefs_name = "u_bc_coefs_" + std::to_string(d);
+                ostringstream bc_coefs_name_stream;
+                bc_coefs_name_stream << "u_bc_coefs_" << d;
+                const string bc_coefs_name = bc_coefs_name_stream.str();
 
-                const std::string bc_coefs_db_name = "VelocityBcCoefs_" + std::to_string(d);
+                ostringstream bc_coefs_db_name_stream;
+                bc_coefs_db_name_stream << "VelocityBcCoefs_" << d;
+                const string bc_coefs_db_name = bc_coefs_db_name_stream.str();
 
-                u_bc_coefs[d] = new muParserRobinBcCoefs(
+                u_bc_coefs[d] = std::make_unique<muParserRobinBcCoefs>(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
-            time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
+            time_integrator->registerPhysicalBoundaryConditions({
+                u_bc_coefs[0].get(), u_bc_coefs[1].get()
+#if (NDIM == 3)
+                                         ,
+                    u_bc_coefs[2].get()
+#endif
+            });
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > rho_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
         {
-            rho_bc_coef = new muParserRobinBcCoefs(
+            rho_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "rho_bc_coef", app_initializer->getComponentDatabase("DensityBcCoefs"), grid_geometry);
-            time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
-            enthalpy_hier_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
+            time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef.get());
+            enthalpy_hier_integrator->registerMassDensityBoundaryConditions(rho_bc_coef.get());
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > mu_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
         {
-            mu_bc_coef = new muParserRobinBcCoefs(
+            mu_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "mu_bc_coef", app_initializer->getComponentDatabase("ViscosityBcCoefs"), grid_geometry);
-            time_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
+            time_integrator->registerViscosityBoundaryConditions(mu_bc_coef.get());
         }
 
-        RobinBcCoefStrategy<NDIM>* k_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > k_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ThermalConductivityBcCoefs"))
         {
-            k_bc_coef = new muParserRobinBcCoefs(
+            k_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "k_bc_coef", app_initializer->getComponentDatabase("ThermalConductivityBcCoefs"), grid_geometry);
-            enthalpy_hier_integrator->registerThermalConductivityBoundaryConditions(k_bc_coef);
+            enthalpy_hier_integrator->registerThermalConductivityBoundaryConditions(k_bc_coef.get());
         }
 
-        RobinBcCoefStrategy<NDIM>* ls_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > ls_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("LevelSetBcCoefs"))
         {
-            ls_bc_coef = new muParserRobinBcCoefs(
+            ls_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "ls_bc_coef", app_initializer->getComponentDatabase("LevelSetBcCoefs"), grid_geometry);
-            adv_diff_integrator->setPhysicalBcCoef(ls_var, ls_bc_coef);
+            adv_diff_integrator->setPhysicalBcCoef(ls_var, ls_bc_coef.get());
         }
-        level_set_ops->registerPhysicalBoundaryCondition(ls_bc_coef);
+        level_set_ops->registerPhysicalBoundaryCondition(ls_bc_coef.get());
 
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
         const double kappa_solid = input_db->getDouble("KAPPA_S");
@@ -482,9 +485,9 @@ main(int argc, char* argv[])
         IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
                                                                               adv_diff_integrator,
                                                                               H_var,
-                                                                              H_bc_coef,
+                                                                              H_bc_coef.get(),
                                                                               lf_var,
-                                                                              lf_bc_coef,
+                                                                              lf_bc_coef.get(),
                                                                               rho_liquid,
                                                                               rho_solid,
                                                                               rho_gas,
@@ -541,7 +544,7 @@ main(int argc, char* argv[])
         mask_surface_tension_force_ctx.rho_gas = rho_gas;
         mask_surface_tension_force_ctx.adv_diff_hier_integrator = adv_diff_integrator;
         mask_surface_tension_force_ctx.lf_var = lf_var;
-        mask_surface_tension_force_ctx.lf_bc_coef = lf_bc_coef;
+        mask_surface_tension_force_ctx.lf_bc_coef = lf_bc_coef.get();
 
         surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
                                                                   static_cast<void*>(&mask_surface_tension_force_ctx));

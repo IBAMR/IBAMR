@@ -187,7 +187,7 @@ MarangoniSurfaceTensionForceFunction::MarangoniSurfaceTensionForceFunction(const
                                                                            AdvDiffHierarchyIntegrator* adv_diff_solver,
                                                                            Pointer<Variable<NDIM> > level_set_var,
                                                                            Pointer<Variable<NDIM> > T_var,
-                                                                           RobinBcCoefStrategy<NDIM>*& T_bc_coef)
+                                                                           RobinBcCoefStrategy<NDIM>* T_bc_coef)
     : SurfaceTensionForceFunction(object_name, input_db, adv_diff_solver, level_set_var)
 {
     d_T_var = T_var;

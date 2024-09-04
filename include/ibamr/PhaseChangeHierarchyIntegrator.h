@@ -283,7 +283,7 @@ public:
     /*!
      * \brief Register boundary conditions for the density field.
      */
-    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& rho_bc_coefs);
+    void registerMassDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_bc_coefs);
 
     /*!
      * \brief Register the source term for the mass update equation.
@@ -295,12 +295,12 @@ public:
     /*!
      * \brief Register boundary conditions for the cell-centered specific heat variable.
      */
-    void registerSpecificHeatBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& specific_heat_bc_coefs);
+    void registerSpecificHeatBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* specific_heat_bc_coefs);
 
     /*!
      * \brief Register boundary conditions for the cell-centered thermal conductivity variable.
      */
-    void registerThermalConductivityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& k_bc_coefs);
+    void registerThermalConductivityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* k_bc_coefs);
 
     /*!
      * \brief Set the face-centered advection velocity.

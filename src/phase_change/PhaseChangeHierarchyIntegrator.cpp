@@ -766,7 +766,7 @@ PhaseChangeHierarchyIntegrator::getVelocityDivergencePatchDataIndex()
 } // getVelocityDivergencePatchDataIndex
 
 void
-PhaseChangeHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>*& rho_bc_coef)
+PhaseChangeHierarchyIntegrator::registerMassDensityBoundaryConditions(RobinBcCoefStrategy<NDIM>* rho_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -796,8 +796,7 @@ PhaseChangeHierarchyIntegrator::registerMassDensitySourceTerm(Pointer<CartGridFu
 } // registerMassDensitySourceTerm
 
 void
-PhaseChangeHierarchyIntegrator::registerSpecificHeatBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& specific_heat_bc_coef)
+PhaseChangeHierarchyIntegrator::registerSpecificHeatBoundaryConditions(RobinBcCoefStrategy<NDIM>* specific_heat_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -807,7 +806,7 @@ PhaseChangeHierarchyIntegrator::registerSpecificHeatBoundaryConditions(
 } // registerSpecificHeatBoundaryConditions
 
 void
-PhaseChangeHierarchyIntegrator::registerThermalConductivityBoundaryConditions(RobinBcCoefStrategy<NDIM>*& k_bc_coef)
+PhaseChangeHierarchyIntegrator::registerThermalConductivityBoundaryConditions(RobinBcCoefStrategy<NDIM>* k_bc_coef)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);

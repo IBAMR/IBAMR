@@ -156,43 +156,43 @@ main(int argc, char* argv[])
         // necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
-        RobinBcCoefStrategy<NDIM>* H_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > H_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
         {
-            H_bc_coef = new muParserRobinBcCoefs(
+            H_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "H_bc_coef", app_initializer->getComponentDatabase("HeavisideBcCoefs"), grid_geometry);
-            time_integrator->setPhysicalBcCoef(H_var, H_bc_coef);
+            time_integrator->setPhysicalBcCoef(H_var, H_bc_coef.get());
         }
 
-        RobinBcCoefStrategy<NDIM>* T_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > T_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TemperatureBcCoefs"))
         {
-            T_bc_coef = new muParserRobinBcCoefs(
+            T_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "T_bc_coef", app_initializer->getComponentDatabase("TemperatureBcCoefs"), grid_geometry);
-            enthalpy_hier_integrator->setTemperaturePhysicalBcCoef(T_var, T_bc_coef);
+            enthalpy_hier_integrator->setTemperaturePhysicalBcCoef(T_var, T_bc_coef.get());
         }
 
-        RobinBcCoefStrategy<NDIM>* h_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > h_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("EnthalpyBcCoefs"))
         {
-            h_bc_coef = new muParserRobinBcCoefs(
+            h_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "h_bc_coef", app_initializer->getComponentDatabase("EnthalpyBcCoefs"), grid_geometry);
-            enthalpy_hier_integrator->setEnthalpyBcCoef(h_bc_coef);
+            enthalpy_hier_integrator->setEnthalpyBcCoef(h_bc_coef.get());
         }
 
-        RobinBcCoefStrategy<NDIM>* lf_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > lf_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("LiquidFractionBcCoefs"))
         {
-            lf_bc_coef = new muParserRobinBcCoefs(
+            lf_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "lf_bc_coef", app_initializer->getComponentDatabase("LiquidFractionBcCoefs"), grid_geometry);
         }
 
-        RobinBcCoefStrategy<NDIM>* k_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM> > k_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ThermalConductivityBcCoefs"))
         {
-            k_bc_coef = new muParserRobinBcCoefs(
+            k_bc_coef = std::make_unique<muParserRobinBcCoefs>(
                 "k_bc_coef", app_initializer->getComponentDatabase("ThermalConductivityBcCoefs"), grid_geometry);
-            enthalpy_hier_integrator->registerThermalConductivityBoundaryConditions(k_bc_coef);
+            enthalpy_hier_integrator->registerThermalConductivityBoundaryConditions(k_bc_coef.get());
         }
 
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
@@ -213,9 +213,9 @@ main(int argc, char* argv[])
         IBAMR::PhaseChangeUtilities::SetFluidProperties setSetFluidProperties("SetFluidProperties",
                                                                               time_integrator,
                                                                               H_var,
-                                                                              H_bc_coef,
+                                                                              H_bc_coef.get(),
                                                                               lf_var,
-                                                                              lf_bc_coef,
+                                                                              lf_bc_coef.get(),
                                                                               rho_liquid,
                                                                               rho_solid,
                                                                               rho_gas,
