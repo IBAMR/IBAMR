@@ -18,6 +18,7 @@ OUTPUT_FILE_NAME = "normalized_rise_velocity_amr_3d"
 MELT_TEMPERATURE = 265.0
 NUMBER_OF_INTERFACE_CELLS  = 2.0
 GAS_LIQUID_FRACTION = 0.0
+REQUIRE_LF_EXTRAPOLATION = TRUE
 LF_EXTRAP_MAX_TS = 15
 
 LIQUIDUS_TEMPERATURE = 270.0
@@ -520,6 +521,7 @@ EnthalpyHierarchyIntegrator {
    solidus_temperature             = SOLIDUS_TEMPERATURE
    reference_temperature           = REFERENCE_TEMPERATURE
    gas_liquid_fraction             = GAS_LIQUID_FRACTION
+   require_lf_extrapolation        = REQUIRE_LF_EXTRAPOLATION
    lf_extrap_max_num_time_steps    = LF_EXTRAP_MAX_TS
    lf_extrap_cell_size             = HFINEST
    output_Div_U_F                  = OUTPUT_DIV_U_F

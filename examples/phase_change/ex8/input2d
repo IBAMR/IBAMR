@@ -13,7 +13,7 @@ KAPPA_G = 0.5*KAPPA_L
 CP_G    = 0.5*CP_L
 MU_G    = 0.5*MU_L
 
-OUTPUT_FILE_NAME = "normalized_rise_velocity"
+OUTPUT_FILE_NAME = "normalized_rise_velocity_2d"
 
 MELT_TEMPERATURE = 265.0
 NUMBER_OF_INTERFACE_CELLS  = 2
@@ -258,7 +258,7 @@ NORMALIZE_PRESSURE   = TRUE
 VORTICITY_TAGGING    = TRUE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL  = 0.2
-DT_MAX               = 1e-4
+DT_MAX               = 1.25e-5
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -531,7 +531,7 @@ CartesianGeometry {
    domain_boxes = [ (0,0) , ( Nx - 1, Ny - 1) ]
    x_lo         =   0,   0           // lower end of computational domain.
    x_up         =   L,   H         // upper end of computational domain.
-   periodic_dimension = 0,0
+   periodic_dimension = 1,0
 }
 
 GriddingAlgorithm {

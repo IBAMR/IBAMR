@@ -33,6 +33,7 @@ REFERENCE_TEMPERATURE = 933.6
 FIX_MASS_LOSS = FALSE
 CENTER_BUBBLE_REQUIRED = TRUE
 GAS_LIQUID_FRACTION = 0.0
+REQUIRE_LF_EXTRAPOLATION = TRUE
 LF_EXTRAP_MAX_TS = 15
 
 MASS_CONSERVATION_FILE_NAME = "pcm_mass"
@@ -432,9 +433,10 @@ EnthalpyHierarchyIntegrator {
    solidus_temperature              = SOLIDUS_TEMPERATURE
    reference_temperature            = REFERENCE_TEMPERATURE
    output_Div_U_F                   = OUTPUT_DIV_U_F
+   gas_liquid_fraction              = GAS_LIQUID_FRACTION
+   require_lf_extrapolation         = REQUIRE_LF_EXTRAPOLATION
    lf_extrap_max_num_time_steps     = LF_EXTRAP_MAX_TS
    lf_extrap_cell_size              = HFINEST
-   gas_liquid_fraction              = GAS_LIQUID_FRACTION
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
       T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"

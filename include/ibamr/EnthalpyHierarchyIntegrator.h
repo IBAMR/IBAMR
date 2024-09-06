@@ -324,7 +324,8 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_lf_extrap_sol, d_lf_extrap_rhs;
     bool d_lf_extrap_convective_op_needs_init;
 
-    int d_lf_extrap_max_num_time_steps = 15;
+    bool d_require_lf_extrapolation = false;
+    int d_lf_extrap_max_num_time_steps;
     double d_lf_extrap_cell_size;
 };
 } // namespace IBAMR

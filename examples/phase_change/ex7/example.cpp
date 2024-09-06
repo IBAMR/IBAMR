@@ -373,6 +373,10 @@ main(int argc, char* argv[])
         Pointer<EnthalpyHierarchyIntegrator> enthalpy_hier_integrator = adv_diff_integrator;
         enthalpy_hier_integrator->registerLiquidFractionVariable(lf_var, true);
 
+        // register liquid fraction gradient
+        Pointer<CellVariable<NDIM, double> > lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient_var", NDIM);
+        enthalpy_hier_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
+
         // register a Variable For Extrapolating the liquid fraction from PCM into the gas region.
         Pointer<CellVariable<NDIM, double> > lf_extrap_var = new CellVariable<NDIM, double>("lf_extrap_var");
         enthalpy_hier_integrator->registerLiquidFractionVariableForExtrapolation(lf_extrap_var);
@@ -385,6 +389,9 @@ main(int argc, char* argv[])
         Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("heaviside_var");
         adv_diff_integrator->registerTransportedQuantity(H_var, true);
         adv_diff_integrator->setDiffusionCoefficient(H_var, 0.0);
+
+        // set Level set
+        enthalpy_hier_integrator->registerLevelSetVariable(ls_var);
 
         // set Heaviside
         enthalpy_hier_integrator->registerHeavisideVariable(H_var);
@@ -469,6 +476,23 @@ main(int argc, char* argv[])
 
         Pointer<CellVariable<NDIM, double> > Cp_var = new CellVariable<NDIM, double>("Cp");
         enthalpy_hier_integrator->registerSpecificHeatVariable(Cp_var, true);
+
+        // Tag cells for refinement based on level set data
+        const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
+        const double tag_min_value = -tag_thresh;
+        const double tag_max_value = tag_thresh;
+        IBAMR::LevelSetUtilities::TagLSRefinementCells ls_tagger(
+            adv_diff_integrator, ls_var, tag_min_value, tag_max_value);
+        time_integrator->registerApplyGradientDetectorCallback(&IBAMR::LevelSetUtilities::tagLSCells,
+                                                               static_cast<void*>(&ls_tagger));
+
+        // Tag cells for refinement based on liquid fraction data
+        const double min_tag_val = input_db->getDouble("MIN_TAG_VAL");
+        const double max_tag_val = input_db->getDouble("MAX_TAG_VAL");
+        IBAMR::PhaseChangeUtilities::TagLiquidFractionRefinementCells lf_tagger(
+            enthalpy_hier_integrator, lf_var, lf_gradient_var, min_tag_val, max_tag_val);
+        enthalpy_hier_integrator->registerApplyGradientDetectorCallback(
+            &IBAMR::PhaseChangeUtilities::callTagLiquidFractionCellsCallbackFunction, static_cast<void*>(&lf_tagger));
 
         // Create Eulerian boundary condition specification objects (when
         // necessary).
@@ -771,6 +795,14 @@ main(int argc, char* argv[])
             const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
             HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
+
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                if (!level->checkAllocated(H_cloned_idx)) level->allocatePatchData(H_cloned_idx, loop_time);
+                if (!level->checkAllocated(U_cc_idx)) level->allocatePatchData(U_cc_idx, loop_time);
+                if (!level->checkAllocated(v_idx)) level->allocatePatchData(v_idx, loop_time);
+            }
 
             hier_math_ops.interp(U_cc_idx, U_cc_var, U_sc_idx, U_sc_var, nullptr, loop_time, true);
 

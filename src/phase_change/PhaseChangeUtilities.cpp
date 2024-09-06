@@ -555,8 +555,6 @@ TagLiquidFractionRefinementCells::tagLiquidFractionCells(Pointer<BasePatchHierar
                                                          const bool /*uses_richardson_extrapolation_too*/,
                                                          void* ctx)
 {
-    if (initial_time || level_number == hierarchy->getFinestLevelNumber()) return;
-
     TagLiquidFractionRefinementCells* lf_tagger = static_cast<TagLiquidFractionRefinementCells*>(ctx);
 
 #if !defined(NDEBUG)

@@ -588,6 +588,10 @@ EnthalpyHierarchyIntegrator::integrateHierarchySpecialized(const double current_
 
     PoissonSpecifications T_solver_spec(d_object_name + "::solver_spec::" + d_T_var->getName());
 
+    // compute u_adv = H*n based on phi^{n+1, k+1}.
+    if (d_lf_extrap_var)
+        computeAdvectionVelocityForExtrapolation(d_u_adv_fc_lf_extrap_current_idx, current_time, new_time);
+
     double lf_relative_iteration_error = 1.0;
     double inner_iterations = 1.0;
 
@@ -838,7 +842,8 @@ EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putDouble("gas_liquid_fraction", d_gas_liquid_fraction);
     db->putInteger("max_inner_iterations", d_max_inner_iterations);
     db->putDouble("lf_iteration_error_tolerance", d_lf_iteration_error_tolerance);
-    if (d_lf_extrap_var)
+    db->putBool("require_lf_extrapolation", d_require_lf_extrapolation);
+    if (d_require_lf_extrapolation)
     {
         db->putInteger("lf_extrap_max_num_time_steps", d_lf_extrap_max_num_time_steps);
         db->putDouble("lf_extrap_cell_size", d_lf_extrap_cell_size);
@@ -1270,7 +1275,7 @@ EnthalpyHierarchyIntegrator::extrapolateLiquidFractionToGasRegion(int lf_new_idx
         d_hier_cc_data_ops->copyData(d_lf_extrap_current_idx, d_lf_extrap_new_idx);
     }
     return;
-}
+} // extrapolateLiquidFractionToGasRegion
 
 void
 EnthalpyHierarchyIntegrator::computeAdvectionVelocityForExtrapolation(int u_adv_fc_lf_extrap_current_idx,
@@ -1385,7 +1390,7 @@ EnthalpyHierarchyIntegrator::computeAdvectionVelocityForExtrapolation(int u_adv_
                             synch_cf_interface);
 
     return;
-} // extrapolateLiquidFractionToGasRegion
+} // computeAdvectionVelocityForExtrapolation
 
 Pointer<CellConvectiveOperator>
 EnthalpyHierarchyIntegrator::getLiquidFractionExtrapConvectiveOperator(
@@ -1435,7 +1440,9 @@ EnthalpyHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_fr
             d_max_inner_iterations = input_db->getInteger("max_inner_iterations");
         if (input_db->keyExists("lf_iteration_error_tolerance"))
             d_lf_iteration_error_tolerance = input_db->getDouble("lf_iteration_error_tolerance");
-        if (d_lf_extrap_var)
+        if (input_db->keyExists("require_lf_extrapolation"))
+            d_require_lf_extrapolation = input_db->getBool("require_lf_extrapolation");
+        if (d_require_lf_extrapolation)
         {
             d_lf_extrap_max_num_time_steps = input_db->getInteger("lf_extrap_max_num_time_steps");
             d_lf_extrap_cell_size = input_db->getDouble("lf_extrap_cell_size");
@@ -1474,7 +1481,8 @@ EnthalpyHierarchyIntegrator::getFromRestart()
     d_gas_liquid_fraction = db->getDouble("gas_liquid_fraction");
     d_max_inner_iterations = db->getInteger("max_inner_iterations");
     d_lf_iteration_error_tolerance = db->getDouble("lf_iteration_error_tolerance");
-    if (d_lf_extrap_var)
+    d_require_lf_extrapolation = db->getBool("require_lf_extrapolation");
+    if (d_require_lf_extrapolation)
     {
         d_lf_extrap_max_num_time_steps = db->getInteger("lf_extrap_max_num_time_steps");
         d_lf_extrap_cell_size = db->getDouble("lf_extrap_cell_size");
