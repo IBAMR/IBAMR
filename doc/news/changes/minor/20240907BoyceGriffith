@@ -1,0 +1,3 @@
+New: added an option to skip the velocity solve in the projection preconditioner.
+<br>
+(Boyce Griffith, 2024/09/07)
