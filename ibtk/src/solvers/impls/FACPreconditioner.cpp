@@ -41,10 +41,11 @@ namespace IBTK
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-FACPreconditioner::FACPreconditioner(std::string object_name,
-                                     Pointer<FACPreconditionerStrategy> fac_strategy,
-                                     tbox::Pointer<tbox::Database> input_db,
-                                     const std::string& /*default_options_prefix*/)
+template <class T>
+FACPreconditioner<T>::FACPreconditioner(std::string object_name,
+                                        Pointer<FACPreconditionerStrategy<T> > fac_strategy,
+                                        tbox::Pointer<tbox::Database> input_db,
+                                        const std::string& /*default_options_prefix*/)
     : d_fac_strategy(fac_strategy)
 {
     // Setup default options.
@@ -65,38 +66,107 @@ FACPreconditioner::FACPreconditioner(std::string object_name,
     return;
 } // FACPreconditioner
 
-FACPreconditioner::~FACPreconditioner()
+template <class T>
+FACPreconditioner<T>::~FACPreconditioner()
 {
     if (d_is_initialized) deallocateSolverState();
     return;
 } // ~FACPreconditioner
 
+template <class T>
 void
-FACPreconditioner::setHomogeneousBc(const bool homogeneous_bc)
+FACPreconditioner<T>::setHomogeneousBc(const bool homogeneous_bc)
 {
     LinearSolver::setHomogeneousBc(homogeneous_bc);
     d_fac_strategy->setHomogeneousBc(homogeneous_bc);
     return;
 } // setHomogeneousBc
 
+template <class T>
 void
-FACPreconditioner::setSolutionTime(const double solution_time)
+FACPreconditioner<T>::setSolutionTime(const double solution_time)
 {
     LinearSolver::setSolutionTime(solution_time);
     d_fac_strategy->setSolutionTime(solution_time);
     return;
 } // setSolutionTime
 
+template <class T>
 void
-FACPreconditioner::setTimeInterval(const double current_time, const double new_time)
+FACPreconditioner<T>::setTimeInterval(const double current_time, const double new_time)
 {
     LinearSolver::setTimeInterval(current_time, new_time);
     d_fac_strategy->setTimeInterval(current_time, new_time);
     return;
 } // setTimeInterval
 
+template <>
+void
+FACPreconditioner<double>::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& solution,
+                                                 const SAMRAIVectorReal<NDIM, double>& rhs)
+{
+    // Deallocate the solver state if the solver is already initialized.
+    if (d_is_initialized)
+    {
+        deallocateSolverState();
+    }
+
+    // Setup operator state.
+    d_hierarchy = solution.getPatchHierarchy();
+    d_coarsest_ln = solution.getCoarsestLevelNumber();
+    d_finest_ln = solution.getFinestLevelNumber();
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hierarchy == rhs.getPatchHierarchy());
+    TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
+    TBOX_ASSERT(d_finest_ln == rhs.getFinestLevelNumber());
+#endif
+    d_fac_strategy->initializeOperatorState(solution, rhs);
+
+    // Allocate scratch data.
+    d_fac_strategy->allocateScratchData();
+
+    // Indicate the operator is initialized.
+    d_is_initialized = true;
+    return;
+} // initializeSolverState
+
+template <class T>
+void
+FACPreconditioner<T>::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& solution_full_precision,
+                                            const SAMRAIVectorReal<NDIM, double>& rhs_full_precision)
+{
+    // Deallocate the solver state if the solver is already initialized.
+    if (d_is_initialized)
+    {
+        deallocateSolverState();
+    }
+
+    // Setup operator state.
+    d_hierarchy = solution_full_precision.getPatchHierarchy();
+    d_coarsest_ln = solution_full_precision.getCoarsestLevelNumber();
+    d_finest_ln = solution_full_precision.getFinestLevelNumber();
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hierarchy == rhs_full_precision.getPatchHierarchy());
+    TBOX_ASSERT(d_coarsest_ln == rhs_full_precision.getCoarsestLevelNumber());
+    TBOX_ASSERT(d_finest_ln == rhs_full_precision.getFinestLevelNumber());
+#endif
+    SAMRAIScopedVectorDuplicate<T> solution_reduced_precision(solution_full_precision);
+    SAMRAIScopedVectorDuplicate<T> rhs_reduced_precision(rhs_full_precision);
+    d_fac_strategy->initializeOperatorState(solution_reduced_precision, rhs_reduced_precision);
+
+    // Allocate scratch data.
+    d_fac_strategy->allocateScratchData();
+
+    // Indicate the operator is initialized.
+    d_is_initialized = true;
+    return;
+} // initializeSolverState
+
+template <>
 bool
-FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
+FACPreconditioner<double>::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
 {
     // Initialize the solver, when necessary.
     const bool deallocate_after_solve = !d_is_initialized;
@@ -146,38 +216,66 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     return true;
 } // solveSystem
 
-void
-FACPreconditioner::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& solution,
-                                         const SAMRAIVectorReal<NDIM, double>& rhs)
+template <class T>
+bool
+FACPreconditioner<T>::solveSystem(SAMRAIVectorReal<NDIM, double>& x_full_precision,
+                                  SAMRAIVectorReal<NDIM, double>& b_full_precision)
 {
-    // Deallocate the solver state if the solver is already initialized.
-    if (d_is_initialized)
+    // Initialize the solver, when necessary.
+    const bool deallocate_after_solve = !d_is_initialized;
+    if (deallocate_after_solve) initializeSolverState(x_full_precision, b_full_precision);
+
+    // Set the initial guess to equal zero.
+    x_full_precision.setToScalar(0.0, /*interior_only*/ false);
+
+    // Clone the right-hand-side vector to avoid modifying it during the
+    // preconditioning operation.
+    SAMRAIScopedVectorCopy<T> x_reduced_precision(x_full_precision);
+    SAMRAIScopedVectorCopy<T> f_reduced_precision(b_full_precision);
+    SAMRAIScopedVectorDuplicate<T> r_reduced_precision(b_full_precision);
+
+    // Apply a single FAC cycle.
+    if (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0)
     {
-        deallocateSolverState();
+        // V-cycle MG without presmoothing keeps the residual equal to the
+        // initial right-hand-side vector f, so we can simply use that vector
+        // for the residual in the FAC algorithm.
+        FACVCycleNoPreSmoothing(x_reduced_precision, f_reduced_precision, d_finest_ln);
+    }
+    else
+    {
+        switch (d_cycle_type)
+        {
+        case F_CYCLE:
+            FCycle(x_reduced_precision, f_reduced_precision, r_reduced_precision, d_finest_ln);
+            break;
+        case FMG_CYCLE:
+            FMGCycle(x_reduced_precision, f_reduced_precision, r_reduced_precision, d_finest_ln, 1);
+            break;
+        case V_CYCLE:
+            muCycle(x_reduced_precision, f_reduced_precision, r_reduced_precision, d_finest_ln, 1);
+            break;
+        case W_CYCLE:
+            muCycle(x_reduced_precision, f_reduced_precision, r_reduced_precision, d_finest_ln, 2);
+            break;
+        default:
+            TBOX_ERROR(d_object_name << "::solveSystem():\n"
+                                     << "  unsupported FAC cycle type: " << enum_to_string<MGCycleType>(d_cycle_type)
+                                     << "." << std::endl);
+        }
     }
 
-    // Setup operator state.
-    d_hierarchy = solution.getPatchHierarchy();
-    d_coarsest_ln = solution.getCoarsestLevelNumber();
-    d_finest_ln = solution.getFinestLevelNumber();
+    // Deallocate the solver, when necessary.
+    if (deallocate_after_solve) deallocateSolverState();
 
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_hierarchy == rhs.getPatchHierarchy());
-    TBOX_ASSERT(d_coarsest_ln == rhs.getCoarsestLevelNumber());
-    TBOX_ASSERT(d_finest_ln == rhs.getFinestLevelNumber());
-#endif
-    d_fac_strategy->initializeOperatorState(solution, rhs);
+    // Restore the solution vector.
+    x_reduced_precision.transformToVector(x_full_precision);
+    return true;
+} // solveSystem
 
-    // Allocate scratch data.
-    d_fac_strategy->allocateScratchData();
-
-    // Indicate the operator is initialized.
-    d_is_initialized = true;
-    return;
-} // initializeSolverState
-
+template <class T>
 void
-FACPreconditioner::deallocateSolverState()
+FACPreconditioner<T>::deallocateSolverState()
 {
     if (!d_is_initialized) return;
 
@@ -192,8 +290,9 @@ FACPreconditioner::deallocateSolverState()
     return;
 } // deallocateSolverState
 
+template <class T>
 void
-FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
+FACPreconditioner<T>::setInitialGuessNonzero(bool initial_guess_nonzero)
 {
     if (initial_guess_nonzero)
     {
@@ -203,8 +302,9 @@ FACPreconditioner::setInitialGuessNonzero(bool initial_guess_nonzero)
     return;
 } // setInitialGuessNonzero
 
+template <class T>
 void
-FACPreconditioner::setMaxIterations(int max_iterations)
+FACPreconditioner<T>::setMaxIterations(int max_iterations)
 {
     if (max_iterations != 1)
     {
@@ -214,57 +314,63 @@ FACPreconditioner::setMaxIterations(int max_iterations)
     return;
 } // setMaxIterations
 
+template <class T>
 void
-FACPreconditioner::setMGCycleType(MGCycleType cycle_type)
+FACPreconditioner<T>::setMGCycleType(MGCycleType cycle_type)
 {
     d_cycle_type = cycle_type;
     return;
 } // setMGCycleType
 
+template <class T>
 MGCycleType
-FACPreconditioner::getMGCycleType() const
+FACPreconditioner<T>::getMGCycleType() const
 {
     return d_cycle_type;
 } // getMGCycleType
 
+template <class T>
 void
-FACPreconditioner::setNumPreSmoothingSweeps(int num_pre_sweeps)
+FACPreconditioner<T>::setNumPreSmoothingSweeps(int num_pre_sweeps)
 {
     d_num_pre_sweeps = num_pre_sweeps;
     return;
 } // setNumPreSmoothingSweeps
 
+template <class T>
 int
-FACPreconditioner::getNumPreSmoothingSweeps() const
+FACPreconditioner<T>::getNumPreSmoothingSweeps() const
 {
     return d_num_pre_sweeps;
 } // getNumPreSmoothingSweeps
 
+template <class T>
 void
-FACPreconditioner::setNumPostSmoothingSweeps(int num_post_sweeps)
+FACPreconditioner<T>::setNumPostSmoothingSweeps(int num_post_sweeps)
 {
     d_num_post_sweeps = num_post_sweeps;
     return;
 } // setNumPostSmoothingSweeps
 
+template <class T>
 int
-FACPreconditioner::getNumPostSmoothingSweeps() const
+FACPreconditioner<T>::getNumPostSmoothingSweeps() const
 {
     return d_num_post_sweeps;
 } // getNumPostSmoothingSweeps
 
-Pointer<FACPreconditionerStrategy>
-FACPreconditioner::getFACPreconditionerStrategy() const
+template <class T>
+Pointer<FACPreconditionerStrategy<T> >
+FACPreconditioner<T>::getFACPreconditionerStrategy() const
 {
     return d_fac_strategy;
 } // getFACPreconditionerStrategy
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
+template <class T>
 void
-FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
-                                           SAMRAIVectorReal<NDIM, double>& f,
-                                           int level_num)
+FACPreconditioner<T>::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, T>& u, SAMRAIVectorReal<NDIM, T>& f, int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -293,12 +399,13 @@ FACPreconditioner::FACVCycleNoPreSmoothing(SAMRAIVectorReal<NDIM, double>& u,
     return;
 } // FACVCycleNoPreSmoothing
 
+template <class T>
 void
-FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
-                           SAMRAIVectorReal<NDIM, double>& f,
-                           SAMRAIVectorReal<NDIM, double>& r,
-                           int level_num,
-                           int mu)
+FACPreconditioner<T>::muCycle(SAMRAIVectorReal<NDIM, T>& u,
+                              SAMRAIVectorReal<NDIM, T>& f,
+                              SAMRAIVectorReal<NDIM, T>& r,
+                              int level_num,
+                              int mu)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -323,11 +430,12 @@ FACPreconditioner::muCycle(SAMRAIVectorReal<NDIM, double>& u,
     return;
 } // muCycle
 
+template <class T>
 void
-FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u,
-                          SAMRAIVectorReal<NDIM, double>& f,
-                          SAMRAIVectorReal<NDIM, double>& r,
-                          int level_num)
+FACPreconditioner<T>::FCycle(SAMRAIVectorReal<NDIM, T>& u,
+                             SAMRAIVectorReal<NDIM, T>& f,
+                             SAMRAIVectorReal<NDIM, T>& r,
+                             int level_num)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -353,12 +461,13 @@ FACPreconditioner::FCycle(SAMRAIVectorReal<NDIM, double>& u,
     return;
 } // FCycle
 
+template <class T>
 void
-FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u,
-                            SAMRAIVectorReal<NDIM, double>& f,
-                            SAMRAIVectorReal<NDIM, double>& r,
-                            int level_num,
-                            int mu)
+FACPreconditioner<T>::FMGCycle(SAMRAIVectorReal<NDIM, T>& u,
+                               SAMRAIVectorReal<NDIM, T>& f,
+                               SAMRAIVectorReal<NDIM, T>& r,
+                               int level_num,
+                               int mu)
 {
     if (level_num == d_coarsest_ln)
     {
@@ -376,8 +485,9 @@ FACPreconditioner::FMGCycle(SAMRAIVectorReal<NDIM, double>& u,
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
+template <class T>
 void
-FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
+FACPreconditioner<T>::getFromInput(tbox::Pointer<tbox::Database> db)
 {
     if (!db) return;
     if (db->keyExists("cycle_type")) setMGCycleType(string_to_enum<MGCycleType>(db->getString("cycle_type")));
@@ -386,6 +496,11 @@ FACPreconditioner::getFromInput(tbox::Pointer<tbox::Database> db)
     if (db->keyExists("enable_logging")) setLoggingEnabled(db->getBool("enable_logging"));
     return;
 } // getFromInput
+
+/////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
+
+template class FACPreconditioner<float>;
+template class FACPreconditioner<double>;
 
 //////////////////////////////////////////////////////////////////////////////
 

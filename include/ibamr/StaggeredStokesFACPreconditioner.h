@@ -36,6 +36,7 @@ class StaggeredStokesPhysicalBoundaryHelper;
 } // namespace IBAMR
 namespace IBTK
 {
+template <class T>
 class FACPreconditionerStrategy;
 } // namespace IBTK
 namespace SAMRAI
@@ -59,14 +60,14 @@ namespace IBAMR
  * \brief Class StaggeredStokesFACPreconditioner is a FACPreconditioner that has
  * been specialized for Stokes problems.
  */
-class StaggeredStokesFACPreconditioner : public IBTK::FACPreconditioner, public StaggeredStokesSolver
+class StaggeredStokesFACPreconditioner : public IBTK::FACPreconditioner<double>, public StaggeredStokesSolver
 {
 public:
     /*!
      * Constructor.
      */
     StaggeredStokesFACPreconditioner(const std::string& object_name,
-                                     SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy> fac_strategy,
+                                     SAMRAI::tbox::Pointer<IBTK::FACPreconditionerStrategy<double> > fac_strategy,
                                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                      const std::string& default_options_prefix);
 
