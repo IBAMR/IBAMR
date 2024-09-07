@@ -23,7 +23,7 @@ c     C U. Both D and C coefficients are constant.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_const_dc_2d(
+      subroutine f64_smooth_gs_const_dc_2d(
      &     U,U_gcw,
      &     D,C,
      &     F,F_gcw,
@@ -82,7 +82,7 @@ c     are constant.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_rb_const_dc_2d(
+      subroutine f64_smooth_gs_rb_const_dc_2d(
      &     U,U_gcw,
      &     D,C,
      &     F,F_gcw,
@@ -148,7 +148,7 @@ c     NOTE: The solution U is unmodified at masked degrees of freedom.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine gssmoothmask2d(
+      subroutine f64_gssmoothmask2d(
      &     U,U_gcw,
      &     alpha,beta,
      &     F,F_gcw,
@@ -215,7 +215,7 @@ c     NOTE: The solution U is unmodified at masked degrees of freedom.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine rbgssmoothmask2d(
+      subroutine f64_rbgssmoothmask2d(
      &     U,U_gcw,
      &     alpha,beta,
      &     F,F_gcw,
@@ -290,7 +290,7 @@ c     D is constant.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_const_d_var_c_2d(
+      subroutine f64_smooth_gs_const_d_var_c_2d(
      &     U,U_gcw,
      &     D,
      &     C,C_gcw,
@@ -352,7 +352,7 @@ c     D is constant.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_rb_const_d_var_c_2d(
+      subroutine f64_smooth_gs_rb_const_d_var_c_2d(
      &     U,U_gcw,
      &     D,
      &     C, C_gcw,
@@ -421,7 +421,7 @@ c     D = (D0,D1) with constant C coefficient.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_var_d_const_c_2d(
+      subroutine f64_smooth_gs_var_d_const_c_2d(
      &     U,U_gcw,
      &     D0,D1,D_gcw,
      &     C,
@@ -496,7 +496,7 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_rb_var_d_const_c_2d(
+      subroutine f64_smooth_gs_rb_var_d_const_c_2d(
      &     U,U_gcw,
      &     D0,D1,D_gcw,
      &     C,
@@ -575,7 +575,7 @@ c     D = (D0,D1) and cell-centered C coefficient.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_var_dc_2d(
+      subroutine f64_smooth_gs_var_dc_2d(
      &     U,U_gcw,
      &     D0,D1,D_gcw,
      &     C,C_gcw,
@@ -650,7 +650,7 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_rb_var_dc_2d(
+      subroutine f64_smooth_gs_rb_var_dc_2d(
      &     U,U_gcw,
      &     D0,D1,D_gcw,
      &     C,C_gcw,
@@ -728,7 +728,7 @@ c  The smoother is written for side-centered vector fields (u0, u1) and (f0, f1)
 c  with node-centered coefficient mu and side-centered coefficient (c0,c1)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vcgssmooth2d(
+      subroutine f64_vcgssmooth2d(
      &     u0,u1,u_gcw,
      &     f0,f1,f_gcw,
      &     c0,c1,c_gcw,
@@ -864,7 +864,7 @@ c  The smoother is written for side-centered vector fields (u0, u1) and (f0, f1)
 c  with node-centered coefficient mu and side-centered coefficient (c0,c1)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vcrbgssmooth2d(
+      subroutine f64_vcrbgssmooth2d(
      &     u0,u1,u_gcw,
      &     f0,f1,f_gcw,
      &     c0,c1,c_gcw,
@@ -1018,7 +1018,7 @@ c  The smoother is written for side-centered vector fields (u0, u1) and (f0, f1)
 c  with node-centered coefficient mu and side-centered coefficient (c0,c1)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vcgssmoothmask2d(
+      subroutine f64_vcgssmoothmask2d(
      &     u0,u1,u_gcw,
      &     f0,f1,f_gcw,
      &     mask0,mask1,mask_gcw,
@@ -1170,7 +1170,7 @@ c  The smoother is written for side-centered vector fields (u0, u1) and (f0, f1)
 c  with node-centered coefficient mu and side-centered coefficient (c0,c1)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vcrbgssmoothmask2d(
+      subroutine f64_vcrbgssmoothmask2d(
      &     u0,u1,u_gcw,
      &     f0,f1,f_gcw,
      &     mask0,mask1,mask_gcw,
