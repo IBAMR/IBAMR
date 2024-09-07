@@ -107,7 +107,7 @@ namespace IBTK
  }
  \endverbatim
 */
-class CCPoissonBoxRelaxationFACOperator : public PoissonFACPreconditionerStrategy
+class CCPoissonBoxRelaxationFACOperator : public PoissonFACPreconditionerStrategy<double>
 {
 public:
     /*!
