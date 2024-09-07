@@ -46,6 +46,7 @@ class Database;
 
 namespace IBTK
 {
+template <class T>
 class PoissonFACPreconditionerStrategy;
 } // namespace IBTK
 
@@ -57,14 +58,18 @@ namespace IBTK
  * \brief Class PoissonFACPreconditioner is a FACPreconditioner that has been
  * specialized for Poisson problems.
  */
-class PoissonFACPreconditioner : public FACPreconditioner<double>, public PoissonSolver
+template <class T>
+class PoissonFACPreconditioner : public FACPreconditioner<T>, public PoissonSolver
 {
+protected:
+    using FACPreconditioner<T>::d_fac_strategy;
+
 public:
     /*!
      * Constructor.
      */
     PoissonFACPreconditioner(const std::string& object_name,
-                             SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_strategy,
+                             SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy<T> > fac_strategy,
                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                              std::string default_options_prefix);
 
