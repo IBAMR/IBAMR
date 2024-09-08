@@ -670,6 +670,11 @@ protected:
     bool d_coupled_system = true;
 
     /*!
+     * Whether to use Stokes drift formulation for the second order system.
+     */
+    bool d_use_stokes_drift_bc = true, d_use_stokes_drift_mass_src = true;
+
+    /*!
      * The maximum CFL number.
      */
     double d_cfl_max = 1.0;

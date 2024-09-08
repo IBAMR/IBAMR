@@ -288,4 +288,110 @@ c
 c     
       return
       end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Compute the forcing term for the RHS of second order continuity equation due   
+c     to the first order system in terms of Stokes drift f2 =  < div . (rho0 U_SD)>
+c     Note that we are removing the -ve sign from f2 because the second order system 
+c     considers -div (rho0 U2) as the continuity equation
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc    
+
+
+      subroutine acoustic_sd_mass_coupling_2d(U0r, U1r,
+     &     Ur_gcw, U0i, U1i, Ui_gcw, rho0, rho1,
+     &     rho_gcw, omega, m, m_gcw, ilower0, iupper0, 
+     &     ilower1, iupper1, dx)
+
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER Ur_gcw, Ui_gcw, rho_gcw, m_gcw
+      INTEGER ilower0, iupper0
+      INTEGER ilower1, iupper1
+
+
+      REAL U0r(SIDE2d0(ilower,iupper,Ur_gcw))
+      REAL U1r(SIDE2d1(ilower,iupper,Ur_gcw))
+      REAL U0i(SIDE2d0(ilower,iupper,Ui_gcw))
+      REAL U1i(SIDE2d1(ilower,iupper,Ui_gcw))
+      REAL rho0(SIDE2d0(ilower,iupper,rho_gcw))
+      REAL rho1(SIDE2d1(ilower,iupper,rho_gcw))
+      REAL omega
+      REAL dx(0:NDIM-1)
+
+c
+c     Input/Output.
+c
+      REAL m(CELL2d(ilower,iupper,m_gcw))
+
+c     Local variables
+
+      REAL fac0, fac1, g1, g2
+      INTEGER i0,i1
+
+      fac0 = 1.d0/dx(0)
+      fac1 = 1.d0/dx(1) 
+
+c
+c     Compute the coupling source term.
+c
+
+      do i1 = ilower1,iupper1
+        do i0 = ilower0, iupper0
+
+          g1  = (fac0**2.d0/2.d0)*(rho0(i0+1,i1)*(U0r(i0+2,i1) - 
+     &            U0r(i0,i1))*U0i(i0+1,i1) -
+     &            rho0(i0,i1)*(U0r(i0+1,i1) - U0r(i0-1,i1))*U0i(i0,i1)) 
+     &           + 
+     &           fac0*(rho0(i0+1,i1)*(fac1/2.d0)*(U0r(i0+1,i1+1) - 
+     &           U0r(i0+1,i1-1))* 0.25d0*(U1i(i0,i1) + U1i(i0+1,i1) + 
+     &           U1i(i0,i1+1) + U1i(i0+1,i1+1)) -
+     &           rho0(i0,i1)*(fac1/2.d0)*(U0r(i0,i1+1) - U0r(i0,i1-1))*
+     &           0.25d0*(U1i(i0,i1) + U1i(i0-1,i1) + U1i(i0,i1+1) + 
+     &           U1i(i0-1,i1+1))) 
+     &           -
+     &           (fac0**2.d0/2.d0)*(rho0(i0+1,i1)*(U0i(i0+2,i1) - 
+     &           U0i(i0,i1))*U0r(i0+1,i1) -
+     &           rho0(i0,i1)*(U0i(i0+1,i1) - U0i(i0-1,i1))*U0r(i0,i1)) 
+     &           - 
+     &           fac0*(rho0(i0+1,i1)*(fac1/2.d0)*(U0i(i0+1,i1+1) - 
+     &           U0i(i0+1,i1-1))* 0.25d0*(U1r(i0,i1) + U1r(i0+1,i1) + 
+     &           U1r(i0,i1+1) + U1r(i0+1,i1+1)) -
+     &           rho0(i0,i1)*(fac1/2.d0)*(U0i(i0,i1+1) - U0i(i0,i1-1))*
+     &           0.25d0*(U1r(i0,i1) + U1r(i0-1,i1) + U1r(i0,i1+1) + 
+     &           U1r(i0-1,i1+1)))
+           
+          g2 =   fac1*(rho1(i0,i1+1)*(fac0/2.d0)*(U1r(i0+1,i1+1) - 
+     &           U1r(i0-1,i1+1))* 0.25d0*(U0i(i0,i1) + U0i(i0+1,i1) + 
+     &           U0i(i0,i1+1) + U0i(i0+1,i1+1)) -
+     &           rho1(i0,i1)*(fac0/2.d0)*(U1r(i0+1,i1) - U1r(i0-1,i1))*
+     &           0.25d0*(U0i(i0,i1) + U0i(i0+1,i1) + U0i(i0,i1-1) + 
+     &           U0i(i0+1,i1-1))) 
+     &          + 
+     &          (fac1**2.d0/2.d0)*(rho1(i0,i1+1)*(U1r(i0,i1+2) - 
+     &            U1r(i0,i1))*U1i(i0,i1+1) -
+     &            rho1(i0,i1)*(U1r(i0,i1+1) - U1r(i0,i1-1))*U1i(i0,i1)) 
+     &          -
+     &          fac1*(rho1(i0,i1+1)*(fac0/2.d0)*(U1i(i0+1,i1+1) - 
+     &           U1i(i0-1,i1+1))* 0.25d0*(U0r(i0,i1) + U0r(i0+1,i1) + 
+     &           U0r(i0,i1+1) + U0r(i0+1,i1+1)) -
+     &           rho1(i0,i1)*(fac0/2.d0)*(U1i(i0+1,i1) - U1i(i0-1,i1))*
+     &           0.25d0*(U0r(i0,i1) + U0r(i0+1,i1) + U0r(i0,i1-1) + 
+     &           U0r(i0+1,i1-1)))
+     &          -
+     &          (fac1**2.d0/2.d0)*(rho1(i0,i1+1)*(U1i(i0,i1+2) - 
+     &            U1i(i0,i1))*U1r(i0,i1+1) -
+     &            rho1(i0,i1)*(U1i(i0,i1+1) - U1i(i0,i1-1))*U1r(i0,i1))       
+
+
+          m(i0,i1) = (g1+g2)/(2.d0*omega) 
+
+        enddo  
+      enddo
+      
+c     
+      return
+      end
 
