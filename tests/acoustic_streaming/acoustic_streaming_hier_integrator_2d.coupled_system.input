@@ -407,6 +407,8 @@ AcousticStreamingHierarchyIntegrator {
    acoustic_angular_frequency = OMEGA0
    sound_speed    = C0
    coupled_system = COUPLE_FIRST_SECOND_ORDER_SYSTEM
+   stokes_drift_bc = FALSE
+   stokes_drift_mass_src = FALSE
    rho_vc_interpolation_type = "VC_AVERAGE_INTERP"
    mu_vc_interpolation_type  = "VC_AVERAGE_INTERP"
 

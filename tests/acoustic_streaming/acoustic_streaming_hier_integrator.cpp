@@ -194,7 +194,7 @@ main(int argc, char* argv[])
 
         // Create boundary condition specification objects for the second-order system.
         // If the first- and second-order system is specified to be coupled, user specified BCs
-        // for the second-order system are ignored. The first-order system provides BCs for the second-order system.
+        // can be inconsistent. The first-order system provides BCs for the second-order system.
         std::vector<RobinBcCoefStrategy<NDIM>*> u2_bc_coefs(NDIM);
         if (periodic_shift.min() > 0)
         {
@@ -214,7 +214,11 @@ main(int argc, char* argv[])
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
         }
-        time_integrator->registerSecondOrderPhysicalBoundaryConditions(u2_bc_coefs);
+        bool coupled_system = input_db->getBool("COUPLE_FIRST_SECOND_ORDER_SYSTEM");
+        if (!coupled_system)
+        {
+            time_integrator->registerSecondOrderPhysicalBoundaryConditions(u2_bc_coefs);
+        }
 
         // Boundary conditions for density and viscosity
         std::vector<RobinBcCoefStrategy<NDIM>*> rho_bc_coefs(NDIM, nullptr);

@@ -45,6 +45,7 @@
 #define COPY_CELL_DATA_FC IBAMR_FC_FUNC(copy_cell_data_2d, COPY_CELL_DATA_2D)
 #define ACOUSTIC_MOMENTUM_COUPLING_FC IBAMR_FC_FUNC(acoustic_momentum_coupling_2d, ACOUSTIC_MOMENTUM_COUPLING_2D)
 #define ACOUSTIC_MASS_COUPLING_FC IBAMR_FC_FUNC(acoustic_mass_coupling_2d, ACOUSTIC_MASS_COUPLING_2D)
+#define ACOUSTIC_SD_MASS_COUPLING_FC IBAMR_FC_FUNC(acoustic_sd_mass_coupling_2d, ACOUSTIC_SD_MASS_COUPLING_2D)
 #endif
 
 #if (NDIM == 3)
@@ -52,6 +53,7 @@
 #define COPY_CELL_DATA_FC IBAMR_FC_FUNC(copy_cell_data_3d, COPY_CELL_DATA_3D)
 #define ACOUSTIC_MOMENTUM_COUPLING_FC IBAMR_FC_FUNC(acoustic_momentum_coupling_3d, ACOUSTIC_MOMENTUM_COUPLING_3D)
 #define ACOUSTIC_MASS_COUPLING_FC IBAMR_FC_FUNC(acoustic_mass_coupling_3d, ACOUSTIC_MASS_COUPLING_3D)
+#define ACOUSTIC_SD_MASS_COUPLING_FC IBAMR_FC_FUNC(acoustic_sd_mass_coupling_3d, ACOUSTIC_SD_MASS_COUPLING_3D)
 #endif
 
 extern "C"
@@ -157,6 +159,37 @@ extern "C"
                                    const int& iupper2,
 #endif
                                    const double* dx);
+
+    void ACOUSTIC_SD_MASS_COUPLING_FC(const double* U0_real,
+                                      const double* U1_real,
+#if (NDIM == 3)
+                                      const double* U2_real,
+#endif
+                                      const int& U_real_gcw,
+                                      const double* U0_imag,
+                                      const double* U1_imag,
+#if (NDIM == 3)
+                                      const double* U2_imag,
+#endif
+                                      const int& U_imag_gcw,
+                                      const double* rho0,
+                                      const double* rho1,
+#if (NDIM == 3)
+                                      const double* rho2,
+#endif
+                                      const int& rho_gcw,
+                                      const double& omega,
+                                      double* m,
+                                      const int& m_gcw,
+                                      const int& ilower0,
+                                      const int& iupper0,
+                                      const int& ilower1,
+                                      const int& iupper1,
+#if (NDIM == 3)
+                                      const int& ilower2,
+                                      const int& iupper2,
+#endif
+                                      const double* dx);
 }
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
@@ -512,14 +545,10 @@ void
 AcousticStreamingHierarchyIntegrator::registerSecondOrderPhysicalBoundaryConditions(
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& bc_coefs)
 {
-    if (d_coupled_system)
-    {
-        pout << d_object_name << "::registerSecondOrderPhysicalBoundaryConditions(): WARNING:\n"
-             << "The first- and second-order systems are specified to be coupled.\n"
-             << "Ignoring user-specified boundary conditions for the second-order system.\n"
-             << "The first-order system provides boundary conditions for the second-order system.\n";
-        return;
-    }
+    pout << d_object_name << "::registerSecondOrderPhysicalBoundaryConditions(): WARNING:\n"
+         << "The first- and second-order systems are coupled to each other.\n"
+         << "The first-order system provides boundary conditions to the second-order system.\n"
+         << "Overriding the internal second-order boundary conditions with user-specified one ....\n";
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(!d_integrator_is_initialized);
@@ -1337,6 +1366,8 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
                 d_U1_real_idx, d_U1_imag_idx, d_p1_real_idx, d_p1_imag_idx);
             so_bc_coef.setDensityPatchDataIndex(d_rho_linear_op_idx);
             so_bc_coef.setSoundSpeed(d_sound_speed);
+            so_bc_coef.setAcousticAngularFrequency(d_acoustic_freq);
+            so_bc_coef.useStokesDriftVelocityForm(d_use_stokes_drift_bc);
         }
     }
 
@@ -2206,6 +2237,8 @@ AcousticStreamingHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database>
     db->putBool("normalize_pressure", d_normalize_pressure);
     db->putBool("normalize_velocity", d_normalize_velocity);
     db->putBool("coupled_system", d_coupled_system);
+    db->putBool("stokes_drift_bc", d_use_stokes_drift_bc);
+    db->putBool("stokes_drift_mass_src", d_use_stokes_drift_mass_src);
     db->putBool("explicitly_remove_nullspace", d_explicitly_remove_so_nullspace);
     return;
 } // putToDatabaseSpecialized
@@ -2225,6 +2258,9 @@ AcousticStreamingHierarchyIntegrator::getFromInput(Pointer<Database> input_db, c
         if (input_db->keyExists("angular_frequency")) d_acoustic_freq = input_db->getDouble("angular_frequency");
         if (input_db->keyExists("sound_speed")) d_sound_speed = input_db->getDouble("sound_speed");
         if (input_db->keyExists("coupled_system")) d_coupled_system = input_db->getBool("coupled_system");
+        if (input_db->keyExists("stokes_drift_bc")) d_use_stokes_drift_bc = input_db->getBool("stokes_drift_bc");
+        if (input_db->keyExists("stokes_drift_mass_src"))
+            d_use_stokes_drift_mass_src = input_db->getBool("stokes_drift_mass_src");
 
         if (input_db->keyExists("num_cycles")) d_num_cycles = input_db->getInteger("num_cycles");
         if (input_db->keyExists("cfl"))
@@ -2405,6 +2441,8 @@ AcousticStreamingHierarchyIntegrator::getFromRestart()
     d_explicitly_remove_so_nullspace = db->getBool("explicitly_remove_nullspace");
 
     d_coupled_system = db->getBool("coupled_system");
+    d_use_stokes_drift_bc = db->getBool("stokes_drift_bc");
+    d_use_stokes_drift_mass_src = db->getBool("stokes_drift_mass_src");
 
     return;
 } // getFromRestart
@@ -2989,34 +3027,70 @@ AcousticStreamingHierarchyIntegrator::computeCouplingSourceTerms(Pointer<SAMRAIV
 #endif
                                           dx);
 
-            ACOUSTIC_MASS_COUPLING_FC(U0_real,
-                                      U1_real,
+            if (d_use_stokes_drift_mass_src)
+            {
+                ACOUSTIC_SD_MASS_COUPLING_FC(U0_real,
+                                             U1_real,
 #if (NDIM == 3)
-                                      U2_real,
+                                             U2_real,
 #endif
-                                      U_real_gcw,
-                                      U0_imag,
-                                      U1_imag,
+                                             U_real_gcw,
+                                             U0_imag,
+                                             U1_imag,
 #if (NDIM == 3)
-                                      U2_imag,
+                                             U2_imag,
 #endif
-                                      U_imag_gcw,
-                                      p_real,
-                                      p_real_gcw,
-                                      p_imag,
-                                      p_imag_gcw,
-                                      d_sound_speed,
-                                      m,
-                                      m_gcw,
-                                      patch_box.lower(0),
-                                      patch_box.upper(0),
-                                      patch_box.lower(1),
-                                      patch_box.upper(1),
+                                             U_imag_gcw,
+                                             rho0,
+                                             rho1,
 #if (NDIM == 3)
-                                      patch_box.lower(2),
-                                      patch_box.upper(2),
+                                             rho2,
 #endif
-                                      dx);
+                                             rho_gcw,
+                                             d_acoustic_freq,
+                                             m,
+                                             m_gcw,
+                                             patch_box.lower(0),
+                                             patch_box.upper(0),
+                                             patch_box.lower(1),
+                                             patch_box.upper(1),
+#if (NDIM == 3)
+                                             patch_box.lower(2),
+                                             patch_box.upper(2),
+#endif
+                                             dx);
+            }
+            else
+            {
+                ACOUSTIC_MASS_COUPLING_FC(U0_real,
+                                          U1_real,
+#if (NDIM == 3)
+                                          U2_real,
+#endif
+                                          U_real_gcw,
+                                          U0_imag,
+                                          U1_imag,
+#if (NDIM == 3)
+                                          U2_imag,
+#endif
+                                          U_imag_gcw,
+                                          p_real,
+                                          p_real_gcw,
+                                          p_imag,
+                                          p_imag_gcw,
+                                          d_sound_speed,
+                                          m,
+                                          m_gcw,
+                                          patch_box.lower(0),
+                                          patch_box.upper(0),
+                                          patch_box.lower(1),
+                                          patch_box.upper(1),
+#if (NDIM == 3)
+                                          patch_box.lower(2),
+                                          patch_box.upper(2),
+#endif
+                                          dx);
+            }
         }
     }
 

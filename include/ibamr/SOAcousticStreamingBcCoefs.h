@@ -77,9 +77,19 @@ public:
     void setDensityPatchDataIndex(int rho_idx);
 
     /*
-     * \brief Set sound speed
+     * \brief Set sound speed.
      */
     void setSoundSpeed(double sound_speed);
+
+    /*
+     * \brief Set acoustic angular frequency.
+     */
+    void setAcousticAngularFrequency(double omega);
+
+    /*
+     * \brief Set if we are using Stokes drift as the velocity boundary condition for the second order system.
+     */
+    void useStokesDriftVelocityForm(bool use_stokes_drift_vel);
 
     /*!
      * \name Implementation of SAMRAI::solv::RobinBcCoefStrategy interface.
@@ -159,9 +169,35 @@ private:
     int d_rho_idx = IBTK::invalid_index;
 
     /*
-     * \brief Sound speed
+     * \brief Sound speed and acoustic angular frequency
      */
-    double d_sound_speed = std::numeric_limits<double>::signaling_NaN();
+    double d_sound_speed = std::numeric_limits<double>::signaling_NaN(),
+           d_acoustic_freq = std::numeric_limits<double>::signaling_NaN();
+
+    /*
+     * \brief If we are using Stokes drift as the velocity boundary condition.
+     */
+    bool d_use_stokes_drift_velocity = true;
+
+    /*
+     * \brief Set u2 from first-order mass flux.
+     */
+    void setBcCoefsFromFOMassFlux(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& acoef_data,
+                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& bcoef_data,
+                                  SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& gcoef_data,
+                                  const SAMRAI::hier::Patch<NDIM>& patch,
+                                  const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                  double fill_time) const;
+
+    /*
+     * \brief Set u2 from Stokes drift.
+     */
+    void setBcCoefsFromStokesDrift(SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& acoef_data,
+                                   SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& bcoef_data,
+                                   SAMRAI::tbox::Pointer<SAMRAI::pdat::ArrayData<NDIM, double> >& gcoef_data,
+                                   const SAMRAI::hier::Patch<NDIM>& patch,
+                                   const SAMRAI::hier::BoundaryBox<NDIM>& bdry_box,
+                                   double fill_time) const;
 };
 } // namespace IBAMR
 
