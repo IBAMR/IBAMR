@@ -300,8 +300,9 @@ static const int invalid_index = -1;
 /*!
  * Deallocate a SAMRAIVectorReal.
  */
+template <typename TYPE>
 inline void
-deallocate_vector_data(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+deallocate_vector_data(SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>& x,
                        int coarsest_ln = invalid_level_number,
                        int finest_ln = invalid_level_number)
 {
@@ -331,8 +332,9 @@ deallocate_vector_data(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
 /*!
  * Free the components of a SAMRAIVectorReal.
  */
+template <typename TYPE>
 inline void
-free_vector_components(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& x,
+free_vector_components(SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>& x,
                        int coarsest_ln = invalid_level_number,
                        int finest_ln = invalid_level_number)
 {

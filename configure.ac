@@ -309,6 +309,7 @@ AC_CONFIG_FILES([
   tests/IMP/Makefile
   tests/interpolate/Makefile
   tests/level_set/Makefile
+  tests/multiprecision/Makefile
   tests/multiphase_flow/Makefile
   tests/navier_stokes/Makefile
   tests/physical_boundary/Makefile
