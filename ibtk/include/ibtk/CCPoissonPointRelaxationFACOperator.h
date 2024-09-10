@@ -20,9 +20,11 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/PoissonFACPreconditioner.h"
 #include "ibtk/PoissonFACPreconditionerStrategy.h"
 #include "ibtk/PoissonSolver.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "IntVector.h"
 #include "PoissonSpecifications.h"
@@ -103,8 +105,43 @@ namespace IBTK
  }
  \endverbatim
 */
-class CCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy<double>
+template <class T>
+class CCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy<T>
 {
+protected:
+    using PoissonFACPreconditionerStrategy<T>::d_bc_coefs;
+    using PoissonFACPreconditionerStrategy<T>::d_bc_op;
+    using PoissonFACPreconditionerStrategy<T>::d_cf_bdry_op;
+    using PoissonFACPreconditionerStrategy<T>::d_coarse_solver_abs_residual_tol;
+    using PoissonFACPreconditionerStrategy<T>::d_coarse_solver_default_options_prefix;
+    using PoissonFACPreconditionerStrategy<T>::d_coarse_solver_max_iterations;
+    using PoissonFACPreconditionerStrategy<T>::d_coarse_solver_rel_residual_tol;
+    using PoissonFACPreconditionerStrategy<T>::d_coarse_solver_type;
+    using PoissonFACPreconditionerStrategy<T>::d_coarsest_ln;
+    using PoissonFACPreconditionerStrategy<T>::d_current_time;
+    using PoissonFACPreconditionerStrategy<T>::d_finest_ln;
+    using PoissonFACPreconditionerStrategy<T>::d_gcw;
+    using PoissonFACPreconditionerStrategy<T>::d_hierarchy;
+    using PoissonFACPreconditionerStrategy<T>::d_in_initialize_operator_state;
+    using PoissonFACPreconditionerStrategy<T>::d_is_initialized;
+    using PoissonFACPreconditionerStrategy<T>::d_level_bdry_fill_ops;
+    using PoissonFACPreconditionerStrategy<T>::d_level_math_ops;
+    using PoissonFACPreconditionerStrategy<T>::d_new_time;
+    using PoissonFACPreconditionerStrategy<T>::d_poisson_spec;
+    using PoissonFACPreconditionerStrategy<T>::d_rhs;
+    using PoissonFACPreconditionerStrategy<T>::d_object_name;
+    using PoissonFACPreconditionerStrategy<T>::d_op_stencil_fill_pattern;
+    using PoissonFACPreconditionerStrategy<T>::d_prolongation_method;
+    using PoissonFACPreconditionerStrategy<T>::d_restriction_method;
+    using PoissonFACPreconditionerStrategy<T>::d_scratch_idx;
+    using PoissonFACPreconditionerStrategy<T>::d_smoother_type;
+    using PoissonFACPreconditionerStrategy<T>::d_solution;
+    using PoissonFACPreconditionerStrategy<T>::d_solution_time;
+
+    using PoissonFACPreconditionerStrategy<T>::deallocateOperatorState;
+    using PoissonFACPreconditionerStrategy<T>::getLevelSAMRAIVectorReal;
+    using PoissonFACPreconditionerStrategy<T>::xeqScheduleGhostFillNoCoarse;
+
 public:
     /*!
      * \brief Constructor.
@@ -126,9 +163,10 @@ public:
                                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new CCPoissonPointRelaxationFACOperator(
-            object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
-        return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
+        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy<T> > fac_operator =
+            new CCPoissonPointRelaxationFACOperator<T>(
+                object_name + "::CCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+        return new PoissonFACPreconditioner<T>(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
 
     /*!
@@ -172,8 +210,8 @@ public:
      *being
      *performed
      */
-    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    void smoothError(SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& error,
+                     const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& residual,
                      int level_num,
                      int num_sweeps,
                      bool performing_pre_sweeps,
@@ -187,8 +225,8 @@ public:
      * \param residual residual vector
      * \param coarsest_ln coarsest level number
      */
-    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& error,
-                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
+    bool solveCoarsestLevel(SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& error,
+                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& residual,
                             int coarsest_ln) override;
 
     /*!
@@ -200,9 +238,9 @@ public:
      * \param coarsest_level_num coarsest level number
      * \param finest_level_num finest level number
      */
-    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& residual,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void computeResidual(SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& residual,
+                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& solution,
+                         const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& rhs,
                          int coarsest_level_num,
                          int finest_level_num) override;
 
@@ -212,8 +250,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& solution,
+                                            const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& rhs,
                                             int coarsest_reset_ln,
                                             int finest_reset_ln) override;
 
