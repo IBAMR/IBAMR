@@ -164,13 +164,14 @@ CCPoissonSolverManager::CCPoissonSolverManager() : d_solver_maker_map()
 {
     registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(PETSC_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
-    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER, CCPoissonPointRelaxationFACOperator::allocate_solver);
+    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER,
+                                  CCPoissonPointRelaxationFACOperator<double>::allocate_solver);
     registerSolverFactoryFunction(BOX_RELAXATION_FAC_PRECONDITIONER,
                                   CCPoissonBoxRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(LEVEL_RELAXATION_FAC_PRECONDITIONER,
                                   CCPoissonLevelRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER,
-                                  CCPoissonPointRelaxationFACOperator::allocate_solver);
+                                  CCPoissonPointRelaxationFACOperator<double>::allocate_solver);
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, CCPoissonPETScLevelSolver::allocate_solver);
