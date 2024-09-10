@@ -53,7 +53,7 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -70,7 +70,7 @@ jobs:
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: ccache
         id: cache
@@ -118,7 +118,7 @@ jobs:
           exit $configure_status
       - name: Archive CMakeConfigureLog.yaml
         if: always()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: fedora33-CMakeError.log
           path: CMakeConfigureLog.yaml
@@ -165,7 +165,7 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -182,7 +182,7 @@ jobs:
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: ccache
         id: cache
@@ -245,7 +245,7 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -262,7 +262,7 @@ jobs:
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: ccache
         id: cache
@@ -294,7 +294,7 @@ jobs:
           ccache --show-stats
       - name: archive
         if: always()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: autotools-config.log
           path: build/config.log
@@ -342,7 +342,7 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -359,7 +359,7 @@ jobs:
           echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
           echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: ccache
         id: cache
