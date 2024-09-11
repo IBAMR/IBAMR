@@ -40,10 +40,11 @@ namespace IBAMR
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(const std::string& object_name,
-                                                                   Pointer<FACPreconditionerStrategy> fac_strategy,
-                                                                   Pointer<Database> input_db,
-                                                                   const std::string& default_options_prefix)
+StaggeredStokesFACPreconditioner::StaggeredStokesFACPreconditioner(
+    const std::string& object_name,
+    Pointer<FACPreconditionerStrategy<double> > fac_strategy,
+    Pointer<Database> input_db,
+    const std::string& default_options_prefix)
     : FACPreconditioner(object_name, fac_strategy, input_db, default_options_prefix)
 {
     // intentionally blank
