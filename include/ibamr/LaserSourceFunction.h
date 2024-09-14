@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBAMR_LaserBeamForceFunction
-#define included_IBAMR_LaserBeamForceFunction
+#ifndef included_IBAMR_LaserSourceFunction
+#define included_IBAMR_LaserSourceFunction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -65,7 +65,7 @@ class Database;
 namespace IBAMR
 {
 /*!
- * \brief Class LaserBeamForceFunction can be used to account the laser beam effects as a source term into the energy
+ * \brief Class LaserSourceFunction can be used to account the laser beam effects as a source term into the energy
  * equation.
  *
  * \note Presently, this class assumes that the indicator function is a cell centered
@@ -76,21 +76,21 @@ namespace IBAMR
  * HREF="https://arxiv.org/abs/2407.05588"> A consistent, volume preserving, and adaptive mesh
  * refinement-based framework for modeling non-isothermal gas-liquid-solid flows with phase change</A>
  */
-class LaserBeamForceFunction : public IBTK::CartGridFunction
+class LaserSourceFunction : public IBTK::CartGridFunction
 {
 public:
     /*!
      * \brief Constructor.
      */
-    LaserBeamForceFunction(const std::string& object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                           SAMRAI::tbox::Pointer<PhaseChangeHierarchyIntegrator> phase_change_solver,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > level_set_var);
+    LaserSourceFunction(const std::string& object_name,
+                        SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                        SAMRAI::tbox::Pointer<PhaseChangeHierarchyIntegrator> phase_change_solver,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > level_set_var);
 
     /*!
      * \brief Destructor.
      */
-    virtual ~LaserBeamForceFunction() = default;
+    virtual ~LaserSourceFunction() = default;
 
     /*!
      * \name Methods to set the data.
@@ -150,7 +150,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    LaserBeamForceFunction() = delete;
+    LaserSourceFunction() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -159,7 +159,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    LaserBeamForceFunction(const LaserBeamForceFunction& from) = delete;
+    LaserSourceFunction(const LaserSourceFunction& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -170,7 +170,7 @@ private:
      *
      * \return A reference to this object.
      */
-    LaserBeamForceFunction& operator=(const LaserBeamForceFunction& that) = delete;
+    LaserSourceFunction& operator=(const LaserSourceFunction& that) = delete;
 
     /*!
      * Convert the level set variable to a smoothed Heaviside or discontinuous Heaviside function.
@@ -239,4 +239,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_LaserBeamForceFunction
+#endif // #ifndef included_IBAMR_LaserSourceFunction

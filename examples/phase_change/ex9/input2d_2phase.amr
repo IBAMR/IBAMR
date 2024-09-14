@@ -476,7 +476,7 @@ CarmanKozenyDragForce {
 
 SMOOTHER                = "IB_4"
 NUMBER_OF_INTERFACE_CELLS_LASER  = NUMBER_OF_INTERFACE_CELLS
-LaserBeamForce{
+LaserSourceFunction{
    smoother                     = SMOOTHER
    num_interface_cells          = NUMBER_OF_INTERFACE_CELLS_LASER
 }

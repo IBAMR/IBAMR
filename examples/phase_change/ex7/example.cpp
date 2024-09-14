@@ -590,24 +590,21 @@ main(int argc, char* argv[])
 
         // thermophysical properties and parameters.
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
+        const double kappa_solid = input_db->getDouble("KAPPA_S");
         const double kappa_gas = input_db->getDouble("KAPPA_G");
         const double Cp_liquid = input_db->getDouble("CP_L");
+        const double Cp_solid = input_db->getDouble("CP_S");
         const double Cp_gas = input_db->getDouble("CP_G");
         const double rho_liquid = input_db->getDouble("RHO_L");
+        const double rho_solid = input_db->getDouble("RHO_S");
         const double rho_gas = input_db->getDouble("RHO_G");
         const double mu_liquid = input_db->getDouble("MU_L");
+        const double mu_solid = input_db->getDouble("MU_S");
         const double mu_gas = input_db->getDouble("MU_G");
         const double sigma_0 = input_db->getDouble("SIGMA_0");
         const double dsigma_dT_0 = input_db->getDouble("DSIGMA_DT_0");
         const double ref_temperature = input_db->getDouble("REFERENCE_TEMP_SIGMA");
         const double temperature_gradient = input_db->getDouble("TEMPERATURE_GRADIENT");
-
-        // There are no solid phase in this example and the liquid fraction is set to 1 initially. Since there are no
-        // phase change, the properties in the solid phase are arbitrary.
-        const double rho_solid = 0.0;
-        const double kappa_solid = 0.0;
-        const double Cp_solid = 0.0;
-        const double mu_solid = 0.0;
 
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator

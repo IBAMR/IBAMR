@@ -553,12 +553,9 @@ TagLiquidFractionRefinementCells::tagLiquidFractionCells(Pointer<BasePatchHierar
                                                          const int tag_index,
                                                          const bool initial_time,
                                                          const bool /*uses_richardson_extrapolation_too*/,
-                                                         void* ctx)
+                                                         void* /*ctx*/)
 {
-    TagLiquidFractionRefinementCells* lf_tagger = static_cast<TagLiquidFractionRefinementCells*>(ctx);
-
 #if !defined(NDEBUG)
-    TBOX_ASSERT(lf_tagger);
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));

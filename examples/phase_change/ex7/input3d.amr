@@ -13,6 +13,13 @@ KAPPA_G = 0.5*KAPPA_L
 CP_G    = 0.5*CP_L
 MU_G    = 0.5*MU_L
 
+// Although no solid in this case, the material properties are
+// calculated using the three-phase equation which requires the solid properties.
+RHO_S    =  RHO_L
+KAPPA_S  = KAPPA_L
+CP_S     = CP_L
+MU_S     = MU_L
+
 OUTPUT_FILE_NAME = "normalized_rise_velocity_amr_3d"
 
 MELT_TEMPERATURE = 265.0
@@ -30,9 +37,7 @@ SIGMA_0 = 1e-2
 DSIGMA_DT_0 = -2.0e-3
 TEMPERATURE_GRADIENT = 200.0
 
-// No solid and no phase change
-RHO_S =  RHO_L
-CP_S  = CP_L
+// No phase change
 LATENT_HEAT = 0.0
 
 // Liquid fraction parameters for tagging

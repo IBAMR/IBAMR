@@ -139,7 +139,7 @@ SET(CXX_SRC
   phase_change/CarmanKozenyDragForce.cpp
   phase_change/EnthalpyHierarchyIntegrator.cpp
   phase_change/HeavisideForcingFunction.cpp
-  phase_change/LaserBeamForceFunction.cpp
+  phase_change/LaserSourceFunction.cpp
   phase_change/PhaseChangeDivUSourceFunction.cpp
   phase_change/PhaseChangeHierarchyIntegrator.cpp
   phase_change/PhaseChangeUtilities.cpp

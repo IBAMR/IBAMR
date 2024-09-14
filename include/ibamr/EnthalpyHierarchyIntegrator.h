@@ -110,19 +110,19 @@ public:
     /*!
      * Add the temporal and linear terms to the RHS of the energy equation.
      */
-    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt) override;
+    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt) override;
 
     /*!
      * Compute the source term for the Div U equation.
      */
-    void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) override;
+    void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, double new_time) override;
 
     /*!
      * \brief Register specific enthalpy variable \f$ h \f$.
      */
     virtual void
     registerSpecificEnthalpyVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > h_var,
-                                     const bool output_h_var = true);
+                                     bool output_h_var = true);
 
     /*!
      * Set boundary conditions for \f$ h \f$ variable.
@@ -202,28 +202,27 @@ private:
     /*!
      * \brief Compute enthalpy based on (nonlinear) h-T relation.
      */
-    void
-    computeEnthalpyBasedOnTemperature(int h_idx, const int T_idx, const int rho_idx, const int lf_idx, const int H_idx);
+    void computeEnthalpyBasedOnTemperature(int h_idx, int T_idx, int rho_idx, int lf_idx, int H_idx);
 
     /*!
      * \brief Compute temperature based on (nonlinear) h-T relation.
      */
-    void computeTemperatureBasedOnEnthalpy(int T_idx, const int h_idx, const int H_idx);
+    void computeTemperatureBasedOnEnthalpy(int T_idx, int h_idx, int H_idx);
 
     /*!
      * \brief Update enthalpy using Taylor series \f$ h_{\rm new} = h_{\rm old} + dh/dt (\Delta T) \f$.
      */
-    void updateEnthalpy(int h_idx, const int T_new_idx, const int T_pre_idx);
+    void updateEnthalpy(int h_idx, int T_new_idx, int T_pre_idx);
 
     /*!
      * \brief compute dh/dT based on temperature.
      */
-    void computeEnthalpyDerivative(int dh_dT_data, const int T_idx, const int H_idx);
+    void computeEnthalpyDerivative(int dh_dT_data, int T_idx, int H_idx);
 
     /*!
      * \brief Compute liquid fraction.
      */
-    void computeLiquidFraction(int lf_idx, const int h_idx, const int H_idx);
+    void computeLiquidFraction(int lf_idx, int h_idx, int H_idx);
 
     /*!
      * \brief The surface tension force is multiplied by a liquid fraction to zero out the surface tension
@@ -236,9 +235,8 @@ private:
     /*!
      * \brief Compute advection velocity \f$ u_{\rm adv} = H(-\phi) n \f$.
      */
-    void computeAdvectionVelocityForExtrapolation(int u_adv_fc_lf_extrap_current_idx,
-                                                  const double current_time,
-                                                  const double new_time);
+    void
+    computeAdvectionVelocityForExtrapolation(int u_adv_fc_lf_extrap_current_idx, double current_time, double new_time);
 
     /*!
      * Get the convective operator for solving lf extrapolation equation.

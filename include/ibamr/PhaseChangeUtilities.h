@@ -47,10 +47,10 @@ namespace PhaseChangeUtilities
 void callSetDensityCallbackFunction(int rho_idx,
                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                    const int cycle_num,
-                                    const double time,
-                                    const double current_time,
-                                    const double new_time,
+                                    int cycle_num,
+                                    double time,
+                                    double current_time,
+                                    double new_time,
                                     void* ctx);
 
 /*!
@@ -63,10 +63,10 @@ void callSetDensityCallbackFunction(int rho_idx,
 void callSetThermalConductivityCallbackFunction(int kappa_idx,
                                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > kappa_var,
                                                 SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                                const int cycle_num,
-                                                const double time,
-                                                const double current_time,
-                                                const double new_time,
+                                                int cycle_num,
+                                                double time,
+                                                double current_time,
+                                                double new_time,
                                                 void* ctx);
 
 /*!
@@ -79,10 +79,10 @@ void callSetThermalConductivityCallbackFunction(int kappa_idx,
 void callSetSpecificHeatCallbackFunction(int specific_heat_idx,
                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > specific_heat_var,
                                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                         const int cycle_num,
-                                         const double time,
-                                         const double current_time,
-                                         const double new_time,
+                                         int cycle_num,
+                                         double time,
+                                         double current_time,
+                                         double new_time,
                                          void* ctx);
 
 /*!
@@ -95,10 +95,10 @@ void callSetSpecificHeatCallbackFunction(int specific_heat_idx,
 void callSetViscosityCallbackFunction(int mu_idx,
                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
                                       SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                      const int cycle_num,
-                                      const double time,
-                                      const double current_time,
-                                      const double new_time,
+                                      int cycle_num,
+                                      double time,
+                                      double current_time,
+                                      double new_time,
                                       void* ctx);
 
 class SetFluidProperties
@@ -109,22 +109,22 @@ public:
      */
     SetFluidProperties(const std::string& object_name,
                        SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                       const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
                        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* H_bc_coef,
-                       const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef,
-                       const double rho_liquid,
-                       const double rho_solid,
-                       const double rho_gas,
-                       const double kappa_liquid,
-                       const double kappa_solid,
-                       const double kappa_gas,
-                       const double Cp_liquid,
-                       const double Cp_solid,
-                       const double Cp_gas,
-                       const double mu_liquid,
-                       const double mu_solid,
-                       const double mu_gas);
+                       double rho_liquid,
+                       double rho_solid,
+                       double rho_gas,
+                       double kappa_liquid,
+                       double kappa_solid,
+                       double kappa_gas,
+                       double Cp_liquid,
+                       double Cp_solid,
+                       double Cp_gas,
+                       double mu_liquid,
+                       double mu_solid,
+                       double mu_gas);
 
     /*!
      * Constructor for this class.
@@ -133,19 +133,19 @@ public:
      */
     SetFluidProperties(const std::string& object_name,
                        SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                       const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
                        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* H_bc_coef,
-                       const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+                       SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef,
-                       const double rho_liquid,
-                       const double rho_solid,
-                       const double rho_gas,
-                       const double kappa_liquid,
-                       const double kappa_solid,
-                       const double kappa_gas,
-                       const double Cp_liquid,
-                       const double Cp_solid,
-                       const double Cp_gas);
+                       double rho_liquid,
+                       double rho_solid,
+                       double rho_gas,
+                       double kappa_liquid,
+                       double kappa_solid,
+                       double kappa_gas,
+                       double Cp_liquid,
+                       double Cp_solid,
+                       double Cp_gas);
 
     /*!
      * Destructor for this class.
@@ -158,10 +158,10 @@ public:
     void setDensityPatchData(int rho_idx,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                             const int cycle_num,
-                             const double time,
-                             const double current_time,
-                             const double new_time);
+                             int cycle_num,
+                             double time,
+                             double current_time,
+                             double new_time);
 
     /*!
      * Set the thermal conductivity based on the current Heaviside and liquid fraction information.
@@ -169,10 +169,10 @@ public:
     void setThermalConductivityPatchData(int kappa_idx,
                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > kappa_var,
                                          SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                         const int cycle_num,
-                                         const double time,
-                                         const double current_time,
-                                         const double new_time);
+                                         int cycle_num,
+                                         double time,
+                                         double current_time,
+                                         double new_time);
 
     /*!
      * Set the specific heat based on the current Heaviside and liquid fraction information.
@@ -180,10 +180,10 @@ public:
     void setSpecificHeatPatchData(int specific_heat_idx,
                                   SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > specific_heat_var,
                                   SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                                  const int cycle_num,
-                                  const double time,
-                                  const double current_time,
-                                  const double new_time);
+                                  int cycle_num,
+                                  double time,
+                                  double current_time,
+                                  double new_time);
 
     /*!
      * Set the viscosity based on the current Heaviside and liquid fraction information.
@@ -191,10 +191,10 @@ public:
     void setViscosityPatchData(int mu_idx,
                                SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
-                               const int cycle_num,
-                               const double time,
-                               const double current_time,
-                               const double new_time);
+                               int cycle_num,
+                               double time,
+                               double current_time,
+                               double new_time);
 
 private:
     /*!
@@ -283,11 +283,11 @@ public:
      * Tag the liquid-solid interface cells based on the liquid fraction and/or liquid fraction gradient value.
      */
     void tagLiquidFractionCells(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                const int level_number,
-                                const double error_data_time,
-                                const int tag_index,
-                                const bool initial_time,
-                                const bool uses_richardson_extrapolation_too,
+                                int level_number,
+                                double error_data_time,
+                                int tag_index,
+                                bool initial_time,
+                                bool uses_richardson_extrapolation_too,
                                 void* ctx);
 
 private:
@@ -309,11 +309,11 @@ private:
  */
 void
 callTagLiquidFractionCellsCallbackFunction(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           const int level_number,
-                                           const double error_data_time,
-                                           const int tag_index,
-                                           const bool initial_time,
-                                           const bool uses_richardson_extrapolation_too,
+                                           int level_number,
+                                           double error_data_time,
+                                           int tag_index,
+                                           bool initial_time,
+                                           bool uses_richardson_extrapolation_too,
                                            void* ctx);
 
 } // namespace PhaseChangeUtilities

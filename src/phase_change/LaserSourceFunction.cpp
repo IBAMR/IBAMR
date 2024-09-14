@@ -14,7 +14,7 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/LaserBeamForceFunction.h"
+#include "ibamr/LaserSourceFunction.h"
 #include "ibamr/ibamr_enums.h"
 
 #include "ibtk/CartGridFunction.h"
@@ -90,10 +90,10 @@ namespace IBAMR
 {
 ////////////////////////////// PUBLIC ///////////////////////////////////////
 
-LaserBeamForceFunction::LaserBeamForceFunction(const std::string& object_name,
-                                               Pointer<Database> input_db,
-                                               Pointer<PhaseChangeHierarchyIntegrator> phase_change_solver,
-                                               Pointer<Variable<NDIM> > phi_var)
+LaserSourceFunction::LaserSourceFunction(const std::string& object_name,
+                                         Pointer<Database> input_db,
+                                         Pointer<PhaseChangeHierarchyIntegrator> phase_change_solver,
+                                         Pointer<Variable<NDIM> > phi_var)
     : CartGridFunction(object_name), d_phase_change_solver(phase_change_solver), d_phi_var(phi_var)
 {
     // Set some default values
@@ -117,22 +117,22 @@ LaserBeamForceFunction::LaserBeamForceFunction(const std::string& object_name,
         d_num_interface_cells = input_db->getDoubleWithDefault("num_interface_cells", d_num_interface_cells);
     }
     return;
-} // LaserBeamForceFunction
+} // LaserSourceFunction
 
 bool
-LaserBeamForceFunction::isTimeDependent() const
+LaserSourceFunction::isTimeDependent() const
 {
     return true;
 } // isTimeDependent
 
 void
-LaserBeamForceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                                Pointer<Variable<NDIM> > var,
-                                                Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                                const double data_time,
-                                                const bool initial_time,
-                                                const int coarsest_ln_in,
-                                                const int finest_ln_in)
+LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
+                                             Pointer<Variable<NDIM> > var,
+                                             Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                             const double data_time,
+                                             const bool initial_time,
+                                             const int coarsest_ln_in,
+                                             const int finest_ln_in)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(hierarchy);
@@ -195,7 +195,7 @@ LaserBeamForceFunction::setDataOnPatchHierarchy(const int data_idx,
     }
     else
     {
-        TBOX_ERROR("LaserBeamForceFunction::setDataOnPatchHierarchy : "
+        TBOX_ERROR("LaserSourceFunction::setDataOnPatchHierarchy : "
                    << "The class only supports BACKWARD_EULER, FORWARD_EULER, and "
                       "MIDPOINT_RULE"
                    << std::endl);
@@ -216,7 +216,7 @@ LaserBeamForceFunction::setDataOnPatchHierarchy(const int data_idx,
     // Mollify H.
     mollifyData(d_H_scratch_idx, coarsest_ln, finest_ln, data_time, hierarchy, H_fill_op);
 
-    // Find |grad H|.
+    // Find grad H.
     HierarchyMathOps* hier_math_ops = new HierarchyMathOps("HierarchyMathOps", hierarchy, coarsest_ln, finest_ln);
     hier_math_ops->grad(d_grad_H_scratch_idx, d_grad_H_var, 1.0, d_H_scratch_idx, phi_cc_var, nullptr, data_time);
 
@@ -237,12 +237,12 @@ LaserBeamForceFunction::setDataOnPatchHierarchy(const int data_idx,
 } // setDataOnPatchHierarchy
 
 void
-LaserBeamForceFunction::setDataOnPatch(const int data_idx,
-                                       Pointer<Variable<NDIM> > /*var*/,
-                                       Pointer<Patch<NDIM> > patch,
-                                       const double data_time,
-                                       const bool initial_time,
-                                       Pointer<PatchLevel<NDIM> > /*level*/)
+LaserSourceFunction::setDataOnPatch(const int data_idx,
+                                    Pointer<Variable<NDIM> > /*var*/,
+                                    Pointer<Patch<NDIM> > patch,
+                                    const double data_time,
+                                    const bool initial_time,
+                                    Pointer<PatchLevel<NDIM> > /*level*/)
 {
     Pointer<CellData<NDIM, double> > f_cc_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)
@@ -262,11 +262,27 @@ LaserBeamForceFunction::setDataOnPatch(const int data_idx,
         d_heat_flux(data_idx, patch, -1 /*cycle_num*/, apply_time, current_time, new_time, d_heat_flux_ctx);
     }
 
+    const Box<NDIM>& patch_box = patch->getBox();
+    Pointer<CellData<NDIM, double> > grad_H_data = patch->getPatchData(d_grad_H_scratch_idx);
+    for (Box<NDIM>::Iterator it(patch_box); it; it++)
+    {
+        CellIndex<NDIM> ci(it());
+#if (NDIM == 2)
+        const double grad_H_mag =
+            std::sqrt(std::pow((*grad_H_data)(ci, 0), 2.0) + std::pow((*grad_H_data)(ci, 1), 2.0));
+#elif (NDIM == 3)
+        const double grad_H_mag =
+            std::sqrt(std::pow((*grad_H_data)(ci, 0), 2.0) + std::pow((*grad_H_data)(ci, 1), 2.0) +
+                      std::pow((*grad_H_data)(ci, 2), 2.0));
+#endif
+        (*f_cc_data)(ci) *= grad_H_mag;
+    }
+
     return;
 } // setDataOnPatch
 
 void
-LaserBeamForceFunction::registerHeatFlux(HeatFluxPtr callback, void* ctx)
+LaserSourceFunction::registerHeatFlux(HeatFluxPtr callback, void* ctx)
 {
     d_heat_flux = callback;
     d_heat_flux_ctx = ctx;
@@ -278,11 +294,11 @@ LaserBeamForceFunction::registerHeatFlux(HeatFluxPtr callback, void* ctx)
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 void
-LaserBeamForceFunction::convertToHeaviside(int H_idx,
-                                           int phi_idx,
-                                           int coarsest_ln,
-                                           int finest_ln,
-                                           Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+LaserSourceFunction::convertToHeaviside(int H_idx,
+                                        int phi_idx,
+                                        int coarsest_ln,
+                                        int finest_ln,
+                                        Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -311,12 +327,12 @@ LaserBeamForceFunction::convertToHeaviside(int H_idx,
 } // convertToHeaviside
 
 void
-LaserBeamForceFunction::mollifyData(int smooth_H_idx,
-                                    int coarsest_ln,
-                                    int finest_ln,
-                                    double data_time,
-                                    Pointer<PatchHierarchy<NDIM> > hierarchy,
-                                    Pointer<HierarchyGhostCellInterpolation> fill_op)
+LaserSourceFunction::mollifyData(int smooth_H_idx,
+                                 int coarsest_ln,
+                                 int finest_ln,
+                                 double data_time,
+                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 Pointer<HierarchyGhostCellInterpolation> fill_op)
 {
     if (d_kernel_fcn == "none") return;
 
@@ -369,17 +385,17 @@ LaserBeamForceFunction::mollifyData(int smooth_H_idx,
 } // mollifyData
 
 int
-LaserBeamForceFunction::getStencilSize(const std::string& kernel_fcn)
+LaserSourceFunction::getStencilSize(const std::string& kernel_fcn)
 {
     if (kernel_fcn == "IB_4") return 4;
-    TBOX_ERROR("LaserBeamForceFunction::getStencilSize()\n"
+    TBOX_ERROR("LaserSourceFunction::getStencilSize()\n"
                << "  Unknown kernel function " << kernel_fcn << std::endl);
     return -1;
 
 } // getStencilSize
 
 int
-LaserBeamForceFunction::getMinimumGhostWidth(const std::string& kernel_fcn)
+LaserSourceFunction::getMinimumGhostWidth(const std::string& kernel_fcn)
 {
     if (kernel_fcn == "none")
     {

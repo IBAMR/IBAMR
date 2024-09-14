@@ -29,7 +29,7 @@
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
-#include <ibamr/LaserBeamForceFunction.h>
+#include <ibamr/LaserSourceFunction.h>
 #include <ibamr/LevelSetUtilities.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
@@ -527,11 +527,11 @@ main(int argc, char* argv[])
                                       /*register_for_restart*/ true);
         time_integrator->registerBrinkmanPenalizationStrategy(drag_force);
 
-        Pointer<LaserBeamForceFunction> laser_beam_force =
-            new LaserBeamForceFunction("LaserBeamForceFunction",
-                                       app_initializer->getComponentDatabase("LaserBeamForce"),
-                                       enthalpy_hier_integrator,
-                                       ls_var);
+        Pointer<LaserSourceFunction> laser_source =
+            new LaserSourceFunction("LaserSourceFunction",
+                                    app_initializer->getComponentDatabase("LaserSourceFunction"),
+                                    enthalpy_hier_integrator,
+                                    ls_var);
 
         HeatFluxCtx heat_flux_ctx;
         heat_flux_ctx.kappa_liquid = kappa_liquid;
@@ -541,8 +541,8 @@ main(int argc, char* argv[])
         heat_flux_ctx.alpha_solid = input_db->getDouble("ALPHA_SOLID");
         heat_flux_ctx.lambda = input_db->getDouble("LAMBDA");
 
-        laser_beam_force->registerHeatFlux(&compute_heat_flux, static_cast<void*>(&heat_flux_ctx));
-        enthalpy_hier_integrator->setEnergyEquationSourceTermFunction(laser_beam_force);
+        laser_source->registerHeatFlux(&compute_heat_flux, static_cast<void*>(&heat_flux_ctx));
+        enthalpy_hier_integrator->setEnergyEquationSourceTermFunction(laser_source);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
