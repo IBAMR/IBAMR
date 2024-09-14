@@ -400,6 +400,7 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
     {
         setDataOnPatchSide(f_sc_data, patch, data_time, initial_time, level);
 
+        PatchSideDataOpsReal<NDIM, double> patch_sc_data_ops;
         if (d_compute_surface_tension_coef)
         {
             // Compute variable surface tension coefficient sigma as F = sigma*F.
@@ -407,7 +408,7 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
             const double current_time = data_time;
             const double new_time = data_time;
             d_compute_surface_tension_coef(data_idx,
-                                           d_hier_math_ops,
+                                           patch,
                                            -1 /*cycle_num*/,
                                            apply_time,
                                            current_time,
@@ -416,7 +417,7 @@ SurfaceTensionForceFunction::setDataOnPatch(const int data_idx,
         }
         else
         {
-            d_hier_sc_data_ops->scale(data_idx, d_sigma, data_idx, /*interior_only*/ true);
+            patch_sc_data_ops.scale(f_sc_data, d_sigma, f_sc_data, patch->getBox());
         }
     }
     return;
