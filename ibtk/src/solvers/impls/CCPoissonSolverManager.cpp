@@ -51,6 +51,8 @@ const std::string CCPoissonSolverManager::PETSC_KRYLOV_SOLVER = "PETSC_KRYLOV_SO
 const std::string CCPoissonSolverManager::DEFAULT_FAC_PRECONDITIONER = "DEFAULT_FAC_PRECONDITIONER";
 const std::string CCPoissonSolverManager::BOX_RELAXATION_FAC_PRECONDITIONER = "BOX_RELAXATION_FAC_PRECONDITIONER";
 const std::string CCPoissonSolverManager::LEVEL_RELAXATION_FAC_PRECONDITIONER = "LEVEL_RELAXATION_FAC_PRECONDITIONER";
+const std::string CCPoissonSolverManager::MP_POINT_RELAXATION_FAC_PRECONDITIONER =
+    "MP_POINT_RELAXATION_FAC_PRECONDITIONER";
 const std::string CCPoissonSolverManager::POINT_RELAXATION_FAC_PRECONDITIONER = "POINT_RELAXATION_FAC_PRECONDITIONER";
 const std::string CCPoissonSolverManager::DEFAULT_LEVEL_SOLVER = "DEFAULT_LEVEL_SOLVER";
 const std::string CCPoissonSolverManager::HYPRE_LEVEL_SOLVER = "HYPRE_LEVEL_SOLVER";
@@ -164,13 +166,16 @@ CCPoissonSolverManager::CCPoissonSolverManager() : d_solver_maker_map()
 {
     registerSolverFactoryFunction(DEFAULT_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
     registerSolverFactoryFunction(PETSC_KRYLOV_SOLVER, allocate_petsc_krylov_solver);
-    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER, CCPoissonPointRelaxationFACOperator::allocate_solver);
+    registerSolverFactoryFunction(DEFAULT_FAC_PRECONDITIONER,
+                                  CCPoissonPointRelaxationFACOperator<double>::allocate_solver);
     registerSolverFactoryFunction(BOX_RELAXATION_FAC_PRECONDITIONER,
                                   CCPoissonBoxRelaxationFACOperator::allocate_solver);
     registerSolverFactoryFunction(LEVEL_RELAXATION_FAC_PRECONDITIONER,
                                   CCPoissonLevelRelaxationFACOperator::allocate_solver);
+    registerSolverFactoryFunction(MP_POINT_RELAXATION_FAC_PRECONDITIONER,
+                                  CCPoissonPointRelaxationFACOperator<float>::allocate_solver);
     registerSolverFactoryFunction(POINT_RELAXATION_FAC_PRECONDITIONER,
-                                  CCPoissonPointRelaxationFACOperator::allocate_solver);
+                                  CCPoissonPointRelaxationFACOperator<double>::allocate_solver);
     registerSolverFactoryFunction(DEFAULT_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(HYPRE_LEVEL_SOLVER, CCPoissonHypreLevelSolver::allocate_solver);
     registerSolverFactoryFunction(PETSC_LEVEL_SOLVER, CCPoissonPETScLevelSolver::allocate_solver);

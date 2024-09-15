@@ -89,7 +89,7 @@ namespace IBTK
  level solver
  \endverbatim
 */
-class SCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy
+class SCPoissonPointRelaxationFACOperator : public PoissonFACPreconditionerStrategy<double>
 {
 public:
     /*!
@@ -112,8 +112,9 @@ public:
                                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy> fac_operator = new SCPoissonPointRelaxationFACOperator(
-            object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
+        SAMRAI::tbox::Pointer<PoissonFACPreconditionerStrategy<double> > fac_operator =
+            new SCPoissonPointRelaxationFACOperator(
+                object_name + "::SCPoissonPointRelaxationFACOperator", input_db, default_options_prefix);
         return new PoissonFACPreconditioner(object_name, fac_operator, input_db, default_options_prefix);
     } // allocate
 
