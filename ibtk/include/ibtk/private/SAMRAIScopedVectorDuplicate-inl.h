@@ -211,6 +211,8 @@ SAMRAIScopedVectorDuplicate<TYPE>::cloneVariable(SAMRAI::hier::Variable<NDIM>* s
         std::string::size_type last_dash = src_var_name.rfind("=");
         new_var_name = d_vector->getName() + "_" + src_var_name.substr(0, last_dash + 1) + src_var_id_string;
     }
+    static unsigned int internal_id = 0;
+    new_var_name += "-internal_id=" + SAMRAI::tbox::Utilities::intToString(src_data_idx, internal_id++);
 
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > dst_variable;
     auto src_variable_cc = dynamic_cast<SAMRAI::pdat::CellVariable<NDIM, SRC_TYPE>*>(src_variable);
