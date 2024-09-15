@@ -28,7 +28,6 @@
 #include "CoarsenAlgorithm.h"
 #include "CoarsenOperator.h"
 #include "CoarsenSchedule.h"
-#include "HierarchyDataOpsManager.h"
 #include "HierarchyDataOpsReal.h"
 #include "LocationIndexRobinBcCoefs.h"
 #include "MultiblockDataTranslator.h"
@@ -391,21 +390,14 @@ PoissonFACPreconditionerStrategy<T>::initializeOperatorState(const SAMRAIVectorR
 
     // Perform implementation-specific initialization.
     initializeOperatorStateSpecialized(solution, rhs, coarsest_reset_ln, finest_reset_ln);
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_bc_op);
-    TBOX_ASSERT(d_cf_bdry_op);
-#endif
 
     // Setup level operators.
     d_level_data_ops.resize(d_finest_ln + 1);
     d_level_bdry_fill_ops.resize(d_finest_ln + 1, nullptr);
     d_level_math_ops.resize(d_finest_ln + 1, nullptr);
-    HierarchyDataOpsManager<NDIM>* hier_data_ops_manager = HierarchyDataOpsManager<NDIM>::getManager();
     for (int ln = std::max(d_coarsest_ln, coarsest_reset_ln); ln <= finest_reset_ln; ++ln)
     {
-        d_level_data_ops[ln] = hier_data_ops_manager->getOperationsDouble(sol_var,
-                                                                          d_hierarchy,
-                                                                          /*get_unique*/ true);
+        d_level_data_ops[ln] = new HierarchyCellDataOpsReal<NDIM, T>(d_hierarchy);
         d_level_data_ops[ln]->resetLevels(ln, ln);
         d_level_bdry_fill_ops[ln].setNull();
         d_level_math_ops[ln].setNull();
@@ -422,16 +414,19 @@ PoissonFACPreconditionerStrategy<T>::initializeOperatorState(const SAMRAIVectorR
     Pointer<CartesianGridGeometry<NDIM> > geometry = d_hierarchy->getGridGeometry();
     d_prolongation_refine_operator = geometry->lookupRefineOperator(sol_var, d_prolongation_method);
     d_restriction_coarsen_operator = geometry->lookupCoarsenOperator(sol_var, d_restriction_method);
-    d_cf_bdry_op->setConsistentInterpolationScheme(false);
-    d_cf_bdry_op->setPatchDataIndex(d_scratch_idx);
-    d_cf_bdry_op->setPatchHierarchy(d_hierarchy);
+    if (d_cf_bdry_op)
+    {
+        d_cf_bdry_op->setConsistentInterpolationScheme(false);
+        d_cf_bdry_op->setPatchDataIndex(d_scratch_idx);
+        d_cf_bdry_op->setPatchHierarchy(d_hierarchy);
+    }
 
     // Make space for saving communication schedules.  There is no need to
     // delete the old schedules first because we have deallocated the solver
     // state above.
     std::vector<RefinePatchStrategy<NDIM>*> prolongation_refine_patch_strategies;
-    prolongation_refine_patch_strategies.push_back(d_cf_bdry_op);
-    prolongation_refine_patch_strategies.push_back(d_bc_op);
+    if (d_cf_bdry_op) prolongation_refine_patch_strategies.push_back(d_cf_bdry_op);
+    if (d_bc_op) prolongation_refine_patch_strategies.push_back(d_bc_op);
     d_prolongation_refine_patch_strategy = new RefinePatchStrategySet(
         prolongation_refine_patch_strategies.begin(), prolongation_refine_patch_strategies.end(), false);
 
@@ -564,10 +559,13 @@ template <class T>
 void
 PoissonFACPreconditionerStrategy<T>::xeqScheduleProlongation(const int dst_idx, const int src_idx, const int dst_ln)
 {
-    d_cf_bdry_op->setPatchDataIndex(dst_idx);
-    d_bc_op->setPatchDataIndex(dst_idx);
-    d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
-    d_bc_op->setHomogeneousBc(true);
+    if (d_cf_bdry_op) d_cf_bdry_op->setPatchDataIndex(dst_idx);
+    if (d_bc_op)
+    {
+        d_bc_op->setPatchDataIndex(dst_idx);
+        d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
+        d_bc_op->setHomogeneousBc(true);
+    }
     for (const auto& bc_coef : d_bc_coefs)
     {
         auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
@@ -606,9 +604,12 @@ template <class T>
 void
 PoissonFACPreconditionerStrategy<T>::xeqScheduleGhostFillNoCoarse(const int dst_idx, const int dst_ln)
 {
-    d_bc_op->setPatchDataIndex(dst_idx);
-    d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
-    d_bc_op->setHomogeneousBc(true);
+    if (d_bc_op)
+    {
+        d_bc_op->setPatchDataIndex(dst_idx);
+        d_bc_op->setPhysicalBcCoefs(d_bc_coefs);
+        d_bc_op->setHomogeneousBc(true);
+    }
     for (const auto& bc_coef : d_bc_coefs)
     {
         auto extended_bc_coef = dynamic_cast<ExtendedRobinBcCoefStrategy*>(bc_coef);
@@ -647,6 +648,7 @@ PoissonFACPreconditionerStrategy<T>::xeqScheduleDataSynch(const int dst_idx, con
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
+template class PoissonFACPreconditionerStrategy<float>;
 template class PoissonFACPreconditionerStrategy<double>;
 
 //////////////////////////////////////////////////////////////////////////////

@@ -92,6 +92,7 @@ PoissonFACPreconditioner<T>::setPhysicalBcCoefs(const std::vector<RobinBcCoefStr
 
 /////////////////////////////// TEMPLATE INSTANTIATION ///////////////////////
 
+template class PoissonFACPreconditioner<float>;
 template class PoissonFACPreconditioner<double>;
 
 //////////////////////////////////////////////////////////////////////////////
