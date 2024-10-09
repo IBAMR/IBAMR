@@ -1,0 +1,4 @@
+/home/mfacci/sfw/ibamr/IBAMR/examples/IIM/parallel_plates/CMakeFiles/rebuild_cache.dir
+/home/mfacci/sfw/ibamr/IBAMR/examples/IIM/parallel_plates/CMakeFiles/edit_cache.dir
+/home/mfacci/sfw/ibamr/IBAMR/examples/IIM/parallel_plates/CMakeFiles/exe.dir
+/home/mfacci/sfw/ibamr/IBAMR/examples/IIM/parallel_plates/CMakeFiles/plates2d.dir
