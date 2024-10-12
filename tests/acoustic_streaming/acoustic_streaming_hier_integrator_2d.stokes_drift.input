@@ -63,10 +63,11 @@ FOPressureExact {
 
    c = C0
    rho0 = RHO0
+   rho1 = RHO1
    omega = OMEGA0
 
-   function_0 = "-((c^2*(X0^5 + 4*X0^3*X1 + 3*rho0*X1^2 + 4*X0^2*X1^3 + 2*X0*(rho0 + X1^3)))/omega)"  // pr
-   function_1 = "(c^2*(2*rho0*X1 + 2*X0*X1^4 + X0^4*(1 + 5*X1) + 3*X0^2*(rho0 + X1^2)))/omega"        // pi
+   function_0 = "-((c^2*(rho0*(2*X0 + 3*X1^2) + rho1*X0*(X0^4 + 4*X0^2*X1 + 2*(1 + 2*X0)*X1^3)))/omega)"         // pr
+   function_1 = "(c^2*(2*rho0*X1 + 2*rho1*X0*X1^4 + X0^4*(rho1 + 5*rho1*X1) + 3*X0^2*(rho0 + rho1*X1^2)))/omega"  // pi
 
 }
 
@@ -90,13 +91,13 @@ F1_fcn {
    omega = OMEGA0
    c     = C0
 
-   function_0 =  "-2*lambda0 - 6*mu0 + omega*(rho0 + X0^2*X1)*(X0^3 + X1^3) + (2*c^2*(X1^4 + 2*X0^3*(1 + 5*X1) + 3*X0*(rho0 + X1^2)))/omega - X0*(mu1*X0*(3*X0^2 + 16*X1) + 6*lambda1*X1*(X0 + X1^2))"   // fur x-component
+   function_0 =  "-2*lambda0 - 6*mu0 + omega*(rho0 + rho1*X0^2*X1)*(X0^3 + X1^3) - X0*(mu1*X0*(3*X0^2 + 16*X1) + 6*lambda1*X1*(X0 + X1^2)) + (2*c^2*(rho1*X1^4 + 2*X0^3*(rho1 + 5*rho1*X1) + 3*X0*(rho0 + rho1*X1^2)))/omega"   // fur x-component
 
-   function_1 = "-6*mu0*X0 - 2*lambda1*X0^3 - 6*(lambda0 + 2*(mu0 + mu1*X0^3))*X1 - X0*(4*mu1 + 9*(lambda1 + 2*mu1)*X0)*X1^2 + omega*(rho0 + X0^2*X1)*(X0^2 + X1^2) + (c^2*(2*rho0 + 5*X0^4 + 6*X0^2*X1 + 8*X0*X1^3))/omega"     // fvr y-component
+   function_1 = "-6*mu0*X0 - 2*lambda1*X0^3 - 6*(lambda0 + 2*(mu0 + mu1*X0^3))*X1 - X0*(4*mu1 + 9*(lambda1 + 2*mu1)*X0)*X1^2 + omega*(rho0 + rho1*X0^2*X1)*(X0^2 + X1^2) + (c^2*(2*rho0 + rho1*X0*(5*X0^3 + 6*X0*X1 + 8*X1^3)))/omega"     // fvr y-component
 
-   function_2 = "-((c^2*(5*X0^4 + 12*X0^2*X1 + 8*X0*X1^3 + 2*(rho0 + X1^3)) + omega*(omega*X0^4*X1 + 2*X0^3*(mu1 + 6*(lambda1 + 2*mu1)*X1) + X1*(6*mu0 + omega*rho0*X1) + 2*X0*(3*lambda0 + 6*mu0 + 2*lambda1*X1^2) + X0^2*(9*mu1*X1^2 + omega*(rho0 + X1^3))))/omega)"   // fui x-component
+   function_2 = "-6*mu0*X1 - 9*mu1*X0^2*X1^2 - 2*X0^3*(mu1 + 6*(lambda1 + 2*mu1)*X1) - omega*(rho0 + rho1*X0^2*X1)*(X0^2 + X1^2) - 2*X0*(3*lambda0 + 6*mu0 + 2*lambda1*X1^2) - (c^2*(2*rho0 + rho1*(5*X0^4 + 12*X0^2*X1 + 2*(1 + 4*X0)*X1^3)))/omega"   // fui x-component
 
-   function_3 = "-2*lambda0 - 6*mu0 - (2*c^2*(2*X0^3 + 3*rho0*X1 + 3*X0*X1^2 + 6*X0^2*X1^2))/omega - omega*(rho0 + X0^2*X1)*(X0^3 + X1^3) - X0*(3*lambda1*X0^3 + 2*(2*lambda1 + 7*mu1)*X0*X1 + 6*mu1*X1^3)"   // fvi y-component
+   function_3 = "-2*lambda0 - 6*mu0 - omega*(rho0 + rho1*X0^2*X1)*(X0^3 + X1^3) - X0*(3*lambda1*X0^3 + 2*(2*lambda1 + 7*mu1)*X0*X1 + 6*mu1*X1^3) - (2*c^2*(2*rho1*X0^3 + 3*X1*(rho0 + rho1*X0*(1 + 2*X0)*X1)))/omega"   // fvi y-component
 
 }
 
@@ -111,9 +112,9 @@ F2_fcn {
    theta = 1.0
    omega = OMEGA0
 
-   function_0 = "(-15*mu1*X0^6 + 2*omega*theta*X0^7*(1 + 4*X1) + 2*X1*(-8*mu0 + omega + 3*lambda0*X1 + 5*omega*rho0*theta*X1^3 + 6*mu0*X1*(1 + 5*X1)) + 2*X0^4*(2*mu1 + 15*lambda1*X1 + 32*mu1*X1 + omega*theta*X1^3*(4 + 5*X1)) + 6*X0^5*(2*mu1*X1 + omega*theta*(rho0 + X1 + X1^2)) + 2*X0^3*(3*mu0 + 2*omega*theta*(rho0 + rho0*X1 + 2*X1^3) + 6*X1^2*(-2*lambda1 + mu1*(-3 + 4*X1))) + 3*X0^2*(6*lambda0 + 12*mu0 + X1^2*(-12*mu1 + 6*lambda1*X1 + mu1*X1*(12 + 25*X1) + 2*omega*theta*(rho0 + rho0*X1 + 2*X1^3))) + 2*X0*X1*(-6*lambda0 - 12*mu0 + 9*mu0*X1 - 6*lambda1*X1^3 - 4*mu1*X1^3 + omega*X1*(2 + theta*(2*rho0 + X1^3 + X1^5))))/(2*omega)"    //fx
+   function_0 = "(-15*mu1*X0^6 + 2*omega*rho1*theta*X0^7*(1 + 4*X1) + 2*X1*(-8*mu0 + omega + 3*lambda0*X1 + 5*omega*rho0*theta*X1^3 + 6*mu0*X1*(1 + 5*X1)) + 2*X0^4*(2*mu1 + 15*lambda1*X1 + 32*mu1*X1 + omega*rho1*theta*X1^3*(4 + 5*X1)) + 6*X0^5*(2*mu1*X1 + omega*theta*(rho0 + rho1*X1*(1 + X1))) + 2*X0^3*(3*mu0 + 2*omega*theta*(rho0 + rho0*X1 + 2*rho1*X1^3) + 6*X1^2*(-2*lambda1 + mu1*(-3 + 4*X1))) + 2*X0*X1*(-6*lambda0 - 12*mu0 + 9*mu0*X1 + 2*(omega + omega*rho0*theta)*X1 + X1^3*(-6*lambda1 - 4*mu1 + omega*rho1*theta*X1*(1 + X1^2))) + 3*X0^2*(6*lambda0 + 12*mu0 + X1^2*(-12*mu1 + 6*lambda1*X1 + 12*mu1*X1 + 25*mu1*X1^2 + 2*omega*theta*(rho0 + rho0*X1 + 2*rho1*X1^3))))/(2*omega)"    //fx
 
-   function_1 = "theta*(rho0*(5*X0^4 + 2*X0^2*X1 + 3*X0^2*(1 + X0)*X1^2 + 2*(1 + X0)*X1^3 + 3*X1^5) + (X0*(X0^5 + X0^7 + 14*X0^5*X1 + 6*X0^3*X1^2 + 2*X0^3*(5 + 4*X0)*X1^3 + X0*(5 + 8*X0)*X1^4 + (4 + 7*X0)*X1^6))/2) + (X0^5*(3*lambda1 + mu1*(2 - 45*X1)) + X0*(8*mu0 + omega + 6*(lambda0 + 2*mu0)*X1 - 4*mu1*X1^3 + 15*mu1*X1^5) - 6*X0^4*X1*(lambda1 + 2*mu1*(1 + X1)) - 3*X1^2*(3*lambda0 + mu0*(6 + X1)) - X0^2*(3*lambda0 + 6*mu0 + 9*mu0*X1 - 2*omega*X1 + X1^3*(12*lambda1 + 34*mu1 + 9*mu1*X1)) + X0^3*(-30*mu0 + X1*(9*lambda1*X1 + 8*mu1*(2 + 3*X1))))/omega"  //fy
+   function_1 = "theta*(rho0*(5*X0^4 + 2*X0^2*X1 + 3*X0^2*(1 + X0)*X1^2 + 2*(1 + X0)*X1^3 + 3*X1^5) + (rho1*X0*(X0^5 + X0^7 + 14*X0^5*X1 + 6*X0^3*X1^2 + 2*X0^3*(5 + 4*X0)*X1^3 + X0*(5 + 8*X0)*X1^4 + (4 + 7*X0)*X1^6))/2) + (X0^5*(3*lambda1 + mu1*(2 - 45*X1)) + X0*(8*mu0 + omega + 6*(lambda0 + 2*mu0)*X1 - 4*mu1*X1^3 + 15*mu1*X1^5) - 6*X0^4*X1*(lambda1 + 2*mu1*(1 + X1)) - 3*X1^2*(3*lambda0 + mu0*(6 + X1)) - X0^2*(3*lambda0 + 6*mu0 + 9*mu0*X1 - 2*omega*X1 + X1^3*(12*lambda1 + 34*mu1 + 9*mu1*X1)) + X0^3*(-30*mu0 + X1*(9*lambda1*X1 + 8*mu1*(2 + 3*X1))))/omega"  //fy
 
 }
 
