@@ -61,7 +61,7 @@ ForceProjector::ForceProjector(const std::string& object_name,
         d_body_force_var = new SideVariable<NDIM, double>(d_object_name + "::BodyForce_sc_var");
     if (d_solver_type == "COLLOCATED")
         d_body_force_var = new CellVariable<NDIM, double>(d_object_name + "::BodyForce_cc_var", NDIM);
-    d_body_force_idx = var_db->registerVariableAndContext(d_body_force_var, d_body_force_context, 0);
+    d_body_force_idx = var_db->registerVariableAndContext(d_body_force_var, d_body_force_context, d_lag_data_manager->getGhostCellWidth());
 
     getFromInput(input_db);
 
