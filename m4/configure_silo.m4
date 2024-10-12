@@ -78,11 +78,11 @@ if test "$SILO_ENABLED" = yes; then
   CPPFLAGS_PREPEND($SILO_CPPFLAGS)
   AC_CHECK_HEADER([silo.h],,AC_MSG_ERROR([Silo enabled but could not find working silo.h]))
 
-  AC_MSG_CHECKING([for Silo version >= 4.9.1])
+  AC_MSG_CHECKING([for Silo version >= 4.11])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <silo.h>
   ]], [[
-#if SILO_VERSION_GE(4,9,1)
+#if SILO_VERSION_GE(4,11,0)
 #else
 asdf
 #endif
@@ -90,8 +90,7 @@ asdf
 
   AC_MSG_RESULT([${SILO_VERSION_VALID}])
   if test "$SILO_VERSION_VALID" = no; then
-    AC_MSG_WARN([Silo versions prior to 4.9.1 are likely to be usable but are not officially supported])
-    AC_MSG_WARN([suggest upgrading to Silo 4.9.1])
+    AC_MSG_ERROR([invalid SILO version detected: please use SILO 4.11 or newer])
   fi
 
   LDFLAGS_PREPEND($SILO_LDFLAGS)
