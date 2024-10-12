@@ -307,7 +307,10 @@ main(int argc, char* argv[])
         Pointer<FEMechanicsExplicitIntegrator> fem_solver =
             new FEMechanicsExplicitIntegrator("FEMechanicsExplicitIntegrator",
                                               app_initializer->getComponentDatabase("FEMechanicsExplicitIntegrator"),
-                                              &beam_mesh);
+                                              &beam_mesh,
+                                              true,
+                                              restart_read_dirname,
+                                              restart_restore_num);
         Pointer<IBFEMethod> ib_method_ops =
             new IBFEMethod("IBFEMethod",
                            app_initializer->getComponentDatabase("IBFEMethod"),
@@ -389,41 +392,35 @@ main(int argc, char* argv[])
 
         // Create systems to copy the positions and velocities between the two representations.
         fem_solver->initializeFEEquationSystems();
+        ib_method_ops->initializeFEEquationSystems();
         auto fem_equation_systems = fem_solver->getEquationSystems();
 
         auto& fem_y_system = fem_equation_systems->add_system<ExplicitSystem>(fem_y_system_name);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            fem_y_system.add_variable("y_" + std::to_string(d), fe_order, fe_family);
-        }
-        fem_y_system.assemble_before_solve = false;
-        fem_y_system.assemble();
-
         auto& fem_v_system = fem_equation_systems->add_system<ExplicitSystem>(fem_v_system_name);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            fem_v_system.add_variable("v_" + std::to_string(d), fe_order, fe_family);
-        }
-        fem_v_system.assemble_before_solve = false;
-        fem_v_system.assemble();
 
-        ib_method_ops->initializeFEEquationSystems();
         auto ibfe_block_equation_systems = ib_method_ops->getEquationSystems(0);
         auto ibfe_beam_equation_systems = ib_method_ops->getEquationSystems(1);
 
         auto& ibfe_y_system = ibfe_beam_equation_systems->add_system<ExplicitSystem>(ibfe_y_system_name);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        auto& ibfe_v_system = ibfe_beam_equation_systems->add_system<ExplicitSystem>(ibfe_v_system_name);
+        const bool from_restart = RestartManager::getManager()->isFromRestart();
+        if (!from_restart)
         {
-            ibfe_y_system.add_variable("y_" + std::to_string(d), fe_order, fe_family);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                fem_y_system.add_variable("y_" + std::to_string(d), fe_order, fe_family);
+                fem_v_system.add_variable("v_" + std::to_string(d), fe_order, fe_family);
+                ibfe_y_system.add_variable("y_" + std::to_string(d), fe_order, fe_family);
+                ibfe_v_system.add_variable("v_" + std::to_string(d), fe_order, fe_family);
+            }
         }
+
+        fem_y_system.assemble_before_solve = false;
+        fem_y_system.assemble();
+        fem_v_system.assemble_before_solve = false;
+        fem_v_system.assemble();
         ibfe_y_system.assemble_before_solve = false;
         ibfe_y_system.assemble();
-
-        auto& ibfe_v_system = ibfe_beam_equation_systems->add_system<ExplicitSystem>(ibfe_v_system_name);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            ibfe_v_system.add_variable("v_" + std::to_string(d), fe_order, fe_family);
-        }
         ibfe_v_system.assemble_before_solve = false;
         ibfe_v_system.assemble();
 
@@ -487,7 +484,6 @@ main(int argc, char* argv[])
         // Check to see if this is a restarted run to append current exodus files
         if (uses_exodus)
         {
-            const bool from_restart = RestartManager::getManager()->isFromRestart();
             block_exodus_io->append(from_restart);
             beam_exodus_io->append(from_restart);
         }
@@ -652,6 +648,7 @@ main(int argc, char* argv[])
                 pout << "\nWriting restart files...\n\n";
                 RestartManager::getManager()->writeRestartFile(restart_dump_dirname, iteration_num);
                 ib_method_ops->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
+                fem_solver->writeFEDataToRestartFile(restart_dump_dirname, iteration_num);
             }
             if (dump_timer_data && (iteration_num % timer_dump_interval == 0 || last_step))
             {
