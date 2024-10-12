@@ -14,7 +14,8 @@
 include $(top_srcdir)/config/Make-rules
 
 EXTRA_PROGRAMS = fo_acoustic_streaming_solver_2d fo_acoustic_streaming_solver_3d \
-acoustic_streaming_hier_integrator_2d acoustic_streaming_hier_integrator_3d
+acoustic_streaming_hier_integrator_2d acoustic_streaming_hier_integrator_3d \
+so_boundary_conditions_2d
 
 fo_acoustic_streaming_solver_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 fo_acoustic_streaming_solver_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
@@ -31,6 +32,10 @@ acoustic_streaming_hier_integrator_2d_SOURCES = acoustic_streaming_hier_integrat
 acoustic_streaming_hier_integrator_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 acoustic_streaming_hier_integrator_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 acoustic_streaming_hier_integrator_3d_SOURCES = acoustic_streaming_hier_integrator.cpp
+
+so_boundary_conditions_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+so_boundary_conditions_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+so_boundary_conditions_2d_SOURCES = so_boundary_conditions.cpp
 
 tests: $(EXTRA_PROGRAMS)
 	if test "$(top_srcdir)" != "$(top_builddir)" ; then \

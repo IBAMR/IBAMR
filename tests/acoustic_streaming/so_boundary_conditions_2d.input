@@ -1,0 +1,122 @@
+N = 64
+
+U1Real = "X0^3 + X1^3"
+V1Real = "X1^2 + X0^2"
+U1Imag = "(X0^2 + X1^2)"
+V1Imag = "(X1^3 + X0^3)"
+
+// U1r velocity
+FOVelocityRealBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = U1Real
+   gcoef_function_1 = U1Real
+   gcoef_function_2 = U1Real
+   gcoef_function_3 = U1Real
+
+}
+
+// V1r velocity
+FOVelocityRealBcCoefs_1 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = V1Real
+   gcoef_function_1 = V1Real
+   gcoef_function_2 = V1Real
+   gcoef_function_3 = V1Real
+
+}
+
+// U1i velocity
+FOVelocityImagBcCoefs_0 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = U1Imag
+   gcoef_function_1 = U1Imag
+   gcoef_function_2 = U1Imag
+   gcoef_function_3 = U1Imag
+
+}
+
+// V1i velocity
+FOVelocityImagBcCoefs_1 {
+
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "1.0"
+
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "0.0"
+
+   gcoef_function_0 = V1Imag
+   gcoef_function_1 = V1Imag
+   gcoef_function_2 = V1Imag
+   gcoef_function_3 = V1Imag
+
+}
+
+
+Main {
+// log file parameters
+   log_file_name = "so_boundary_conditions_2d.output"
+   log_all_nodes = FALSE
+
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+}
+
+CartesianGeometry {
+   domain_boxes       = [(0,0), (N - 1,N - 1)]
+   x_lo               = 0, 0  // lower end of computational domain.
+   x_up               = 1, 1  // upper end of computational domain.
+   periodic_dimension = 0, 0
+}
+
+GriddingAlgorithm {
+   max_levels = 1
+
+   largest_patch_size {
+      level_0 = N, N
+   }
+
+   smallest_patch_size {
+      level_0 =   4,   4
+   }
+}
+
+StandardTagAndInitialize {
+}
+
+LoadBalancer {
+}
