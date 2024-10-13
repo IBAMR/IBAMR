@@ -96,6 +96,7 @@ SETUP_3D(acoustic_streaming fo_acoustic_streaming_solver.cpp)
 SETUP_2D(acoustic_streaming acoustic_streaming_hier_integrator.cpp)
 SETUP_3D(acoustic_streaming acoustic_streaming_hier_integrator.cpp)
 SETUP_2D(acoustic_streaming so_boundary_conditions.cpp)
+SETUP_2D(acoustic_streaming sd_mass_src.cpp)
 
 # adv_diff:
 SETUP_2D(adv_diff adv_diff_02.cpp)

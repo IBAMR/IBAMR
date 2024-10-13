@@ -1,9 +1,21 @@
 N = 64
+RHO0 = 10.0
+RHO1 = 1.0
+OMEGA = 1.0
 
 U1Real = "X0^3 + X1^3"
 V1Real = "X1^2 + X0^2"
 U1Imag = "(X0^2 + X1^2)"
 V1Imag = "(X1^3 + X0^3)"
+
+
+MassSrc_fcn  {
+
+     rho0 = RHO0
+     rho1 = RHO1
+     omega = OMEGA
+     function = "(6*rho0*(X0 - X1)*(X0^2 + X1^2) + rho1*X0*(2*X0^4 - 3*X0^6 + 10*X0^4*X1 - X0^2*(2 + 9*X0)*X1^2 + 3*X0^2*(4 + X0)*X1^3 - (4 + 11*X0)*X1^4 + 6*X1^6))/(2*omega)"
+}
 
 // U1r velocity
 FOVelocityRealBcCoefs_0 {
@@ -85,10 +97,47 @@ FOVelocityImagBcCoefs_1 {
 
 }
 
+DensityBcCoefs_0 {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
+
+DensityBcCoefs_1 {
+
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "0.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "1.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+
+}
 
 Main {
 // log file parameters
-   log_file_name = "so_boundary_conditions_2d.log"
+   log_file_name = "so_boundary_conditions_2d.output"
    log_all_nodes = FALSE
 
    viz_writer = "VisIt"

@@ -1981,7 +1981,7 @@ AcousticStreamingHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     d_P2_bdry_bc_fill_op->initializeOperatorState(P2_bc_component, d_hierarchy);
 
     InterpolationTransactionComponent mu_bc_component(
-        d_mu_scratch_idx, d_mu_refine_type, false, d_mu_coarsen_type, d_mu_bdry_extrap_type, false, d_mu_bc_coef);
+        d_mu_scratch_idx, d_mu_refine_type, true, d_mu_coarsen_type, d_mu_bdry_extrap_type, false, d_mu_bc_coef);
     d_mu_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_mu_bdry_bc_fill_op->initializeOperatorState(mu_bc_component, d_hierarchy);
 
@@ -1989,7 +1989,7 @@ AcousticStreamingHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     {
         InterpolationTransactionComponent lambda_bc_component(d_lambda_scratch_idx,
                                                               d_lambda_refine_type,
-                                                              false,
+                                                              true,
                                                               d_lambda_coarsen_type,
                                                               d_lambda_bdry_extrap_type,
                                                               false,
@@ -1999,7 +1999,7 @@ AcousticStreamingHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
     }
 
     InterpolationTransactionComponent rho_bc_component(
-        d_rho_scratch_idx, d_rho_refine_type, false, d_rho_coarsen_type, d_rho_bdry_extrap_type, false, d_rho_bc_coefs);
+        d_rho_scratch_idx, d_rho_refine_type, true, d_rho_coarsen_type, d_rho_bdry_extrap_type, false, d_rho_bc_coefs);
     d_rho_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
     d_rho_bdry_bc_fill_op->initializeOperatorState(rho_bc_component, d_hierarchy);
 
@@ -2194,7 +2194,7 @@ AcousticStreamingHierarchyIntegrator::setupPlotDataSpecialized()
             d_p1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
         comp_transactions[4] = InterpolationTransactionComponent(d_rho_linear_op_idx,
                                                                  d_rho_refine_type,
-                                                                 false,
+                                                                 true,
                                                                  d_rho_coarsen_type,
                                                                  d_rho_bdry_extrap_type,
                                                                  false,
@@ -2915,7 +2915,7 @@ AcousticStreamingHierarchyIntegrator::computeCouplingSourceTerms(Pointer<SAMRAIV
         d_p1_imag_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "QUADRATIC", false, nullptr);
     comp_transactions[4] = InterpolationTransactionComponent(d_rho_linear_op_idx,
                                                              d_rho_refine_type,
-                                                             false,
+                                                             true,
                                                              d_rho_coarsen_type,
                                                              d_rho_bdry_extrap_type,
                                                              false,
