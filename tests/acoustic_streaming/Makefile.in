@@ -91,7 +91,7 @@ EXTRA_PROGRAMS = fo_acoustic_streaming_solver_2d$(EXEEXT) \
 	fo_acoustic_streaming_solver_3d$(EXEEXT) \
 	acoustic_streaming_hier_integrator_2d$(EXEEXT) \
 	acoustic_streaming_hier_integrator_3d$(EXEEXT) \
-	so_boundary_conditions_2d$(EXEEXT)
+	so_boundary_conditions_2d$(EXEEXT) sd_mass_src_2d$(EXEEXT)
 subdir = tests/acoustic_streaming
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -163,6 +163,13 @@ fo_acoustic_streaming_solver_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(fo_acoustic_streaming_solver_3d_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_sd_mass_src_2d_OBJECTS = sd_mass_src_2d-sd_mass_src.$(OBJEXT)
+sd_mass_src_2d_OBJECTS = $(am_sd_mass_src_2d_OBJECTS)
+sd_mass_src_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+sd_mass_src_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(sd_mass_src_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_so_boundary_conditions_2d_OBJECTS =  \
 	so_boundary_conditions_2d-so_boundary_conditions.$(OBJEXT)
 so_boundary_conditions_2d_OBJECTS =  \
@@ -191,6 +198,7 @@ am__depfiles_remade = ./$(DEPDIR)/acoustic_streaming_hier_integrator_2d-acoustic
 	./$(DEPDIR)/acoustic_streaming_hier_integrator_3d-acoustic_streaming_hier_integrator.Po \
 	./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po \
 	./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po \
+	./$(DEPDIR)/sd_mass_src_2d-sd_mass_src.Po \
 	./$(DEPDIR)/so_boundary_conditions_2d-so_boundary_conditions.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -215,12 +223,12 @@ SOURCES = $(acoustic_streaming_hier_integrator_2d_SOURCES) \
 	$(acoustic_streaming_hier_integrator_3d_SOURCES) \
 	$(fo_acoustic_streaming_solver_2d_SOURCES) \
 	$(fo_acoustic_streaming_solver_3d_SOURCES) \
-	$(so_boundary_conditions_2d_SOURCES)
+	$(sd_mass_src_2d_SOURCES) $(so_boundary_conditions_2d_SOURCES)
 DIST_SOURCES = $(acoustic_streaming_hier_integrator_2d_SOURCES) \
 	$(acoustic_streaming_hier_integrator_3d_SOURCES) \
 	$(fo_acoustic_streaming_solver_2d_SOURCES) \
 	$(fo_acoustic_streaming_solver_3d_SOURCES) \
-	$(so_boundary_conditions_2d_SOURCES)
+	$(sd_mass_src_2d_SOURCES) $(so_boundary_conditions_2d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -521,6 +529,9 @@ acoustic_streaming_hier_integrator_3d_SOURCES = acoustic_streaming_hier_integrat
 so_boundary_conditions_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 so_boundary_conditions_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 so_boundary_conditions_2d_SOURCES = so_boundary_conditions.cpp
+sd_mass_src_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+sd_mass_src_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+sd_mass_src_2d_SOURCES = sd_mass_src.cpp
 all: all-am
 
 .SUFFIXES:
@@ -572,6 +583,10 @@ fo_acoustic_streaming_solver_3d$(EXEEXT): $(fo_acoustic_streaming_solver_3d_OBJE
 	@rm -f fo_acoustic_streaming_solver_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(fo_acoustic_streaming_solver_3d_LINK) $(fo_acoustic_streaming_solver_3d_OBJECTS) $(fo_acoustic_streaming_solver_3d_LDADD) $(LIBS)
 
+sd_mass_src_2d$(EXEEXT): $(sd_mass_src_2d_OBJECTS) $(sd_mass_src_2d_DEPENDENCIES) $(EXTRA_sd_mass_src_2d_DEPENDENCIES) 
+	@rm -f sd_mass_src_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(sd_mass_src_2d_LINK) $(sd_mass_src_2d_OBJECTS) $(sd_mass_src_2d_LDADD) $(LIBS)
+
 so_boundary_conditions_2d$(EXEEXT): $(so_boundary_conditions_2d_OBJECTS) $(so_boundary_conditions_2d_DEPENDENCIES) $(EXTRA_so_boundary_conditions_2d_DEPENDENCIES) 
 	@rm -f so_boundary_conditions_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(so_boundary_conditions_2d_LINK) $(so_boundary_conditions_2d_OBJECTS) $(so_boundary_conditions_2d_LDADD) $(LIBS)
@@ -586,6 +601,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acoustic_streaming_hier_integrator_3d-acoustic_streaming_hier_integrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sd_mass_src_2d-sd_mass_src.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/so_boundary_conditions_2d-so_boundary_conditions.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
@@ -673,6 +689,20 @@ fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.obj: fo_acoustic_st
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='fo_acoustic_streaming_solver.cpp' object='fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(fo_acoustic_streaming_solver_3d_CXXFLAGS) $(CXXFLAGS) -c -o fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.obj `if test -f 'fo_acoustic_streaming_solver.cpp'; then $(CYGPATH_W) 'fo_acoustic_streaming_solver.cpp'; else $(CYGPATH_W) '$(srcdir)/fo_acoustic_streaming_solver.cpp'; fi`
+
+sd_mass_src_2d-sd_mass_src.o: sd_mass_src.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sd_mass_src_2d_CXXFLAGS) $(CXXFLAGS) -MT sd_mass_src_2d-sd_mass_src.o -MD -MP -MF $(DEPDIR)/sd_mass_src_2d-sd_mass_src.Tpo -c -o sd_mass_src_2d-sd_mass_src.o `test -f 'sd_mass_src.cpp' || echo '$(srcdir)/'`sd_mass_src.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sd_mass_src_2d-sd_mass_src.Tpo $(DEPDIR)/sd_mass_src_2d-sd_mass_src.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='sd_mass_src.cpp' object='sd_mass_src_2d-sd_mass_src.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sd_mass_src_2d_CXXFLAGS) $(CXXFLAGS) -c -o sd_mass_src_2d-sd_mass_src.o `test -f 'sd_mass_src.cpp' || echo '$(srcdir)/'`sd_mass_src.cpp
+
+sd_mass_src_2d-sd_mass_src.obj: sd_mass_src.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sd_mass_src_2d_CXXFLAGS) $(CXXFLAGS) -MT sd_mass_src_2d-sd_mass_src.obj -MD -MP -MF $(DEPDIR)/sd_mass_src_2d-sd_mass_src.Tpo -c -o sd_mass_src_2d-sd_mass_src.obj `if test -f 'sd_mass_src.cpp'; then $(CYGPATH_W) 'sd_mass_src.cpp'; else $(CYGPATH_W) '$(srcdir)/sd_mass_src.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/sd_mass_src_2d-sd_mass_src.Tpo $(DEPDIR)/sd_mass_src_2d-sd_mass_src.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='sd_mass_src.cpp' object='sd_mass_src_2d-sd_mass_src.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(sd_mass_src_2d_CXXFLAGS) $(CXXFLAGS) -c -o sd_mass_src_2d-sd_mass_src.obj `if test -f 'sd_mass_src.cpp'; then $(CYGPATH_W) 'sd_mass_src.cpp'; else $(CYGPATH_W) '$(srcdir)/sd_mass_src.cpp'; fi`
 
 so_boundary_conditions_2d-so_boundary_conditions.o: so_boundary_conditions.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(so_boundary_conditions_2d_CXXFLAGS) $(CXXFLAGS) -MT so_boundary_conditions_2d-so_boundary_conditions.o -MD -MP -MF $(DEPDIR)/so_boundary_conditions_2d-so_boundary_conditions.Tpo -c -o so_boundary_conditions_2d-so_boundary_conditions.o `test -f 'so_boundary_conditions.cpp' || echo '$(srcdir)/'`so_boundary_conditions.cpp
@@ -823,6 +853,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/acoustic_streaming_hier_integrator_3d-acoustic_streaming_hier_integrator.Po
 	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po
 	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po
+	-rm -f ./$(DEPDIR)/sd_mass_src_2d-sd_mass_src.Po
 	-rm -f ./$(DEPDIR)/so_boundary_conditions_2d-so_boundary_conditions.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
@@ -873,6 +904,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/acoustic_streaming_hier_integrator_3d-acoustic_streaming_hier_integrator.Po
 	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po
 	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po
+	-rm -f ./$(DEPDIR)/sd_mass_src_2d-sd_mass_src.Po
 	-rm -f ./$(DEPDIR)/so_boundary_conditions_2d-so_boundary_conditions.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic

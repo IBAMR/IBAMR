@@ -336,9 +336,6 @@ main(int argc, char* argv[])
                         }
                         weighted_sum += error * area;
                         normal_area += area;
-                        plog << "normal error of component  " << bdry_normal_axis << " at location idx  "
-                             << location_index << " is = " << error << std::endl
-                             << std::flush;
                     }
                 }
             }
@@ -469,9 +466,6 @@ main(int argc, char* argv[])
                                 }
                                 weighted_sum += error * area;
                                 tangential_area += area;
-                                plog << "tangential error of component " << axis << " at location idx  "
-                                     << location_index << " is = " << error << std::endl
-                                     << std::flush;
                             }
                         }
                     }
@@ -485,16 +479,12 @@ main(int argc, char* argv[])
         normal_area = IBTK_MPI::sumReduction(normal_area);
         tangential_area = IBTK_MPI::sumReduction(tangential_area);
 
-        pout << "total error is = " << weighted_sum << "\n";
-        pout << "normal surface area is = " << normal_area << "\n";
-        pout << "tangential surface area is = " << tangential_area << "\n";
-
         if (IBTK_MPI::getRank() == 0)
         {
             std::ofstream out("output");
-            out << "total error is = " << weighted_sum << "\n";
-            out << "normal surface area is = " << normal_area << "\n";
-            out << "tangential surface area is = " << tangential_area << "\n";
+            out << "total error is = " << weighted_sum << "\n"
+                << "normal surface area is = " << normal_area << "\n"
+                << "tangential surface area is = " << tangential_area << "\n";
         }
 
     } // cleanup dynamically allocated objects prior to shutdown
