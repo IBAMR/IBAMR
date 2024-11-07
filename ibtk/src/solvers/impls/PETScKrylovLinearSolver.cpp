@@ -348,8 +348,9 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     ierr = KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
     IBTK_CHKERRQ(ierr);
 
-    // Configure the nullspace object.
+    // Configure the nullspace objects.
     resetMatNullspace();
+    resetMatNearNullspace();
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
@@ -388,8 +389,9 @@ PETScKrylovLinearSolver::deallocateSolverState()
     free_vector_components(*d_b);
     d_b.setNull();
 
-    // Deallocate the nullspace object.
+    // Deallocate the nullspace objects.
     deallocateNullspaceData();
+    deallocateNearNullspaceData();
 
     // Destroy the KSP solver.
     if (d_managing_petsc_ksp)
@@ -666,6 +668,34 @@ PETScKrylovLinearSolver::resetMatNullspace()
 } // resetMatNullspace
 
 void
+PETScKrylovLinearSolver::resetMatNearNullspace()
+{
+    if (!d_petsc_ksp) return;
+
+    int ierr;
+    if (!d_near_nullspace_basis_vecs.empty())
+    {
+        d_petsc_near_nullspace_basis_vecs.resize(d_near_nullspace_basis_vecs.size());
+        for (unsigned int k = 0; k < d_near_nullspace_basis_vecs.size(); ++k)
+        {
+            d_petsc_near_nullspace_basis_vecs[k] =
+                PETScSAMRAIVectorReal::createPETScVector(d_near_nullspace_basis_vecs[k], d_petsc_comm);
+        }
+
+        static const PetscBool has_cnst = PETSC_FALSE;
+        ierr = MatNullSpaceCreate(d_petsc_comm,
+                                  has_cnst,
+                                  static_cast<int>(d_petsc_near_nullspace_basis_vecs.size()),
+                                  &d_petsc_near_nullspace_basis_vecs[0],
+                                  &d_petsc_near_nullsp);
+        IBTK_CHKERRQ(ierr);
+        ierr = MatSetNearNullSpace(d_petsc_mat, d_petsc_near_nullsp);
+        IBTK_CHKERRQ(ierr);
+    }
+    return;
+} // resetMatNearNullspace
+
+void
 PETScKrylovLinearSolver::deallocateNullspaceData()
 {
     // Deallocate PETSc data structures.
@@ -700,6 +730,30 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
     d_nullspace_constant_vec.setNull();
     return;
 } // deallocateNullspaceData
+
+void
+PETScKrylovLinearSolver::deallocateNearNullspaceData()
+{
+    // Deallocate PETSc data structures.
+    if (d_petsc_near_nullsp)
+    {
+        int ierr = MatNullSpaceDestroy(&d_petsc_near_nullsp);
+        IBTK_CHKERRQ(ierr);
+        d_petsc_near_nullsp = nullptr;
+        if (d_petsc_mat)
+        {
+            ierr = MatSetNearNullSpace(d_petsc_mat, nullptr);
+            IBTK_CHKERRQ(ierr);
+        }
+    }
+    for (const auto& petsc_near_nullspace_basis_vec : d_petsc_near_nullspace_basis_vecs)
+    {
+        PETScSAMRAIVectorReal::destroyPETScVector(petsc_near_nullspace_basis_vec);
+    }
+    d_petsc_near_nullspace_basis_vecs.clear();
+
+    return;
+} // deallocateNearNullspaceData
 
 PetscErrorCode
 PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)

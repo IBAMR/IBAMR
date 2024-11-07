@@ -29,6 +29,7 @@
 #include "ibtk/CartSideDoubleRT0Refine.h"
 #include "ibtk/CartSideDoubleSpecializedLinearRefine.h"
 #include "ibtk/IBTK_MPI.h"
+#include "ibtk/NormOps.h"
 #include "ibtk/PETScKrylovPoissonSolver.h"
 #include "ibtk/VCSCViscousDilatationalOperator.h"
 #include "ibtk/VCSCViscousDilatationalPETScLevelSolver.h"
@@ -1559,12 +1560,12 @@ void
 AcousticStreamingHierarchyIntegrator::removeSecondOrderNullSpace(
     const Pointer<SAMRAIVectorReal<NDIM, double> >& sol2_vec)
 {
-    if (d_nul2_vecs.empty()) return;
-    for (const auto& nul2_vec : d_nul2_vecs)
+    if (d_null2_vecs.empty()) return;
+    for (const auto& null2_vec : d_null2_vecs)
     {
-        const double sol2_dot_nul2 = sol2_vec->dot(nul2_vec);
-        const double nul2_L2_norm_square = nul2_vec->dot(nul2_vec);
-        sol2_vec->axpy(-sol2_dot_nul2 / nul2_L2_norm_square, nul2_vec, sol2_vec);
+        const double sol2_dot_null2 = sol2_vec->dot(null2_vec);
+        const double null2_L2_norm_square = null2_vec->dot(null2_vec);
+        sol2_vec->axpy(-sol2_dot_null2 / null2_L2_norm_square, null2_vec, sol2_vec);
     }
     return;
 } // removeSecondOrderNullSpace
@@ -2236,6 +2237,7 @@ AcousticStreamingHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database>
     db->putDouble("cfl_max", d_cfl_max);
     db->putBool("normalize_pressure", d_normalize_pressure);
     db->putBool("normalize_velocity", d_normalize_velocity);
+    db->putBool("has_rigid_body_nullspace", d_has_rigid_body_nullspace);
     db->putBool("coupled_system", d_coupled_system);
     db->putBool("stokes_drift_bc", d_use_stokes_drift_bc);
     db->putBool("stokes_drift_mass_src", d_use_stokes_drift_mass_src);
@@ -2274,6 +2276,8 @@ AcousticStreamingHierarchyIntegrator::getFromInput(Pointer<Database> input_db, c
 
         if (input_db->keyExists("normalize_pressure")) d_normalize_pressure = input_db->getBool("normalize_pressure");
         if (input_db->keyExists("normalize_velocity")) d_normalize_velocity = input_db->getBool("normalize_velocity");
+        if (input_db->keyExists("has_rigid_body_nullspace"))
+            d_has_rigid_body_nullspace = input_db->getBool("has_rigid_body_nullspace");
         if (input_db->keyExists("explicitly_remove_nullspace"))
             d_explicitly_remove_so_nullspace = input_db->getBool("explicitly_remove_nullspace");
         else if (input_db->keyExists("explicitly_remove_so_nullspace"))
@@ -2438,6 +2442,7 @@ AcousticStreamingHierarchyIntegrator::getFromRestart()
 
     d_normalize_pressure = db->getBool("normalize_pressure");
     d_normalize_velocity = db->getBool("normalize_velocity");
+    d_has_rigid_body_nullspace = db->getBool("has_rigid_body_nullspace");
     d_explicitly_remove_so_nullspace = db->getBool("explicitly_remove_nullspace");
 
     d_coupled_system = db->getBool("coupled_system");
@@ -2458,6 +2463,7 @@ AcousticStreamingHierarchyIntegrator::preprocessOperatorsAndSolvers(const double
     // Setup solver vectors for the second order system.
     const bool has_velocity_nullspace = d_normalize_velocity;
     const bool has_pressure_nullspace = d_normalize_pressure;
+    const bool has_velocity_near_nullspace = d_has_rigid_body_nullspace;
     if (d_vectors_need_init)
     {
         // Vectors for the first-order system
@@ -2496,42 +2502,43 @@ AcousticStreamingHierarchyIntegrator::preprocessOperatorsAndSolvers(const double
         const int P2_rhs_idx = d_P2_rhs_vec->getComponentDescriptorIndex(0);
         d_rhs2_vec->addComponent(d_P2_var, P2_rhs_idx, wgt_cc_idx, d_hier_cc_data_ops);
 
-        for (const auto& nul2_vec : d_nul2_vecs)
+        for (const auto& null2_vec : d_null2_vecs)
         {
-            if (nul2_vec) free_vector_components(*nul2_vec);
+            if (null2_vec) free_vector_components(*null2_vec);
         }
-        const int n_nul2_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
-        d_nul2_vecs.resize(n_nul2_vecs);
+        const int n_null2_vecs = (has_pressure_nullspace ? 1 : 0) + (has_velocity_nullspace ? NDIM : 0);
+        d_null2_vecs.resize(n_null2_vecs);
 
-        for (const auto& U2_nul_vec : d_U2_nul_vecs)
+        for (const auto& U2_null_vec : d_U2_null_vecs)
         {
-            if (U2_nul_vec) free_vector_components(*U2_nul_vec);
+            if (U2_null_vec) free_vector_components(*U2_null_vec);
         }
-        const int n_U2_nul_vecs = (has_velocity_nullspace ? NDIM : 0);
-        d_U2_nul_vecs.resize(n_U2_nul_vecs);
+        const int n_U2_null_vecs = (has_velocity_nullspace ? NDIM : 0);
+        d_U2_null_vecs.resize(n_U2_null_vecs);
 
         if (has_velocity_nullspace)
         {
             for (unsigned int k = 0; k < NDIM; ++k)
             {
-                d_nul2_vecs[k] = d_sol2_vec->cloneVector(d_object_name + "::nul2_vec_U_" + std::to_string(k));
-                d_nul2_vecs[k]->allocateVectorData(current_time);
-                d_nul2_vecs[k]->setToScalar(0.0);
-                d_U2_nul_vecs[k] = d_U2_scratch_vec->cloneVector(d_object_name + "::U2_nul_vec_U_" + std::to_string(k));
-                d_U2_nul_vecs[k]->allocateVectorData(current_time);
-                d_U2_nul_vecs[k]->setToScalar(0.0);
+                d_null2_vecs[k] = d_sol2_vec->cloneVector(d_object_name + "::null2_vec_U_" + std::to_string(k));
+                d_null2_vecs[k]->allocateVectorData(current_time);
+                d_null2_vecs[k]->setToScalar(0.0);
+                d_U2_null_vecs[k] =
+                    d_U2_scratch_vec->cloneVector(d_object_name + "::U2_null_vec_U_" + std::to_string(k));
+                d_U2_null_vecs[k]->allocateVectorData(current_time);
+                d_U2_null_vecs[k]->setToScalar(0.0);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
                     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
                     for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                     {
                         Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                        Pointer<SideData<NDIM, double> > nul2_data =
-                            patch->getPatchData(d_nul2_vecs[k]->getComponentDescriptorIndex(0));
-                        nul2_data->getArrayData(k).fillAll(1.0);
-                        Pointer<SideData<NDIM, double> > U2_nul_data =
-                            patch->getPatchData(d_U2_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        U2_nul_data->getArrayData(k).fillAll(1.0);
+                        Pointer<SideData<NDIM, double> > null2_data =
+                            patch->getPatchData(d_null2_vecs[k]->getComponentDescriptorIndex(0));
+                        null2_data->getArrayData(k).fillAll(1.0);
+                        Pointer<SideData<NDIM, double> > U2_null_data =
+                            patch->getPatchData(d_U2_null_vecs[k]->getComponentDescriptorIndex(0));
+                        U2_null_data->getArrayData(k).fillAll(1.0);
                     }
                 }
             }
@@ -2539,12 +2546,163 @@ AcousticStreamingHierarchyIntegrator::preprocessOperatorsAndSolvers(const double
 
         if (has_pressure_nullspace)
         {
-            d_nul2_vecs.back() = d_sol2_vec->cloneVector(d_object_name + "::nul2_vec_p");
-            d_nul2_vecs.back()->allocateVectorData(current_time);
-            d_hier_sc_data_ops->setToScalar(d_nul2_vecs.back()->getComponentDescriptorIndex(0), 0.0);
-            d_hier_cc_data_ops->setToScalar(d_nul2_vecs.back()->getComponentDescriptorIndex(1), 1.0);
+            d_null2_vecs.back() = d_sol2_vec->cloneVector(d_object_name + "::null2_vec_p");
+            d_null2_vecs.back()->allocateVectorData(current_time);
+            d_hier_sc_data_ops->setToScalar(d_null2_vecs.back()->getComponentDescriptorIndex(0), 0.0);
+            d_hier_cc_data_ops->setToScalar(d_null2_vecs.back()->getComponentDescriptorIndex(1), 1.0);
         }
 
+        for (const auto& U2_near_null_vec : d_U2_near_null_vecs)
+        {
+            if (U2_near_null_vec) free_vector_components(*U2_near_null_vec);
+        }
+        const int rigid_modes = NDIM * (NDIM + 1) / 2;
+        const int n_U2_near_null_vecs = (has_velocity_near_nullspace ? rigid_modes : 0);
+        d_U2_near_null_vecs.resize(n_U2_near_null_vecs);
+
+        if (has_velocity_near_nullspace)
+        {
+            // Set the rigid body translation nullspace
+            for (unsigned int k = 0; k < NDIM; ++k)
+            {
+                d_U2_near_null_vecs[k] =
+                    d_U2_scratch_vec->cloneVector(d_object_name + "::U2_near_null_vec_U_" + std::to_string(k));
+                d_U2_near_null_vecs[k]->allocateVectorData(current_time);
+                d_U2_near_null_vecs[k]->setToScalar(0.0);
+                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+                {
+                    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        Pointer<SideData<NDIM, double> > U2_near_null_data =
+                            patch->getPatchData(d_U2_near_null_vecs[k]->getComponentDescriptorIndex(0));
+                        U2_near_null_data->getArrayData(k).fillAll(1.0);
+                    }
+                }
+                const double norm = NormOps::L2Norm(d_U2_near_null_vecs[k].getPointer());
+                d_U2_near_null_vecs[k]->scale(1.0 / norm, d_U2_near_null_vecs[k]);
+            }
+
+            // Set the rigid body rotational nullspace
+#if (NDIM == 2)
+            d_U2_near_null_vecs[2] = d_U2_scratch_vec->cloneVector(d_object_name + "::U2_near_null_vec_W2");
+            d_U2_near_null_vecs[2]->allocateVectorData(current_time);
+            d_U2_near_null_vecs[2]->setToScalar(0.0);
+
+            for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<SideData<NDIM, double> > U2_near_null_data =
+                        patch->getPatchData(d_U2_near_null_vecs[2]->getComponentDescriptorIndex(0));
+
+                    const Box<NDIM>& patch_box = patch->getBox();
+                    const hier::Index<NDIM>& patch_lower = patch_box.lower();
+                    Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                    const double* const XLower = pgeom->getXLower();
+                    const double* const dx = pgeom->getDx();
+
+                    std::array<double, NDIM> posn;
+
+                    for (unsigned int axis = 0; axis < NDIM; ++axis)
+                    {
+                        for (SideIterator<NDIM> ic(patch_box, axis); ic; ic++)
+                        {
+                            const SideIndex<NDIM>& i = ic();
+                            for (unsigned int d = 0; d < NDIM; ++d)
+                            {
+                                if (d == axis)
+                                {
+                                    posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
+                                }
+                                else
+                                {
+                                    posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                                }
+                            }
+
+                            (*U2_near_null_data)(i) = (axis == 0) ? -posn[1] : posn[0];
+                        }
+                    }
+                }
+            }
+#else
+            for (unsigned int k = NDIM; k < rigid_modes; ++k)
+            {
+                d_U2_near_null_vecs[k] =
+                    d_U2_scratch_vec->cloneVector(d_object_name + "::U2_near_null_vec_W_" + std::to_string(k - 3));
+                d_U2_near_null_vecs[k]->allocateVectorData(current_time);
+                d_U2_near_null_vecs[k]->setToScalar(0.0);
+
+                for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+                {
+                    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+                    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                    {
+                        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                        Pointer<SideData<NDIM, double> > U2_near_null_data =
+                            patch->getPatchData(d_U2_near_null_vecs[k]->getComponentDescriptorIndex(0));
+
+                        const Box<NDIM>& patch_box = patch->getBox();
+                        const hier::Index<NDIM>& patch_lower = patch_box.lower();
+                        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+                        const double* const XLower = pgeom->getXLower();
+                        const double* const dx = pgeom->getDx();
+
+                        std::array<double, NDIM> posn;
+                        for (unsigned int axis = 0; axis < NDIM; ++axis)
+                        {
+                            for (SideIterator<NDIM> ic(patch_box, axis); ic; ic++)
+                            {
+                                const SideIndex<NDIM>& i = ic();
+                                for (unsigned int d = 0; d < NDIM; ++d)
+                                {
+                                    if (d == axis)
+                                    {
+                                        posn[d] = XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)));
+                                    }
+                                    else
+                                    {
+                                        posn[d] =
+                                            XLower[d] + dx[d] * (static_cast<double>(i(d) - patch_lower(d)) + 0.5);
+                                    }
+                                }
+
+                                if (k == 3)
+                                    (*U2_near_null_data)(i) = (axis == 0) ? 0.0 : (axis == 1) ? -posn[2] : posn[1];
+                                else if (k == 4)
+                                    (*U2_near_null_data)(i) = (axis == 0) ? posn[2] : (axis == 1) ? 0.0 : -posn[0];
+                                else
+                                    (*U2_near_null_data)(i) = (axis == 0) ? -posn[1] : (axis == 1) ? posn[0] : 0.0;
+                            }
+                        }
+                    }
+                }
+            }
+#endif
+
+            // Orthogonormalize the null vectors
+            double dots[5];
+            for (int i = NDIM; i < rigid_modes; i++)
+            {
+                // Orthogonalize vec[i] against vec[0:i-1]
+                for (int j = 0; j < i; ++j)
+                {
+                    dots[j] = -(d_U2_near_null_vecs[i]->dot(d_U2_near_null_vecs[j]));
+                }
+
+                for (int j = 0; j < i; ++j)
+                {
+                    d_U2_near_null_vecs[i]->axpy(dots[j], d_U2_near_null_vecs[j], d_U2_near_null_vecs[i]);
+                }
+
+                const double norm = NormOps::L2Norm(d_U2_near_null_vecs[i].getPointer());
+                d_U2_near_null_vecs[i]->scale(1.0 / norm, d_U2_near_null_vecs[i]);
+            }
+        }
         d_vectors_need_init = false;
     }
 
@@ -2731,6 +2889,7 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     // Setup subdomain solvers.
     const bool has_velocity_nullspace = d_normalize_velocity;
     const bool has_pressure_nullspace = d_normalize_pressure;
+    const bool has_velocity_near_nullspace = d_has_rigid_body_nullspace;
 
     // Create a sub-specification object from the Stokes operator.
     d_vc_velocity_op_spec = d_vc_stokes_op_spec.getVCViscousDilatationalOpSpec();
@@ -2750,7 +2909,8 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
         if (p_velocity_solver)
         {
             p_velocity_solver->setInitialGuessNonzero(false);
-            if (has_velocity_nullspace) p_velocity_solver->setNullspace(false, d_U2_nul_vecs);
+            if (has_velocity_nullspace) p_velocity_solver->setNullspace(false, d_U2_null_vecs);
+            if (has_velocity_near_nullspace) p_velocity_solver->setNearNullspace(d_U2_near_null_vecs);
         }
         d_velocity_solver->initializeSolverState(*d_U2_scratch_vec, *d_U2_rhs_vec);
         d_velocity_solver_needs_init = false;
@@ -2808,7 +2968,7 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
                  << std::endl;
 
         p_stokes_linear_solver->setInitialGuessNonzero(true);
-        if (has_velocity_nullspace || has_pressure_nullspace) p_stokes_linear_solver->setNullspace(false, d_nul2_vecs);
+        if (has_velocity_nullspace || has_pressure_nullspace) p_stokes_linear_solver->setNullspace(false, d_null2_vecs);
 
         d_stokes_solver->initializeSolverState(*d_sol2_vec, *d_rhs2_vec);
         d_stokes_solver_needs_init = false;
