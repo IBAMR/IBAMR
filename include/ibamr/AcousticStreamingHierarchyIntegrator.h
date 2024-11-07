@@ -588,8 +588,9 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_P2_rhs_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_sol2_vec;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_rhs2_vec;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nul2_vecs;
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U2_nul_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_null2_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U2_null_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_U2_near_null_vecs;
     bool d_vectors_need_init, d_explicitly_remove_so_nullspace = false;
 
     std::string d_stokes_solver_type = IBAMR::StaggeredStokesSolverManager::UNDEFINED,
@@ -690,6 +691,12 @@ protected:
      * zero mean (i.e., discrete integral) at the end of each timestep.
      */
     bool d_normalize_velocity = false;
+
+    /*!
+     * This boolean value determines whether rigid body velocity is in the nullspace
+     * of the velocity operator.
+     */
+    bool d_has_rigid_body_nullspace = false;
 
     /*
      * Boolean value that indicates whether the integrator has been initialized.

@@ -361,9 +361,20 @@ private:
     void resetMatNullSpace();
 
     /*!
+     * \brief Reset the Mat near nullspace object to correspond to the supplied
+     * nullspace basis vectors.
+     */
+    void resetMatNearNullspace();
+
+    /*!
      * \brief Destroy data allocated to describe nullspace.
      */
     void deallocateNullSpaceData();
+
+    /*!
+     * \brief Destroy data allocated to describe the near nullspace.
+     */
+    void deallocateNearNullspaceData();
 
     /*!
      * \name Static functions for use by PETSc KSP and MatShell objects.
@@ -394,6 +405,7 @@ private:
     KSP d_petsc_ksp = nullptr;
     Mat d_petsc_mat = nullptr;
     MatNullSpace d_petsc_nullsp = nullptr;
+    MatNullSpace d_petsc_near_nullsp = nullptr;
     bool d_managing_petsc_ksp = true;
     bool d_user_provided_mat = false;
     bool d_user_provided_pc = false;
@@ -401,6 +413,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_nullspace_constant_vec;
     Vec d_petsc_nullspace_constant_vec = nullptr;
     std::vector<Vec> d_petsc_nullspace_basis_vecs;
+    std::vector<Vec> d_petsc_near_nullspace_basis_vecs;
     bool d_solver_has_attached_nullspace = false;
 };
 } // namespace IBTK

@@ -68,6 +68,21 @@ public:
             std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
 
     /*!
+     * \brief Set the near nullspace of the linear system.
+     *
+     * Attaches a null space to a matrix, which is often the null space (rigid body modes) of the
+     * operator without boundary conditions. This null space will be used to provide near null space
+     * vectors to a multigrid preconditioner built from this matrix.
+     *
+     * \NOTE The basis vectors should be orthonormal.
+     *
+     */
+    virtual void
+    setNearNullspace(const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
+                         near_nullspace_basis_vecs =
+                             std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
+
+    /*!
      * \brief Get whether the nullspace of the linear system contains th
      * constant vector.
      */
@@ -78,6 +93,12 @@ public:
      */
     virtual const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
     getNullSpaceBasisVectors() const;
+
+    /*!
+     * \brief Get the basis vectors for the near nullspace of the linear system.
+     */
+    virtual const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
+    getNearNullspaceBasisVectors() const;
 
     //\}
 
@@ -117,6 +138,7 @@ protected:
     // Null space data.
     bool d_nullspace_contains_constant_vec = false;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_nullspace_basis_vecs;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > > d_near_nullspace_basis_vecs;
 
 private:
     /*!
