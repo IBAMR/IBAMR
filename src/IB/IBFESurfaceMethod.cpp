@@ -177,7 +177,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
     {
         unsigned int mesh_dim = mesh->mesh_dimension();
         unsigned int spatial_dim = mesh->spatial_dimension();
-        TBOX_ASSERT(mesh_dim == spatial_dim - 1)
+        TBOX_ASSERT(mesh_dim == spatial_dim - 1);
     } 
 
     commonConstructor(object_name,
@@ -204,7 +204,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
     {
         unsigned int mesh_dim = mesh->mesh_dimension();
         unsigned int spatial_dim = mesh->spatial_dimension();
-        TBOX_ASSERT(mesh_dim == spatial_dim - 1)
+        TBOX_ASSERT(mesh_dim == spatial_dim - 1);
     } 
 
     commonConstructor(
