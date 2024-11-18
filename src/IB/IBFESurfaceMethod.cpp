@@ -206,7 +206,7 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
         unsigned int spatial_dim = mesh->spatial_dimension();
         TBOX_ASSERT(mesh_dim == spatial_dim - 1);
     }
-        
+
     commonConstructor(
         object_name, input_db, meshes, max_levels, register_for_restart, restart_read_dirname, restart_restore_number);
     return;

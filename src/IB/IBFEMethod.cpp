@@ -404,7 +404,7 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
         unsigned int spatial_dim = mesh->spatial_dimension();
         TBOX_ASSERT(mesh_dim == spatial_dim);
     }
-        
+
     commonConstructor(input_db, max_levels);
     return;
 } // IBFEMethod
