@@ -52,7 +52,7 @@ namespace IBAMR
 
 INSProjectionBcCoef::INSProjectionBcCoef(const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                          const bool homogeneous_bc)
-    : d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
+    : d_bc_coefs(NDIM, nullptr)
 {
     setPhysicalBcCoefs(bc_coefs);
     setHomogeneousBc(homogeneous_bc);

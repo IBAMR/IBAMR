@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2014 by the IBAMR developers
+// Copyright (c) 2014 - 2023 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -75,7 +75,7 @@ public:
                         Pointer<Patch<NDIM> > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL));
+                        Pointer<PatchLevel<NDIM> > patch_level = nullptr);
 
     //\}
 

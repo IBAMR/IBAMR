@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -177,13 +177,13 @@ namespace IBAMR
 CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_name,
                                                      Pointer<CellVariable<NDIM, double> > Q_var,
                                                      Pointer<Database> input_db,
-                                                     const std::string& difference_form,
+                                                     const std::string& convective_op_type,
+                                                     ConvectiveDifferencingType difference_form,
                                                      const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
                                                      const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
-    : ConvectiveOperator(object_name, UNKNOWN_CONVECTIVE_DIFFERENCING_TYPE),
+    : ConvectiveOperator(object_name, difference_form),
       d_Q_var(Q_var),
       d_u_adv_var(new SideVariable<NDIM, double>("Complex U var")),
-      d_difference_form(difference_form),
       d_Q_bc_coefs(Q_bc_coefs),
       d_u_bc_coefs(u_bc_coefs)
 {
@@ -205,7 +205,7 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
     d_s_idx = var_db->registerVariableAndContext(d_Q_var, src_cxt);
     auto convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
     d_convec_oper = convective_op_manager->allocateOperator(
-        d_difference_form, d_object_name + "::convec_oper", d_Q_var, input_db, ADVECTIVE, d_Q_bc_coefs);
+        convective_op_type, d_object_name + "::convec_oper", d_Q_var, input_db, d_difference_form, d_Q_bc_coefs);
 } // Constructor
 
 CFUpperConvectiveOperator::~CFUpperConvectiveOperator()
@@ -217,10 +217,10 @@ CFUpperConvectiveOperator::~CFUpperConvectiveOperator()
 void
 CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
 {
-    if (!d_s_fcn)
+    if (!d_cf_strategy)
     {
         TBOX_ERROR("CFUpperConvectiveOperator::applyConvectiveOperator():\n"
-                   << "  Source function must be register prior to call to "
+                   << "  CF strategy must be register prior to call to "
                       "applyConvectiveOperator\n");
     }
     if (!d_is_initialized)
@@ -263,17 +263,14 @@ CFUpperConvectiveOperator::applyConvectiveOperator(int Q_idx, int Y_idx)
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> ghost_cell_components(1);
     ghost_cell_components[0] = InterpolationTransactionComponent(
-        d_u_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, d_u_bc_coefs, NULL, d_interp_type);
+        d_u_scratch_idx, "NONE", true, "CUBIC_COARSEN", "LINEAR", false, d_u_bc_coefs, nullptr, d_interp_type);
     HierarchyGhostCellInterpolation ghost_fill_op;
     ghost_fill_op.initializeOperatorState(ghost_cell_components, d_hierarchy);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_u_bc_coefs, nullptr, d_u_scratch_idx, -1, false);
     ghost_fill_op.fillData(d_solution_time);
-    StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_u_bc_coefs, nullptr);
 
     d_convec_oper->applyConvectiveOperator(Q_idx, d_Q_convec_idx);
 
-    d_s_fcn->setPatchDataIndex(Q_idx);
-    d_s_fcn->setDataOnPatchHierarchy(d_s_idx, d_Q_var, d_hierarchy, d_solution_time, false, d_coarsest_ln, d_finest_ln);
+    d_cf_strategy->computeRelaxation(d_s_idx, d_Q_var, Q_idx, d_Q_var, d_evolve_type, d_hierarchy, d_solution_time);
 
     for (int level_num = d_coarsest_ln; level_num <= d_finest_ln; ++level_num)
     {
@@ -480,9 +477,9 @@ CFUpperConvectiveOperator::deallocateOperatorState()
 } // deallocateOperatorState
 
 void
-CFUpperConvectiveOperator::registerSourceFunction(Pointer<CFRelaxationOperator> source_fcn)
+CFUpperConvectiveOperator::registerCFStrategy(Pointer<CFStrategy> strategy)
 {
-    d_s_fcn = source_fcn;
+    d_cf_strategy = strategy;
 }
 
 } // namespace IBAMR

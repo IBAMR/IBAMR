@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2022 by the IBAMR developers
+// Copyright (c) 2017 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -58,7 +58,7 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
+    PetscInitialize(&argc, &argv, nullptr, nullptr);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -151,7 +151,7 @@ main(int argc, char* argv[])
         time_integrator->setInitialConditions(phi_right_solid_var, phi_right_solid_init);
         ls_vars.push_back(phi_right_solid_var);
 
-        RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -170,7 +170,7 @@ main(int argc, char* argv[])
             time_integrator->setInitialConditions(q_var, q_init);
         }
 
-        RobinBcCoefStrategy<NDIM>* q_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* q_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TransportedQuantityBcCoefs"))
         {
             q_bc_coef = new muParserRobinBcCoefs(
@@ -195,6 +195,8 @@ main(int argc, char* argv[])
 
         Pointer<BrinkmanAdvDiffSemiImplicitHierarchyIntegrator> bp_adv_diff_hier_integrator = time_integrator;
         bp_adv_diff_hier_integrator->registerBrinkmanAdvDiffBcHelper(brinkman_adv_diff);
+
+        bp_adv_diff_hier_integrator->setTransportQuantityTimeIndependent(q_var, true /* Q_time_independent */);
 
         if (input_db->keyExists("TransportedQuantityForcingFunction"))
         {

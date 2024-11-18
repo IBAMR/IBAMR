@@ -161,7 +161,7 @@ main(int argc, char* argv[])
         FreeRigidDOFVector free_dofs;
         free_dofs << 0, 0, 0;
         ib_method_ops->setSolveRigidBodyVelocity(0, free_dofs);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel, NULL, 0);
+        ib_method_ops->registerConstrainedVelocityFunction(nullptr, &ConstrainedCOMVel, nullptr, 0);
 
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -197,7 +197,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -232,8 +232,9 @@ main(int argc, char* argv[])
             prototype_structs.push_back(0);
             struct_ids.push_back(prototype_structs);
 
-            DirectMobilitySolver* direct_solvers = NULL;
-            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(NULL, &direct_solvers, NULL);
+            DirectMobilitySolver* direct_solvers = nullptr;
+            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(
+                nullptr, &direct_solvers, nullptr);
 
             direct_solvers->registerMobilityMat(
                 mat_name, prototype_structs, EMPIRICAL, std::make_pair(LAPACK_SVD, LAPACK_SVD), /*rank*/ 0);

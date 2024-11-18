@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2019 - 2021 by the IBAMR developers
+## Copyright (c) 2019 - 2024 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp SetFluidSolidDensity.cpp SetFluidSolidDensity.h SetFluidSolidViscosity.cpp SetFluidSolidViscosity.h TagLSRefinementCells.cpp TagLSRefinementCells.h
+EXAMPLE_DRIVER = example.cpp
 
 EXAMPLES =
 EXTRA_PROGRAMS =

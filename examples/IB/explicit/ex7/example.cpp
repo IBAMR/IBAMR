@@ -313,8 +313,8 @@ main(int argc, char* argv[])
             std::unique_ptr<RobinBcCoefStrategy<NDIM> > Q_bc_coefs = nullptr;
             if (periodic_shift.min() == 0)
             {
-                Q_bc_coefs.reset(new muParserRobinBcCoefs(
-                    "Q_bc_coefs", app_initializer->getComponentDatabase("ConcentrationBcCoefs"), grid_geometry));
+                Q_bc_coefs = std::make_unique<muParserRobinBcCoefs>(
+                    "Q_bc_coefs", app_initializer->getComponentDatabase("ConcentrationBcCoefs"), grid_geometry);
                 adv_diff_integrator->setPhysicalBcCoef(Q_var, Q_bc_coefs.get());
             }
         }
@@ -484,9 +484,9 @@ main(int argc, char* argv[])
                 MPI_Gatherv(local_coordinates.data(),
                             local_coordinates.size(),
                             mpi_lag_coords_type,
-                            NULL,
-                            NULL,
-                            NULL,
+                            nullptr,
+                            nullptr,
+                            nullptr,
                             mpi_lag_coords_type,
                             0,
                             IBTK_MPI::getCommunicator());

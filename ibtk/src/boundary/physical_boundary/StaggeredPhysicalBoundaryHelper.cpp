@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2022 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -142,7 +142,7 @@ StaggeredPhysicalBoundaryHelper::setupMaskingFunction(Pointer<SideData<NDIM, int
                                                       Pointer<Patch<NDIM> > patch) const
 {
     mask_data->fillAll(0);
-    if (patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
+    if (!patch->getPatchGeometry()->getTouchesRegularBoundary()) return;
     const int ln = patch->getPatchLevelNumber();
     const int patch_num = patch->getPatchNumber();
     const Array<BoundaryBox<NDIM> >& physical_codim1_boxes = d_physical_codim1_boxes[ln].find(patch_num)->second;

@@ -76,10 +76,14 @@ main(int argc, char* argv[])
             new PatchHierarchy<NDIM>("OldPatchHierarchy", grid_geometry);
         Pointer<PatchHierarchy<NDIM> > new_patch_hierarchy =
             new PatchHierarchy<NDIM>("NewPatchHierarchy", grid_geometry);
-        Pointer<StandardTagAndInitialize<NDIM> > old_error_detector = new StandardTagAndInitialize<NDIM>(
-            "OldStandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("OldStandardTagAndInitialize"));
-        Pointer<StandardTagAndInitialize<NDIM> > new_error_detector = new StandardTagAndInitialize<NDIM>(
-            "NewStandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("NewStandardTagAndInitialize"));
+        Pointer<StandardTagAndInitialize<NDIM> > old_error_detector =
+            new StandardTagAndInitialize<NDIM>("OldStandardTagAndInitialize",
+                                               nullptr,
+                                               app_initializer->getComponentDatabase("OldStandardTagAndInitialize"));
+        Pointer<StandardTagAndInitialize<NDIM> > new_error_detector =
+            new StandardTagAndInitialize<NDIM>("NewStandardTagAndInitialize",
+                                               nullptr,
+                                               app_initializer->getComponentDatabase("NewStandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
@@ -155,25 +159,25 @@ main(int argc, char* argv[])
         {
             // Read data from restart.
             // Generate the cache directly
-            c_cache.reset(
-                new SnapshotCache("cell::SnapshotCache", c_var, nullptr, grid_geometry, register_for_restart));
-            n_cache.reset(
-                new SnapshotCache("node::SnapshotCache", n_var, nullptr, grid_geometry, register_for_restart));
-            s_cache.reset(
-                new SnapshotCache("side::SnapshotCache", s_var, nullptr, grid_geometry, register_for_restart));
-            e_cache.reset(
-                new SnapshotCache("edge::SnapshotCache", e_var, nullptr, grid_geometry, register_for_restart));
-            f_cache.reset(
-                new SnapshotCache("face::SnapshotCache", f_var, nullptr, grid_geometry, register_for_restart));
+            c_cache = std::make_unique<SnapshotCache>(
+                "cell::SnapshotCache", c_var, nullptr, grid_geometry, register_for_restart);
+            n_cache = std::make_unique<SnapshotCache>(
+                "node::SnapshotCache", n_var, nullptr, grid_geometry, register_for_restart);
+            s_cache = std::make_unique<SnapshotCache>(
+                "side::SnapshotCache", s_var, nullptr, grid_geometry, register_for_restart);
+            e_cache = std::make_unique<SnapshotCache>(
+                "edge::SnapshotCache", e_var, nullptr, grid_geometry, register_for_restart);
+            f_cache = std::make_unique<SnapshotCache>(
+                "face::SnapshotCache", f_var, nullptr, grid_geometry, register_for_restart);
         }
         else
         {
             // Allocate data as normal.
-            c_cache = std::move(fill_data("cell", c_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
-            n_cache = std::move(fill_data("node", n_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
-            s_cache = std::move(fill_data("side", s_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
-            e_cache = std::move(fill_data("edge", e_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
-            f_cache = std::move(fill_data("face", f_var, old_patch_hierarchy, fcn, time_pts, register_for_restart));
+            c_cache = fill_data("cell", c_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
+            n_cache = fill_data("node", n_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
+            s_cache = fill_data("side", s_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
+            e_cache = fill_data("edge", e_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
+            f_cache = fill_data("face", f_var, old_patch_hierarchy, fcn, time_pts, register_for_restart);
         }
 
         // Write restart files if we need to
@@ -212,8 +216,8 @@ fill_data(const std::string& test_name,
 
     // Create a SnapshotCache to store snapshots on the "old" hierarchy.
     Pointer<GridGeometry<NDIM> > grid_geom = hierarchy->getGridGeometry();
-    std::unique_ptr<SnapshotCache> snapshot_cache(
-        new SnapshotCache(test_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart));
+    std::unique_ptr<SnapshotCache> snapshot_cache =
+        std::make_unique<SnapshotCache>(test_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart);
 
     // Fill in snapshot cache with several values.
     for (const auto& t : time_pts)

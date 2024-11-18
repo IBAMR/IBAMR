@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -409,14 +409,10 @@ public:
     virtual void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1);
 
     /*!
-     * Pure virtual method to advance data from current_time to new_time.
-     *
-     * Implementations of this virtual function are not required to synchronize
-     * data on the patch hierarchy.  Data synchronization may be done
-     * (optionally) in a specialization of the public virtual member function
-     * postprocessIntegrateHierarchy().
+     * Advance data from current_time to new_time. The current implementation calls
+     * doIntegrateHierarchy() followed by executeIntegrateHierarchyCallbackFcns().
      */
-    virtual void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) = 0;
+    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0);
 
     /*!
      * Method to skip a cycle of the time integration scheme (e.g. for cases in
@@ -544,7 +540,7 @@ public:
                              bool can_be_refined,
                              bool initial_time,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> > old_level =
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(NULL),
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchLevel<NDIM> >(nullptr),
                              bool allocate_data = true) override;
 
     /*!
@@ -612,6 +608,13 @@ public:
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getScratchContext() const;
 
     /*!
+     * Return a pointer to the "plot" variable context used by integrator. Plot
+     * data is only read from by the VisItDataWriter and is allocated by
+     * setupPlotData() and deallocated by regridHierarchyBegin().
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> getPlotContext() const;
+
+    /*!
      * Check whether a patch data index corresponds to allocated data over the
      * specified range of patch level numbers.
      *
@@ -659,15 +662,15 @@ public:
      * step to time step and, if the necessary coarsen and refine operators are
      * specified, as the patch hierarchy evolves.
      */
-    void
-    registerVariable(int& current_idx,
-                     int& new_idx,
-                     int& scratch_idx,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
-                     const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
-                     const std::string& coarsen_name = "NO_COARSEN",
-                     const std::string& refine_name = "NO_REFINE",
-                     SAMRAI::tbox::Pointer<CartGridFunction> init_fcn = SAMRAI::tbox::Pointer<CartGridFunction>(NULL));
+    void registerVariable(int& current_idx,
+                          int& new_idx,
+                          int& scratch_idx,
+                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
+                          const SAMRAI::hier::IntVector<NDIM>& scratch_ghosts = SAMRAI::hier::IntVector<NDIM>(0),
+                          const std::string& coarsen_name = "NO_COARSEN",
+                          const std::string& refine_name = "NO_REFINE",
+                          SAMRAI::tbox::Pointer<CartGridFunction> init_fcn = nullptr,
+                          const bool register_for_restart = true);
 
     /*!
      * Register a variable with the integrator that may not be maintained from
@@ -680,7 +683,8 @@ public:
                           SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > variable,
                           const SAMRAI::hier::IntVector<NDIM>& ghosts = SAMRAI::hier::IntVector<NDIM>(0),
                           SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> ctx =
-                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(NULL));
+                              SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext>(nullptr),
+                          const bool register_for_restart = true);
 
     ///
     ///  Implementations of functions declared in the SAMRAI::tbox::Serializable
@@ -697,6 +701,21 @@ public:
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 protected:
+    /*!
+     * Pure virtual function that integrates the hierarchy from current_time to new_time.
+     *
+     * Implementations of this virtual function are not required to synchronize
+     * data on the patch hierarchy.  Data synchronization may be done
+     * (optionally) in a specialization of the public virtual member function
+     * postprocessIntegrateHierarchy().
+     *
+     * This function is called by integrateHierarchy() prior to the execution of callbacks.
+     *
+     * @note Inheriting classes should call their base class versions of this
+     * method.
+     */
+    virtual void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) = 0;
+
     /*!
      * Perform any necessary work relevant to data owned by the current
      * integrator prior to regridding (e.g., calculating divergences). An
@@ -1143,14 +1162,15 @@ protected:
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_fast;
     std::list<SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > > d_copy_scratch_to_current_slow;
 
-    SAMRAI::hier::ComponentSelector d_current_data, d_new_data, d_scratch_data;
+    SAMRAI::hier::ComponentSelector d_current_data, d_new_data, d_scratch_data, d_plot_data;
 
     std::map<SAMRAI::hier::Variable<NDIM>*, SAMRAI::tbox::Pointer<CartGridFunction> > d_state_var_init_fcns;
 
     /*!
      * Variable contexts.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context, d_scratch_context;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_current_context, d_new_context, d_scratch_context,
+        d_plot_context;
 
     /*!
      * Names of special coarsen algorithms/schedules.

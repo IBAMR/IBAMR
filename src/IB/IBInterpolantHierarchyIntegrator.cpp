@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2023 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -117,12 +117,11 @@ IBInterpolantHierarchyIntegrator::preprocessIntegrateHierarchy(const double curr
 } // preprocessIntegrateHierarchy
 
 void
-IBInterpolantHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                     const double new_time,
-                                                     const int cycle_num)
+IBInterpolantHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                                const double new_time,
+                                                                const int cycle_num)
 {
-    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-
+    IBHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     // Here we implement the following time integration scheme:
     //
     // (1) Update the interpolation mesh position to X^{n+1}.
@@ -150,9 +149,6 @@ IBInterpolantHierarchyIntegrator::integrateHierarchy(const double current_time,
 
     // Solve the INS equations.
     d_ins_hier_integrator->integrateHierarchy(current_time, new_time, cycle_num);
-
-    // Execute any registered callbacks.
-    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
 
     return;
 } // integrateHierarchy

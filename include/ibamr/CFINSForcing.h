@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2022 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -21,7 +21,7 @@
 #include <ibamr/config.h>
 
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/CFRelaxationOperator.h"
+#include "ibamr/CFStrategy.h"
 #include "ibamr/CFUpperConvectiveOperator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/ibamr_enums.h"
@@ -77,11 +77,67 @@ namespace IBAMR
  * \brief Class CFINSForcing provides an interface for specifying a viscoelastic stress to be added to the
  * Navier-Stokes equations. The class uses the advection diffusion integrator to update the viscoelastic stress.
  *
- * One can choose from the pre-programmed models Oldroyd-B, Giesekus, or Rolie-Poly. Optionally, you can also register a
- * relaxation operator that computes the relaxation function. The fluid model is specified through the database
- * parameter "fluid_parameter". By specifying "USER_DEFINED", you can register your own relaxation function. This class
- * currently solves for the conformation tensor or the square root or logarithm of the conformation tensor. The current
- * assumption is that the stress is linearly related to the conformation tensor through the elastic modulus.
+ * Users must register a strategy operator <code>CFStrategy</code> that can compute (1) the relaxation of the stress and
+ * (2) the conversion from conformation tensor to stress tensor. One can choose from the pre-programmed models
+ * Oldroyd-B, Giesekus, or Rolie-Poly. Optionally, you can also register a your own strategy. The fluid model is
+ * specified through the database parameter "fluid_parameter". By specifying "USER_DEFINED", you can register your own
+ * strategy operator. This class currently solves for the conformation tensor or the square root or logarithm of the
+ * conformation tensor.
+ *
+ * <h2>Input Database Parameters</h2>
+ * <ul>
+ *     <li><code>InitialConditions</code>: Database used for specifying the initial conditions via a
+ * muParserCartGridFunction.</li>
+ *     <li><code>interp_type</code>: String to determine order used for filling ghost
+ * cells. Possible values are:
+ *     <ul>
+ *       <li><code>"LINEAR"</code> (default)</li>
+ *       <li><code>"QUADRATIC"</code></li>
+ *     </ul></li>
+ *     <li><code>evolution_type</code>: Parameter specifying the method of evolving the conformation tensor. Possible
+ * values are:
+ *     <ul>
+ *         <li><code>"STANDARD"</code>: Evolve the conformation tensor itself (default).</li>
+ *         <li><code>"SQUARE_ROOT"</code>: Evolve the square root of the conformation tensor.</li>
+ *         <li><code>"LOGARITHM"</code>: Evolve the logarithm of the conformation tensor.</li>
+ *     </ul></li>
+ *     <li><code>log_determinant</code>: Boolean on writing the determinant of the conformation tensor (default
+ * false).</li>
+ *     <li><code>log_divergence</code>: Boolean on writing the divergence of the conformation tensor (default
+ * false).</li> <li><code>fluid_model</code>: Specifies the fluid model. Possible values are: <ul>
+ *         <li><code>"OLDROYDB"</code> (default) </li>
+ *         <li><code>"GIESEKUS"</code></li>
+ *         <li><code>"ROLIEPOLY"</code></li>
+ *         <li><code>"USER_DEFINED"</code>: In this case, users must register a relaxation function with
+ * <code>registerRelaxationOperator()</code>.</li>
+ *     </ul></li>
+ *     <li><code>error_on_spd</code>: Boolean that if true, kills the simulation if the conformation tensor is ever not
+ * positive definite (default true).</li>
+ *     <li><code>project_conformation_tensor</code>: Boolean that if true, projects the conformation tensor to nearest
+ * non-negative definite tensor (default true).</li>
+ *     <li><code>output_conformation_tensor</code>: Boolean that if true, writes the conformation tensor to
+ * visualization files (default true).</li>
+ *     <li><code>output_stress_tensor</code>: Boolean that if true, writes the resulting stress tensor to visualization
+ * files (default true).</li>
+ *     <li><code>output_divergence</code>: Boolean that if true, writes the divergence of the conformation tensor to
+ * visualization files (default false).</li>
+ *     <li><code>divergence_rel_tagging</code>: Boolean that if true, tags cells for refinement if the divergence of the
+ * conformation tensor exceeds some relative threshold, specified by the array <code>divergence_rel_thresh</code>
+ * (default false).</li>
+ *     <li><code>divergence_abs_tagging</code>: Boolean that if true, tags cells for refinement if the divergence of the
+ * conformation tensor exceeds some absolute threshold, specified by the array <code>divergence_abs_thresh</code>
+ * (default false).</li>
+ *     <li><code>ExtraStressBoundaryConditions_d</code>: Database used for boundary conditions for the evolved tensor.
+ * Here, d is a placeholder for the component of the symmetric conformation tensor, specified using Voigt notation
+ * (ignored for periodic boundary conditions).</li>
+ *     <li><code>convective_operator_type</code>: String for the operator used for computing the advective term.</li>
+ *     <li><code>difference_form</code>: String to determine in what form the convective operator is computed. Possible
+ * values are: <ul> <li><code>"ADVECTIVE"</code> (default) </li> <li><code>"CONSERVATIVE"</code></li>
+ *         <li><code>"SKEW_SYMMETRIC"</code></li>
+ *     </ul></li>
+ * </ul>
+ *
+ * There are also strategy specific items searched for in the database.
  */
 class CFINSForcing : public IBTK::CartGridFunction
 {
@@ -114,27 +170,6 @@ public:
                  SAMRAI::tbox::Pointer<SAMRAI::appu::VisItDataWriter<NDIM> > visit_data_writer);
 
     /*!
-     * \brief Default constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    CFINSForcing() = delete;
-
-    /*!
-     * \brief Copy constructor.
-     *
-     * \note This constructor is not implemented and should not be used.
-     */
-    CFINSForcing(const CFINSForcing& from) = delete;
-
-    /*!
-     * \brief Assignment operator.
-     *
-     * \note This operator is not implemented and should not be used.
-     */
-    CFINSForcing& operator=(const CFINSForcing& that) = delete;
-
-    /*!
      * \brief Deallocates draw data and deletes boundary conditions.
      */
     ~CFINSForcing();
@@ -144,7 +179,7 @@ public:
      */
     inline SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getVariable()
     {
-        return d_W_cc_var;
+        return d_C_cc_var;
     }
 
     /*!
@@ -153,15 +188,16 @@ public:
     inline int getVariableIdx()
     {
         auto var_db = SAMRAI::hier::VariableDatabase<NDIM>::getDatabase();
-        return var_db->mapVariableAndContextToIndex(d_W_cc_var, d_adv_diff_integrator->getCurrentContext());
+        return var_db->mapVariableAndContextToIndex(d_C_cc_var, d_adv_diff_integrator->getCurrentContext());
     }
 
     /*!
-     * \brief This function register a relaxation function with the class.
+     * \brief This function registers a strategy with the class.
      *
-     * \note This function is automatically called if you specify the Oldroyd-B, Giesekus, or Rolie-Poly models.
+     * \note This function only should be called when <code>fluid_model</code> is set to <code>USER_DEFINED</code> in
+     * the input file.
      */
-    void registerRelaxationOperator(SAMRAI::tbox::Pointer<IBAMR::CFRelaxationOperator> rhs);
+    void registerCFStrategy(SAMRAI::tbox::Pointer<CFStrategy> rhs);
 
     /*!
      * \name Methods to set patch data.
@@ -175,8 +211,7 @@ public:
     bool isTimeDependent() const override;
 
     /*!
-     * \brief Evaluate the function on the patch interiors on the specified
-     * levels of the patch hierarchy.
+     * \brief Compute the divergence of the stress tensor. Also sets up requested visualizations.
      */
     void setDataOnPatchHierarchy(const int data_idx,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -187,7 +222,7 @@ public:
                                  const int finest_ln = IBTK::invalid_level_number) override;
 
     /*!
-     * \brief Evaluate the function on the patch interior.
+     * \brief Evaluate the divergence on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -195,8 +230,11 @@ public:
                         const double data_time,
                         const bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
 
+    /*!
+     * \brief Evaluate the divergence on the specified patch level.
+     */
     void setDataOnPatchLevel(const int data_idx,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                              SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
@@ -204,11 +242,17 @@ public:
                              const bool initial_time) override;
     //\}
 
+    /*!
+     * \brief Check whether the provided patch index stores a positive definite tensor.
+     */
     void checkPositiveDefinite(const int data_idx,
                                const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                                const double data_time,
                                const bool initial_time);
 
+    /*!
+     * \brief Tag cells based on the specifications provided in the input database.
+     */
     void applyGradientDetector(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
                                int level_number,
                                double error_data_time,
@@ -236,16 +280,9 @@ public:
 
     static void apply_project_tensor_callback(double current_time, double new_time, int cycle_num, void* ctx);
 
-    inline double getViscosity()
-    {
-        return d_eta;
-    }
-
-    inline double getRelaxationTime()
-    {
-        return d_lambda;
-    }
-
+    /*!
+     * \brief Return the advection diffusion integrator used to evolve the conformation tensor.
+     */
     inline SAMRAI::tbox::Pointer<AdvDiffSemiImplicitHierarchyIntegrator> getAdvDiffHierarchyIntegrator()
     {
         return d_adv_diff_integrator;
@@ -257,11 +294,17 @@ private:
                            SAMRAI::tbox::Pointer<SAMRAI::geom::CartesianGridGeometry<NDIM> > grid_geometry,
                            std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> vel_bcs);
 
+    /*!
+     * \brief Compute the determinant of the symmetric tensor stored in data_idx. Fills in d_max_det and d_min_det.
+     */
     void findDeterminant(const int data_idx,
                          const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                          const double data_time,
                          const bool initial_time);
 
+    /*!
+     * \brief Square the symmetric tensor stored in data_idx in place.
+     */
     void squareMatrix(const int data_idx,
                       const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                       const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -271,6 +314,9 @@ private:
                       const int finest_ln,
                       const bool extended_box);
 
+    /*!
+     * \brief Exponentiate the symmetric tensor stored in data_idx in place.
+     */
     void exponentiateMatrix(const int data_idx,
                             const SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                             const SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
@@ -280,21 +326,23 @@ private:
                             const int finest_ln,
                             const bool extended_box);
 
+    /*!
+     * \brief Given the conformation tensor, set up any requested drawing variables.
+     */
+    void setupPlotConformationTensor(int C_cc_idx);
+
     // Scratch variables
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_W_cc_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_C_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::hier::VariableContext> d_context;
-    int d_W_scratch_idx = IBTK::invalid_index;
+    int d_C_scratch_idx = IBTK::invalid_index;
     SAMRAI::tbox::Pointer<IBTK::muParserCartGridFunction> d_init_conds;
 
     // Draw Variables
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_conform_var_draw, d_stress_var_draw,
-        d_divW_var_draw;
+        d_div_sig_var_draw;
     int d_conform_idx_draw = IBTK::invalid_index, d_stress_idx_draw = IBTK::invalid_index,
-        d_divW_idx_draw = IBTK::invalid_index;
-    bool d_conform_draw = true, d_stress_draw = true, d_divW_draw = false;
-
-    // Complex Fluid parameters
-    double d_lambda = std::numeric_limits<double>::quiet_NaN(), d_eta = std::numeric_limits<double>::quiet_NaN();
+        d_div_sig_idx_draw = IBTK::invalid_index;
+    bool d_conform_draw = true, d_stress_draw = true, d_div_sig_draw = false;
 
     // Extra parameters
     std::string d_fluid_model = "OLDROYDB", d_interp_type = "LINEAR";
@@ -302,7 +350,6 @@ private:
     TensorEvolutionType d_evolve_type = STANDARD;
     SAMRAI::tbox::Pointer<AdvDiffSemiImplicitHierarchyIntegrator> d_adv_diff_integrator;
     SAMRAI::tbox::Pointer<CFUpperConvectiveOperator> d_convec_oper;
-    std::string d_convec_oper_type;
 
     /**
      * Boundary conditions.
@@ -318,17 +365,20 @@ private:
 
     // Logging parameters
     double d_max_det = std::numeric_limits<double>::quiet_NaN(), d_min_det = std::numeric_limits<double>::quiet_NaN();
-    bool d_log_det = false, d_log_divW = false;
+    bool d_log_det = false, d_log_div_sig = false;
     bool d_positive_def = true, d_error_on_spd = false;
     double d_min_norm = std::numeric_limits<double>::quiet_NaN(), d_max_norm = std::numeric_limits<double>::quiet_NaN();
 
     // AMR tagging
-    SAMRAI::tbox::Array<double> d_divW_rel_thresh, d_divW_abs_thresh;
-    bool d_divW_rel_tag = false, d_divW_abs_tag = false;
+    SAMRAI::tbox::Array<double> d_div_sig_rel_thresh, d_div_sig_abs_thresh;
+    bool d_div_sig_rel_tag = false, d_div_sig_abs_tag = false;
 
     // Velocity information
     SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_u_fcn;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_var;
+
+    // Strategy for computing stress and relaxation.
+    SAMRAI::tbox::Pointer<CFStrategy> d_cf_strategy;
 };
 } // Namespace IBAMR
 #endif

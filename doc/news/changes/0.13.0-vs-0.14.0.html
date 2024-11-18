@@ -1,0 +1,80 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: IBAMR::INSHierarchyIntegrator now computes the current CFL number via
+IBAMR::INSHierarchyIntegrator::updateCurrentCFLNumber() and makes it available
+via IBAMR::INSHierarchyIntegrator::getCurrentCFLNumber(). Classes which inherit
+from INSHierarchyIntegrator need to implement updateCurrentCFLNumber() in a
+compatible way.
+<br>
+(David Wells, 2023/11/14)
+</li>
+<li>
+Incompatability: Changed HierarchyIntegrator::integrateHierarchy() to be
+non-virtual and introduced pure virtual function
+HierarchyIntegrator::integrateHierarchySpecialized().
+HierarchyIntegrator::integrateHierarchy() now calls
+integrateHierarchySpecialized() and then the integrateHierarchy() callback
+functions. Implementations of integrateHierarchy() should be moved to
+integrateHierarchySpecialized() and calls to
+executeIntegrateHierarchyCallbackFcns() should be removed from derived classes
+of HierarchyIntegrator.
+<br>
+(Aaron Barrett, 2024/01/23)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+Fixed: Regridding issues with AdvDiffHierarchyIntegrator when total number of levels in the hiearchy increase or decrease.
+<br>
+(Amneet Bhalla, 2023/03/17)
+</li>
+<li>
+Enhanced: Refactor flux-based convective operator implementations to reduce redundant code.
+<br>
+(Boyce Griffith, 2023/04/13)
+</li>
+<li>
+Enhanced: Support is provided to set the penalty coefficient based on either the inertia scale, viscous scale, or a combination of both. By default, inertial scale is used. In addition, support for restart is provided.
+
+Following is the sample BrinkmanPenalization database used in input file:
+
+<code>
+<br>
+BrinkmanPenalization {<br>
+     penalty_factor      = 1.0                         // deafult 1.0<br>
+     use_rho_scale       = TRUE                        // default true<br>
+     use_mu_scale        = FALSE                       // default false<br>
+     contour_level       = 0.0                         // default 0.0<br>
+     num_interface_cells = NUM_SOLID_INTERFACE_CELLS   // default 2.0<br>
+ }<br>
+</code>
+
+<br>
+(Ramakrishnan Thirumalaisamy, 2023/09/11)
+</li>
+<li>
+Enhanced: Now BrinkmanAdvDiffSemiImplicitHierarchyIntegrator and BrinkmanAdvDiffBcHelper classes support AMR. Please take a look at examples/adv_diff/ex8. This example solves a free convection problem with flux boundary conditions on the immersed object using 2 levels Cartesian grid.
+
+<br>
+(Ramakrishnan Thirumalaisamy, 2023/11/27)
+</li>
+<li>
+Enhanced: Now BrinkmanAdvDiffSemiImplicitHierarchyIntegrator class supports time-independent problems such as Poisson problems also in addition to the time-dependent advection-diffusion problems.
+
+<br>
+(Ramakrishnan Thirumalaisamy, 2024/01/03)
+</li>
+<li>
+Fixed: Fixed a bug where resetting marker points in a restarted simulation
+worked incorrectly.
+<br>
+(David Wells, 2024/01/04)
+</li>
+</ol>

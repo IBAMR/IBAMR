@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2009 - 2021 by the IBAMR developers
+## Copyright (c) 2009 - 2024 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -120,12 +120,13 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 ../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 ../src/complex_fluids/CFUpperConvectiveOperator.cpp \
-../src/complex_fluids/CFRelaxationOperator.cpp \
-../src/complex_fluids/CFGiesekusRelaxation.cpp \
-../src/complex_fluids/CFOldroydBRelaxation.cpp \
-../src/complex_fluids/CFRoliePolyRelaxation.cpp \
+../src/complex_fluids/CFStrategy.cpp \
+../src/complex_fluids/CFGiesekusStrategy.cpp \
+../src/complex_fluids/CFOldroydBStrategy.cpp \
+../src/complex_fluids/CFRoliePolyStrategy.cpp \
 ../src/complex_fluids/CFINSForcing.cpp \
 ../src/level_set/FastSweepingLSMethod.cpp \
+../src/level_set/LevelSetUtilities.cpp \
 ../src/level_set/LSInitStrategy.cpp \
 ../src/level_set/RelaxationLSBcCoefs.cpp \
 ../src/level_set/RelaxationLSMethod.cpp \
@@ -179,6 +180,12 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 ../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 ../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+../src/phase_change/CarmanKozenyDragForce.cpp \
+../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+../src/phase_change/HeavisideForcingFunction.cpp \
+../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 ../src/utilities/CellConvectiveOperator.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
 ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
@@ -192,7 +199,9 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/wave_generation/WaveDampingFunctions.cpp \
 ../src/wave_generation/WaveGenerationFunctions.cpp \
 ../src/utilities/STSMassFluxIntegrator.cpp \
-../src/utilities/RNG.cpp
+../src/utilities/RNG.cpp \
+../src/utilities/ins_utilities.cpp \
+../src/utilities/vc_ins_utilities.cpp
 
 if LIBMESH_ENABLED
   DIM_INDEPENDENT_SOURCES += \
@@ -226,6 +235,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/AdvDiffStochasticForcing.h \
 ../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 ../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+../include/ibamr/AllenCahnHierarchyIntegrator.h \
 ../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 ../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 ../include/ibamr/BrinkmanPenalizationStrategy.h \
@@ -236,15 +246,18 @@ pkg_include_HEADERS += \
 ../include/ibamr/CIBStaggeredStokesOperator.h \
 ../include/ibamr/CIBStaggeredStokesSolver.h \
 ../include/ibamr/CIBStrategy.h \
+../include/ibamr/CarmanKozenyDragForce.h \
 ../include/ibamr/CellConvectiveOperator.h \
 ../include/ibamr/ConstraintIBKinematics.h \
 ../include/ibamr/ConstraintIBMethod.h \
 ../include/ibamr/ConvectiveOperator.h \
-../include/ibamr/GeneralizedIBMethod.h \
 ../include/ibamr/DirectMobilitySolver.h \
+../include/ibamr/EnthalpyHierarchyIntegrator.h \
 ../include/ibamr/FastSweepingLSMethod.h \
 ../include/ibamr/FifthOrderStokesWaveGenerator.h \
 ../include/ibamr/FirstOrderStokesWaveGenerator.h \
+../include/ibamr/GeneralizedIBMethod.h \
+../include/ibamr/HeavisideForcingFunction.h \
 ../include/ibamr/IBAnchorPointSpec.h \
 ../include/ibamr/IBBeamForceSpec.h \
 ../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -302,15 +315,19 @@ pkg_include_HEADERS += \
 ../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 ../include/ibamr/IrregularWaveBcCoef.h \
 ../include/ibamr/IrregularWaveGenerator.h \
+../include/ibamr/ins_utilities.h \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
+../include/ibamr/LevelSetUtilities.h \
 ../include/ibamr/LSInitStrategy.h \
 ../include/ibamr/MarangoniSurfaceTensionForceFunction.h \
 ../include/ibamr/MobilityFunctions.h \
 ../include/ibamr/NonbondedForceEvaluator.h \
 ../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 ../include/ibamr/PenaltyIBMethod.h \
+../include/ibamr/PhaseChangeDivUSourceFunction.h \
+../include/ibamr/PhaseChangeHierarchyIntegrator.h \
 ../include/ibamr/RelaxationLSBcCoefs.h \
 ../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
@@ -340,6 +357,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/SurfaceTensionForceFunction.h \
 ../include/ibamr/VCStaggeredStokesOperator.h \
 ../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
+../include/ibamr/vc_ins_utilities.h \
 ../include/ibamr/Wall.h \
 ../include/ibamr/WallForceEvaluator.h \
 ../include/ibamr/WaveDampingFunctions.h \

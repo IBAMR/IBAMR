@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2019 by the IBAMR developers
+// Copyright (c) 2017 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -504,7 +504,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
             .upper(1)
 #endif
 #if (NDIM == 3)
-        F_data->getPointer(0),
+                F_data->getPointer(0),
         F_data->getPointer(1),
         F_data->getPointer(2),
         F_data->getGhostCellWidth().max(),

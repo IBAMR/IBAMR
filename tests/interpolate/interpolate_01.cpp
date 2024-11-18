@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2021 by the IBAMR developers
+// Copyright (c) 2020 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -81,7 +81,7 @@ main(int argc, char** argv)
 
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
@@ -207,7 +207,7 @@ main(int argc, char** argv)
                         // the ultra-wide kernels have a lot of trouble with
                         // roundoff that is evident at different optimization
                         // settings
-                        const double tol = interp_fcn == "BSPLINE_6" ? 1e-10 : 1e-12;
+                        const double tol = LEInteractor::getStencilSize(interp_fcn) > 4 ? 1e-10 : 1e-12;
                         const double error = std::abs(Q_data[point_n * NDIM + d] - exact);
                         if (error > tol)
                         {

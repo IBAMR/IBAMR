@@ -11,8 +11,8 @@ MAX_LEVELS = 1                                     // maximum number of levels i
 REF_RATIO  = 1                                      // refinement ratio between levels
 N = 64                               // actual    number of grid cells on coarsest grid level
 FAC = 1.0
-//SHIFT1 = -2.756297031905997 //N=32 
-SHIFT1 =  -2.805744833284795  //N=64   
+//SHIFT1 = -2.756297031905997 //N=32
+SHIFT1 =  -2.805744833284795  //N=64
 //SHIFT1 =  -2.824622479014737   //N=128
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*N            // effective number of grid cells on finest   grid level
 L = 4.0                                           // channel length (cm)
@@ -70,8 +70,8 @@ YC = 0.0
 XC = 0.0
 
 // Penalty parameter
-KAPPA_S = 0.002/(DT^2) 
-ETA_S = 0.0 //4.0e-2/DT 
+KAPPA_S = 0.002/(DT^2)
+ETA_S = 0.0 //4.0e-2/DT
 
 
 
@@ -100,7 +100,7 @@ VelocityInitialConditions {
     yc = YC
     AA = AA
     BB = BB
-   
+
    function_0 = U
    function_1 = V
    function_2 = W
@@ -126,7 +126,7 @@ VelocityBcCoefs_0 {
     R2 = R2
     omega1 = OMEGA1
     omega2 = OMEGA2
-    
+
     xc = XC
     yc = YC
     AA = AA
@@ -147,8 +147,8 @@ VelocityBcCoefs_0 {
     bcoef_function_4 = "0.0"
     bcoef_function_5 = "0.0"
 
-    gcoef_function_0 = U //"if( sqrt((X1 - 1.5*D)*(X1 - 1.5*D) + (X2 - 1.5*D)*(X2 - 1.5*D)) < D/2, -p_e, 0.0 )" 
-    gcoef_function_1 = U //"if( sqrt((X1 - 1.5*D)*(X1 - 1.5*D) + (X2 - 1.5*D)*(X2 - 1.5*D)) < D/2, p_e, 0.0 )" 
+    gcoef_function_0 = U //"if( sqrt((X1 - 1.5*D)*(X1 - 1.5*D) + (X2 - 1.5*D)*(X2 - 1.5*D)) < D/2, -p_e, 0.0 )"
+    gcoef_function_1 = U //"if( sqrt((X1 - 1.5*D)*(X1 - 1.5*D) + (X2 - 1.5*D)*(X2 - 1.5*D)) < D/2, p_e, 0.0 )"
     gcoef_function_2 = U //"0.0"
     gcoef_function_3 = U //"0.0"
     gcoef_function_4 = U //"0.0"
@@ -161,7 +161,7 @@ VelocityBcCoefs_1 {
     R2 = R2
     omega1 = OMEGA1
     omega2 = OMEGA2
-    mu = MU 
+    mu = MU
     AA = AA
     BB = BB
     xc = XC
@@ -173,7 +173,7 @@ VelocityBcCoefs_1 {
    acoef_function_3 = "1.0"
    acoef_function_4 = "1.0"
    acoef_function_5 = "1.0"
-   
+
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
@@ -199,7 +199,7 @@ VelocityBcCoefs_2 {
    acoef_function_3 = "1.0"
    acoef_function_4 = "1.0"
    acoef_function_5 = "1.0"
-   
+
    bcoef_function_0 = "0.0"
    bcoef_function_1 = "0.0"
    bcoef_function_2 = "0.0"
@@ -345,4 +345,3 @@ TimerManager{
 
    timer_list = "IBAMR::*::*","IBTK::*::*","*::*::*"
 }
-

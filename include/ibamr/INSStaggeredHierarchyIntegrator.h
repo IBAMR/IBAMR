@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2008 - 2023 by the IBAMR developers
+// Copyright (c) 2008 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -102,7 +102,7 @@ public:
      * Get the convective operator being used by this solver class.
      *
      * If the time integrator is configured to solve the time-dependent
-     * (creeping) Stokes equations, then the returned pointer will be NULL.
+     * (creeping) Stokes equations, then the returned pointer will be nullptr.
      *
      * If the convective operator has not already been constructed, and if the
      * time integrator is not configured to solve the time-dependent (creeping)
@@ -175,12 +175,6 @@ public:
     void preprocessIntegrateHierarchy(double current_time, double new_time, int num_cycles = 1) override;
 
     /*!
-     * Synchronously advance each level in the hierarchy over the given time
-     * increment.
-     */
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override;
-
-    /*!
      * Clean up data following call(s) to integrateHierarchy().
      */
     void postprocessIntegrateHierarchy(double current_time,
@@ -215,6 +209,12 @@ public:
     void removeNullSpace(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol_vec);
 
 protected:
+    /*!
+     * Synchronously advance each level in the hierarchy over the given time
+     * increment.
+     */
+    void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
+
     /*!
      * L1 norm of the discrete divergence of the fluid velocity before regridding.
      */
@@ -254,6 +254,11 @@ protected:
      * Determine the largest stable timestep on an individual patch.
      */
     double getStableTimestep(SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch) const override;
+
+    /*!
+     * Write out specialized object state to the given database.
+     */
+    void putToDatabaseSpecialized(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
     /*!
      * Prepare the current hierarchy for regridding. Here we calculate the divergence.
@@ -343,6 +348,12 @@ private:
     INSStaggeredHierarchyIntegrator& operator=(const INSStaggeredHierarchyIntegrator& that) = delete;
 
     /*!
+     * Read object state from the restart file and initialize class data
+     * members.
+     */
+    void getFromRestart();
+
+    /*!
      * Compute the appropriate source term that must be added to the momentum
      * equation when the fluid contains internal sources and sinks.
      */
@@ -358,6 +369,21 @@ private:
      * cycle number.
      */
     TimeSteppingType getConvectiveTimeSteppingType(int cycle_num);
+
+    /*!
+     * Determine the time step size ratio.
+     */
+    double getTimeStepSizeRatio() const;
+
+    /*!
+     * Apply divergence-preserving (and curl-preserving) prolongation to the specified staggered-grid velocity field.
+     */
+    void applyDivergencePreservingProlongation(int U_idx,
+                                               int level_number,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > old_level,
+                                               SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                               double init_data_time) const;
 
     /*!
      * Hierarchy operations objects.
@@ -405,12 +431,12 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_F_cc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Q_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_N_old_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_old_var;
 
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_Omega_nc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_var;
 
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Omega_Norm_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_regrid_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_indicator_var;
@@ -441,16 +467,29 @@ private:
     int d_Q_current_idx = IBTK::invalid_index, d_Q_new_idx = IBTK::invalid_index, d_Q_scratch_idx = IBTK::invalid_index;
     int d_N_old_current_idx = IBTK::invalid_index, d_N_old_new_idx = IBTK::invalid_index,
         d_N_old_scratch_idx = IBTK::invalid_index;
+    int d_U_old_current_idx = IBTK::invalid_index, d_U_old_new_idx = IBTK::invalid_index,
+        d_U_old_scratch_idx = IBTK::invalid_index;
+
+    /*
+     * Patch data descriptor for state variables which are only present in the current context.
+     */
+    int d_Div_U_idx = IBTK::invalid_index, d_Omega_idx = IBTK::invalid_index;
 
     /*
      * Patch data descriptor indices for all "plot" variables managed by the
-     * integrator.
+     * integrator. These are only used for directly computing graphical output.
+     * In particular, this list does *not* contain some scratch variables used
+     * to generate graphical output. d_Div_U_idx is also directly plotted.
      *
-     * Plot variables have one context: current.
+     * Plot variables have one context: plot.
      */
     int d_U_nc_idx = IBTK::invalid_index, d_P_nc_idx = IBTK::invalid_index, d_F_cc_idx = IBTK::invalid_index,
-        d_Omega_idx = IBTK::invalid_index, d_Omega_nc_idx = IBTK::invalid_index, d_Div_U_idx = IBTK::invalid_index,
-        d_EE_idx = IBTK::invalid_index;
+        d_Omega_nc_idx = IBTK::invalid_index, d_EE_idx = IBTK::invalid_index;
+
+    /**
+     * Vector of all such plot-only data indices.
+     */
+    std::vector<int> d_plot_indices;
 
     /*
      * Patch data descriptor indices for all "scratch" variables managed by the
@@ -458,8 +497,8 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_Omega_Norm_idx = IBTK::invalid_index, d_U_regrid_idx = IBTK::invalid_index, d_U_src_idx = IBTK::invalid_index,
-        d_indicator_idx = IBTK::invalid_index, d_F_div_idx = IBTK::invalid_index;
+    int d_U_regrid_idx = IBTK::invalid_index, d_U_src_idx = IBTK::invalid_index, d_indicator_idx = IBTK::invalid_index,
+        d_F_div_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 

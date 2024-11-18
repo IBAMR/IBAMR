@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -29,10 +29,10 @@
 
 // Headers for application-specific algorithm/data structure objects
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/CFGiesekusRelaxation.h"
+#include "ibamr/CFGiesekusStrategy.h"
 #include "ibamr/CFINSForcing.h"
-#include "ibamr/CFOldroydBRelaxation.h"
-#include "ibamr/CFRoliePolyRelaxation.h"
+#include "ibamr/CFOldroydBStrategy.h"
+#include "ibamr/CFRoliePolyStrategy.h"
 #include "ibamr/ibamr_enums.h"
 
 #include <ibtk/AppInitializer.h>
@@ -100,7 +100,7 @@ main(int argc, char* argv[])
                                                             u_fcn,
                                                             grid_geometry,
                                                             adv_diff_integrator,
-                                                            adv_diff_integrator->getVisItDataWriter());
+                                                            app_initializer->getVisItDataWriter());
         Pointer<CartGridFunction> exact_fcn = new muParserCartGridFunction(
             "ComplexFluid", app_initializer->getComponentDatabase("ComplexFluid")->getDatabase("FCN"), grid_geometry);
 
@@ -131,6 +131,8 @@ main(int argc, char* argv[])
             level->allocatePatchData(c_cloned_idx);
         }
 
+        bool test_draw = input_db->getBoolWithDefault("TEST_DRAW", false);
+
         cf_forcing->setDataOnPatchHierarchy(
             c_idx, c_var, patch_hierarchy, 0.0, false, 0, patch_hierarchy->getFinestLevelNumber());
         exact_fcn->setDataOnPatchHierarchy(
@@ -147,7 +149,47 @@ main(int argc, char* argv[])
         HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(
             patch_hierarchy, 0, patch_hierarchy->getFinestLevelNumber());
 
-        if (var_centering == "CELL")
+        if (test_draw)
+        {
+            bool error = false;
+            for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+                {
+                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<CellData<NDIM, double> > draw_data = patch->getPatchData(
+                        var_db->getVariable("ComplexFluid::conform_draw"), var_db->getContext("ComplexFluid::CONTEXT"));
+                    Pointer<CellData<NDIM, double> > C_data = patch->getPatchData(cf_forcing->getVariableIdx());
+                    for (CellIterator<NDIM> ci(patch->getBox()); ci; ci++)
+                    {
+                        const CellIndex<NDIM>& idx = ci();
+#if (NDIM == 2)
+                        if (!(abs_equal_eps((*C_data)(idx, 0), (*draw_data)(idx, 0)) &&
+                              abs_equal_eps((*C_data)(idx, 2), (*draw_data)(idx, 1)) &&
+                              abs_equal_eps((*C_data)(idx, 2), (*draw_data)(idx, 2)) &&
+                              abs_equal_eps((*C_data)(idx, 1), (*draw_data)(idx, 3))))
+                            error = true;
+#endif
+#if (NDIM == 3)
+                        if (!(abs_equal_eps((*C_data)(idx, 0), (*draw_data)(idx, 0)) &&
+                              abs_equal_eps((*C_data)(idx, 5), (*draw_data)(idx, 1)) &&
+                              abs_equal_eps((*C_data)(idx, 4), (*draw_data)(idx, 2)) &&
+                              abs_equal_eps((*C_data)(idx, 5), (*draw_data)(idx, 3)) &&
+                              abs_equal_eps((*C_data)(idx, 1), (*draw_data)(idx, 4)) &&
+                              abs_equal_eps((*C_data)(idx, 3), (*draw_data)(idx, 5)) &&
+                              abs_equal_eps((*C_data)(idx, 4), (*draw_data)(idx, 6)) &&
+                              abs_equal_eps((*C_data)(idx, 3), (*draw_data)(idx, 7)) &&
+                              abs_equal_eps((*C_data)(idx, 2), (*draw_data)(idx, 8))))
+                            error = true;
+#endif
+                    }
+                }
+            }
+
+            if (error) pout << "Drawing data is incorrect\n";
+        }
+        else if (var_centering == "CELL")
         {
             hier_cc_data_ops.subtract(c_idx, c_idx, c_cloned_idx);
             plog << "Error norms:\n"

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2018 - 2020 by the IBAMR developers
+// Copyright (c) 2018 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -128,4 +128,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumSSPRKIntegrator
+#endif // #ifndef included_IBAMR_INSVCStaggeredConservativeMassMomentumSSPRKIntegrator

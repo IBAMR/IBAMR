@@ -231,7 +231,7 @@ LNode::assignThatToThis(const LNode& that)
 inline void
 LNode::setupNodeDataTypeArray()
 {
-    std::fill(d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE, static_cast<Streamable*>(nullptr));
+    std::fill(d_node_data_type_arr, d_node_data_type_arr + MAX_SIZE, nullptr);
     Streamable* it_val;
     int class_id;
     for (std::vector<SAMRAI::tbox::Pointer<Streamable> >::const_iterator cit = d_node_data.begin();

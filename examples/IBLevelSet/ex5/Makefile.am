@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2019 - 2022 by the IBAMR developers
+## Copyright (c) 2019 - 2024 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = LevelSetInitialCondition.cpp SetFluidSolidDensity.cpp SetFluidSolidViscosity.cpp TagLSRefinementCells.cpp example.cpp LevelSetInitialCondition.h SetFluidSolidDensity.h  SetFluidSolidViscosity.h TagLSRefinementCells.h
+EXAMPLE_DRIVER = LevelSetInitialCondition.cpp SetFluidSolidDensity.cpp SetFluidSolidViscosity.cpp example.cpp LevelSetInitialCondition.h SetFluidSolidDensity.h  SetFluidSolidViscosity.h
 EXTRA_DIST     = input2d 
 
 EXAMPLES =

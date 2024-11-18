@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -181,11 +181,25 @@ IBStrategy::updateFixedLEOperators()
 } // updateFixedLEOperators
 
 void
+IBStrategy::setUseMultistepTimeStepping(const unsigned int /*n_previous_steps*/)
+{
+    TBOX_ERROR("IBStrategy::setUseMultistepTimeStepping(): unimplemented\n");
+    return;
+} // setUseMultistepTimeStepping
+
+void
 IBStrategy::backwardEulerStep(double /*current_time*/, double /*new_time*/)
 {
     TBOX_ERROR("IBStrategy::backwardEulerStep(): unimplemented\n");
     return;
 } // backwardEulerStep
+
+void
+IBStrategy::AB2Step(double /*current_time*/, double /*new_time*/)
+{
+    TBOX_ERROR("IBStrategy::AB2Step(): unimplemented\n");
+    return;
+} // AB2Step
 
 bool
 IBStrategy::hasFluidSources() const
@@ -373,13 +387,21 @@ IBStrategy::registerVariable(int& current_idx,
                              const IntVector<NDIM>& scratch_ghosts,
                              const std::string& coarsen_name,
                              const std::string& refine_name,
-                             Pointer<CartGridFunction> init_fcn)
+                             Pointer<CartGridFunction> init_fcn,
+                             const bool register_for_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
-    d_ib_solver->registerVariable(
-        current_idx, new_idx, scratch_idx, variable, scratch_ghosts, coarsen_name, refine_name, init_fcn);
+    d_ib_solver->registerVariable(current_idx,
+                                  new_idx,
+                                  scratch_idx,
+                                  variable,
+                                  scratch_ghosts,
+                                  coarsen_name,
+                                  refine_name,
+                                  init_fcn,
+                                  register_for_restart);
     return;
 } // registerVariable
 
@@ -387,12 +409,13 @@ void
 IBStrategy::registerVariable(int& idx,
                              Pointer<Variable<NDIM> > variable,
                              const IntVector<NDIM>& ghosts,
-                             Pointer<VariableContext> ctx)
+                             Pointer<VariableContext> ctx,
+                             const bool register_for_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(d_ib_solver);
 #endif
-    d_ib_solver->registerVariable(idx, variable, ghosts, ctx);
+    d_ib_solver->registerVariable(idx, variable, ghosts, ctx, register_for_restart);
     return;
 } // registerVariable
 

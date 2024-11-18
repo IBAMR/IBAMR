@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2018 - 2020 by the IBAMR developers
+// Copyright (c) 2018 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -76,11 +76,6 @@ namespace IBAMR
 
 namespace
 {
-// NOTE: The number of ghost cells required by the convection scheme depends
-// on the chosen convective limiter, which will be set via input file
-static const int GPPMG = 4;
-static const int GCUIG = 3;
-
 // Timers.
 static Timer* t_apply_convective_operator;
 static Timer* t_integrate;

@@ -54,6 +54,7 @@
 
 #include <algorithm>
 #include <array>
+#include <deque>
 #include <limits>
 #include <map>
 #include <memory>
@@ -626,6 +627,13 @@ public:
         double data_time) override;
 
     /*!
+     * Indicate that multistep time stepping will be used.
+     *
+     * @param[in] n_previous_steps Number of previous solution values that can be used by the multistep scheme.
+     */
+    void setUseMultistepTimeStepping(unsigned int n_previous_steps = 1) override;
+
+    /*!
      * Advance the positions of the Lagrangian structure using the forward Euler
      * method.
      */
@@ -648,6 +656,12 @@ public:
      * trapezoidal rule.
      */
     void trapezoidalStep(double current_time, double new_time) override;
+
+    /*!
+     * Advance the positions of the Lagrangian structure using the standard
+     * 2nd-order Adams-Bashforth rule.
+     */
+    void AB2Step(double current_time, double new_time) override;
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
@@ -1082,6 +1096,12 @@ protected:
      * IBFEMethod::spreadFluidSource().
      */
     std::unique_ptr<IBTK::SecondaryHierarchy> d_secondary_hierarchy;
+
+    /*!
+     * Data related to multistep time stepping.
+     */
+    unsigned int d_multistep_n_previous_steps = 0;
+    std::deque<double> d_dt_old;
 
 private:
     /*!

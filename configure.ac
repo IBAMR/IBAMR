@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2006 - 2022 by the IBAMR developers
+## Copyright (c) 2006 - 2024 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -26,13 +26,10 @@ AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability s
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])
 AC_LANG(C++)
-dnl libMesh will automatically detect and use C++14 features if they are
-dnl available by default (e.g., with GCC 6.0 and newer). Ensure that we have the
-dnl same version flag by using exactly the same macro setup as libMesh:
-dnl
-dnl (this variable is set up by libMesh)
 enablecxx11=yes
-AX_CXX_COMPILE_STDCXX_11([],[mandatory])
+enablecxx14=yes
+enablecxx17=yes
+AX_CXX_COMPILE_STDCXX_17([],[mandatory])
 
 ###########################################################################
 # Checks for programs.
@@ -211,6 +208,7 @@ AC_CONFIG_FILES([
   examples/IBLevelSet/ex3/Makefile
   examples/IBLevelSet/ex4/Makefile
   examples/IBLevelSet/ex5/Makefile
+  examples/IBLevelSet/ex6/Makefile
   examples/IIM/Makefile
   examples/IIM/ex0/Makefile
   examples/IIM/ex1/Makefile
@@ -291,6 +289,7 @@ AC_CONFIG_FILES([
   src/level_set/fortran/Makefile
   src/navier_stokes/Makefile
   src/navier_stokes/fortran/Makefile
+  src/phase_change/Makefile
   src/utilities/Makefile
   src/wave_generation/Makefile
   tests/attest.conf

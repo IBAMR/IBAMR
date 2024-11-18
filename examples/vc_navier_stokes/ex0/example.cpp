@@ -145,7 +145,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -184,7 +184,7 @@ main(int argc, char* argv[])
                                                         static_cast<void*>(ptr_SetFluidProperties));
 
         // Register boundary conditions for rho and mu as they are not set by CartGridFunction
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBoundaryConditions"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -192,7 +192,7 @@ main(int argc, char* argv[])
             time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBoundaryConditions"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(

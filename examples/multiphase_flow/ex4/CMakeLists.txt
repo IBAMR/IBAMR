@@ -21,8 +21,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-multiphase_flow
   SOURCES
-    GravityForcing.cpp LSLocateLayerInterface.cpp SetFluidProperties.cpp
-    SetLSProperties.cpp example.cpp
+    LSLocateLayerInterface.cpp example.cpp
   LINK_TARGETS
     IBAMR2d
   INPUT_FILES

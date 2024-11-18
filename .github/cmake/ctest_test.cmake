@@ -15,9 +15,6 @@ INCLUDE("${CMAKE_CURRENT_LIST_DIR}/github_ci.cmake")
 
 # Read the files from the build directory.
 CTEST_READ_CUSTOM_FILES("${CTEST_BINARY_DIRECTORY}")
-# Uncomment the line below and all ctest_submit_multi lines
-# if CTestConfig.cmake defines `drop_sites`.
-# include("${CMAKE_CURRENT_LIST_DIR}/ctest_submit_multi.cmake")
 
 # Pick up from where the configure left off.
 CTEST_START(APPEND)
@@ -30,18 +27,6 @@ CTEST_TEST(
   PARALLEL_LEVEL "${nproc}"
   RETURN_VALUE test_result
   EXCLUDE "${test_exclusions}")
-
-# Below is an example location for packaged binaries.
-# Adjust as needed should we want to upload binaries to cdash.
-# file(GLOB packages
-#   "${CTEST_BINARY_DIRECTORY}/PluginTests/*/build/plugin/build/*.tar.gz")
-#
-# if (NOT packages STREQUAL "")
-#   ctest_upload(FILES ${packages})
-# endif()
-
-# ctest_submit_multi(PARTS Test)
-CTEST_SUBMIT(PARTS Test)
 
 IF (test_result)
   MESSAGE(FATAL_ERROR "Failed to test")

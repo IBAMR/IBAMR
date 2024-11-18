@@ -310,7 +310,7 @@ main(int argc, char* argv[])
         }
 
         // Create Eulerian boundary condition specification objects.
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, nullptr);
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
         if (!periodic_domain)
         {
@@ -337,8 +337,10 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        std::unique_ptr<ExodusII_IO> lower_exodus_io(uses_exodus ? new ExodusII_IO(lower_mesh) : NULL);
-        std::unique_ptr<ExodusII_IO> upper_exodus_io(uses_exodus ? new ExodusII_IO(upper_mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> lower_exodus_io =
+            uses_exodus ? std::make_unique<ExodusII_IO>(lower_mesh) : nullptr;
+        std::unique_ptr<ExodusII_IO> upper_exodus_io =
+            uses_exodus ? std::make_unique<ExodusII_IO>(upper_mesh) : nullptr;
 
         // Check to see if this is a restarted run to append current exodus files
         if (uses_exodus)

@@ -29,10 +29,10 @@ INLET_ZONE_END      = WAVELENGTH
 ALPHA               = 3.5
 
 // material properties
-MU_I  = 1.137e-3
-MU_O  = 1.78e-5
-RHO_I = 1.0e3
-RHO_O = 1.226
+MU_I  = 1.78e-5
+MU_O  = 1.137e-3
+RHO_I = 1.226
+RHO_O = 1.0e3
 
 NUM_INTERFACE_CELLS = 1.0
 
@@ -58,14 +58,13 @@ APPLY_SUBCELL_FIX          = TRUE
 APPLY_VOLUME_SHIFT         = FALSE
 APPLY_MASS_CONSTRAINT      = FALSE
 
-LS_TAG_VALUE         = 0.0
 LS_TAG_ABS_THRESH    = 2.0*L/Nx
 VORTICITY_REL_THRESH = 0.5
 
 // Level set initial conditions
 LevelSetInitialConditions {
   depth = DEPTH
-  function = "X_1 - depth" 
+  function = "depth - X_1" 
 }
 
 

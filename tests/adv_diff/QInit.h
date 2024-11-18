@@ -102,7 +102,7 @@ public:
                         Pointer<Patch<NDIM> > patch,
                         double data_time,
                         bool /*initial_time*/ = false,
-                        Pointer<PatchLevel<NDIM> > /*level*/ = Pointer<PatchLevel<NDIM> >(NULL))
+                        Pointer<PatchLevel<NDIM> > /*level*/ = nullptr)
     {
         Pointer<CellData<NDIM, double> > Q_data = patch->getPatchData(data_idx);
 #if !defined(NDEBUG)

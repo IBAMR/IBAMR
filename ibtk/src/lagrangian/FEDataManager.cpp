@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -356,7 +356,7 @@ FEData::getDofMapCache(unsigned int system_num)
     std::unique_ptr<FEData::SystemDofMapCache>& dof_map_cache = d_system_dof_map_cache[key];
     if (dof_map_cache == nullptr)
     {
-        dof_map_cache.reset(new FEData::SystemDofMapCache(system));
+        dof_map_cache = std::make_unique<FEData::SystemDofMapCache>(system);
     }
     return dof_map_cache.get();
 } // getDofMapCache
@@ -2447,8 +2447,7 @@ FEDataManager::updateQuadratureRule(std::unique_ptr<QBase>& qrule,
         qrule->allow_rules_with_negative_weights != allow_rules_with_negative_weights ||
         qrule->get_elem_type() != elem_type || qrule->get_p_level() != elem_p_level)
     {
-        qrule =
-            (type == QGRID ? std::unique_ptr<QBase>(new QGrid(elem_dim, order)) : QBase::build(type, elem_dim, order));
+        qrule = type == QGRID ? std::make_unique<QGrid>(elem_dim, order) : QBase::build(type, elem_dim, order);
         qrule->allow_rules_with_negative_weights = allow_rules_with_negative_weights;
         qrule->init(elem_type, elem_p_level);
         qrule_updated = true;
@@ -2591,7 +2590,6 @@ FEDataManager::applyGradientDetector(const Pointer<BasePatchHierarchy<NDIM> > hi
         // Determine the active elements associated with the prescribed patch
         // level.
         std::vector<std::vector<Elem*> > active_level_elem_map;
-        const IntVector<NDIM> ghost_width = 1;
         collectActivePatchElements(active_level_elem_map, level_number, level_number + 1, d_max_level_number);
         std::vector<unsigned int> X_ghost_dofs;
         std::vector<Elem*> active_level_elems;
@@ -2828,7 +2826,7 @@ FEDataManager::FEDataManager(std::string object_name,
                              std::shared_ptr<FEData> fe_data,
                              bool register_for_restart)
     : d_fe_data(fe_data),
-      d_fe_projector(new FEProjector(d_fe_data, setup_fe_projector_db(input_db))),
+      d_fe_projector(std::make_shared<FEProjector>(d_fe_data, setup_fe_projector_db(input_db))),
       COORDINATES_SYSTEM_NAME(d_fe_data->d_coordinates_system_name),
       d_level_lookup(max_levels - 1,
                      collect_subdomain_ids(d_fe_data->getEquationSystems()->get_mesh()),
@@ -3327,8 +3325,8 @@ FEDataManager::reinitializeIBGhostedDOFs(const std::string& system_name)
         // Match the expected vector sizes by using the solution for non-ghost
         // sizes:
         const NumericVector<double>& solution = *system.solution;
-        std::unique_ptr<PetscVector<double> > exemplar_ib_vector(new PetscVector<double>(
-            system.comm(), solution.size(), solution.local_size(), ib_ghost_dofs, libMesh::GHOSTED));
+        std::unique_ptr<PetscVector<double> > exemplar_ib_vector = std::make_unique<PetscVector<double> >(
+            system.comm(), solution.size(), solution.local_size(), ib_ghost_dofs, libMesh::GHOSTED);
         d_active_patch_ghost_dofs[system_name] = std::move(ib_ghost_dofs);
         d_system_ib_ghost_vec[system_name] = std::move(exemplar_ib_vector);
     }

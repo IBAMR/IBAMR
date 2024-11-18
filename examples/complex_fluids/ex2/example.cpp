@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2022 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -100,6 +100,8 @@ void postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                       Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                       Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
                       Pointer<CFINSForcing> polymericStressForcing,
+                      double viscosity,
+                      double relaxation_time,
                       Mesh& mesh,
                       EquationSystems* equation_systems,
                       const int iteration_num,
@@ -184,11 +186,12 @@ main(int argc, char* argv[])
             }
             TriangleInterface triangle(solid_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
             triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
+
+            if (elem_type == "TRI6") solid_mesh.all_second_order();
 #else
             TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
                        << "       but Triangle is required for TRI3 or TRI6 elements.\n");
@@ -321,7 +324,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -360,6 +363,7 @@ main(int argc, char* argv[])
         // Generate the extra stress component and set up necessary components. The constructor registers the extra
         // stress with the advection diffusion integrator.
         Pointer<CFINSForcing> polymericStressForcing;
+        double viscosity = 0.0, relaxation_time = 0.0;
         if (input_db->keyExists("ComplexFluid"))
         {
             polymericStressForcing = new CFINSForcing("PolymericStressForcing",
@@ -369,9 +373,11 @@ main(int argc, char* argv[])
                                                       adv_diff_integrator,
                                                       visit_data_writer);
             time_integrator->registerBodyForceFunction(polymericStressForcing);
+            viscosity = input_db->getDatabase("ComplexFluid")->getDouble("viscosity");
+            relaxation_time = input_db->getDatabase("ComplexFluid")->getDouble("relaxation_time");
         }
 
-        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io = uses_exodus ? std::make_unique<ExodusII_IO>(mesh) : nullptr;
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -470,6 +476,8 @@ main(int argc, char* argv[])
                                  navier_stokes_integrator,
                                  adv_diff_integrator,
                                  polymericStressForcing,
+                                 viscosity,
+                                 relaxation_time,
                                  mesh,
                                  equation_systems,
                                  iteration_num,
@@ -497,6 +505,8 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
                  Pointer<INSHierarchyIntegrator> navier_stokes_integrator,
                  Pointer<AdvDiffSemiImplicitHierarchyIntegrator> adv_diff_integrator,
                  Pointer<CFINSForcing> polymericStressForcing,
+                 const double viscosity,
+                 const double relaxation_time,
                  Mesh& mesh,
                  EquationSystems* equation_systems,
                  const int iteration_num,
@@ -566,7 +576,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
     std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
-    void* force_fcn_ctx = NULL;
+    void* force_fcn_ctx = nullptr;
 
     TensorValue<double> FF, FF_inv_trans;
     boost::multi_array<double, 2> x_node, U_node;
@@ -652,7 +662,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             yp = 0.0;
             X[0] = xp;
             X[1] = yp;
-            sxx = polymericStressForcing->getViscosity() / polymericStressForcing->getRelaxationTime() *
+            sxx = viscosity / relaxation_time *
                   (IBTK::InterpolationUtilities::interpolate(
                        X,
                        polymericStressForcing->getVariableIdx(),
@@ -671,7 +681,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             yp = std::sin(M_PI * i / num_pts);
             X[0] = xp;
             X[1] = yp;
-            sxx = polymericStressForcing->getViscosity() / polymericStressForcing->getRelaxationTime() *
+            sxx = viscosity / relaxation_time *
                   (IBTK::InterpolationUtilities::interpolate(
                        X,
                        polymericStressForcing->getVariableIdx(),
@@ -689,7 +699,7 @@ postprocess_data(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
             yp = 0.0;
             X[0] = xp;
             X[1] = yp;
-            sxx = polymericStressForcing->getViscosity() / polymericStressForcing->getRelaxationTime() *
+            sxx = viscosity / relaxation_time *
                   (IBTK::InterpolationUtilities::interpolate(
                        X,
                        polymericStressForcing->getVariableIdx(),

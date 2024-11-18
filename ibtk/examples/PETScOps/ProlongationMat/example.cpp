@@ -69,7 +69,7 @@ main(int argc, char* argv[])
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
@@ -194,13 +194,13 @@ main(int argc, char* argv[])
 
         // Construct PETSc prolongation mat.
         std::string prolongation_op_type = input_db->getString("prolongation_op_type");
-        AO coarse_level_ao = NULL;
+        AO coarse_level_ao = nullptr;
         PETScVecUtilities::constructPatchLevelAO(coarse_level_ao,
                                                  num_dofs_per_proc[coarsest_ln],
                                                  u_dof_index_idx,
                                                  patch_hierarchy->getPatchLevel(coarsest_ln),
                                                  /*ao_offset*/ 0);
-        Mat prolongation_mat = NULL;
+        Mat prolongation_mat = nullptr;
         PETScMatUtilities::constructProlongationOp(prolongation_mat,
                                                    prolongation_op_type,
                                                    u_dof_index_idx,
@@ -239,7 +239,7 @@ main(int argc, char* argv[])
                                                  u_dof_index_idx,
                                                  patch_hierarchy->getPatchLevel(finest_ln),
                                                  data_synch_sched,
-                                                 Pointer<RefineSchedule<NDIM> >(NULL));
+                                                 Pointer<RefineSchedule<NDIM> >(nullptr));
 
         // Setup SAMRAI vector objects.
         HierarchyMathOps hier_math_ops("hier_math_ops", patch_hierarchy);
@@ -264,21 +264,21 @@ main(int argc, char* argv[])
                              u_cc_var,
                              u_sc_idx,
                              u_sc_var,
-                             Pointer<HierarchyGhostCellInterpolation>(NULL),
+                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
                              0.0,
                              synch_cf_interface);
         hier_math_ops.interp(f_cc_idx,
                              f_cc_var,
                              f_sc_idx,
                              f_sc_var,
-                             Pointer<HierarchyGhostCellInterpolation>(NULL),
+                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
                              0.0,
                              synch_cf_interface);
         hier_math_ops.interp(e_cc_idx,
                              e_cc_var,
                              e_sc_idx,
                              e_sc_var,
-                             Pointer<HierarchyGhostCellInterpolation>(NULL),
+                             Pointer<HierarchyGhostCellInterpolation>(nullptr),
                              0.0,
                              synch_cf_interface);
 

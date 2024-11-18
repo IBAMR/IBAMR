@@ -176,7 +176,7 @@ public:
 
         // Create ghost fill schedules
         {
-            d_ghost_fill_alg.registerRefine(d_u_idx, d_u_idx, d_u_idx, NULL);
+            d_ghost_fill_alg.registerRefine(d_u_idx, d_u_idx, d_u_idx, nullptr);
             d_ghost_fill_schd = d_ghost_fill_alg.createSchedule(d_hierarchy->getPatchLevel(d_finest_ln));
         }
 
@@ -201,13 +201,13 @@ public:
             PetscBool nz_init_guess;
             KSPGetInitialGuessNonzero(d_petsc_ksp, &nz_init_guess);
             d_initial_guess_nonzero = (nz_init_guess == PETSC_TRUE);
-            KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, NULL, &d_max_iterations);
+            KSPGetTolerances(d_petsc_ksp, &d_rel_residual_tol, &d_abs_residual_tol, nullptr, &d_max_iterations);
 
             // Set the KSP operator.
             if (d_ksp_mat)
             {
                 MatDestroy(&d_ksp_mat);
-                d_ksp_mat = NULL;
+                d_ksp_mat = nullptr;
             }
             if (!d_ksp_mat)
             {
@@ -229,7 +229,7 @@ public:
             static const size_t len = 255;
             char pc_type_str[len];
             PetscBool flg;
-            PetscOptionsGetString(NULL, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
+            PetscOptionsGetString(nullptr, d_options_prefix.c_str(), "-pc_type", pc_type_str, len, &flg);
             std::string pc_type = "shell";
             if (flg)
             {
@@ -281,7 +281,7 @@ public:
         if (d_ksp_mat)
         {
             MatDestroy(&d_ksp_mat);
-            d_ksp_mat = NULL;
+            d_ksp_mat = nullptr;
         }
 
         return;
@@ -363,7 +363,7 @@ private:
         // Compute position residual X = dt*J*[u/2] = 0 - dt*J*[-u/2]
         Vec X, X0;
         solver->d_ib_ops->createSolverVecs(&X, &X0);
-        solver->d_ib_ops->setupSolverVecs(NULL, &X0);
+        solver->d_ib_ops->setupSolverVecs(nullptr, &X0);
 
         solver->d_hier_velocity_data_ops->scale(solver->d_u_idx, -0.5, u_idx);
         solver->d_ghost_fill_schd->fillData(half_time);
@@ -377,7 +377,7 @@ private:
         solver->d_ib_ops->computeLinearizedLagrangianForce(X, half_time);
         solver->d_hier_velocity_data_ops->setToScalar(solver->d_f_idx, 0.0);
         solver->d_ib_ops->spreadLinearizedForce(
-            solver->d_f_idx, NULL, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
+            solver->d_f_idx, nullptr, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
         solver->d_hier_velocity_data_ops->subtract(f_u_idx, f_u_idx, solver->d_f_idx);
         PetscObjectStateIncrease(reinterpret_cast<PetscObject>(y));
         PetscFunctionReturn(0);
@@ -495,7 +495,7 @@ main(int argc, char* argv[])
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
@@ -577,7 +577,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -685,7 +685,7 @@ main(int argc, char* argv[])
         PetscSynchronizedFlush(PETSC_COMM_WORLD, PETSC_STDOUT);
 
         // Get the matrix/matrix-free representation of force Jacobian (A).
-        Mat A = NULL, A_MFFD = NULL;
+        Mat A = nullptr, A_MFFD = nullptr;
         ib_method_ops->constructLagrangianForceJacobian(A, MATAIJ, new_time);
         ib_method_ops->constructLagrangianForceJacobian(A_MFFD, MATSHELL, new_time);
 
@@ -700,7 +700,7 @@ main(int argc, char* argv[])
         //====================================================================
 
         // Get the matrix representation of J at the finest level
-        Mat J = NULL;
+        Mat J = nullptr;
         ib_method_ops->constructInterpOp(J,
                                          PETScMatUtilities::ib_4_interp_fcn,
                                          PETScMatUtilities::ib_4_interp_stencil,
@@ -798,7 +798,7 @@ main(int argc, char* argv[])
 
         // Interpolate the Eulerian velocity to the curvilinear mesh.
         RefineAlgorithm<NDIM> ghost_fill_alg;
-        ghost_fill_alg.registerRefine(u_ib_idx, u_ib_idx, u_ib_idx, NULL);
+        ghost_fill_alg.registerRefine(u_ib_idx, u_ib_idx, u_ib_idx, nullptr);
         Pointer<RefineSchedule<NDIM> > ghost_fill_schd =
             ghost_fill_alg.createSchedule(patch_hierarchy->getPatchLevel(finest_ln));
 
@@ -917,10 +917,10 @@ buildSAJCoarsestFromSAMRAIOperators(Mat& SAJ_coarse,
     // Define the prolongation and refine algorithms
     Pointer<RefineAlgorithm<NDIM> > prolongation_refine_algorithm = new RefineAlgorithm<NDIM>();
     Pointer<CoarsenAlgorithm<NDIM> > restriction_coarsen_algorithm = new CoarsenAlgorithm<NDIM>();
-    prolongation_refine_algorithm->registerRefine(u_idx, u_idx, u_idx, prolongation_op, NULL);
-    restriction_coarsen_algorithm->registerCoarsen(u_idx, u_idx, restriction_op, NULL);
+    prolongation_refine_algorithm->registerRefine(u_idx, u_idx, u_idx, prolongation_op, nullptr);
+    restriction_coarsen_algorithm->registerCoarsen(u_idx, u_idx, restriction_op, nullptr);
     Pointer<RefineSchedule<NDIM> > prolongation_schedule = prolongation_refine_algorithm->createSchedule(
-        finest_level, Pointer<PatchLevel<NDIM> >(), coarsest_ln, patch_hierarchy, NULL);
+        finest_level, Pointer<PatchLevel<NDIM> >(), coarsest_ln, patch_hierarchy, nullptr);
     Pointer<CoarsenSchedule<NDIM> > restriction_schedule =
         restriction_coarsen_algorithm->createSchedule(coarsest_level, finest_level);
 

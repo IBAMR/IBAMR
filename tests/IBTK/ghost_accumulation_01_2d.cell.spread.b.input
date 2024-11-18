@@ -27,8 +27,8 @@ GriddingAlgorithm {
    largest_patch_size  {level_0 =   4,   4}
    smallest_patch_size {level_0 =   2,   4}
 
-   efficiency_tolerance = 0.70e0  
-   combine_efficiency   = 0.85e0 
+   efficiency_tolerance = 0.70e0
+   combine_efficiency   = 0.85e0
 }
 
 StandardTagAndInitialize {

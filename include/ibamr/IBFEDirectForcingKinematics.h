@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2018 - 2023 by the IBAMR developers
+// Copyright (c) 2018 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -61,7 +61,7 @@ namespace IBAMR
  * \brief Class IBFEDirectForcingKinematics is a helper class that provides direct
  * forcing IBMethod functionality to the IBFEMethod class.
  */
-class IBFEDirectForcingKinematics : public virtual SAMRAI::tbox::DescribedClass, public SAMRAI::tbox::Serializable
+class IBFEDirectForcingKinematics : public SAMRAI::tbox::Serializable
 {
 public:
     /*!

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2023 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -499,8 +499,9 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
         }
         // Compute C += div(chi * n) - chi * div(n) throughout the hierarchy.
         hier_math_ops->div(
-            d_div_n_chi_scratch_idx, d_div_var, 1.0, d_n_chi_scratch_idx, d_n_var, NULL, d_current_time, false);
-        hier_math_ops->div(d_div_n_scratch_idx, d_div_var, 1.0, d_n_scratch_idx, d_n_var, NULL, d_current_time, false);
+            d_div_n_chi_scratch_idx, d_div_var, 1.0, d_n_chi_scratch_idx, d_n_var, nullptr, d_current_time, false);
+        hier_math_ops->div(
+            d_div_n_scratch_idx, d_div_var, 1.0, d_n_scratch_idx, d_n_var, nullptr, d_current_time, false);
         hier_cc_data_ops.multiply(d_div_n_scratch_idx, d_chi_scratch_idx, d_div_n_scratch_idx);
         // Ensure that we don't overwrite contributions from other BCs.
         hier_cc_data_ops.add(C_idx, C_idx, d_div_n_chi_scratch_idx);
@@ -857,9 +858,9 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
             }
             // Compute F += div(chi * B) - chi * div(B) throughout the hierarchy.
             hier_math_ops->div(
-                d_div_B_chi_scratch_idx, d_div_var, 1.0, d_B_chi_scratch_idx, d_B_var, NULL, d_current_time, false);
+                d_div_B_chi_scratch_idx, d_div_var, 1.0, d_B_chi_scratch_idx, d_B_var, nullptr, d_current_time, false);
             hier_math_ops->div(
-                d_div_B_scratch_idx, d_div_var, 1.0, d_B_scratch_idx, d_B_var, NULL, d_current_time, false);
+                d_div_B_scratch_idx, d_div_var, 1.0, d_B_scratch_idx, d_B_var, nullptr, d_current_time, false);
             hier_cc_data_ops.multiply(d_div_B_scratch_idx, d_chi_scratch_idx, d_div_B_scratch_idx);
             // Ensure that we don't overwrite contributions from other BCs.
             hier_cc_data_ops.add(F_idx, F_idx, d_div_B_chi_scratch_idx);

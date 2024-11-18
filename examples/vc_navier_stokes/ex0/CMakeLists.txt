@@ -27,7 +27,7 @@ IBAMR_ADD_EXAMPLE(
   INPUT_FILES
     input2d input2d.amr input2d.bubble
   EXTRA_FILES
-    ManufacturedSolution_2D.nb
+    ManufacturedSolution_2D.m
   )
 
 IBAMR_ADD_EXAMPLE(
@@ -46,5 +46,5 @@ IBAMR_ADD_EXAMPLE(
   INPUT_FILES
     input3d input3d.amr
   EXTRA_FILES
-    ManufacturedSolution_3D.nb
+    ManufacturedSolution_3D.m
   )

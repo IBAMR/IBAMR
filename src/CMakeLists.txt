@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2022 by the IBAMR developers
+## Copyright (c) 2020 - 2024 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -134,6 +134,14 @@ SET(CXX_SRC
   navier_stokes/StaggeredStokesSolver.cpp
   navier_stokes/INSVCStaggeredHierarchyIntegrator.cpp
 
+  # phase_change
+  phase_change/AllenCahnHierarchyIntegrator.cpp
+  phase_change/CarmanKozenyDragForce.cpp
+  phase_change/EnthalpyHierarchyIntegrator.cpp
+  phase_change/HeavisideForcingFunction.cpp
+  phase_change/PhaseChangeDivUSourceFunction.cpp
+  phase_change/PhaseChangeHierarchyIntegrator.cpp
+
   # IB
   IB/IBInstrumentPanel.cpp
   IB/BrinkmanPenalizationStrategy.cpp
@@ -194,11 +202,11 @@ SET(CXX_SRC
   IB/IBStandardSourceGen.cpp
 
   # complex fluids
-  complex_fluids/CFRoliePolyRelaxation.cpp
-  complex_fluids/CFGiesekusRelaxation.cpp
-  complex_fluids/CFRelaxationOperator.cpp
+  complex_fluids/CFRoliePolyStrategy.cpp
+  complex_fluids/CFGiesekusStrategy.cpp
+  complex_fluids/CFStrategy.cpp
   complex_fluids/CFINSForcing.cpp
-  complex_fluids/CFOldroydBRelaxation.cpp
+  complex_fluids/CFOldroydBStrategy.cpp
   complex_fluids/CFUpperConvectiveOperator.cpp
 
   # advect
@@ -206,6 +214,7 @@ SET(CXX_SRC
   advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp
 
   # level set
+  level_set/LevelSetUtilities.cpp
   level_set/LSInitStrategy.cpp
   level_set/FastSweepingLSMethod.cpp
   level_set/RelaxationLSBcCoefs.cpp
@@ -216,6 +225,8 @@ SET(CXX_SRC
   utilities/CellConvectiveOperator.cpp
   utilities/ConvectiveOperator.cpp
   utilities/STSMassFluxIntegrator.cpp
+  utilities/ins_utilities.cpp
+  utilities/vc_ins_utilities.cpp
   )
 
 IF(${IBAMR_HAVE_LIBMESH})

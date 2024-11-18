@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2018 - 2020 by the IBAMR developers
+## Copyright (c) 2018 - 2024 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp SetFluidProperties.cpp LSLocateFluidInterface.cpp SetLSProperties.cpp GravityForcing.cpp TagLSRefinementCells.cpp VelocityInitialCondition.cpp LevelSetInitialCondition.cpp
+EXAMPLE_DRIVER = example.cpp LSLocateFluidInterface.cpp VelocityInitialCondition.cpp LevelSetInitialCondition.cpp
 EXTRA_DIST     = input2d
 EXTRA_DIST    += input3d
 

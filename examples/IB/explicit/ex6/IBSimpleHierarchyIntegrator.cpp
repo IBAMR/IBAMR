@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -80,10 +80,10 @@ IBSimpleHierarchyIntegrator::preprocessIntegrateHierarchy(const double current_t
 } // preprocessIntegrateHierarchy
 
 void
-IBSimpleHierarchyIntegrator::integrateHierarchy(const double current_time, const double new_time, const int cycle_num)
+IBSimpleHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                           const double new_time,
+                                                           const int /*cycle_num*/)
 {
-    IBHierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-
     const int finest_level_num = d_hierarchy->getFinestLevelNumber();
     PetscErrorCode ierr;
     const double dt = new_time - current_time;
@@ -193,10 +193,10 @@ IBSimpleHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
     // the AMR patch hierarchy.
     ierr = VecSwap(d_X_current_data->getVec(), d_X_new_data->getVec());
     IBTK_CHKERRQ(ierr);
-    d_X_current_data = NULL;
-    d_X_new_data = NULL;
-    d_U_data = NULL;
-    d_F_data = NULL;
+    d_X_current_data = nullptr;
+    d_X_new_data = nullptr;
+    d_U_data = nullptr;
+    d_F_data = nullptr;
     return;
 } // postprocessIntegrateHierarchy
 

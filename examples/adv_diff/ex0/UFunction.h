@@ -60,7 +60,7 @@ public:
                         Pointer<Patch<NDIM> > patch,
                         double data_time,
                         bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > level = Pointer<PatchLevel<NDIM> >(NULL));
+                        Pointer<PatchLevel<NDIM> > level = nullptr);
 
 protected:
 private:

@@ -111,7 +111,7 @@ main(int argc, char* argv[])
         if (input_db->keyExists("petsc_options_file"))
         {
             std::string petsc_options_file = input_db->getString("petsc_options_file");
-            PetscOptionsInsertFile(PETSC_COMM_WORLD, NULL, petsc_options_file.c_str(), PETSC_TRUE);
+            PetscOptionsInsertFile(PETSC_COMM_WORLD, nullptr, petsc_options_file.c_str(), PETSC_TRUE);
         }
 
         // Get various standard options set in the input file.
@@ -190,8 +190,8 @@ main(int argc, char* argv[])
         plate_free_dofs << 0, 0, 0;
         ib_method_ops->setSolveRigidBodyVelocity(0, plate_free_dofs);
 
-        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorque, NULL, 0);
-        ib_method_ops->registerConstrainedVelocityFunction(NULL, &ConstrainedCOMVel, NULL, 0);
+        ib_method_ops->registerExternalForceTorqueFunction(&NetExternalForceTorque, nullptr, 0);
+        ib_method_ops->registerConstrainedVelocityFunction(nullptr, &ConstrainedCOMVel, nullptr, 0);
 
         // Create initial condition specification objects.
         Pointer<CartGridFunction> u_init = new muParserCartGridFunction(
@@ -219,7 +219,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -257,8 +257,9 @@ main(int argc, char* argv[])
             struct_ids.push_back(prototype_structs);
 
             // Register the dense matrix with direct solver
-            DirectMobilitySolver* direct_solvers = NULL;
-            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(NULL, &direct_solvers, NULL);
+            DirectMobilitySolver* direct_solvers = nullptr;
+            CIBSolver->getSaddlePointSolver()->getCIBMobilitySolver()->getMobilitySolvers(
+                nullptr, &direct_solvers, nullptr);
 
             direct_solvers->registerMobilityMat(
                 mat_name, prototype_structs, EMPIRICAL, std::make_pair(LAPACK_LU, LAPACK_LU), 0);

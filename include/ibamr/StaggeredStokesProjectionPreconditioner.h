@@ -50,6 +50,13 @@ namespace IBAMR
  * that implements a staggered grid (MAC) projection solver for the
  * incompressible Stokes operator.
  *
+ * Sample parameters for initialization from database (and their default
+ * values): \verbatim
+
+ skip_velocity_solve = FALSE  // set whether to skip the velocity solve; this is equivalent
+                              // to treating viscosity explicitly in the preconditioner
+ \endverbatim
+ *
  * \see INSStaggeredHierarchyIntegrator
  */
 class StaggeredStokesProjectionPreconditioner : public StaggeredStokesBlockPreconditioner

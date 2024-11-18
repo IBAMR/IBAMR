@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2019 by the IBAMR developers
+// Copyright (c) 2017 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -115,7 +115,7 @@ public:
                         double data_time,
                         bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
 
     /*!
      * \brief Callback function to compute the marangoni coefficient as a function of temperature and
@@ -191,7 +191,7 @@ private:
     /*!
      * Marangoni coefficient.
      */
-    double d_marangoni_coefficient = std::numeric_limits<double>::signaling_NaN();
+    double d_marangoni_coefficient = 0.0;
 
     /*!
      * Boundary condition object for temperature.
@@ -208,4 +208,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBAMR_SurfaceTensionForceFunction
+#endif // #ifndef included_IBAMR_SurfaceTensionForceFunction

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -83,7 +83,7 @@ namespace IBTK
 namespace
 {
 // Version of HierarchyIntegrator restart file data.
-static const int HIERARCHY_INTEGRATOR_VERSION = 1;
+static const int HIERARCHY_INTEGRATOR_VERSION = 2;
 // Timers.
 static Timer* t_regrid_hierarchy;
 static Timer* t_advance_hierarchy;
@@ -130,6 +130,7 @@ HierarchyIntegrator::HierarchyIntegrator(std::string object_name, Pointer<Databa
     d_current_context = var_db->getContext(d_object_name + "::CURRENT");
     d_new_context = var_db->getContext(d_object_name + "::NEW");
     d_scratch_context = var_db->getContext(d_object_name + "::SCRATCH");
+    d_plot_context = var_db->getContext(d_object_name + "::PLOT");
 
     // Create default communications algorithms.
     d_coarsen_algs[SYNCH_CURRENT_DATA_ALG] = new CoarsenAlgorithm<NDIM>();
@@ -546,6 +547,10 @@ HierarchyIntegrator::updateWorkloadEstimates()
 {
     if (d_workload_idx != IBTK::invalid_index)
     {
+        // If we are starting from a restart file then we have to allocate this
+        // ourselves
+        allocatePatchData(d_workload_idx, d_integrator_time);
+
         HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(d_hierarchy);
         hier_cc_data_ops.setToScalar(d_workload_idx, 1.0, /*interior_only*/ false);
 
@@ -581,7 +586,7 @@ HierarchyIntegrator::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_bala
     if (d_workload_idx == IBTK::invalid_index)
     {
         d_workload_var = new CellVariable<NDIM, double>(d_object_name + "::workload");
-        registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext());
+        registerVariable(d_workload_idx, d_workload_var, 0, getCurrentContext(), false);
     }
     d_load_balancer->setWorkloadPatchDataIndex(d_workload_idx);
     return;
@@ -666,11 +671,11 @@ HierarchyIntegrator::integrateHierarchy(const double current_time, const double 
     TBOX_ASSERT(IBTK::abs_equal_eps(d_current_dt, new_time - current_time));
     TBOX_ASSERT(d_current_cycle_num == cycle_num);
     TBOX_ASSERT(d_current_cycle_num < d_current_num_cycles);
-#else
-    NULL_USE(current_time);
-    NULL_USE(new_time);
-    NULL_USE(cycle_num);
 #endif
+
+    integrateHierarchySpecialized(current_time, new_time, cycle_num);
+
+    executeIntegrateHierarchyCallbackFcns(current_time, new_time, cycle_num);
     return;
 } // integrateHierarchy
 
@@ -824,6 +829,14 @@ HierarchyIntegrator::initializeLevelData(const Pointer<BasePatchHierarchy<NDIM> 
     // Initialize level data at the initial time.
     if (initial_time)
     {
+        // Initialize or reset the hierarchy math operations object.
+        d_hier_math_ops = buildHierarchyMathOps(hierarchy);
+        if (d_manage_hier_math_ops)
+        {
+            d_hier_math_ops->setPatchHierarchy(hierarchy);
+            d_hier_math_ops->resetLevels(0, std::max(level_number, hierarchy->getFinestLevelNumber()));
+        }
+
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
         for (const auto& var : d_state_variables)
         {
@@ -1025,6 +1038,12 @@ HierarchyIntegrator::getScratchContext() const
     return d_scratch_context;
 } // getScratchContext
 
+Pointer<VariableContext>
+HierarchyIntegrator::getPlotContext() const
+{
+    return d_plot_context;
+} // getPlotContext
+
 bool
 HierarchyIntegrator::isAllocatedPatchData(const int data_idx, int coarsest_ln, int finest_ln) const
 {
@@ -1081,7 +1100,8 @@ HierarchyIntegrator::registerVariable(int& current_idx,
                                       const IntVector<NDIM>& scratch_ghosts,
                                       const std::string& coarsen_name,
                                       const std::string& refine_name,
-                                      Pointer<CartGridFunction> init_fcn)
+                                      Pointer<CartGridFunction> init_fcn,
+                                      const bool register_for_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(variable);
@@ -1101,7 +1121,7 @@ HierarchyIntegrator::registerVariable(int& current_idx,
     // Setup the current context.
     current_idx = var_db->registerVariableAndContext(variable, getCurrentContext(), no_ghosts);
     d_current_data.setFlag(current_idx);
-    if (d_registered_for_restart)
+    if (d_registered_for_restart && register_for_restart)
     {
         var_db->registerPatchDataForRestart(current_idx);
     }
@@ -1141,7 +1161,8 @@ void
 HierarchyIntegrator::registerVariable(int& idx,
                                       const Pointer<Variable<NDIM> > variable,
                                       const IntVector<NDIM>& ghosts,
-                                      Pointer<VariableContext> ctx)
+                                      Pointer<VariableContext> ctx,
+                                      const bool register_for_restart)
 {
 #if !defined(NDEBUG)
     TBOX_ASSERT(variable);
@@ -1159,7 +1180,7 @@ HierarchyIntegrator::registerVariable(int& idx,
     if (*ctx == *getCurrentContext())
     {
         d_current_data.setFlag(idx);
-        if (d_registered_for_restart)
+        if (d_registered_for_restart && register_for_restart)
         {
             var_db->registerPatchDataForRestart(idx);
         }
@@ -1168,6 +1189,8 @@ HierarchyIntegrator::registerVariable(int& idx,
         d_scratch_data.setFlag(idx);
     else if (*ctx == *getNewContext())
         d_new_data.setFlag(idx);
+    else if (*ctx == *getPlotContext())
+        d_plot_data.setFlag(idx);
     else
     {
         TBOX_ERROR(d_object_name << "::registerVariable():\n"
@@ -1211,6 +1234,14 @@ HierarchyIntegrator::putToDatabase(Pointer<Database> db)
 } // putToDatabase
 
 /////////////////////////////// PROTECTED ////////////////////////////////////
+void
+HierarchyIntegrator::integrateHierarchySpecialized(const double /*current_time*/,
+                                                   const double /*new_time*/,
+                                                   const int /*cycle_num*/)
+{
+    // intentionally blank
+    return;
+} // integrateHierarchySpecialized
 
 void
 HierarchyIntegrator::regridHierarchyBeginSpecialized()
@@ -1281,15 +1312,23 @@ HierarchyIntegrator::resetTimeDependentHierarchyDataSpecialized(const double new
     {
         const int src_idx = var_db->mapVariableAndContextToIndex(v, getNewContext());
         const int dst_idx = var_db->mapVariableAndContextToIndex(v, getCurrentContext());
+
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+            // If a variable is in the current context but not registered for
+            // restarts, then it will not be allocated at this point, so
+            // double-check that dst is allocated:
+            if (!level->checkAllocated(dst_idx)) level->allocatePatchData(dst_idx);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<PatchData<NDIM> > src_data = patch->getPatchData(src_idx);
                 Pointer<PatchData<NDIM> > dst_data = patch->getPatchData(dst_idx);
 #if !defined(NDEBUG)
+                TBOX_ASSERT(src_data);
+                TBOX_ASSERT(dst_data);
                 TBOX_ASSERT(src_data->getBox() == dst_data->getBox());
                 TBOX_ASSERT(src_data->getGhostCellWidth() == dst_data->getGhostCellWidth());
 #endif

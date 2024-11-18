@@ -1,0 +1,9 @@
+Error in Q near interface after level set re-initialization:
+L1-norm:  0.01577635459
+Number of points within the interface (used to compute interface error):
+248
+Error in Q in entire domain (minus center) after level set re-initialization:
+L1-norm:  0.2640545806
+Error in Q in entire domain (including center) after level set re-initialization:
+L1-norm:  0.2661310293
+Volume error for the re-initialized circle using the discontinuous Heaviside function: 0.01088256823

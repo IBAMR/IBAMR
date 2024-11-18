@@ -4,7 +4,7 @@ code_updates:
   -- Contains scripts used to do simple fixes that could change many lines.
 
 formatting:
-  -- Contains scripts to format code.
+  -- Contains scripts to format code corresponding to the 'make indent' target.
 
 IB:
   -- Contains scripts to verify and update standard input files for IB simulations

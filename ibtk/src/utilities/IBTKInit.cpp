@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2021 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -43,13 +43,7 @@ IBTKInit::IBTKInit(int argc, char** argv, MPI_Comm communicator, char* petsc_fil
     // We need to initialize PETSc.
     PetscInitialize(&argc, &argv, petsc_file, petsc_help);
 #endif
-#if SAMRAI_VERSION_MAJOR > 2
-    SAMRAIManager::initialize();
-    SAMRAI_MPI::init(comm);
-    SAMRAIManager::setMaxNumberPatchDataEntries(std::max(2048, SAMRAIManager::getMaxNumberPatchDataEntries()));
-#else
     SAMRAIManager::setMaxNumberPatchDataEntries(2048);
-#endif
     SAMRAI_MPI::setCommunicator(communicator);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -60,9 +54,6 @@ IBTKInit::IBTKInit(int argc, char** argv, MPI_Comm communicator, char* petsc_fil
 IBTKInit::~IBTKInit()
 {
     SAMRAIManager::shutdown();
-#if SAMRAI_VERSION_MAJOR > 2
-    SAMRAIManager::finalize();
-#endif
 #ifndef IBTK_HAVE_LIBMESH
     PetscFinalize();
 #endif

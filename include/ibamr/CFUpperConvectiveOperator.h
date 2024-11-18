@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -22,7 +22,7 @@
 
 #include "ibamr/AdvDiffConvectiveOperatorManager.h"
 #include "ibamr/AdvDiffPhysicalBoundaryUtilities.h"
-#include "ibamr/CFRelaxationOperator.h"
+#include "ibamr/CFStrategy.h"
 #include "ibamr/ConvectiveOperator.h"
 #include "ibamr/INSHierarchyIntegrator.h"
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
@@ -89,7 +89,8 @@ public:
     CFUpperConvectiveOperator(const std::string& object_name,
                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                              const std::string& difference_form,
+                              const std::string& convective_op_type,
+                              ConvectiveDifferencingType difference_type,
                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
 
@@ -114,7 +115,7 @@ public:
      * evolved version of the tensor, and therefore must first be converted from the square root or logarithm to the
      * tensor.
      */
-    void registerSourceFunction(SAMRAI::tbox::Pointer<IBAMR::CFRelaxationOperator> source_fcn);
+    void registerCFStrategy(SAMRAI::tbox::Pointer<IBAMR::CFStrategy> cf_strategy);
 
 private:
     // Hierarchy configuration.
@@ -127,11 +128,10 @@ private:
     int d_u_scratch_idx = IBTK::invalid_index;
 
     // Source function data.
-    SAMRAI::tbox::Pointer<IBAMR::CFRelaxationOperator> d_s_fcn;
+    SAMRAI::tbox::Pointer<IBAMR::CFStrategy> d_cf_strategy;
     int d_s_idx = IBTK::invalid_index;
 
     // Convective Operator
-    std::string d_difference_form;
     SAMRAI::tbox::Pointer<IBAMR::ConvectiveOperator> d_convec_oper;
     int d_Q_convec_idx = IBTK::invalid_index;
     const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_Q_bc_coefs;

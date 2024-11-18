@@ -89,11 +89,13 @@ build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = free_falling_cyl_cib$(EXEEXT) \
 	rotating_barge_cib$(EXEEXT) check_hydro_force$(EXEEXT) \
-	high_density_droplet$(EXEEXT)
+	high_density_droplet$(EXEEXT) \
+	water_entry_circular_cylinder$(EXEEXT)
 subdir = tests/multiphase_flow
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
-	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
+	$(top_srcdir)/m4/ax_cxx_compile_stdcxx.m4 \
+	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_17.m4 \
 	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
@@ -156,6 +158,15 @@ rotating_barge_cib_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_water_entry_circular_cylinder_OBJECTS = water_entry_circular_cylinder-water_entry_circular_cylinder.$(OBJEXT)
+water_entry_circular_cylinder_OBJECTS =  \
+	$(am_water_entry_circular_cylinder_OBJECTS)
+water_entry_circular_cylinder_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+water_entry_circular_cylinder_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(water_entry_circular_cylinder_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -175,7 +186,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/check_hydro_force-check_hydro_force.Po \
 	./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po \
 	./$(DEPDIR)/high_density_droplet-high_density_droplet.Po \
-	./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
+	./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po \
+	./$(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -196,10 +208,12 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(check_hydro_force_SOURCES) $(free_falling_cyl_cib_SOURCES) \
-	$(high_density_droplet_SOURCES) $(rotating_barge_cib_SOURCES)
+	$(high_density_droplet_SOURCES) $(rotating_barge_cib_SOURCES) \
+	$(water_entry_circular_cylinder_SOURCES)
 DIST_SOURCES = $(check_hydro_force_SOURCES) \
 	$(free_falling_cyl_cib_SOURCES) \
-	$(high_density_droplet_SOURCES) $(rotating_barge_cib_SOURCES)
+	$(high_density_droplet_SOURCES) $(rotating_barge_cib_SOURCES) \
+	$(water_entry_circular_cylinder_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -267,7 +281,7 @@ FFLAGS = @FFLAGS@
 FGREP = @FGREP@
 FLIBS = @FLIBS@
 GREP = @GREP@
-HAVE_CXX11 = @HAVE_CXX11@
+HAVE_CXX17 = @HAVE_CXX17@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
@@ -501,6 +515,9 @@ check_hydro_force_SOURCES = check_hydro_force.cpp
 high_density_droplet_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
 high_density_droplet_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 high_density_droplet_SOURCES = high_density_droplet.cpp
+water_entry_circular_cylinder_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2 -DSOURCE_DIR=\"$(abs_srcdir)\"
+water_entry_circular_cylinder_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+water_entry_circular_cylinder_SOURCES = water_entry_circular_cylinder.cpp
 all: all-am
 
 .SUFFIXES:
@@ -552,6 +569,10 @@ rotating_barge_cib$(EXEEXT): $(rotating_barge_cib_OBJECTS) $(rotating_barge_cib_
 	@rm -f rotating_barge_cib$(EXEEXT)
 	$(AM_V_CXXLD)$(rotating_barge_cib_LINK) $(rotating_barge_cib_OBJECTS) $(rotating_barge_cib_LDADD) $(LIBS)
 
+water_entry_circular_cylinder$(EXEEXT): $(water_entry_circular_cylinder_OBJECTS) $(water_entry_circular_cylinder_DEPENDENCIES) $(EXTRA_water_entry_circular_cylinder_DEPENDENCIES) 
+	@rm -f water_entry_circular_cylinder$(EXEEXT)
+	$(AM_V_CXXLD)$(water_entry_circular_cylinder_LINK) $(water_entry_circular_cylinder_OBJECTS) $(water_entry_circular_cylinder_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -562,6 +583,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/high_density_droplet-high_density_droplet.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -648,6 +670,20 @@ rotating_barge_cib-rotating_barge_cib.obj: rotating_barge_cib.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='rotating_barge_cib.cpp' object='rotating_barge_cib-rotating_barge_cib.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(rotating_barge_cib_CXXFLAGS) $(CXXFLAGS) -c -o rotating_barge_cib-rotating_barge_cib.obj `if test -f 'rotating_barge_cib.cpp'; then $(CYGPATH_W) 'rotating_barge_cib.cpp'; else $(CYGPATH_W) '$(srcdir)/rotating_barge_cib.cpp'; fi`
+
+water_entry_circular_cylinder-water_entry_circular_cylinder.o: water_entry_circular_cylinder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(water_entry_circular_cylinder_CXXFLAGS) $(CXXFLAGS) -MT water_entry_circular_cylinder-water_entry_circular_cylinder.o -MD -MP -MF $(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Tpo -c -o water_entry_circular_cylinder-water_entry_circular_cylinder.o `test -f 'water_entry_circular_cylinder.cpp' || echo '$(srcdir)/'`water_entry_circular_cylinder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Tpo $(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='water_entry_circular_cylinder.cpp' object='water_entry_circular_cylinder-water_entry_circular_cylinder.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(water_entry_circular_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o water_entry_circular_cylinder-water_entry_circular_cylinder.o `test -f 'water_entry_circular_cylinder.cpp' || echo '$(srcdir)/'`water_entry_circular_cylinder.cpp
+
+water_entry_circular_cylinder-water_entry_circular_cylinder.obj: water_entry_circular_cylinder.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(water_entry_circular_cylinder_CXXFLAGS) $(CXXFLAGS) -MT water_entry_circular_cylinder-water_entry_circular_cylinder.obj -MD -MP -MF $(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Tpo -c -o water_entry_circular_cylinder-water_entry_circular_cylinder.obj `if test -f 'water_entry_circular_cylinder.cpp'; then $(CYGPATH_W) 'water_entry_circular_cylinder.cpp'; else $(CYGPATH_W) '$(srcdir)/water_entry_circular_cylinder.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Tpo $(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='water_entry_circular_cylinder.cpp' object='water_entry_circular_cylinder-water_entry_circular_cylinder.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(water_entry_circular_cylinder_CXXFLAGS) $(CXXFLAGS) -c -o water_entry_circular_cylinder-water_entry_circular_cylinder.obj `if test -f 'water_entry_circular_cylinder.cpp'; then $(CYGPATH_W) 'water_entry_circular_cylinder.cpp'; else $(CYGPATH_W) '$(srcdir)/water_entry_circular_cylinder.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -784,6 +820,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
 	-rm -f ./$(DEPDIR)/high_density_droplet-high_density_droplet.Po
 	-rm -f ./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
+	-rm -f ./$(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -833,6 +870,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/free_falling_cyl_cib-free_falling_cyl_cib.Po
 	-rm -f ./$(DEPDIR)/high_density_droplet-high_density_droplet.Po
 	-rm -f ./$(DEPDIR)/rotating_barge_cib-rotating_barge_cib.Po
+	-rm -f ./$(DEPDIR)/water_entry_circular_cylinder-water_entry_circular_cylinder.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

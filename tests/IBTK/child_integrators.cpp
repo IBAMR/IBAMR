@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2021 - 2022 by the IBAMR developers
+// Copyright (c) 2021 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -44,14 +44,12 @@ public:
 
     ~DummyAdvDiffIntegrator() = default;
 
-    void integrateHierarchy(double current_time, double new_time, int cycle_num = 0) override
-    {
-        plog << d_object_name << ": integrateHierarchy()\n";
-        HierarchyIntegrator::integrateHierarchy(current_time, new_time, cycle_num);
-        return;
-    }
-
 protected:
+    void integrateHierarchySpecialized(double /*current_time*/, double /*new_time*/, int cycle_num = 0) override
+    {
+        NULL_USE(cycle_num);
+        plog << d_object_name << ": integrateHierarchySpecialized()\n";
+    }
     void regridHierarchyBeginSpecialized() override
     {
         plog << d_object_name << ": regridHierarchyBeginSpecialized()\n";

@@ -271,7 +271,7 @@ public:
                                           double dt,
                                           const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_src_bc_coef =
                                               std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>(),
-                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef = NULL);
+                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* p_src_bc_coef = nullptr);
 
     /*!
      * \brief Postprocess data for the next timestep.

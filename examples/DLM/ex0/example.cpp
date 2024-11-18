@@ -248,12 +248,13 @@ main(int argc, char* argv[])
             }
             TriangleInterface triangle(block_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(block_elem_type);
             triangle.desired_area() = sqrt(3.0) / 4.0 * dX * dX;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
             block_mesh.prepare_for_use();
+
+            if (block_elem_type == "TRI6") block_mesh.all_second_order();
 #else
             TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
                        << "       but Triangle is required for TRI3 or TRI6 elements.\n");
@@ -479,8 +480,9 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        std::unique_ptr<ExodusII_IO> block_exodus_io(uses_exodus ? new ExodusII_IO(block_mesh) : nullptr);
-        std::unique_ptr<ExodusII_IO> beam_exodus_io(uses_exodus ? new ExodusII_IO(beam_mesh) : nullptr);
+        std::unique_ptr<ExodusII_IO> block_exodus_io =
+            uses_exodus ? std::make_unique<ExodusII_IO>(block_mesh) : nullptr;
+        std::unique_ptr<ExodusII_IO> beam_exodus_io = uses_exodus ? std::make_unique<ExodusII_IO>(beam_mesh) : nullptr;
 
         // Check to see if this is a restarted run to append current exodus files
         if (uses_exodus)

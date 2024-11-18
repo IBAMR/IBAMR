@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# based on the compile-clang-format deal.II script and licensed under the LGPL
+
+#
+# This script downloads, compiles and installs the clang-format binary. The
+# destination directory is
+#   scripts/formatting/programs/clang-<VERSION>/bin.
+#
+# Compiling clang-format and all necessary parts of LLVM/CLANG might
+# require a significant amount of resources. Alternatively, you can use
+# download_clang_format to install a statically-linked binary.
+#
+
+set -e
+set -u
+
+PRG="$(cd "$(dirname "$0")" && pwd)/programs"
+
+VERSION="16"
+RELEASE_DATE="2023-06-10"
+LLVM_COMMIT="7cbf1a2591520c2491aa35339f227775f4d3adf6"
+
+CLANG_PATH="${PRG}/clang-${VERSION}"
+RELEASE_BRANCH="release/${VERSION}.x"
+LLVM_REPOSITORY="https://github.com/llvm/llvm-project"
+
+if [ ! -d "${PRG}" ]
+then
+    echo "create folder ${PRG}"
+    mkdir "${PRG}"
+fi
+
+if [ -d "${CLANG_PATH}" ]
+then
+    echo "${CLANG_PATH}  exists. Exiting."
+    exit 1
+fi
+
+echo "Downloading and compiling clang-format-${VERSION}."
+mkdir -p "${CLANG_PATH}/bin"
+
+tmpdir="${TMPDIR:-/tmp}/dealiiclang${RANDOM}${RANDOM}"
+mkdir -p "${tmpdir}"
+cd "${tmpdir}"
+
+GIT_VERSION=$(git version)
+GIT_MAJOR_VERSION=$(echo "${GIT_VERSION}" | sed 's/^[^0-9]*\([0-9]*\).*$/\1/g')
+GIT_MINOR_VERSION=$(echo "${GIT_VERSION}" | sed 's/^[^0-9]*[0-9]*\.\([0-9]*\).*$/\1/g')
+
+if [ "$GIT_MAJOR_VERSION" -ge 2 ] && [ "$GIT_MINOR_VERSION" -ge 11 ]; then
+  GIT_SHALLOW_SINCE_AVAILABLE=true
+else
+  GIT_SHALLOW_SINCE_AVAILABLE=false
+fi
+
+git init --initial-branch=main
+git remote add origin "${LLVM_REPOSITORY}"
+if [ "$GIT_SHALLOW_SINCE_AVAILABLE" = true ]; then
+  git fetch --shallow-since="${RELEASE_DATE}" origin "${RELEASE_BRANCH}"
+else
+  git fetch --depth=1 origin "${RELEASE_BRANCH}"
+  i=1;
+  while ! git cat-file -e ${LLVM_COMMIT} 2> /dev/null; do
+    git fetch --depth=$((i+=10)) origin "${RELEASE_BRANCH}";
+  done
+fi
+git reset --hard "${LLVM_COMMIT}"
+
+# move clang directory into right place for the build system
+mv clang llvm/tools
+
+mkdir llvm/build
+cd llvm/build
+
+case "${OSTYPE}" in
+  darwin*)
+    cmake -DCMAKE_BUILD_TYPE=MinSizeRel ..
+    ;;
+  *)
+    cmake -DCMAKE_BUILD_TYPE=MinSizeRel -DLLVM_BUILD_STATIC=true ..
+    ;;
+esac
+
+make -j4 clang-format
+cp bin/clang-format "${CLANG_PATH}"/bin
+cp ../{CODE_OWNERS,CREDITS,LICENSE}.TXT "${CLANG_PATH}"
+rm -rf "${tmpdir}"
+
+echo "All done. clang-format successfully installed into"
+echo "    ${CLANG_PATH}/bin"

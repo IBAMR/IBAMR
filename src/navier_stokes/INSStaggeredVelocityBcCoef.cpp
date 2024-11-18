@@ -65,9 +65,7 @@ INSStaggeredVelocityBcCoef::INSStaggeredVelocityBcCoef(const unsigned int comp_i
                                                        const std::vector<RobinBcCoefStrategy<NDIM>*>& bc_coefs,
                                                        const TractionBcType traction_bc_type,
                                                        const bool homogeneous_bc)
-    : d_comp_idx(comp_idx),
-      d_fluid_solver(fluid_solver),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
+    : d_comp_idx(comp_idx), d_fluid_solver(fluid_solver), d_bc_coefs(NDIM, nullptr)
 {
     setStokesSpecifications(d_fluid_solver->getStokesSpecifications());
     setPhysicalBcCoefs(bc_coefs);

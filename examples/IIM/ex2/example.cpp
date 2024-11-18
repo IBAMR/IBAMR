@@ -326,7 +326,7 @@ main(int argc, char* argv[])
         navier_stokes_integrator->registerPressureInitialConditions(p_init);
 
         // Create Eulerian boundary condition specification objects.
-        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(NULL));
+        vector<RobinBcCoefStrategy<NDIM>*> u_bc_coefs(NDIM, nullptr);
         const bool periodic_domain = grid_geometry->getPeriodicShift().min() > 0;
         if (!periodic_domain)
         {
@@ -363,7 +363,8 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        std::unique_ptr<ExodusII_IO> exodus_io_thin(uses_exodus ? new ExodusII_IO(cylinder_mesh_thin) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io_thin =
+            uses_exodus ? std::make_unique<ExodusII_IO>(cylinder_mesh_thin) : nullptr;
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();
@@ -750,7 +751,7 @@ postprocess_data(tbox::Pointer<PatchHierarchy<NDIM> > /*patch_hierarchy*/,
     std::vector<const std::vector<double>*> var_data(1);
     var_data[0] = &U_qp_vec;
     std::vector<const std::vector<libMesh::VectorValue<double> >*> grad_var_data;
-    void* force_fcn_ctx = NULL;
+    void* force_fcn_ctx = nullptr;
 
     TensorValue<double> FF_qp;
     boost::multi_array<double, 2> x_node, X_node, U_node;

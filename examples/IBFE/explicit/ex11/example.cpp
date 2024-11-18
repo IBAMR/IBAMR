@@ -192,11 +192,12 @@ main(int argc, char* argv[])
             }
             TriangleInterface triangle(solid_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
             triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
+
+            if (elem_type == "TRI6") solid_mesh.all_second_order();
 #else
             TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
                        << "       but Triangle is required for TRI3 or TRI6 elements.\n");
@@ -280,7 +281,7 @@ main(int argc, char* argv[])
         FreeRigidDOFVector solve_dofs;
         solve_dofs.setZero();
         df_kinematics_ops->setSolveRigidBodyVelocity(solve_dofs);
-        df_kinematics_ops->registerKinematicsFunction(&cylinder_kinematics, NULL);
+        df_kinematics_ops->registerKinematicsFunction(&cylinder_kinematics, nullptr);
 
         // Configure the IBFE solver.
         ib_method_ops->initializeFEEquationSystems();
@@ -308,7 +309,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -339,7 +340,7 @@ main(int argc, char* argv[])
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
         }
-        std::unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io = uses_exodus ? std::make_unique<ExodusII_IO>(mesh) : nullptr;
 
         // Check to see if this is a restarted run to append current exodus files
         if (uses_exodus)

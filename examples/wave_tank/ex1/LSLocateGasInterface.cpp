@@ -99,8 +99,8 @@ LSLocateGasInterface::setLevelSetPatchData(int D_idx,
                 const double distance = NDIM < 3 ? coord[1] - H : coord[2] - H;
 
                 // Initialize the locator data to be zero on the interface,
-                // negative inside, and positive outside
-                (*D_data)(ci) = distance;
+                // positive inside, and negative outside
+                (*D_data)(ci) = -distance;
             }
         }
     }

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -65,7 +65,7 @@ namespace IBAMR
 namespace
 {
 // Version of INSHierarchyIntegrator restart file data.
-static const int INS_HIERARCHY_INTEGRATOR_VERSION = 3;
+static const int INS_HIERARCHY_INTEGRATOR_VERSION = 4;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
@@ -498,7 +498,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
       d_Q_coarsen_type(std::move(Q_default_coarsen_type)),
       d_Q_refine_type(std::move(Q_default_refine_type)),
       d_default_bc_coefs(d_object_name + "::default_bc_coefs", Pointer<Database>(nullptr)),
-      d_bc_coefs(NDIM, static_cast<RobinBcCoefStrategy<NDIM>*>(nullptr))
+      d_bc_coefs(NDIM, nullptr)
 {
     // Set some default values.
     d_convective_op_input_db = new MemoryDatabase(d_object_name + "::convective_op_input_db");
@@ -518,7 +518,7 @@ INSHierarchyIntegrator::INSHierarchyIntegrator(std::string object_name,
     {
         d_U_star_bc_coefs[d] = new INSIntermediateVelocityBcCoef(d, d_bc_coefs);
     }
-    d_Phi_bc_coef.reset(new INSProjectionBcCoef(d_bc_coefs));
+    d_Phi_bc_coef = std::make_unique<INSProjectionBcCoef>(d_bc_coefs);
 
     // Initialize object with data read from the input and restart databases.
     bool from_restart = RestartManager::getManager()->isFromRestart();
@@ -564,6 +564,116 @@ INSHierarchyIntegrator::updateCurrentCFLNumber(const int data_idx, const double 
 } // updateCurrentCFLNumber
 
 double
+INSHierarchyIntegrator::getMaximumVorticityMagnitude(const int Omega_idx)
+{
+    TBOX_ASSERT(d_hier_math_ops);
+    const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
+    double max_vorticity_norm = 0.0;
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
+            Pointer<CellData<NDIM, double> > cc_wgt_data_ptr = patch->getPatchData(wgt_cc_idx);
+            TBOX_ASSERT(Omega_data_ptr);
+            TBOX_ASSERT(cc_wgt_data_ptr);
+            const CellData<NDIM, double>& Omega_data = *Omega_data_ptr;
+            const CellData<NDIM, double>& cc_wgt_data = *cc_wgt_data_ptr;
+            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            {
+                const hier::Index<NDIM>& i = ic();
+                if (cc_wgt_data(i) > 0.0)
+                {
+                    if (NDIM == 2)
+                    {
+                        max_vorticity_norm = std::max(max_vorticity_norm, std::abs(Omega_data(i)));
+                    }
+                    else
+                    {
+                        double norm_Omega_sq = 0.0;
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            const double o = Omega_data(i, d);
+                            norm_Omega_sq += o * o;
+                        }
+                        max_vorticity_norm = std::max(max_vorticity_norm, std::sqrt(norm_Omega_sq));
+                    }
+                }
+            }
+        }
+    }
+
+    return IBTK_MPI::maxReduction(max_vorticity_norm);
+}
+
+void
+INSHierarchyIntegrator::tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx)
+{
+    Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(level_number);
+    const double Omega_max = getMaximumVorticityMagnitude(Omega_idx);
+
+    // Tag cells based on the magnitude of the vorticity.
+    //
+    // Note that if either the relative or absolute threshold is zero for a
+    // particular level, no tagging is performed on that level.
+    double Omega_rel_thresh = 0.0;
+    if (d_Omega_rel_thresh.size() > 0)
+    {
+        Omega_rel_thresh = d_Omega_rel_thresh[std::max(std::min(level_number, d_Omega_rel_thresh.size() - 1), 0)];
+    }
+    double Omega_abs_thresh = 0.0;
+    if (d_Omega_abs_thresh.size() > 0)
+    {
+        Omega_abs_thresh = d_Omega_abs_thresh[std::max(std::min(level_number, d_Omega_abs_thresh.size() - 1), 0)];
+    }
+    if (Omega_rel_thresh > 0.0 || Omega_abs_thresh > 0.0)
+    {
+        double thresh = std::numeric_limits<double>::max();
+        if (Omega_rel_thresh > 0.0) thresh = std::min(thresh, Omega_rel_thresh * Omega_max);
+        if (Omega_abs_thresh > 0.0) thresh = std::min(thresh, Omega_abs_thresh);
+        thresh += std::sqrt(std::numeric_limits<double>::epsilon());
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > Omega_data_ptr = patch->getPatchData(Omega_idx);
+            Pointer<CellData<NDIM, int> > tag_data_ptr = patch->getPatchData(tag_idx);
+            TBOX_ASSERT(Omega_data_ptr);
+            TBOX_ASSERT(tag_data_ptr);
+            const CellData<NDIM, double>& Omega_data = *Omega_data_ptr;
+            CellData<NDIM, int>& tag_data = *tag_data_ptr;
+            for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+            {
+                const hier::Index<NDIM>& i = ic();
+                double norm_Omega = 0.0;
+                if (NDIM == 2)
+                {
+                    norm_Omega = std::abs(Omega_data(i));
+                }
+                else
+                {
+                    double norm_Omega_sq = 0.0;
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        const double o = Omega_data(i, d);
+                        norm_Omega_sq += o * o;
+                    }
+                    norm_Omega = std::sqrt(norm_Omega_sq);
+                }
+                if (norm_Omega > thresh)
+                {
+                    tag_data(i) = 1;
+                }
+            }
+        }
+    }
+    return;
+}
+
+double
 INSHierarchyIntegrator::getMaximumTimeStepSizeSpecialized()
 {
     double dt = HierarchyIntegrator::getMaximumTimeStepSizeSpecialized();
@@ -604,7 +714,6 @@ INSHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     db->putBool("d_using_vorticity_tagging", d_using_vorticity_tagging);
     if (d_Omega_rel_thresh.size() > 0) db->putDoubleArray("d_Omega_rel_thresh", d_Omega_rel_thresh);
     if (d_Omega_abs_thresh.size() > 0) db->putDoubleArray("d_Omega_abs_thresh", d_Omega_abs_thresh);
-    db->putDouble("d_Omega_max", d_Omega_max);
     db->putBool("d_normalize_pressure", d_normalize_pressure);
     db->putBool("d_normalize_velocity", d_normalize_velocity);
     db->putString("d_convective_op_type", d_convective_op_type);
@@ -871,7 +980,6 @@ INSHierarchyIntegrator::getFromRestart()
         d_Omega_abs_thresh = db->getDoubleArray("d_Omega_abs_thresh");
     else
         d_Omega_abs_thresh.resizeArray(0);
-    d_Omega_max = db->getDouble("d_Omega_max");
     d_normalize_pressure = db->getBool("d_normalize_pressure");
     d_normalize_velocity = db->getBool("d_normalize_velocity");
     d_convective_op_type = db->getString("d_convective_op_type");

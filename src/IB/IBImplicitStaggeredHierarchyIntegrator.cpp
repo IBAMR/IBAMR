@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -239,10 +239,11 @@ IBImplicitStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const doubl
 } // preprocessIntegrateHierarchy
 
 void
-IBImplicitStaggeredHierarchyIntegrator::integrateHierarchy(const double current_time,
-                                                           const double new_time,
-                                                           const int cycle_num)
+IBImplicitStaggeredHierarchyIntegrator::integrateHierarchySpecialized(const double current_time,
+                                                                      const double new_time,
+                                                                      const int cycle_num)
 {
+    IBHierarchyIntegrator::integrateHierarchySpecialized(current_time, new_time, cycle_num);
     if (d_solve_for_position)
     {
         integrateHierarchy_position(current_time, new_time, cycle_num);

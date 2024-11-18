@@ -21,6 +21,16 @@ lib: all
 examples: lib
 	cd $@ && $(MAKE) $(AM_MAKEFLAGS) $@
 
+indent:
+	@echo "Indenting recently changed IBAMR files"
+	@cd "$(top_srcdir)" && ./scripts/formatting/indent
+.PHONY: indent
+
+indent-all:
+	@echo "Indenting all IBAMR files"
+	@cd "$(top_srcdir)" && ./scripts/formatting/indent-all
+.PHONY: indent-all
+
 MPIEXEC = @MPIEXEC@
 NUMDIFF = @NUMDIFF@
 # attest uses parameters set in attest.conf; said parameters are overridden by

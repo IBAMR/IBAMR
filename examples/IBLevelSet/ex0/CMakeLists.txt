@@ -21,10 +21,7 @@ IBAMR_ADD_EXAMPLE(
   EXAMPLE_GROUP
     examples-IBLevelSet
   SOURCES
-    example.cpp FlowGravityForcing.cpp GravityForcing.cpp
-    LSLocateGasInterface.cpp SetFluidGasSolidDensity.cpp
-    SetFluidGasSolidViscosity.cpp SetLSProperties.cpp
-    TagLSRefinementCells.cpp
+    example.cpp LSLocateGasInterface.cpp
   REQUIRES
     IBAMR_HAVE_LIBMESH
   LINK_TARGETS

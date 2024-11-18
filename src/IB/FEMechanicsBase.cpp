@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -501,7 +501,7 @@ FEMechanicsBase::doInitializeFEEquationSystems()
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         // Create FE equation systems objects and corresponding variables.
-        d_equation_systems[part].reset(new EquationSystems(*d_meshes[part]));
+        d_equation_systems[part] = std::make_unique<EquationSystems>(*d_meshes[part]);
         EquationSystems& equation_systems = *d_equation_systems[part];
         d_fe_data[part] = std::make_shared<FEData>(
             d_object_name + "::FEData::" + std::to_string(part), equation_systems, d_registered_for_restart);
@@ -1583,7 +1583,7 @@ FEMechanicsBase::commonConstructor(const std::string& object_name,
     d_libmesh_restart_file_extension = "xdr";
     d_libmesh_partitioner_type = LIBMESH_DEFAULT;
 
-    // Initialize function data to NULL.
+    // Initialize function data to nullptr.
     d_coordinate_mapping_fcn_data.resize(n_parts);
     d_initial_velocity_fcn_data.resize(n_parts);
     d_PK1_stress_fcn_data.resize(n_parts);

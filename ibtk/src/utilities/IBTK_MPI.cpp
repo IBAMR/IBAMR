@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2021 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -41,11 +41,7 @@ IBTK_MPI::getCommunicator()
 MPI_Comm
 IBTK_MPI::getSAMRAIWorld()
 {
-#if SAMRAI_VERSION_MAJOR == 2
     return SAMRAI::tbox::SAMRAI_MPI::commWorld;
-#else
-    return SAMRAI::tbox::SAMRAI_MPI::getSAMRAIWorld();
-#endif
 }
 
 int

@@ -60,7 +60,7 @@ main(int argc, char* argv[])
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
         Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
         Pointer<StandardTagAndInitialize<NDIM> > error_detector = new StandardTagAndInitialize<NDIM>(
-            "StandardTagAndInitialize", NULL, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
+            "StandardTagAndInitialize", nullptr, app_initializer->getComponentDatabase("StandardTagAndInitialize"));
         Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
         Pointer<LoadBalancer<NDIM> > load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
@@ -186,8 +186,14 @@ main(int argc, char* argv[])
         const bool synch_dst_cf_interface = input_db->getBoolWithDefault("synch_dst_cf_interface", false);
         if (dst_var_type == "NODE" && src_var_type == "SIDE")
         {
-            hier_math_ops.curl(
-                curl_u_idx, curl_u_nc_var, synch_dst_cf_interface, u_idx, u_sc_var, NULL, synch_src_cf_interface, 0.0);
+            hier_math_ops.curl(curl_u_idx,
+                               curl_u_nc_var,
+                               synch_dst_cf_interface,
+                               u_idx,
+                               u_sc_var,
+                               nullptr,
+                               0.0,
+                               synch_src_cf_interface);
         }
         else
         {

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2021 - 2022 by the IBAMR developers
+// Copyright (c) 2021 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -23,6 +23,7 @@
 #include <ibamr/BrinkmanPenalizationRigidBodyDynamics.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LevelSetUtilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -39,7 +40,6 @@
 #include "LevelSetInitialCondition.h"
 #include "SetFluidSolidDensity.h"
 #include "SetFluidSolidViscosity.h"
-#include "TagLSRefinementCells.h"
 
 // Declaring the sign of v and returning it.
 inline int
@@ -332,21 +332,22 @@ main(int argc, char* argv[])
 
         // Array for input into callback function
         const double rho_fluid = input_db->getDouble("RHO_F");
-        SetFluidSolidDensity* ptr_setFluidSolidDensity = new SetFluidSolidDensity("SetFluidSolidDensity", rho_fluid);
+        SetFluidSolidDensity setsetFluidSolidDensity("SetFluidSolidDensity", rho_fluid);
         navier_stokes_integrator->registerResetFluidDensityFcn(&callSetFluidSolidDensityCallbackFunction,
-                                                               static_cast<void*>(ptr_setFluidSolidDensity));
+                                                               static_cast<void*>(&setsetFluidSolidDensity));
 
         const double mu_fluid = input_db->getDouble("MU_F");
-        SetFluidSolidViscosity* ptr_setFluidSolidViscosity =
-            new SetFluidSolidViscosity("SetFluidSolidViscosity", mu_fluid);
+        SetFluidSolidViscosity setsetFluidSolidViscosity("SetFluidSolidViscosity", mu_fluid);
         navier_stokes_integrator->registerResetFluidViscosityFcn(&callSetFluidSolidViscosityCallbackFunction,
-                                                                 static_cast<void*>(ptr_setFluidSolidViscosity));
+                                                                 static_cast<void*>(&setsetFluidSolidViscosity));
 
         // Register callback function for tagging refined cells for level set data
-        const double tag_value = input_db->getDouble("LS_TAG_VALUE");
         const double tag_thresh = input_db->getDouble("LS_TAG_ABS_THRESH");
-        TagLSRefinementCells ls_foilA_tagger(adv_diff_integrator, phi_var_foilA, tag_value, tag_thresh);
-        navier_stokes_integrator->registerApplyGradientDetectorCallback(&callTagSolidLSRefinementCellsCallbackFunction,
+        const double tag_min_value = -tag_thresh;
+        const double tag_max_value = tag_thresh;
+        IBAMR::LevelSetUtilities::TagLSRefinementCells ls_foilA_tagger(
+            adv_diff_integrator, phi_var_foilA, tag_min_value, tag_max_value);
+        navier_stokes_integrator->registerApplyGradientDetectorCallback(&IBAMR::LevelSetUtilities::tagLSCells,
                                                                         static_cast<void*>(&ls_foilA_tagger));
 
         // Create Eulerian initial condition specification objects.
@@ -371,7 +372,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -392,7 +393,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -400,7 +401,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(
@@ -408,7 +409,7 @@ main(int argc, char* argv[])
             navier_stokes_integrator->registerViscosityBoundaryConditions(mu_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -554,8 +555,6 @@ main(int argc, char* argv[])
 
         // Delete dumb pointers.
         for (unsigned int d = 0; d < NDIM; ++d) delete u_bc_coefs[d];
-        delete ptr_setFluidSolidDensity;
-        delete ptr_setFluidSolidViscosity;
         delete rho_bc_coef;
         delete mu_bc_coef;
         delete phi_bc_coef;

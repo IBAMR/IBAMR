@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2023 by the IBAMR developers
+// Copyright (c) 2020 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -41,7 +41,7 @@ namespace IBTK
 std::unique_ptr<Partitioner>
 StableCentroidPartitioner::clone() const
 {
-    return std::unique_ptr<Partitioner>(new StableCentroidPartitioner());
+    return std::make_unique<StableCentroidPartitioner>();
 } // clone
 
 /////////////////////////////// PROTECTED ////////////////////////////////////

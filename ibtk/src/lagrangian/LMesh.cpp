@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2020 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -33,8 +33,7 @@ namespace IBTK
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LMesh::LMesh(std::string /*object_name*/, std::vector<LNode*> local_nodes, std::vector<LNode*> ghost_nodes)
-    : d_local_nodes(std::move(local_nodes)),
-      d_ghost_nodes(std::move(ghost_nodes))
+    : d_local_nodes(std::move(local_nodes)), d_ghost_nodes(std::move(ghost_nodes))
 {
     // intentionally blank
     return;

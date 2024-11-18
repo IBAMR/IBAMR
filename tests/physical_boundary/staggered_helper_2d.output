@@ -1,0 +1,14 @@
+Testing masking function
+Copied value on index (0,0) and axis 0
+Copied value on index (2,0) and axis 0
+Copied value on index (0,1) and axis 0
+Copied value on index (2,1) and axis 0
+Copied value on index (0,2) and axis 1
+Copied value on index (1,2) and axis 1
+Testing dirichlet boundaries
+Cell (0,0) and axis 0 touches boundary
+Cell (2,0) and axis 0 touches boundary
+Cell (0,1) and axis 0 touches boundary
+Cell (2,1) and axis 0 touches boundary
+Cell (0,2) and axis 1 touches boundary
+Cell (1,2) and axis 1 touches boundary

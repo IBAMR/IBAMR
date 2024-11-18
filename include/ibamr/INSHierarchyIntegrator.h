@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2006 - 2023 by the IBAMR developers
+// Copyright (c) 2006 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -171,14 +171,14 @@ public:
      * Get a vector of pointers to the velocity boundary condition specification
      * objects.
      *
-     * \note Implementations may return a vector of NULL pointers.
+     * \note Implementations may return a vector of nullptr pointers.
      */
     virtual const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& getVelocityBoundaryConditions() const;
 
     /*!
      * Get a pointer to the pressure boundary condition specification object.
      *
-     * \note Implementations may return a NULL pointer.
+     * \note Implementations may return a nullptr pointer.
      */
     virtual SAMRAI::solv::RobinBcCoefStrategy<NDIM>* getPressureBoundaryConditions() const;
 
@@ -303,7 +303,7 @@ public:
      * Register an operator to compute the convective acceleration term u*grad
      * u.
      *
-     * If the supplied operator is NULL, then the integrator will solve the
+     * If the supplied operator is nullptr, then the integrator will solve the
      * time-dependent (creeping) Stokes equations instead of the Navier-Stokes
      * equations.
      */
@@ -313,7 +313,7 @@ public:
      * Get the convective operator being used by this solver class.
      *
      * If the time integrator is configured to solve the time-dependent
-     * (creeping) Stokes equations, then the returned pointer will be NULL.
+     * (creeping) Stokes equations, then the returned pointer will be nullptr.
      *
      * If the convective operator has not already been constructed, then this
      * function will initialize a default convective operator.
@@ -446,6 +446,20 @@ protected:
     virtual void updateCurrentCFLNumber(const int data_idx, const double dt);
 
     /*!
+     * Compute the maximum vorticity magnitude at any given point.
+     *
+     * @note This function does not read ghost data from @p Omega_idx.
+     */
+    double getMaximumVorticityMagnitude(const int Omega_idx);
+
+    /*!
+     * Tag cells based on the vorticity magnitude.
+     *
+     * @note This function is typically called by applyGradientDetectorSpecialized() in inheriting classes.
+     */
+    void tagCellsByVorticityMagnitude(const int level_number, const int Omega_idx, const int tag_idx);
+
+    /*!
      * Return the maximum stable time step size.
      */
     double getMaximumTimeStepSizeSpecialized() override;
@@ -516,7 +530,6 @@ protected:
      */
     bool d_using_vorticity_tagging = false;
     SAMRAI::tbox::Array<double> d_Omega_rel_thresh, d_Omega_abs_thresh;
-    double d_Omega_max = 0.0;
 
     /*!
      * This boolean value determines whether the pressure is normalized to have

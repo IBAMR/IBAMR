@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2011 - 2023 by the IBAMR developers
+// Copyright (c) 2011 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -263,6 +263,20 @@ smooth_heaviside(const double& phi, const double& alpha)
         Hphi = 0.5 + 0.5 * phi / alpha + 1.0 / (2.0 * M_PI) * std::sin(M_PI * phi / alpha);
     }
     return Hphi;
+}
+
+/*!
+ * Smooth delta function.
+ */
+inline double
+smooth_delta(const double& phi, const double& alpha)
+{
+    double delta = 0.0;
+    if (std::abs(phi) <= alpha)
+    {
+        delta = 0.5 / alpha + 1.0 / (2.0 * alpha) * std::cos(M_PI * phi / alpha);
+    }
+    return delta;
 }
 
 /*!

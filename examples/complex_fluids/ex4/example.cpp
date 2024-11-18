@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2022 by the IBAMR developers
+// Copyright (c) 2019 - 2023 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -192,11 +192,12 @@ main(int argc, char* argv[])
             }
             TriangleInterface triangle(solid_mesh);
             triangle.triangulation_type() = TriangleInterface::GENERATE_CONVEX_HULL;
-            triangle.elem_type() = Utility::string_to_enum<ElemType>(elem_type);
             triangle.desired_area() = 1.5 * sqrt(3.0) / 4.0 * ds * ds;
             triangle.insert_extra_points() = true;
             triangle.smooth_after_generating() = true;
             triangle.triangulate();
+
+            if (elem_type == "TRI6") solid_mesh.all_second_order();
 #else
             TBOX_ERROR("ERROR: libMesh appears to have been configured without support for Triangle,\n"
                        << "       but Triangle is required for TRI3 or TRI6 elements.\n");
@@ -364,7 +365,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -414,10 +415,10 @@ main(int argc, char* argv[])
             time_integrator->registerBodyForceFunction(polymericStressForcing);
         }
 
-        std::unique_ptr<ExodusII_IO> exodus_io_0(uses_exodus ? new ExodusII_IO(*(meshes[0])) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_io_1(uses_exodus ? new ExodusII_IO(*(meshes[1])) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_io_2(uses_exodus ? new ExodusII_IO(*(meshes[2])) : NULL);
-        std::unique_ptr<ExodusII_IO> exodus_io_3(uses_exodus ? new ExodusII_IO(*(meshes[3])) : NULL);
+        std::unique_ptr<ExodusII_IO> exodus_io_0 = uses_exodus ? std::make_unique<ExodusII_IO>(*(meshes[0])) : nullptr;
+        std::unique_ptr<ExodusII_IO> exodus_io_1 = uses_exodus ? std::make_unique<ExodusII_IO>(*(meshes[1])) : nullptr;
+        std::unique_ptr<ExodusII_IO> exodus_io_2 = uses_exodus ? std::make_unique<ExodusII_IO>(*(meshes[2])) : nullptr;
+        std::unique_ptr<ExodusII_IO> exodus_io_3 = uses_exodus ? std::make_unique<ExodusII_IO>(*(meshes[3])) : nullptr;
 
         // Initialize hierarchy configuration and data on all patches.
         ib_method_ops->initializeFEData();

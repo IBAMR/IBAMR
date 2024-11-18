@@ -28,9 +28,9 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing co
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing incompressible Stokes solver
-DummyAdvDiff: integrateHierarchy()
+DummyAdvDiff: integrateHierarchySpecialized()
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
-DummyAdvDiff: integrateHierarchy()
+DummyAdvDiff: integrateHierarchySpecialized()
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
 DummyAdvDiff: synchronizeHierarchyDataSpecialized()
 DummyAdvDiff: resetTimeDependentHierarchyDataSpecialized()
@@ -55,9 +55,9 @@ DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
 DummyAdvDiff: getMinimumTimeStepSizeSpecialized()
 DummyAdvDiff: getMaximumTimeStepSizeSpecialized()
 DummyAdvDiff: atRegridPointSpecialized()
-DummyAdvDiff: integrateHierarchy()
+DummyAdvDiff: integrateHierarchySpecialized()
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
-DummyAdvDiff: integrateHierarchy()
+DummyAdvDiff: integrateHierarchySpecialized()
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0
 DummyAdvDiff: synchronizeHierarchyDataSpecialized()
 DummyAdvDiff: resetTimeDependentHierarchyDataSpecialized()

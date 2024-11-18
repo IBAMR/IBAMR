@@ -1,6 +1,6 @@
 c ---------------------------------------------------------------------
 c
-c Copyright (c) 2017 - 2023 by the IBAMR developers
+c Copyright (c) 2017 - 2024 by the IBAMR developers
 c All rights reserved.
 c
 c This file is part of IBAMR.
@@ -68,8 +68,12 @@ c     Prevent compiler warning about unused variables.
 c
       eps = eps
 
-C       S_eps = two*H_eps(x,eps) - one
-C       S_eps = x/sqrt(x**2+eps**2)
+c     S_eps = two*H_eps(x,eps) - one
+c     S_eps = x/sqrt(x**2+eps**2)
+
+c     Since the method that actually works for most of the cases is
+c     ENO2+subcell fix, use the discrete sign function and not the smooth ones
+c     as commented above that are commonly found in the literature
 
       S_eps = sign(one,x)
       if (x.eq.zero) then
@@ -497,6 +501,7 @@ c
       subroutine relaxationls1storder3d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
@@ -512,7 +517,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER dir
 
 c
@@ -520,6 +525,7 @@ c     Input/Output.
 c
       REAL U(CELL3d(ilower,iupper,U_gcw))
       REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL DT(CELL3d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -530,7 +536,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-                call evalrelax1storder3d(U,U_gcw,V,V_gcw,
+                call evalrelax1storder3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
@@ -542,7 +548,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = ilower1,iupper1
             do i0 = iupper0,ilower0,-1
-                call evalrelax1storder3d(U,U_gcw,V,V_gcw,
+                call evalrelax1storder3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
@@ -554,7 +560,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = iupper1,ilower1,-1
             do i0 = ilower0,iupper0
-                call evalrelax1storder3d(U,U_gcw,V,V_gcw,
+                call evalrelax1storder3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
@@ -566,7 +572,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-                call evalrelax1storder3d(U,U_gcw,V,V_gcw,
+                call evalrelax1storder3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
@@ -578,7 +584,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = iupper1,ilower1,-1
             do i0 = iupper0,ilower0,-1
-                call evalrelax1storder3d(U,U_gcw,V,V_gcw,
+                call evalrelax1storder3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
@@ -590,7 +596,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = ilower1,iupper1
             do i0 = iupper0,ilower0,-1
-                call evalrelax1storder3d(U,U_gcw,V,V_gcw,
+                call evalrelax1storder3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
@@ -602,7 +608,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = iupper1,ilower1,-1
             do i0 = ilower0,iupper0
-                call evalrelax1storder3d(U,U_gcw,V,V_gcw,
+                call evalrelax1storder3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
@@ -614,7 +620,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = iupper1,ilower1,-1
             do i0 = iupper0,ilower0,-1
-                call evalrelax1storder3d(U,U_gcw,V,V_gcw,
+                call evalrelax1storder3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                   ilower0,iupper0,
      &                                   ilower1,iupper1,
      &                                   ilower2,iupper2,
@@ -637,6 +643,7 @@ c
       subroutine evalrelax1storder3d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
@@ -657,13 +664,14 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
 
 c
 c     Input/Output.
 c
       REAL U(CELL3d(ilower,iupper,U_gcw))
       REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL DT(CELL3d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -671,8 +679,8 @@ c
       INTEGER i0,i1,i2
       REAL    hx,hy,hz
       REAL    sgn
-      REAL    dt
-      REAL    G
+      REAL    dt_cell
+      REAL    H
       REAL    Dxp,Dxm
       REAL    Dyp,Dym
       REAL    Dzp,Dzm
@@ -680,7 +688,7 @@ c
       hx = dx(0)
       hy = dx(1)
       hz = dx(2)
-      dt = third*dmin1(hx,hy,hz)
+      dt_cell = third*dmin1(hx,hy,hz)
       if (V(i0,i1,i2) .eq. zero) then
          sgn = zero
       else
@@ -693,9 +701,10 @@ c
       Dyp = one/hy*(U(i0,i1+1,i2)-U(i0,i1,i2))
       Dzm = one/hz*(U(i0,i1,i2)-U(i0,i1,i2-1))
       Dzp = one/hz*(U(i0,i1,i2+1)-U(i0,i1,i2))
-      G = HG(Dxp,Dxm,Dyp,Dym,Dzp,Dzm,sgn)
-
-      U(i0,i1,i2) = U(i0,i1,i2) - dt*sgn*(G-one)
+      H = HG(Dxp,Dxm,Dyp,Dym,Dzp,Dzm,sgn)
+      
+      DT(i0,i1,i2) = dt_cell
+      U(i0,i1,i2) = U(i0,i1,i2) - dt_cell*sgn*(H-one)
 
       return
       end
@@ -714,6 +723,7 @@ c
       subroutine relaxationls3rdordereno3d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
@@ -730,7 +740,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER dir
       INTEGER use_subcell,use_sign_fix
 
@@ -739,6 +749,7 @@ c     Input/Output.
 c
       REAL U(CELL3d(ilower,iupper,U_gcw))
       REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL DT(CELL3d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -749,7 +760,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                      ilower0,iupper0,
      &                                      ilower1,iupper1,
      &                                      ilower2,iupper2,
@@ -762,7 +773,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = ilower1,iupper1
             do i0 = iupper0,ilower0,-1
-                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                      ilower0,iupper0,
      &                                      ilower1,iupper1,
      &                                      ilower2,iupper2,
@@ -775,7 +786,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = iupper1,ilower1,-1
             do i0 = ilower0,iupper0
-                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                      ilower0,iupper0,
      &                                      ilower1,iupper1,
      &                                      ilower2,iupper2,
@@ -788,7 +799,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                      ilower0,iupper0,
      &                                      ilower1,iupper1,
      &                                      ilower2,iupper2,
@@ -801,7 +812,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = iupper1,ilower1,-1
             do i0 = iupper0,ilower0,-1
-                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                      ilower0,iupper0,
      &                                      ilower1,iupper1,
      &                                      ilower2,iupper2,
@@ -814,7 +825,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = ilower1,iupper1
             do i0 = iupper0,ilower0,-1
-                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                      ilower0,iupper0,
      &                                      ilower1,iupper1,
      &                                      ilower2,iupper2,
@@ -827,7 +838,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = iupper1,ilower1,-1
             do i0 = ilower0,iupper0
-                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                      ilower0,iupper0,
      &                                      ilower1,iupper1,
      &                                      ilower2,iupper2,
@@ -840,7 +851,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = iupper1,ilower1,-1
             do i0 = iupper0,ilower0,-1
-                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdordereno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                      ilower0,iupper0,
      &                                      ilower1,iupper1,
      &                                      ilower2,iupper2,
@@ -862,6 +873,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine evalrelax3rdordereno3d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
@@ -884,7 +896,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER use_subcell,use_sign_fix
 
 c
@@ -892,6 +904,7 @@ c     Input/Output.
 c
       REAL U(CELL3d(ilower,iupper,U_gcw))
       REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL DT(CELL3d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -905,7 +918,7 @@ c
       REAL    Dyy,Dyyp,Dyym
       REAL    Dzz,Dzzp,Dzzm
       REAL    Dxx0,Dyy0,Dzz0
-      REAL    H,dt,sgn,cfl,eps,D,diff
+      REAL    H,dt_cell,sgn,cfl,eps,D,diff
       REAL    hmin
 
       hx = dx(0)
@@ -1071,10 +1084,11 @@ c     Compute ENO differences with subcell fix
       endif
 
       H = HG(Dxp,Dxm,Dyp,Dym,Dzp,Dzm,sgn)
-      dt = cfl*dmin1(hx,hy,hz,hxp,hxm,hyp,hym,hzp,hzm)
+      dt_cell = cfl*dmin1(hx,hy,hz,hxp,hxm,hyp,hym,hzp,hzm)
+      DT(i0,i1,i2) = dt_cell
 
-      if (dt .gt. zero) then
-        U(i0,i1,i2) = U(i0,i1,i2) - dt*sgn*(H-one)
+      if (dt_cell .gt. zero) then
+        U(i0,i1,i2) = U(i0,i1,i2) - dt_cell*sgn*(H-one)
       endif
 
       return
@@ -1299,6 +1313,7 @@ c
       subroutine relaxationls3rdorderweno3d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
@@ -1316,7 +1331,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER dir
       INTEGER use_subcell,use_sign_fix
 
@@ -1325,6 +1340,7 @@ c     Input/Output.
 c
       REAL U(CELL3d(ilower,iupper,U_gcw))
       REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL DT(CELL3d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -1335,7 +1351,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -1348,7 +1364,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = ilower1,iupper1
             do i0 = iupper0,ilower0,-1
-                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -1361,7 +1377,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = iupper1,ilower1,-1
             do i0 = ilower0,iupper0
-                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -1374,7 +1390,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -1387,7 +1403,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = iupper1,ilower1,-1
             do i0 = iupper0,ilower0,-1
-                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -1400,7 +1416,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = ilower1,iupper1
             do i0 = iupper0,ilower0,-1
-                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -1413,7 +1429,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = iupper1,ilower1,-1
             do i0 = ilower0,iupper0
-                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -1426,7 +1442,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = iupper1,ilower1,-1
             do i0 = iupper0,ilower0,-1
-                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax3rdorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -1448,6 +1464,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine evalrelax3rdorderweno3d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
@@ -1470,7 +1487,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER use_subcell,use_sign_fix
 
 c
@@ -1478,6 +1495,7 @@ c     Input/Output.
 c
       REAL U(CELL3d(ilower,iupper,U_gcw))
       REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL DT(CELL3d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -1500,7 +1518,7 @@ c
       REAL    rzp,wzp
       REAL    h1,h2
       REAL    Dxx0,Dyy0,Dzz0
-      REAL    H,dt,sgn,cfl,eps,D,diff
+      REAL    H,dt_cell,sgn,cfl,eps,D,diff
 
       hx = dx(0)
       hy = dx(1)
@@ -1737,13 +1755,15 @@ c     Compute first order derivatives
       Dzp = (one - wzp)*Dzc + wzp*Dzu
 
       H = HG(Dxp,Dxm,Dyp,Dym,Dzp,Dzm,sgn)
-      dt = cfl*dmin1(hx,hy,hz,
+      dt_cell = cfl*dmin1(hx,hy,hz,
      &               hxp,hxm,hyp,hym,hzp,hzm,
      &               abs(hx-hxm),abs(hy-hym),abs(hz-hzm),
      &               abs(hx-hxp),abs(hy-hyp),abs(hz-hzp))
 
-      if (dt .gt. zero) then
-        U(i0,i1,i2) = U(i0,i1,i2) - dt*sgn*(H-one)
+      DT(i0,i1,i2) = dt_cell
+
+      if (dt_cell .gt. zero) then
+        U(i0,i1,i2) = U(i0,i1,i2) - dt_cell*sgn*(H-one)
       endif
 
       return
@@ -2035,6 +2055,7 @@ c
       subroutine relaxationls5thorderweno3d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
@@ -2050,7 +2071,7 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
       INTEGER dir
       INTEGER use_sign_fix
 
@@ -2059,6 +2080,7 @@ c     Input/Output.
 c
       REAL U(CELL3d(ilower,iupper,U_gcw))
       REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL DT(CELL3d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -2069,7 +2091,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -2082,7 +2104,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = ilower1,iupper1
             do i0 = iupper0,ilower0,-1
-                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -2095,7 +2117,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = iupper1,ilower1,-1
             do i0 = ilower0,iupper0
-                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -2108,7 +2130,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -2121,7 +2143,7 @@ c
         do i2 = ilower2,iupper2
           do i1 = iupper1,ilower1,-1
             do i0 = iupper0,ilower0,-1
-                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -2134,7 +2156,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = ilower1,iupper1
             do i0 = iupper0,ilower0,-1
-                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -2147,7 +2169,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = iupper1,ilower1,-1
             do i0 = ilower0,iupper0
-                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -2160,7 +2182,7 @@ c
         do i2 = iupper2,ilower2,-1
           do i1 = iupper1,ilower1,-1
             do i0 = iupper0,ilower0,-1
-                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,
+                call evalrelax5thorderweno3d(U,U_gcw,V,V_gcw,DT,DT_gcw,
      &                                       ilower0,iupper0,
      &                                       ilower1,iupper1,
      &                                       ilower2,iupper2,
@@ -2182,6 +2204,7 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       subroutine evalrelax5thorderweno3d(
      &     U,U_gcw,
      &     V,V_gcw,
+     &     DT,DT_gcw,
      &     ilower0,iupper0,
      &     ilower1,iupper1,
      &     ilower2,iupper2,
@@ -2203,13 +2226,14 @@ c
       INTEGER ilower0,iupper0
       INTEGER ilower1,iupper1
       INTEGER ilower2,iupper2
-      INTEGER U_gcw,V_gcw
+      INTEGER U_gcw,V_gcw,DT_gcw
 
 c
 c     Input/Output.
 c
       REAL U(CELL3d(ilower,iupper,U_gcw))
       REAL V(CELL3d(ilower,iupper,V_gcw))
+      REAL DT(CELL3d(ilower,iupper,DT_gcw))
       REAL dx(0:NDIM-1)
 c
 c     Local variables.
@@ -2217,7 +2241,7 @@ c
       INTEGER i0,i1,i2,k,np,nm
       REAL    hx,hy,hz,hmin
       REAL    Dxm,Dxp,Dym,Dyp,Dzm,Dzp
-      REAL    H,dt,sgn,cfl
+      REAL    H,dt_cell,sgn,cfl
       REAL    Qx(-2:1),Qy(-2:1),Qz(-2:1)
       REAL    Qxxp(-2:1),Qxxm(-2:1)
       REAL    Qyyp(-2:1),Qyym(-2:1)
@@ -2292,9 +2316,12 @@ c     Compute all the required finite differences and their WENO5 interpolation
       Dzm = Ez-WENO5(Qzzm)
 
       H = HG(Dxp,Dxm,Dyp,Dym,Dzp,Dzm,sgn)
-      dt = cfl*hmin
+      dt_cell = cfl*hmin
 
-      U(i0,i1,i2) = U(i0,i1,i2) - dt*sgn*(H-one)
+      DT(i0,i1,i2) = dt_cell
+      if (dt_cell .gt. zero) then
+        U(i0,i1,i2) = U(i0,i1,i2) - dt_cell*sgn*(H-one)
+      endif
 
       return
       end
@@ -2508,62 +2535,6 @@ c           as this can cause the level set variable to blow up
 
         enddo
        enddo
-      enddo
-      return
-      end
-c
-cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-c     Volume constraint on level set to ensure that it does not lose volume
-c
-ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-c
-      subroutine applylsvolumeshift3d(
-     &     U,U_gcw,
-     &     C,C_gcw,
-     &     dV,
-     &     ilower0,iupper0,
-     &     ilower1,iupper1,
-     &     ilower2,iupper2,
-     &     dx)
-c
-      implicit none
-include(TOP_SRCDIR/src/fortran/const.i)dnl
-
-c
-c     Input.
-c
-      INTEGER ilower0,iupper0
-      INTEGER ilower1,iupper1
-      INTEGER ilower2,iupper2
-      INTEGER U_gcw,C_gcw
-
-c
-c     Input/Output.
-c
-      REAL U(CELL3d(ilower,iupper,U_gcw))
-      REAL C(CELL3d(ilower,iupper,C_gcw))
-      REAL dV
-      REAL dx(0:NDIM-1)
-c
-c     Local variables.
-c
-      INTEGER i0,i1,i2
-      REAL    hx,hy,hz,hmin
-      REAL    dt
-
-      hx = dx(0)
-      hy = dx(1)
-      hz = dx(2)
-      hmin = dmin1(hx,hy,hz)
-      dt = one
-
-      do i2 = ilower2,iupper2
-        do i1 = ilower1,iupper1
-          do i0 = ilower0,iupper0
-                U(i0,i1,i2) = C(i0,i1,i2) + dt * dV
-          enddo
-        enddo
       enddo
       return
       end

@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2020 - 2023 by the IBAMR developers
+## Copyright (c) 2020 - 2024 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -15,6 +15,14 @@
 #            0: Set up some basic information about the environment            #
 # ---------------------------------------------------------------------------- #
 CMAKE_MINIMUM_REQUIRED(VERSION 3.15.0)
+
+# Do this before project() to skip the compiler config process
+IF("${CMAKE_BINARY_DIR}" STREQUAL "${CMAKE_SOURCE_DIR}")
+  MESSAGE(FATAL_ERROR "This project does not support in-source builds.
+    Please create a subfolder and use `cmake ..` inside it.
+    NOTE: cmake will now create CMakeCache.txt and CMakeFiles/*.
+          You must delete them, or cmake will refuse to work.")
+ENDIF()
 
 PROJECT(IBAMR
   DESCRIPTION "Software infrastructure for the IB method with adaptively-refined grids"
@@ -153,11 +161,9 @@ ENDIF()
 # ---------------------------------------------------------------------------- #
 
 #
-# We require at least C++11. Boost and libMesh may require higher C++ standards:
-# those parts of this CMake script will increment this variable to C++14 or 
-# newer as needed.
+# We require at least C++17.
 #
-SET(IBAMR_CXX_STANDARD "11")
+SET(IBAMR_CXX_STANDARD "17")
 
 #
 # We and our dependencies require MPI so set that up first:
@@ -280,12 +286,8 @@ IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   MESSAGE(STATUS "Found external boost ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
   TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
 
-  # Verify that we can compile some basic Boost headers
-  #
-  # Boost.Math 1.82 will require C++14 so turn it on here if needed
-  IF(${Boost_VERSION} VERSION_GREATER_EQUAL 1.82.0)
-    SET(IBAMR_CXX_STANDARD "14")
-  ENDIF()
+# Verify that we can compile some basic Boost headers
+#
   SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
   # Do not use -Werror at this point, even if the user requested it for IBAMR
   SET(_old_cxx_flags "${CMAKE_CXX_FLAGS}")
@@ -300,18 +302,12 @@ IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
     BOOST_WITH_MULTI_ARRAY)
   CHECK_CXX_SOURCE_COMPILES(
     "
-  #include <boost/math/special_functions/round.hpp>
-  int main() {}
-  "
-    BOOST_WITH_ROUND)
-  CHECK_CXX_SOURCE_COMPILES(
-    "
   #include <boost/math/tools/roots.hpp>
   int main() {}
   "
     BOOST_WITH_ROOTS)
   SET(CMAKE_CXX_FLAGS ${_old_cxx_flags})
-  IF(NOT "${BOOST_WITH_MULTI_ARRAY}" OR NOT "${BOOST_WITH_ROUND}" OR NOT "${BOOST_WITH_ROOTS}")
+  IF(NOT "${BOOST_WITH_MULTI_ARRAY}" OR NOT "${BOOST_WITH_ROOTS}")
     MESSAGE(FATAL_ERROR "The provided boost installation does not include at least one required boost header.")
   ENDIF()
 ELSE()
@@ -705,15 +701,6 @@ CMake.")
       LIBMESH_WITH_CXX17
       )
 
-    # Boost presently requires at most C++14, so setting the standard to 14 or
-    # higher will not conflict here.
-    IF(${LIBMESH_WITH_CXX17})
-      SET(LIBMESH_CXX_STANDARD 17)
-      SET(IBAMR_CXX_STANDARD 17)
-    ELSEIF(${LIBMESH_WITH_CXX14})
-      SET(LIBMESH_CXX_STANDARD 14)
-      SET(IBAMR_CXX_STANDARD 14)
-    ENDIF()
 
     # We are not compatible with libMesh's bundled version of boost, so make
     # sure that doesn't happen:
@@ -1170,9 +1157,6 @@ FUNCTION(IBAMR_SETUP_TARGET_LIBRARY target_library)
   MESSAGE(STATUS "Adding flag -DNDIM=${_d} to target ${target_library}")
   TARGET_COMPILE_OPTIONS(${target_library} PUBLIC -DNDIM=${_d})
 
-  IF(${IBAMR_HAVE_LIBMESH})
-    MESSAGE(STATUS "libMesh expects C++${LIBMESH_CXX_STANDARD}, so ${target_library} will be built with C++${IBAMR_CXX_STANDARD} as a requirement.")
-  ENDIF()
   SET_PROPERTY(TARGET ${target_library} PROPERTY CXX_STANDARD ${IBAMR_CXX_STANDARD})
   TARGET_COMPILE_FEATURES(${target_library} PUBLIC "cxx_std_${IBAMR_CXX_STANDARD}")
 
@@ -1320,3 +1304,20 @@ IF(IBAMR_ENABLE_TESTING)
   ADD_SUBDIRECTORY(tests)
 ENDIF()
 ADD_SUBDIRECTORY(examples)
+
+# ---------------------------------------------------------------------------- #
+#                               6: Other targets                               #
+# ---------------------------------------------------------------------------- #
+
+# Targets for indenting recently changed and all files
+ADD_CUSTOM_TARGET(indent
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND ./scripts/formatting/indent
+  COMMENT "Indenting recently changed IBAMR files"
+  )
+
+ADD_CUSTOM_TARGET(indent-all
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  COMMAND ./scripts/formatting/indent-all
+  COMMENT "Indenting all IBAMR files"
+  )

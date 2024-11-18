@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2022 by the IBAMR developers
+// Copyright (c) 2017 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -382,7 +382,7 @@ int
 main(int argc, char* argv[])
 {
     // Initialize PETSc, MPI, and SAMRAI.
-    PetscInitialize(&argc, &argv, NULL, NULL);
+    PetscInitialize(&argc, &argv, nullptr, nullptr);
     SAMRAI_MPI::setCommunicator(PETSC_COMM_WORLD);
     SAMRAI_MPI::setCallAbortInSerialInsteadOfExit();
     SAMRAIManager::startup();
@@ -474,7 +474,7 @@ main(int argc, char* argv[])
             "outer_solid_ls_init", grid_geometry, R_o, origin, true /*fluid_is_interior_to_cylinder*/);
         adv_diff_integrator->setInitialConditions(phi_outer_solid_var, phi_outer_solid_init);
 
-        RobinBcCoefStrategy<NDIM>* phi_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* phi_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("PhiBcCoefs"))
         {
             phi_bc_coef = new muParserRobinBcCoefs(
@@ -493,7 +493,7 @@ main(int argc, char* argv[])
             adv_diff_integrator->setInitialConditions(T_var, T_init);
         }
 
-        RobinBcCoefStrategy<NDIM>* T_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* T_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TemperatureBcCoefs"))
         {
             T_bc_coef = new muParserRobinBcCoefs(
@@ -556,7 +556,7 @@ main(int argc, char* argv[])
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -573,7 +573,7 @@ main(int argc, char* argv[])
             time_integrator->registerPhysicalBoundaryConditions(u_bc_coefs);
         }
 
-        RobinBcCoefStrategy<NDIM>* rho_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* rho_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
         {
             rho_bc_coef = new muParserRobinBcCoefs(
@@ -581,7 +581,7 @@ main(int argc, char* argv[])
             time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef);
         }
 
-        RobinBcCoefStrategy<NDIM>* mu_bc_coef = NULL;
+        RobinBcCoefStrategy<NDIM>* mu_bc_coef = nullptr;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
         {
             mu_bc_coef = new muParserRobinBcCoefs(
@@ -817,146 +817,145 @@ main(int argc, char* argv[])
             patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(prop_counter_idx);
         }
 
-        } // cleanup dynamically allocated objects prior to shutdown
+    } // cleanup dynamically allocated objects prior to shutdown
 
-        SAMRAIManager::shutdown();
-        PetscFinalize();
-    } // main
+    SAMRAIManager::shutdown();
+    PetscFinalize();
+} // main
 
-    void
-    compute_T_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
-                      Pointer<CellVariable<NDIM, double> > T_var,
-                      Pointer<CellVariable<NDIM, double> > phi_var,
-                      const double data_time,
-                      const string& data_dump_dirname)
-    {
+void
+compute_T_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
+                  Pointer<AdvDiffHierarchyIntegrator> adv_diff_integrator,
+                  Pointer<CellVariable<NDIM, double> > T_var,
+                  Pointer<CellVariable<NDIM, double> > phi_var,
+                  const double data_time,
+                  const string& data_dump_dirname)
+{
 #if !defined(NDEBUG)
-        TBOX_ASSERT(NDIM == 2);
+    TBOX_ASSERT(NDIM == 2);
 #endif
-        const int coarsest_ln = 0;
-        const int finest_ln = patch_hierarchy->getFinestLevelNumber();
-        vector<double> pos_values;
-        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-        const int T_current_idx = var_db->mapVariableAndContextToIndex(T_var, adv_diff_integrator->getCurrentContext());
-        const int phi_current_idx =
-            var_db->mapVariableAndContextToIndex(phi_var, adv_diff_integrator->getCurrentContext());
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hierarchy->getFinestLevelNumber();
+    vector<double> pos_values;
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int T_current_idx = var_db->mapVariableAndContextToIndex(T_var, adv_diff_integrator->getCurrentContext());
+    const int phi_current_idx = var_db->mapVariableAndContextToIndex(phi_var, adv_diff_integrator->getCurrentContext());
 
-        // We need a phi var with single ghost cell width.
-        const int phi_scratch_idx =
-            var_db->registerVariableAndContext(phi_var, var_db->getContext("scratch"), IntVector<NDIM>(1));
+    // We need a phi var with single ghost cell width.
+    const int phi_scratch_idx =
+        var_db->registerVariableAndContext(phi_var, var_db->getContext("scratch"), IntVector<NDIM>(1));
 
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(phi_scratch_idx);
+    }
+    // Filling ghost cells for level set.
+    using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+    std::vector<InterpolationTransactionComponent> adv_diff_bc_component(1);
+
+    adv_diff_bc_component[0] = InterpolationTransactionComponent(phi_scratch_idx,
+                                                                 phi_current_idx,
+                                                                 "CONSERVATIVE_LINEAR_REFINE",
+                                                                 false,
+                                                                 "CONSERVATIVE_COARSEN",
+                                                                 "LINEAR",
+                                                                 false,
+                                                                 adv_diff_integrator->getPhysicalBcCoefs(phi_var));
+
+    Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+    hier_bdry_fill->initializeOperatorState(adv_diff_bc_component, patch_hierarchy);
+    hier_bdry_fill->fillData(data_time);
+
+    for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            level->allocatePatchData(phi_scratch_idx);
-        }
-        // Filling ghost cells for level set.
-        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> adv_diff_bc_component(1);
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_x_lower = patch_geom->getXLower();
+            const double* const patch_dx = patch_geom->getDx();
+            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+            Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_current_idx);
+            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
 
-        adv_diff_bc_component[0] = InterpolationTransactionComponent(phi_scratch_idx,
-                                                                     phi_current_idx,
-                                                                     "CONSERVATIVE_LINEAR_REFINE",
-                                                                     false,
-                                                                     "CONSERVATIVE_COARSEN",
-                                                                     "LINEAR",
-                                                                     false,
-                                                                     adv_diff_integrator->getPhysicalBcCoefs(phi_var));
-
-        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(adv_diff_bc_component, patch_hierarchy);
-        hier_bdry_fill->fillData(data_time);
-
-        for (int ln = finest_ln; ln >= coarsest_ln; --ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-                const double* const patch_x_lower = patch_geom->getXLower();
-                const double* const patch_dx = patch_geom->getDx();
-                const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
-                Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_current_idx);
-                Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
+                CellIndex<NDIM> ci(it());
+                CellIndex<NDIM> ci_e = ci;
+                CellIndex<NDIM> ci_w = ci;
+                CellIndex<NDIM> ci_n = ci;
+                CellIndex<NDIM> ci_s = ci;
+                ci_e(0) += 1;
+                ci_w(0) -= 1;
+                ci_n(1) += 1;
+                ci_s(1) -= 1;
 
-                for (Box<NDIM>::Iterator it(patch_box); it; it++)
+                // Finding the interface cells.
+                const double phi_c_value = (*phi_data)(ci);
+                const double phi_e_value = (*phi_data)(ci_e);
+                const double phi_w_value = (*phi_data)(ci_w);
+                const double phi_n_value = (*phi_data)(ci_n);
+                const double phi_s_value = (*phi_data)(ci_s);
+                if ((phi_c_value * phi_e_value <= 0) || (phi_c_value * phi_w_value <= 0) ||
+                    (phi_c_value * phi_n_value <= 0) || (phi_c_value * phi_s_value <= 0))
                 {
-                    CellIndex<NDIM> ci(it());
-                    CellIndex<NDIM> ci_e = ci;
-                    CellIndex<NDIM> ci_w = ci;
-                    CellIndex<NDIM> ci_n = ci;
-                    CellIndex<NDIM> ci_s = ci;
-                    ci_e(0) += 1;
-                    ci_w(0) -= 1;
-                    ci_n(1) += 1;
-                    ci_s(1) -= 1;
-
-                    // Finding the interface cells.
-                    const double phi_c_value = (*phi_data)(ci);
-                    const double phi_e_value = (*phi_data)(ci_e);
-                    const double phi_w_value = (*phi_data)(ci_w);
-                    const double phi_n_value = (*phi_data)(ci_n);
-                    const double phi_s_value = (*phi_data)(ci_s);
-                    if ((phi_c_value * phi_e_value <= 0) || (phi_c_value * phi_w_value <= 0) ||
-                        (phi_c_value * phi_n_value <= 0) || (phi_c_value * phi_s_value <= 0))
+                    IBTK::VectorNd coord = IBTK::Vector::Zero();
+                    for (int d = 0; d < NDIM; ++d)
                     {
-                        IBTK::VectorNd coord = IBTK::Vector::Zero();
-                        for (int d = 0; d < NDIM; ++d)
-                        {
-                            coord[d] = patch_x_lower[d] +
-                                       patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
-                        }
-                        double radius = std::sqrt(coord[0] * coord[0] + coord[1] * coord[1]);
-                        if ((radius >= 1.0) && (coord[0] <= 0))
-                        {
-                            const double T = (*T_data)(ci);
-                            double angle = std::acos(coord[1] / radius);
-                            angle = angle * 180.0 / M_PI;
-                            pos_values.push_back(angle);
-                            pos_values.push_back(T);
-                        }
+                        coord[d] =
+                            patch_x_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
+                    }
+                    double radius = std::sqrt(coord[0] * coord[0] + coord[1] * coord[1]);
+                    if ((radius >= 1.0) && (coord[0] <= 0))
+                    {
+                        const double T = (*T_data)(ci);
+                        double angle = std::acos(coord[1] / radius);
+                        angle = angle * 180.0 / M_PI;
+                        pos_values.push_back(angle);
+                        pos_values.push_back(T);
                     }
                 }
             }
         }
-        for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
-        {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-            level->deallocatePatchData(phi_scratch_idx);
-        }
-
-        const int nprocs = SAMRAI_MPI::getNodes();
-        const int rank = SAMRAI_MPI::getRank();
-        vector<int> data_size(nprocs, 0);
-        data_size[rank] = static_cast<int>(pos_values.size());
-        SAMRAI_MPI::sumReduction(&data_size[0], nprocs);
-        int offset = 0;
-        offset = std::accumulate(&data_size[0], &data_size[rank], offset);
-        int size_array = 0;
-        size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
-        // Write out the result in a file.
-        string file_name = data_dump_dirname + "/" + "temperature_angle_";
-        char temp_buf[128];
-        sprintf(temp_buf, "%.8f", data_time);
-        file_name += temp_buf;
-        MPI_Status status;
-        MPI_Offset mpi_offset;
-        MPI_File file;
-        MPI_File_open(MPI_COMM_WORLD, file_name.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
-
-        // First write the total size of the array.
-        if (rank == 0)
-        {
-            mpi_offset = 0;
-            MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
-            MPI_File_write(file, &size_array, 1, MPI_INT, &status);
-        }
-        mpi_offset = sizeof(double) * offset + sizeof(int);
-        MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
-        MPI_File_write(file, &pos_values[0], data_size[rank], MPI_DOUBLE, &status);
-        MPI_File_close(&file);
-        return;
     }
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(phi_scratch_idx);
+    }
+
+    const int nprocs = SAMRAI_MPI::getNodes();
+    const int rank = SAMRAI_MPI::getRank();
+    vector<int> data_size(nprocs, 0);
+    data_size[rank] = static_cast<int>(pos_values.size());
+    SAMRAI_MPI::sumReduction(&data_size[0], nprocs);
+    int offset = 0;
+    offset = std::accumulate(&data_size[0], &data_size[rank], offset);
+    int size_array = 0;
+    size_array = std::accumulate(&data_size[0], &data_size[0] + nprocs, size_array);
+    // Write out the result in a file.
+    string file_name = data_dump_dirname + "/" + "temperature_angle_";
+    char temp_buf[128];
+    sprintf(temp_buf, "%.8f", data_time);
+    file_name += temp_buf;
+    MPI_Status status;
+    MPI_Offset mpi_offset;
+    MPI_File file;
+    MPI_File_open(MPI_COMM_WORLD, file_name.c_str(), MPI_MODE_CREATE | MPI_MODE_WRONLY, MPI_INFO_NULL, &file);
+
+    // First write the total size of the array.
+    if (rank == 0)
+    {
+        mpi_offset = 0;
+        MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
+        MPI_File_write(file, &size_array, 1, MPI_INT, &status);
+    }
+    mpi_offset = sizeof(double) * offset + sizeof(int);
+    MPI_File_seek(file, mpi_offset, MPI_SEEK_SET);
+    MPI_File_write(file, &pos_values[0], data_size[rank], MPI_DOUBLE, &status);
+    MPI_File_close(&file);
+    return;
+}

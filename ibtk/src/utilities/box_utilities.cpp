@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2020 - 2020 by the IBAMR developers
+// Copyright (c) 2020 - 2023 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -11,15 +11,12 @@
 //
 // ---------------------------------------------------------------------
 
-#ifndef included_IBTK_box_utilities
-#define included_IBTK_box_utilities
-
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "tbox/ReferenceCounter.h"
-#include "tbox/Utilities.h"
+#include <ibtk/box_utilities.h>
 
-#include <Box.h>
+#include <tbox/ReferenceCounter.h>
+#include <tbox/Utilities.h>
 
 #include <algorithm>
 #include <iterator>
@@ -28,9 +25,16 @@
 #include <utility>
 #include <vector>
 
+#include <ibtk/app_namespaces.h>
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
 namespace IBTK
 {
-using namespace SAMRAI;
+/////////////////////////////// STATIC ///////////////////////////////////////
+
+namespace
+{
 // Index::operator< does not use lexical comparison so its not useful for
 // sorting: correctly implement lexical sorting here for use in, e.g.,
 // std::set.
@@ -76,7 +80,7 @@ struct IndexPairMagnitudeGreater
 // sorting: implement lexical comparison for use in, e.g., std::set.
 struct BoxLexical
 {
-    bool operator()(const hier::Box<NDIM>& a, const hier::Box<NDIM>& b) const
+    bool operator()(const Box<NDIM>& a, const Box<NDIM>& b) const
     {
         int a_indices[2 * NDIM];
         int b_indices[2 * NDIM];
@@ -91,14 +95,17 @@ struct BoxLexical
             std::begin(a_indices), std::end(a_indices), std::begin(b_indices), std::end(b_indices));
     }
 };
+} // namespace
 
-std::vector<SAMRAI::hier::Box<NDIM> >
-merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_boxes)
+/////////////////////////////// PUBLIC ///////////////////////////////////////
+
+std::vector<Box<NDIM> >
+merge_boxes_by_longest_edge(const std::vector<Box<NDIM> >& input_boxes)
 {
     // Naught to do with no boxes
     if (input_boxes.size() == 0) return input_boxes;
 
-    std::set<hier::Box<NDIM>, BoxLexical> boxes;
+    std::set<Box<NDIM>, BoxLexical> boxes;
     // In this function we interpret the boxes as partitioning boxes
     // rather than bounding boxes: i.e., the upper bounds in each
     // coordinate direction are one past the end. This is helpful because
@@ -106,7 +113,7 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
     // face.
     for (const auto& box : input_boxes)
     {
-        hier::Box<NDIM> new_box(box);
+        Box<NDIM> new_box(box);
         const hier::Index<NDIM> ones(1);
         new_box.growUpper(ones);
         boxes.insert(new_box);
@@ -114,11 +121,9 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
 
     while (true)
     {
-        std::map<std::pair<hier::Index<NDIM>, hier::Index<NDIM> >,
-                 std::set<hier::Box<NDIM>, BoxLexical>,
-                 IndexPairLexical>
+        std::map<std::pair<hier::Index<NDIM>, hier::Index<NDIM> >, std::set<Box<NDIM>, BoxLexical>, IndexPairLexical>
             face_to_boxes;
-        for (const hier::Box<NDIM>& box : boxes)
+        for (const Box<NDIM>& box : boxes)
         {
             // 1. collect boxes by common face:
             const hier::Index<NDIM> lower = box.lower();
@@ -184,13 +189,13 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
         std::stable_sort(faces.begin(), faces.end(), IndexPairMagnitudeGreater());
 
         // 3. merge boxes.
-        std::set<hier::Box<NDIM>, BoxLexical> removed_boxes;
+        std::set<Box<NDIM>, BoxLexical> removed_boxes;
         for (auto& face : faces)
         {
-            const std::set<hier::Box<NDIM>, BoxLexical>& face_boxes = face_to_boxes[face];
+            const std::set<Box<NDIM>, BoxLexical>& face_boxes = face_to_boxes[face];
             TBOX_ASSERT(face_boxes.size() == 2);
             bool skip_current_face = false;
-            for (const hier::Box<NDIM>& box : face_boxes)
+            for (const Box<NDIM>& box : face_boxes)
             {
                 // make sure we don't merge the same box more than
                 // once per round. If we have already merged one
@@ -208,18 +213,18 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
 
             // remove the boxes with the current face from the list of
             // boxes on the current processor
-            for (const hier::Box<NDIM>& box : face_boxes)
+            for (const Box<NDIM>& box : face_boxes)
             {
                 const auto it = boxes.find(box);
                 TBOX_ASSERT(it != boxes.end());
                 boxes.erase(it);
             }
             // add the merged box to the list of boxes
-            const hier::Box<NDIM> box_1 = *face_boxes.begin();
-            const hier::Box<NDIM> box_2 = *(++face_boxes.begin());
-            const hier::Box<NDIM> union_box = box_1 + box_2;
+            const Box<NDIM> box_1 = *face_boxes.begin();
+            const Box<NDIM> box_2 = *(++face_boxes.begin());
+            const Box<NDIM> union_box = box_1 + box_2;
             boxes.insert(union_box);
-            const hier::Box<NDIM> intersect_box = box_1 * box_2;
+            const Box<NDIM> intersect_box = box_1 * box_2;
             // double check that the boxes really overlap over exactly
             // one face
             TBOX_ASSERT(intersect_box.size() != 0);
@@ -229,11 +234,11 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
 
     // convert back to the usual box format by undoing the box expansion
     // above.
-    std::vector<hier::Box<NDIM> > result;
+    std::vector<Box<NDIM> > result;
     const hier::Index<NDIM> negative_ones(-1);
-    for (const hier::Box<NDIM>& box : boxes)
+    for (const Box<NDIM>& box : boxes)
     {
-        hier::Box<NDIM> new_box = box;
+        Box<NDIM> new_box = box;
         new_box.growUpper(negative_ones);
         result.push_back(new_box);
     }
@@ -244,15 +249,18 @@ merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& input_b
     // space. Do a quick sanity check that at least the volumes match:
     {
         long input_volume = 0;
-        for (const hier::Box<NDIM>& box : input_boxes) input_volume += box.size();
+        for (const Box<NDIM>& box : input_boxes) input_volume += box.size();
         long output_volume = 0;
-        for (const hier::Box<NDIM>& box : result) output_volume += box.size();
+        for (const Box<NDIM>& box : result) output_volume += box.size();
         TBOX_ASSERT(input_volume == output_volume);
     }
 #endif
 
     return result;
 }
+
+/////////////////////////////// NAMESPACE ////////////////////////////////////
+
 } // namespace IBTK
 
-#endif
+//////////////////////////////////////////////////////////////////////////////

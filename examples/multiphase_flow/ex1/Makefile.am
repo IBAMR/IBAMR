@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2018 - 2019 by the IBAMR developers
+## Copyright (c) 2018 - 2024 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -15,7 +15,7 @@
 include $(top_srcdir)/config/Make-rules
 
 ## Dimension-dependent testers
-EXAMPLE_DRIVER = example.cpp SetFluidGasSolidDensity.cpp SetFluidGasSolidDensity.h SetFluidGasSolidViscosity.cpp SetFluidGasSolidViscosity.h LSLocateCircularInterface.cpp LSLocateCircularInterface.h LSLocateGasInterface.cpp LSLocateGasInterface.h RigidBodyKinematics.cpp RigidBodyKinematics.h TagLSRefinementCells.cpp TagLSRefinementCells.h SetLSProperties.cpp SetLSProperties.h GravityForcing.cpp GravityForcing.h
+EXAMPLE_DRIVER = example.cpp LSLocateCircularInterface.cpp LSLocateCircularInterface.h LSLocateGasInterface.cpp LSLocateGasInterface.h RigidBodyKinematics.cpp RigidBodyKinematics.h
 EXTRA_DIST     = input2d.cyl input2d_free_fall.cyl
 
 

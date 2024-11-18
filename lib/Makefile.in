@@ -127,7 +127,8 @@ host_triplet = @host@
 subdir = lib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
-	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_11.m4 \
+	$(top_srcdir)/m4/ax_cxx_compile_stdcxx.m4 \
+	$(top_srcdir)/m4/ax_cxx_compile_stdcxx_17.m4 \
 	$(top_srcdir)/m4/ax_prefix_config_h.m4 \
 	$(top_srcdir)/m4/ax_prog_cc_mpi.m4 \
 	$(top_srcdir)/m4/ax_prog_cxx_mpi.m4 $(top_srcdir)/m4/boost.m4 \
@@ -262,12 +263,13 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 	../src/complex_fluids/CFUpperConvectiveOperator.cpp \
-	../src/complex_fluids/CFRelaxationOperator.cpp \
-	../src/complex_fluids/CFGiesekusRelaxation.cpp \
-	../src/complex_fluids/CFOldroydBRelaxation.cpp \
-	../src/complex_fluids/CFRoliePolyRelaxation.cpp \
+	../src/complex_fluids/CFStrategy.cpp \
+	../src/complex_fluids/CFGiesekusStrategy.cpp \
+	../src/complex_fluids/CFOldroydBStrategy.cpp \
+	../src/complex_fluids/CFRoliePolyStrategy.cpp \
 	../src/complex_fluids/CFINSForcing.cpp \
 	../src/level_set/FastSweepingLSMethod.cpp \
+	../src/level_set/LevelSetUtilities.cpp \
 	../src/level_set/LSInitStrategy.cpp \
 	../src/level_set/RelaxationLSBcCoefs.cpp \
 	../src/level_set/RelaxationLSMethod.cpp \
@@ -321,6 +323,12 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+	../src/phase_change/CarmanKozenyDragForce.cpp \
+	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+	../src/phase_change/HeavisideForcingFunction.cpp \
+	../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+	../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 	../src/utilities/CellConvectiveOperator.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
@@ -334,7 +342,9 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
 	../src/utilities/STSMassFluxIntegrator.cpp \
-	../src/utilities/RNG.cpp ../src/IB/FEMechanicsBase.cpp \
+	../src/utilities/RNG.cpp ../src/utilities/ins_utilities.cpp \
+	../src/utilities/vc_ins_utilities.cpp \
+	../src/IB/FEMechanicsBase.cpp \
 	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
@@ -453,12 +463,13 @@ am__objects_2 =  \
 	../src/advect/libIBAMR2d_a-AdvectorExplicitPredictorPatchOps.$(OBJEXT) \
 	../src/advect/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
 	../src/complex_fluids/libIBAMR2d_a-CFUpperConvectiveOperator.$(OBJEXT) \
-	../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.$(OBJEXT) \
-	../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.$(OBJEXT) \
-	../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.$(OBJEXT) \
-	../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.$(OBJEXT) \
+	../src/complex_fluids/libIBAMR2d_a-CFStrategy.$(OBJEXT) \
+	../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.$(OBJEXT) \
+	../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.$(OBJEXT) \
+	../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.$(OBJEXT) \
 	../src/complex_fluids/libIBAMR2d_a-CFINSForcing.$(OBJEXT) \
 	../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.$(OBJEXT) \
+	../src/level_set/libIBAMR2d_a-LevelSetUtilities.$(OBJEXT) \
 	../src/level_set/libIBAMR2d_a-LSInitStrategy.$(OBJEXT) \
 	../src/level_set/libIBAMR2d_a-RelaxationLSBcCoefs.$(OBJEXT) \
 	../src/level_set/libIBAMR2d_a-RelaxationLSMethod.$(OBJEXT) \
@@ -512,6 +523,12 @@ am__objects_2 =  \
 	../src/navier_stokes/libIBAMR2d_a-SurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-CellConvectiveOperator.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-ConvectiveOperator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-FifthOrderStokesWaveGenerator.$(OBJEXT) \
@@ -525,7 +542,10 @@ am__objects_2 =  \
 	../src/wave_generation/libIBAMR2d_a-WaveDampingFunctions.$(OBJEXT) \
 	../src/wave_generation/libIBAMR2d_a-WaveGenerationFunctions.$(OBJEXT) \
 	../src/utilities/libIBAMR2d_a-STSMassFluxIntegrator.$(OBJEXT) \
-	../src/utilities/libIBAMR2d_a-RNG.$(OBJEXT) $(am__objects_1)
+	../src/utilities/libIBAMR2d_a-RNG.$(OBJEXT) \
+	../src/utilities/libIBAMR2d_a-ins_utilities.$(OBJEXT) \
+	../src/utilities/libIBAMR2d_a-vc_ins_utilities.$(OBJEXT) \
+	$(am__objects_1)
 am_libIBAMR2d_a_OBJECTS = $(am__objects_2) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff2d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op2d.$(OBJEXT) \
@@ -616,12 +636,13 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 	../src/complex_fluids/CFUpperConvectiveOperator.cpp \
-	../src/complex_fluids/CFRelaxationOperator.cpp \
-	../src/complex_fluids/CFGiesekusRelaxation.cpp \
-	../src/complex_fluids/CFOldroydBRelaxation.cpp \
-	../src/complex_fluids/CFRoliePolyRelaxation.cpp \
+	../src/complex_fluids/CFStrategy.cpp \
+	../src/complex_fluids/CFGiesekusStrategy.cpp \
+	../src/complex_fluids/CFOldroydBStrategy.cpp \
+	../src/complex_fluids/CFRoliePolyStrategy.cpp \
 	../src/complex_fluids/CFINSForcing.cpp \
 	../src/level_set/FastSweepingLSMethod.cpp \
+	../src/level_set/LevelSetUtilities.cpp \
 	../src/level_set/LSInitStrategy.cpp \
 	../src/level_set/RelaxationLSBcCoefs.cpp \
 	../src/level_set/RelaxationLSMethod.cpp \
@@ -675,6 +696,12 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+	../src/phase_change/CarmanKozenyDragForce.cpp \
+	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+	../src/phase_change/HeavisideForcingFunction.cpp \
+	../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+	../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 	../src/utilities/CellConvectiveOperator.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
@@ -688,7 +715,9 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
 	../src/utilities/STSMassFluxIntegrator.cpp \
-	../src/utilities/RNG.cpp ../src/IB/FEMechanicsBase.cpp \
+	../src/utilities/RNG.cpp ../src/utilities/ins_utilities.cpp \
+	../src/utilities/vc_ins_utilities.cpp \
+	../src/IB/FEMechanicsBase.cpp \
 	../src/IB/FEMechanicsExplicitIntegrator.cpp \
 	../src/IB/IBFECentroidPostProcessor.cpp \
 	../src/IB/IBFEDirectForcingKinematics.cpp \
@@ -807,12 +836,13 @@ am__objects_4 =  \
 	../src/advect/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.$(OBJEXT) \
 	../src/advect/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.$(OBJEXT) \
 	../src/complex_fluids/libIBAMR3d_a-CFUpperConvectiveOperator.$(OBJEXT) \
-	../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.$(OBJEXT) \
-	../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.$(OBJEXT) \
-	../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.$(OBJEXT) \
-	../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.$(OBJEXT) \
+	../src/complex_fluids/libIBAMR3d_a-CFStrategy.$(OBJEXT) \
+	../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.$(OBJEXT) \
+	../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.$(OBJEXT) \
+	../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.$(OBJEXT) \
 	../src/complex_fluids/libIBAMR3d_a-CFINSForcing.$(OBJEXT) \
 	../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.$(OBJEXT) \
+	../src/level_set/libIBAMR3d_a-LevelSetUtilities.$(OBJEXT) \
 	../src/level_set/libIBAMR3d_a-LSInitStrategy.$(OBJEXT) \
 	../src/level_set/libIBAMR3d_a-RelaxationLSBcCoefs.$(OBJEXT) \
 	../src/level_set/libIBAMR3d_a-RelaxationLSMethod.$(OBJEXT) \
@@ -866,6 +896,12 @@ am__objects_4 =  \
 	../src/navier_stokes/libIBAMR3d_a-SurfaceTensionForceFunction.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesOperator.$(OBJEXT) \
 	../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.$(OBJEXT) \
+	../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-CellConvectiveOperator.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-ConvectiveOperator.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-FifthOrderStokesWaveGenerator.$(OBJEXT) \
@@ -879,7 +915,10 @@ am__objects_4 =  \
 	../src/wave_generation/libIBAMR3d_a-WaveDampingFunctions.$(OBJEXT) \
 	../src/wave_generation/libIBAMR3d_a-WaveGenerationFunctions.$(OBJEXT) \
 	../src/utilities/libIBAMR3d_a-STSMassFluxIntegrator.$(OBJEXT) \
-	../src/utilities/libIBAMR3d_a-RNG.$(OBJEXT) $(am__objects_3)
+	../src/utilities/libIBAMR3d_a-RNG.$(OBJEXT) \
+	../src/utilities/libIBAMR3d_a-ins_utilities.$(OBJEXT) \
+	../src/utilities/libIBAMR3d_a-vc_ins_utilities.$(OBJEXT) \
+	$(am__objects_3)
 am_libIBAMR3d_a_OBJECTS = $(am__objects_4) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_consdiff3d.$(OBJEXT) \
 	$(top_builddir)/src/adv_diff/fortran/adv_diff_wp_convective_op3d.$(OBJEXT) \
@@ -1088,26 +1127,28 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po \
 	../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po \
 	../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po \
-	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Po \
+	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Po \
 	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFINSForcing.Po \
-	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Po \
-	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Po \
-	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Po \
+	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Po \
+	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Po \
+	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Po \
 	../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFUpperConvectiveOperator.Po \
-	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Po \
+	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Po \
 	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFINSForcing.Po \
-	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Po \
-	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Po \
-	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Po \
+	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Po \
+	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Po \
+	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Po \
 	../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFUpperConvectiveOperator.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po \
+	../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po \
+	../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po \
 	../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po \
@@ -1210,14 +1251,30 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po \
 	../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po \
+	../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR2d_a-STSMassFluxIntegrator.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po \
 	../src/utilities/$(DEPDIR)/libIBAMR3d_a-STSMassFluxIntegrator.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po \
+	../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po \
 	../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po \
@@ -1320,6 +1377,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/AllenCahnHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
@@ -1330,15 +1388,18 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
 	../include/ibamr/CIBStrategy.h \
+	../include/ibamr/CarmanKozenyDragForce.h \
 	../include/ibamr/CellConvectiveOperator.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
-	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
+	../include/ibamr/EnthalpyHierarchyIntegrator.h \
 	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/FifthOrderStokesWaveGenerator.h \
 	../include/ibamr/FirstOrderStokesWaveGenerator.h \
+	../include/ibamr/GeneralizedIBMethod.h \
+	../include/ibamr/HeavisideForcingFunction.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -1395,15 +1456,19 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 	../include/ibamr/IrregularWaveBcCoef.h \
 	../include/ibamr/IrregularWaveGenerator.h \
+	../include/ibamr/ins_utilities.h \
 	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
+	../include/ibamr/LevelSetUtilities.h \
 	../include/ibamr/LSInitStrategy.h \
 	../include/ibamr/MarangoniSurfaceTensionForceFunction.h \
 	../include/ibamr/MobilityFunctions.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
+	../include/ibamr/PhaseChangeDivUSourceFunction.h \
+	../include/ibamr/PhaseChangeHierarchyIntegrator.h \
 	../include/ibamr/RelaxationLSBcCoefs.h \
 	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
@@ -1432,7 +1497,8 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
-	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
+	../include/ibamr/vc_ins_utilities.h ../include/ibamr/Wall.h \
+	../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/WaveDampingFunctions.h \
 	../include/ibamr/WaveGenerationFunctions.h \
 	../include/ibamr/RNG.h ../include/ibamr/FEMechanicsBase.h \
@@ -1511,7 +1577,7 @@ FFLAGS = @FFLAGS@
 FGREP = @FGREP@
 FLIBS = @FLIBS@
 GREP = @GREP@
-HAVE_CXX11 = @HAVE_CXX11@
+HAVE_CXX17 = @HAVE_CXX17@
 HAVE_LIBMESH_DBG = @HAVE_LIBMESH_DBG@
 HAVE_LIBMESH_DEVEL = @HAVE_LIBMESH_DEVEL@
 HAVE_LIBMESH_OPROF = @HAVE_LIBMESH_OPROF@
@@ -1748,6 +1814,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AdvDiffStochasticForcing.h \
 	../include/ibamr/AdvectorExplicitPredictorPatchOps.h \
 	../include/ibamr/AdvectorPredictorCorrectorHyperbolicPatchOps.h \
+	../include/ibamr/AllenCahnHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
@@ -1758,15 +1825,18 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/CIBStaggeredStokesOperator.h \
 	../include/ibamr/CIBStaggeredStokesSolver.h \
 	../include/ibamr/CIBStrategy.h \
+	../include/ibamr/CarmanKozenyDragForce.h \
 	../include/ibamr/CellConvectiveOperator.h \
 	../include/ibamr/ConstraintIBKinematics.h \
 	../include/ibamr/ConstraintIBMethod.h \
 	../include/ibamr/ConvectiveOperator.h \
-	../include/ibamr/GeneralizedIBMethod.h \
 	../include/ibamr/DirectMobilitySolver.h \
+	../include/ibamr/EnthalpyHierarchyIntegrator.h \
 	../include/ibamr/FastSweepingLSMethod.h \
 	../include/ibamr/FifthOrderStokesWaveGenerator.h \
 	../include/ibamr/FirstOrderStokesWaveGenerator.h \
+	../include/ibamr/GeneralizedIBMethod.h \
+	../include/ibamr/HeavisideForcingFunction.h \
 	../include/ibamr/IBAnchorPointSpec.h \
 	../include/ibamr/IBBeamForceSpec.h \
 	../include/ibamr/IBExplicitHierarchyIntegrator.h \
@@ -1823,15 +1893,19 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/INSVCStaggeredVelocityBcCoef.h \
 	../include/ibamr/IrregularWaveBcCoef.h \
 	../include/ibamr/IrregularWaveGenerator.h \
+	../include/ibamr/ins_utilities.h \
 	../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 	../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 	../include/ibamr/KrylovMobilitySolver.h \
+	../include/ibamr/LevelSetUtilities.h \
 	../include/ibamr/LSInitStrategy.h \
 	../include/ibamr/MarangoniSurfaceTensionForceFunction.h \
 	../include/ibamr/MobilityFunctions.h \
 	../include/ibamr/NonbondedForceEvaluator.h \
 	../include/ibamr/PETScKrylovStaggeredStokesSolver.h \
 	../include/ibamr/PenaltyIBMethod.h \
+	../include/ibamr/PhaseChangeDivUSourceFunction.h \
+	../include/ibamr/PhaseChangeHierarchyIntegrator.h \
 	../include/ibamr/RelaxationLSBcCoefs.h \
 	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
@@ -1861,7 +1935,8 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/SurfaceTensionForceFunction.h \
 	../include/ibamr/VCStaggeredStokesOperator.h \
 	../include/ibamr/VCStaggeredStokesProjectionPreconditioner.h \
-	../include/ibamr/Wall.h ../include/ibamr/WallForceEvaluator.h \
+	../include/ibamr/vc_ins_utilities.h ../include/ibamr/Wall.h \
+	../include/ibamr/WallForceEvaluator.h \
 	../include/ibamr/WaveDampingFunctions.h \
 	../include/ibamr/WaveGenerationFunctions.h \
 	../include/ibamr/RNG.h $(am__append_5)
@@ -1931,12 +2006,13 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/advect/AdvectorExplicitPredictorPatchOps.cpp \
 	../src/advect/AdvectorPredictorCorrectorHyperbolicPatchOps.cpp \
 	../src/complex_fluids/CFUpperConvectiveOperator.cpp \
-	../src/complex_fluids/CFRelaxationOperator.cpp \
-	../src/complex_fluids/CFGiesekusRelaxation.cpp \
-	../src/complex_fluids/CFOldroydBRelaxation.cpp \
-	../src/complex_fluids/CFRoliePolyRelaxation.cpp \
+	../src/complex_fluids/CFStrategy.cpp \
+	../src/complex_fluids/CFGiesekusStrategy.cpp \
+	../src/complex_fluids/CFOldroydBStrategy.cpp \
+	../src/complex_fluids/CFRoliePolyStrategy.cpp \
 	../src/complex_fluids/CFINSForcing.cpp \
 	../src/level_set/FastSweepingLSMethod.cpp \
+	../src/level_set/LevelSetUtilities.cpp \
 	../src/level_set/LSInitStrategy.cpp \
 	../src/level_set/RelaxationLSBcCoefs.cpp \
 	../src/level_set/RelaxationLSMethod.cpp \
@@ -1990,6 +2066,12 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/navier_stokes/SurfaceTensionForceFunction.cpp \
 	../src/navier_stokes/VCStaggeredStokesOperator.cpp \
 	../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp \
+	../src/phase_change/AllenCahnHierarchyIntegrator.cpp \
+	../src/phase_change/CarmanKozenyDragForce.cpp \
+	../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
+	../src/phase_change/HeavisideForcingFunction.cpp \
+	../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
+	../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
 	../src/utilities/CellConvectiveOperator.cpp \
 	../src/utilities/ConvectiveOperator.cpp \
 	../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
@@ -2003,7 +2085,8 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/wave_generation/WaveDampingFunctions.cpp \
 	../src/wave_generation/WaveGenerationFunctions.cpp \
 	../src/utilities/STSMassFluxIntegrator.cpp \
-	../src/utilities/RNG.cpp $(am__append_4)
+	../src/utilities/RNG.cpp ../src/utilities/ins_utilities.cpp \
+	../src/utilities/vc_ins_utilities.cpp $(am__append_4)
 libIBAMR2d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 libIBAMR2d_a_CFLAGS = $(AM_CFLAGS) -DNDIM=2
 libIBAMR2d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) \
@@ -2316,16 +2399,16 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/complex_fluids/libIBAMR2d_a-CFUpperConvectiveOperator.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
-../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.$(OBJEXT):  \
+../src/complex_fluids/libIBAMR2d_a-CFStrategy.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
-../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.$(OBJEXT):  \
+../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
-../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.$(OBJEXT):  \
+../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
-../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.$(OBJEXT):  \
+../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
 ../src/complex_fluids/libIBAMR2d_a-CFINSForcing.$(OBJEXT):  \
@@ -2338,6 +2421,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	@$(MKDIR_P) ../src/level_set/$(DEPDIR)
 	@: > ../src/level_set/$(DEPDIR)/$(am__dirstamp)
 ../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR2d_a-LevelSetUtilities.$(OBJEXT):  \
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
 ../src/level_set/libIBAMR2d_a-LSInitStrategy.$(OBJEXT):  \
@@ -2505,6 +2591,30 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/$(am__dirstamp):
+	@$(MKDIR_P) ../src/phase_change
+	@: > ../src/phase_change/$(am__dirstamp)
+../src/phase_change/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) ../src/phase_change/$(DEPDIR)
+	@: > ../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/$(am__dirstamp):
 	@$(MKDIR_P) ../src/utilities
 	@: > ../src/utilities/$(am__dirstamp)
@@ -2557,6 +2667,12 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBAMR2d_a-RNG.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR2d_a-ins_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR2d_a-vc_ins_utilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-FEMechanicsBase.$(OBJEXT):  \
@@ -2845,22 +2961,25 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/complex_fluids/libIBAMR3d_a-CFUpperConvectiveOperator.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
-../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.$(OBJEXT):  \
+../src/complex_fluids/libIBAMR3d_a-CFStrategy.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
-../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.$(OBJEXT):  \
+../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
-../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.$(OBJEXT):  \
+../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
-../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.$(OBJEXT):  \
+../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
 ../src/complex_fluids/libIBAMR3d_a-CFINSForcing.$(OBJEXT):  \
 	../src/complex_fluids/$(am__dirstamp) \
 	../src/complex_fluids/$(DEPDIR)/$(am__dirstamp)
 ../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.$(OBJEXT):  \
+	../src/level_set/$(am__dirstamp) \
+	../src/level_set/$(DEPDIR)/$(am__dirstamp)
+../src/level_set/libIBAMR3d_a-LevelSetUtilities.$(OBJEXT):  \
 	../src/level_set/$(am__dirstamp) \
 	../src/level_set/$(DEPDIR)/$(am__dirstamp)
 ../src/level_set/libIBAMR3d_a-LSInitStrategy.$(OBJEXT):  \
@@ -3022,6 +3141,24 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.$(OBJEXT):  \
 	../src/navier_stokes/$(am__dirstamp) \
 	../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.$(OBJEXT):  \
+	../src/phase_change/$(am__dirstamp) \
+	../src/phase_change/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
@@ -3062,6 +3199,12 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/utilities/libIBAMR3d_a-RNG.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR3d_a-ins_utilities.$(OBJEXT):  \
+	../src/utilities/$(am__dirstamp) \
+	../src/utilities/$(DEPDIR)/$(am__dirstamp)
+../src/utilities/libIBAMR3d_a-vc_ins_utilities.$(OBJEXT):  \
 	../src/utilities/$(am__dirstamp) \
 	../src/utilities/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-FEMechanicsBase.$(OBJEXT):  \
@@ -3173,6 +3316,7 @@ mostlyclean-compile:
 	-rm -f ../src/complex_fluids/*.$(OBJEXT)
 	-rm -f ../src/level_set/*.$(OBJEXT)
 	-rm -f ../src/navier_stokes/*.$(OBJEXT)
+	-rm -f ../src/phase_change/*.$(OBJEXT)
 	-rm -f ../src/utilities/*.$(OBJEXT)
 	-rm -f ../src/wave_generation/*.$(OBJEXT)
 
@@ -3350,26 +3494,28 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFINSForcing.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFUpperConvectiveOperator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFINSForcing.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Po@am__quote@ # am--include-marker
-@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFUpperConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
@@ -3472,14 +3618,30 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-STSMassFluxIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-STSMassFluxIntegrator.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po@am__quote@ # am--include-marker
@@ -4553,61 +4715,61 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFUpperConvectiveOperator.obj `if test -f '../src/complex_fluids/CFUpperConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFUpperConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFUpperConvectiveOperator.cpp'; fi`
 
-../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.o: ../src/complex_fluids/CFRelaxationOperator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.o `test -f '../src/complex_fluids/CFRelaxationOperator.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRelaxationOperator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRelaxationOperator.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.o' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR2d_a-CFStrategy.o: ../src/complex_fluids/CFStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFStrategy.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFStrategy.o `test -f '../src/complex_fluids/CFStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFStrategy.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.o `test -f '../src/complex_fluids/CFRelaxationOperator.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRelaxationOperator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFStrategy.o `test -f '../src/complex_fluids/CFStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFStrategy.cpp
 
-../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.obj: ../src/complex_fluids/CFRelaxationOperator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.obj `if test -f '../src/complex_fluids/CFRelaxationOperator.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRelaxationOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRelaxationOperator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRelaxationOperator.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.obj' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR2d_a-CFStrategy.obj: ../src/complex_fluids/CFStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFStrategy.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFStrategy.obj `if test -f '../src/complex_fluids/CFStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFStrategy.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFRelaxationOperator.obj `if test -f '../src/complex_fluids/CFRelaxationOperator.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRelaxationOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRelaxationOperator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFStrategy.obj `if test -f '../src/complex_fluids/CFStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFStrategy.cpp'; fi`
 
-../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.o: ../src/complex_fluids/CFGiesekusRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.o `test -f '../src/complex_fluids/CFGiesekusRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFGiesekusRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFGiesekusRelaxation.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.o' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.o: ../src/complex_fluids/CFGiesekusStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.o `test -f '../src/complex_fluids/CFGiesekusStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFGiesekusStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFGiesekusStrategy.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.o `test -f '../src/complex_fluids/CFGiesekusRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFGiesekusRelaxation.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.o `test -f '../src/complex_fluids/CFGiesekusStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFGiesekusStrategy.cpp
 
-../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.obj: ../src/complex_fluids/CFGiesekusRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.obj `if test -f '../src/complex_fluids/CFGiesekusRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFGiesekusRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFGiesekusRelaxation.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFGiesekusRelaxation.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.obj' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.obj: ../src/complex_fluids/CFGiesekusStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.obj `if test -f '../src/complex_fluids/CFGiesekusStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFGiesekusStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFGiesekusStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFGiesekusStrategy.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFGiesekusRelaxation.obj `if test -f '../src/complex_fluids/CFGiesekusRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFGiesekusRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFGiesekusRelaxation.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFGiesekusStrategy.obj `if test -f '../src/complex_fluids/CFGiesekusStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFGiesekusStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFGiesekusStrategy.cpp'; fi`
 
-../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.o: ../src/complex_fluids/CFOldroydBRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.o `test -f '../src/complex_fluids/CFOldroydBRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFOldroydBRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFOldroydBRelaxation.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.o' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.o: ../src/complex_fluids/CFOldroydBStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.o `test -f '../src/complex_fluids/CFOldroydBStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFOldroydBStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFOldroydBStrategy.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.o `test -f '../src/complex_fluids/CFOldroydBRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFOldroydBRelaxation.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.o `test -f '../src/complex_fluids/CFOldroydBStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFOldroydBStrategy.cpp
 
-../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.obj: ../src/complex_fluids/CFOldroydBRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.obj `if test -f '../src/complex_fluids/CFOldroydBRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFOldroydBRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFOldroydBRelaxation.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFOldroydBRelaxation.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.obj' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.obj: ../src/complex_fluids/CFOldroydBStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.obj `if test -f '../src/complex_fluids/CFOldroydBStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFOldroydBStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFOldroydBStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFOldroydBStrategy.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFOldroydBRelaxation.obj `if test -f '../src/complex_fluids/CFOldroydBRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFOldroydBRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFOldroydBRelaxation.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFOldroydBStrategy.obj `if test -f '../src/complex_fluids/CFOldroydBStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFOldroydBStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFOldroydBStrategy.cpp'; fi`
 
-../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.o: ../src/complex_fluids/CFRoliePolyRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.o `test -f '../src/complex_fluids/CFRoliePolyRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRoliePolyRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRoliePolyRelaxation.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.o' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.o: ../src/complex_fluids/CFRoliePolyStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.o `test -f '../src/complex_fluids/CFRoliePolyStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRoliePolyStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRoliePolyStrategy.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.o `test -f '../src/complex_fluids/CFRoliePolyRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRoliePolyRelaxation.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.o `test -f '../src/complex_fluids/CFRoliePolyStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRoliePolyStrategy.cpp
 
-../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.obj: ../src/complex_fluids/CFRoliePolyRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.obj `if test -f '../src/complex_fluids/CFRoliePolyRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRoliePolyRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRoliePolyRelaxation.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRoliePolyRelaxation.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.obj' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.obj: ../src/complex_fluids/CFRoliePolyStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.obj `if test -f '../src/complex_fluids/CFRoliePolyStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRoliePolyStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRoliePolyStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRoliePolyStrategy.cpp' object='../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyRelaxation.obj `if test -f '../src/complex_fluids/CFRoliePolyRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRoliePolyRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRoliePolyRelaxation.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR2d_a-CFRoliePolyStrategy.obj `if test -f '../src/complex_fluids/CFRoliePolyStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRoliePolyStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRoliePolyStrategy.cpp'; fi`
 
 ../src/complex_fluids/libIBAMR2d_a-CFINSForcing.o: ../src/complex_fluids/CFINSForcing.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR2d_a-CFINSForcing.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFINSForcing.Tpo -c -o ../src/complex_fluids/libIBAMR2d_a-CFINSForcing.o `test -f '../src/complex_fluids/CFINSForcing.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFINSForcing.cpp
@@ -4636,6 +4798,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FastSweepingLSMethod.cpp' object='../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-FastSweepingLSMethod.obj `if test -f '../src/level_set/FastSweepingLSMethod.cpp'; then $(CYGPATH_W) '../src/level_set/FastSweepingLSMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FastSweepingLSMethod.cpp'; fi`
+
+../src/level_set/libIBAMR2d_a-LevelSetUtilities.o: ../src/level_set/LevelSetUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-LevelSetUtilities.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Tpo -c -o ../src/level_set/libIBAMR2d_a-LevelSetUtilities.o `test -f '../src/level_set/LevelSetUtilities.cpp' || echo '$(srcdir)/'`../src/level_set/LevelSetUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LevelSetUtilities.cpp' object='../src/level_set/libIBAMR2d_a-LevelSetUtilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-LevelSetUtilities.o `test -f '../src/level_set/LevelSetUtilities.cpp' || echo '$(srcdir)/'`../src/level_set/LevelSetUtilities.cpp
+
+../src/level_set/libIBAMR2d_a-LevelSetUtilities.obj: ../src/level_set/LevelSetUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-LevelSetUtilities.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Tpo -c -o ../src/level_set/libIBAMR2d_a-LevelSetUtilities.obj `if test -f '../src/level_set/LevelSetUtilities.cpp'; then $(CYGPATH_W) '../src/level_set/LevelSetUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LevelSetUtilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Tpo ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LevelSetUtilities.cpp' object='../src/level_set/libIBAMR2d_a-LevelSetUtilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR2d_a-LevelSetUtilities.obj `if test -f '../src/level_set/LevelSetUtilities.cpp'; then $(CYGPATH_W) '../src/level_set/LevelSetUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LevelSetUtilities.cpp'; fi`
 
 ../src/level_set/libIBAMR2d_a-LSInitStrategy.o: ../src/level_set/LSInitStrategy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR2d_a-LSInitStrategy.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Tpo -c -o ../src/level_set/libIBAMR2d_a-LSInitStrategy.o `test -f '../src/level_set/LSInitStrategy.cpp' || echo '$(srcdir)/'`../src/level_set/LSInitStrategy.cpp
@@ -5379,6 +5555,90 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR2d_a-VCStaggeredStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; fi`
 
+../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o: ../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo -c -o ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o `test -f '../src/phase_change/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/CarmanKozenyDragForce.cpp' object='../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.o `test -f '../src/phase_change/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/phase_change/CarmanKozenyDragForce.cpp
+
+../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj: ../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo -c -o ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj `if test -f '../src/phase_change/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/phase_change/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/CarmanKozenyDragForce.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/CarmanKozenyDragForce.cpp' object='../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-CarmanKozenyDragForce.obj `if test -f '../src/phase_change/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/phase_change/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/CarmanKozenyDragForce.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+
+../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+
 ../src/utilities/libIBAMR2d_a-CellConvectiveOperator.o: ../src/utilities/CellConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-CellConvectiveOperator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Tpo -c -o ../src/utilities/libIBAMR2d_a-CellConvectiveOperator.o `test -f '../src/utilities/CellConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/utilities/CellConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po
@@ -5574,6 +5834,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/RNG.cpp' object='../src/utilities/libIBAMR2d_a-RNG.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-RNG.obj `if test -f '../src/utilities/RNG.cpp'; then $(CYGPATH_W) '../src/utilities/RNG.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RNG.cpp'; fi`
+
+../src/utilities/libIBAMR2d_a-ins_utilities.o: ../src/utilities/ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-ins_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Tpo -c -o ../src/utilities/libIBAMR2d_a-ins_utilities.o `test -f '../src/utilities/ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ins_utilities.cpp' object='../src/utilities/libIBAMR2d_a-ins_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-ins_utilities.o `test -f '../src/utilities/ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/ins_utilities.cpp
+
+../src/utilities/libIBAMR2d_a-ins_utilities.obj: ../src/utilities/ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-ins_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Tpo -c -o ../src/utilities/libIBAMR2d_a-ins_utilities.obj `if test -f '../src/utilities/ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ins_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ins_utilities.cpp' object='../src/utilities/libIBAMR2d_a-ins_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-ins_utilities.obj `if test -f '../src/utilities/ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ins_utilities.cpp'; fi`
+
+../src/utilities/libIBAMR2d_a-vc_ins_utilities.o: ../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-vc_ins_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Tpo -c -o ../src/utilities/libIBAMR2d_a-vc_ins_utilities.o `test -f '../src/utilities/vc_ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/vc_ins_utilities.cpp' object='../src/utilities/libIBAMR2d_a-vc_ins_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-vc_ins_utilities.o `test -f '../src/utilities/vc_ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/vc_ins_utilities.cpp
+
+../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj: ../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Tpo -c -o ../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj `if test -f '../src/utilities/vc_ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/vc_ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/vc_ins_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/vc_ins_utilities.cpp' object='../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR2d_a-vc_ins_utilities.obj `if test -f '../src/utilities/vc_ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/vc_ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/vc_ins_utilities.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-FEMechanicsBase.o: ../src/IB/FEMechanicsBase.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-FEMechanicsBase.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-FEMechanicsBase.Tpo -c -o ../src/IB/libIBAMR2d_a-FEMechanicsBase.o `test -f '../src/IB/FEMechanicsBase.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsBase.cpp
@@ -6793,61 +7081,61 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFUpperConvectiveOperator.obj `if test -f '../src/complex_fluids/CFUpperConvectiveOperator.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFUpperConvectiveOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFUpperConvectiveOperator.cpp'; fi`
 
-../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.o: ../src/complex_fluids/CFRelaxationOperator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.o `test -f '../src/complex_fluids/CFRelaxationOperator.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRelaxationOperator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRelaxationOperator.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.o' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR3d_a-CFStrategy.o: ../src/complex_fluids/CFStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFStrategy.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFStrategy.o `test -f '../src/complex_fluids/CFStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFStrategy.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.o `test -f '../src/complex_fluids/CFRelaxationOperator.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRelaxationOperator.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFStrategy.o `test -f '../src/complex_fluids/CFStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFStrategy.cpp
 
-../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.obj: ../src/complex_fluids/CFRelaxationOperator.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.obj `if test -f '../src/complex_fluids/CFRelaxationOperator.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRelaxationOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRelaxationOperator.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRelaxationOperator.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.obj' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR3d_a-CFStrategy.obj: ../src/complex_fluids/CFStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFStrategy.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFStrategy.obj `if test -f '../src/complex_fluids/CFStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFStrategy.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFRelaxationOperator.obj `if test -f '../src/complex_fluids/CFRelaxationOperator.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRelaxationOperator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRelaxationOperator.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFStrategy.obj `if test -f '../src/complex_fluids/CFStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFStrategy.cpp'; fi`
 
-../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.o: ../src/complex_fluids/CFGiesekusRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.o `test -f '../src/complex_fluids/CFGiesekusRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFGiesekusRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFGiesekusRelaxation.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.o' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.o: ../src/complex_fluids/CFGiesekusStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.o `test -f '../src/complex_fluids/CFGiesekusStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFGiesekusStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFGiesekusStrategy.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.o `test -f '../src/complex_fluids/CFGiesekusRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFGiesekusRelaxation.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.o `test -f '../src/complex_fluids/CFGiesekusStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFGiesekusStrategy.cpp
 
-../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.obj: ../src/complex_fluids/CFGiesekusRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.obj `if test -f '../src/complex_fluids/CFGiesekusRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFGiesekusRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFGiesekusRelaxation.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFGiesekusRelaxation.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.obj' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.obj: ../src/complex_fluids/CFGiesekusStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.obj `if test -f '../src/complex_fluids/CFGiesekusStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFGiesekusStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFGiesekusStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFGiesekusStrategy.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFGiesekusRelaxation.obj `if test -f '../src/complex_fluids/CFGiesekusRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFGiesekusRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFGiesekusRelaxation.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFGiesekusStrategy.obj `if test -f '../src/complex_fluids/CFGiesekusStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFGiesekusStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFGiesekusStrategy.cpp'; fi`
 
-../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.o: ../src/complex_fluids/CFOldroydBRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.o `test -f '../src/complex_fluids/CFOldroydBRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFOldroydBRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFOldroydBRelaxation.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.o' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.o: ../src/complex_fluids/CFOldroydBStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.o `test -f '../src/complex_fluids/CFOldroydBStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFOldroydBStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFOldroydBStrategy.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.o `test -f '../src/complex_fluids/CFOldroydBRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFOldroydBRelaxation.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.o `test -f '../src/complex_fluids/CFOldroydBStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFOldroydBStrategy.cpp
 
-../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.obj: ../src/complex_fluids/CFOldroydBRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.obj `if test -f '../src/complex_fluids/CFOldroydBRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFOldroydBRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFOldroydBRelaxation.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFOldroydBRelaxation.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.obj' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.obj: ../src/complex_fluids/CFOldroydBStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.obj `if test -f '../src/complex_fluids/CFOldroydBStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFOldroydBStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFOldroydBStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFOldroydBStrategy.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFOldroydBRelaxation.obj `if test -f '../src/complex_fluids/CFOldroydBRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFOldroydBRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFOldroydBRelaxation.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFOldroydBStrategy.obj `if test -f '../src/complex_fluids/CFOldroydBStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFOldroydBStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFOldroydBStrategy.cpp'; fi`
 
-../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.o: ../src/complex_fluids/CFRoliePolyRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.o `test -f '../src/complex_fluids/CFRoliePolyRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRoliePolyRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRoliePolyRelaxation.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.o' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.o: ../src/complex_fluids/CFRoliePolyStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.o `test -f '../src/complex_fluids/CFRoliePolyStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRoliePolyStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRoliePolyStrategy.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.o `test -f '../src/complex_fluids/CFRoliePolyRelaxation.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRoliePolyRelaxation.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.o `test -f '../src/complex_fluids/CFRoliePolyStrategy.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFRoliePolyStrategy.cpp
 
-../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.obj: ../src/complex_fluids/CFRoliePolyRelaxation.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.obj `if test -f '../src/complex_fluids/CFRoliePolyRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRoliePolyRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRoliePolyRelaxation.cpp'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRoliePolyRelaxation.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.obj' libtool=no @AMDEPBACKSLASH@
+../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.obj: ../src/complex_fluids/CFRoliePolyStrategy.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.obj -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.obj `if test -f '../src/complex_fluids/CFRoliePolyStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRoliePolyStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRoliePolyStrategy.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Tpo ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/complex_fluids/CFRoliePolyStrategy.cpp' object='../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyRelaxation.obj `if test -f '../src/complex_fluids/CFRoliePolyRelaxation.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRoliePolyRelaxation.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRoliePolyRelaxation.cpp'; fi`
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/complex_fluids/libIBAMR3d_a-CFRoliePolyStrategy.obj `if test -f '../src/complex_fluids/CFRoliePolyStrategy.cpp'; then $(CYGPATH_W) '../src/complex_fluids/CFRoliePolyStrategy.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/complex_fluids/CFRoliePolyStrategy.cpp'; fi`
 
 ../src/complex_fluids/libIBAMR3d_a-CFINSForcing.o: ../src/complex_fluids/CFINSForcing.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/complex_fluids/libIBAMR3d_a-CFINSForcing.o -MD -MP -MF ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFINSForcing.Tpo -c -o ../src/complex_fluids/libIBAMR3d_a-CFINSForcing.o `test -f '../src/complex_fluids/CFINSForcing.cpp' || echo '$(srcdir)/'`../src/complex_fluids/CFINSForcing.cpp
@@ -6876,6 +7164,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/FastSweepingLSMethod.cpp' object='../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-FastSweepingLSMethod.obj `if test -f '../src/level_set/FastSweepingLSMethod.cpp'; then $(CYGPATH_W) '../src/level_set/FastSweepingLSMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/FastSweepingLSMethod.cpp'; fi`
+
+../src/level_set/libIBAMR3d_a-LevelSetUtilities.o: ../src/level_set/LevelSetUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-LevelSetUtilities.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Tpo -c -o ../src/level_set/libIBAMR3d_a-LevelSetUtilities.o `test -f '../src/level_set/LevelSetUtilities.cpp' || echo '$(srcdir)/'`../src/level_set/LevelSetUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LevelSetUtilities.cpp' object='../src/level_set/libIBAMR3d_a-LevelSetUtilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-LevelSetUtilities.o `test -f '../src/level_set/LevelSetUtilities.cpp' || echo '$(srcdir)/'`../src/level_set/LevelSetUtilities.cpp
+
+../src/level_set/libIBAMR3d_a-LevelSetUtilities.obj: ../src/level_set/LevelSetUtilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-LevelSetUtilities.obj -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Tpo -c -o ../src/level_set/libIBAMR3d_a-LevelSetUtilities.obj `if test -f '../src/level_set/LevelSetUtilities.cpp'; then $(CYGPATH_W) '../src/level_set/LevelSetUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LevelSetUtilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Tpo ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/level_set/LevelSetUtilities.cpp' object='../src/level_set/libIBAMR3d_a-LevelSetUtilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/level_set/libIBAMR3d_a-LevelSetUtilities.obj `if test -f '../src/level_set/LevelSetUtilities.cpp'; then $(CYGPATH_W) '../src/level_set/LevelSetUtilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/level_set/LevelSetUtilities.cpp'; fi`
 
 ../src/level_set/libIBAMR3d_a-LSInitStrategy.o: ../src/level_set/LSInitStrategy.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/level_set/libIBAMR3d_a-LSInitStrategy.o -MD -MP -MF ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Tpo -c -o ../src/level_set/libIBAMR3d_a-LSInitStrategy.o `test -f '../src/level_set/LSInitStrategy.cpp' || echo '$(srcdir)/'`../src/level_set/LSInitStrategy.cpp
@@ -7619,6 +7921,90 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/navier_stokes/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.obj `if test -f '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; then $(CYGPATH_W) '../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/navier_stokes/VCStaggeredStokesProjectionPreconditioner.cpp'; fi`
 
+../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.o `test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj: ../src/phase_change/AllenCahnHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/AllenCahnHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-AllenCahnHierarchyIntegrator.obj `if test -f '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/AllenCahnHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o: ../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo -c -o ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o `test -f '../src/phase_change/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/CarmanKozenyDragForce.cpp' object='../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.o `test -f '../src/phase_change/CarmanKozenyDragForce.cpp' || echo '$(srcdir)/'`../src/phase_change/CarmanKozenyDragForce.cpp
+
+../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj: ../src/phase_change/CarmanKozenyDragForce.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo -c -o ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj `if test -f '../src/phase_change/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/phase_change/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/CarmanKozenyDragForce.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/CarmanKozenyDragForce.cpp' object='../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-CarmanKozenyDragForce.obj `if test -f '../src/phase_change/CarmanKozenyDragForce.cpp'; then $(CYGPATH_W) '../src/phase_change/CarmanKozenyDragForce.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/CarmanKozenyDragForce.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.o `test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj: ../src/phase_change/EnthalpyHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/EnthalpyHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-EnthalpyHierarchyIntegrator.obj `if test -f '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/EnthalpyHierarchyIntegrator.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.o `test -f '../src/phase_change/HeavisideForcingFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/HeavisideForcingFunction.cpp
+
+../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj: ../src/phase_change/HeavisideForcingFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/HeavisideForcingFunction.cpp' object='../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-HeavisideForcingFunction.obj `if test -f '../src/phase_change/HeavisideForcingFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/HeavisideForcingFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/HeavisideForcingFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.o `test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj: ../src/phase_change/PhaseChangeDivUSourceFunction.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeDivUSourceFunction.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeDivUSourceFunction.obj `if test -f '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeDivUSourceFunction.cpp'; fi`
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.o `test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' || echo '$(srcdir)/'`../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+
+../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj: ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj -MD -MP -MF ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Tpo ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/phase_change/PhaseChangeHierarchyIntegrator.cpp' object='../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/phase_change/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.obj `if test -f '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; then $(CYGPATH_W) '../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/phase_change/PhaseChangeHierarchyIntegrator.cpp'; fi`
+
 ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.o: ../src/utilities/CellConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Tpo -c -o ../src/utilities/libIBAMR3d_a-CellConvectiveOperator.o `test -f '../src/utilities/CellConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/utilities/CellConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
@@ -7814,6 +8200,34 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/RNG.cpp' object='../src/utilities/libIBAMR3d_a-RNG.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-RNG.obj `if test -f '../src/utilities/RNG.cpp'; then $(CYGPATH_W) '../src/utilities/RNG.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/RNG.cpp'; fi`
+
+../src/utilities/libIBAMR3d_a-ins_utilities.o: ../src/utilities/ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-ins_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Tpo -c -o ../src/utilities/libIBAMR3d_a-ins_utilities.o `test -f '../src/utilities/ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ins_utilities.cpp' object='../src/utilities/libIBAMR3d_a-ins_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-ins_utilities.o `test -f '../src/utilities/ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/ins_utilities.cpp
+
+../src/utilities/libIBAMR3d_a-ins_utilities.obj: ../src/utilities/ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-ins_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Tpo -c -o ../src/utilities/libIBAMR3d_a-ins_utilities.obj `if test -f '../src/utilities/ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ins_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/ins_utilities.cpp' object='../src/utilities/libIBAMR3d_a-ins_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-ins_utilities.obj `if test -f '../src/utilities/ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/ins_utilities.cpp'; fi`
+
+../src/utilities/libIBAMR3d_a-vc_ins_utilities.o: ../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-vc_ins_utilities.o -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Tpo -c -o ../src/utilities/libIBAMR3d_a-vc_ins_utilities.o `test -f '../src/utilities/vc_ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/vc_ins_utilities.cpp' object='../src/utilities/libIBAMR3d_a-vc_ins_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-vc_ins_utilities.o `test -f '../src/utilities/vc_ins_utilities.cpp' || echo '$(srcdir)/'`../src/utilities/vc_ins_utilities.cpp
+
+../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj: ../src/utilities/vc_ins_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj -MD -MP -MF ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Tpo -c -o ../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj `if test -f '../src/utilities/vc_ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/vc_ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/vc_ins_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Tpo ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/utilities/vc_ins_utilities.cpp' object='../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/utilities/libIBAMR3d_a-vc_ins_utilities.obj `if test -f '../src/utilities/vc_ins_utilities.cpp'; then $(CYGPATH_W) '../src/utilities/vc_ins_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/utilities/vc_ins_utilities.cpp'; fi`
 
 ../src/IB/libIBAMR3d_a-FEMechanicsBase.o: ../src/IB/FEMechanicsBase.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-FEMechanicsBase.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-FEMechanicsBase.Tpo -c -o ../src/IB/libIBAMR3d_a-FEMechanicsBase.o `test -f '../src/IB/FEMechanicsBase.cpp' || echo '$(srcdir)/'`../src/IB/FEMechanicsBase.cpp
@@ -8179,6 +8593,8 @@ distclean-generic:
 	-rm -f ../src/level_set/$(am__dirstamp)
 	-rm -f ../src/navier_stokes/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/navier_stokes/$(am__dirstamp)
+	-rm -f ../src/phase_change/$(DEPDIR)/$(am__dirstamp)
+	-rm -f ../src/phase_change/$(am__dirstamp)
 	-rm -f ../src/utilities/$(DEPDIR)/$(am__dirstamp)
 	-rm -f ../src/utilities/$(am__dirstamp)
 	-rm -f ../src/wave_generation/$(DEPDIR)/$(am__dirstamp)
@@ -8375,26 +8791,28 @@ distclean: distclean-am
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Po
 	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFINSForcing.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Po
 	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFUpperConvectiveOperator.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Po
 	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFINSForcing.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Po
 	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFUpperConvectiveOperator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po
@@ -8497,14 +8915,30 @@ distclean: distclean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-STSMassFluxIntegrator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-STSMassFluxIntegrator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po
@@ -8741,26 +9175,28 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR2d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorExplicitPredictorPatchOps.Po
 	-rm -f ../src/advect/$(DEPDIR)/libIBAMR3d_a-AdvectorPredictorCorrectorHyperbolicPatchOps.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusRelaxation.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFGiesekusStrategy.Po
 	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFINSForcing.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBRelaxation.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRelaxationOperator.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyRelaxation.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFOldroydBStrategy.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFRoliePolyStrategy.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFStrategy.Po
 	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR2d_a-CFUpperConvectiveOperator.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusRelaxation.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFGiesekusStrategy.Po
 	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFINSForcing.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBRelaxation.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRelaxationOperator.Po
-	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyRelaxation.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFOldroydBStrategy.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFRoliePolyStrategy.Po
+	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFStrategy.Po
 	-rm -f ../src/complex_fluids/$(DEPDIR)/libIBAMR3d_a-CFUpperConvectiveOperator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FESurfaceDistanceEvaluator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LSInitStrategy.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-LevelSetUtilities.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR2d_a-RelaxationLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FESurfaceDistanceEvaluator.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-FastSweepingLSMethod.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LSInitStrategy.Po
+	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-LevelSetUtilities.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSBcCoefs.Po
 	-rm -f ../src/level_set/$(DEPDIR)/libIBAMR3d_a-RelaxationLSMethod.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR2d_a-INSCollocatedCenteredConvectiveOperator.Po
@@ -8863,14 +9299,30 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-SurfaceTensionForceFunction.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesOperator.Po
 	-rm -f ../src/navier_stokes/$(DEPDIR)/libIBAMR3d_a-VCStaggeredStokesProjectionPreconditioner.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-CarmanKozenyDragForce.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR2d_a-PhaseChangeHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-AllenCahnHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-CarmanKozenyDragForce.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-EnthalpyHierarchyIntegrator.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-HeavisideForcingFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeDivUSourceFunction.Po
+	-rm -f ../src/phase_change/$(DEPDIR)/libIBAMR3d_a-PhaseChangeHierarchyIntegrator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-STSMassFluxIntegrator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-ins_utilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR2d_a-vc_ins_utilities.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-CellConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ConvectiveOperator.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-RNG.Po
 	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-STSMassFluxIntegrator.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-ins_utilities.Po
+	-rm -f ../src/utilities/$(DEPDIR)/libIBAMR3d_a-vc_ins_utilities.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FifthOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-FirstOrderStokesWaveGenerator.Po
 	-rm -f ../src/wave_generation/$(DEPDIR)/libIBAMR2d_a-IrregularWaveBcCoef.Po

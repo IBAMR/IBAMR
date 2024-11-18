@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2023 - 2023 by the IBAMR developers
+// Copyright (c) 2023 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -18,10 +18,32 @@
 #include <ibtk/LEInteractor.h>
 #include <ibtk/MarkerPatchHierarchy.h>
 
-#include <hdf5.h>
 #include <tbox/RestartManager.h>
 
 #include <CartesianGridGeometry.h>
+
+// At this point SAMRAI has already defined these macros, but older versions
+// hdf5.h will unconditionally define them too. Get around it by undefining and
+// redefining as needed.
+
+#ifdef MPICH_SKIP_MPICXX
+#undef MPICH_SKIP_MPICXX
+#endif
+
+#ifdef OMPI_SKIP_MPICXX
+#undef OMPI_SKIP_MPICXX
+#endif
+
+#include <hdf5.h>
+
+#ifndef MPICH_SKIP_MPICXX
+#define MPICH_SKIP_MPICXX
+#endif
+
+#ifndef OMPI_SKIP_MPICXX
+#define OMPI_SKIP_MPICXX
+#endif
+
 #include <mpi.h>
 
 #include <limits>

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2023 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -423,7 +423,7 @@ main(int argc, char** argv)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                u_bc_coefs[d] = NULL;
+                u_bc_coefs[d] = nullptr;
             }
         }
         else
@@ -477,8 +477,7 @@ main(int argc, char** argv)
             new IBFECentroidPostProcessor("IBFEPostProcessor", other_manager);
         ib_post_processor->registerTensorVariable("FF", MONOMIAL, CONSTANT, IBFEPostProcessor::FF_fcn);
 
-        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function,
-                                                                         static_cast<void*>(NULL));
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dev_stress_fcn_data(PK1_dev_stress_function, nullptr);
         ib_post_processor->registerTensorVariable("sigma_dev",
                                                   MONOMIAL,
                                                   CONSTANT,
@@ -486,8 +485,7 @@ main(int argc, char** argv)
                                                   vector<SystemData>(),
                                                   &PK1_dev_stress_fcn_data);
 
-        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function,
-                                                                         static_cast<void*>(NULL));
+        std::pair<IBTK::TensorMeshFcnPtr, void*> PK1_dil_stress_fcn_data(PK1_dil_stress_function, nullptr);
         ib_post_processor->registerTensorVariable("sigma_dil",
                                                   MONOMIAL,
                                                   CONSTANT,
@@ -557,8 +555,9 @@ main(int argc, char** argv)
             time_integrator->setMarkers(positions);
         };
 
-        // First test for markers: add them at the start
-        if (input_db->getBoolWithDefault("test_markers", false))
+        // First test for markers: add them at the start (but don't clobber
+        // restart marker data)
+        if (input_db->getBoolWithDefault("test_markers", false) && time_integrator->getNumberOfMarkers() == 0)
         {
             add_markers();
         }
@@ -686,11 +685,19 @@ main(int argc, char** argv)
             {
                 add_markers();
             }
+
+            // fourth test for markers: make sure that things are set up
+            // correctly after we restart and regrid
+            if (iteration_num == 75 && input_db->getBoolWithDefault("test_restart_markers", false))
+            {
+                time_integrator->setMarkers({});
+            }
         }
 
         // Markers should still be in the same positions as nodes
-        if (input_db->getBoolWithDefault("test_markers", false) ||
-            (iteration_num > 90 && input_db->getBoolWithDefault("test_markers_90", false)))
+        if ((input_db->getBoolWithDefault("test_markers", false) ||
+             (iteration_num > 90 && input_db->getBoolWithDefault("test_markers_90", false))) &&
+            time_integrator->getNumberOfMarkers() > 0)
         {
             System& X_system = equation_systems->get_system<System>(ib_method_ops->getCurrentCoordinatesSystemName());
             NumericVector<double>& X_vec = *X_system.solution.get();

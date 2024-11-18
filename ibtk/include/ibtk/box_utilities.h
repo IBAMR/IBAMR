@@ -24,8 +24,11 @@
 
 #include <vector>
 
+/////////////////////////////// FUNCTION DEFINITIONS /////////////////////////
+
 namespace IBTK
 {
+
 /**
  * Given a set of boxes (which describe a region in index space), return
  * another set of boxes whose union covers the same index space. The
@@ -33,6 +36,9 @@ namespace IBTK
  * their longest edges.
  */
 std::vector<SAMRAI::hier::Box<NDIM> > merge_boxes_by_longest_edge(const std::vector<SAMRAI::hier::Box<NDIM> >& boxes);
+
 } // namespace IBTK
 
-#endif
+//////////////////////////////////////////////////////////////////////////////
+
+#endif // #ifndef included_IBTK_ibtk_utilities

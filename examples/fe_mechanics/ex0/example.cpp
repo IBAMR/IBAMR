@@ -174,7 +174,7 @@ apply_initial_jacobian(EquationSystems& es, const string& system_name)
     libmesh_assert_equal_to(system_name, "JacobianDeterminant");
     ExplicitSystem& system = es.get_system<ExplicitSystem>("JacobianDeterminant");
     es.parameters.set<Real>("time") = system.time = 0;
-    system.project_solution(initial_jacobian, NULL, es.parameters);
+    system.project_solution(initial_jacobian, nullptr, es.parameters);
 }
 
 double
@@ -380,7 +380,7 @@ main(int argc, char* argv[])
             input_db->getStringWithDefault("TIME_STEPPING_SCHEME", "MODIFIED_TRAPEZOIDAL_RULE");
 
         // Set up visualization plot file writers.
-        unique_ptr<ExodusII_IO> exodus_io(uses_exodus ? new ExodusII_IO(mesh) : NULL);
+        unique_ptr<ExodusII_IO> exodus_io = uses_exodus ? std::make_unique<ExodusII_IO>(mesh) : nullptr;
 
         // Initialize solver data.
         fem_solver->initializeFEData();

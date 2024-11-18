@@ -4,7 +4,7 @@
  * <h2>%IBAMR: An adaptive and distributed-memory parallel implementation of the
  * immersed boundary (IB) method.</h2>
  *
- * <h3>What is %IBAMR?</h3>
+ * <h3>What is IBAMR?</h3>
  *
  * %IBAMR is a distributed-memory parallel implementation of the immersed
  * boundary (IB) method with support for Cartesian grid adaptive mesh refinement
