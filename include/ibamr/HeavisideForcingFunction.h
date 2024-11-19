@@ -69,11 +69,11 @@ public:
     /*!
      * \brief Evaluate the function on the patch interior.
      */
-    void setDataOnPatch(const int data_idx,
+    void setDataOnPatch(int data_idx,
                         Pointer<SAMRAI::hier::Variable<NDIM> > var,
                         Pointer<Patch<NDIM> > patch,
-                        const double data_time,
-                        const bool initial_time = false,
+                        double data_time,
+                        bool initial_time = false,
                         Pointer<PatchLevel<NDIM> > patch_level = nullptr) override;
 
     //\}

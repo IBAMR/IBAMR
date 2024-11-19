@@ -89,11 +89,11 @@ public:
     /*!
      * \brief Evaluate the function on the patch interior.
      */
-    void setDataOnPatch(const int data_idx,
+    void setDataOnPatch(int data_idx,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
-                        const double data_time,
-                        const bool initial_time = false,
+                        double data_time,
+                        bool initial_time = false,
                         SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level =
                             SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(nullptr)) override;
 
