@@ -144,6 +144,19 @@ c     Local variables.
 c
       INTEGER i0,i1,i2
       REAL fac0,fac1,fac2
+      INTEGER i_normal, i_tangential
+
+c     This fortran rouine is used to compute both \grad T and \grad \phi.
+c     But the \grad \phi is computed in the ghost cell as well which is
+c     used in the curvature calculation later.
+
+      if (U_gcw .eq. 1.d0) then
+            i_normal = 1.d0
+            i_tangential = 0.d0
+      else
+            i_normal = 2.d0
+            i_tangential = 1.d0
+      endif
       
       fac0 = 1.d0/(dx(0))
       fac1 = 1.d0/(dx(1))
@@ -154,8 +167,8 @@ c     Find face normal gradients first and then interpolate
 c     face tangential gradients
 
 c     Do N00.
-      do i2 = ilower2 - 2, iupper2 + 2
-        do i1 = ilower1 - 2, iupper1 + 2
+      do i2 = ilower2 - i_normal, iupper2 + i_normal
+        do i1 = ilower1 - i_normal, iupper1 + i_normal
           do i0 = ilower0 - 1, iupper0 + 2
              
             N00(i0,i1,i2) = fac0*(U(i0,i1,i2) - U(i0-1,i1,i2))
@@ -166,9 +179,9 @@ c     Do N00.
 
       
 c     Do N11.
-      do i2 = ilower2 - 2, iupper2 + 2
+      do i2 = ilower2 - i_normal, iupper2 + i_normal
         do i1 = ilower1 - 1, iupper1 + 2
-          do i0 = ilower0 - 2, iupper0 + 2
+          do i0 = ilower0 - i_normal, iupper0 + i_normal
              
               N11(i0,i1,i2) = fac1*(U(i0,i1,i2) - U(i0,i1-1,i2))
 
@@ -178,8 +191,8 @@ c     Do N11.
 
 c     Do N22.
       do i2 = ilower2 - 1, iupper2 + 2
-        do i1 = ilower1 - 2, iupper1 + 2
-          do i0 = ilower0 - 2, iupper0 + 2
+        do i1 = ilower1 - i_normal, iupper1 + i_normal
+          do i0 = ilower0 - i_normal, iupper0 + i_normal
              
               N22(i0,i1,i2) = fac2*(U(i0,i1,i2) - U(i0,i1,i2-1))
 
@@ -188,8 +201,8 @@ c     Do N22.
       enddo
 
 c     Interpolate N11 to N01
-      do i2 = ilower2 - 1, iupper2 + 1
-        do i1 = ilower1 - 1, iupper1 + 1
+      do i2 = ilower2 - i_tangential, iupper2 + i_tangential
+        do i1 = ilower1 - i_tangential, iupper1 + i_tangential
           do i0 = ilower0 - 1, iupper0 + 2
              
               N01(i0,i1,i2) = fourth*(N11(i0-1,i1,i2) + N11(i0,i1,i2) + 
@@ -199,8 +212,8 @@ c     Interpolate N11 to N01
       enddo
 
 c     Interpolate N22 to N02
-      do i2 = ilower2 - 1, iupper2 + 1
-        do i1 = ilower1 - 1, iupper1 + 1
+      do i2 = ilower2 - i_tangential, iupper2 + i_tangential
+        do i1 = ilower1 - i_tangential, iupper1 + i_tangential
           do i0 = ilower0 - 1, iupper0 + 2
              
               N02(i0,i1,i2) = fourth*(N22(i0-1,i1,i2) + N22(i0,i1,i2) + 
@@ -210,9 +223,9 @@ c     Interpolate N22 to N02
       enddo
 
 c     Interpolate N00 to N10
-      do i2 = ilower2 - 1, iupper2 + 1
+      do i2 = ilower2 - i_tangential, iupper2 + i_tangential
         do i1 = ilower1 - 1, iupper1 + 2
-          do i0 = ilower0 - 1, iupper0 + 1
+          do i0 = ilower0 - i_tangential, iupper0 + i_tangential
 
               N10(i0,i1,i2) = fourth*(N00(i0,i1,i2) + N00(i0+1,i1,i2) +
      &                         N00(i0,i1-1,i2) + N00(i0+1,i1-1,i2))
@@ -222,9 +235,9 @@ c     Interpolate N00 to N10
       enddo
 
 c     Interpolate N22 to N12
-      do i2 = ilower2 - 1, iupper2 + 1
+      do i2 = ilower2 - i_tangential, iupper2 + i_tangential
         do i1 = ilower1 - 1, iupper1 + 2
-          do i0 = ilower0 - 1, iupper0 + 1
+          do i0 = ilower0 - i_tangential, iupper0 + i_tangential
 
               N12(i0,i1,i2) = fourth*(N22(i0,i1,i2) + N22(i0,i1,i2+1) +
      &                         N22(i0,i1-1,i2) + N22(i0,i1-1,i2+1))
@@ -235,8 +248,8 @@ c     Interpolate N22 to N12
 
 c     Interpolate N00 to N20
       do i2 = ilower2 - 1, iupper2 + 2
-        do i1 = ilower1 - 1, iupper1 + 1
-          do i0 = ilower0 - 1, iupper0 + 1
+        do i1 = ilower1 - i_tangential, iupper1 + i_tangential
+          do i0 = ilower0 - i_tangential, iupper0 + i_tangential
 
               N20(i0,i1,i2) = fourth*(N00(i0,i1,i2) + N00(i0+1,i1,i2) +
      &                         N00(i0,i1,i2-1) + N00(i0+1,i1,i2-1))
@@ -247,8 +260,8 @@ c     Interpolate N00 to N20
 
 c     Interpolate N11 to N21
       do i2 = ilower2 - 1, iupper2 + 2
-        do i1 = ilower1 - 1, iupper1 + 1
-          do i0 = ilower0 - 1, iupper0 + 1
+        do i1 = ilower1 - i_tangential, iupper1 + i_tangential
+          do i0 = ilower0 - i_tangential, iupper0 + i_tangential
              
               N21(i0,i1,i2) = fourth*(N11(i0,i1,i2-1) + N11(i0,i1,i2) + 
      &                         N11(i0,i1+1,i2-1) + N11(i0,i1+1,i2)) 
