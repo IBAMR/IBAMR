@@ -118,17 +118,17 @@ public:
      * \brief Register liquid fraction variable \f$ \varphi \f$.
      */
     void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
-                                        const bool output_lf_var = true) override;
+                                        bool output_lf_var = true) override;
 
     /*!
      *  Add the temporal terms to the RHS of the energy equation.
      */
-    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, const double dt) override;
+    void addTemporalAndLinearTermstoRHSOfEnergyEquation(int F_scratch_idx, double dt) override;
 
     /*!
      * Compute the source term for the Div U equation.
      */
-    void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, const double new_time) override;
+    void computeDivergenceVelocitySourceTerm(int Div_U_F_idx, double new_time) override;
 
     /*!
      * Set an object to provide boundary conditions for  \f$ \varphi \f$ variable,
@@ -165,14 +165,12 @@ protected:
     void integrateHierarchySpecialized(double current_time, double new_time, int cycle_num = 0) override;
 
     /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
+     * Reset cached hierarchy dependent data for solvers and operators.
      */
-    virtual void regridHierarchyBeginSpecialized() override;
-
-    /*!
-     * Reset cached hierarchy dependent data for solvers and operators before the regridding operation.
-     */
-    virtual void regridHierarchyEndSpecialized() override;
+    void
+    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
+                                           int coarsest_level,
+                                           int finest_level) override;
 
 private:
     /*!
@@ -206,13 +204,13 @@ private:
      * \brief Compute the double-well potential on the cell-centers based on the
      * liquid fraction value.
      */
-    void computeDoubleWellPotential(int g_firstder_idx, int g_secondder_idx, const int liquid_fraction_idx);
+    void computeDoubleWellPotential(int g_firstder_idx, int g_secondder_idx, int liquid_fraction_idx);
 
     /*!
      * \brief Compute an interpolation function on the cell-centers based on the
      * liquid fraction value.
      */
-    void computeInterpolationFunction(int p_firstder_idx, const int liquid_fraction_idx, const int T_idx);
+    void computeInterpolationFunction(int p_firstder_idx, int liquid_fraction_idx, int T_idx);
 
     /*
      * \brief Compute the source term of liquid fraction equation.
