@@ -144,6 +144,19 @@ c     Local variables.
 c
       INTEGER i0,i1,i2
       REAL fac0,fac1,fac2
+      INTEGER i_normal, i_tangential
+
+c     This fortran rouine is used to compute both \grad T and \grad \phi.
+c     But the \grad \phi is computed in the ghost cell as well which is
+c     used in the curvature calculation later.
+
+      if (U_gcw .eq. 1.d0) then
+            i_normal = 1.d0
+            i_tangential = 0.d0
+      else
+            i_normal = 2.d0
+            i_tangential = 1.d0
+      endif
       
       fac0 = 1.d0/(dx(0))
       fac1 = 1.d0/(dx(1))

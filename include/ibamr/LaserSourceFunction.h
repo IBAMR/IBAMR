@@ -20,21 +20,23 @@
 
 #include <ibamr/config.h>
 
-#include <ibamr/AdvDiffHierarchyIntegrator.h>
-#include <ibamr/PhaseChangeHierarchyIntegrator.h>
-#include <ibamr/ibamr_enums.h>
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
+#include "ibamr/PhaseChangeHierarchyIntegrator.h"
+#include "ibamr/ibamr_enums.h"
 
-#include <ibtk/CartGridFunction.h>
-#include <ibtk/HierarchyMathOps.h>
+#include "ibtk/CartGridFunction.h"
+#include "ibtk/HierarchyMathOps.h"
 
-#include <tbox/Array.h>
-#include <tbox/Pointer.h>
-
-#include <CartesianGridGeometry.h>
-#include <IntVector.h>
-#include <PatchLevel.h>
+#include "CartesianGridGeometry.h"
+#include "IntVector.h"
+#include "PatchLevel.h"
+#include "tbox/Array.h"
+#include "tbox/Pointer.h"
 
 #include <string>
+
+// IBAMR INCLUDES
+#include <ibamr/app_namespaces.h>
 
 namespace SAMRAI
 {
@@ -83,7 +85,7 @@ public:
     LaserSourceFunction(const std::string& object_name,
                         SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                         SAMRAI::tbox::Pointer<PhaseChangeHierarchyIntegrator> phase_change_solver,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> level_set_var);
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > level_set_var);
 
     /*!
      * \brief Destructor.
@@ -108,8 +110,8 @@ public:
      * \see setDataOnPatch
      */
     void setDataOnPatchHierarchy(int data_idx,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                  double data_time,
                                  bool initial_time = false,
                                  int coarsest_ln = -1,
@@ -119,12 +121,12 @@ public:
      * Set the data on the patch interior.
      */
     void setDataOnPatch(int data_idx,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> var,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                         double data_time,
                         bool initial_time = false,
-                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>> level =
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM>>(NULL)) override;
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > level =
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> >(NULL)) override;
 
     /*!
      * \brief Callback function to compute the imposed heat flux.
@@ -177,7 +179,7 @@ private:
                             int phi_idx,
                             int coarsest_ln,
                             int finest_ln,
-                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> patch_hierarchy);
+                            SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy);
 
     /*!
      * Mollify data.
@@ -186,7 +188,7 @@ private:
                      int coarsest_ln,
                      int finest_ln,
                      double data_time,
-                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM>> hierarchy,
+                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                      SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> fill_op);
 
     /*!
@@ -197,8 +199,8 @@ private:
     /*!
      *  Variables.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> d_phi_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_grad_H_var;
+    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_grad_H_var;
 
     /*!
      * Scratch data.
