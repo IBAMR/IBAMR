@@ -75,8 +75,8 @@ public:
     MarangoniSurfaceTensionForceFunction(const std::string& object_name,
                                          SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                          AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> level_set_var,
-                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> T_var,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > level_set_var,
+                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > T_var,
                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* T_bc_coef);
 
     /*!
@@ -125,7 +125,7 @@ public:
      * multiply it with the F_data as F_data = marangoni_coef*F_data.
      */
     using ComputeMarangoniCoefPtr = void (*)(int F_idx,
-                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
+                                             SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                                              int cycle_num,
                                              double time,
                                              double current_time,
@@ -188,7 +188,7 @@ private:
     /*!
      * Temperature variable and its patch data index.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_T_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
     int d_T_scratch_idx = IBTK::invalid_index, d_F_cloned_idx = IBTK::invalid_index;
 
     /*!
