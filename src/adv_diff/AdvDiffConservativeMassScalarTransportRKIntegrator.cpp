@@ -1235,7 +1235,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredTransportQuan
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredDensityBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& rho_cc_bc_coefs)
+    RobinBcCoefStrategy<NDIM>* rho_cc_bc_coefs)
 {
     d_rho_cc_bc_coefs = rho_cc_bc_coefs;
     return;
@@ -1243,7 +1243,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredDensityBounda
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredMaterialPropertyBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& gamma_cc_bc_coefs)
+    RobinBcCoefStrategy<NDIM>* gamma_cc_bc_coefs)
 {
     d_gamma_cc_bc_coefs = gamma_cc_bc_coefs;
     return;
@@ -1251,7 +1251,7 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredMaterialPrope
 
 void
 AdvDiffConservativeMassScalarTransportRKIntegrator::setCellCenteredTransportQuantityBoundaryConditions(
-    RobinBcCoefStrategy<NDIM>*& Q_cc_bc_coefs)
+    RobinBcCoefStrategy<NDIM>* Q_cc_bc_coefs)
 {
     d_Q_cc_bc_coefs = Q_cc_bc_coefs;
     return;
