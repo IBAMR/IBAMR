@@ -184,8 +184,10 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/phase_change/CarmanKozenyDragForce.cpp \
 ../src/phase_change/EnthalpyHierarchyIntegrator.cpp \
 ../src/phase_change/HeavisideForcingFunction.cpp \
+../src/phase_change/LaserSourceFunction.cpp \
 ../src/phase_change/PhaseChangeDivUSourceFunction.cpp \
 ../src/phase_change/PhaseChangeHierarchyIntegrator.cpp \
+../src/phase_change/PhaseChangeUtilities.cpp \
 ../src/utilities/CellConvectiveOperator.cpp \
 ../src/utilities/ConvectiveOperator.cpp \
 ../src/wave_generation/FifthOrderStokesWaveGenerator.cpp \
@@ -319,6 +321,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/KrylovFreeBodyMobilitySolver.h \
 ../include/ibamr/KrylovLinearSolverStaggeredStokesSolverInterface.h \
 ../include/ibamr/KrylovMobilitySolver.h \
+../include/ibamr/LaserSourceFunction.h \
 ../include/ibamr/LevelSetUtilities.h \
 ../include/ibamr/LSInitStrategy.h \
 ../include/ibamr/MarangoniSurfaceTensionForceFunction.h \
@@ -328,6 +331,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/PenaltyIBMethod.h \
 ../include/ibamr/PhaseChangeDivUSourceFunction.h \
 ../include/ibamr/PhaseChangeHierarchyIntegrator.h \
+../include/ibamr/PhaseChangeUtilities.h \
 ../include/ibamr/RelaxationLSBcCoefs.h \
 ../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
