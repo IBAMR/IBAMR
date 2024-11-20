@@ -506,11 +506,11 @@ main(int argc, char* argv[])
                 u_bc_coefs[d] = std::make_unique<muParserRobinBcCoefs>(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
-            time_integrator->registerPhysicalBoundaryConditions({ u_bc_coefs[0].get(),
-                                                                  u_bc_coefs[1].get()
+            time_integrator->registerPhysicalBoundaryConditions({
+                u_bc_coefs[0].get(), u_bc_coefs[1].get()
 #if (NDIM == 3)
-                                                                      ,
-                                                                  u_bc_coefs[2].get()
+                                         ,
+                    u_bc_coefs[2].get()
 #endif
             });
         }
