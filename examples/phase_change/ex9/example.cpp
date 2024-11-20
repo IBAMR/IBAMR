@@ -129,10 +129,6 @@ compute_heat_flux(int F_idx,
     const double alpha_solid = heat_flux_ctx->alpha_solid;
     const double lambda = heat_flux_ctx->lambda;
 
-#if !defined(NDEBUG)
-    TBOX_ERROR("Time must be greater than 0.");
-#endif
-
     const double flux = -kappa_liquid * (T_m - T_0) /
                         (erf(lambda * sqrt(alpha_solid / alpha_liquid)) * sqrt(M_PI * alpha_liquid * time));
 
@@ -411,11 +407,11 @@ main(int argc, char* argv[])
                 u_bc_coefs[d] = std::make_unique<muParserRobinBcCoefs>(
                     bc_coefs_name, app_initializer->getComponentDatabase(bc_coefs_db_name), grid_geometry);
             }
-            time_integrator->registerPhysicalBoundaryConditions({ u_bc_coefs[0].get(),
-                                                                  u_bc_coefs[1].get()
+            time_integrator->registerPhysicalBoundaryConditions({
+                u_bc_coefs[0].get(), u_bc_coefs[1].get()
 #if (NDIM == 3)
-                                                                      ,
-                                                                  u_bc_coefs[2].get()
+                                         ,
+                    u_bc_coefs[2].get()
 #endif
             });
         }
