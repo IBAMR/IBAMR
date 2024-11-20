@@ -24,16 +24,17 @@
 #include <StandardTagAndInitialize.h>
 
 // Headers for application-specific algorithm/data structure objects
+#include <ibamr/CarmanKozenyDragForce.h>
 #include <ibamr/EnthalpyHierarchyIntegrator.h>
 #include <ibamr/HeavisideForcingFunction.h>
 #include <ibamr/INSVCStaggeredConservativeHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
 #include <ibamr/LevelSetUtilities.h>
-#include <ibamr/MarangoniSurfaceTensionForceFunction.h>
 #include <ibamr/PhaseChangeDivUSourceFunction.h>
 #include <ibamr/PhaseChangeUtilities.h>
 #include <ibamr/RelaxationLSMethod.h>
 #include <ibamr/SurfaceTensionForceFunction.h>
+#include <ibamr/vc_ins_utilities.h>
 
 #include <ibtk/AppInitializer.h>
 #include <ibtk/CartGridFunctionSet.h>
@@ -47,6 +48,9 @@
 
 // Application
 #include "LSLocateInterface.h"
+#include "LevelSetInitialCondition.h"
+#include "LiquidFractionInitialCondition.h"
+#include "TemperatureInitialCondition.h"
 
 struct SynchronizeLevelSetCtx
 {
@@ -100,7 +104,6 @@ synchronize_levelset_with_heaviside_fcn(int H_current_idx,
             }
         }
     }
-    return;
 }
 
 struct MaskSurfaceTensionForceCtx
@@ -183,89 +186,7 @@ mask_surface_tension_force(int F_idx,
             }
         }
     }
-    return;
 }
-
-struct ComputeVariableSurfaceTensionCoefCtx
-{
-    Pointer<CellVariable<NDIM, double> > T_var;
-    Pointer<PhaseChangeHierarchyIntegrator> phase_change_hier_integrator;
-    Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator;
-    double sigma0;
-    double dsigma_dT0;
-    double T_ref;
-};
-
-void
-compute_surface_tension_coef_function(int F_idx,
-                                      Pointer<Patch<NDIM> > patch,
-                                      int /*integrator_step*/,
-                                      double /*time*/,
-                                      double /*current_time*/,
-                                      double /*new_time*/,
-                                      void* ctx)
-{
-    ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
-        static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
-
-    // parameters
-    const double sigma_0 = compute_variable_surface_tension_coef_ctx->sigma0;
-    const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
-    const double T_ref = compute_variable_surface_tension_coef_ctx->T_ref;
-
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    const int T_scratch_idx = var_db->mapVariableAndContextToIndex(
-        compute_variable_surface_tension_coef_ctx->T_var,
-        compute_variable_surface_tension_coef_ctx->phase_change_hier_integrator->getScratchContext());
-
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_scratch_idx);
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
-
-    for (unsigned int axis = 0; axis < NDIM; axis++)
-    {
-        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-        {
-            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-            const double T_sc = 0.5 * ((*T_data)(si.toCell(0)) + (*T_data)(si.toCell(1)));
-            const double sigma = sigma_0 + dsigma_dT0 * (T_sc - T_ref);
-            (*F_data)(si) *= sigma;
-        }
-    }
-    return;
-}
-
-void
-compute_marangoni_coef_function(int F_idx,
-                                Pointer<Patch<NDIM> > patch,
-                                int /*integrator_step*/,
-                                double /*time*/,
-                                double /*current_time*/,
-                                double /*new_time*/,
-                                void* ctx)
-{
-    ComputeVariableSurfaceTensionCoefCtx* compute_variable_surface_tension_coef_ctx =
-        static_cast<ComputeVariableSurfaceTensionCoefCtx*>(ctx);
-
-    const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
-    const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
-
-    for (unsigned int axis = 0; axis < NDIM; axis++)
-    {
-        for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
-        {
-            SideIndex<NDIM> si(it(), axis, SideIndex<NDIM>::Lower);
-
-            const double marangoni_coef = dsigma_dT0;
-            (*F_data)(si) *= marangoni_coef; // Since marangoni_coef is constant for this example, it can be set
-                                             // through input file as well.
-        }
-    }
-    return;
-}
-
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
  * be given on the command line.  For non-restarted case, command line is:     *
@@ -344,24 +265,51 @@ main(int argc, char* argv[])
                                         box_generator,
                                         load_balancer);
 
-        // Setup level set information
-        CircularInterface circle;
-        circle.R = input_db->getDouble("R");
-        circle.X0[0] = input_db->getDouble("XCOM");
-        circle.X0[1] = input_db->getDouble("YCOM");
-#if (NDIM == 3)
-        circle.X0[2] = input_db->getDouble("ZCOM");
-#endif
-
         // register level set
         Pointer<CellVariable<NDIM, double> > ls_var = new CellVariable<NDIM, double>("ls_var");
         adv_diff_integrator->registerTransportedQuantity(ls_var, true);
         adv_diff_integrator->setDiffusionCoefficient(ls_var, 0.0);
 
+        // Interface positions
+        const double initial_horizontal_interface_position =
+            input_db->getDouble("INITIAL_HORIZONTAL_INTERFACE_POSITION");
+
+        IBTK::VectorNd coord = IBTK::Vector::Zero();
+        // left bubble.
+        coord[0] = input_db->getDouble("LEFT_BUBBLE_X_COORD");
+        coord[1] = input_db->getDouble("LEFT_BUBBLE_Y_COORD");
+        double radius = input_db->getDouble("LEFT_BUBBLE_RADIUS");
+        std::pair<double, IBTK::VectorNd> left_bubble;
+        left_bubble.first = radius;
+        left_bubble.second = coord;
+
+        // right bubble.
+        coord[0] = input_db->getDouble("RIGHT_BUBBLE_X_COORD");
+        coord[1] = input_db->getDouble("RIGHT_BUBBLE_Y_COORD");
+        radius = input_db->getDouble("RIGHT_BUBBLE_RADIUS");
+        std::pair<double, IBTK::VectorNd> right_bubble;
+        right_bubble.first = radius;
+        right_bubble.second = coord;
+
+        // center bubble.
+        coord[0] = input_db->getDouble("CENTER_BUBBLE_X_COORD");
+        coord[1] = input_db->getDouble("CENTER_BUBBLE_Y_COORD");
+        radius = input_db->getDouble("CENTER_BUBBLE_RADIUS");
+        std::pair<double, IBTK::VectorNd> center_bubble;
+        center_bubble.first = radius;
+        center_bubble.second = coord;
+
+        std::vector<pair<double, IBTK::VectorNd> > bubbles_position{ left_bubble, center_bubble, right_bubble };
+        const bool center_bubble_required = input_db->getBoolWithDefault("CENTER_BUBBLE_REQUIRED", false);
+
         Pointer<RelaxationLSMethod> level_set_ops =
             new RelaxationLSMethod("RelaxationLSMethod", app_initializer->getComponentDatabase("RelaxationLSMethod"));
-        LSLocateInterface* ptr_LSLocateInterface =
-            new LSLocateInterface("LSLocateInterface", adv_diff_integrator, ls_var, circle);
+        LSLocateInterface* ptr_LSLocateInterface = new LSLocateInterface("LSLocateInterface",
+                                                                         adv_diff_integrator,
+                                                                         ls_var,
+                                                                         initial_horizontal_interface_position,
+                                                                         bubbles_position,
+                                                                         center_bubble_required);
         level_set_ops->registerInterfaceNeighborhoodLocatingFcn(&callLSLocateInterfaceCallbackFunction,
                                                                 static_cast<void*>(ptr_LSLocateInterface));
         IBAMR::LevelSetUtilities::SetLSProperties setSetLSProperties("SetLSProperties", level_set_ops);
@@ -418,28 +366,23 @@ main(int argc, char* argv[])
         adv_diff_integrator->setResetPriority(H_var, 1);
 
         // set initial conditions for the variables.
-        if (input_db->keyExists("LevelSetInitialConditions"))
-        {
-            Pointer<CartGridFunction> ls_init = new muParserCartGridFunction(
-                "ls_init", app_initializer->getComponentDatabase("LevelSetInitialConditions"), grid_geometry);
-            adv_diff_integrator->setInitialConditions(ls_var, ls_init);
-        }
+        Pointer<CartGridFunction> ls_init = new LevelSetInitialCondition(
+            "ls_init", initial_horizontal_interface_position, bubbles_position, center_bubble_required);
+        adv_diff_integrator->setInitialConditions(ls_var, ls_init);
 
-        // Since H is synchronized with ls, the initial conditions for H is not
-        // rquired.
-        if (input_db->keyExists("TemperatureInitialConditions"))
-        {
-            Pointer<CartGridFunction> T_init = new muParserCartGridFunction(
-                "T_init", app_initializer->getComponentDatabase("TemperatureInitialConditions"), grid_geometry);
-            enthalpy_hier_integrator->setTemperatureInitialCondition(T_var, T_init);
-        }
+        // Since H is synchronized with ls, the initial conditions for H is not rquired.
+        const double initial_liquid_solid_interface_position =
+            input_db->getDouble("INITIAL_LIQUID_SOLID_INTERFACE_POSITION");
+        const double initial_liquid_temperature = input_db->getDouble("INITIAL_LIQUID_TEMPERATURE");
+        const double initial_solid_temperature = input_db->getDouble("INITIAL_SOLID_TEMPERATURE");
 
-        if (input_db->keyExists("LiquidFractionInitialConditions"))
-        {
-            Pointer<CartGridFunction> lf_init = new muParserCartGridFunction(
-                "lf_init", app_initializer->getComponentDatabase("LiquidFractionInitialConditions"), grid_geometry);
-            enthalpy_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
-        }
+        Pointer<CartGridFunction> T_init = new TemperatureInitialCondition(
+            "T_init", initial_liquid_solid_interface_position, initial_liquid_temperature, initial_solid_temperature);
+        enthalpy_hier_integrator->setTemperatureInitialCondition(T_var, T_init);
+
+        Pointer<CartGridFunction> lf_init =
+            new LiquidFractionInitialCondition("lf_init", initial_liquid_solid_interface_position);
+        enthalpy_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
 
         if (input_db->keyExists("VelocityInitialConditions"))
         {
@@ -588,7 +531,6 @@ main(int argc, char* argv[])
             level_set_ops->registerPhysicalBoundaryCondition(ls_bc_coef.get());
         }
 
-        // thermophysical properties and parameters.
         const double kappa_liquid = input_db->getDouble("KAPPA_L");
         const double kappa_solid = input_db->getDouble("KAPPA_S");
         const double kappa_gas = input_db->getDouble("KAPPA_G");
@@ -601,10 +543,6 @@ main(int argc, char* argv[])
         const double mu_liquid = input_db->getDouble("MU_L");
         const double mu_solid = input_db->getDouble("MU_S");
         const double mu_gas = input_db->getDouble("MU_G");
-        const double sigma_0 = input_db->getDouble("SIGMA_0");
-        const double dsigma_dT_0 = input_db->getDouble("DSIGMA_DT_0");
-        const double ref_temperature = input_db->getDouble("REFERENCE_TEMP_SIGMA");
-        const double temperature_gradient = input_db->getDouble("TEMPERATURE_GRADIENT");
 
         // Callback functions can either be registered with the NS integrator, or
         // the advection-diffusion integrator
@@ -629,7 +567,6 @@ main(int argc, char* argv[])
 
         time_integrator->registerResetFluidDensityFcn(&IBAMR::PhaseChangeUtilities::callSetDensityCallbackFunction,
                                                       static_cast<void*>(&setSetFluidProperties));
-
         time_integrator->registerResetFluidViscosityFcn(&IBAMR::PhaseChangeUtilities::callSetViscosityCallbackFunction,
                                                         static_cast<void*>(&setSetFluidProperties));
 
@@ -658,16 +595,13 @@ main(int argc, char* argv[])
         time_integrator->registerVelocityDivergenceFunction(Div_U_forcing_fcn);
 
         // Register surface tension force.
-        Pointer<SurfaceTensionForceFunction> surface_tension_force = new MarangoniSurfaceTensionForceFunction(
-            "MarangoniSurfaceTensionForceFunction",
-            app_initializer->getComponentDatabase("MarangoniSurfaceTensionForceFunction"),
-            adv_diff_integrator,
-            ls_var,
-            T_var,
-            T_bc_coef.get());
+        Pointer<SurfaceTensionForceFunction> surface_tension_force =
+            new SurfaceTensionForceFunction("SurfaceTensionForceFunction",
+                                            app_initializer->getComponentDatabase("SurfaceTensionForceFunction"),
+                                            adv_diff_integrator,
+                                            ls_var);
 
-        // Register callback function to multiply the surface tension term with the
-        // coefficient.
+        // Register callback function to multiply the surface tension term with the coefficient.
         MaskSurfaceTensionForceCtx mask_surface_tension_force_ctx;
         mask_surface_tension_force_ctx.ins_hier_integrator = time_integrator;
         mask_surface_tension_force_ctx.rho_liquid = rho_liquid;
@@ -679,26 +613,27 @@ main(int argc, char* argv[])
         surface_tension_force->registerSurfaceTensionForceMasking(&mask_surface_tension_force,
                                                                   static_cast<void*>(&mask_surface_tension_force_ctx));
 
-        // Register variable coefficient surface tension.
-        ComputeVariableSurfaceTensionCoefCtx compute_variable_surface_tension_coef_ctx;
-        compute_variable_surface_tension_coef_ctx.T_var = T_var;
-        compute_variable_surface_tension_coef_ctx.phase_change_hier_integrator = enthalpy_hier_integrator;
-        compute_variable_surface_tension_coef_ctx.ins_hier_integrator = time_integrator;
-        compute_variable_surface_tension_coef_ctx.sigma0 = sigma_0;
-        compute_variable_surface_tension_coef_ctx.dsigma_dT0 = dsigma_dT_0;
-        compute_variable_surface_tension_coef_ctx.T_ref = ref_temperature;
-
-        surface_tension_force->registerSurfaceTensionCoefficientFunction(
-            &compute_surface_tension_coef_function, static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
-
-        // Register variable marangoni coefficient dsigma_dT.
-        Pointer<MarangoniSurfaceTensionForceFunction> marangoni_force = surface_tension_force;
-        marangoni_force->registerMarangoniCoefficientFunction(
-            &compute_marangoni_coef_function, static_cast<void*>(&compute_variable_surface_tension_coef_ctx));
+        // Register gravity force.
+        std::vector<double> grav_const(NDIM);
+        input_db->getDoubleArray("GRAV_CONST", &grav_const[0], NDIM);
+        Pointer<CartGridFunction> grav_force =
+            new IBAMR::VCINSUtilities::GravityForcing("GravityForcing", time_integrator, grav_const);
 
         Pointer<CartGridFunctionSet> eul_forces = new CartGridFunctionSet("eulerian_forces");
+        eul_forces->addFunction(grav_force);
         eul_forces->addFunction(surface_tension_force);
         time_integrator->registerBodyForceFunction(eul_forces);
+
+        // Configure the drag force object to enforce solid velocity to be zero.
+        Pointer<CarmanKozenyDragForce> drag_force =
+            new CarmanKozenyDragForce("drag_force",
+                                      H_var,
+                                      lf_var,
+                                      adv_diff_integrator,
+                                      time_integrator,
+                                      app_initializer->getComponentDatabase("CarmanKozenyDragForce"),
+                                      /*register_for_restart*/ true);
+        time_integrator->registerBrinkmanPenalizationStrategy(drag_force);
 
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
@@ -727,41 +662,32 @@ main(int argc, char* argv[])
             visit_data_writer->writePlotData(patch_hierarchy, iteration_num, loop_time);
         }
 
+        // Tracking the mass of the PCM.
         VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        const int rho_idx = var_db->mapVariableAndContextToIndex(rho_cc_var, adv_diff_integrator->getCurrentContext());
         const int H_idx = var_db->mapVariableAndContextToIndex(H_var, adv_diff_integrator->getCurrentContext());
-        const int phi_idx = var_db->mapVariableAndContextToIndex(ls_var, adv_diff_integrator->getCurrentContext());
-        const int H_cloned_idx = var_db->registerClonedPatchDataIndex(ls_var, phi_idx);
-        ;
-
-        // Interpolating side-centered velocity to cell-centered
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > U_sc_var =
-            time_integrator->getVelocityVariable();
-        const int U_sc_idx = var_db->mapVariableAndContextToIndex(U_sc_var, time_integrator->getCurrentContext());
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > U_cc_var;
-        U_cc_var = new CellVariable<NDIM, double>("U_cc", NDIM);
-        int U_cc_idx = var_db->registerVariableAndContext(U_cc_var, var_db->getContext("U_cc"), 0);
-
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > v_var;
-        v_var = new CellVariable<NDIM, double>("v_cc");
-        int v_idx = var_db->registerVariableAndContext(v_var, var_db->getContext("v_cc"), 0);
+        const int pcm_mass_idx = var_db->registerClonedPatchDataIndex(H_var, H_idx);
 
         const int coarsest_ln = 0;
         const int finest_ln = patch_hierarchy->getFinestLevelNumber();
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(H_cloned_idx, loop_time);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(U_cc_idx, loop_time);
-            patch_hierarchy->getPatchLevel(ln)->allocatePatchData(v_idx, loop_time);
+            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            if (!level->checkAllocated(pcm_mass_idx))
+            {
+                patch_hierarchy->getPatchLevel(ln)->allocatePatchData(pcm_mass_idx, loop_time);
+            }
         }
+        Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
+            new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
 
-        // File to write rise velocity of a bubble.
-        std::ofstream output_file;
+        std::ofstream pcm_mass_file;
         if (SAMRAI_MPI::getRank() == 0)
         {
-            string output_file_name = input_db->getString("OUTPUT_FILE_NAME");
-            output_file.open(output_file_name, ios_base::out | ios_base::app);
-            output_file.precision(16);
-            output_file.setf(ios::fixed, ios::floatfield);
+            std::string FILE_NAME = input_db->getString("MASS_CONSERVATION_FILE_NAME");
+            pcm_mass_file.open(FILE_NAME, ios_base::out | ios_base::app);
+            pcm_mass_file.precision(16);
+            pcm_mass_file.setf(ios::fixed, ios::floatfield);
         }
 
         // Main time step loop.
@@ -787,60 +713,64 @@ main(int argc, char* argv[])
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
 
-            HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
-
-            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
-            HierarchyCellDataOpsReal<NDIM, double> hier_cc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-            HierarchySideDataOpsReal<NDIM, double> hier_sc_data_ops(patch_hierarchy, coarsest_ln, finest_ln);
-
+            // When AMR is used, it is required allocate the data every time step.
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-                if (!level->checkAllocated(H_cloned_idx)) level->allocatePatchData(H_cloned_idx, loop_time);
-                if (!level->checkAllocated(U_cc_idx)) level->allocatePatchData(U_cc_idx, loop_time);
-                if (!level->checkAllocated(v_idx)) level->allocatePatchData(v_idx, loop_time);
+                if (!level->checkAllocated(pcm_mass_idx)) level->allocatePatchData(pcm_mass_idx, loop_time);
             }
 
-            hier_math_ops.interp(U_cc_idx, U_cc_var, U_sc_idx, U_sc_var, nullptr, loop_time, true);
-
-            const double U_ref = std::abs(dsigma_dT_0) * temperature_gradient * circle.R / mu_liquid;
-            const double t_ref = circle.R / U_ref;
-
-            // Calculate Heaviside function and compute the rise velocity.
+            double left_bubble_volume = 0.0;
+            double right_bubble_volume = 0.0;
+            HierarchyMathOps hier_math_ops("HierarchyMathOps", patch_hierarchy, coarsest_ln, finest_ln);
+            const int wgt_cc_idx = hier_math_ops.getCellWeightPatchDescriptorIndex();
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
                 Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
-
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
                     Pointer<Patch<NDIM> > patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
                     const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    const double* patch_dx = patch_geom->getDx();
+                    const double* patch_X_lower = patch_geom->getXLower();
+                    const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
 
-                    Pointer<CellData<NDIM, double> > U_cc_data = patch->getPatchData(U_cc_idx);
-                    Pointer<CellData<NDIM, double> > v_data = patch->getPatchData(v_idx);
-                    Pointer<CellData<NDIM, double> > H_cloned_data = patch->getPatchData(H_cloned_idx);
-                    Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
                     Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
-
+                    Pointer<CellData<NDIM, double> > wgt_data = patch->getPatchData(wgt_cc_idx);
                     for (Box<NDIM>::Iterator it(patch_box); it; it++)
                     {
                         CellIndex<NDIM> ci(it());
-                        (*v_data)(ci) = (*U_cc_data)(ci, 1) / U_ref; // non_dimensional velocity
-                        (*H_cloned_data)(ci) = 1.0 - (*H_data)(ci);
+
+                        IBTK::Vector coord = IBTK::Vector::Zero();
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            coord[d] = patch_X_lower[d] +
+                                       patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
+                        }
+                        if (coord[0] < 5.0e-3 && coord[1] < 4.0e-3)
+                        {
+                            left_bubble_volume += (1.0 - (*H_data)(ci)) * (*wgt_data)(ci);
+                        }
+                        else if (coord[0] > 5.0e-3 && coord[1] < 4.0e-3)
+                        {
+                            right_bubble_volume += (1.0 - (*H_data)(ci)) * (*wgt_data)(ci);
+                        }
                     }
                 }
             }
+            std::vector<double> bubble_integrals{ left_bubble_volume, right_bubble_volume };
+            IBTK_MPI::sumReduction(&bubble_integrals[0], bubble_integrals.size());
 
-            double vol = hier_cc_data_ops.integral(H_cloned_idx, wgt_cc_idx);
-            hier_cc_data_ops.multiply(H_cloned_idx, H_cloned_idx, wgt_cc_idx);
-            double v_integral = hier_cc_data_ops.integral(v_idx, H_cloned_idx);
+            hier_cc_data_ops->multiply(pcm_mass_idx, rho_idx, H_idx);
+            const double mass = hier_cc_data_ops->integral(pcm_mass_idx, wgt_cc_idx);
 
             if (SAMRAI_MPI::getRank() == 0)
             {
-                output_file.precision(16);
-                output_file.setf(ios::fixed, ios::floatfield);
-                output_file << loop_time / t_ref << "\t" << v_integral / vol << "\n";
+                pcm_mass_file.precision(16);
+                pcm_mass_file.setf(ios::fixed, ios::floatfield);
+                pcm_mass_file << loop_time << "\t" << mass << "\t" << bubble_integrals[0] << "\t" << bubble_integrals[1]
+                              << std::endl;
             }
 
             // At specified intervals, write visualization and restart files,
@@ -868,14 +798,10 @@ main(int argc, char* argv[])
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(H_cloned_idx);
-            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(U_cc_idx);
-            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(v_idx);
+            patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(pcm_mass_idx);
         }
 
-        var_db->removePatchDataIndex(H_cloned_idx);
-        var_db->removePatchDataIndex(U_cc_idx);
-        var_db->removePatchDataIndex(v_idx);
+        var_db->removePatchDataIndex(pcm_mass_idx);
 
         // Cleanup pointers.
         delete ptr_LSLocateInterface;
@@ -883,7 +809,7 @@ main(int argc, char* argv[])
         // Close the logging streams.
         if (SAMRAI_MPI::getRank() == 0)
         {
-            output_file.close();
+            pcm_mass_file.close();
         }
 
     } // cleanup dynamically allocated objects prior to shutdown
