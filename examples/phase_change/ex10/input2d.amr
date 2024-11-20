@@ -2,66 +2,75 @@
 PI = 3.1415926535897932
 
 // solid parameters
-RHO_S   = 8100.0
-KAPPA_S = 22.9
-CP_S    = 627.0
-MU_S    = 0.0
+RHO_S   = 2.7e3
+KAPPA_S = 211.0
+CP_S    = 0.91e3
+MU_S    = 1.4e-3
 
 // liquid parameters
-RHO_L   = 7165.384
-KAPPA_L = 22.9
-CP_L    = 723.14
-MU_L    = 0.0
+RHO_L   = 2.475e3
+KAPPA_L = 91.0
+CP_L    = 1.0424e3
+MU_L    = 1.4e-3
 
 // gas parameters
 RHO_G   = 0.4
-KAPPA_G = 61.0e-3
+KAPPA_G = 61e-3
 CP_G    = 1.1e3
-MU_G    = 0.0
+MU_G    = 4.0e-5
 
-LATENT_HEAT = 2.508e5
+LATENT_HEAT = 3.8384e5
 
-MELT_TEMPERATURE = 1620.0
-LIQUID_TEMPERATURE = 2000.0
-SOLID_TEMPERATURE = 1500.0
-INITIAL_INTERFACE_POSITION = 0.0
+MELT_TEMPERATURE = 933.6
+INITIAL_LIQUID_TEMPERATURE = 1.1*MELT_TEMPERATURE
+INITIAL_SOLID_TEMPERATURE = 0.5*MELT_TEMPERATURE
 NUMBER_OF_INTERFACE_CELLS  = 2.0
 
-LIQUIDUS_TEMPERATURE = 1622.5
-SOLIDUS_TEMPERATURE = 1617.5
-REFERENCE_TEMPERATURE = 1620.0
+LIQUIDUS_TEMPERATURE = 931.1
+SOLIDUS_TEMPERATURE = 936.1
+REFERENCE_TEMPERATURE = 933.6
 
+FIX_MASS_LOSS = FALSE
+CENTER_BUBBLE_REQUIRED = TRUE
 GAS_LIQUID_FRACTION = 0.0
+REQUIRE_LF_EXTRAPOLATION = TRUE
 LF_EXTRAP_MAX_TS = 15
 
-// Flux compuattion
-LAMBDA = 0.530350136623890
-ALPHA_LIQUID = KAPPA_L/(RHO_L*CP_L)
-ALPHA_SOLID = KAPPA_S/(RHO_S*CP_S)
+MASS_CONSERVATION_FILE_NAME = "pcm_mass"
 
 // Liquid fraction parameters for tagging
 MIN_TAG_VAL = 0.3
 MAX_TAG_VAL = 0.8
 
+G          =  9.81
+GRAV_CONST = 0.0,-G
+
 // grid spacing parameters
-L          = 0.1
-H          = 0.005
+L          = 1.0e-2
+H          = 1.0e-2 // revisit
 MAX_LEVELS = 2        // maximum number of levels in locally refined grid
 REF_RATIO  = 2        // refinement ratio between levels
 REF_RATIO_FINEST = 2  // refinement ratio for the finest level.
 
-Nx = 768
-Ny = 32                               // coarsest grid spacing
+Nx = 128
+Ny = 128                                // coarsest grid spacing
 NFINEST = (REF_RATIO^(MAX_LEVELS - 1))*Nx  // finest   grid spacing
 HFINEST = L/NFINEST
 
-LiquidFractionInitialConditions{
-  function = "0.0"
-}
+INITIAL_HORIZONTAL_INTERFACE_POSITION = 0.75*L
+INITIAL_LIQUID_SOLID_INTERFACE_POSITION = 0.1*L
 
-TemperatureInitialConditions{
-  function = "1500.0"
-}
+LEFT_BUBBLE_X_COORD = 0.175*L
+LEFT_BUBBLE_Y_COORD = 0.225*L
+LEFT_BUBBLE_RADIUS  = 0.075*L
+
+CENTER_BUBBLE_X_COORD = 0.5*L
+CENTER_BUBBLE_Y_COORD = 0.575*L
+CENTER_BUBBLE_RADIUS  = 0.125*L
+
+RIGHT_BUBBLE_X_COORD = 0.8*L
+RIGHT_BUBBLE_Y_COORD = 0.26*L
+RIGHT_BUBBLE_RADIUS  = 0.1*L
 
 VelocityInitialConditions{
   function_0 = "0.0"
@@ -69,23 +78,6 @@ VelocityInitialConditions{
 }
 
 VelocityBcCoefs_0 {
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "1.0"
-   acoef_function_3 = "1.0"
-
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "0.0"
-   bcoef_function_3 = "0.0"
-
-   gcoef_function_0 = "0.0" // outflow bc
-   gcoef_function_1 = "0.0" // outflow bc
-   gcoef_function_2 = "0.0"
-   gcoef_function_3 = "0.0"
-}
-
-VelocityBcCoefs_1 {
    acoef_function_0 = "1.0"
    acoef_function_1 = "1.0"
    acoef_function_2 = "1.0"
@@ -102,20 +94,37 @@ VelocityBcCoefs_1 {
    gcoef_function_3 = "0.0"
 }
 
-TemperatureBcCoefs {
-   acoef_function_0 = "0.0"
-   acoef_function_1 = "0.0"
-   acoef_function_2 = "0.0"
+VelocityBcCoefs_1 {
+   acoef_function_0 = "1.0"
+   acoef_function_1 = "1.0"
+   acoef_function_2 = "1.0"
    acoef_function_3 = "0.0"
 
-   bcoef_function_0 = "1.0"
-   bcoef_function_1 = "1.0"
-   bcoef_function_2 = "1.0"
-   bcoef_function_3 = "1.0"
+   bcoef_function_0 = "0.0"
+   bcoef_function_1 = "0.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "1.0" // outflow at the top
 
    gcoef_function_0 = "0.0"
    gcoef_function_1 = "0.0"
    gcoef_function_2 = "0.0"
+   gcoef_function_3 = "0.0"
+}
+
+TemperatureBcCoefs {
+   acoef_function_0 = "0.0"
+   acoef_function_1 = "0.0"
+   acoef_function_2 = "1.0"
+   acoef_function_3 = "0.0"
+
+   bcoef_function_0 = "1.0"
+   bcoef_function_1 = "1.0"
+   bcoef_function_2 = "0.0"
+   bcoef_function_3 = "1.0"
+
+   gcoef_function_0 = "0.0"
+   gcoef_function_1 = "0.0"
+   gcoef_function_2 = "466.8"
    gcoef_function_3 = "0.0"
 }
 
@@ -242,7 +251,7 @@ ThermalConductivityBcCoefs {
 SOLVER_TYPE          = "STAGGERED"
 DISCRETIZATION_FORM  = "CONSERVATIVE"
 START_TIME           =   0.0e0     // initial simulation time
-END_TIME             =   10.0e0   // final simulation time
+END_TIME             =   1.0e0   // final simulation time
 GROW_DT              =   2.0e0     // growth factor for timesteps
 MAX_INTEGRATOR_STEPS =   50000000  // max number of simulation timesteps
 REGRID_INTERVAL      =   1
@@ -256,7 +265,7 @@ NORMALIZE_PRESSURE   = FALSE
 VORTICITY_TAGGING    = FALSE                       // whether to tag cells for refinement based on vorticity thresholds
 TAG_BUFFER           = 2                          // size of tag buffer used by grid generation algorithm
 REGRID_CFL_INTERVAL  = 0.2
-DT_MAX               = 1e-3
+DT_MAX               = 1.0e-6
 OUTPUT_U             = TRUE
 OUTPUT_P             = TRUE
 OUTPUT_F             = TRUE
@@ -307,6 +316,7 @@ TEMPERATURE_CONVECTIVE_OP_TYPE = "CUI"             // convective differencing di
 TEMPERATURE_CONVECTIVE_FORM    = "CONSERVATIVE"       // how to compute the convective terms
 TEMPERATURE_DIFFUSION_TS_TYPE    = "TRAPEZOIDAL_RULE"       // how to compute the convective terms
 K_VC_INTERPOLATION_TYPE        = "VC_HARMONIC_INTERP"
+OUTPUT_DIV_U_F                 = TRUE
 
 INSVCStaggeredConservativeHierarchyIntegrator {
    start_time                 = START_TIME
@@ -394,34 +404,39 @@ INSVCStaggeredConservativeHierarchyIntegrator {
 }
 
 EnthalpyHierarchyIntegrator {
-   start_time                      = START_TIME
-   end_time                        = END_TIME
-   grow_dt                         = GROW_DT
-   num_cycles                      = ADV_DIFF_NUM_CYCLES
-   convective_time_stepping_type   = ADV_DIFF_CONVECTIVE_TS_TYPE
-   convective_op_type              = ADV_DIFF_CONVECTIVE_OP_TYPE
-   convective_difference_form      = ADV_DIFF_CONVECTIVE_FORM
-   T_diffusion_time_stepping_type  = TEMPERATURE_DIFFUSION_TS_TYPE
-   T_convective_time_stepping_type = TEMPERATURE_CONVECTIVE_TS_TYPE
-   T_convective_op_type            = TEMPERATURE_CONVECTIVE_OP_TYPE
-   T_convective_difference_form    = TEMPERATURE_CONVECTIVE_FORM
-   cfl                             = CFL_MAX
-   dt_max                          = DT_MAX
-   tag_buffer                      = TAG_BUFFER
-   enable_logging                  = ENABLE_LOGGING
-   max_integrator_steps            = MAX_INTEGRATOR_STEPS
-   latent_heat                     = LATENT_HEAT
-   rho_liquid                      = RHO_L
-   rho_solid                       = RHO_S
-   specific_heat_liquid            = CP_L
-   specific_heat_solid             = CP_S
-   specific_heat_gas               = CP_G
-   T_melt                          = MELT_TEMPERATURE
-   solve_mass_conservation         = SOLVE_MASS_CONSERVATION
-   k_vc_interpolation_type         = K_VC_INTERPOLATION_TYPE
-   liquidus_temperature            = LIQUIDUS_TEMPERATURE
-   solidus_temperature             = SOLIDUS_TEMPERATURE
-   reference_temperature           = REFERENCE_TEMPERATURE
+   start_time                       = START_TIME
+   end_time                         = END_TIME
+   grow_dt                          = GROW_DT
+   num_cycles                       = ADV_DIFF_NUM_CYCLES
+   convective_time_stepping_type    = ADV_DIFF_CONVECTIVE_TS_TYPE
+   convective_op_type               = ADV_DIFF_CONVECTIVE_OP_TYPE
+   convective_difference_form       = ADV_DIFF_CONVECTIVE_FORM
+   T_diffusion_time_stepping_type   = TEMPERATURE_DIFFUSION_TS_TYPE
+   T_convective_time_stepping_type  = TEMPERATURE_CONVECTIVE_TS_TYPE
+   T_convective_op_type             = TEMPERATURE_CONVECTIVE_OP_TYPE
+   T_convective_difference_form     = TEMPERATURE_CONVECTIVE_FORM
+   cfl                              = CFL_MAX
+   dt_max                           = DT_MAX
+   tag_buffer                       = TAG_BUFFER
+   enable_logging                   = ENABLE_LOGGING
+   max_integrator_steps             = MAX_INTEGRATOR_STEPS
+   latent_heat                      = LATENT_HEAT
+   rho_liquid                       = RHO_L
+   rho_solid                        = RHO_S
+   specific_heat_liquid             = CP_L
+   specific_heat_solid              = CP_S
+   specific_heat_gas                = CP_G
+   T_melt                           = MELT_TEMPERATURE
+   solve_mass_conservation          = SOLVE_MASS_CONSERVATION
+   k_vc_interpolation_type          = K_VC_INTERPOLATION_TYPE
+   liquidus_temperature             = LIQUIDUS_TEMPERATURE
+   solidus_temperature              = SOLIDUS_TEMPERATURE
+   reference_temperature            = REFERENCE_TEMPERATURE
+   output_Div_U_F                   = OUTPUT_DIV_U_F
+   gas_liquid_fraction              = GAS_LIQUID_FRACTION
+   require_lf_extrapolation         = REQUIRE_LF_EXTRAPOLATION
+   lf_extrap_max_num_time_steps     = LF_EXTRAP_MAX_TS
+   lf_extrap_cell_size              = HFINEST
 
       T_solver_type = "PETSC_KRYLOV_SOLVER"
       T_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
@@ -457,17 +472,20 @@ EnthalpyHierarchyIntegrator {
           }
 }
 
+// Surface tension parameters
+SIGMA               = 0.87
+SMOOTHER            = "IB_4"
+
+SurfaceTensionForceFunction {
+    smoother            = SMOOTHER
+    sigma               = SIGMA
+    num_interface_cells = NUMBER_OF_INTERFACE_CELLS
+}
+
 CarmanKozenyDragForce {
    penalty_factor      = 1.0                         // deafult 1.0                   
    use_rho_scale       = TRUE                        // default true
    use_mu_scale        = FALSE                       // default false
-}
-
-SMOOTHER                = "IB_4"
-NUMBER_OF_INTERFACE_CELLS_LASER  = NUMBER_OF_INTERFACE_CELLS
-LaserSourceFunction{
-   smoother                     = SMOOTHER
-   num_interface_cells          = NUMBER_OF_INTERFACE_CELLS_LASER
 }
 
 RelaxationLSMethod {
@@ -488,18 +506,18 @@ Main {
    discretization_form  = DISCRETIZATION_FORM
 
 // log file parameters
-   log_file_name               = "stefan_melting_amr_three_phase.log"
+   log_file_name               = "rising_bubbles_with_solidification_amr.log"
    log_all_nodes               = FALSE
 
 // visualization dump parameters
    viz_writer                  = "VisIt"
-   viz_dump_interval           = 100
-   viz_dump_dirname            = "viz_stefan_melting_amr_three_phase_2d"
+   viz_dump_interval           = 1000
+   viz_dump_dirname            = "viz_rising_bubbles_with_solidification_amr_2d"
    visit_number_procs_per_file = 1
 
 // restart dump parameters
    restart_dump_interval       = 0
-   restart_dump_dirname        = "restart_stefan_melting_amr_three_phase_2d"
+   restart_dump_dirname        = "restart_rising_bubbles_with_solidification_amr_2d"
 
 // timer dump parameters
    timer_dump_interval         = 0
@@ -507,9 +525,9 @@ Main {
 
 CartesianGeometry {
    domain_boxes = [ (0,0) , ( Nx - 1, Ny - 1) ]
-   x_lo         =   -0.2*L,   0           // lower end of computational domain.
+   x_lo         =   0,   0           // lower end of computational domain.
    x_up         =   L,   H         // upper end of computational domain.
-   periodic_dimension = 0,1
+   periodic_dimension = 1,0
 }
 
 GriddingAlgorithm {
@@ -530,7 +548,7 @@ GriddingAlgorithm {
    }
 
    smallest_patch_size {
-      level_0 =  8, 8 // smallest patch allowed in hierarchy
+      level_0 =  4, 4 // smallest patch allowed in hierarchy
                             // all finer levels will use same values as level_0...
    }
 
