@@ -701,7 +701,8 @@ postprocess_data(Pointer<Database> input_db,
 
     const auto el_begin = mesh.active_local_elements_begin();
     const auto el_end = mesh.active_local_elements_end();
-    if(!use_boundary_mesh){
+    if (!use_boundary_mesh)
+    {
         for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             auto elem = *el_it;
@@ -747,17 +748,29 @@ postprocess_data(Pointer<Database> input_db,
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
                     n = (FF_inv_trans * N).unit();
 
-                    tether_force_function(
-                        F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, tether_data_ptr);
+                    tether_force_function(F,
+                                          n,
+                                          N,
+                                          FF,
+                                          x,
+                                          q_point_face[qp],
+                                          elem,
+                                          side,
+                                          var_data,
+                                          grad_var_data,
+                                          loop_time,
+                                          tether_data_ptr);
                     for (int d = 0; d < NDIM; ++d)
-                    {   pout << F(d) << endl;
+                    {
+                        pout << F(d) << endl;
                         F_integral[d] += F(d) * JxW_face[qp];
                     }
                 }
             }
         }
     }
-    else {
+    else
+    {
         for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
             auto elem = *el_it;
@@ -786,10 +799,20 @@ postprocess_data(Pointer<Database> input_db,
                     tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
                     n = (FF_inv_trans * N).unit();
 
-                    tether_force_function(
-                        F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, tether_data_ptr);
+                    tether_force_function(F,
+                                          n,
+                                          N,
+                                          FF,
+                                          x,
+                                          q_point_face[qp],
+                                          elem,
+                                          side,
+                                          var_data,
+                                          grad_var_data,
+                                          loop_time,
+                                          tether_data_ptr);
                     for (int d = 0; d < NDIM; ++d)
-                    {   
+                    {
                         F_integral[d] += F(d) * JxW_face[qp];
                     }
                 }
