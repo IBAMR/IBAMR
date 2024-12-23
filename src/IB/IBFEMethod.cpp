@@ -394,7 +394,10 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
       d_source_system_name(SOURCE_SYSTEM_NAME_VAL)
 {
     // Check if the mesh dimention is compatable with the IBStategy
-    TBOX_ASSERT(mesh->mesh_dimension() == mesh->spatial_dimension());
+    for (libMesh::MeshBase* mesh : meshes)
+    {
+        TBOX_ASSERT(mesh->mesh_dimension() == mesh->spatial_dimension());
+    }
 
     commonConstructor(input_db, max_levels);
     return;
