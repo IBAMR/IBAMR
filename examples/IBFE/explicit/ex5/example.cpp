@@ -657,7 +657,7 @@ postprocess_data(Pointer<Database> input_db,
 {
     TetherData tether_data(input_db);
     void* const tether_data_ptr = reinterpret_cast<void*>(&tether_data);
-
+    bool use_boundary_mesh = input_db->getBoolWithDefault("USE_BOUNDARY_MESH", false);
     const unsigned int dim = mesh.mesh_dimension();
     double F_integral[NDIM];
     for (unsigned int d = 0; d < NDIM; ++d) F_integral[d] = 0.0;
@@ -701,56 +701,120 @@ postprocess_data(Pointer<Database> input_db,
 
     const auto el_begin = mesh.active_local_elements_begin();
     const auto el_end = mesh.active_local_elements_end();
-    for (auto el_it = el_begin; el_it != el_end; ++el_it)
+    if (!use_boundary_mesh)
     {
-        auto elem = *el_it;
-        fe->reinit(elem);
-        for (unsigned int d = 0; d < NDIM; ++d)
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
         {
-            dof_map.dof_indices(elem, dof_indices[d], d);
-        }
-        get_values_for_interpolation(X_node, *X_ghost_vec, dof_indices);
-        get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
-
-        const unsigned int n_qp = qrule->n_points();
-        for (unsigned int qp = 0; qp < n_qp; ++qp)
-        {
-            interpolate(x, qp, X_node, phi);
-            jacobian(FF, qp, X_node, dphi);
-            interpolate(U, qp, U_node, phi);
+            auto elem = *el_it;
+            fe->reinit(elem);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
-                U_qp_vec[d] = U(d);
+                dof_map.dof_indices(elem, dof_indices[d], d);
             }
-            tether_force_function(F, FF, x, q_point[qp], elem, var_data, grad_var_data, loop_time, tether_data_ptr);
-            for (int d = 0; d < NDIM; ++d)
+            get_values_for_interpolation(X_node, *X_ghost_vec, dof_indices);
+            get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
+
+            const unsigned int n_qp = qrule->n_points();
+            for (unsigned int qp = 0; qp < n_qp; ++qp)
             {
-                F_integral[d] += F(d) * JxW[qp];
-            }
-        }
-        for (unsigned short int side = 0; side < elem->n_sides(); ++side)
-        {
-            if (elem->neighbor_ptr(side)) continue;
-            fe_face->reinit(elem, side);
-            const unsigned int n_qp_face = qrule_face->n_points();
-            for (unsigned int qp = 0; qp < n_qp_face; ++qp)
-            {
-                interpolate(x, qp, X_node, phi_face);
-                jacobian(FF, qp, X_node, dphi_face);
-                interpolate(U, qp, U_node, phi_face);
+                interpolate(x, qp, X_node, phi);
+                jacobian(FF, qp, X_node, dphi);
+                interpolate(U, qp, U_node, phi);
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
                     U_qp_vec[d] = U(d);
                 }
-                N = normal_face[qp];
-                tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
-                n = (FF_inv_trans * N).unit();
-
-                tether_force_function(
-                    F, n, N, FF, x, q_point_face[qp], elem, side, var_data, grad_var_data, loop_time, tether_data_ptr);
+                tether_force_function(F, FF, x, q_point[qp], elem, var_data, grad_var_data, loop_time, tether_data_ptr);
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    F_integral[d] += F(d) * JxW_face[qp];
+                    F_integral[d] += F(d) * JxW[qp];
+                }
+            }
+            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
+            {
+                if (elem->neighbor_ptr(side)) continue;
+                fe_face->reinit(elem, side);
+                const unsigned int n_qp_face = qrule_face->n_points();
+                for (unsigned int qp = 0; qp < n_qp_face; ++qp)
+                {
+                    interpolate(x, qp, X_node, phi_face);
+                    jacobian(FF, qp, X_node, dphi_face);
+                    interpolate(U, qp, U_node, phi_face);
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        U_qp_vec[d] = U(d);
+                    }
+                    N = normal_face[qp];
+                    tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
+                    n = (FF_inv_trans * N).unit();
+
+                    tether_force_function(F,
+                                          n,
+                                          N,
+                                          FF,
+                                          x,
+                                          q_point_face[qp],
+                                          elem,
+                                          side,
+                                          var_data,
+                                          grad_var_data,
+                                          loop_time,
+                                          tether_data_ptr);
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        pout << F(d) << endl;
+                        F_integral[d] += F(d) * JxW_face[qp];
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        for (auto el_it = el_begin; el_it != el_end; ++el_it)
+        {
+            auto elem = *el_it;
+            fe->reinit(elem);
+            for (unsigned int d = 0; d < NDIM; ++d)
+            {
+                dof_map.dof_indices(elem, dof_indices[d], d);
+            }
+            get_values_for_interpolation(X_node, *X_ghost_vec, dof_indices);
+            get_values_for_interpolation(U_node, *U_ghost_vec, dof_indices);
+
+            for (unsigned short int side = 0; side < elem->n_sides(); ++side)
+            {
+                fe_face->reinit(elem, side);
+                const unsigned int n_qp_face = qrule_face->n_points();
+                for (unsigned int qp = 0; qp < n_qp_face; ++qp)
+                {
+                    interpolate(x, qp, X_node, phi_face);
+                    jacobian(FF, qp, X_node, dphi_face);
+                    interpolate(U, qp, U_node, phi_face);
+                    for (unsigned int d = 0; d < NDIM; ++d)
+                    {
+                        U_qp_vec[d] = U(d);
+                    }
+                    N = normal_face[qp];
+                    tensor_inverse_transpose(FF_inv_trans, FF, NDIM);
+                    n = (FF_inv_trans * N).unit();
+
+                    tether_force_function(F,
+                                          n,
+                                          N,
+                                          FF,
+                                          x,
+                                          q_point_face[qp],
+                                          elem,
+                                          side,
+                                          var_data,
+                                          grad_var_data,
+                                          loop_time,
+                                          tether_data_ptr);
+                    for (int d = 0; d < NDIM; ++d)
+                    {
+                        F_integral[d] += F(d) * JxW_face[qp];
+                    }
                 }
             }
         }
