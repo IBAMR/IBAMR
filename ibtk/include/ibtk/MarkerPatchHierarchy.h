@@ -74,7 +74,7 @@ public:
      * Remove all marker points which do not lie in cells uniquely owned by
      * this patch.
      */
-    std::tuple<std::vector<int>, EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> > prune();
+    std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector> > prune();
 
     /*!
      * Return the @p index-th marker point stored by the present Patch.
@@ -131,13 +131,13 @@ public:
      */
     MarkerPatchHierarchy(const std::string& name,
                          SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > patch_hierarchy,
-                         const EigenAlignedVector<IBTK::Point>& positions,
-                         const EigenAlignedVector<IBTK::Point>& velocities,
+                         const std::vector<IBTK::Point>& positions,
+                         const std::vector<IBTK::Point>& velocities,
                          const bool register_for_restart = true);
 
     virtual ~MarkerPatchHierarchy();
 
-    void reinit(const EigenAlignedVector<IBTK::Point>& positions, const EigenAlignedVector<IBTK::Point>& velocities);
+    void reinit(const std::vector<IBTK::Point>& positions, const std::vector<IBTK::Point>& velocities);
 
     /**
      * Save the present state of the object (i.e., the marker point data) to a
@@ -179,7 +179,7 @@ public:
     /**
      * Collect all markers on all processors in a single array.
      */
-    std::pair<EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> > collectAllMarkers() const;
+    std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> > collectAllMarkers() const;
 
     /**
      * Set marker velocities with some given velocity field @p u_idx and

@@ -301,9 +301,11 @@ discontinuous_heaviside(const double& phi)
  * Eigen types have special alignment requirements and require a specific
  * memory allocator. This is a convenience type alias for a
  * <code>std::vector</code> with the correct allocator.
+ *
+ * @deprecated This alias is no longer necessary.
  */
 template <typename T>
-using EigenAlignedVector = std::vector<T, Eigen::aligned_allocator<T> >;
+using EigenAlignedVector [[deprecated("This alias is no longer necessary.")]] = std::vector<T>;
 
 using Matrix2d = Eigen::Matrix<double, 2, 2>;
 using Vector2d = Eigen::Matrix<double, 2, 1>;

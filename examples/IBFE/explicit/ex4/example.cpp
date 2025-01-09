@@ -421,7 +421,7 @@ main(int argc, char* argv[])
         // Marker points. Don't clobber any markers loaded from restart data.
         if (use_markers && time_integrator->getNumberOfMarkers() == 0)
         {
-            EigenAlignedVector<IBTK::Point> positions;
+            std::vector<IBTK::Point> positions;
             for (unsigned int i = 1; i < 100; ++i)
             {
                 for (unsigned int j = 1; j < 100; ++j)
