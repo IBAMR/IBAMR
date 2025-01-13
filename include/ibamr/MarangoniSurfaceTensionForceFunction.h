@@ -17,6 +17,9 @@
 #define included_IBAMR_MarangoniSurfaceTensionForceFunction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
 #include "ibamr/SurfaceTensionForceFunction.h"
 
 namespace IBAMR

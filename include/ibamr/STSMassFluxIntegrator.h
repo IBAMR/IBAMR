@@ -17,6 +17,9 @@
 #define included_IBAMR_STSMassFluxIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/ibamr_enums.h"
 

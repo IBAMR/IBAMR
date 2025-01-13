@@ -16,6 +16,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibamr/config.h>
+
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 #include <ibtk/HierarchyMathOps.h>

@@ -17,6 +17,9 @@
 #define included_IBAMR_AllenCahnHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
 #include "ibamr/CellConvectiveOperator.h"
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
 

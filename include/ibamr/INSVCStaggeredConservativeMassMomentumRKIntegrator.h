@@ -17,6 +17,9 @@
 #define included_IBAMR_INSVCStaggeredConservativeMassMomentumRKIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
 #include "ibamr/STSMassFluxIntegrator.h"
 
 namespace SAMRAI

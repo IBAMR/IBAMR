@@ -17,6 +17,9 @@
 #define included_IBAMR_EnthalpyHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
 #include "ibamr/PhaseChangeHierarchyIntegrator.h"
 
 namespace IBTK

@@ -17,6 +17,9 @@
 #define included_IBAMR_PhaseChangeHierarchyIntegrator
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
 #include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
 #include "ibamr/STSMassFluxIntegrator.h"
 
