@@ -12,12 +12,15 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
 #include "ibamr/HeavisideForcingFunction.h"
 
-#include <SAMRAI_config.h>
+#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
+namespace IBAMR
+{
 HeavisideForcingFunction::HeavisideForcingFunction(const std::string& /*object_name*/,
                                                    const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                                    const Pointer<CellVariable<NDIM, double> > H_var,
@@ -90,5 +93,4 @@ HeavisideForcingFunction::setDataOnPatch(const int /*data_idx*/,
     // As we directly compute and set data on the patch hierarchy don't do anything over here.
     return;
 } // setDataOnPatch
-
-//////////////////////////////////////////////////////////////////////////////
+} // namespace IBAMR
