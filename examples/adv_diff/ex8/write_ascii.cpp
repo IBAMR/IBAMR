@@ -1,9 +1,23 @@
+// ---------------------------------------------------------------------
+//
+// Copyright (c) 2023 - 2024 by the IBAMR developers
+// All rights reserved.
+//
+// This file is part of IBAMR.
+//
+// IBAMR is free software and is distributed under the 3-clause BSD
+// license. The full text of the license can be found in the file
+// COPYRIGHT at the top level directory of IBAMR.
+//
+// ---------------------------------------------------------------------
+
 #include <mpi.h>
 
 #include <cassert>
 #include <fstream>
 #include <iostream>
 #include <vector>
+
 // This file is used to read the MPI binary files written in the folder "temperature_profile"
 // and output it in ascii format. The input data is column vector in which first element is
 // angle and the second element is corresponding temperature. The output data is a ascii file
