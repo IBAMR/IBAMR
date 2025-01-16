@@ -126,17 +126,17 @@ public:
     /*!
      * \brief Set the boundary condition object for the cell-centered density.
      */
-    void setCellCenteredDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& rho_cc_bc_coefs);
+    void setCellCenteredDensityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* rho_cc_bc_coefs);
 
     /*!
      * \brief Set the boundary condition object for the cell-centered material property.
      */
-    void setCellCenteredMaterialPropertyBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& gamma_cc_bc_coefs);
+    void setCellCenteredMaterialPropertyBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* gamma_cc_bc_coefs);
 
     /*!
      * \brief Set the boundary condition object for the cell-centered transport quantity.
      */
-    void setCellCenteredTransportQuantityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>*& Q_cc_bc_coefs);
+    void setCellCenteredTransportQuantityBoundaryConditions(SAMRAI::solv::RobinBcCoefStrategy<NDIM>* Q_cc_bc_coefs);
 
     /*!
      * \brief Get the newly constructed cell-centered density patch data index.
