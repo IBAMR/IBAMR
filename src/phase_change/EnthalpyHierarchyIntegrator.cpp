@@ -1140,18 +1140,18 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
     const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
     const double h_l =
         d_specific_heat_solid_liquid * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
-    double h_v1;
-    if (std::abs(d_rho_vapor) < 1e-12)
-    {
-        h_v1 = std::numeric_limits<double>::max();
-    }
-    else
-    {
-        h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
-    }
-    plog << "h_v1 " << h_v1 << "\n";
-    const double h_v2 =
-        d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 + d_latent_heat_vaporization;
+    // double h_v1;
+    // if (std::abs(d_rho_vapor) < 1e-12)
+    // {
+    //     h_v1 = std::numeric_limits<double>::max();
+    // }
+    // else
+    // {
+    //     h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
+    // }
+    // plog << "h_v1 " << h_v1 << "\n";
+    // const double h_v2 =
+    //     d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 + d_latent_heat_vaporization;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1180,20 +1180,20 @@ EnthalpyHierarchyIntegrator::computeEnthalpyBasedOnTemperature(int h_idx,
                         (*h_data)(ci) = d_specific_heat_solid_liquid * ((*T_data)(ci)-d_solidus_temperature) + h_s +
                                         (*lf_data)(ci)*d_rho_liquid * d_latent_heat / (*rho_data)(ci);
                     }
-                    else if ((*T_data)(ci) >= d_liquidus_temperature && (*T_data)(ci) <= d_evap1_temperature)
+                    else //if ((*T_data)(ci) >= d_liquidus_temperature && (*T_data)(ci) <= d_evap1_temperature)
                     {
                         (*h_data)(ci) = d_specific_heat_liquid * ((*T_data)(ci)-d_liquidus_temperature) + h_l;
                     }
-                    else if ((*T_data)(ci) >= d_evap1_temperature && (*T_data)(ci) <= d_evap2_temperature)
-                    {
-                        (*h_data)(ci) =
-                            d_specific_heat_liquid_vapor * ((*T_data)(ci)-d_evap1_temperature) + h_v1 +
-                            (1.0 - (*lf_data)(ci)) * d_rho_vapor * d_latent_heat_vaporization / (*rho_data)(ci);
-                    }
-                    else
-                    {
-                        (*h_data)(ci) = d_specific_heat_vapor * ((*T_data)(ci)-d_evap2_temperature) + h_v2;
-                    }
+                    // else if ((*T_data)(ci) >= d_evap1_temperature && (*T_data)(ci) <= d_evap2_temperature)
+                    // {
+                    //     (*h_data)(ci) =
+                    //         d_specific_heat_liquid_vapor * ((*T_data)(ci)-d_evap1_temperature) + h_v1 +
+                    //         (1.0 - (*lf_data)(ci)) * d_rho_vapor * d_latent_heat_vaporization / (*rho_data)(ci);
+                    // }
+                    // else
+                    // {
+                    //     (*h_data)(ci) = d_specific_heat_vapor * ((*T_data)(ci)-d_evap2_temperature) + h_v2;
+                    // }
                 }
                 else
                 {
@@ -1214,18 +1214,18 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
     const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
     const double h_l =
         d_specific_heat_solid_liquid * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
-    double h_v1;
-    if (std::abs(d_rho_vapor) < 1e-12)
-    {
-        h_v1 = std::numeric_limits<double>::max();
-    }
-    else
-    {
-        h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
-    }
-    plog << "h_v1 " << h_v1 << "\n";
-    const double h_v2 =
-        d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 + d_latent_heat_vaporization;
+    // double h_v1;
+    // if (std::abs(d_rho_vapor) < 1e-12)
+    // {
+    //     h_v1 = std::numeric_limits<double>::max();
+    // }
+    // else
+    // {
+    //     h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
+    // }
+    // plog << "h_v1 " << h_v1 << "\n";
+    // const double h_v2 =
+    //     d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 + d_latent_heat_vaporization;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1252,19 +1252,19 @@ EnthalpyHierarchyIntegrator::computeTemperatureBasedOnEnthalpy(int T_idx, const 
                         (*T_data)(ci) = d_solidus_temperature + ((*h_data)(ci)-h_s) / (h_l - h_s) *
                                                                     (d_liquidus_temperature - d_solidus_temperature);
                     }
-                    else if ((*h_data)(ci) >= h_l && (*h_data)(ci) <= h_v1)
+                    else //if ((*h_data)(ci) >= h_l && (*h_data)(ci) <= h_v1)
                     {
                         (*T_data)(ci) = d_liquidus_temperature + ((*h_data)(ci)-h_l) / d_specific_heat_liquid;
                     }
-                    else if ((*h_data)(ci) >= h_v1 && (*h_data)(ci) <= h_v2)
-                    {
-                        (*T_data)(ci) = d_evap1_temperature + ((*h_data)(ci)-h_v1) / (h_v2 - h_v1) *
-                                                                  (d_evap2_temperature - d_evap1_temperature);
-                    }
-                    else
-                    {
-                        (*T_data)(ci) = d_evap2_temperature + ((*h_data)(ci)-h_v2) / d_specific_heat_vapor;
-                    }
+                    // else if ((*h_data)(ci) >= h_v1 && (*h_data)(ci) <= h_v2)
+                    // {
+                    //     (*T_data)(ci) = d_evap1_temperature + ((*h_data)(ci)-h_v1) / (h_v2 - h_v1) *
+                    //                                               (d_evap2_temperature - d_evap1_temperature);
+                    // }
+                    // else
+                    // {
+                    //     (*T_data)(ci) = d_evap2_temperature + ((*h_data)(ci)-h_v2) / d_specific_heat_vapor;
+                    // }
                 }
                 else
                 {
@@ -1337,19 +1337,19 @@ EnthalpyHierarchyIntegrator::computeEnthalpyDerivative(int dh_dT_idx, const int 
                         (*dh_dT_data)(ci) = d_specific_heat_solid_liquid +
                                             d_latent_heat / (d_liquidus_temperature - d_solidus_temperature);
                     }
-                    else if ((*T_data)(ci) >= d_liquidus_temperature && (*T_data)(ci) <= d_evap1_temperature)
+                    else //if ((*T_data)(ci) >= d_liquidus_temperature && (*T_data)(ci) <= d_evap1_temperature)
                     {
                         (*dh_dT_data)(ci) = d_specific_heat_liquid;
                     }
-                    else if ((*T_data)(ci) >= d_evap1_temperature && (*T_data)(ci) <= d_evap2_temperature)
-                    {
-                        (*dh_dT_data)(ci) = d_specific_heat_liquid_vapor +
-                                            d_latent_heat_vaporization / (d_evap2_temperature - d_evap1_temperature);
-                    }
-                    else
-                    {
-                        (*dh_dT_data)(ci) = d_specific_heat_vapor;
-                    }
+                    // else if ((*T_data)(ci) >= d_evap1_temperature && (*T_data)(ci) <= d_evap2_temperature)
+                    // {
+                    //     (*dh_dT_data)(ci) = d_specific_heat_liquid_vapor +
+                    //                         d_latent_heat_vaporization / (d_evap2_temperature - d_evap1_temperature);
+                    // }
+                    // else
+                    // {
+                    //     (*dh_dT_data)(ci) = d_specific_heat_vapor;
+                    // }
                 }
                 else
                 {
@@ -1370,18 +1370,18 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
     const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
     const double h_l =
         d_specific_heat_solid_liquid * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
-    double h_v1;
-    if (std::abs(d_rho_vapor) < 1e-12)
-    {
-        h_v1 = std::numeric_limits<double>::max();
-    }
-    else
-    {
-        h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
-    }
-    plog << "h_v1 " << h_v1 << "\n";
-    const double h_v2 =
-        d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 + d_latent_heat_vaporization;
+    // double h_v1;
+    // if (std::abs(d_rho_vapor) < 1e-12)
+    // {
+    //     h_v1 = std::numeric_limits<double>::max();
+    // }
+    // else
+    // {
+    //     h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
+    // }
+    // plog << "h_v1 " << h_v1 << "\n";
+    // const double h_v2 =
+    //     d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 + d_latent_heat_vaporization;
     // std::cout<<h_v1<<std::endl;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1404,31 +1404,30 @@ EnthalpyHierarchyIntegrator::computeLiquidFraction(int lf_idx, const int h_idx, 
                     {
                         (*lf_data)(ci) = 0.0;
                     }
-                    else if ((*h_data)(ci) >= h_l && (*h_data)(ci) < h_v1)
-                    {
-                        (*lf_data)(ci) = 1.0;
-                    }
-
                     else if ((*h_data)(ci) >= h_s && (*h_data)(ci) < h_l)
                     {
                         (*lf_data)(ci) =
                             d_rho_solid * (h_s - (*h_data)(ci)) /
                             ((d_rho_liquid - d_rho_solid) * (*h_data)(ci)-d_rho_liquid * h_l + d_rho_solid * h_s);
                     }
-                    else if ((*h_data)(ci) >= h_v2)
+                    else //if ((*h_data)(ci) >= h_l && (*h_data)(ci) < h_v1)
                     {
-                        (*lf_data)(ci) = 0.0;
+                        (*lf_data)(ci) = 1.0;
                     }
-                    else if ((*h_data)(ci) >= h_v1 && (*h_data)(ci) < h_v2)
-                    {
-                        (*lf_data)(ci) =
-                            d_rho_vapor * (h_v2 - (*h_data)(ci)) /
-                            ((d_rho_liquid - d_rho_vapor) * (*h_data)(ci)-d_rho_liquid * h_v1 + d_rho_vapor * h_v2);
-                    }
-                    else
-                    {
-                        (*lf_data)(ci) = 0.0;
-                    }
+                    // else if ((*h_data)(ci) >= h_v2)
+                    // {
+                    //     (*lf_data)(ci) = 0.0;
+                    // }
+                    // else if ((*h_data)(ci) >= h_v1 && (*h_data)(ci) < h_v2)
+                    // {
+                    //     (*lf_data)(ci) =
+                    //         d_rho_vapor * (h_v2 - (*h_data)(ci)) /
+                    //         ((d_rho_liquid - d_rho_vapor) * (*h_data)(ci)-d_rho_liquid * h_v1 + d_rho_vapor * h_v2);
+                    // }
+                    // else
+                    // {
+                    //     (*lf_data)(ci) = 0.0;
+                    // }
                 }
                 else
                 {
@@ -1449,18 +1448,18 @@ EnthalpyHierarchyIntegrator::computeVaporFraction(int vf_idx, int lf_idx, const 
     const double h_s = d_specific_heat_solid * (d_solidus_temperature - d_reference_temperature);
     const double h_l =
         d_specific_heat_solid_liquid * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
-    double h_v1;
-    if (std::abs(d_rho_vapor) < 1e-12)
-    {
-        h_v1 = std::numeric_limits<double>::max();
-    }
-    else
-    {
-        h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
-    }
-    plog << "h_v1 " << h_v1 << "\n";
-    const double h_v2 =
-        d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 + d_latent_heat_vaporization;
+    // double h_v1;
+    // if (std::abs(d_rho_vapor) < 1e-12)
+    // {
+    //     h_v1 = std::numeric_limits<double>::max();
+    // }
+    // else
+    // {
+    //     h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
+    // }
+    // plog << "h_v1 " << h_v1 << "\n";
+    // const double h_v2 =
+    //     d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 + d_latent_heat_vaporization;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1479,18 +1478,19 @@ EnthalpyHierarchyIntegrator::computeVaporFraction(int vf_idx, int lf_idx, const 
 
                 if ((*H_data)(ci) >= H_LIM)
                 {
-                    if ((*h_data)(ci) < h_v1)
-                    {
-                        (*vf_data)(ci) = 0.0;
-                    }
-                    else if ((*h_data)(ci) > h_v2)
-                    {
-                        (*vf_data)(ci) = 1.0;
-                    }
-                    else
-                    {
-                        (*vf_data)(ci) = 1 - (*lf_data)(ci);
-                    }
+                    TBOX_ERROR("why is vf being calculated");
+                    // if ((*h_data)(ci) < h_v1)
+                    // {
+                    //     (*vf_data)(ci) = 0.0;
+                    // }
+                    // else if ((*h_data)(ci) > h_v2)
+                    // {
+                    //     (*vf_data)(ci) = 1.0;
+                    // }
+                    // else
+                    // {
+                    //     (*vf_data)(ci) = 1 - (*lf_data)(ci);
+                    // }
                 }
                 else
                 {
