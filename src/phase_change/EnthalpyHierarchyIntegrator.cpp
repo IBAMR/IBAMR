@@ -1056,26 +1056,26 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
     const double h_l =
         d_specific_heat_solid_liquid * (d_liquidus_temperature - d_solidus_temperature) + h_s + d_latent_heat;
     plog << "h_l " << h_l << "\n";
-    double h_v1;
-    double h_v2;
-    if (std::abs(d_rho_vapor) < 1e-12)
-    {
-        h_v1 = std::numeric_limits<double>::max();
-        h_v2 = std::numeric_limits<double>::max();
-    }
-    else
-    {
-        h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
-        h_v2 = d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 +
-               d_latent_heat_vaporization;
-    }
-    plog << "h_v1 " << h_v1 << "\n";
-    plog << "h_v2 " << h_v2 << "\n";
-    plog << "rhov " << d_rho_vapor << "\n";
-    plog << "evap1 " << d_evap1_temperature << "\n";
-    plog << "evap2 " << d_evap2_temperature << "\n";
-    plog << "spheatvapor " << d_specific_heat_vapor << "\n";
-    plog << " latent heat vapor " << d_latent_heat_vaporization << "\n";
+    // double h_v1;
+    // double h_v2;
+    // if (std::abs(d_rho_vapor) < 1e-12)
+    // {
+    //     h_v1 = std::numeric_limits<double>::max();
+    //     h_v2 = std::numeric_limits<double>::max();
+    // }
+    // else
+    // {
+    //     h_v1 = abs(d_specific_heat_liquid) * (abs(d_evap1_temperature) - abs(d_liquidus_temperature)) + abs(h_l);
+    //     h_v2 = d_specific_heat_liquid_vapor * (d_evap2_temperature - d_evap1_temperature) + h_v1 +
+    //            d_latent_heat_vaporization;
+    // }
+    // plog << "h_v1 " << h_v1 << "\n";
+    // plog << "h_v2 " << h_v2 << "\n";
+    // plog << "rhov " << d_rho_vapor << "\n";
+    // plog << "evap1 " << d_evap1_temperature << "\n";
+    // plog << "evap2 " << d_evap2_temperature << "\n";
+    // plog << "spheatvapor " << d_specific_heat_vapor << "\n";
+    // plog << " latent heat vapor " << d_latent_heat_vaporization << "\n";
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1103,23 +1103,23 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
                                           denominator; // div k grad T rho_s*rho_l (h_l - h_s) / denominator
                                                        // plog<<denominator<<"denominator"<<"\n";
                 }
-                else if ((*h_data)(ci) >= h_v1 && (*h_data)(ci) <= h_v2 && (*H_data)(ci) >= H_LIM)
-                {
-                    const double denominator = (*rho_data)(ci)*std::pow(
-                        (*h_data)(ci) * (d_rho_vapor - d_rho_liquid) - d_rho_vapor * h_v2 + d_rho_liquid * h_v1, 2.0);
+                // else if ((*h_data)(ci) >= h_v1 && (*h_data)(ci) <= h_v2 && (*H_data)(ci) >= H_LIM)
+                // {
+                //     const double denominator = (*rho_data)(ci)*std::pow(
+                //         (*h_data)(ci) * (d_rho_vapor - d_rho_liquid) - d_rho_vapor * h_v2 + d_rho_liquid * h_v1, 2.0);
 
-                    material_derivative = (*Div_U_F_data)(ci)*d_rho_liquid * d_rho_vapor * (h_v2 - h_v1) / denominator;
-                }
-                if ((*h_data)(ci) <= h_v1 && (*H_data)(ci) >= H_LIM)
-                {
+                //     material_derivative = (*Div_U_F_data)(ci)*d_rho_liquid * d_rho_vapor * (h_v2 - h_v1) / denominator;
+                // }
+                // if ((*h_data)(ci) <= h_v1 && (*H_data)(ci) >= H_LIM)
+                // {
                     (*Div_U_F_data)(ci) =
                         -(d_rho_liquid - d_rho_solid) * material_derivative * (*H_data)(ci) / (*rho_data)(ci);
-                }
-                else if ((*h_data)(ci) >= h_v1 && (*H_data)(ci) >= H_LIM)
-                {
-                    (*Div_U_F_data)(ci) =
-                        -(d_rho_vapor - d_rho_liquid) * material_derivative * (*H_data)(ci) / (*rho_data)(ci);
-                }
+                // }
+                // else if ((*h_data)(ci) >= h_v1 && (*H_data)(ci) >= H_LIM)
+                // {
+                //     (*Div_U_F_data)(ci) =
+                //         -(d_rho_vapor - d_rho_liquid) * material_derivative * (*H_data)(ci) / (*rho_data)(ci);
+                // }
             }
         }
     }
