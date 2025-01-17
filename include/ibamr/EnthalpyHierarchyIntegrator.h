@@ -225,12 +225,18 @@ private:
     void computeLiquidFraction(int lf_idx, int h_idx, int H_idx);
 
     /*!
+     * \brief Compute vapor fraction.
+     */
+    void computeVaporFraction(int vf_idx, int lf_idx, int h_idx, int H_idx);
+
+    /*!
      * \brief The surface tension force is multiplied by a liquid fraction to zero out the surface tension
      * contribution in the liquid-solid and gas-solid interfaces. However, the liquid fraction is arbitrary in the gas
      * phase. so extrapolation of liquid fraction from PCM into the gas is necessary to get the correct results. Forward
      * Euler time stepping scheme is used to perfom constant extrapolation with fixed 15 iterations and CFL = 0.3.
      */
     void extrapolateLiquidFractionToGasRegion(int lf_new_idx);
+    void extrapolateVaporFractionToGasRegion(int vf_new_idx);
 
     /*!
      * \brief Compute advection velocity \f$ u_{\rm adv} = H(-\phi) n \f$.
@@ -246,6 +252,9 @@ private:
      */
     SAMRAI::tbox::Pointer<CellConvectiveOperator> getLiquidFractionExtrapConvectiveOperator(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_extrap_var);
+
+    SAMRAI::tbox::Pointer<CellConvectiveOperator> getVaporFractionExtrapConvectiveOperator(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > vf_extrap_var);
 
     /*!
      * Solver variables.
@@ -283,8 +292,12 @@ private:
     /*!
      * Energy equation parameters.
      */
-    double d_liquidus_temperature, d_solidus_temperature, d_reference_temperature, d_specific_heat_liquid,
-        d_specific_heat_solid, d_specific_heat_gas, d_specific_heat_mushy;
+
+    double d_liquidus_temperature, d_solidus_temperature, d_evap1_temperature, d_evap2_temperature,
+        d_reference_temperature, d_specific_heat_liquid, d_specific_heat_vapor, d_specific_heat_liquid_vapor,
+        d_specific_heat_solid, d_specific_heat_gas, d_specific_heat_solid_liquid;
+
+    double d_rho_vapor = std::numeric_limits<double>::signaling_NaN();
 
     /*!
      * Liquid fraction value in the gas. Default is set to be zero.
@@ -296,17 +309,24 @@ private:
      */
     int d_max_inner_iterations = 5;
     double d_lf_iteration_error_tolerance = 1e-8;
+    double d_vf_iteration_error_tolerance = 1e-8;
 
     /*!
      * Machineries related to constant extrapolation.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_extrap_var, d_lf_extrap_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_vf_extrap_var, d_vf_extrap_rhs_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_phi_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_extrap_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_vf_extrap_interp_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_adv_fc_lf_extrap_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_adv_sc_lf_extrap_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_u_adv_cc_lf_extrap_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_normal_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_adv_fc_vf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_adv_sc_vf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_u_adv_cc_vf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_normal_vf_extrap_var;
 
     int d_lf_extrap_current_idx = IBTK::invalid_index, d_lf_extrap_new_idx = IBTK::invalid_index,
         d_lf_extrap_scratch_idx = IBTK::invalid_index;
@@ -317,17 +337,35 @@ private:
     int d_normal_lf_extrap_current_idx = IBTK::invalid_index;
     int d_lf_extrap_rhs_scratch_idx = IBTK::invalid_index;
 
+    int d_vf_extrap_current_idx = IBTK::invalid_index, d_vf_extrap_new_idx = IBTK::invalid_index,
+        d_vf_extrap_scratch_idx = IBTK::invalid_index;
+    int d_vf_extrap_interp_idx = IBTK::invalid_index;
+    int d_u_adv_fc_vf_extrap_current_idx = IBTK::invalid_index;
+    int d_u_adv_sc_vf_extrap_current_idx = IBTK::invalid_index;
+    int d_u_adv_cc_vf_extrap_current_idx = IBTK::invalid_index;
+    int d_normal_vf_extrap_current_idx = IBTK::invalid_index;
+    int d_vf_extrap_rhs_scratch_idx = IBTK::invalid_index;
+
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_extrap_convective_op_input_db = d_default_convective_op_input_db;
     SAMRAI::tbox::Pointer<CellConvectiveOperator> d_lf_extrap_convective_op = nullptr;
     SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_lf_extrap_sol, d_lf_extrap_rhs;
+
+    SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_vf_extrap_convective_op_input_db = d_default_convective_op_input_db;
+    SAMRAI::tbox::Pointer<CellConvectiveOperator> d_vf_extrap_convective_op = nullptr;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_vf_extrap_sol, d_vf_extrap_rhs;
     bool d_lf_extrap_convective_op_needs_init;
 
     bool d_require_lf_extrapolation = false;
     int d_lf_extrap_max_num_time_steps;
     double d_lf_extrap_cell_size;
+    bool d_vf_extrap_convective_op_needs_init;
+
+    bool d_require_vf_extrapolation = false;
+    int d_vf_extrap_max_num_time_steps;
+    double d_vf_extrap_cell_size;
 };
 } // namespace IBAMR
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBAMR_EnthalpyHierarchyIntegrator
+#endif //

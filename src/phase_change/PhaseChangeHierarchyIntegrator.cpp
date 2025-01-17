@@ -335,6 +335,25 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
                          "CONSERVATIVE_COARSEN",
                          "CONSERVATIVE_LINEAR_REFINE");
 
+    if (d_vf_var)
+        registerVariable(d_vf_current_idx,
+                         d_vf_new_idx,
+                         d_vf_scratch_idx,
+                         d_vf_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE",
+                         d_vf_init);
+
+    if (d_vf_gradient_var)
+        registerVariable(d_vf_gradient_current_idx,
+                         d_vf_gradient_new_idx,
+                         d_vf_gradient_scratch_idx,
+                         d_vf_gradient_var,
+                         cell_ghosts,
+                         "CONSERVATIVE_COARSEN",
+                         "CONSERVATIVE_LINEAR_REFINE");
+
     registerVariable(d_T_current_idx,
                      d_T_new_idx,
                      d_T_scratch_idx,
@@ -394,6 +413,9 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
 
     d_lf_pre_var = new CellVariable<NDIM, double>("lf_pre_var");
     d_lf_pre_idx = var_db->registerVariableAndContext(d_lf_pre_var, getCurrentContext());
+
+    d_vf_pre_var = new CellVariable<NDIM, double>("vf_pre_var");
+    d_vf_pre_idx = var_db->registerVariableAndContext(d_vf_pre_var, getCurrentContext());
 
     d_T_temp_rhs_var = new CellVariable<NDIM, double>(d_T_var->getName() + "::temp_rhs");
     d_T_temp_rhs_idx = var_db->registerVariableAndContext(d_T_temp_rhs_var, getCurrentContext(), no_ghosts);
@@ -469,6 +491,8 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     {
         if (d_output_lf) d_visit_writer->registerPlotQuantity("liquid_fraction", "SCALAR", d_lf_current_idx, 0);
 
+        if (d_output_vf) d_visit_writer->registerPlotQuantity("vapor_fraction", "SCALAR", d_vf_current_idx, 0);
+
         if (d_output_lf_gradient)
             d_visit_writer->registerPlotQuantity("liquid_fraction_gradient", "SCALAR", d_lf_gradient_current_idx, 0);
 
@@ -529,6 +553,7 @@ PhaseChangeHierarchyIntegrator::preprocessIntegrateHierarchy(const double curren
         if (!level->checkAllocated(d_T_temp_rhs_idx)) level->allocatePatchData(d_T_temp_rhs_idx, current_time);
         if (!level->checkAllocated(d_H_pre_idx)) level->allocatePatchData(d_H_pre_idx, current_time);
         if (!level->checkAllocated(d_lf_pre_idx)) level->allocatePatchData(d_lf_pre_idx, current_time);
+        if (!level->checkAllocated(d_vf_pre_idx)) level->allocatePatchData(d_vf_pre_idx, current_time);
     }
 
     // Note that we always reset current context of state variables here, if
@@ -608,6 +633,7 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
         level->deallocatePatchData(d_T_temp_rhs_idx);
         level->deallocatePatchData(d_H_pre_idx);
         level->deallocatePatchData(d_lf_pre_idx);
+        level->deallocatePatchData(d_vf_pre_idx);
     }
 
     if (d_lf_gradient_var)
@@ -622,7 +648,7 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
                                                           DATA_COARSEN_TYPE,
-                                                          d_bdry_extrap_type, // TODO: update variable name
+                                                          d_bdry_extrap_type,
                                                           CONSISTENT_TYPE_2_BDRY,
                                                           H_bc_coef);
         HierarchyGhostCellInterpolation lf_bdry_bc_fill_op;
@@ -632,6 +658,30 @@ PhaseChangeHierarchyIntegrator::postprocessIntegrateHierarchy(const double curre
         // Find gradient of liquid fraction.
         d_hier_math_ops->grad(
             d_lf_gradient_new_idx, d_lf_gradient_var, 1.0, d_lf_scratch_idx, d_lf_var, nullptr, new_time);
+    }
+
+    if (d_vf_gradient_var)
+    {
+        // Ghost cell filling for vapor fraction
+        std::vector<RobinBcCoefStrategy<NDIM>*> H_bc_coef =
+            getPhysicalBcCoefs(d_H_var); // Using H bc for now since I dont have vf_bc
+        // in this class.
+        using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
+        InterpolationTransactionComponent vf_bc_component(d_vf_scratch_idx,
+                                                          d_vf_new_idx,
+                                                          DATA_REFINE_TYPE,
+                                                          USE_CF_INTERPOLATION,
+                                                          DATA_COARSEN_TYPE,
+                                                          d_bdry_extrap_type,
+                                                          CONSISTENT_TYPE_2_BDRY,
+                                                          H_bc_coef);
+        HierarchyGhostCellInterpolation vf_bdry_bc_fill_op;
+        vf_bdry_bc_fill_op.initializeOperatorState(vf_bc_component, d_hierarchy);
+        vf_bdry_bc_fill_op.fillData(new_time);
+
+        // Find gradient of liquid fraction.
+        d_hier_math_ops->grad(
+            d_vf_gradient_new_idx, d_vf_gradient_var, 1.0, d_vf_scratch_idx, d_vf_var, nullptr, new_time);
     }
 
     AdvDiffSemiImplicitHierarchyIntegrator::postprocessIntegrateHierarchy(
@@ -665,6 +715,29 @@ PhaseChangeHierarchyIntegrator::registerLiquidFractionGradientVariable(
 
     return;
 } // registerLiquidFractionGradientVariable
+
+void
+PhaseChangeHierarchyIntegrator::registerVaporFractionVariable(Pointer<CellVariable<NDIM, double> > vf_var,
+                                                              const bool output_vf_var)
+{
+    d_vf_var = vf_var;
+    d_output_vf = output_vf_var;
+
+    // Set default values.
+    d_vf_init = nullptr;
+    return;
+} // registerVolumeFractionVariable
+
+void
+PhaseChangeHierarchyIntegrator::registerVaporFractionGradientVariable(
+    Pointer<CellVariable<NDIM, double> > vf_gradient_var,
+    const bool output_vf_gradient_var)
+{
+    d_vf_gradient_var = vf_gradient_var;
+    d_output_vf_gradient = output_vf_gradient_var;
+
+    return;
+} // registerVolumeFractionGradientVariable
 
 void
 PhaseChangeHierarchyIntegrator::registerHeavisideVariable(Pointer<CellVariable<NDIM, double> > H_var)
@@ -712,6 +785,17 @@ PhaseChangeHierarchyIntegrator::setLiquidFractionInitialCondition(Pointer<CellVa
     d_lf_init = lf_init;
     return;
 } // setLiquidFractionInitialCondition
+
+void
+PhaseChangeHierarchyIntegrator::setVaporFractionInitialCondition(Pointer<CellVariable<NDIM, double> > vf_var,
+                                                                 Pointer<IBTK::CartGridFunction> vf_init)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(vf_var);
+#endif
+    d_vf_init = vf_init;
+    return;
+} // setVaporFractionInitialCondition
 
 void
 PhaseChangeHierarchyIntegrator::setTemperatureInitialCondition(Pointer<CellVariable<NDIM, double> > T_var,
@@ -838,7 +922,10 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
     d_T_convective_op_input_db = db->putDatabase("T_convective_op_db");
 
     db->putDouble("latent_heat", d_latent_heat);
+    db->putDouble("latent_heat_vaporization", d_latent_heat_vaporization);
     db->putDouble("rho_liquid", d_rho_liquid);
+
+    db->putDouble("rho_vapor", d_rho_vapor);
     db->putDouble("rho_solid", d_rho_solid);
     db->putDouble("T_melt", d_T_melt);
     db->putBool("solve_mass_conservation", d_solve_mass_conservation);
@@ -1064,6 +1151,35 @@ PhaseChangeHierarchyIntegrator::boundLiquidFraction(int lf_new_idx)
 } // boundLiquidFraction
 
 void
+PhaseChangeHierarchyIntegrator::boundVaporFraction(int vf_new_idx)
+{
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CellData<NDIM, double> > vf_new_data = patch->getPatchData(vf_new_idx);
+
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                CellIndex<NDIM> ci(it());
+
+                if ((*vf_new_data)(ci) > 1.0)
+                    (*vf_new_data)(ci) = 1.0;
+                else if ((*vf_new_data)(ci) < 0.0)
+                    (*vf_new_data)(ci) = 0.0;
+            }
+        }
+    }
+    return;
+}
+
+void
 PhaseChangeHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is_from_restart)
 {
 #if !defined(NDEBUG)
@@ -1073,6 +1189,11 @@ PhaseChangeHierarchyIntegrator::getFromInput(Pointer<Database> input_db, bool is
     if (!is_from_restart)
     {
         d_latent_heat = input_db->getDouble("latent_heat");
+        if (input_db->keyExists("rho_vapor")) d_rho_vapor = input_db->getDouble("rho_vapor");
+
+        // d_rho_vapor = input_db->getDouble("rho_vapor");
+        if (input_db->keyExists("latent_heat_vaporization"))
+            d_latent_heat_vaporization = input_db->getDouble("latent_heat_vaporization");
         d_rho_liquid = input_db->getDouble("rho_liquid");
         d_rho_solid = input_db->getDouble("rho_solid");
         d_T_melt = input_db->getDouble("T_melt");
@@ -1153,6 +1274,8 @@ PhaseChangeHierarchyIntegrator::getFromRestart()
 
     d_latent_heat = db->getDouble("latent_heat");
     d_rho_liquid = db->getDouble("rho_liquid");
+    d_rho_vapor = db->getDouble("rho_vapor");
+    d_latent_heat_vaporization = db->getDouble("latent_heat_vaporization");
     d_rho_solid = db->getDouble("rho_solid");
     d_T_melt = db->getDouble("T_melt");
     d_solve_mass_conservation = db->getBool("solve_mass_conservation");

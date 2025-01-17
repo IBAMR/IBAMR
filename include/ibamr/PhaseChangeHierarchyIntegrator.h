@@ -187,11 +187,24 @@ public:
                                                 bool output_lf_var = true);
 
     /*!
+     * \brief Register vapor fraction variable \f$ \alpha \f$.
+     */
+    virtual void registerVaporFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > vf_var,
+                                               bool output_vf_var = true);
+
+    /*!
      * \brief Register gradient of liquid fraction variable.
      */
     virtual void registerLiquidFractionGradientVariable(
         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_gradient_var,
         bool output_lf_gradient_var = true);
+
+    /*!
+     * \brief Register gradient of vapor fraction variable.
+     */
+    virtual void registerVaporFractionGradientVariable(
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > vf_gradient_var,
+        bool output_vf_gradient_var = true);
 
     /*!
      * \brief Register Heaviside variable \f$ H \f$ maintained by AdvDiffHierarchyIntegrator.
@@ -209,6 +222,13 @@ public:
      */
     void setLiquidFractionInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
                                            SAMRAI::tbox::Pointer<IBTK::CartGridFunction> lf_init);
+
+    /*!
+     * \brief Set a grid function to provide initial conditions for \f$ \varphi \f$ variable.
+     */
+
+    void setVaporFractionInitialCondition(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > vf_var,
+                                          SAMRAI::tbox::Pointer<IBTK::CartGridFunction> vf_init);
     /*!
      * \brief Set a grid function to provide initial conditions for  \f$ T \f$ variable.
      */
@@ -348,9 +368,15 @@ protected:
     void boundLiquidFraction(int lf_new_idx);
 
     /*!
+     * Bound the vapor fraction, if necessary.
+     */
+    void boundVaporFraction(int vf_new_idx);
+
+    /*!
      * Solver variables.
      */
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var, d_lf_gradient_var, d_lf_pre_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_vf_var, d_vf_gradient_var, d_vf_pre_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_T_F_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_T_diffusion_coef_var, d_T_diffusion_coef_rhs_var;
@@ -370,7 +396,7 @@ protected:
     /*!
      * Objects to set initial condition for \f$ \varphi \f$, \f$ T \f$ and \f$ \rho \f$.
      */
-    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_init, d_T_init, d_rho_init;
+    SAMRAI::tbox::Pointer<IBTK::CartGridFunction> d_lf_init, d_vf_init, d_T_init, d_rho_init;
 
     /*!
      * Cartgrid functions to be used to set the energy equation source term.
@@ -381,8 +407,9 @@ protected:
     /*!
      * Boolean to output the variables in visit.
      */
-    bool d_output_lf = false, d_output_lf_gradient = false, d_output_T = false, d_output_rho = false,
-         d_output_Cp = false, d_output_Div_U_F = false, d_output_temp_k = false;
+    bool d_output_lf = false, d_output_vf = false, d_output_lf_gradient = false, d_output_vf_gradient = false,
+         d_output_T = false, d_output_rho = false, d_output_Cp = false, d_output_Div_U_F = false,
+         d_output_temp_k = false;
 
     /*!
      * Data shynchronization operator.
@@ -452,6 +479,10 @@ protected:
         d_lf_new_idx = IBTK::invalid_index;
     int d_lf_gradient_scratch_idx = IBTK::invalid_index, d_lf_gradient_current_idx = IBTK::invalid_index,
         d_lf_gradient_new_idx = IBTK::invalid_index;
+    int d_vf_scratch_idx = IBTK::invalid_index, d_vf_current_idx = IBTK::invalid_index,
+        d_vf_new_idx = IBTK::invalid_index;
+    int d_vf_gradient_scratch_idx = IBTK::invalid_index, d_vf_gradient_current_idx = IBTK::invalid_index,
+        d_vf_gradient_new_idx = IBTK::invalid_index;
     int d_T_scratch_idx = IBTK::invalid_index, d_T_current_idx = IBTK::invalid_index, d_T_new_idx = IBTK::invalid_index;
     int d_rho_scratch_idx = IBTK::invalid_index, d_rho_current_idx = IBTK::invalid_index,
         d_rho_new_idx = IBTK::invalid_index;
@@ -480,6 +511,7 @@ protected:
      */
     int d_T_temp_rhs_idx = IBTK::invalid_index, d_T_C_idx = IBTK::invalid_index;
     int d_lf_pre_idx = IBTK::invalid_index, d_H_pre_idx = IBTK::invalid_index;
+    int d_vf_pre_idx = IBTK::invalid_index;
     int d_C_rhs_scratch_idx = IBTK::invalid_index;
     int d_updated_rho_idx = IBTK::invalid_index;
     int d_Div_U_F_idx = IBTK::invalid_index;
@@ -490,7 +522,7 @@ protected:
     /*!
      * Phase change parameters.
      */
-    double d_rho_liquid, d_rho_solid, d_T_melt, d_latent_heat;
+    double d_rho_liquid, d_rho_vapor, d_rho_solid, d_T_melt, d_latent_heat, d_latent_heat_vaporization;
 
     /*!
      * Variable to indicate the type of interpolation to be done for conductivity.

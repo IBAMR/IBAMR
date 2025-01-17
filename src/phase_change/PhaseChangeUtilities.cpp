@@ -114,6 +114,76 @@ callTagLiquidFractionCellsCallbackFunction(Pointer<BasePatchHierarchy<NDIM> > hi
     return;
 } // callTagLiquidFractionCellsCallbackFunction
 
+void
+callTagVaporFractionCellsCallbackFunction(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                          const int level_number,
+                                          const double error_data_time,
+                                          const int tag_index,
+                                          const bool initial_time,
+                                          const bool uses_richardson_extrapolation_too,
+                                          void* ctx)
+{
+    // Set the density from the level set information
+    auto ptr_tagVaporFractionCells = static_cast<TagVaporFractionRefinementCells*>(ctx);
+    ptr_tagVaporFractionCells->tagVaporFractionCells(
+        hierarchy, level_number, error_data_time, tag_index, initial_time, uses_richardson_extrapolation_too, ctx);
+
+    return;
+}
+
+SetFluidProperties::SetFluidProperties(const std::string& object_name,
+                                       Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
+                                       const Pointer<CellVariable<NDIM, double> > H_var,
+                                       RobinBcCoefStrategy<NDIM>* H_bc_coef,
+                                       const Pointer<CellVariable<NDIM, double> > lf_var,
+                                       RobinBcCoefStrategy<NDIM>* lf_bc_coef,
+                                       const Pointer<CellVariable<NDIM, double> > vf_var,
+                                       RobinBcCoefStrategy<NDIM>* vf_bc_coef,
+                                       const double rho_liquid,
+                                       const double rho_vapor,
+                                       const double rho_solid,
+                                       const double rho_gas,
+                                       const double kappa_liquid,
+                                       const double kappa_vapor,
+                                       const double kappa_solid,
+                                       const double kappa_gas,
+                                       const double specific_heat_liquid,
+                                       const double specific_heat_solid,
+                                       const double specific_heat_vapor,
+                                       const double specific_heat_gas,
+                                       const double mu_liquid,
+                                       const double mu_solid,
+                                       const double mu_vapor,
+                                       const double mu_gas)
+    : d_object_name(object_name),
+      d_adv_diff_solver(adv_diff_solver),
+      d_H_var(H_var),
+      d_H_bc_coef(H_bc_coef),
+      d_lf_var(lf_var),
+      d_lf_bc_coef(lf_bc_coef),
+      d_vf_var(vf_var),
+      d_vf_bc_coef(vf_bc_coef),
+      d_rho_liquid(rho_liquid),
+      d_rho_vapor(rho_vapor),
+      d_rho_solid(rho_solid),
+      d_rho_gas(rho_gas),
+      d_kappa_liquid(kappa_liquid),
+      d_kappa_vapor(kappa_vapor),
+      d_kappa_solid(kappa_solid),
+      d_kappa_gas(kappa_gas),
+      d_specific_heat_liquid(specific_heat_liquid),
+      d_specific_heat_solid(specific_heat_solid),
+      d_specific_heat_vapor(specific_heat_vapor),
+      d_specific_heat_gas(specific_heat_gas),
+      d_mu_liquid(mu_liquid),
+      d_mu_solid(mu_solid),
+      d_mu_vapor(mu_vapor),
+      d_mu_gas(mu_gas)
+{
+    // Intentionally left blank
+    return;
+} // SetFluidProperties
+
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
                                        const Pointer<CellVariable<NDIM, double> > H_var,
@@ -228,6 +298,23 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
         TBOX_ERROR("This statement should not be reached");
     }
 
+    int vf_idx = IBTK::invalid_index;
+    if (d_vf_var)
+    {
+        if (IBTK::rel_equal_eps(time, current_time))
+        {
+            vf_idx = var_db->mapVariableAndContextToIndex(d_vf_var, d_adv_diff_solver->getCurrentContext());
+        }
+        else if (IBTK::rel_equal_eps(time, new_time))
+        {
+            vf_idx = var_db->mapVariableAndContextToIndex(d_vf_var, d_adv_diff_solver->getNewContext());
+        }
+        else
+        {
+            TBOX_ERROR("This statement should not be reached");
+        }
+    }
+
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -245,6 +332,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
                 const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
+                const Pointer<CellData<NDIM, double> > vf_data = (d_vf_var ? patch->getPatchData(vf_idx) : nullptr);
                 Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
 
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
@@ -252,9 +340,11 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                     CellIndex<NDIM> ci(it());
                     const double heaviside = (*H_data)(ci);
                     const double liquid_fraction = (*lf_data)(ci);
+                    const double vapor_fraction = (vf_data ? (*vf_data)(ci) : 0.0);
 
                     (*rho_data)(ci) = d_rho_gas + (d_rho_solid - d_rho_gas) * heaviside +
-                                      (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside;
+                                      (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside +
+                                      (d_rho_vapor - d_rho_solid) * vapor_fraction * heaviside;
                 }
             }
         }
@@ -268,32 +358,56 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
             var_db->registerVariableAndContext(d_H_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts);
         const int lf_scratch_idx =
             var_db->registerVariableAndContext(d_lf_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts);
+        const int vf_scratch_idx = (d_vf_var) ?
+                                       var_db->registerVariableAndContext(
+                                           d_vf_var, var_db->getContext(d_object_name + "::SCRATCH"), cell_ghosts) :
+                                       IBTK::invalid_index;
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(H_scratch_idx, time);
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(lf_scratch_idx, time);
+            if (d_vf_var)
+            {
+                patch_hierarchy->getPatchLevel(ln)->allocatePatchData(vf_scratch_idx, time);
+            }
         }
         using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-        std::vector<InterpolationTransactionComponent> transaction_comps(2);
-        transaction_comps[0] = InterpolationTransactionComponent(H_scratch_idx,
-                                                                 H_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 "LINEAR",
-                                                                 false,
-                                                                 d_H_bc_coef);
+        std::vector<InterpolationTransactionComponent> transaction_comps;
 
-        transaction_comps[1] = InterpolationTransactionComponent(lf_scratch_idx,
-                                                                 lf_idx,
-                                                                 "CONSERVATIVE_LINEAR_REFINE",
-                                                                 false,
-                                                                 "CONSERVATIVE_COARSEN",
-                                                                 "LINEAR",
-                                                                 false,
-                                                                 d_lf_bc_coef);
+        // Always add the components for H and lf
+        transaction_comps.push_back(InterpolationTransactionComponent(H_scratch_idx,
+                                                                      H_idx,
+                                                                      "CONSERVATIVE_LINEAR_REFINE",
+                                                                      false,
+                                                                      "CONSERVATIVE_COARSEN",
+                                                                      "LINEAR",
+                                                                      false,
+                                                                      d_H_bc_coef));
 
+        transaction_comps.push_back(InterpolationTransactionComponent(lf_scratch_idx,
+                                                                      lf_idx,
+                                                                      "CONSERVATIVE_LINEAR_REFINE",
+                                                                      false,
+                                                                      "CONSERVATIVE_COARSEN",
+                                                                      "LINEAR",
+                                                                      false,
+                                                                      d_lf_bc_coef));
+
+        // Add vf if it is available
+        if (d_vf_var)
+        {
+            transaction_comps.push_back(InterpolationTransactionComponent(vf_scratch_idx,
+                                                                          vf_idx,
+                                                                          "CONSERVATIVE_LINEAR_REFINE",
+                                                                          false,
+                                                                          "CONSERVATIVE_COARSEN",
+                                                                          "LINEAR",
+                                                                          false,
+                                                                          d_vf_bc_coef));
+        }
+
+        // Now initialize the operator state
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
         hier_bdry_fill->initializeOperatorState(transaction_comps, patch_hierarchy);
         hier_bdry_fill->fillData(time);
@@ -308,6 +422,8 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                 const Box<NDIM>& patch_box = patch->getBox();
                 const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
                 const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
+                const Pointer<CellData<NDIM, double> > vf_data =
+                    (d_vf_var ? patch->getPatchData(vf_scratch_idx) : nullptr);
                 Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -322,8 +438,13 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
                         const double liquid_fraction_upper = (*lf_data)(si.toCell(1));
                         const double liquid_fraction = 0.5 * (liquid_fraction_lower + liquid_fraction_upper);
 
+                        const double vapor_fraction =
+                            (vf_data ? 0.5 * ((*vf_data)(si.toCell(0)) + (*vf_data)(si.toCell(1))) :
+                                       0.0); // Default to 0 if vf is not present
+
                         (*rho_data)(si) = d_rho_gas + (d_rho_solid - d_rho_gas) * heaviside +
-                                          (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside;
+                                          (d_rho_liquid - d_rho_solid) * liquid_fraction * heaviside +
+                                          (d_rho_vapor - d_rho_solid) * vapor_fraction * heaviside;
                     }
                 }
             }
@@ -333,9 +454,17 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
         {
             patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(H_scratch_idx);
             patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(lf_scratch_idx);
+            if (d_vf_var)
+            {
+                patch_hierarchy->getPatchLevel(ln)->deallocatePatchData(vf_scratch_idx);
+            }
         }
         var_db->removePatchDataIndex(H_scratch_idx);
         var_db->removePatchDataIndex(lf_scratch_idx);
+        if (d_vf_var)
+        {
+            var_db->removePatchDataIndex(vf_scratch_idx);
+        }
     }
 
     return;
@@ -379,6 +508,23 @@ SetFluidProperties::setThermalConductivityPatchData(int kappa_idx,
         TBOX_ERROR("This statement should not be reached");
     }
 
+    int vf_idx = IBTK::invalid_index;
+    if (d_vf_var)
+    {
+        if (IBTK::rel_equal_eps(time, current_time))
+        {
+            vf_idx = var_db->mapVariableAndContextToIndex(d_vf_var, d_adv_diff_solver->getCurrentContext());
+        }
+        else if (IBTK::rel_equal_eps(time, new_time))
+        {
+            vf_idx = var_db->mapVariableAndContextToIndex(d_vf_var, d_adv_diff_solver->getNewContext());
+        }
+        else
+        {
+            TBOX_ERROR("This statement should not be reached");
+        }
+    }
+
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -393,6 +539,8 @@ SetFluidProperties::setThermalConductivityPatchData(int kappa_idx,
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
             const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
+            const Pointer<CellData<NDIM, double> > vf_data = (d_vf_var ? patch->getPatchData(vf_idx) : nullptr);
+
             Pointer<CellData<NDIM, double> > kappa_data = patch->getPatchData(kappa_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
@@ -400,8 +548,10 @@ SetFluidProperties::setThermalConductivityPatchData(int kappa_idx,
                 CellIndex<NDIM> ci(it());
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
+                const double vapor_fraction = (vf_data ? (*vf_data)(ci) : 0.0);
                 (*kappa_data)(ci) = d_kappa_gas + (d_kappa_solid - d_kappa_gas) * heaviside +
-                                    (d_kappa_liquid - d_kappa_solid) * liquid_fraction * heaviside;
+                                    (d_kappa_liquid - d_kappa_solid) * liquid_fraction * heaviside +
+                                    (d_kappa_vapor - d_kappa_solid) * vapor_fraction * heaviside;
             }
         }
     }
@@ -432,7 +582,6 @@ SetFluidProperties::setSpecificHeatPatchData(int specific_heat_idx,
     {
         TBOX_ERROR("This statement should not be reached");
     }
-
     int lf_idx = IBTK::invalid_index;
     if (IBTK::rel_equal_eps(time, current_time))
     {
@@ -445,6 +594,23 @@ SetFluidProperties::setSpecificHeatPatchData(int specific_heat_idx,
     else
     {
         TBOX_ERROR("This statement should not be reached");
+    }
+
+    int vf_idx = IBTK::invalid_index;
+    if (d_vf_var)
+    {
+        if (IBTK::rel_equal_eps(time, current_time))
+        {
+            vf_idx = var_db->mapVariableAndContextToIndex(d_vf_var, d_adv_diff_solver->getCurrentContext());
+        }
+        else if (IBTK::rel_equal_eps(time, new_time))
+        {
+            vf_idx = var_db->mapVariableAndContextToIndex(d_vf_var, d_adv_diff_solver->getNewContext());
+        }
+        else
+        {
+            TBOX_ERROR("This statement should not be reached");
+        }
     }
 
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
@@ -461,6 +627,8 @@ SetFluidProperties::setSpecificHeatPatchData(int specific_heat_idx,
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
             const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
+            const Pointer<CellData<NDIM, double> > vf_data = (d_vf_var ? patch->getPatchData(vf_idx) : nullptr);
+            ;
             Pointer<CellData<NDIM, double> > specific_heat_data = patch->getPatchData(specific_heat_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
@@ -468,9 +636,11 @@ SetFluidProperties::setSpecificHeatPatchData(int specific_heat_idx,
                 CellIndex<NDIM> ci(it());
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
+                const double vapor_fraction = (vf_data ? (*vf_data)(ci) : 0.0);
                 (*specific_heat_data)(ci) =
                     d_specific_heat_gas + (d_specific_heat_solid - d_specific_heat_gas) * heaviside +
-                    (d_specific_heat_liquid - d_specific_heat_solid) * liquid_fraction * heaviside;
+                    (d_specific_heat_liquid - d_specific_heat_solid) * liquid_fraction * heaviside +
+                    (d_specific_heat_vapor - d_specific_heat_solid) * vapor_fraction * heaviside;
             }
         }
     }
@@ -516,6 +686,23 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
         TBOX_ERROR("This statement should not be reached");
     }
 
+    int vf_idx = IBTK::invalid_index;
+    if (d_vf_var)
+    {
+        if (IBTK::rel_equal_eps(time, current_time))
+        {
+            vf_idx = var_db->mapVariableAndContextToIndex(d_vf_var, d_adv_diff_solver->getCurrentContext());
+        }
+        else if (IBTK::rel_equal_eps(time, new_time))
+        {
+            vf_idx = var_db->mapVariableAndContextToIndex(d_vf_var, d_adv_diff_solver->getNewContext());
+        }
+        else
+        {
+            TBOX_ERROR("This statement should not be reached");
+        }
+    }
+
     Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
@@ -530,6 +717,8 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
             const Box<NDIM>& patch_box = patch->getBox();
             const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
             const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
+            const Pointer<CellData<NDIM, double> > vf_data = (d_vf_var ? patch->getPatchData(vf_idx) : nullptr);
+            ;
             Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
@@ -537,8 +726,10 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
                 CellIndex<NDIM> ci(it());
                 const double heaviside = (*H_data)(ci);
                 const double liquid_fraction = (*lf_data)(ci);
+                const double vapor_fraction = (vf_data ? (*vf_data)(ci) : 0.0);
                 (*mu_data)(ci) = d_mu_gas + (d_mu_solid - d_mu_gas) * heaviside +
-                                 (d_mu_liquid - d_mu_solid) * liquid_fraction * heaviside;
+                                 (d_mu_liquid - d_mu_solid) * liquid_fraction * heaviside +
+                                 (d_mu_vapor - d_mu_solid) * heaviside * vapor_fraction;
             }
         }
     }
@@ -553,9 +744,14 @@ TagLiquidFractionRefinementCells::tagLiquidFractionCells(Pointer<BasePatchHierar
                                                          const int tag_index,
                                                          const bool initial_time,
                                                          const bool /*uses_richardson_extrapolation_too*/,
-                                                         void* /*ctx*/)
+                                                         void* ctx)
 {
+    if (initial_time || level_number == hierarchy->getFinestLevelNumber()) return;
+
+    TagLiquidFractionRefinementCells* lf_tagger = static_cast<TagLiquidFractionRefinementCells*>(ctx);
+
 #if !defined(NDEBUG)
+    TBOX_ASSERT(lf_tagger);
     TBOX_ASSERT(hierarchy);
     TBOX_ASSERT(level_number >= 0);
     TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
@@ -604,7 +800,72 @@ TagLiquidFractionRefinementCells::tagLiquidFractionCells(Pointer<BasePatchHierar
     return;
 } // tagLiquidFractionCells
 
+void
+TagVaporFractionRefinementCells::tagVaporFractionCells(Pointer<BasePatchHierarchy<NDIM> > hierarchy,
+                                                       const int level_number,
+                                                       const double /*error_data_time*/,
+                                                       const int tag_index,
+                                                       const bool initial_time,
+                                                       const bool /*uses_richardson_extrapolation_too*/,
+                                                       void* ctx)
+{
+    if (initial_time || level_number == hierarchy->getFinestLevelNumber()) return;
+
+    TagVaporFractionRefinementCells* vf_tagger = static_cast<TagVaporFractionRefinementCells*>(ctx);
+
+#if !defined(NDEBUG)
+    TBOX_ASSERT(vf_tagger);
+    TBOX_ASSERT(hierarchy);
+    TBOX_ASSERT(level_number >= 0);
+    TBOX_ASSERT(hierarchy->getPatchLevel(level_number));
+#endif
+
+    // Get the vapor fraction information
+    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+    const int vf_idx = var_db->mapVariableAndContextToIndex(d_vf_var, d_adv_diff_solver->getCurrentContext());
+    const int vf_grad_idx = var_db->mapVariableAndContextToIndex(d_vf_grad_var, d_adv_diff_solver->getCurrentContext());
+
+    // Tag cells based on the value of the level set variable
+    Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(level_number);
+    for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+    {
+        Pointer<Patch<NDIM> > patch = level->getPatch(p());
+        const Box<NDIM>& patch_box = patch->getBox();
+        Pointer<CellData<NDIM, int> > tags_data = patch->getPatchData(tag_index);
+        Pointer<CellData<NDIM, double> > vf_data = patch->getPatchData(vf_idx);
+        Pointer<CellData<NDIM, double> > vf_grad_data = patch->getPatchData(vf_grad_idx);
+
+        for (CellIterator<NDIM> ic(patch_box); ic; ic++)
+        {
+            const hier::Index<NDIM>& i = ic();
+            const double vapor_fraction = (*vf_data)(i);
+
+            if (initial_time)
+            {
+                if (vapor_fraction >= d_tag_min_value && vapor_fraction <= d_tag_max_value) (*tags_data)(i) = 1;
+            }
+            else
+            {
+                bool non_zero_gradient = false;
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    if (!IBTK::abs_equal_eps((*vf_grad_data)(i, d), 0.0))
+                    {
+                        non_zero_gradient = true;
+                        break;
+                    }
+                }
+                if (non_zero_gradient) (*tags_data)(i) = 1;
+            }
+        }
+    }
+
+    return;
+}
+
 //////////////////////////////////////////////////////////////////////////////
+
+// namespace PhaseChangeUtilities
 
 } // namespace PhaseChangeUtilities
 
