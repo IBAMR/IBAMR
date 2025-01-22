@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2024 by the IBAMR developers
+// Copyright (c) 2017 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -17,6 +17,9 @@
 #define included_IBAMR_MarangoniSurfaceTensionForceFunction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
 #include "ibamr/SurfaceTensionForceFunction.h"
 
 namespace IBAMR

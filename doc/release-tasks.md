@@ -9,6 +9,8 @@ GitHub.
 
 - [ ] verify that neither `namespaces.h` nor `app_namespaces.h` are in IBTK or
   IBAMR headers
+- [ ] verify that each IBAMR header includes `ibamr/config.h` and each IBTK
+  header includes `ibtk/config.h`
 - [ ] clear basic compilation warnings with GCC and clang on linux
 - [ ] compile with the latest libMesh release (which should be configured with
   `--disable-deprecated`) to verify that we do not use any deprecated

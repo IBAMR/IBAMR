@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2018 - 2024 by the IBAMR developers
+// Copyright (c) 2018 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -15,12 +15,13 @@
 #define included_HeavisideForcingFunction
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibamr/config.h>
+
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 #include <ibtk/HierarchyMathOps.h>
 #include <ibtk/muParserCartGridFunction.h>
-
-#include <ibamr/app_namespaces.h>
 
 /////////////////////////////// CLASS DEFINITION /////////////////////////////
 namespace IBAMR
@@ -70,11 +71,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = nullptr) override;
+                        SAMRAI::tbox::Pointer<SAMRAI::hier::PatchLevel<NDIM> > patch_level = nullptr) override;
 
     //\}
 
