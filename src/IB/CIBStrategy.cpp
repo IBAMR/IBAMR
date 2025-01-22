@@ -853,10 +853,10 @@ CIBStrategy::rotateArray(double* /*array*/,
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-CIBStrategy::setRotationMatrix(const IBTK::EigenAlignedVector<Eigen::Vector3d>& rot_vel,
-                               const IBTK::EigenAlignedVector<Eigen::Quaterniond>& q_old,
-                               IBTK::EigenAlignedVector<Eigen::Quaterniond>& q_new,
-                               IBTK::EigenAlignedVector<Eigen::Matrix3d>& rot_mat,
+CIBStrategy::setRotationMatrix(const std::vector<Eigen::Vector3d>& rot_vel,
+                               const std::vector<Eigen::Quaterniond>& q_old,
+                               std::vector<Eigen::Quaterniond>& q_new,
+                               std::vector<Eigen::Matrix3d>& rot_mat,
                                const double dt)
 {
     for (unsigned struct_no = 0; struct_no < d_num_rigid_parts; ++struct_no)

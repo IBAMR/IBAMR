@@ -215,7 +215,7 @@ FEValues<dim, spacedim>::reinit(const libMesh::Elem* elem)
             ref_values.d_reference_shape_gradients;
         d_shape_gradients.resize(ref_shape_gradients.shape()[0]);
 
-        const EigenAlignedVector<Eigen::Matrix<double, spacedim, dim> >& covariants = mapping.getCovariants();
+        const std::vector<Eigen::Matrix<double, spacedim, dim> >& covariants = mapping.getCovariants();
         for (unsigned int i = 0; i < d_shape_gradients.size(); ++i)
         {
             d_shape_gradients[i].resize(ref_shape_gradients.shape()[1]);

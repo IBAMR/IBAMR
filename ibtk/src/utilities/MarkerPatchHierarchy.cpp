@@ -259,12 +259,12 @@ MarkerPatch::contains(const IBTK::Point& position) const
     return false;
 }
 
-std::tuple<std::vector<int>, EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> >
+std::tuple<std::vector<int>, std::vector<IBTK::Point>, std::vector<IBTK::Vector> >
 MarkerPatch::prune()
 {
     std::vector<int> indices;
-    EigenAlignedVector<IBTK::Point> positions;
-    EigenAlignedVector<IBTK::Vector> velocities;
+    std::vector<IBTK::Point> positions;
+    std::vector<IBTK::Vector> velocities;
     // Prune from the back to the front to avoid moving stored markers
     for (int index = size() - 1; index >= 0; index--)
     {
@@ -317,8 +317,8 @@ MarkerPatch::size() const
 
 MarkerPatchHierarchy::MarkerPatchHierarchy(const std::string& name,
                                            Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
-                                           const EigenAlignedVector<IBTK::Point>& positions,
-                                           const EigenAlignedVector<IBTK::Point>& velocities,
+                                           const std::vector<IBTK::Point>& positions,
+                                           const std::vector<IBTK::Point>& velocities,
                                            const bool register_for_restart)
     : d_object_name(name),
       d_register_for_restart(register_for_restart),
@@ -367,8 +367,7 @@ MarkerPatchHierarchy::~MarkerPatchHierarchy()
 }
 
 void
-MarkerPatchHierarchy::reinit(const EigenAlignedVector<IBTK::Point>& positions,
-                             const EigenAlignedVector<IBTK::Point>& velocities)
+MarkerPatchHierarchy::reinit(const std::vector<IBTK::Point>& positions, const std::vector<IBTK::Point>& velocities)
 {
     TBOX_ASSERT(positions.size() == velocities.size());
     IBTK_TIMER_START(t_reinit);
@@ -727,7 +726,7 @@ MarkerPatchHierarchy::getNumberOfMarkers() const
     return d_num_markers;
 }
 
-std::pair<EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> >
+std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> >
 MarkerPatchHierarchy::collectAllMarkers() const
 {
     IBTK_TIMER_START(t_collect_all_markers);
@@ -768,8 +767,8 @@ MarkerPatchHierarchy::collectAllMarkers() const
     TBOX_ASSERT(global_velocities.size() == getNumberOfMarkers() * NDIM);
     TBOX_ASSERT(global_indices.size() == getNumberOfMarkers());
 
-    EigenAlignedVector<IBTK::Point> positions(getNumberOfMarkers());
-    EigenAlignedVector<IBTK::Vector> velocities(getNumberOfMarkers());
+    std::vector<IBTK::Point> positions(getNumberOfMarkers());
+    std::vector<IBTK::Vector> velocities(getNumberOfMarkers());
     for (unsigned int k = 0; k < getNumberOfMarkers(); ++k)
     {
         positions[global_indices[k]] = IBTK::Point(&global_positions[k * NDIM]);

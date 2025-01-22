@@ -536,7 +536,7 @@ main(int argc, char** argv)
             std::vector<double> X_vec_global(X_vec.size());
             X_vec.localize(X_vec_global);
 
-            EigenAlignedVector<IBTK::Point> positions;
+            std::vector<IBTK::Point> positions;
             const auto n_nodes = mesh.parallel_n_nodes();
             std::vector<dof_id_type> X_idxs;
             for (dof_id_type i = 0; i < n_nodes; ++i)
