@@ -46,17 +46,6 @@ GitHub.
   where a statically stored `HierarchyDataOps` object keeps a patch hierarchy
   alive that is otherwise inaccessible.
 - [ ] Run clang-format on the entire code base via `make indent-all`.
-- [ ] Check that we don't use `Eigen::Index` anywhere: that is not available in
-  older versions of Eigen. Instead, write
-```cpp
-    // Older versions of Eigen don't make Eigen::Index publicly available
-#if EIGEN_VERSION_AT_LEAST(3, 3, 0)
-    using IndexType = Eigen::Index;
-#else
-    using IndexType = typename MatrixType::Index;
-#endif
-```
-  where needed.
 
 ## testing
 
