@@ -25,7 +25,7 @@ on:
 jobs:
   build_ibamr_archlinux_016:
     runs-on: ubuntu-latest
-    name: Build IBAMR and run tests (0.16 dependencies)
+    name: Build IBAMR and run tests (0.16 dependencies, Arch Linux 2025)
     container:
       image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-archlinux'
     env:
