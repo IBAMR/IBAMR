@@ -245,8 +245,17 @@ CartExtrapPhysBdryOp::setPhysicalBoundaryConditions(Patch<NDIM>& patch,
     for (int n = 0; n < n_physical_codim1_boxes; ++n)
     {
         const BoundaryBox<NDIM>& bdry_box = physical_codim1_boxes[n];
-        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
         const unsigned int location_index = bdry_box.getLocationIndex();
+        const int bdry_normal_axis = location_index / 2;
+        Box<NDIM> extended_box = bdry_box.getBox();
+        for (int axis = 0; axis < NDIM; ++axis)
+        {
+            if (axis == bdry_normal_axis) continue;
+            extended_box.lower(axis) = patch_box.lower(axis) - ghost_width_to_fill(axis);
+            extended_box.upper(axis) = patch_box.upper(axis) + ghost_width_to_fill(axis);
+        }
+        const BoundaryBox<NDIM> extended_bdry_box(extended_box, bdry_box.getBoundaryType(), location_index);
+        const Box<NDIM> bdry_fill_box = pgeom->getBoundaryFillBox(extended_bdry_box, patch_box, ghost_width_to_fill);
         const int codim = 1;
         bdry_fill_boxes.push_back(std::make_pair(bdry_fill_box, std::make_pair(location_index, codim)));
     }
