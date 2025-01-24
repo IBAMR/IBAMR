@@ -82,7 +82,7 @@ namespace IBAMR
 namespace
 {
 // Version of FEMechanicsBase restart file data.
-const int FE_MECHANICS_BASE_VERSION = 1;
+const int FE_MECHANICS_BASE_VERSION = 2;
 
 static Timer* t_assemble_interior_force_density_rhs;
 
@@ -1489,7 +1489,7 @@ FEMechanicsBase::libmesh_restart_file_name(const std::string& restart_dump_dirna
                                            const std::string& extension)
 {
     std::ostringstream file_name_prefix;
-    file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "." << std::setw(6)
+    file_name_prefix << restart_dump_dirname << "/libmesh_data_femechanicsbase_part_" << part << "." << std::setw(6)
                      << std::setfill('0') << std::right << time_step_number << "." << extension;
     return file_name_prefix.str();
 }
