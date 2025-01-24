@@ -34,7 +34,7 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -133,7 +133,7 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -207,7 +207,7 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -282,7 +282,7 @@ jobs:
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         id: git
       - name: Verify that clang-format was run
         id: format
