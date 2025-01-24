@@ -15,6 +15,7 @@
 
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/VCStaggeredStokesOperator.h"
+#include "ibamr/VCStaggeredStokesSpec.h"
 #include "ibamr/ibamr_utilities.h"
 
 #include "ibtk/HierarchyGhostCellInterpolation.h"
@@ -80,6 +81,8 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 {
     IBAMR_TIMER_START(t_apply);
 
+    auto& vc_stokes_op_spec = static_cast<const VCStaggeredStokesOpSpec&>(*d_problem_spec);
+
     // Get the vector components.
     const int U_idx = x.getComponentDescriptorIndex(0);
     const int P_idx = x.getComponentDescriptorIndex(1);
@@ -125,7 +128,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 
     // Compute the action of the operator:
     //
-    // A*[U;P] := [A_U;A_P] = [(C*I+D*L)*U + Grad P; -Div U]
+    // A*[U;P] := [A_U;A_P] = [(C*I + L1(mu) + L2(lambda))*U + Grad P; -Div (coef U)]
     d_hier_math_ops->grad(A_U_idx,
                           A_U_sc_var,
                           /*cf_bdry_synch*/ false,
@@ -134,18 +137,18 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                           P_cc_var,
                           d_no_fill,
                           d_new_time);
-    // A_U += (C*I*L(D))*U
+    // A_U += (C*I + L1(mu))*U
     double alpha = 1.0;
     double beta = 1.0;
-    if (d_U_problem_coefs.cIsZero() || d_U_problem_coefs.cIsConstant())
+    if (vc_stokes_op_spec.d_C_is_const)
     {
-        beta = d_U_problem_coefs.cIsZero() ? 0.0 : d_U_problem_coefs.getCConstant();
+        beta = vc_stokes_op_spec.d_C_const;
     }
     d_hier_math_ops->vc_laplace(A_U_idx,
                                 A_U_sc_var,
                                 alpha,
                                 beta,
-                                d_U_problem_coefs.getDPatchDataId(),
+                                vc_stokes_op_spec.d_D_idx,
 #if (NDIM == 2)
                                 Pointer<NodeVariable<NDIM, double> >(nullptr),
 #elif (NDIM == 3)
@@ -156,11 +159,30 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                 d_no_fill,
                                 d_new_time,
                                 d_D_interp_type,
-                                d_U_problem_coefs.cIsVariable() ? d_U_problem_coefs.getCPatchDataId() : -1,
+                                vc_stokes_op_spec.d_C_idx,
                                 Pointer<SideVariable<NDIM, double> >(nullptr),
                                 1.0,
                                 A_U_idx,
                                 A_U_sc_var);
+
+    // A_U += L2(lambda)*U
+    if (vc_stokes_op_spec.d_L_idx > 0)
+    {
+        d_hier_math_ops->vc_dilatational(A_U_idx,
+                                         A_U_sc_var,
+                                         1.0,
+                                         vc_stokes_op_spec.d_L_idx,
+                                         Pointer<CellVariable<NDIM, double> >(nullptr),
+                                         U_scratch_idx,
+                                         U_sc_var,
+                                         d_no_fill,
+                                         d_new_time,
+                                         1.0,
+                                         A_U_idx,
+                                         A_U_sc_var);
+    }
+
+    //-Div (coef U)
     d_hier_math_ops->div(A_P_idx,
                          A_P_cc_var,
                          -1.0,
@@ -168,7 +190,11 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                          U_sc_var,
                          d_no_fill,
                          d_new_time,
-                         /*cf_bdry_synch*/ true);
+                         /*cf_bdry_synch*/ true,
+                         vc_stokes_op_spec.d_div_coef_idx,
+                         Pointer<SideVariable<NDIM, double> >(nullptr),
+                         d_no_fill,
+                         d_new_time);
     d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
 
     IBAMR_TIMER_STOP(t_apply);
