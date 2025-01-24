@@ -32,22 +32,46 @@
 namespace IBTK
 {
 template <typename TYPE>
+template <typename INPUT_TYPE>
 SAMRAIScopedVectorCopy<TYPE>::SAMRAIScopedVectorCopy(
-    const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> >& vector,
+    const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, INPUT_TYPE> >& vector,
     const std::string& name)
     : SAMRAIScopedVectorCopy(checked_dereference(vector), name)
 {
 }
 
+template <>
+template <>
+inline SAMRAIScopedVectorCopy<float>::SAMRAIScopedVectorCopy(const SAMRAI::solv::SAMRAIVectorReal<NDIM, float>& vector,
+                                                             const std::string& name)
+    : SAMRAIScopedVectorDuplicate<float>(vector, name)
+{
+    this->d_vector->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, float> >(
+                                   const_cast<SAMRAI::solv::SAMRAIVectorReal<NDIM, float>*>(&vector), false),
+                               false);
+}
+
+template <>
+template <>
+inline SAMRAIScopedVectorCopy<double>::SAMRAIScopedVectorCopy(
+    const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vector,
+    const std::string& name)
+    : SAMRAIScopedVectorDuplicate<double>(vector, name)
+{
+    this->d_vector->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >(
+                                   const_cast<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>*>(&vector), false),
+                               false);
+}
+
 template <typename TYPE>
-SAMRAIScopedVectorCopy<TYPE>::SAMRAIScopedVectorCopy(const SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>& vector,
+template <typename INPUT_TYPE>
+SAMRAIScopedVectorCopy<TYPE>::SAMRAIScopedVectorCopy(const SAMRAI::solv::SAMRAIVectorReal<NDIM, INPUT_TYPE>& vector,
                                                      const std::string& name)
     : SAMRAIScopedVectorDuplicate<TYPE>(vector, name)
 {
-    this->d_vector->copyVector(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> >(
-                                   const_cast<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>*>(&vector), false),
-                               false);
+    SAMRAIScopedVectorDuplicate<TYPE>::transformFromVector(vector);
 }
+
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////
