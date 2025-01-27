@@ -70,7 +70,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DHYPRE_ROOT=/petsc/ -DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=opt -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai  \
+          cmake -DHYPRE_ROOT=/petsc/ -DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai  \
                 -DNUMDIFF_ROOT=/numdiff/ \
                 -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
                 -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -ftrivial-auto-var-init=pattern -D_FORTIFY_SOURCE=3 -fuse-ld=mold -D_GLIBCXX_ASSERTIONS" \
