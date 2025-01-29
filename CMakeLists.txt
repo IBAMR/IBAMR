@@ -1072,9 +1072,9 @@ IF(${IBAMR_HAVE_LIBMESH})
 
 #include <libmesh/libmesh_config.h>
 
-// This test is a little different: since libMesh may use C++11 C++14, or C++17,
-// but we but have not yet configured that flag yet, we instead use libMesh's
-// petsc dependency to check that we have the same MPI version.
+// Avoid the possibility of libMesh using a different C++ version from us
+// by not using C++ and instead checking with PETSc, both via PETSc's own
+// MPI detection (via macros) and via linking.
 int main(int argc, char **argv)
 {
     PetscInitialize(&argc, &argv, NULL, NULL);
