@@ -661,43 +661,7 @@ CMake.")
     ENDFOREACH()
     MESSAGE(STATUS "LIBMESH_INCLUDE_DIRS: ${LIBMESH_INCLUDE_DIRS}")
 
-    # we won't use it directly but see if libMesh expects C++14 by checking its C++ flags:
-    EXECUTE_PROCESS(COMMAND "${_libmesh_config}" "--cxxflags" OUTPUT_VARIABLE _libmesh_cxxflags)
-    STRING(REGEX REPLACE "\n$" " " _libmesh_cxxflags ${_libmesh_cxxflags})
-    SEPARATE_ARGUMENTS(_libmesh_cxxflags)
-    ## CXX_FLAGS is not comma-separated so pull things out again
-    STRING(REPLACE ";" " " ${_libmesh_cxxflags} CMAKE_REQUIRED_FLAGS)
     SET(CMAKE_REQUIRED_INCLUDES ${LIBMESH_INCLUDE_DIRS})
-
-    # figure out which version of C++ libMesh wants to use:
-    # We configure boost before libMesh, so set our own C++ standard to the one Boost requires
-    SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
-    CHECK_CXX_SOURCE_COMPILES(
-      "
-      #include <libmesh/libmesh_config.h>
-      // older versions do not define LIBMESH_HAVE_CXX14
-      #ifdef LIBMESH_HAVE_CXX14_MAKE_UNIQUE
-      // OK
-      #else
-      #error
-      #endif
-      int main() {}
-      "
-      LIBMESH_WITH_CXX14
-      )
-    CHECK_CXX_SOURCE_COMPILES(
-      "
-      #include <libmesh/libmesh_config.h>
-      #ifdef LIBMESH_HAVE_CXX17
-      // OK
-      #else
-      #error
-      #endif
-      int main() {}
-      "
-      LIBMESH_WITH_CXX17
-      )
-
 
     # We are not compatible with libMesh's bundled version of boost, so make
     # sure that doesn't happen:
