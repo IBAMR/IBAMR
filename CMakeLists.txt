@@ -630,9 +630,9 @@ LIBMESH_METHOD must also be provided to CMake.")
     EXECUTE_PROCESS(COMMAND "${_libmesh_config}" "--version"
       OUTPUT_VARIABLE LIBMESH_VERSION)
     STRING(REGEX REPLACE "\n$" "" LIBMESH_VERSION ${LIBMESH_VERSION})
-    IF(${LIBMESH_VERSION} VERSION_LESS 1.1.0)
+    IF(${LIBMESH_VERSION} VERSION_LESS 1.7.0)
       MESSAGE(FATAL_ERROR
-        "IBAMR requires libMesh version 1.1.0 or newer but the version provided at
+        "IBAMR requires libMesh version 1.7.0 or newer but the version provided at
 ${LIBMESH_ROOT} is version ${LIBMESH_VERSION}")
     ENDIF()
 
