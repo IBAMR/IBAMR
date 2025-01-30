@@ -284,8 +284,7 @@ IF(NOT ${IBAMR_USE_BUNDLED_BOOST})
   MESSAGE(STATUS "Found external boost ${Boost_VERSION} at ${Boost_INCLUDE_DIRS}")
   TARGET_LINK_LIBRARIES(BOOST_INTERFACE INTERFACE Boost::headers)
 
-# Verify that we can compile some basic Boost headers
-#
+  # Verify that we can compile some basic Boost headers
   SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
   # Do not use -Werror at this point, even if the user requested it for IBAMR
   SET(_old_cxx_flags "${CMAKE_CXX_FLAGS}")
@@ -381,8 +380,8 @@ IF(${IBAMR_USE_BUNDLED_MUPARSER})
     PUBLIC
     $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ibtk/contrib/muparser/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/contrib/muparser>)
-  SET_PROPERTY(TARGET BUNDLED_MUPARSER PROPERTY CXX_STANDARD 11)
-  TARGET_COMPILE_FEATURES(BUNDLED_MUPARSER PUBLIC cxx_std_11)
+  SET_PROPERTY(TARGET BUNDLED_MUPARSER PROPERTY CXX_STANDARD ${IBAMR_CXX_STANDARD})
+  TARGET_COMPILE_FEATURES(BUNDLED_MUPARSER PUBLIC cxx_std_${IBAMR_CXX_STANDARD})
 
   TARGET_SOURCES(BUNDLED_MUPARSER
     PRIVATE
@@ -631,9 +630,9 @@ LIBMESH_METHOD must also be provided to CMake.")
     EXECUTE_PROCESS(COMMAND "${_libmesh_config}" "--version"
       OUTPUT_VARIABLE LIBMESH_VERSION)
     STRING(REGEX REPLACE "\n$" "" LIBMESH_VERSION ${LIBMESH_VERSION})
-    IF(${LIBMESH_VERSION} VERSION_LESS 1.1.0)
+    IF(${LIBMESH_VERSION} VERSION_LESS 1.7.0)
       MESSAGE(FATAL_ERROR
-        "IBAMR requires libMesh version 1.1.0 or newer but the version provided at
+        "IBAMR requires libMesh version 1.7.0 or newer but the version provided at
 ${LIBMESH_ROOT} is version ${LIBMESH_VERSION}")
     ENDIF()
 
@@ -662,43 +661,7 @@ CMake.")
     ENDFOREACH()
     MESSAGE(STATUS "LIBMESH_INCLUDE_DIRS: ${LIBMESH_INCLUDE_DIRS}")
 
-    # we won't use it directly but see if libMesh expects C++14 by checking its C++ flags:
-    EXECUTE_PROCESS(COMMAND "${_libmesh_config}" "--cxxflags" OUTPUT_VARIABLE _libmesh_cxxflags)
-    STRING(REGEX REPLACE "\n$" " " _libmesh_cxxflags ${_libmesh_cxxflags})
-    SEPARATE_ARGUMENTS(_libmesh_cxxflags)
-    ## CXX_FLAGS is not comma-separated so pull things out again
-    STRING(REPLACE ";" " " ${_libmesh_cxxflags} CMAKE_REQUIRED_FLAGS)
     SET(CMAKE_REQUIRED_INCLUDES ${LIBMESH_INCLUDE_DIRS})
-
-    # figure out which version of C++ libMesh wants to use:
-    # We configure boost before libMesh, so set our own C++ standard to the one Boost requires
-    SET(CMAKE_CXX_STANDARD "${IBAMR_CXX_STANDARD}")
-    CHECK_CXX_SOURCE_COMPILES(
-      "
-      #include <libmesh/libmesh_config.h>
-      // older versions do not define LIBMESH_HAVE_CXX14
-      #ifdef LIBMESH_HAVE_CXX14_MAKE_UNIQUE
-      // OK
-      #else
-      #error
-      #endif
-      int main() {}
-      "
-      LIBMESH_WITH_CXX14
-      )
-    CHECK_CXX_SOURCE_COMPILES(
-      "
-      #include <libmesh/libmesh_config.h>
-      #ifdef LIBMESH_HAVE_CXX17
-      // OK
-      #else
-      #error
-      #endif
-      int main() {}
-      "
-      LIBMESH_WITH_CXX17
-      )
-
 
     # We are not compatible with libMesh's bundled version of boost, so make
     # sure that doesn't happen:
@@ -1073,9 +1036,9 @@ IF(${IBAMR_HAVE_LIBMESH})
 
 #include <libmesh/libmesh_config.h>
 
-// This test is a little different: since libMesh may use C++11 C++14, or C++17,
-// but we but have not yet configured that flag yet, we instead use libMesh's
-// petsc dependency to check that we have the same MPI version.
+// Avoid the possibility of libMesh using a different C++ version from us
+// by not using C++ and instead checking with PETSc, both via PETSc's own
+// MPI detection (via macros) and via linking.
 int main(int argc, char **argv)
 {
     PetscInitialize(&argc, &argv, NULL, NULL);
