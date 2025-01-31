@@ -1,0 +1,46 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: IBAMR now requires C++17.
+<br>
+(Boyce Griffith, 2024/07/20)
+</li>
+<li>
+Changed: IBAMR now requires Eigen 3.4 or newer.
+<br>
+(David Wells, 2025/01/09)
+</li>
+<li>
+Changed: The minimum supported version of libMesh is now 1.7.0.
+<br>
+(David Wells, 2025/01/29)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+New: added IMEX-BDF2-type timestepping (similar to VSSBDF2 in <a href="https://steveruuth.org/wp-content/uploads/2020/10/vsimex_Wang_Ruuth_jcm.pdf">this preprint</a>).
+<br>
+(Boyce Griffith and Aaron Barrett, 2024/08/19)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+New: added IBTK::IndexUtilities::getCellCenter().
+<br>
+(David Wells, 2024/03/19)
+</li>
+<li>
+New: added an option to skip the velocity solve in the projection preconditioner.
+<br>
+(Boyce Griffith, 2024/09/07)
+</li>
+<li>
+Fixed: Fixed issue with time-dependent boundary value updates for plotting.
+Before, only the intial boundary values were used. Now they update appropriately in time.
+
+(Cole Gruninger, 2024/06/26)</li>
+</ol>
