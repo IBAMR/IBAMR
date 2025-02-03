@@ -23,6 +23,7 @@
 #include "ibamr/StaggeredStokesPhysicalBoundaryHelper.h"
 #include "ibamr/StaggeredStokesSolver.h"
 #include "ibamr/StokesSpecifications.h"
+#include "ibamr/VCStaggeredStokesOperator.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
 #include "ibamr/ibamr_enums.h"
 #include "ibamr/ibamr_utilities.h"
@@ -1261,6 +1262,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     }
     PoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
     PoissonSpecifications P_problem_coefs(d_object_name + "::P_problem_coefs");
+    d_vc_stokes_op_spec.reset();
+    d_vc_projection_pc_spec.reset();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
@@ -1278,7 +1281,12 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         // C_sc = (rho / dt) + K * lambda
         if (d_rho_is_const)
         {
-            U_problem_coefs.setCConstant(A_scale * (rho / dt + K * lambda));
+            const double C = A_scale * (rho / dt + K * lambda);
+
+            U_problem_coefs.setCConstant(C);
+
+            d_vc_stokes_op_spec.d_C_const = C;
+            d_vc_stokes_op_spec.d_C_is_const = true;
         }
         else
         {
@@ -1292,6 +1300,8 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
                                               /*interior_only*/ true);
             }
             U_problem_coefs.setCPatchDataId(d_velocity_C_idx);
+            d_vc_stokes_op_spec.d_C_idx = d_velocity_C_idx;
+            d_vc_stokes_op_spec.d_C_is_const = false;
         }
 
         // D_{ec,nc} = -K * mu
@@ -1320,6 +1330,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
             d_hier_cc_data_ops->scale(d_velocity_D_cc_idx, A_scale * (-K), d_mu_scratch_idx, /*interior_only*/ false);
         }
         U_problem_coefs.setDPatchDataId(d_velocity_D_idx);
+        d_vc_stokes_op_spec.d_D_idx = d_velocity_D_idx;
+        d_vc_stokes_op_spec.d_D_is_const = false;
+        d_vc_projection_pc_spec.d_mu_cc_idx = d_velocity_D_cc_idx;
 
         // Ensure that these objects will operate on all levels in the future
         d_hier_cc_data_ops->resetLevels(coarsest_ln, finest_ln);
@@ -1335,7 +1348,17 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     P_problem_coefs.setCZero();
     if (d_rho_is_const)
     {
-        P_problem_coefs.setDConstant(rho == 0.0 ? -1.0 : -1.0 / rho);
+        const bool rho_is_zero = IBTK::abs_equal_eps(rho, 0.0);
+
+        P_problem_coefs.setDConstant(rho_is_zero ? -1.0 : -1.0 / rho);
+
+        // Set the coefficient to correct velocity after pressure is computed within the preconditioner.
+        // For the steady Stokes case, the projection preconditioner uses D = -1 to correct velocity after
+        // pressure calculation.
+        d_vc_projection_pc_spec.d_steady_state = rho_is_zero;
+        d_vc_projection_pc_spec.d_D_const = rho_is_zero ? -1.0 : -1.0 / rho;
+        d_vc_projection_pc_spec.d_D_is_const = true;
+        d_vc_projection_pc_spec.d_theta = 0.0;
     }
     else
     {
@@ -1356,7 +1379,14 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         SynchronizationTransactionComponent default_synch_transaction =
             SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
         d_side_synch_op->resetTransactionComponent(default_synch_transaction);
+
         P_problem_coefs.setDPatchDataId(d_pressure_D_idx);
+
+        // Set the coefficient to correct velocity and pressure after the PPE is solved within the preconditioner.
+        d_vc_projection_pc_spec.d_D_idx = d_pressure_D_idx;
+        d_vc_projection_pc_spec.d_D_is_const = false;
+        d_vc_projection_pc_spec.d_steady_state = false;
+        d_vc_projection_pc_spec.d_theta = 1.0 / dt;
     }
 
     // Ensure that solver components are appropriately reinitialized at the
@@ -1428,7 +1458,6 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
     }
 
     // Setup Stokes solver.
-    d_stokes_solver->setVelocityPoissonSpecifications(U_problem_coefs);
     d_stokes_solver->setPhysicalBcCoefs(d_U_bc_coefs, d_P_bc_coef);
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
@@ -1451,6 +1480,10 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
             auto p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
             if (p_stokes_krylov_solver)
             {
+                auto p_vc_stokes_op =
+                    dynamic_cast<VCStaggeredStokesOperator*>(p_stokes_krylov_solver->getOperator().getPointer());
+                p_vc_stokes_op->setProblemSpecification(&d_vc_stokes_op_spec);
+
                 p_stokes_block_pc = dynamic_cast<StaggeredStokesBlockPreconditioner*>(
                     p_stokes_krylov_solver->getPreconditioner().getPointer());
 
@@ -1463,7 +1496,6 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         }
         if (p_stokes_block_pc)
         {
-            p_stokes_block_pc->setPressurePoissonSpecifications(P_problem_coefs);
             p_stokes_block_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef.get());
             p_stokes_block_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
         }
@@ -1479,7 +1511,7 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
 
         if (p_vc_stokes_proj_pc)
         {
-            p_vc_stokes_proj_pc->setVelocityCellCenteredDCoefficient(d_velocity_D_cc_idx);
+            p_vc_stokes_proj_pc->setProblemSpecification(&d_vc_projection_pc_spec);
         }
     }
     if (d_stokes_solver_needs_init)

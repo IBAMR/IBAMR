@@ -312,6 +312,65 @@ c
 c
       return
       end
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes D = alpha div (c u).
+c
+c     Uses centered differences to compute the cell centered divergence
+c     of product of two side centered variables u=(u0,u1) and c=(c0,c1).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine sstocdiv2d(
+     &     D,D_gcw,
+     &     alpha,
+     &     u0,u1,u_gcw,
+     &     c0,c1,c_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER D_gcw,u_gcw,c_gcw
+
+      REAL alpha
+
+      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
+      REAL c0(SIDE2d0(ilower,iupper,c_gcw))
+      REAL c1(SIDE2d1(ilower,iupper,c_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL D(CELL2d(ilower,iupper,D_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    fac0,fac1
+c
+c     Compute the cell centered divergence of c*u.
+c
+      fac0 = alpha/dx(0)
+      fac1 = alpha/dx(1)
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            D(i0,i1) =
+     &        fac0*(c0(i0+1,i1)*u0(i0+1,i1)-c0(i0,i1)*u0(i0,i1)) +
+     &        fac1*(c1(i0,i1+1)*u1(i0,i1+1)-c1(i0,i1)*u1(i0,i1))
+         enddo
+      enddo
+c
+      return
+      end      
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
@@ -370,6 +429,73 @@ c
             D(i0,i1) =
      &           fac0*(u0(i0+1,i1)-u0(i0,i1)) +
      &           fac1*(u1(i0,i1+1)-u1(i0,i1)) +
+     &           beta*V(i0,i1)
+         enddo
+      enddo
+c
+      return
+      end
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+c     Computes D = alpha div (c u) + beta V.
+c
+c     Uses centered differences to compute the cell centered divergence
+c     of product of two side centered variables u=(u0,u1) and c=(c0,c1).
+c
+ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+c
+      subroutine sstocdivadd2d(
+     &     D,D_gcw,
+     &     alpha,
+     &     u0,u1,u_gcw,
+     &     c0,c1,c_gcw,
+     &     beta,
+     &     V,V_gcw,
+     &     ilower0,iupper0,
+     &     ilower1,iupper1,
+     &     dx)
+c
+      implicit none
+c
+c     Input.
+c
+      INTEGER ilower0,iupper0
+      INTEGER ilower1,iupper1
+      INTEGER D_gcw,u_gcw,c_gcw,V_gcw
+
+      REAL alpha
+
+      REAL u0(SIDE2d0(ilower,iupper,u_gcw))
+      REAL u1(SIDE2d1(ilower,iupper,u_gcw))
+      REAL c0(SIDE2d0(ilower,iupper,c_gcw))
+      REAL c1(SIDE2d1(ilower,iupper,c_gcw))
+
+      REAL beta
+
+      REAL V(CELL2d(ilower,iupper,V_gcw))
+
+      REAL dx(0:NDIM-1)
+c
+c     Input/Output.
+c
+      REAL D(CELL2d(ilower,iupper,D_gcw))
+c
+c     Local variables.
+c
+      INTEGER i0,i1
+      REAL    fac0,fac1
+c
+c     Compute the cell centered divergence of u.
+c
+      fac0 = alpha/dx(0)
+      fac1 = alpha/dx(1)
+
+      do i1 = ilower1,iupper1
+         do i0 = ilower0,iupper0
+            D(i0,i1) =
+     &           fac0*(c0(i0+1,i1)*u0(i0+1,i1)-c0(i0,i1)*u0(i0,i1)) +
+     &           fac1*(c1(i0,i1+1)*u1(i0,i1+1)-c1(i0,i1)*u1(i0,i1)) +
      &           beta*V(i0,i1)
          enddo
       enddo
