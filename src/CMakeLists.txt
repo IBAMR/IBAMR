@@ -61,6 +61,7 @@ SET(CXX_SRC
   acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp
   acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp
   acoustic_streaming/SOAcousticStreamingBcCoefs.cpp
+  acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp
 
   # adv diff
   adv_diff/AdvDiffPredictorCorrectorHyperbolicPatchOps.cpp
@@ -152,6 +153,7 @@ SET(CXX_SRC
 
   # IB
   IB/IBInstrumentPanel.cpp
+  IB/BrinkmanPenalizationMethod.cpp
   IB/BrinkmanPenalizationStrategy.cpp
   IB/BrinkmanAdvDiffBcHelper.cpp
   IB/PenaltyIBMethod.cpp

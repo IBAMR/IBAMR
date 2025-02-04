@@ -197,6 +197,7 @@ libIBAMR_a_OBJECTS = $(am_libIBAMR_a_OBJECTS)
 libIBAMR2d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR2d_a_LIBADD =
 am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
+	../src/IB/BrinkmanPenalizationMethod.cpp \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
 	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
@@ -251,6 +252,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
 	../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
+	../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -396,6 +398,7 @@ am__libIBAMR2d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/level_set/libIBAMR2d_a-FESurfaceDistanceEvaluator.$(OBJEXT)
 am__objects_2 =  \
 	../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT) \
+	../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR2d_a-CIBMethod.$(OBJEXT) \
@@ -457,6 +460,7 @@ am__objects_2 =  \
 	../src/acoustic_streaming/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT) \
@@ -582,6 +586,7 @@ libIBAMR2d_a_OBJECTS = $(am_libIBAMR2d_a_OBJECTS)
 libIBAMR3d_a_AR = $(AR) $(ARFLAGS)
 libIBAMR3d_a_LIBADD =
 am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
+	../src/IB/BrinkmanPenalizationMethod.cpp \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
 	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
@@ -636,6 +641,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
 	../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
+	../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -781,6 +787,7 @@ am__libIBAMR3d_a_SOURCES_DIST = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 @LIBMESH_ENABLED_TRUE@	../src/level_set/libIBAMR3d_a-FESurfaceDistanceEvaluator.$(OBJEXT)
 am__objects_4 =  \
 	../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT) \
+	../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT) \
 	../src/IB/libIBAMR3d_a-CIBMethod.$(OBJEXT) \
@@ -842,6 +849,7 @@ am__objects_4 =  \
 	../src/acoustic_streaming/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.$(OBJEXT) \
 	../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.$(OBJEXT) \
+	../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffCUIConvectiveOperator.$(OBJEXT) \
 	../src/adv_diff/libIBAMR3d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.$(OBJEXT) \
@@ -981,6 +989,7 @@ depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
 am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po \
+	../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po \
@@ -1051,6 +1060,7 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po \
 	../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po \
+	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po \
 	../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po \
@@ -1125,11 +1135,13 @@ am__depfiles_remade = ../src/$(DEPDIR)/dummy.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po \
 	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po \
+	../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po \
 	../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po \
@@ -1416,6 +1428,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AllenCahnHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
+	../include/ibamr/BrinkmanPenalizationMethod.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
 	../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 	../include/ibamr/CIBMethod.h \
@@ -1508,6 +1521,7 @@ am__pkg_include_HEADERS_DIST = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
 	../include/ibamr/SOAcousticStreamingBcCoefs.h \
+	../include/ibamr/SOAcousticStreamingBrinkmanPenalization.h \
 	../include/ibamr/STSMassFluxIntegrator.h \
 	../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
@@ -1859,6 +1873,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/AllenCahnHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 	../include/ibamr/BrinkmanAdvDiffBcHelper.h \
+	../include/ibamr/BrinkmanPenalizationMethod.h \
 	../include/ibamr/BrinkmanPenalizationStrategy.h \
 	../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 	../include/ibamr/CIBMethod.h \
@@ -1951,6 +1966,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/RelaxationLSMethod.h \
 	../include/ibamr/SpongeLayerForceFunction.h \
 	../include/ibamr/SOAcousticStreamingBcCoefs.h \
+	../include/ibamr/SOAcousticStreamingBrinkmanPenalization.h \
 	../include/ibamr/STSMassFluxIntegrator.h \
 	../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 	../include/ibamr/StaggeredStokesBlockPreconditioner.h \
@@ -1986,6 +2002,7 @@ pkg_include_HEADERS = ../include/ibamr/app_namespaces.h \
 	../include/ibamr/WaveGenerationFunctions.h \
 	../include/ibamr/RNG.h $(am__append_5)
 DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
+	../src/IB/BrinkmanPenalizationMethod.cpp \
 	../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 	../src/IB/BrinkmanPenalizationStrategy.cpp \
 	../src/IB/CIBMethod.cpp ../src/IB/CIBMobilitySolver.cpp \
@@ -2040,6 +2057,7 @@ DIM_INDEPENDENT_SOURCES = ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
 	../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 	../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
 	../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
+	../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp \
 	../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 	../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -2273,6 +2291,8 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	@: > ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR2d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
@@ -2404,6 +2424,9 @@ libIBAMR.a: $(libIBAMR_a_OBJECTS) $(libIBAMR_a_DEPENDENCIES) $(EXTRA_libIBAMR_a_
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.$(OBJEXT):  \
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/$(am__dirstamp):
@@ -2882,6 +2905,8 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	$(AM_V_at)$(RANLIB) libIBAMR2d.a
 ../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
+../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.$(OBJEXT):  \
+	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.$(OBJEXT):  \
 	../src/IB/$(am__dirstamp) ../src/IB/$(DEPDIR)/$(am__dirstamp)
 ../src/IB/libIBAMR3d_a-BrinkmanPenalizationStrategy.$(OBJEXT):  \
@@ -3007,6 +3032,9 @@ libIBAMR2d.a: $(libIBAMR2d_a_OBJECTS) $(libIBAMR2d_a_DEPENDENCIES) $(EXTRA_libIB
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.$(OBJEXT):  \
+	../src/acoustic_streaming/$(am__dirstamp) \
+	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
+../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.$(OBJEXT):  \
 	../src/acoustic_streaming/$(am__dirstamp) \
 	../src/acoustic_streaming/$(DEPDIR)/$(am__dirstamp)
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.$(OBJEXT):  \
@@ -3425,6 +3453,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@../src/$(DEPDIR)/dummy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po@am__quote@ # am--include-marker
@@ -3495,6 +3524,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po@am__quote@ # am--include-marker
@@ -3569,11 +3599,13 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po@am__quote@ # am--include-marker
@@ -3816,6 +3848,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanAdvDiffBcHelper.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.obj `if test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanAdvDiffBcHelper.cpp'; fi`
+
+../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.o: ../src/IB/BrinkmanPenalizationMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.o `test -f '../src/IB/BrinkmanPenalizationMethod.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationMethod.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.o `test -f '../src/IB/BrinkmanPenalizationMethod.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationMethod.cpp
+
+../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.obj: ../src/IB/BrinkmanPenalizationMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.obj `if test -f '../src/IB/BrinkmanPenalizationMethod.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationMethod.cpp' object='../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationMethod.obj `if test -f '../src/IB/BrinkmanPenalizationMethod.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationMethod.cpp'; fi`
 
 ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o: ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo -c -o ../src/IB/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.o `test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
@@ -4670,6 +4716,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBcCoefs.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.o: ../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp
+
+../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.obj: ../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Tpo -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp' object='../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; fi`
 
 ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o: ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR2d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
@@ -6253,6 +6313,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.obj `if test -f '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanAdvDiffBcHelper.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanAdvDiffBcHelper.cpp'; fi`
 
+../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.o: ../src/IB/BrinkmanPenalizationMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.o `test -f '../src/IB/BrinkmanPenalizationMethod.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationMethod.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.o `test -f '../src/IB/BrinkmanPenalizationMethod.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationMethod.cpp
+
+../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.obj: ../src/IB/BrinkmanPenalizationMethod.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.obj -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.obj `if test -f '../src/IB/BrinkmanPenalizationMethod.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationMethod.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/IB/BrinkmanPenalizationMethod.cpp' object='../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationMethod.obj `if test -f '../src/IB/BrinkmanPenalizationMethod.cpp'; then $(CYGPATH_W) '../src/IB/BrinkmanPenalizationMethod.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/IB/BrinkmanPenalizationMethod.cpp'; fi`
+
 ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o: ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o -MD -MP -MF ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo -c -o ../src/IB/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.o `test -f '../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp' || echo '$(srcdir)/'`../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Tpo ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po
@@ -7106,6 +7180,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBcCoefs.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp'; fi`
+
+../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.o: ../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.o -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.o `test -f '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp' || echo '$(srcdir)/'`../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp
+
+../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.obj: ../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.obj -MD -MP -MF ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Tpo -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Tpo ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp' object='../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -c -o ../src/acoustic_streaming/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.obj `if test -f '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; then $(CYGPATH_W) '../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; else $(CYGPATH_W) '$(srcdir)/../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp'; fi`
 
 ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o: ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libIBAMR3d_a_CXXFLAGS) $(CXXFLAGS) -MT ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o -MD -MP -MF ../src/adv_diff/$(DEPDIR)/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.Tpo -c -o ../src/adv_diff/libIBAMR3d_a-AdvDiffCenteredConvectiveOperator.o `test -f '../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp' || echo '$(srcdir)/'`../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp
@@ -8876,6 +8964,7 @@ clean-am: clean-generic clean-libLIBRARIES clean-libtool clean-local \
 distclean: distclean-am
 		-rm -f ../src/$(DEPDIR)/dummy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po
@@ -8946,6 +9035,7 @@ distclean: distclean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po
@@ -9020,11 +9110,13 @@ distclean: distclean-am
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
@@ -9270,6 +9362,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 		-rm -f ../src/$(DEPDIR)/dummy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanAdvDiffBcHelper.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationRigidBodyDynamics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-CIBMethod.Po
@@ -9340,6 +9433,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-Wall.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR2d_a-WallForceEvaluator.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanAdvDiffBcHelper.Po
+	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationMethod.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationRigidBodyDynamics.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-BrinkmanPenalizationStrategy.Po
 	-rm -f ../src/IB/$(DEPDIR)/libIBAMR3d_a-CIBMethod.Po
@@ -9414,11 +9508,13 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-FOAcousticStreamingPETScLevelSolver.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBcCoefs.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR2d_a-SOAcousticStreamingBrinkmanPenalization.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingHierarchyIntegrator.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScMatUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-AcousticStreamingPETScVecUtilities.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-FOAcousticStreamingPETScLevelSolver.Po
 	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBcCoefs.Po
+	-rm -f ../src/acoustic_streaming/$(DEPDIR)/libIBAMR3d_a-SOAcousticStreamingBrinkmanPenalization.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCUIConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffCenteredConvectiveOperator.Po
 	-rm -f ../src/adv_diff/$(DEPDIR)/libIBAMR2d_a-AdvDiffConservativeMassScalarTransportRKIntegrator.Po
