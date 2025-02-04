@@ -443,20 +443,41 @@ public:
     } // getMassDensityBoundaryBoundaryConditions
 
     /*!
-     * \brief Register BrinkmanPenalizationStrategy objects to add Brinkman penalization term
-     * in the momentum equation.
+     * \brief Register BrinkmanPenalizationStrategy objects to add the Brinkman penalization term
+     * in the momentum equation for the first- and second-order systems.
      */
     void
-    registerBrinkmanPenalizationStrategy(SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> brinkman_force);
+    registerBrinkmanPenalizationStrategy(SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> fo_brinkman_force,
+                                         SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> so_brinkman_force,
+                                         SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > brinkman_var,
+                                         SAMRAI::solv::RobinBcCoefStrategy<NDIM>* brinkman_bc);
 
     /*!
-     * \brief Get the Brinkman penalization objects registered with this class.
+     * \brief Get the Brinkman penalization objects for the first-order velocity registered with this class.
      */
     const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> >&
-    getBrinkmanPenalizationStrategy() const
+    getFOBrinkmanPenalizationStrategy() const
     {
-        return d_brinkman_force;
-    } // getBrinkmanPenalizationStrategy
+        return d_fo_brinkman_force;
+    } // getFOBrinkmanPenalizationStrategy
+
+    /*!
+     * \brief Get the Brinkman penalization objects for the second-order velocity registered with this class.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> >&
+    getSOBrinkmanPenalizationStrategy() const
+    {
+        return d_so_brinkman_force;
+    } // getSOBrinkmanPenalizationStrategy
+
+    /*!
+     * \brief Get the variables associated with the Brinkman penalization objects registered with this class.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >&
+    getBrinkmanPenalizationVars() const
+    {
+        return d_brinkman_vars;
+    } // getBrinkmanPenalizationVars
 
 protected:
     /*!
@@ -794,7 +815,10 @@ protected:
     /*!
      * Brinkman force strategy objects registered with this integrator.
      */
-    std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> > d_brinkman_force;
+    std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> > d_fo_brinkman_force, d_so_brinkman_force;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_brinkman_vars;
+    std::vector<int> d_brinkman_current_idx, d_brinkman_new_idx, d_brinkman_scratch_idx;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_brinkman_bcs;
 
     /*
      * Variable to set how often the preconditioner is reinitialized.

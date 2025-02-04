@@ -14,11 +14,12 @@
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
 #include "ibamr/AcousticStreamingHierarchyIntegrator.h"
-#include "ibamr/BrinkmanPenalizationStrategy.h"
+#include "ibamr/BrinkmanPenalizationMethod.h"
 #include "ibamr/FOAcousticStreamingPETScLevelSolver.h"
 #include "ibamr/INSIntermediateVelocityBcCoef.h"
 #include "ibamr/INSProjectionBcCoef.h"
 #include "ibamr/PETScKrylovStaggeredStokesSolver.h"
+#include "ibamr/SOAcousticStreamingBrinkmanPenalization.h"
 #include "ibamr/VCStaggeredStokesOperator.h"
 #include "ibamr/VCStaggeredStokesPressureBcCoef.h"
 #include "ibamr/VCStaggeredStokesProjectionPreconditioner.h"
@@ -886,9 +887,18 @@ AcousticStreamingHierarchyIntegrator::registerBulkViscosityBoundaryConditions(
 
 void
 AcousticStreamingHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
-    Pointer<BrinkmanPenalizationStrategy> brinkman_force)
+    Pointer<BrinkmanPenalizationStrategy> fo_brinkman_force,
+    Pointer<BrinkmanPenalizationStrategy> so_brinkman_force,
+    Pointer<CellVariable<NDIM, double> > brinkman_var,
+    RobinBcCoefStrategy<NDIM>* brinkman_bc)
 {
-    d_brinkman_force.push_back(brinkman_force);
+    d_fo_brinkman_force.push_back(fo_brinkman_force);
+    d_so_brinkman_force.push_back(so_brinkman_force);
+    d_brinkman_vars.push_back(brinkman_var);
+    d_brinkman_current_idx.push_back(IBTK::invalid_index);
+    d_brinkman_new_idx.push_back(IBTK::invalid_index);
+    d_brinkman_scratch_idx.push_back(IBTK::invalid_index);
+    d_brinkman_bcs.push_back(brinkman_bc);
     return;
 } // registerBrinkmanPenalizationStrategy
 
@@ -1150,6 +1160,26 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     registerVariable(d_rho_plot_idx, d_rho_plot_var, no_ghosts, getCurrentContext());
     registerVariable(d_Omega2_idx, d_Omega2_var, no_ghosts, getCurrentContext());
 
+    // Register Brinkman variables that are maintained by the AcousticStreamingHierarchyIntegrator.
+    unsigned int num_bodies = d_fo_brinkman_force.size();
+    for (unsigned k = 0; k < num_bodies; ++k)
+    {
+        auto& current_idx = d_brinkman_current_idx[k];
+        auto& new_idx = d_brinkman_new_idx[k];
+        auto& scratch_idx = d_brinkman_scratch_idx[k];
+        auto& var = d_brinkman_vars[k];
+        auto* brinkman_bc = d_brinkman_bcs[k];
+
+        registerVariable(
+            current_idx, new_idx, scratch_idx, var, cell_ghosts, "CONSERVATIVE_COARSEN", "CONSERVATIVE_LINEAR_REFINE");
+
+        Pointer<BrinkmanPenalizationMethod> fo_brinkman_force = d_fo_brinkman_force[k];
+        fo_brinkman_force->registerSolidLevelSet(current_idx, new_idx, scratch_idx, brinkman_bc);
+
+        Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
+        so_brinkman_force->registerSolidLevelSet(current_idx, new_idx, scratch_idx, brinkman_bc);
+    }
+
     // Register scratch variables that are maintained by the
     // AcousticStreamingHierarchyIntegrator.
 #if (NDIM == 3)
@@ -1247,6 +1277,13 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
                 if (d == 2) d_visit_writer->registerPlotQuantity("Omega2_z", "SCALAR", d_Omega2_idx, d);
             }
 #endif
+        }
+
+        for (unsigned k = 0; k < num_bodies; ++k)
+        {
+            auto& var = d_brinkman_vars[k];
+            auto& idx = d_brinkman_current_idx[k];
+            d_visit_writer->registerPlotQuantity(var->getName(), "SCALAR", idx, 0);
         }
     }
 
@@ -1372,6 +1409,14 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
         }
     }
 
+    // Configure the second order Brinkman penalization objects
+    for (unsigned k = 0; k < num_bodies; ++k)
+    {
+        Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
+        so_brinkman_force->setAcousticAngularFrequency(d_acoustic_freq);
+        so_brinkman_force->setFOVelocityPatchDataIndices(d_U1_real_idx, d_U1_imag_idx);
+    }
+
     // Setup a boundary op to set velocity boundary conditions on regrid.
     //(NOT SURE WHAT TO DO HERE?)
     // d_fill_after_regrid_phys_bdry_bc_op.reset(new CartSideRobinPhysBdryOp(d_U_scratch_idx, d_U_bc_coefs, false));
@@ -1428,25 +1473,32 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
     preprocessOperatorsAndSolvers(current_time, new_time);
 
     // Preprocess Brinkman penalization objects.
-    for (auto& brinkman_force : d_brinkman_force)
+    const unsigned int num_bodies = d_fo_brinkman_force.size();
+    for (unsigned k = 0; k < num_bodies; ++k)
     {
-        brinkman_force->setTimeInterval(current_time, new_time);
-        brinkman_force->preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
+        Pointer<BrinkmanPenalizationMethod> fo_brinkman_force = d_fo_brinkman_force[k];
+        fo_brinkman_force->setTimeInterval(current_time, new_time);
+        fo_brinkman_force->preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
+
+        Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
+        so_brinkman_force->setTimeInterval(current_time, new_time);
+        so_brinkman_force->preprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
     }
 
     // Allocate memory for RHS vectors of the two solvers.
     d_rhs1_vec->allocateVectorData(current_time);
-    d_rhs1_vec->setToScalar(0.0);
     d_U2_rhs_vec->allocateVectorData(current_time);
-    d_U2_rhs_vec->setToScalar(0.0);
     d_P2_rhs_vec->allocateVectorData(current_time);
-    d_P2_rhs_vec->setToScalar(0.0);
 
     // Copy the current solution to new variables (to be used as guess solution)
     d_hier_sc_data_ops->copyData(d_U1_new_idx, d_U1_current_idx);
     d_hier_sc_data_ops->copyData(d_U2_new_idx, d_U2_current_idx);
     d_hier_cc_data_ops->copyData(d_P1_new_idx, d_P1_current_idx);
     d_hier_cc_data_ops->copyData(d_P2_new_idx, d_P2_current_idx);
+    for (unsigned k = 0; k < num_bodies; ++k)
+    {
+        d_hier_cc_data_ops->copyData(d_brinkman_new_idx[k], d_brinkman_current_idx[k]);
+    }
 
     // Cache BC data.
     d_bc_helper->cacheBcCoefData(d_so_bc_coefs, new_time, d_hierarchy);
@@ -1544,9 +1596,14 @@ AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double curre
     }
 
     // Postprocess Brinkman penalization objects.
-    for (auto& brinkman_force : d_brinkman_force)
+    const unsigned num_bodies = d_so_brinkman_force.size();
+    for (unsigned k = 0; k < num_bodies; ++k)
     {
-        brinkman_force->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
+        Pointer<BrinkmanPenalizationMethod> fo_brinkman_force = d_fo_brinkman_force[k];
+        fo_brinkman_force->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
+
+        Pointer<SOAcousticStreamingBrinkmanPenalization> so_brinkman_force = d_so_brinkman_force[k];
+        so_brinkman_force->postprocessComputeBrinkmanPenalization(current_time, new_time, num_cycles);
     }
 
     // Execute any registered callbacks.
@@ -1678,6 +1735,11 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
     d_hier_sc_data_ops->copyData(d_rho_linear_op_idx,
                                  d_rho_scratch_idx,
                                  /*interior_only*/ true);
+
+    // Zero-out the RHS vectors of the two solvers.
+    d_rhs1_vec->setToScalar(0.0);
+    d_U2_rhs_vec->setToScalar(0.0);
+    d_P2_rhs_vec->setToScalar(0.0);
 
     // Update the solvers and operators to take into account new state variables
     updateOperatorsAndSolvers(current_time, new_time, cycle_num);
@@ -2742,14 +2804,14 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
                                                                 int cycle_num)
 {
     // Compute the Brinkman contribution to the second order velocity operator.
-    const bool has_brinkman_force = d_brinkman_force.size();
+    const bool has_brinkman_force = d_so_brinkman_force.size();
     if (has_brinkman_force)
     {
         d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
 
-        for (auto& brinkman_force : d_brinkman_force)
+        for (auto& so_brinkman_force : d_so_brinkman_force)
         {
-            brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
+            so_brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
         }
 
         // Synchronize Brinkman coefficients.
@@ -2838,9 +2900,9 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     // Set the coefficients for the pressure solver within the projection preconditioner
     // D_sc = -rho/chi inside Brinkman zone and -rho outside.
     d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 1.0, /*interior_only*/ false);
-    for (auto& brinkman_force : d_brinkman_force)
+    for (auto& so_brinkman_force : d_so_brinkman_force)
     {
-        brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
+        so_brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
     }
     d_hier_sc_data_ops->reciprocal(d_projection_D_idx,
                                    d_velocity_L_idx,
@@ -2978,6 +3040,28 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     // changed we need to rebuild the matrix.
     d_first_order_solver->deallocateSolverState();
 
+    // Compute the Brinkman contribution to the first-order velocity operator.
+    if (has_brinkman_force)
+    {
+        d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
+
+        for (auto& fo_brinkman_force : d_fo_brinkman_force)
+        {
+            fo_brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
+        }
+
+        // Synchronize Brinkman coefficients.
+        using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
+        SynchronizationTransactionComponent L_synch_transaction =
+            SynchronizationTransactionComponent(d_velocity_L_idx, "CONSERVATIVE_COARSEN");
+        d_side_synch2_op->resetTransactionComponent(L_synch_transaction);
+        d_side_synch2_op->synchronizeData(d_integrator_time);
+        SynchronizationTransactionComponent default_synch2_transaction =
+            SynchronizationTransactionComponent(d_U2_scratch_idx, d_U_coarsen_type);
+        d_side_synch2_op->resetTransactionComponent(default_synch2_transaction);
+
+        d_first_order_solver->setBrinkmanPenalizationPatchDataIndex(d_velocity_L_idx);
+    }
     d_first_order_solver->setSoundSpeed(d_sound_speed);
     d_first_order_solver->setAcousticAngularFrequency(d_acoustic_freq);
     d_first_order_solver->setBoundaryConditionCoefficients(d_U1_bc_coefs);
@@ -3287,13 +3371,13 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectorsSOSystem(Pointer<SAMRAIV
     }
 
     // Compute and add the Brinkman term to the RHS vector.
-    const bool has_brinkman = d_brinkman_force.size();
+    const bool has_brinkman = d_so_brinkman_force.size();
     if (has_brinkman)
     {
         d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 0.0);
-        for (auto& brinkman_force : d_brinkman_force)
+        for (auto& so_brinkman_force : d_so_brinkman_force)
         {
-            brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
+            so_brinkman_force->computeBrinkmanVelocity(d_velocity_L_idx, new_time, cycle_num);
         }
         d_hier_sc_data_ops->add(
             rhs2_vec->getComponentDescriptorIndex(0), rhs2_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
@@ -3354,6 +3438,7 @@ AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
     d_hier_cc_data_ops->copyData(d_P2_new_idx, sol2_vec->getComponentDescriptorIndex(1));
 
     // Remove body force terms
+    /*
     if (d_F1_fcn)
     {
         d_hier_sc_data_ops->subtract(
@@ -3388,6 +3473,7 @@ AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
         d_hier_sc_data_ops->subtract(
             rhs2_vec->getComponentDescriptorIndex(0), rhs2_vec->getComponentDescriptorIndex(0), d_velocity_L_idx);
     }
+    */
 
     return;
 } // resetSolverVectors
