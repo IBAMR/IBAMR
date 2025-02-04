@@ -48,6 +48,7 @@ endif
 ## Dimension-dependent libraries
 DIM_INDEPENDENT_SOURCES = \
 ../src/IB/BrinkmanAdvDiffBcHelper.cpp \
+../src/IB/BrinkmanPenalizationMethod.cpp \
 ../src/IB/BrinkmanPenalizationRigidBodyDynamics.cpp \
 ../src/IB/BrinkmanPenalizationStrategy.cpp \
 ../src/IB/CIBMethod.cpp \
@@ -109,6 +110,7 @@ DIM_INDEPENDENT_SOURCES = \
 ../src/acoustic_streaming/AcousticStreamingPETScVecUtilities.cpp \
 ../src/acoustic_streaming/FOAcousticStreamingPETScLevelSolver.cpp \
 ../src/acoustic_streaming/SOAcousticStreamingBcCoefs.cpp \
+../src/acoustic_streaming/SOAcousticStreamingBrinkmanPenalization.cpp \
 ../src/adv_diff/AdvDiffCenteredConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffCUIConvectiveOperator.cpp \
 ../src/adv_diff/AdvDiffConservativeMassScalarTransportRKIntegrator.cpp \
@@ -246,6 +248,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/AllenCahnHierarchyIntegrator.h \
 ../include/ibamr/BrinkmanAdvDiffSemiImplicitHierarchyIntegrator.h \
 ../include/ibamr/BrinkmanAdvDiffBcHelper.h \
+../include/ibamr/BrinkmanPenalizationMethod.h \
 ../include/ibamr/BrinkmanPenalizationStrategy.h \
 ../include/ibamr/BrinkmanPenalizationRigidBodyDynamics.h \
 ../include/ibamr/CIBMethod.h \
@@ -339,6 +342,7 @@ pkg_include_HEADERS += \
 ../include/ibamr/RelaxationLSMethod.h \
 ../include/ibamr/SpongeLayerForceFunction.h \
 ../include/ibamr/SOAcousticStreamingBcCoefs.h \
+../include/ibamr/SOAcousticStreamingBrinkmanPenalization.h \
 ../include/ibamr/STSMassFluxIntegrator.h \
 ../include/ibamr/StaggeredStokesBlockFactorizationPreconditioner.h \
 ../include/ibamr/StaggeredStokesBlockPreconditioner.h \
