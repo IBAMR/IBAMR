@@ -79,6 +79,7 @@ public:
         int rho_idx,
         int mu_idx,
         int lambda_idx,
+        int chi_idx,
         const std::array<std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>, 2>& u_bc_coefs,
         double data_time,
         const std::vector<int>& num_dofs_per_proc,
