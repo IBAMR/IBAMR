@@ -213,6 +213,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
     int rho_idx,
     int mu_idx,
     int lambda_idx,
+    int chi_idx,
     const std::array<std::vector<RobinBcCoefStrategy<NDIM>*>, 2>& u_bc_coefs,
     double data_time,
     const std::vector<int>& num_dofs_per_proc,
@@ -546,6 +547,9 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
         Pointer<CellData<NDIM, int> > p_dof_index_data = patch->getPatchData(p_dof_index_idx);
         Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
 
+        Pointer<SideData<NDIM, double> > chi_data = nullptr;
+        if (chi_idx != IBTK::invalid_index) chi_data = patch->getPatchData(chi_idx);
+
         const IntVector<NDIM> no_ghosts(0);
         SideData<NDIM, double> uur_matrix_coefs(patch_box, uu_stencil_sz, no_ghosts);
         SideData<NDIM, double> uui_matrix_coefs(patch_box, uu_stencil_sz, no_ghosts);
@@ -593,6 +597,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
             {
                 const CellIndex<NDIM>& ic = b();
                 const SideIndex<NDIM> is(ic, axis, SideIndex<NDIM>::Lower);
+                double chi = chi_data.isNull() ? 0.0 : (*chi_data)(is, 0);
 
                 for (int comp = 0; comp < 2; ++comp)
                 {
@@ -610,7 +615,7 @@ AcousticStreamingPETScMatUtilities::constructPatchLevelFOAcousticStreamingOp(
                     std::vector<int> u_mat_cols(u_stencil_sz);
 
                     int idx = 0;
-                    u_mat_vals[idx] = freq * (*rho_data)(is, 0);
+                    u_mat_vals[idx] = freq * (*rho_data)(is, 0) + chi;
                     u_mat_cols[idx] = u_dof_index;
 
                     for (unsigned int d = 0; d < NDIM; ++d)
