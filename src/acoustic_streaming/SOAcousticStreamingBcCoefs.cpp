@@ -241,7 +241,7 @@ SOAcousticStreamingBcCoefs::setBcCoefsFromStokesDrift(Pointer<ArrayData<NDIM, do
                                                       const BoundaryBox<NDIM>& bdry_box,
                                                       double fill_time) const
 {
-    // Patch data for first-order velocity and density
+    // Patch data for first-order velocity.
     Pointer<SideData<NDIM, double> > Ur = patch.getPatchData(d_U1_real_idx);
     Pointer<SideData<NDIM, double> > Ui = patch.getPatchData(d_U1_imag_idx);
     Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
