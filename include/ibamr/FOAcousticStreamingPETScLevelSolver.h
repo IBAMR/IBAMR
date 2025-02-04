@@ -123,6 +123,15 @@ public:
     } // setViscosityInterpolationType
 
     /*!
+     * \brief Set side-centered Brinkman penalization coefficient of velocity patch data index.
+     */
+    void setBrinkmanPenalizationPatchDataIndex(int chi_idx)
+    {
+        d_chi_idx = chi_idx;
+        return;
+    } // setBrinkmanPenalizationPatchDataIndex
+
+    /*!
      * \brief Set acoustic angular frequency
      */
     void setAcousticAngularFrequency(double omega)
@@ -216,6 +225,11 @@ protected:
      * \name Patch data indices for material parameters.
      */
     int d_rho_idx = IBTK::invalid_index, d_lambda_idx = IBTK::invalid_index, d_mu_idx = IBTK::invalid_index;
+
+    /*!
+     * \name Patch data index for the Brinkman penalization coefficient.
+     */
+    int d_chi_idx = IBTK::invalid_index;
 
     /*!
      * Velocity boundary conditions for the real and imaginary components

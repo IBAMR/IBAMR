@@ -151,6 +151,7 @@ FOAcousticStreamingPETScLevelSolver::initializeSolverStateSpecialized(const SAMR
                                                                                  d_rho_idx,
                                                                                  d_mu_idx,
                                                                                  d_lambda_idx,
+                                                                                 d_chi_idx,
                                                                                  d_U_bc_coefs,
                                                                                  d_new_time,
                                                                                  d_num_dofs_per_proc,
