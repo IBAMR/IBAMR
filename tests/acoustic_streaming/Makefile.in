@@ -89,6 +89,7 @@ build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = fo_acoustic_streaming_solver_2d$(EXEEXT) \
 	fo_acoustic_streaming_solver_3d$(EXEEXT) \
+	acoustic_streaming_brinkman_2d$(EXEEXT) \
 	acoustic_streaming_hier_integrator_2d$(EXEEXT) \
 	acoustic_streaming_hier_integrator_3d$(EXEEXT) \
 	so_boundary_conditions_2d$(EXEEXT) sd_mass_src_2d$(EXEEXT)
@@ -123,15 +124,24 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/config/IBAMR_config.h.tmp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-am_acoustic_streaming_hier_integrator_2d_OBJECTS = acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.$(OBJEXT)
-acoustic_streaming_hier_integrator_2d_OBJECTS =  \
-	$(am_acoustic_streaming_hier_integrator_2d_OBJECTS)
-acoustic_streaming_hier_integrator_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+am_acoustic_streaming_brinkman_2d_OBJECTS = acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.$(OBJEXT)
+acoustic_streaming_brinkman_2d_OBJECTS =  \
+	$(am_acoustic_streaming_brinkman_2d_OBJECTS)
+acoustic_streaming_brinkman_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
 	$(IBAMR_LIBS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+acoustic_streaming_brinkman_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(acoustic_streaming_brinkman_2d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_acoustic_streaming_hier_integrator_2d_OBJECTS = acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.$(OBJEXT)
+acoustic_streaming_hier_integrator_2d_OBJECTS =  \
+	$(am_acoustic_streaming_hier_integrator_2d_OBJECTS)
+acoustic_streaming_hier_integrator_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
 acoustic_streaming_hier_integrator_2d_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CXXLD) $(acoustic_streaming_hier_integrator_2d_CXXFLAGS) \
@@ -194,7 +204,8 @@ am__v_at_1 =
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/config
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__maybe_remake_depfiles = depfiles
-am__depfiles_remade = ./$(DEPDIR)/acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.Po \
+am__depfiles_remade = ./$(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Po \
+	./$(DEPDIR)/acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.Po \
 	./$(DEPDIR)/acoustic_streaming_hier_integrator_3d-acoustic_streaming_hier_integrator.Po \
 	./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po \
 	./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po \
@@ -219,12 +230,14 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(acoustic_streaming_hier_integrator_2d_SOURCES) \
+SOURCES = $(acoustic_streaming_brinkman_2d_SOURCES) \
+	$(acoustic_streaming_hier_integrator_2d_SOURCES) \
 	$(acoustic_streaming_hier_integrator_3d_SOURCES) \
 	$(fo_acoustic_streaming_solver_2d_SOURCES) \
 	$(fo_acoustic_streaming_solver_3d_SOURCES) \
 	$(sd_mass_src_2d_SOURCES) $(so_boundary_conditions_2d_SOURCES)
-DIST_SOURCES = $(acoustic_streaming_hier_integrator_2d_SOURCES) \
+DIST_SOURCES = $(acoustic_streaming_brinkman_2d_SOURCES) \
+	$(acoustic_streaming_hier_integrator_2d_SOURCES) \
 	$(acoustic_streaming_hier_integrator_3d_SOURCES) \
 	$(fo_acoustic_streaming_solver_2d_SOURCES) \
 	$(fo_acoustic_streaming_solver_3d_SOURCES) \
@@ -523,6 +536,9 @@ fo_acoustic_streaming_solver_3d_SOURCES = fo_acoustic_streaming_solver.cpp
 acoustic_streaming_hier_integrator_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 acoustic_streaming_hier_integrator_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 acoustic_streaming_hier_integrator_2d_SOURCES = acoustic_streaming_hier_integrator.cpp
+acoustic_streaming_brinkman_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+acoustic_streaming_brinkman_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+acoustic_streaming_brinkman_2d_SOURCES = acoustic_streaming_brinkman.cpp
 acoustic_streaming_hier_integrator_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 acoustic_streaming_hier_integrator_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 acoustic_streaming_hier_integrator_3d_SOURCES = acoustic_streaming_hier_integrator.cpp
@@ -567,6 +583,10 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 
+acoustic_streaming_brinkman_2d$(EXEEXT): $(acoustic_streaming_brinkman_2d_OBJECTS) $(acoustic_streaming_brinkman_2d_DEPENDENCIES) $(EXTRA_acoustic_streaming_brinkman_2d_DEPENDENCIES) 
+	@rm -f acoustic_streaming_brinkman_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(acoustic_streaming_brinkman_2d_LINK) $(acoustic_streaming_brinkman_2d_OBJECTS) $(acoustic_streaming_brinkman_2d_LDADD) $(LIBS)
+
 acoustic_streaming_hier_integrator_2d$(EXEEXT): $(acoustic_streaming_hier_integrator_2d_OBJECTS) $(acoustic_streaming_hier_integrator_2d_DEPENDENCIES) $(EXTRA_acoustic_streaming_hier_integrator_2d_DEPENDENCIES) 
 	@rm -f acoustic_streaming_hier_integrator_2d$(EXEEXT)
 	$(AM_V_CXXLD)$(acoustic_streaming_hier_integrator_2d_LINK) $(acoustic_streaming_hier_integrator_2d_OBJECTS) $(acoustic_streaming_hier_integrator_2d_LDADD) $(LIBS)
@@ -597,6 +617,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/acoustic_streaming_hier_integrator_3d-acoustic_streaming_hier_integrator.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po@am__quote@ # am--include-marker
@@ -633,6 +654,20 @@ am--depfiles: $(am__depfiles_remade)
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
+
+acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.o: acoustic_streaming_brinkman.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acoustic_streaming_brinkman_2d_CXXFLAGS) $(CXXFLAGS) -MT acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.o -MD -MP -MF $(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Tpo -c -o acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.o `test -f 'acoustic_streaming_brinkman.cpp' || echo '$(srcdir)/'`acoustic_streaming_brinkman.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Tpo $(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='acoustic_streaming_brinkman.cpp' object='acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acoustic_streaming_brinkman_2d_CXXFLAGS) $(CXXFLAGS) -c -o acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.o `test -f 'acoustic_streaming_brinkman.cpp' || echo '$(srcdir)/'`acoustic_streaming_brinkman.cpp
+
+acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.obj: acoustic_streaming_brinkman.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acoustic_streaming_brinkman_2d_CXXFLAGS) $(CXXFLAGS) -MT acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.obj -MD -MP -MF $(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Tpo -c -o acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.obj `if test -f 'acoustic_streaming_brinkman.cpp'; then $(CYGPATH_W) 'acoustic_streaming_brinkman.cpp'; else $(CYGPATH_W) '$(srcdir)/acoustic_streaming_brinkman.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Tpo $(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='acoustic_streaming_brinkman.cpp' object='acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acoustic_streaming_brinkman_2d_CXXFLAGS) $(CXXFLAGS) -c -o acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.obj `if test -f 'acoustic_streaming_brinkman.cpp'; then $(CYGPATH_W) 'acoustic_streaming_brinkman.cpp'; else $(CYGPATH_W) '$(srcdir)/acoustic_streaming_brinkman.cpp'; fi`
 
 acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.o: acoustic_streaming_hier_integrator.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(acoustic_streaming_hier_integrator_2d_CXXFLAGS) $(CXXFLAGS) -MT acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.o -MD -MP -MF $(DEPDIR)/acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.Tpo -c -o acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.o `test -f 'acoustic_streaming_hier_integrator.cpp' || echo '$(srcdir)/'`acoustic_streaming_hier_integrator.cpp
@@ -849,7 +884,8 @@ clean: clean-am
 clean-am: clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-		-rm -f ./$(DEPDIR)/acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.Po
+		-rm -f ./$(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Po
+	-rm -f ./$(DEPDIR)/acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.Po
 	-rm -f ./$(DEPDIR)/acoustic_streaming_hier_integrator_3d-acoustic_streaming_hier_integrator.Po
 	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po
 	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po
@@ -900,7 +936,8 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-		-rm -f ./$(DEPDIR)/acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.Po
+		-rm -f ./$(DEPDIR)/acoustic_streaming_brinkman_2d-acoustic_streaming_brinkman.Po
+	-rm -f ./$(DEPDIR)/acoustic_streaming_hier_integrator_2d-acoustic_streaming_hier_integrator.Po
 	-rm -f ./$(DEPDIR)/acoustic_streaming_hier_integrator_3d-acoustic_streaming_hier_integrator.Po
 	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_2d-fo_acoustic_streaming_solver.Po
 	-rm -f ./$(DEPDIR)/fo_acoustic_streaming_solver_3d-fo_acoustic_streaming_solver.Po
