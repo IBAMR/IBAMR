@@ -18,8 +18,6 @@
 
 #include <ibamr/config.h>
 
-#define IBAMR_VERSION_GTE(major, minor, subminor)                                                                      \
-    ((IBAMR_VERSION_MAJOR * 10000 + IBAMR_VERSION_MINOR * 100 + IBAMR_VERSION_SUBMINOR) >=                             \
-     (major)*10000 + (minor)*100 + (subminor))
+#pragma message("This file has been deprecated: use ibamr/config.h directly instead")
 
 #endif // #ifndef included_IBAMR_ibamr_macros
