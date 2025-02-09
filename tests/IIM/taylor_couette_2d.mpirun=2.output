@@ -37,17 +37,17 @@ At end       of timestep # 0
 Simulation time is 0.00165672
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0130063
+ Lagrangian WSS_L2_norm = 0.0129937
 
- Lagrangian WSS_max_norm = 0.0124665
+ Lagrangian WSS_max_norm = 0.0126103
 
- Lagrangian U_L2_norm = 0.0939983
+ Lagrangian U_L2_norm = 0.0939165
 
- Lagrangian U_max_norm = 0.0795125
+ Lagrangian U_max_norm = 0.0801314
 
- Lagrangian disp_L2_norm = 0.000155138
+ Lagrangian disp_L2_norm = 0.000155045
 
- Lagrangian disp_max_norm = 0.000130694
+ Lagrangian disp_max_norm = 0.000131452
 
 Lagrangian P_L2_norm = 4.14763
 
@@ -63,7 +63,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0201841
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0201856
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -76,21 +76,21 @@ At end       of timestep # 1
 Simulation time is 0.00331344
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0301408
+ Lagrangian WSS_L2_norm = 0.0301372
 
- Lagrangian WSS_max_norm = 0.0249479
+ Lagrangian WSS_max_norm = 0.0249989
 
- Lagrangian U_L2_norm = 0.106024
+ Lagrangian U_L2_norm = 0.106014
 
- Lagrangian U_max_norm = 0.0954348
+ Lagrangian U_max_norm = 0.0956718
 
- Lagrangian disp_L2_norm = 1.78475e-05
+ Lagrangian disp_L2_norm = 1.75686e-05
 
- Lagrangian disp_max_norm = 2.39223e-05
+ Lagrangian disp_max_norm = 2.39489e-05
 
 Lagrangian P_L2_norm = 4.14885
 
-Lagrangian P_max_norm = 2.34823
+Lagrangian P_max_norm = 2.34812
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -102,7 +102,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0128368
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0128336
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -115,21 +115,21 @@ At end       of timestep # 2
 Simulation time is 0.00497016
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0226092
+ Lagrangian WSS_L2_norm = 0.0226087
 
- Lagrangian WSS_max_norm = 0.0148941
+ Lagrangian WSS_max_norm = 0.0148898
 
- Lagrangian U_L2_norm = 0.0706828
+ Lagrangian U_L2_norm = 0.0706803
 
- Lagrangian U_max_norm = 0.0491584
+ Lagrangian U_max_norm = 0.0491385
 
- Lagrangian disp_L2_norm = 0.000120783
+ Lagrangian disp_L2_norm = 0.000120789
 
- Lagrangian disp_max_norm = 0.000100089
+ Lagrangian disp_max_norm = 9.97014e-05
 
 Lagrangian P_L2_norm = 4.14861
 
-Lagrangian P_max_norm = 2.34423
+Lagrangian P_max_norm = 2.3443
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -145,7 +145,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0104995
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0104971
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -158,21 +158,21 @@ At end       of timestep # 3
 Simulation time is 0.00662688
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0214906
+ Lagrangian WSS_L2_norm = 0.0214927
 
- Lagrangian WSS_max_norm = 0.0136709
+ Lagrangian WSS_max_norm = 0.0136676
 
- Lagrangian U_L2_norm = 0.0657219
+ Lagrangian U_L2_norm = 0.0657312
 
- Lagrangian U_max_norm = 0.043827
+ Lagrangian U_max_norm = 0.0438116
 
- Lagrangian disp_L2_norm = 0.000222146
+ Lagrangian disp_L2_norm = 0.000222188
 
- Lagrangian disp_max_norm = 0.000168996
+ Lagrangian disp_max_norm = 0.000168567
 
-Lagrangian P_L2_norm = 4.14865
+Lagrangian P_L2_norm = 4.14866
 
-Lagrangian P_max_norm = 2.34578
+Lagrangian P_max_norm = 2.34584
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -184,7 +184,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00805697
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00805351
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -197,21 +197,21 @@ At end       of timestep # 4
 Simulation time is 0.0082836
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0197595
+ Lagrangian WSS_L2_norm = 0.0197643
 
- Lagrangian WSS_max_norm = 0.0115528
+ Lagrangian WSS_max_norm = 0.0115415
 
- Lagrangian U_L2_norm = 0.0579151
+ Lagrangian U_L2_norm = 0.0579373
 
- Lagrangian U_max_norm = 0.0344163
+ Lagrangian U_max_norm = 0.0343936
 
- Lagrangian disp_L2_norm = 0.000311258
+ Lagrangian disp_L2_norm = 0.000311343
 
- Lagrangian disp_max_norm = 0.000222307
+ Lagrangian disp_max_norm = 0.000221763
 
 Lagrangian P_L2_norm = 4.14867
 
-Lagrangian P_max_norm = 2.34738
+Lagrangian P_max_norm = 2.3474
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -223,7 +223,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00615326
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00614906
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -236,21 +236,21 @@ At end       of timestep # 5
 Simulation time is 0.00994031
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0182772
+ Lagrangian WSS_L2_norm = 0.0182824
 
- Lagrangian WSS_max_norm = 0.0102424
+ Lagrangian WSS_max_norm = 0.0102232
 
- Lagrangian U_L2_norm = 0.0513078
+ Lagrangian U_L2_norm = 0.0513323
 
- Lagrangian U_max_norm = 0.0293325
+ Lagrangian U_max_norm = 0.0293366
 
- Lagrangian disp_L2_norm = 0.000389948
+ Lagrangian disp_L2_norm = 0.000390075
 
- Lagrangian disp_max_norm = 0.000264594
+ Lagrangian disp_max_norm = 0.000263892
 
 Lagrangian P_L2_norm = 4.14868
 
-Lagrangian P_max_norm = 2.34844
+Lagrangian P_max_norm = 2.34841
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -266,7 +266,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00459527
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00459027
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -279,21 +279,21 @@ At end       of timestep # 6
 Simulation time is 0.011597
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0169077
+ Lagrangian WSS_L2_norm = 0.0169122
 
- Lagrangian WSS_max_norm = 0.0100473
+ Lagrangian WSS_max_norm = 0.00995228
 
- Lagrangian U_L2_norm = 0.04524
+ Lagrangian U_L2_norm = 0.0452618
 
- Lagrangian U_max_norm = 0.0278856
+ Lagrangian U_max_norm = 0.0274507
 
- Lagrangian disp_L2_norm = 0.000459013
+ Lagrangian disp_L2_norm = 0.000459177
 
- Lagrangian disp_max_norm = 0.000297752
+ Lagrangian disp_max_norm = 0.000296855
 
 Lagrangian P_L2_norm = 4.14869
 
-Lagrangian P_max_norm = 2.34914
+Lagrangian P_max_norm = 2.34905
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -305,7 +305,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0032034
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00319785
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -318,21 +318,21 @@ At end       of timestep # 7
 Simulation time is 0.0132538
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0156571
+ Lagrangian WSS_L2_norm = 0.0156624
 
- Lagrangian WSS_max_norm = 0.00979508
+ Lagrangian WSS_max_norm = 0.00968123
 
- Lagrangian U_L2_norm = 0.0397256
+ Lagrangian U_L2_norm = 0.0397515
 
- Lagrangian U_max_norm = 0.0267959
+ Lagrangian U_max_norm = 0.0262726
 
- Lagrangian disp_L2_norm = 0.000519319
+ Lagrangian disp_L2_norm = 0.000519527
 
- Lagrangian disp_max_norm = 0.000323617
+ Lagrangian disp_max_norm = 0.000322498
 
-Lagrangian P_L2_norm = 4.1487
+Lagrangian P_L2_norm = 4.14871
 
-Lagrangian P_max_norm = 2.34964
+Lagrangian P_max_norm = 2.34941
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -344,7 +344,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00221736
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00221227
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -357,21 +357,21 @@ At end       of timestep # 8
 Simulation time is 0.0149105
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0145111
+ Lagrangian WSS_L2_norm = 0.0145137
 
- Lagrangian WSS_max_norm = 0.00946515
+ Lagrangian WSS_max_norm = 0.0093432
 
- Lagrangian U_L2_norm = 0.0346893
+ Lagrangian U_L2_norm = 0.0347018
 
- Lagrangian U_max_norm = 0.0253714
+ Lagrangian U_max_norm = 0.0248086
 
- Lagrangian disp_L2_norm = 0.000571617
+ Lagrangian disp_L2_norm = 0.000571853
 
- Lagrangian disp_max_norm = 0.000344529
+ Lagrangian disp_max_norm = 0.000343679
 
 Lagrangian P_L2_norm = 4.14872
 
-Lagrangian P_max_norm = 2.35026
+Lagrangian P_max_norm = 2.34994
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -387,7 +387,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00154434
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00154042
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -400,21 +400,21 @@ At end       of timestep # 9
 Simulation time is 0.0165672
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0134695
+ Lagrangian WSS_L2_norm = 0.0134728
 
- Lagrangian WSS_max_norm = 0.0090598
+ Lagrangian WSS_max_norm = 0.00910431
 
- Lagrangian U_L2_norm = 0.030122
+ Lagrangian U_L2_norm = 0.0301372
 
- Lagrangian U_max_norm = 0.0236147
+ Lagrangian U_max_norm = 0.023822
 
- Lagrangian disp_L2_norm = 0.000616634
+ Lagrangian disp_L2_norm = 0.000616865
 
- Lagrangian disp_max_norm = 0.000362697
+ Lagrangian disp_max_norm = 0.000362069
 
 Lagrangian P_L2_norm = 4.14873
 
-Lagrangian P_max_norm = 2.35085
+Lagrangian P_max_norm = 2.35045
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -426,7 +426,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00125779
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00125523
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -439,21 +439,21 @@ At end       of timestep # 10
 Simulation time is 0.0182239
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0125254
+ Lagrangian WSS_L2_norm = 0.0125291
 
- Lagrangian WSS_max_norm = 0.00858533
+ Lagrangian WSS_max_norm = 0.00865328
 
- Lagrangian U_L2_norm = 0.025986
+ Lagrangian U_L2_norm = 0.0260032
 
- Lagrangian U_max_norm = 0.0215509
+ Lagrangian U_max_norm = 0.0218665
 
- Lagrangian disp_L2_norm = 0.000655039
+ Lagrangian disp_L2_norm = 0.000655304
 
- Lagrangian disp_max_norm = 0.00038998
+ Lagrangian disp_max_norm = 0.000391374
 
 Lagrangian P_L2_norm = 4.14874
 
-Lagrangian P_max_norm = 2.35146
+Lagrangian P_max_norm = 2.35097
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -465,7 +465,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00132652
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00132637
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -478,21 +478,21 @@ At end       of timestep # 11
 Simulation time is 0.0198806
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.011674
+ Lagrangian WSS_L2_norm = 0.0116807
 
- Lagrangian WSS_max_norm = 0.00805188
+ Lagrangian WSS_max_norm = 0.00814601
 
- Lagrangian U_L2_norm = 0.0222574
+ Lagrangian U_L2_norm = 0.0222918
 
- Lagrangian U_max_norm = 0.0192147
+ Lagrangian U_max_norm = 0.0196523
 
- Lagrangian disp_L2_norm = 0.000687479
+ Lagrangian disp_L2_norm = 0.0006878
 
- Lagrangian disp_max_norm = 0.000420318
+ Lagrangian disp_max_norm = 0.000421011
 
 Lagrangian P_L2_norm = 4.14876
 
-Lagrangian P_max_norm = 2.35214
+Lagrangian P_max_norm = 2.35157
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -508,7 +508,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00159188
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00159456
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -521,21 +521,21 @@ At end       of timestep # 12
 Simulation time is 0.0215373
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0109096
+ Lagrangian WSS_L2_norm = 0.0109199
 
- Lagrangian WSS_max_norm = 0.00754873
+ Lagrangian WSS_max_norm = 0.00761461
 
- Lagrangian U_L2_norm = 0.0189104
+ Lagrangian U_L2_norm = 0.0189639
 
- Lagrangian U_max_norm = 0.0170099
+ Lagrangian U_max_norm = 0.0173236
 
- Lagrangian disp_L2_norm = 0.00071454
+ Lagrangian disp_L2_norm = 0.000714946
 
- Lagrangian disp_max_norm = 0.000448354
+ Lagrangian disp_max_norm = 0.000448608
 
-Lagrangian P_L2_norm = 4.14877
+Lagrangian P_L2_norm = 4.14876
 
-Lagrangian P_max_norm = 2.3529
+Lagrangian P_max_norm = 2.35266
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -547,7 +547,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0018774
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00188238
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -560,21 +560,21 @@ At end       of timestep # 13
 Simulation time is 0.0231941
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0102305
+ Lagrangian WSS_L2_norm = 0.0102459
 
- Lagrangian WSS_max_norm = 0.00723577
+ Lagrangian WSS_max_norm = 0.0072274
 
- Lagrangian U_L2_norm = 0.0159381
+ Lagrangian U_L2_norm = 0.0160264
 
- Lagrangian U_max_norm = 0.0157094
+ Lagrangian U_max_norm = 0.0156738
 
- Lagrangian disp_L2_norm = 0.000736775
+ Lagrangian disp_L2_norm = 0.000737259
 
- Lagrangian disp_max_norm = 0.000472401
+ Lagrangian disp_max_norm = 0.000474261
 
 Lagrangian P_L2_norm = 4.14878
 
-Lagrangian P_max_norm = 2.35469
+Lagrangian P_max_norm = 2.35459
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -586,7 +586,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00215157
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00215771
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -599,21 +599,21 @@ At end       of timestep # 14
 Simulation time is 0.0248508
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.00963388
+ Lagrangian WSS_L2_norm = 0.0096472
 
- Lagrangian WSS_max_norm = 0.00691575
+ Lagrangian WSS_max_norm = 0.00689
 
- Lagrangian U_L2_norm = 0.0133337
+ Lagrangian U_L2_norm = 0.013409
 
- Lagrangian U_max_norm = 0.0143626
+ Lagrangian U_max_norm = 0.0142293
 
- Lagrangian disp_L2_norm = 0.000754736
+ Lagrangian disp_L2_norm = 0.000755337
 
- Lagrangian disp_max_norm = 0.000495906
+ Lagrangian disp_max_norm = 0.00049776
 
 Lagrangian P_L2_norm = 4.1488
 
-Lagrangian P_max_norm = 2.35675
+Lagrangian P_max_norm = 2.35669
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -629,7 +629,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00233706
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00234685
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -642,21 +642,21 @@ At end       of timestep # 15
 Simulation time is 0.0265075
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.0091155
+ Lagrangian WSS_L2_norm = 0.00911378
 
- Lagrangian WSS_max_norm = 0.00658709
+ Lagrangian WSS_max_norm = 0.00629729
 
- Lagrangian U_L2_norm = 0.0110861
+ Lagrangian U_L2_norm = 0.0110594
 
- Lagrangian U_max_norm = 0.012947
+ Lagrangian U_max_norm = 0.0116165
 
- Lagrangian disp_L2_norm = 0.000768939
+ Lagrangian disp_L2_norm = 0.000769617
 
- Lagrangian disp_max_norm = 0.000517268
+ Lagrangian disp_max_norm = 0.000518925
 
 Lagrangian P_L2_norm = 4.14881
 
-Lagrangian P_max_norm = 2.35897
+Lagrangian P_max_norm = 2.35893
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -668,7 +668,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00245794
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00246824
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -681,21 +681,21 @@ At end       of timestep # 16
 Simulation time is 0.0281642
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.00866235
+ Lagrangian WSS_L2_norm = 0.00865963
 
- Lagrangian WSS_max_norm = 0.00620288
+ Lagrangian WSS_max_norm = 0.00590026
 
- Lagrangian U_L2_norm = 0.00914586
+ Lagrangian U_L2_norm = 0.00909953
 
- Lagrangian U_max_norm = 0.0112973
+ Lagrangian U_max_norm = 0.00990807
 
- Lagrangian disp_L2_norm = 0.000779832
+ Lagrangian disp_L2_norm = 0.000780515
 
- Lagrangian disp_max_norm = 0.000536227
+ Lagrangian disp_max_norm = 0.000535698
 
-Lagrangian P_L2_norm = 4.14882
+Lagrangian P_L2_norm = 4.14883
 
-Lagrangian P_max_norm = 2.36135
+Lagrangian P_max_norm = 2.36126
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -707,7 +707,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00254473
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00255651
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -720,21 +720,21 @@ At end       of timestep # 17
 Simulation time is 0.0298209
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.00827553
+ Lagrangian WSS_L2_norm = 0.00826449
 
- Lagrangian WSS_max_norm = 0.00578021
+ Lagrangian WSS_max_norm = 0.00571297
 
- Lagrangian U_L2_norm = 0.00752403
+ Lagrangian U_L2_norm = 0.00739981
 
- Lagrangian U_max_norm = 0.0094726
+ Lagrangian U_max_norm = 0.00869854
 
- Lagrangian disp_L2_norm = 0.000787829
+ Lagrangian disp_L2_norm = 0.000788512
 
- Lagrangian disp_max_norm = 0.000552412
+ Lagrangian disp_max_norm = 0.000549723
 
 Lagrangian P_L2_norm = 4.14885
 
-Lagrangian P_max_norm = 2.36375
+Lagrangian P_max_norm = 2.36357
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -752,7 +752,7 @@ IBHierarchyIntegrator::advanceHierarchy(): integrating hierarchy
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.00255541
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.0025643
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
@@ -765,36 +765,36 @@ At end       of timestep # 18
 Simulation time is 0.03125
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
- Lagrangian WSS_L2_norm = 0.00798377
+ Lagrangian WSS_L2_norm = 0.00797711
 
- Lagrangian WSS_max_norm = 0.00553815
+ Lagrangian WSS_max_norm = 0.00558148
 
- Lagrangian U_L2_norm = 0.00632974
+ Lagrangian U_L2_norm = 0.00623825
 
- Lagrangian U_max_norm = 0.0080183
+ Lagrangian U_max_norm = 0.00814495
 
- Lagrangian disp_L2_norm = 0.000792732
+ Lagrangian disp_L2_norm = 0.000793384
 
- Lagrangian disp_max_norm = 0.000563711
+ Lagrangian disp_max_norm = 0.000561122
 
-Lagrangian P_L2_norm = 4.1488
+Lagrangian P_L2_norm = 4.14881
 
-Lagrangian P_max_norm = 2.36593
+Lagrangian P_max_norm = 2.36565
 
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 Computing error norms.
 
- p_Eulerian_L2_norm = 0.0030928
- p_Eulerian_max_norm = 0.00829027
+ p_Eulerian_L2_norm = 0.00305849
+ p_Eulerian_max_norm = 0.00829509
 
- u_Eulerian_L2_norm = 0.00423242
+ u_Eulerian_L2_norm = 0.00422426
 
- u_Eulerian_max_norm = 0.0284235
+ u_Eulerian_max_norm = 0.0282518
 
 Error in the Eulerian u at time 0.03125:
-  L2-norm:  0.004232487573944824
-  max-norm: 0.02842353589507629
+  L2-norm:  0.004224324890531562
+  max-norm: 0.02825178758166758
 +++++++++++++++++++++++++++++++++++++++++++++++++++
  MU = 0.01
   dx:  0.03125
