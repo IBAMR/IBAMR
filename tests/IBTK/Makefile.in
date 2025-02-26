@@ -105,6 +105,7 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	secondary_hierarchy_01_2d$(EXEEXT) \
 	child_integrators_2d$(EXEEXT) version_macros$(EXEEXT) \
 	snapshot_cache_01_2d$(EXEEXT) \
+	hierarchy_avg_data_01_2d$(EXEEXT) \
 	nodal_interpolation_01_2d$(EXEEXT) \
 	nodal_interpolation_01_3d$(EXEEXT) curl_01_2d$(EXEEXT) \
 	curl_01_3d$(EXEEXT) marker_points_01_2d$(EXEEXT) \
@@ -312,6 +313,15 @@ helmholtz_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
 helmholtz_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(helmholtz_3d_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_hierarchy_avg_data_01_2d_OBJECTS =  \
+	hierarchy_avg_data_01_2d-hierarchy_avg_data_01.$(OBJEXT)
+hierarchy_avg_data_01_2d_OBJECTS =  \
+	$(am_hierarchy_avg_data_01_2d_OBJECTS)
+hierarchy_avg_data_01_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+hierarchy_avg_data_01_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(hierarchy_avg_data_01_2d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
 am_hierarchy_callbacks_OBJECTS =  \
 	hierarchy_callbacks-hierarchy_callbacks.$(OBJEXT)
 hierarchy_callbacks_OBJECTS = $(am_hierarchy_callbacks_OBJECTS)
@@ -606,6 +616,7 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po \
 	./$(DEPDIR)/helmholtz_2d-helmholtz.Po \
 	./$(DEPDIR)/helmholtz_3d-helmholtz.Po \
+	./$(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Po \
 	./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po \
 	./$(DEPDIR)/ibtk_init-ibtk_init.Po \
 	./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po \
@@ -669,6 +680,7 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
 	$(helmholtz_2d_SOURCES) $(helmholtz_3d_SOURCES) \
+	$(hierarchy_avg_data_01_2d_SOURCES) \
 	$(hierarchy_callbacks_SOURCES) $(ibtk_init_SOURCES) \
 	$(ibtk_mpi_SOURCES) $(jacobian_calc_01_SOURCES) \
 	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
@@ -704,6 +716,7 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(ghost_accumulation_01_3d_SOURCES) \
 	$(ghost_indices_01_2d_SOURCES) $(ghost_indices_01_3d_SOURCES) \
 	$(helmholtz_2d_SOURCES) $(helmholtz_3d_SOURCES) \
+	$(hierarchy_avg_data_01_2d_SOURCES) \
 	$(hierarchy_callbacks_SOURCES) $(ibtk_init_SOURCES) \
 	$(ibtk_mpi_SOURCES) $(am__jacobian_calc_01_SOURCES_DIST) \
 	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
@@ -1172,6 +1185,9 @@ version_macros_SOURCES = version_macros.cpp
 snapshot_cache_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 snapshot_cache_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 snapshot_cache_01_2d_SOURCES = snapshot_cache_01.cpp
+hierarchy_avg_data_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+hierarchy_avg_data_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+hierarchy_avg_data_01_2d_SOURCES = hierarchy_avg_data_01.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1282,6 +1298,10 @@ helmholtz_2d$(EXEEXT): $(helmholtz_2d_OBJECTS) $(helmholtz_2d_DEPENDENCIES) $(EX
 helmholtz_3d$(EXEEXT): $(helmholtz_3d_OBJECTS) $(helmholtz_3d_DEPENDENCIES) $(EXTRA_helmholtz_3d_DEPENDENCIES) 
 	@rm -f helmholtz_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(helmholtz_3d_LINK) $(helmholtz_3d_OBJECTS) $(helmholtz_3d_LDADD) $(LIBS)
+
+hierarchy_avg_data_01_2d$(EXEEXT): $(hierarchy_avg_data_01_2d_OBJECTS) $(hierarchy_avg_data_01_2d_DEPENDENCIES) $(EXTRA_hierarchy_avg_data_01_2d_DEPENDENCIES) 
+	@rm -f hierarchy_avg_data_01_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(hierarchy_avg_data_01_2d_LINK) $(hierarchy_avg_data_01_2d_OBJECTS) $(hierarchy_avg_data_01_2d_LDADD) $(LIBS)
 
 hierarchy_callbacks$(EXEEXT): $(hierarchy_callbacks_OBJECTS) $(hierarchy_callbacks_DEPENDENCIES) $(EXTRA_hierarchy_callbacks_DEPENDENCIES) 
 	@rm -f hierarchy_callbacks$(EXEEXT)
@@ -1440,6 +1460,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helmholtz_2d-helmholtz.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/helmholtz_3d-helmholtz.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibtk_init-ibtk_init.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po@am__quote@ # am--include-marker
@@ -1769,6 +1790,20 @@ helmholtz_3d-helmholtz.obj: helmholtz.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='helmholtz.cpp' object='helmholtz_3d-helmholtz.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(helmholtz_3d_CXXFLAGS) $(CXXFLAGS) -c -o helmholtz_3d-helmholtz.obj `if test -f 'helmholtz.cpp'; then $(CYGPATH_W) 'helmholtz.cpp'; else $(CYGPATH_W) '$(srcdir)/helmholtz.cpp'; fi`
+
+hierarchy_avg_data_01_2d-hierarchy_avg_data_01.o: hierarchy_avg_data_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_avg_data_01_2d_CXXFLAGS) $(CXXFLAGS) -MT hierarchy_avg_data_01_2d-hierarchy_avg_data_01.o -MD -MP -MF $(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Tpo -c -o hierarchy_avg_data_01_2d-hierarchy_avg_data_01.o `test -f 'hierarchy_avg_data_01.cpp' || echo '$(srcdir)/'`hierarchy_avg_data_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Tpo $(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hierarchy_avg_data_01.cpp' object='hierarchy_avg_data_01_2d-hierarchy_avg_data_01.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_avg_data_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o hierarchy_avg_data_01_2d-hierarchy_avg_data_01.o `test -f 'hierarchy_avg_data_01.cpp' || echo '$(srcdir)/'`hierarchy_avg_data_01.cpp
+
+hierarchy_avg_data_01_2d-hierarchy_avg_data_01.obj: hierarchy_avg_data_01.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_avg_data_01_2d_CXXFLAGS) $(CXXFLAGS) -MT hierarchy_avg_data_01_2d-hierarchy_avg_data_01.obj -MD -MP -MF $(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Tpo -c -o hierarchy_avg_data_01_2d-hierarchy_avg_data_01.obj `if test -f 'hierarchy_avg_data_01.cpp'; then $(CYGPATH_W) 'hierarchy_avg_data_01.cpp'; else $(CYGPATH_W) '$(srcdir)/hierarchy_avg_data_01.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Tpo $(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hierarchy_avg_data_01.cpp' object='hierarchy_avg_data_01_2d-hierarchy_avg_data_01.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_avg_data_01_2d_CXXFLAGS) $(CXXFLAGS) -c -o hierarchy_avg_data_01_2d-hierarchy_avg_data_01.obj `if test -f 'hierarchy_avg_data_01.cpp'; then $(CYGPATH_W) 'hierarchy_avg_data_01.cpp'; else $(CYGPATH_W) '$(srcdir)/hierarchy_avg_data_01.cpp'; fi`
 
 hierarchy_callbacks-hierarchy_callbacks.o: hierarchy_callbacks.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(hierarchy_callbacks_CXXFLAGS) $(CXXFLAGS) -MT hierarchy_callbacks-hierarchy_callbacks.o -MD -MP -MF $(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Tpo -c -o hierarchy_callbacks-hierarchy_callbacks.o `test -f 'hierarchy_callbacks.cpp' || echo '$(srcdir)/'`hierarchy_callbacks.cpp
@@ -2382,6 +2417,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/helmholtz_2d-helmholtz.Po
 	-rm -f ./$(DEPDIR)/helmholtz_3d-helmholtz.Po
+	-rm -f ./$(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Po
 	-rm -f ./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
 	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po
@@ -2479,6 +2515,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/ghost_indices_01_3d-ghost_indices_01.Po
 	-rm -f ./$(DEPDIR)/helmholtz_2d-helmholtz.Po
 	-rm -f ./$(DEPDIR)/helmholtz_3d-helmholtz.Po
+	-rm -f ./$(DEPDIR)/hierarchy_avg_data_01_2d-hierarchy_avg_data_01.Po
 	-rm -f ./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
 	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po
