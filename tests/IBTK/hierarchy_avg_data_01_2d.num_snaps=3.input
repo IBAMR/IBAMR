@@ -17,6 +17,7 @@ t_end = 1.0
 num_snaps = 3
 max_periods = 100
 noise_max = 0.1
+RESTART = FALSE
 
 CartesianGeometry {
    domain_boxes       = [(0, 0), (N - 1, N - 1)]

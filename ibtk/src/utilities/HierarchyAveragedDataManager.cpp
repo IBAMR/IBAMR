@@ -12,14 +12,14 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "ibtk/HierarchyAveragedDataManager.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
-#include "ibtk/HierarchyMathOps.h"
+#include <ibtk/HierarchyAveragedDataManager.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
+#include <ibtk/HierarchyMathOps.h>
 #include <ibtk/snapshot_utilities.h>
 
-#include "HierarchyDataOpsManager.h"
+#include <HierarchyDataOpsManager.h>
 
-#include "ibtk/namespaces.h" // IWYU pragma: keep
+#include <ibtk/namespaces.h> // IWYU pragma: keep
 
 /////////////////////////////// NAMESPACE ////////////////////////////////////
 
@@ -81,7 +81,6 @@ deallocate_patch_data(const int idx,
 HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_name,
                                                            Pointer<Variable<NDIM> > var,
                                                            Pointer<Database> input_db,
-                                                           Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                            Pointer<GridGeometry<NDIM> > grid_geom,
                                                            bool register_for_restart)
     : d_object_name(std::move(object_name)),
@@ -89,45 +88,57 @@ HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_na
       d_snapshot_cache(d_object_name + "::SnapshotCache", var, input_db, grid_geom, register_for_restart)
 {
     // Fill in period information
-    d_t_start = input_db->getDouble("t_start");
-    d_t_end = input_db->getDouble("t_end");
-    d_t_period = d_t_end - d_t_start;
+    d_period_start = input_db->getDouble("period_start");
+    d_period_end = input_db->getDouble("period_end");
+    d_period_length = d_period_end - d_period_start;
     d_periodic_thresh = input_db->getDouble("threshold");
     // Snapshot points are equally spaced between start and end
     int num_snapshots = input_db->getInteger("num_snapshots");
-    double dt = d_t_period / num_snapshots;
-    for (int i = 0; i < num_snapshots; ++i) d_snapshot_time_pts.insert(d_t_start + static_cast<double>(i) * dt);
+    double dt = d_period_length / num_snapshots;
+    for (int i = 0; i < num_snapshots; ++i) d_snapshot_time_pts.insert(d_period_start + static_cast<double>(i) * dt);
 
-    commonConstructor(input_db, hierarchy);
+    commonConstructor(input_db);
+
+    auto restart_manager = RestartManager::getManager();
+    if (register_for_restart)
+    {
+        restart_manager->registerRestartItem(d_object_name, this);
+        auto var_db = VariableDatabase<NDIM>::getDatabase();
+        var_db->registerPatchDataForRestart(d_scratch_idx);
+    }
+
+    bool from_restart = restart_manager->isFromRestart();
+    if (from_restart) getFromRestart();
 }
 
 HierarchyAveragedDataManager::HierarchyAveragedDataManager(std::string object_name,
                                                            Pointer<Variable<NDIM> > var,
                                                            Pointer<Database> input_db,
-                                                           Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                            std::set<double> snapshot_time_points,
-                                                           const double t_start,
-                                                           const double t_end,
+                                                           const double period_start,
+                                                           const double period_end,
+                                                           const double threshold,
                                                            Pointer<GridGeometry<NDIM> > grid_geom,
                                                            bool register_for_restart)
     : d_object_name(std::move(object_name)),
       d_var(var),
-      d_t_start(t_start),
-      d_t_end(t_end),
-      d_t_period(t_end - t_start),
+      d_period_start(period_start),
+      d_period_end(period_end),
+      d_period_length(period_end - period_start),
+      d_periodic_thresh(threshold),
       d_snapshot_time_pts(std::move(snapshot_time_points)),
       d_snapshot_cache(d_object_name + "::SnapshotCache", var, nullptr, grid_geom, register_for_restart)
 {
-    commonConstructor(input_db, hierarchy);
+    commonConstructor(input_db);
 }
 
 void
-HierarchyAveragedDataManager::commonConstructor(Pointer<Database> input_db, Pointer<PatchHierarchy<NDIM> > hierarchy)
+HierarchyAveragedDataManager::commonConstructor(Pointer<Database> input_db)
 {
     // Get some information from the database
     d_enable_logging = input_db->getBool("enable_logging");
     d_output_data = input_db->getBool("output_data");
-    std::string dir_dump_name = input_db->getStringWithDefault("dir_dump_name", "");
+    std::string dir_dump_name = input_db->getStringWithDefault("dir_dump_name", "./");
     d_mean_refine_type = input_db->getStringWithDefault("refine_type", d_mean_refine_type);
 
     // Register the scratch variable. Note we need the scratch variable to have sufficient ghost cell width for whatever
@@ -135,10 +146,6 @@ HierarchyAveragedDataManager::commonConstructor(Pointer<Database> input_db, Poin
     auto var_db = VariableDatabase<NDIM>::getDatabase();
     d_scratch_idx =
         var_db->registerVariableAndContext(d_var, var_db->getContext(d_object_name + "::ctx"), 1 /*ghosts*/);
-
-    // Create the hierarchy data ops
-    auto hier_math_ops = HierarchyDataOpsManager<NDIM>::getManager();
-    d_hier_data_ops = hier_math_ops->getOperationsDouble(d_var, hierarchy, true /*get_unique*/);
 
     // Determine depth for drawing.
     int depth = 1;
@@ -196,22 +203,27 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
                                                          const int wgt_idx,
                                                          const double tol)
 {
-    if (d_t_period == 0.0)
+    // Create the hierarchy data ops
+    auto hier_math_ops = HierarchyDataOpsManager<NDIM>::getManager();
+    Pointer<HierarchyDataOpsReal<NDIM, double> > hier_data_ops =
+        hier_math_ops->getOperationsDouble(d_var, hierarchy, true /*get_unique*/);
+
+    if (d_period_length == 0.0)
     {
         // Ensure time is the only time point we are storing
         time = *(d_snapshot_time_pts.begin());
     }
     else
     {
-        time = map_to_period(d_t_start, d_t_end, time);
+        time = map_to_period(d_period_start, d_period_end, time);
     }
-    time = getTimePt(time, tol);
+    time = getTimePoint(time, tol);
     // If this is the first snapshot, record it.
     if (d_idx_num_updates_map[time] == 0)
     {
         // Need to copy the data to the scratch index.
         allocate_patch_data(d_scratch_idx, time, hierarchy, 0, hierarchy->getFinestLevelNumber());
-        d_hier_data_ops->copyData(d_scratch_idx, u_idx);
+        hier_data_ops->copyData(d_scratch_idx, u_idx);
         d_snapshot_cache.storeSnapshot(d_scratch_idx, time, hierarchy);
         d_idx_steady_state_map[time] = false;
         d_idx_num_updates_map[time] = 1;
@@ -226,8 +238,8 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
     // u_avg^N = u_avg^(N-1) + (1/N)*(u - u_avg^(N-1))
     // Note first mean is already calculated, so we increment steady state idx.
     const double N = static_cast<double>(d_idx_num_updates_map[time]++);
-    d_hier_data_ops->resetLevels(0, hierarchy->getFinestLevelNumber());
-    d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, N / (N + 1.0), d_scratch_idx);
+    hier_data_ops->resetLevels(0, hierarchy->getFinestLevelNumber());
+    hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, N / (N + 1.0), d_scratch_idx);
     // Update snapshot with new mean
     update_snapshot(d_snapshot_cache, d_scratch_idx, time, hierarchy, tol);
 
@@ -255,14 +267,14 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
         if (nc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, nc_var, ghost_fill, time, false);
         if (ec_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, ec_var, ghost_fill, time, false);
         if (fc_var) hier_math_ops.interp(d_mean_idx, d_mean_var, d_scratch_idx, fc_var, ghost_fill, time, false);
-        if (cc_var) d_hier_data_ops->copyData(d_mean_idx, d_scratch_idx);
+        if (cc_var) hier_data_ops->copyData(d_mean_idx, d_scratch_idx);
         // Determine our convergence criteria: ||1/(N + 1) * (u_avg - u)||
-        d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
+        hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
         if (sc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, sc_var, ghost_fill, time, false);
         if (nc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, nc_var, ghost_fill, time, false);
         if (ec_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, ec_var, ghost_fill, time, false);
         if (fc_var) hier_math_ops.interp(d_dev_idx, d_dev_var, d_scratch_idx, fc_var, ghost_fill, time, false);
-        if (cc_var) d_hier_data_ops->copyData(d_dev_idx, d_scratch_idx);
+        if (cc_var) hier_data_ops->copyData(d_dev_idx, d_scratch_idx);
         d_visit_data_writer->writePlotData(hierarchy, d_visit_ts++, time);
         deallocate_patch_data(d_mean_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
         deallocate_patch_data(d_dev_idx, hierarchy, 0, hierarchy->getFinestLevelNumber());
@@ -270,15 +282,15 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
     else
     {
         // Determine our convergence criteria: ||1/(N + 1) * (u_avg - u)||
-        d_hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
+        hier_data_ops->linearSum(d_scratch_idx, 1.0 / (N + 1.0), u_idx, -1.0 / (N + 1.0), d_scratch_idx);
     }
 
-    const double L2_norm = d_hier_data_ops->L2Norm(d_scratch_idx, wgt_idx);
+    const double L2_norm = hier_data_ops->L2Norm(d_scratch_idx, wgt_idx);
     if (d_enable_logging)
     {
         // Print statistics to the log file.
-        const double L1_norm = d_hier_data_ops->L1Norm(d_scratch_idx, wgt_idx);
-        const double max_norm = d_hier_data_ops->maxNorm(d_scratch_idx, wgt_idx);
+        const double L1_norm = hier_data_ops->L1Norm(d_scratch_idx, wgt_idx);
+        const double max_norm = hier_data_ops->maxNorm(d_scratch_idx, wgt_idx);
         plog << "At time " << time << ", the L^1 norm of the change in u_mean is " << L1_norm << "\n";
         plog << "At time " << time << ", the L^2 norm of the change in u_mean is " << L2_norm << "\n";
         plog << "At time " << time << ", the max norm of the change in u_mean is " << max_norm << "\n";
@@ -294,13 +306,24 @@ HierarchyAveragedDataManager::updateTimeAveragedSnapshot(const int u_idx,
 }
 
 double
-HierarchyAveragedDataManager::getTimePt(double time, const double tol)
+HierarchyAveragedDataManager::getTimePoint(double time, const double tol)
 {
-    time = map_to_period(d_t_start, d_t_end, time);
+    time = map_to_period(d_period_start, d_period_end, time);
     auto it_up = d_snapshot_time_pts.upper_bound(time);
-    auto it_low = std::next(it_up, -1);
-    double t_low = *(it_low);
-    double t_up = *(it_up);
+    double t_low, t_up;
+    if (it_up == d_snapshot_time_pts.begin())
+    {
+        t_up = *it_up;
+        // Set the "lower" bound to be the other end of the period.
+        t_low = *d_snapshot_time_pts.rbegin();
+    }
+    else
+    {
+        auto it_low = std::next(it_up, -1);
+        t_low = *(it_low);
+        t_up = *(it_up);
+    }
+
     if (std::abs(t_low - time) <= tol)
         return t_low;
     else if (std::abs(t_up - time) <= tol)
@@ -308,6 +331,51 @@ HierarchyAveragedDataManager::getTimePt(double time, const double tol)
     else
         TBOX_ERROR("Time point: " << time << " is not within the given tolerance " << tol << "!\n");
     return 0.0;
+}
+
+void
+HierarchyAveragedDataManager::putToDatabase(Pointer<Database> db)
+{
+    db->putInteger("num_snapshots", d_snapshot_time_pts.size());
+    int i = 0;
+    for (const auto& time : d_snapshot_time_pts)
+    {
+        db->putDouble("time_" + std::to_string(i), time);
+        db->putBool("at_steady_state_" + std::to_string(i), d_idx_steady_state_map.at(time));
+        db->putInteger("num_updates_" + std::to_string(i), d_idx_num_updates_map.at(time));
+    }
+
+    d_snapshot_cache.putToDatabase(db);
+    if (d_output_data) db->putInteger("visit_ts", d_visit_ts);
+    db->putDouble("period_start", d_period_start);
+    db->putDouble("period_end", d_period_end);
+}
+
+void
+HierarchyAveragedDataManager::getFromRestart()
+{
+    Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+    Pointer<Database> db;
+    if (restart_db->isDatabase(d_object_name))
+        db = restart_db->getDatabase(d_object_name);
+    else
+        TBOX_ERROR(d_object_name << ": Restart database corresponding to " << d_object_name
+                                 << " not found in restart file.\n");
+
+    // Now grab the data from the database
+    int num_snapshots = db->getInteger("num_snapshots");
+    for (int i = 0; i < num_snapshots; ++i)
+    {
+        double time = db->getDouble("time_" + std::to_string(i));
+        d_snapshot_time_pts.insert(time);
+        d_idx_steady_state_map.insert(std::make_pair(time, db->getBool("at_steady_state_" + std::to_string(i))));
+        d_idx_num_updates_map.insert(std::make_pair(time, db->getInteger("num_updates_" + std::to_string(i))));
+    }
+
+    if (d_output_data) d_visit_ts = db->getInteger("visit_ts");
+    d_period_start = db->getDouble("period_start");
+    d_period_end = db->getDouble("period_end");
+    d_period_length = d_period_end - d_period_start;
 }
 //////////////////////////////////////////////////////////////////////////////
 

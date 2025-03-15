@@ -10,9 +10,6 @@
 // COPYRIGHT at the top level directory of IBAMR.
 //
 // ---------------------------------------------------------------------
-
-// Test verifying that we store, retrieve, and interpolate snapshots.
-
 #include <ibtk/AppInitializer.h>
 #include <ibtk/HierarchyAveragedDataManager.h>
 #include <ibtk/IBTKInit.h>
@@ -74,7 +71,9 @@ void test(const std::string& test_name,
           const std::set<double>& times,
           const int max_periods,
           const std::string& refine_type,
-          const double noise_max);
+          const double noise_max,
+          const bool do_restart,
+          const std::string restart_dir_name);
 
 double
 fcn(const VectorNd& x, const double t, const double noise)
@@ -135,7 +134,7 @@ main(int argc, char* argv[])
         const unsigned int num_snaps = input_db->getInteger("num_snaps");
         const double dt = (t_end - t_start) / static_cast<double>(num_snaps);
         std::set<double> time_pts, interp_pts;
-        for (unsigned int i = 0; i < num_snaps; ++i) time_pts.insert(t_start + static_cast<double>(i) * dt);
+        for (unsigned int i = 0; i < num_snaps; ++i) time_pts.insert(t_start + (static_cast<double>(i)) * dt);
         for (unsigned int i = 0; i < num_snaps - 1; ++i)
             interp_pts.insert(t_start + (static_cast<double>(i) + 0.5) * dt);
 
@@ -148,24 +147,19 @@ main(int argc, char* argv[])
         avg_manager_db->putBool("enable_logging", false);
         Pointer<CellVariable<NDIM, double> > c_var = new CellVariable<NDIM, double>("c_var");
         std::unique_ptr<HierarchyAveragedDataManager> c_avg_manager(new HierarchyAveragedDataManager(
-            "CellAvgManager", c_var, avg_manager_db, patch_hierarchy, time_pts, t_start, t_end, grid_geometry, false));
-        c_avg_manager->setSteadyStateThreshold(0.2);
+            "CellAvgManager", c_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
         Pointer<NodeVariable<NDIM, double> > n_var = new NodeVariable<NDIM, double>("n_var");
         std::unique_ptr<HierarchyAveragedDataManager> n_avg_manager(new HierarchyAveragedDataManager(
-            "NodeAvgManager", n_var, avg_manager_db, patch_hierarchy, time_pts, t_start, t_end, grid_geometry, false));
-        n_avg_manager->setSteadyStateThreshold(0.2);
+            "NodeAvgManager", n_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
         Pointer<SideVariable<NDIM, double> > s_var = new SideVariable<NDIM, double>("s_var");
         std::unique_ptr<HierarchyAveragedDataManager> s_avg_manager(new HierarchyAveragedDataManager(
-            "SideAvgManager", s_var, avg_manager_db, patch_hierarchy, time_pts, t_start, t_end, grid_geometry, false));
-        s_avg_manager->setSteadyStateThreshold(0.2);
+            "SideAvgManager", s_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
         Pointer<EdgeVariable<NDIM, double> > e_var = new EdgeVariable<NDIM, double>("e_var");
         std::unique_ptr<HierarchyAveragedDataManager> e_avg_manager(new HierarchyAveragedDataManager(
-            "EdgeAvgManager", e_var, avg_manager_db, patch_hierarchy, time_pts, t_start, t_end, grid_geometry, false));
-        e_avg_manager->setSteadyStateThreshold(0.2);
+            "EdgeAvgManager", e_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
         Pointer<FaceVariable<NDIM, double> > f_var = new FaceVariable<NDIM, double>("f_var");
         std::unique_ptr<HierarchyAveragedDataManager> f_avg_manager(new HierarchyAveragedDataManager(
-            "FaceAvgManager", f_var, avg_manager_db, patch_hierarchy, time_pts, t_start, t_end, grid_geometry, false));
-        f_avg_manager->setSteadyStateThreshold(0.2);
+            "FaceAvgManager", f_var, avg_manager_db, time_pts, t_start, t_end, 0.2, grid_geometry, true));
 
         auto var_db = VariableDatabase<NDIM>::getDatabase();
         int c_idx = var_db->registerVariableAndContext(c_var, var_db->getContext("ctx"), 1);
@@ -173,6 +167,10 @@ main(int argc, char* argv[])
         int s_idx = var_db->registerVariableAndContext(s_var, var_db->getContext("ctx"), 1);
         int e_idx = var_db->registerVariableAndContext(e_var, var_db->getContext("ctx"), 1);
         int f_idx = var_db->registerVariableAndContext(f_var, var_db->getContext("ctx"), 1);
+
+        const bool restart = input_db->getBool("RESTART");
+        const std::string restart_dir_name = app_initializer->getRestartDumpDirectory();
+        if (restart) Utilities::recursiveMkdir(restart_dir_name);
 
         // Do tests
         test("Cell",
@@ -182,8 +180,19 @@ main(int argc, char* argv[])
              time_pts,
              max_periods,
              "CONSERVATIVE_LINEAR_REFINE",
-             noise_max);
-        test("Node", n_idx, n_avg_manager, patch_hierarchy, time_pts, max_periods, "LINEAR_REFINE", noise_max);
+             noise_max,
+             restart,
+             restart_dir_name);
+        test("Node",
+             n_idx,
+             n_avg_manager,
+             patch_hierarchy,
+             time_pts,
+             max_periods,
+             "LINEAR_REFINE",
+             noise_max,
+             restart,
+             restart_dir_name);
         test("Side",
              s_idx,
              s_avg_manager,
@@ -191,7 +200,9 @@ main(int argc, char* argv[])
              time_pts,
              max_periods,
              "CONSERVATIVE_LINEAR_REFINE",
-             noise_max);
+             noise_max,
+             restart,
+             restart_dir_name);
         test("Edge",
              e_idx,
              e_avg_manager,
@@ -199,7 +210,9 @@ main(int argc, char* argv[])
              time_pts,
              max_periods,
              "CONSERVATIVE_LINEAR_REFINE",
-             noise_max);
+             noise_max,
+             restart,
+             restart_dir_name);
         test("Face",
              f_idx,
              f_avg_manager,
@@ -207,7 +220,9 @@ main(int argc, char* argv[])
              time_pts,
              max_periods,
              "CONSERVATIVE_LINEAR_REFINE",
-             noise_max);
+             noise_max,
+             restart,
+             restart_dir_name);
     }
 } // main()
 
@@ -219,14 +234,19 @@ test(const std::string& test_name,
      const std::set<double>& times,
      const int max_periods,
      const std::string& refine_type,
-     const double noise_max)
+     const double noise_max,
+     const bool do_restart,
+     const std::string restart_dir_name)
 {
     // Fill in data.
     std::mt19937 gen(1);
     uniform_double_distribution dis(-noise_max, noise_max);
     std::vector<std::pair<bool, int> > steady_state_vec(times.size(), std::make_pair(false, 0));
     pout << "Testing " << test_name << "\n";
-    for (int period = 0; period < max_periods; ++period)
+    const bool from_restart = RestartManager::getManager()->isFromRestart();
+    int period = from_restart ? 15 : 0;
+    if (from_restart) plog << "Starting after " << period << " periods.\n";
+    for (; period < max_periods; ++period)
     {
         int snap_num = 0;
         for (const auto& t : times)
@@ -241,6 +261,9 @@ test(const std::string& test_name,
             }
             ++snap_num;
         }
+
+        if (do_restart && !from_restart && period == 15)
+            RestartManager::getManager()->writeRestartFile(restart_dir_name, period);
         // Determine if we've hit all the steady states
         bool found_all_steady_states = true;
         for (const auto& at_steady_state : steady_state_vec)

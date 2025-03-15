@@ -21,14 +21,14 @@
 #include <ibtk/SnapshotCache.h>
 #include <ibtk/ibtk_utilities.h>
 
-#include "CellVariable.h"
-#include "HierarchySideDataOpsReal.h"
-#include "IntVector.h"
-#include "SideVariable.h"
-#include "VisItDataWriter.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
 
+#include <CellVariable.h>
+#include <IntVector.h>
+#include <VisItDataWriter.h>
+
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -84,7 +84,7 @@ namespace IBTK
  * \endcode
  *
  */
-class HierarchyAveragedDataManager
+class HierarchyAveragedDataManager : public SAMRAI::tbox::Serializable
 {
 public:
     /*!
@@ -93,21 +93,21 @@ public:
      * will be taken at equidistant points along the periodic interval.
      *
      * The input database is searched for the following keys:
-     *  - 't_start' : Double that represents the beginning of the period
-     *  - 't_end' : Double that represents the end of the period. For cases where the period is zero, t_end should be
-     * set to t_start.
+     *  - 'period_start_time' : Double that represents the beginning of the period
+     *  - 'period_end_time' : Double that represents the end of the period. For cases where the period is zero,
+     * period_end_time should be set to period_start_time.
      *  - 'threshold' : Double to determine whether a given time point is at a periodic steady state.
      *  - 'num_snapshots' : Integer to determine the number of snapshots taken, equally sampled between t_start and
      * t_end.
      *  - 'enable_logging' : Bool used to determine whether to print convergence information to the log file.
      *  - 'output_data' : Bool used to determine whether to write visualization files for the mean and deviations.
-     *  - 'dir_dump_name' : String used to determine which folder to write visualization files to.
-     *  - 'refine_type' : String to determine which refine operator will be used by default.
+     *  - 'dir_dump_name' : String used to determine which folder to write visualization files to. Defaults to "./".
+     *  - 'refine_type' : String to determine which refine operator will be used by default. Defaults to
+     * "CONSERVATIVE_LINEAR_REFINE".
      */
     HierarchyAveragedDataManager(std::string object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
                                  bool register_for_restart = true);
 
@@ -118,17 +118,17 @@ public:
      * The input database is searched for the following keys:
      *  - 'enable_logging' : Bool used to determine whether to print convergence information to the log file.
      *  - 'output_data' : Bool used to determine whether to write visualization files for the mean and deviations.
-     *  - 'dir_dump_name' : String used to determine which folder to write visualization files to. Defaults to "".
+     *  - 'dir_dump_name' : String used to determine which folder to write visualization files to. Defaults to "./".
      *  - 'refine_type' : String to determine which refine operator will be used by default. Defaults to
      * "CONSERVATIVE_LINEAR_REFINE".
      */
     HierarchyAveragedDataManager(std::string object_name,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
                                  SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                 SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
                                  std::set<double> snapshot_time_points,
-                                 double t_start,
-                                 double t_end,
+                                 double period_start_time,
+                                 double period_end_time,
+                                 double threshold,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::GridGeometry<NDIM> > grid_geom,
                                  bool register_for_restart = true);
 
@@ -191,7 +191,7 @@ public:
      */
     inline bool isAtPeriodicSteadyState(double time, const double tol)
     {
-        time = getTimePt(time, tol);
+        time = getTimePoint(time, tol);
         return d_idx_steady_state_map.at(time);
     }
 
@@ -207,7 +207,7 @@ public:
      * Returns the exact data point at which points are being stored in the internal map. Note that if a time point is
      * not found within the specified tolerance, an unrecoverable error occurs.
      */
-    double getTimePt(double time, double tol);
+    double getTimePoint(double time, double tol);
 
     /*!
      * Get the SnapshotCache object.
@@ -218,20 +218,16 @@ public:
     }
 
     /*!
-     * Set the threshold for achieving a steady state. This class determines whether a periodic steady state has been
-     * achieved by checking the whether \f$ \frac{1}{N}||u - u_avg||_2 \f$ is less than the provided threshold.
+     * Write the averaged data manager to a database
      */
-    void setSteadyStateThreshold(const double threshold)
-    {
-        d_periodic_thresh = threshold;
-    }
+    void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;
 
 private:
+    void getFromRestart();
     /*!
      * \brief Registers a scratch variable with the variable database. This data is allocated and deallocated as needed.
      */
-    void commonConstructor(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                           SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy);
+    void commonConstructor(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     std::string d_object_name;
 
@@ -246,8 +242,9 @@ private:
     /*
      * Interval to keep flow quantities
      */
-    double d_t_start = std::numeric_limits<double>::quiet_NaN(), d_t_end = std::numeric_limits<double>::quiet_NaN(),
-           d_t_period = std::numeric_limits<double>::quiet_NaN(),
+    double d_period_start = std::numeric_limits<double>::quiet_NaN(),
+           d_period_end = std::numeric_limits<double>::quiet_NaN(),
+           d_period_length = std::numeric_limits<double>::quiet_NaN(),
            d_periodic_thresh = std::numeric_limits<double>::quiet_NaN();
 
     /*
@@ -272,8 +269,6 @@ private:
     std::set<double> d_snapshot_time_pts;
 
     SnapshotCache d_snapshot_cache;
-
-    SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > d_hier_data_ops;
 
     // Drawing stuff
     std::unique_ptr<SAMRAI::appu::VisItDataWriter<NDIM> > d_visit_data_writer;
