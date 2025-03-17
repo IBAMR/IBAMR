@@ -285,4 +285,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif //#ifndef included_IBTK_HierarchyAveragedDataManager
+#endif // #ifndef included_IBTK_HierarchyAveragedDataManager
