@@ -49,6 +49,15 @@ ELSE()
   SET(IBAMR_Fortran_FLAGS "@CMAKE_Fortran_FLAGS@")
 ENDIF()
 
+# Similarly, export the compilers so that downstream projects can choose to
+# automatically use the same ones. This is particularly helpful with the MPI
+# wrappers since, when cmake detects we are using those, it does not redundantly
+# set compiler flags (e.g., include directories, since the compiler wrapper sets
+# those).
+SET(IBAMR_C_COMPILER "@CMAKE_C_COMPILER@")
+SET(IBAMR_CXX_COMPILER "@CMAKE_CXX_COMPILER@")
+SET(IBAMR_Fortran_COMPILER "@CMAKE_Fortran_COMPILER@")
+
 IF(NOT "@MPI_ROOT@" STREQUAL "")
   # CMake wants to detect MPI with MPI_HOME, not MPI_ROOT (which we set up)
   SET(MPI_HOME "@MPI_ROOT@")
