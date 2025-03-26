@@ -91,12 +91,8 @@ VCSCViscousPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVector
     IBTK_CHKERRQ(ierr);
     ierr = VecCreateMPI(PETSC_COMM_WORLD, d_num_dofs_per_proc[mpi_rank], PETSC_DETERMINE, &d_petsc_b);
     IBTK_CHKERRQ(ierr);
-    const double alpha = 1.0;
-    const double beta = 1.0;
     PETScMatUtilities::constructPatchLevelVCSCViscousOp(d_petsc_mat,
                                                         d_poisson_spec,
-                                                        alpha,
-                                                        beta,
                                                         d_bc_coefs,
                                                         d_solution_time,
                                                         d_num_dofs_per_proc,
@@ -134,14 +130,8 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         const bool at_physical_bdry = pgeom->intersectsPhysicalBoundary();
         if (at_physical_bdry)
         {
-            PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(*b_adj_data,
-                                                                       patch,
-                                                                       d_poisson_spec,
-                                                                       1.0,
-                                                                       d_bc_coefs,
-                                                                       d_solution_time,
-                                                                       d_homogeneous_bc,
-                                                                       d_mu_interp_type);
+            PoissonUtilities::adjustVCSCViscousOpRHSAtPhysicalBoundary(
+                *b_adj_data, patch, d_poisson_spec, d_bc_coefs, d_solution_time, d_homogeneous_bc, d_mu_interp_type);
         }
         const Array<BoundaryBox<NDIM> >& type_1_cf_bdry =
             level_zero ? Array<BoundaryBox<NDIM> >() :
@@ -150,7 +140,7 @@ VCSCViscousPETScLevelSolver::setupKSPVecs(Vec& petsc_x,
         if (at_cf_bdry)
         {
             PoissonUtilities::adjustVCSCViscousOpRHSAtCoarseFineBoundary(
-                *b_adj_data, *x_data, patch, d_poisson_spec, 1.0, type_1_cf_bdry);
+                *b_adj_data, *x_data, patch, d_poisson_spec, type_1_cf_bdry);
         }
     }
     PETScVecUtilities::copyToPatchLevelVec(petsc_b, b_adj_idx, d_dof_index_idx, d_level);
