@@ -1230,6 +1230,89 @@ HierarchyMathOps::div(const int dst_idx,
 } // div
 
 void
+HierarchyMathOps::div(const int dst_idx,
+                      const Pointer<CellVariable<NDIM, double> > dst_var,
+                      const double alpha,
+                      const int src1_idx,
+                      const Pointer<SideVariable<NDIM, double> > src1_var,
+                      const Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                      const double src1_ghost_fill_time,
+                      const bool src1_cf_bdry_synch,
+                      const int coef1_idx,
+                      const Pointer<SideVariable<NDIM, double> > /*coef1_var*/,
+                      const Pointer<HierarchyGhostCellInterpolation> coef1_ghost_fill,
+                      const double coef1_ghost_fill_time,
+                      const double beta,
+                      const int src2_idx,
+                      const Pointer<CellVariable<NDIM, double> > src2_var,
+                      const int dst_depth,
+                      const int src2_depth)
+{
+    if (coef1_idx < 0)
+    {
+        div(dst_idx,
+            dst_var,
+            alpha,
+            src1_idx,
+            src1_var,
+            src1_ghost_fill,
+            src1_ghost_fill_time,
+            src1_cf_bdry_synch,
+            beta,
+            src2_idx,
+            src2_var,
+            dst_depth,
+            src2_depth);
+
+        return;
+    }
+
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
+    if (coef1_ghost_fill) coef1_ghost_fill->fillData(coef1_ghost_fill_time);
+
+    for (int ln = d_finest_ln; ln >= d_coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Allocate temporary data to synchronize the coarse-fine interface.
+        if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
+        {
+            level->allocatePatchData(d_os_idx);
+        }
+
+        // Compute the discrete divergence and extract data on the coarse-fine
+        // interface.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<CellData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<SideData<NDIM, double> > src1_data = patch->getPatchData(src1_idx);
+            Pointer<SideData<NDIM, double> > coef1_data = patch->getPatchData(coef1_idx);
+            Pointer<CellData<NDIM, double> > src2_data =
+                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
+
+            d_patch_math_ops.div(dst_data, alpha, src1_data, coef1_data, beta, src2_data, patch, dst_depth, src2_depth);
+
+            if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
+            {
+                Pointer<OutersideData<NDIM, double> > os_data = patch->getPatchData(d_os_idx);
+                os_data->copy(*src1_data);
+            }
+        }
+
+        // Synchronize the coarse-fine interface of src1 and deallocate
+        // temporary data.
+        if ((ln > d_coarsest_ln) && src1_cf_bdry_synch)
+        {
+            xeqScheduleOutersideRestriction(src1_idx, d_os_idx, ln - 1);
+            level->deallocatePatchData(d_os_idx);
+        }
+    }
+    return;
+} // div
+
+void
 HierarchyMathOps::grad(const int dst_idx,
                        const Pointer<CellVariable<NDIM, double> > dst_var,
                        const double alpha,
@@ -3061,6 +3144,94 @@ HierarchyMathOps::vc_laplace(const int dst_idx,
     }
     return;
 } // vc_laplace
+
+void
+HierarchyMathOps::vc_dilatational(int dst_idx,
+                                  Pointer<SideVariable<NDIM, double> > dst_var,
+                                  double alpha,
+                                  int coef1_idx,
+                                  Pointer<CellVariable<NDIM, double> > /*coef1_var*/,
+                                  int src1_idx,
+                                  Pointer<SideVariable<NDIM, double> > src1_var,
+                                  Pointer<HierarchyGhostCellInterpolation> src1_ghost_fill,
+                                  double src1_ghost_fill_time,
+                                  double beta,
+                                  int src2_idx,
+                                  Pointer<SideVariable<NDIM, double> > src2_var)
+{
+    if (src1_ghost_fill) src1_ghost_fill->fillData(src1_ghost_fill_time);
+
+    Pointer<SideDataFactory<NDIM, double> > dst_factory = dst_var->getPatchDataFactory();
+    Pointer<SideDataFactory<NDIM, double> > src1_factory = src1_var->getPatchDataFactory();
+    if (dst_factory->getDefaultDepth() != 1 || src1_factory->getDefaultDepth() != 1)
+    {
+        TBOX_ERROR("HierarchyMathOps::vc_dilatational():\n"
+                   << "  side-centered variable-coefficient dilatational stress force requires scalar-valued data"
+                   << std::endl);
+    }
+    if (src2_var)
+    {
+        Pointer<SideDataFactory<NDIM, double> > src2_factory = src2_var->getPatchDataFactory();
+        if (src2_factory->getDefaultDepth() != 1)
+        {
+            TBOX_ERROR("HierarchyMathOps::vc_dilatational():\n"
+                       << "  side-centered variable-coefficient dilatational stress force requires scalar-valued data"
+                       << std::endl);
+        }
+    }
+
+    // Compute dst = alpha grad coef1 (div src1)  + beta src2 independently on each level.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<CellData<NDIM, double> > coef1_data = patch->getPatchData(coef1_idx);
+            Pointer<SideData<NDIM, double> > src1_data = patch->getPatchData(src1_idx);
+            Pointer<SideData<NDIM, double> > src2_data =
+                (src2_idx >= 0) ? patch->getPatchData(src2_idx) : Pointer<PatchData<NDIM> >();
+
+            d_patch_math_ops.vc_dilational(dst_data, alpha, beta, coef1_data, src1_data, src2_data, patch);
+        }
+    }
+
+    // Allocate temporary data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->allocatePatchData(d_os_idx);
+    }
+
+    // Synchronize data along the coarse-fine interface.
+    for (int ln = d_finest_ln; ln > d_coarsest_ln; --ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+
+        // Extract data on the coarse-fine interface.
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+
+            Pointer<SideData<NDIM, double> > dst_data = patch->getPatchData(dst_idx);
+            Pointer<OutersideData<NDIM, double> > os_data = patch->getPatchData(d_os_idx);
+            os_data->copy(*dst_data);
+        }
+
+        // Synchronize the coarse-fine interface of dst.
+        xeqScheduleOutersideRestriction(dst_idx, d_os_idx, ln - 1);
+    }
+
+    // Deallocate temporary data.
+    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_os_idx);
+    }
+    return;
+} // vc_dilatational
 
 void
 HierarchyMathOps::pointwiseMultiply(const int dst_idx,
