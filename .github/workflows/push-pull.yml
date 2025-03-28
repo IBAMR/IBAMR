@@ -175,14 +175,14 @@ jobs:
         id: cache
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-archlinux-cmake-${{ github.run_number }}
+          key: ${{ runner.os }}-build-archlinux-autotools-${{ github.run_number }}
           restore-keys: |
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key1 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key2 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key3 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key4 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key5 }}
-            ${{ runner.os }}-build-archlinux-cmake-
+            ${{ runner.os }}-build-archlinux-autotools-${{ env.key1 }}
+            ${{ runner.os }}-build-archlinux-autotools-${{ env.key2 }}
+            ${{ runner.os }}-build-archlinux-autotools-${{ env.key3 }}
+            ${{ runner.os }}-build-archlinux-autotools-${{ env.key4 }}
+            ${{ runner.os }}-build-archlinux-autotools-${{ env.key5 }}
+            ${{ runner.os }}-build-archlinux-autotools-
       - name: Configure IBAMR
         id: configure
         run: |
