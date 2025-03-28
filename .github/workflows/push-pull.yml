@@ -24,21 +24,25 @@ on:
 
 jobs:
   # build IBAMR with CMake and run tests
-  build_ibamr_archlinux_016:
+  build_ibamr_cmake_016:
     runs-on: ubuntu-latest
-    name: Build IBAMR and run tests (0.16 dependencies ${{ matrix.name }}, Arch Linux 2025)
+    name: Build IBAMR and run tests (0.16 dependencies ${{ matrix.name }})
     strategy:
       matrix:
         include:
-          - name: "with libMesh"
+          - name: "Arch Linux 2025, with libMesh"
             key: "libmesh"
-            flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel"
-          - name: "without libMesh"
+            cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel"
+            cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
+            os: "archlinux"
+          - name: "Arch Linux 2025, without libMesh"
             key: "no-libmesh"
-            flags: ""
+            cmake_flags: ""
+            cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
+            os: "archlinux"
 
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-archlinux'
+      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-${{ matrix.os }}'
     env:
       CCACHE_MAXSIZE: 250M
       CCACHE_DIR: /compilationcache
@@ -67,23 +71,23 @@ jobs:
         id: cache
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ github.run_number }}
+          key: ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ github.run_number }}
           restore-keys: |
-            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key1 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key2 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key3 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key4 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key5 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-
+            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key1 }}
+            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key2 }}
+            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key3 }}
+            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key4 }}
+            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key5 }}
+            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-
       - name: Configure IBAMR
         id: configure
         run: |
           mkdir build
           cd build
-          FLAGS="${{ matrix.flags }} -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai"
+          FLAGS="${{ matrix.cmake_flags }} -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai"
           cmake $FLAGS -DNUMDIFF_ROOT=/numdiff/ \
                 -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
-                -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -ftrivial-auto-var-init=pattern -D_FORTIFY_SOURCE=3 -fuse-ld=mold -D_GLIBCXX_ASSERTIONS" \
+                -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -D_GLIBCXX_ASSERTIONS ${{ matrix.cxx_flags }}" \
                 -DCMAKE_Fortran_FLAGS="-O3 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" \
                 ../
           ccache --show-stats
@@ -92,13 +96,13 @@ jobs:
         run: |
           cd build
           ls
-          ninja
+          ninja -j4
           ccache --show-stats
       - name: Compile IBAMR tests
         id: build-tests
         run: |
           cd build
-          ninja tests
+          ninja -j4 tests
           ccache --show-stats
       - name: Test IBAMR
         id: test
