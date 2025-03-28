@@ -26,7 +26,17 @@ jobs:
   # build IBAMR with CMake and run tests
   build_ibamr_archlinux_016:
     runs-on: ubuntu-latest
-    name: Build IBAMR and run tests (0.16 dependencies, Arch Linux 2025)
+    name: Build IBAMR and run tests (0.16 dependencies ${{ matrix.name }}, Arch Linux 2025)
+    strategy:
+      matrix:
+        include:
+          - name: "with libMesh"
+            key: "libmesh"
+            flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel"
+          - name: "without libMesh"
+            key: "no-libmesh"
+            flags: ""
+
     container:
       image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-archlinux'
     env:
@@ -57,21 +67,21 @@ jobs:
         id: cache
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-archlinux-cmake-${{ github.run_number }}
+          key: ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ github.run_number }}
           restore-keys: |
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key1 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key2 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key3 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key4 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key5 }}
-            ${{ runner.os }}-build-archlinux-cmake-
+            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key1 }}
+            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key2 }}
+            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key3 }}
+            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key4 }}
+            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-${{ env.key5 }}
+            ${{ runner.os }}-build-archlinux-cmake-${{ matrix.key }}-
       - name: Configure IBAMR
         id: configure
         run: |
           mkdir build
           cd build
-          cmake -DHYPRE_ROOT=/petsc/ -DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai  \
-                -DNUMDIFF_ROOT=/numdiff/ \
+          FLAGS="${{ matrix.flags }} -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai"
+          cmake $FLAGS -DNUMDIFF_ROOT=/numdiff/ \
                 -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
                 -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -ftrivial-auto-var-init=pattern -D_FORTIFY_SOURCE=3 -fuse-ld=mold -D_GLIBCXX_ASSERTIONS" \
                 -DCMAKE_Fortran_FLAGS="-O3 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" \
@@ -121,80 +131,6 @@ jobs:
           cmake -DIBAMR_ROOT=/ibamr .
           make
           ./project
-
-  # build IBAMR with CMake, no libMesh, and run tests
-  build_ibamr_archlinux_016_no_libmesh:
-    runs-on: ubuntu-latest
-    name: Build IBAMR and run tests (0.16 dependencies without libMesh, Arch Linux 2025)
-    container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-archlinux'
-    env:
-      CCACHE_MAXSIZE: 250M
-      CCACHE_DIR: /compilationcache
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
-        id: git
-      - name: Verify that clang-format was run
-        id: format
-        run: |
-          git config --global --add safe.directory '*'
-          ./scripts/formatting/download-clang-format
-          ./scripts/formatting/check-indentation
-      - name: Create keys
-        id: keys
-        run: |
-          echo "key1=$(( ${{ github.run_number }} - 1))" >> $GITHUB_ENV
-          echo "key2=$(( ${{ github.run_number }} - 2))" >> $GITHUB_ENV
-          echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
-          echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
-          echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate ccache
-        uses: actions/cache@v3
-        env:
-          cache-name: ccache
-        id: cache
-        with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-archlinux-cmake-${{ github.run_number }}
-          restore-keys: |
-            ${{ runner.os }}-build-archlinux-no-libmesh-cmake-${{ env.key1 }}
-            ${{ runner.os }}-build-archlinux-no-libmesh-cmake-${{ env.key2 }}
-            ${{ runner.os }}-build-archlinux-no-libmesh-cmake-${{ env.key3 }}
-            ${{ runner.os }}-build-archlinux-no-libmesh-cmake-${{ env.key4 }}
-            ${{ runner.os }}-build-archlinux-no-libmesh-cmake-${{ env.key5 }}
-            ${{ runner.os }}-build-archlinux-no-libmesh-cmake-
-      - name: Configure IBAMR
-        id: configure
-        run: |
-          mkdir build
-          cd build
-          cmake -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai  \
-                -DNUMDIFF_ROOT=/numdiff/ \
-                -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
-                -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -ftrivial-auto-var-init=pattern -D_FORTIFY_SOURCE=3 -fuse-ld=mold -D_GLIBCXX_ASSERTIONS" \
-                -DCMAKE_Fortran_FLAGS="-O3 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" \
-                ../
-          ccache --show-stats
-      - name: Compile IBAMR
-        id: build-library
-        run: |
-          cd build
-          ls
-          ninja
-          ccache --show-stats
-      - name: Compile IBAMR tests
-        id: build-tests
-        run: |
-          cd build
-          ninja tests
-          ccache --show-stats
-      - name: Test IBAMR
-        id: test
-        run: |
-          cd build
-          runuser -u build -- ./attest --verbose --test-timeout=120 -j4 -E 'mpirun=[3-9]|explicit_ex2_3d|explicit_ex5_3d|explicit_ex8_2d|nwt_cylinder|cib_double_shell.in|cib_double_shell.cholesky.in|poiseuille_flow'
-          ccache --show-stats
 
   # build IBAMR with autotools
   build_ibamr_archlinux_016_autotools:
