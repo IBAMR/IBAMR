@@ -214,6 +214,7 @@ SET(CXX_SRC
   utilities/PartitioningBox.cpp
   utilities/SnapshotCache.cpp
   utilities/snapshot_utilities.cpp
+  utilities/HierarchyAveragedDataManager.cpp
   )
 
 IF(IBAMR_HAVE_LIBMESH)
