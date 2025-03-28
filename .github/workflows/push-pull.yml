@@ -40,6 +40,11 @@ jobs:
             cmake_flags: ""
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
+          - name: "Ubuntu 20.04, with libMesh"
+            key: "libmesh"
+            cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=OPT"
+            cxx_flags: ""
+            os: "ubuntu"
 
     container:
       image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-${{ matrix.os }}'
@@ -211,100 +216,3 @@ jobs:
           cd build
           make -j4 examples
           ccache --show-stats
-
-  build_ibamr_ubuntu_016:
-    runs-on: ubuntu-latest
-    name: Build IBAMR and run tests (0.16 dependencies, Ubuntu 20.04)
-    container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-ubuntu'
-    env:
-      CCACHE_MAXSIZE: 250M
-      CCACHE_DIR: /compilationcache
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
-        id: git
-      - name: Verify that clang-format was run
-        id: format
-        run: |
-          git config --global --add safe.directory '*'
-          ./scripts/formatting/download-clang-format
-          ./scripts/formatting/check-indentation
-      - name: Create keys
-        id: keys
-        run: |
-          echo "key1=$(( ${{ github.run_number }} - 1))" >> $GITHUB_ENV
-          echo "key2=$(( ${{ github.run_number }} - 2))" >> $GITHUB_ENV
-          echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
-          echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
-          echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate ccache
-        uses: actions/cache@v3
-        env:
-          cache-name: ccache
-        id: cache
-        with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-ubuntu-cmake-${{ github.run_number }}
-          restore-keys: |
-            ${{ runner.os }}-build-ubuntu-cmake-${{ env.key1 }}
-            ${{ runner.os }}-build-ubuntu-cmake-${{ env.key2 }}
-            ${{ runner.os }}-build-ubuntu-cmake-${{ env.key3 }}
-            ${{ runner.os }}-build-ubuntu-cmake-${{ env.key4 }}
-            ${{ runner.os }}-build-ubuntu-cmake-${{ env.key5 }}
-            ${{ runner.os }}-build-ubuntu-cmake-
-      - name: Configure IBAMR
-        id: configure
-        run: |
-          mkdir build
-          cd build
-          cmake -DHYPRE_ROOT=/petsc/ -DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=opt -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai \
-                -DNUMDIFF_ROOT=/numdiff/ \
-                -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
-                -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -D_GLIBCXX_ASSERTIONS" \
-                -DCMAKE_Fortran_FLAGS="-O3 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" \
-                ../
-          ccache --show-stats
-      - name: Compile IBAMR
-        id: build-library
-        run: |
-          cd build
-          ninja -j4
-          ccache --show-stats
-      - name: Compile IBAMR tests
-        id: build-tests
-        run: |
-          cd build
-          ninja -j4 tests
-          ccache --show-stats
-      - name: Test IBAMR
-        id: test
-        run: |
-          cd build
-          runuser -u build -- ./attest --verbose --test-timeout=120 -j4 -E 'mpirun=[3-9]|explicit_ex2_3d|explicit_ex5_3d|explicit_ex8_2d|nwt_cylinder|cib_double_shell.in|cib_double_shell.cholesky.in|poiseuille_flow'
-          ccache --show-stats
-      - name: Install IBAMR
-        id: install
-        run: |
-          cd build
-          ninja -j4 install
-      - name: compile a sample project with an uninstalled IBAMR
-        id: sampleproject1
-        run: |
-          mkdir sample-project
-          cd sample-project
-          cp ../.github/project-template/CMakeLists.txt ./
-          cp ../.github/project-template/project.cpp ./
-          cmake -DIBAMR_ROOT=/build/ibamr .
-          make
-          ./project
-      - name: compile a sample project with an installed IBAMR
-        id: sampleproject2
-        run: |
-          mkdir sample-project2
-          cd sample-project2
-          cp ../.github/project-template/CMakeLists.txt ./
-          cp ../.github/project-template/project.cpp ./
-          cmake -DIBAMR_ROOT=/ibamr .
-          make
-          ./project
