@@ -20,6 +20,7 @@ on:
 permissions:
   contents: write
 jobs:
+  # doxygen
   deploy_documentation:
     runs-on: ubuntu-latest
     name: Compile and deploy doxygen documentation
@@ -66,3 +67,141 @@ jobs:
           destination-repository-name: 'IBAMR-docs'
           user-email: 'travis@travis-ci.org'
           target-branch: master
+
+  # build IBAMR with CMake and update the cache
+  build_ibamr_cmake_016:
+    runs-on: ubuntu-latest
+    name: Build IBAMR (0.16 dependencies ${{ matrix.name }})
+    strategy:
+      matrix:
+        include:
+          - name: "Arch Linux 2025, with libMesh"
+            key: "arch-cmake-libmesh"
+            cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel"
+            cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
+            os: "archlinux"
+          - name: "Arch Linux 2025, without libMesh"
+            key: "arch-cmake-no-libmesh"
+            cmake_flags: ""
+            cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
+            os: "archlinux"
+          - name: "Ubuntu 20.04, with libMesh"
+            key: "ubuntu-cmake-libmesh"
+            cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=OPT"
+            cxx_flags: ""
+            os: "ubuntu"
+
+    container:
+      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-${{ matrix.os }}'
+    env:
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 4
+      - name: Populate ccache
+        uses: actions/cache@v4
+        env:
+          cache-name: ccache
+        id: cache
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ibamr-${{ matrix.key }}-master-cache-${{ github.run_number }}
+          restore-keys: |
+            ibamr-${{ matrix.key }}-master-cache-
+            ibamr-
+      - name: Configure IBAMR
+        id: configure
+        run: |
+          mkdir build
+          cd build
+          FLAGS="${{ matrix.cmake_flags }} -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai"
+          cmake $FLAGS -DNUMDIFF_ROOT=/numdiff/ \
+                -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
+                -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -D_GLIBCXX_ASSERTIONS ${{ matrix.cxx_flags }}" \
+                -DCMAKE_Fortran_FLAGS="-O3 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" \
+                ../
+          ccache --show-stats
+      - name: Compile IBAMR
+        id: build-library
+        run: |
+          cd build
+          ninja -j4
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          cd build
+          ninja -j4 tests
+          ccache --show-stats
+      - name: clear unused cache entres
+        id: clear-old-cache-entries
+        run: |
+          cd build
+          ccache --evict-older-than 1d
+
+  # build IBAMR with autotools
+  build_ibamr_archlinux_016_autotools:
+    runs-on: ubuntu-latest
+    name: Build IBAMR and run tests (autotools, 0.16 dependencies, Arch Linux 2025)
+    container:
+      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-archlinux'
+    env:
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 4
+      - name: Populate ccache
+        uses: actions/cache@v4
+        env:
+          cache-name: ccache
+        id: cache
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ibamr-arch-autotools-libmesh-master-cache-${{ github.ref_name }}
+          restore-keys: |
+            ibamr-arch-autotools-libmesh-master-cache-
+            ibamr-arch-autotools-libmesh-
+            ibamr-
+      - name: Configure IBAMR
+        id: configure
+        run: |
+          export CC="ccache $(which mpicc)"
+          export CXX="ccache $(which mpic++)"
+          # we are just compiling things so go for speed
+          export CFLAGS="-O0"
+          export CXXFLAGS="-O0"
+          export FFLAGS="-O0"
+          mkdir build
+          cd build
+          ../configure PETSC_DIR=/petsc/ --with-samrai=/samrai \
+          --enable-libmesh --with-libmesh=/libmesh --with-libmesh-method=devel
+          ccache --show-stats
+      - name: Compile IBAMR
+        id: build-library
+        run: |
+          cd build
+          make -j4
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          cd build
+          make -j4 tests
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
+        run: |
+          cd build
+          make -j4 examples
+          ccache --show-stats
+      - name: clear unused cache entres
+        id: clear-old-cache-entries
+        run: |
+          cd build
+          ccache --evict-older-than 1d
