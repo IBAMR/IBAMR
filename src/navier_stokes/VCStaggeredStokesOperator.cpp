@@ -85,7 +85,6 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     const int P_idx = x.getComponentDescriptorIndex(1);
     const int A_U_idx = y.getComponentDescriptorIndex(0);
     const int A_P_idx = y.getComponentDescriptorIndex(1);
-    const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
     Pointer<SideVariable<NDIM, double> > U_sc_var = x.getComponentVariable(0);
     Pointer<CellVariable<NDIM, double> > P_cc_var = x.getComponentVariable(1);
@@ -95,8 +94,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
-    transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx,
-                                                             U_idx,
+    transaction_comps[0] = InterpolationTransactionComponent(U_idx,
                                                              d_refine_type,
                                                              d_use_cf_interpolation,
                                                              d_coarsen_type,
@@ -117,11 +115,11 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
+        d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
-    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_scratch_idx);
+    d_bc_helper->enforceDivergenceFreeConditionAtBoundary(U_idx);
 
     // Compute the action of the operator:
     //
@@ -151,7 +149,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
 #elif (NDIM == 3)
                                 Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif
-                                U_scratch_idx,
+                                U_idx,
                                 U_sc_var,
                                 d_no_fill,
                                 d_new_time,
@@ -164,12 +162,12 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
     d_hier_math_ops->div(A_P_idx,
                          A_P_cc_var,
                          -1.0,
-                         U_scratch_idx,
+                         U_idx,
                          U_sc_var,
                          d_no_fill,
                          d_new_time,
                          /*cf_bdry_synch*/ true);
-    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
+    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
 
     IBAMR_TIMER_STOP(t_apply);
     return;
