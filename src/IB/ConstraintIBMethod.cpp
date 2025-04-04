@@ -275,10 +275,10 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
             "");
         d_velcorrection_projection_fac_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
         d_velcorrection_projection_fac_pc =
-            new IBTK::FACPreconditioner(d_object_name + "::ConstraintIBMethodProjection::PoissonPreconditioner",
-                                        d_velcorrection_projection_fac_op,
-                                        d_velcorrection_projection_fac_pc_db,
-                                        "");
+            new IBTK::FACPreconditioner<double>(d_object_name + "::ConstraintIBMethodProjection::PoissonPreconditioner",
+                                                d_velcorrection_projection_fac_op,
+                                                d_velcorrection_projection_fac_pc_db,
+                                                "");
         d_velcorrection_projection_solver->setPreconditioner(d_velcorrection_projection_fac_pc);
 
         // Set some default options.

@@ -43,6 +43,7 @@ class Database;
 
 namespace IBTK
 {
+template <class T>
 class FACPreconditionerStrategy;
 } // namespace IBTK
 
@@ -52,7 +53,9 @@ namespace IBTK
 {
 /*!
  * \brief Class FACPreconditioner is a concrete LinearSolver for implementing
- * FAC (multilevel multigrid) preconditioners.
+ * FAC (multilevel multigrid) preconditioners. The implementation allows for
+ * mixed precision implementations of the algorithm, although the input and
+ * output vectors associated with the preconditioner use double precision.
  *
  * This class is similar to the SAMRAI class SAMRAI::solv::FACPreconditioner,
  * except that this class has been optimized for the case in which the solver is
@@ -70,6 +73,7 @@ namespace IBTK
  enable_logging = FALSE  // see setLoggingEnabled()
  \endverbatim
 */
+template <class T>
 class FACPreconditioner : public LinearSolver
 {
 public:
@@ -77,7 +81,7 @@ public:
      * Constructor.
      */
     FACPreconditioner(std::string object_name,
-                      SAMRAI::tbox::Pointer<FACPreconditionerStrategy> fac_strategy,
+                      SAMRAI::tbox::Pointer<FACPreconditionerStrategy<T> > fac_strategy,
                       SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                       const std::string& default_options_prefix);
 
@@ -260,31 +264,31 @@ public:
      * \brief Get the FAC preconditioner strategy objects employed by the
      * preconditioner.
      */
-    SAMRAI::tbox::Pointer<FACPreconditionerStrategy> getFACPreconditionerStrategy() const;
+    SAMRAI::tbox::Pointer<FACPreconditionerStrategy<T> > getFACPreconditionerStrategy() const;
 
 protected:
-    void FACVCycleNoPreSmoothing(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
+    void FACVCycleNoPreSmoothing(SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& u,
+                                 SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& f,
                                  int level_num);
 
-    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                 SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
+    void muCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& u,
+                 SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& f,
+                 SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& r,
                  int level_num,
                  int mu);
 
-    void FCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
+    void FCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& u,
+                SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& f,
+                SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& r,
                 int level_num);
 
-    void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& u,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& f,
-                  SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& r,
+    void FMGCycle(SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& u,
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& f,
+                  SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& r,
                   int level_num,
                   int mu);
 
-    SAMRAI::tbox::Pointer<FACPreconditionerStrategy> d_fac_strategy;
+    SAMRAI::tbox::Pointer<FACPreconditionerStrategy<T> > d_fac_strategy;
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln = 0;
     int d_finest_ln = 0;
