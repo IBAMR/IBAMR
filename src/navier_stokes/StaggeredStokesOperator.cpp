@@ -255,6 +255,10 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
+    // Setup solution and rhs vectors.
+    d_x = in.cloneVector(in.getName());
+    d_b = out.cloneVector(out.getName());
+
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
     d_P_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
@@ -321,6 +325,18 @@ StaggeredStokesOperator::deallocateOperatorState()
     d_transaction_comps.clear();
     d_U_fill_pattern.setNull();
     d_P_fill_pattern.setNull();
+
+    // Delete the solution and rhs vectors.
+    d_x->resetLevels(d_x->getCoarsestLevelNumber(),
+                     std::min(d_x->getFinestLevelNumber(), d_x->getPatchHierarchy()->getFinestLevelNumber()));
+    free_vector_components(*d_x);
+
+    d_b->resetLevels(d_b->getCoarsestLevelNumber(),
+                     std::min(d_b->getFinestLevelNumber(), d_b->getPatchHierarchy()->getFinestLevelNumber()));
+    free_vector_components(*d_b);
+
+    d_x.setNull();
+    d_b.setNull();
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
