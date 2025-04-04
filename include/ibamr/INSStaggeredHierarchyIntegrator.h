@@ -437,6 +437,7 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::pdat::NodeVariable<NDIM, double> > d_Omega_nc_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Div_U_var;
 
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_adv_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_regrid_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_src_var;
     SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_indicator_var;
@@ -497,8 +498,8 @@ private:
      *
      * Scratch variables have only one context: scratch.
      */
-    int d_U_regrid_idx = IBTK::invalid_index, d_U_src_idx = IBTK::invalid_index, d_indicator_idx = IBTK::invalid_index,
-        d_F_div_idx = IBTK::invalid_index;
+    int d_U_adv_idx = IBTK::invalid_index, d_U_regrid_idx = IBTK::invalid_index, d_U_src_idx = IBTK::invalid_index,
+        d_indicator_idx = IBTK::invalid_index, d_F_div_idx = IBTK::invalid_index;
 };
 } // namespace IBAMR
 
