@@ -135,8 +135,7 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(d_x->getComponentDescriptorIndex(comp),
-                                                      x.getComponentDescriptorIndex(comp),
+        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp),
                                                       DATA_REFINE_TYPE,
                                                       USE_CF_INTERPOLATION,
                                                       DATA_COARSEN_TYPE,
@@ -156,7 +155,7 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     {
         Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
         Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
-        const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
+        const int x_scratch_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);
         const int x_idx = x.getComponentDescriptorIndex(comp);
@@ -179,9 +178,6 @@ SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     // Setup solution and rhs vectors.
     d_x = in.cloneVector(in.getName());
     d_b = out.cloneVector(out.getName());
-
-    // Allocate scratch data.
-    d_x->allocateVectorData();
 
     // Setup operator state.
     d_hierarchy = in.getPatchHierarchy();
@@ -227,8 +223,7 @@ SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp),
-                                                    in.getComponentDescriptorIndex(comp),
+        InterpolationTransactionComponent component(in.getComponentDescriptorIndex(comp),
                                                     DATA_REFINE_TYPE,
                                                     USE_CF_INTERPOLATION,
                                                     DATA_COARSEN_TYPE,
@@ -265,9 +260,6 @@ SCLaplaceOperator::deallocateOperatorState()
 
     // Deallocate hierarchy math operations object.
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
-
-    // Deallocate scratch data.
-    deallocate_vector_data(*d_x);
 
     // Delete the solution and rhs vectors.
     free_vector_components(*d_x);
