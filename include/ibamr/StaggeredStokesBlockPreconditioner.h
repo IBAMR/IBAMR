@@ -158,7 +158,7 @@ protected:
     /*!
      * \brief Remove components in operator null space.
      */
-    void correctNullspace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > U_vec,
+    void correctNullSpace(SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > U_vec,
                           SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > P_vec);
 
     // Subdomain solvers.

@@ -203,10 +203,10 @@ private:
             return;
         }
 
-        void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace) override
+        void setComponentsHaveNullSpace(const bool has_velocity_nullspace, const bool has_pressure_nullspace) override
         {
-            StaggeredStokesSolver::setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
-            d_stokes_fac_pc->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
+            StaggeredStokesSolver::setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
+            d_stokes_fac_pc->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
             return;
         }
 

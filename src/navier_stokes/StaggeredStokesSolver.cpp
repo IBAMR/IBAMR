@@ -74,13 +74,13 @@ StaggeredStokesSolver::setVelocityPoissonSpecifications(const PoissonSpecificati
 } // setVelocityPoissonSpecifications
 
 void
-StaggeredStokesSolver::setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace)
+StaggeredStokesSolver::setComponentsHaveNullSpace(const bool has_velocity_nullspace, const bool has_pressure_nullspace)
 {
     d_has_velocity_nullspace = has_velocity_nullspace;
     d_has_pressure_nullspace = has_pressure_nullspace;
 
     return;
-} // setComponentsHaveNullspace
+} // setComponentsHaveNullSpace
 
 void
 StaggeredStokesSolver::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,

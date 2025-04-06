@@ -193,7 +193,7 @@ public:
      * Basis vectors must be orthogonal but are not required to be orthonormal.
      * Basis vectors will be normalized automatically.
      */
-    void setNullspace(
+    void setNullSpace(
         bool contains_constant_vec,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
             std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
@@ -358,12 +358,12 @@ private:
      * \brief Reset the Mat nullspace object to correspond to the supplied
      * nullspace basis vectors.
      */
-    void resetMatNullspace();
+    void resetMatNullSpace();
 
     /*!
      * \brief Destroy data allocated to describe nullspace.
      */
-    void deallocateNullspaceData();
+    void deallocateNullSpaceData();
 
     /*!
      * \name Static functions for use by PETSc KSP and MatShell objects.

@@ -70,7 +70,7 @@ public:
     /*!
      * \brief Set if velocity and pressure have nullspace.
      */
-    virtual void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace);
+    virtual void setComponentsHaveNullSpace(const bool has_velocity_nullspace, const bool has_pressure_nullspace);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -107,7 +107,7 @@ protected:
     // Boundary condition helper object.
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
 
-    // Nullspace info
+    // Null space info
     bool d_has_velocity_nullspace = false, d_has_pressure_nullspace = false;
 
 private:

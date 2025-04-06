@@ -115,7 +115,7 @@ public:
     /*!
      * \brief Set the nullspace of the linear system.
      */
-    void setNullspace(
+    void setNullSpace(
         bool contains_constant_vec,
         const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs =
             std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >()) override;
@@ -274,7 +274,7 @@ protected:
     /*!
      * \brief Setup the solver nullspace (if any).
      */
-    virtual void setupNullspace();
+    virtual void setupNullSpace();
 
     /*!
      * \brief Associated hierarchy.

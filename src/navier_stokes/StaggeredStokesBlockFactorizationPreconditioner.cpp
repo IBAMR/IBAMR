@@ -354,7 +354,7 @@ StaggeredStokesBlockFactorizationPreconditioner::solveSystem(SAMRAIVectorReal<ND
     }
 
     // Account for nullspace vectors.
-    correctNullspace(U_vec, P_vec);
+    correctNullSpace(U_vec, P_vec);
 
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

@@ -231,7 +231,7 @@ StaggeredStokesLevelRelaxationFACOperator::smoothError(SAMRAIVectorReal<NDIM, do
         Pointer<StaggeredStokesSolver> level_solver = d_level_solvers[level_num];
         level_solver->setSolutionTime(d_solution_time);
         level_solver->setTimeInterval(d_current_time, d_new_time);
-        level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
+        level_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         auto p_level_solver = dynamic_cast<LinearSolver*>(level_solver.getPointer());
         if (p_level_solver)
         {
@@ -290,7 +290,7 @@ StaggeredStokesLevelRelaxationFACOperator::initializeOperatorStateSpecialized(
         level_solver->setAbsoluteTolerance(d_level_solver_abs_residual_tol);
         level_solver->setRelativeTolerance(d_level_solver_rel_residual_tol);
         level_solver->setHomogeneousBc(true);
-        level_solver->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
+        level_solver->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
         level_solver->initializeSolverState(*getLevelSAMRAIVectorReal(*d_solution, ln),
                                             *getLevelSAMRAIVectorReal(*d_rhs, ln));
     }

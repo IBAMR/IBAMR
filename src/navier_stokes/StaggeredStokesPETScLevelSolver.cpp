@@ -221,7 +221,7 @@ StaggeredStokesPETScLevelSolver::initializeSolverStateSpecialized(const SAMRAIVe
                 p_patch_data->fill(1.0);
             }
 
-            LinearSolver::setNullspace(
+            LinearSolver::setNullSpace(
                 /*const vec*/ false, std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >(1, nullspace_vec));
         }
     }

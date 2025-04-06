@@ -191,13 +191,13 @@ PETScLevelSolver::getASMSubdomains(std::vector<IS>** nonoverlapping_subdomains,
 } // getASMSubdomains
 
 void
-PETScLevelSolver::setNullspace(bool contains_constant_vec,
+PETScLevelSolver::setNullSpace(bool contains_constant_vec,
                                const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
 {
-    LinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
-    if (d_is_initialized) setupNullspace();
+    LinearSolver::setNullSpace(contains_constant_vec, nullspace_basis_vecs);
+    if (d_is_initialized) setupNullSpace();
     return;
-} // setNullspace
+} // setNullSpace
 
 bool
 PETScLevelSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
@@ -362,7 +362,7 @@ PETScLevelSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, double>& x,
     d_pc_type = pc_type;
 
     // Set the nullspace.
-    if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty()) setupNullspace();
+    if (d_nullspace_contains_constant_vec || !d_nullspace_basis_vecs.empty()) setupNullSpace();
 
     // Setup the preconditioner.
     if (d_pc_type == "asm")
@@ -777,7 +777,7 @@ PETScLevelSolver::generateFieldSplitSubdomains(std::vector<std::string>& /*field
 } // generateFieldSplitSubdomains
 
 void
-PETScLevelSolver::setupNullspace()
+PETScLevelSolver::setupNullSpace()
 {
     int ierr;
     std::vector<Vec> petsc_nullspace_basis_vecs(d_nullspace_basis_vecs.size());
@@ -807,7 +807,7 @@ PETScLevelSolver::setupNullspace()
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // setupNullspace
+} // setupNullSpace
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 
