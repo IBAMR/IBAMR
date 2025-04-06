@@ -120,6 +120,12 @@ GeneralOperator::getHierarchyMathOps() const
     return d_hier_math_ops;
 } // getHierarchyMathOps
 
+unsigned int
+GeneralOperator::getMinimumGhostCellWidth() const
+{
+    return 0;
+} // getMinimumGhostCellWidth
+
 void
 GeneralOperator::applyAdd(SAMRAIVectorReal<NDIM, double>& x,
                           SAMRAIVectorReal<NDIM, double>& y,

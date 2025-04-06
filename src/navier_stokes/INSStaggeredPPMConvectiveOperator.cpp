@@ -961,6 +961,12 @@ INSStaggeredPPMConvectiveOperator::applyConvectiveOperator(const int U_idx, cons
     return;
 } // applyConvectiveOperator
 
+unsigned int
+INSStaggeredPPMConvectiveOperator::getMinimumGhostCellWidth() const
+{
+    return GADVECTG;
+} // getMinimumGhostCellWidth
+
 void
 INSStaggeredPPMConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
                                                            const SAMRAIVectorReal<NDIM, double>& out)
