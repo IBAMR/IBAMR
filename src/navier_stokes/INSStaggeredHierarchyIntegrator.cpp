@@ -1128,15 +1128,12 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
 
     // Allocate solver vectors.
     d_U_rhs_vec->allocateVectorData(current_time);
-    d_U_rhs_vec->setToScalar(0.0);
     d_P_rhs_vec->allocateVectorData(current_time);
     d_P_rhs_vec->setToScalar(0.0);
     if (!d_creeping_flow)
     {
         d_U_adv_vec->allocateVectorData(current_time);
-        d_U_adv_vec->setToScalar(0.0);
         d_N_vec->allocateVectorData(current_time);
-        d_N_vec->setToScalar(0.0);
     }
 
     // Cache BC data.
@@ -1169,7 +1166,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         default:
             TBOX_ERROR("this statement should not be reached");
         }
-        d_hier_sc_data_ops->copyData(d_U_old_new_idx, d_U_current_idx);
     }
     else
     {
@@ -1208,9 +1204,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         d_hier_math_ops->laplace(
             U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
     }
-    d_hier_sc_data_ops->copyData(d_U_src_idx,
-                                 d_U_scratch_idx,
-                                 /*interior_only*/ false);
 
     // Set the initial guess.
     d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
@@ -1429,6 +1422,12 @@ INSStaggeredHierarchyIntegrator::postprocessIntegrateHierarchy(const double curr
     // Execute any registered callbacks.
     executePostprocessIntegrateHierarchyCallbackFcns(
         current_time, new_time, skip_synchronize_new_state_data, num_cycles);
+
+    // We no longer need the current data, so swap it with the old data if needed.
+    if (is_multistep_time_stepping_type(d_viscous_time_stepping_type))
+    {
+        d_hier_sc_data_ops->swapData(d_U_old_new_idx, d_U_current_idx);
+    }
     return;
 } // postprocessIntegrateHierarchy
 
