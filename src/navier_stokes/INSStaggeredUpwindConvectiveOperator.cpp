@@ -325,28 +325,10 @@ INSStaggeredUpwindConvectiveOperator::INSStaggeredUpwindConvectiveOperator(
             << "  valid choices are: ADVECTIVE, CONSERVATIVE, SKEW_SYMMETRIC\n");
     }
 
-    VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
-    Pointer<VariableContext> context = var_db->getContext("INSStaggeredUpwindConvectiveOperator::CONTEXT");
-
     if (input_db)
     {
         if (input_db->keyExists("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
     }
-
-    const std::string U_var_name = "INSStaggeredUpwindConvectiveOperator::U";
-    d_U_var = var_db->getVariable(U_var_name);
-    if (d_U_var)
-    {
-        d_U_scratch_idx = var_db->mapVariableAndContextToIndex(d_U_var, context);
-    }
-    else
-    {
-        d_U_var = new SideVariable<NDIM, double>(U_var_name);
-        d_U_scratch_idx = var_db->registerVariableAndContext(d_U_var, context, IntVector<NDIM>(GADVECTG));
-    }
-#if !defined(NDEBUG)
-    TBOX_ASSERT(d_U_scratch_idx >= 0);
-#endif
 
     // Setup Timers.
     IBAMR_DO_ONCE(t_apply_convective_operator =
@@ -383,28 +365,15 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
     TBOX_ASSERT(U_idx == d_u_idx);
 #endif
 
-    // Allocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->allocatePatchData(d_U_scratch_idx);
-    }
-
     // Fill ghost cell values for all components.
     static const bool homogeneous_bc = false;
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(1);
-    transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
-                                                             U_idx,
-                                                             "CONSTANT_REFINE",
-                                                             false,
-                                                             "CONSERVATIVE_COARSEN",
-                                                             d_bdry_extrap_type,
-                                                             false,
-                                                             d_bc_coefs);
+    transaction_comps[0] = InterpolationTransactionComponent(
+        U_idx, "CONSTANT_REFINE", false, "CONSERVATIVE_COARSEN", d_bdry_extrap_type, false, d_bc_coefs);
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
-    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, nullptr, d_U_scratch_idx, -1, homogeneous_bc);
+    StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(d_bc_coefs, nullptr, U_idx, -1, homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_bc_coefs, nullptr);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
@@ -425,7 +394,7 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
             const IntVector<NDIM>& patch_upper = patch_box.upper();
 
             Pointer<SideData<NDIM, double> > N_data = patch->getPatchData(N_idx);
-            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(d_U_scratch_idx);
+            Pointer<SideData<NDIM, double> > U_data = patch->getPatchData(U_idx);
 
             const IntVector<NDIM> ghosts = IntVector<NDIM>(1);
             std::array<Box<NDIM>, NDIM> side_boxes;
@@ -682,13 +651,6 @@ INSStaggeredUpwindConvectiveOperator::applyConvectiveOperator(const int U_idx, c
         }
     }
 
-    // Deallocate scratch data.
-    for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
-        level->deallocatePatchData(d_U_scratch_idx);
-    }
-
     IBAMR_TIMER_STOP(t_apply_convective_operator);
     return;
 } // applyConvectiveOperator
@@ -722,8 +684,7 @@ INSStaggeredUpwindConvectiveOperator::initializeOperatorState(const SAMRAIVector
     // Setup the interpolation transaction information.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.resize(1);
-    d_transaction_comps[0] = InterpolationTransactionComponent(d_U_scratch_idx,
-                                                               in.getComponentDescriptorIndex(0),
+    d_transaction_comps[0] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(0),
                                                                "CONSTANT_REFINE",
                                                                false,
                                                                "CONSERVATIVE_COARSEN",
