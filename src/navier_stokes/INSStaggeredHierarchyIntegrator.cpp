@@ -1683,12 +1683,10 @@ INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorRe
 void
 INSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
 {
-    if (d_nul_vecs.empty()) return;
     for (const auto& nul_vec : d_nul_vecs)
     {
-        const double sol_dot_nul = sol_vec->dot(nul_vec);
-        const double nul_L2_norm = std::sqrt(nul_vec->dot(nul_vec));
-        sol_vec->axpy(-sol_dot_nul / nul_L2_norm, nul_vec, sol_vec);
+        const double nul_dot_sol = nul_vec->dot(sol_vec);
+        sol_vec->axpy(-nul_dot_sol, nul_vec, sol_vec);
     }
     return;
 }
@@ -2430,10 +2428,8 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
             {
                 d_nul_vecs[k] = d_sol_vec->cloneVector(d_object_name + "::nul_vec_U_" + std::to_string(k));
                 d_nul_vecs[k]->allocateVectorData(current_time);
-                d_nul_vecs[k]->setToScalar(0.0);
                 d_U_nul_vecs[k] = d_U_scratch_vec->cloneVector(d_object_name + "::U_nul_vec_U_" + std::to_string(k));
                 d_U_nul_vecs[k]->allocateVectorData(current_time);
-                d_U_nul_vecs[k]->setToScalar(0.0);
                 for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
                 {
                     Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -2442,10 +2438,11 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
                         Pointer<Patch<NDIM> > patch = level->getPatch(p());
                         Pointer<SideData<NDIM, double> > nul_data =
                             patch->getPatchData(d_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        nul_data->getArrayData(k).fillAll(1.0);
+                        for (unsigned int d = 0; d < NDIM; ++d) nul_data->getArrayData(d).fillAll((d == k) ? 1.0 : 0.0);
                         Pointer<SideData<NDIM, double> > U_nul_data =
                             patch->getPatchData(d_U_nul_vecs[k]->getComponentDescriptorIndex(0));
-                        U_nul_data->getArrayData(k).fillAll(1.0);
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                            U_nul_data->getArrayData(d).fillAll((d == k) ? 1.0 : 0.0);
                     }
                 }
             }
@@ -2457,6 +2454,19 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
             d_nul_vecs.back()->allocateVectorData(current_time);
             d_hier_sc_data_ops->setToScalar(d_nul_vecs.back()->getComponentDescriptorIndex(0), 0.0);
             d_hier_cc_data_ops->setToScalar(d_nul_vecs.back()->getComponentDescriptorIndex(1), 1.0);
+        }
+
+        // Normalize the basis vectors for the nullspace.
+        for (const auto& nul_vec : d_nul_vecs)
+        {
+            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
+            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
+        }
+
+        for (const auto& nul_vec : d_U_nul_vecs)
+        {
+            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
+            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
         }
 
         d_vectors_need_init = false;
