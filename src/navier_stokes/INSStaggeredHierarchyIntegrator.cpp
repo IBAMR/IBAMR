@@ -1185,7 +1185,7 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
             K2_rhs = 0.5;
             break;
         default:
-            TBOX_ERROR("this statment should not be reached");
+            TBOX_ERROR("this statement should not be reached");
         }
         PoissonSpecifications U_rhs_problem_coefs(d_object_name + "::U_rhs_problem_coefs");
         U_rhs_problem_coefs.setCConstant(K1_rhs * rho / dt - K2_rhs * lambda);
@@ -1204,10 +1204,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
         d_hier_math_ops->laplace(
             U_rhs_idx, U_rhs_var, U_rhs_problem_coefs, d_U_scratch_idx, d_U_var, d_no_fill_op, current_time);
     }
-
-    // Set the initial guess.
-    d_hier_sc_data_ops->copyData(d_U_new_idx, d_U_current_idx);
-    d_hier_cc_data_ops->copyData(d_P_new_idx, d_P_current_idx);
 
     // Set up inhomogeneous BCs.
     d_stokes_solver->setHomogeneousBc(false);
@@ -1607,8 +1603,10 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
 
     // Set solution components to equal most recent approximations to u(n+1) and
     // p(n+1/2).
-    d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0), d_U_new_idx);
-    d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1), d_P_new_idx);
+    d_hier_sc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(0),
+                                 (cycle_num == 0) ? d_U_current_idx : d_U_new_idx);
+    d_hier_cc_data_ops->copyData(sol_vec->getComponentDescriptorIndex(1),
+                                 (cycle_num == 0) ? d_P_current_idx : d_P_new_idx);
 
     // Synchronize solution and right-hand-side data before solve.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
