@@ -198,10 +198,6 @@ private:
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
-    // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_U_var;
-    int d_U_scratch_idx = IBTK::invalid_index;
-
     // Reconstruction order 2*k-1.
     // Currently only available for k=3
     int d_k = 3;
