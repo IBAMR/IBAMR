@@ -364,7 +364,7 @@ main(int argc, char* argv[])
             Pointer<PETScKrylovLinearSolver> krylov_solver = poisson_solver;
             if (krylov_solver)
             {
-                krylov_solver->setNullspace(false, U_nul_vecs);
+                krylov_solver->setNullSpace(false, U_nul_vecs);
             }
         }
 

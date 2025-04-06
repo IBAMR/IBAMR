@@ -178,14 +178,14 @@ StaggeredStokesBlockPreconditioner::deallocateSolverState()
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
-StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<NDIM, double> > U_vec,
+StaggeredStokesBlockPreconditioner::correctNullSpace(Pointer<SAMRAIVectorReal<NDIM, double> > U_vec,
                                                      Pointer<SAMRAIVectorReal<NDIM, double> > P_vec)
 {
     auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
     if (p_velocity_solver)
     {
         const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& U_nul_vecs =
-            p_velocity_solver->getNullspaceBasisVectors();
+            p_velocity_solver->getNullSpaceBasisVectors();
         if (!U_nul_vecs.empty())
         {
             for (const auto& U_nul_vec : U_nul_vecs)
@@ -195,14 +195,14 @@ StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<ND
             }
         }
 #if !defined(NDEBUG)
-        TBOX_ASSERT(!p_velocity_solver->getNullspaceContainsConstantVector());
+        TBOX_ASSERT(!p_velocity_solver->getNullSpaceContainsConstantVector());
 #endif
     }
 
     auto p_pressure_solver = dynamic_cast<LinearSolver*>(d_pressure_solver.getPointer());
     if (p_pressure_solver)
     {
-        if (p_pressure_solver->getNullspaceContainsConstantVector())
+        if (p_pressure_solver->getNullSpaceContainsConstantVector())
         {
             const int P_idx = P_vec->getComponentDescriptorIndex(0);
             const double volume = d_hier_math_ops->getVolumeOfPhysicalDomain();
@@ -210,11 +210,11 @@ StaggeredStokesBlockPreconditioner::correctNullspace(Pointer<SAMRAIVectorReal<ND
             d_pressure_data_ops->addScalar(P_idx, P_idx, -P_mean);
         }
 #if !defined(NDEBUG)
-        TBOX_ASSERT(p_pressure_solver->getNullspaceBasisVectors().empty());
+        TBOX_ASSERT(p_pressure_solver->getNullSpaceBasisVectors().empty());
 #endif
     }
     return;
-} // correctNullspace
+} // correctNullSpace
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
 

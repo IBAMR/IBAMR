@@ -1055,7 +1055,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::regridProjection()
     if (p_regrid_projection_solver)
     {
         p_regrid_projection_solver->setInitialGuessNonzero(false);
-        p_regrid_projection_solver->setNullspace(true);
+        p_regrid_projection_solver->setNullSpace(true);
     }
 
     d_hier_math_ops->div(d_Div_U_idx,
@@ -1277,7 +1277,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(false);
-                if (has_velocity_nullspace) p_velocity_solver->setNullspace(false, d_U_nul_vecs);
+                if (has_velocity_nullspace) p_velocity_solver->setNullSpace(false, d_U_nul_vecs);
             }
             d_velocity_solver->initializeSolverState(*d_U_scratch_vec, *d_U_rhs_vec);
             d_velocity_solver_needs_init = false;
@@ -1301,7 +1301,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
             if (p_pressure_solver)
             {
                 p_pressure_solver->setInitialGuessNonzero(false);
-                if (has_pressure_nullspace) p_pressure_solver->setNullspace(true);
+                if (has_pressure_nullspace) p_pressure_solver->setNullSpace(true);
             }
             d_pressure_solver->initializeSolverState(*d_P_scratch_vec, *d_P_rhs_vec);
             d_pressure_solver_needs_init = false;
@@ -1314,7 +1314,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time, new_time);
-    d_stokes_solver->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+    d_stokes_solver->setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
 
     auto p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     if (!p_stokes_linear_solver)
@@ -1346,12 +1346,12 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         {
             p_stokes_block_pc->setPressurePoissonSpecifications(P_problem_coefs);
             p_stokes_block_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef.get());
-            p_stokes_block_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+            p_stokes_block_pc->setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
         }
         else if (p_stokes_fac_pc)
         {
             p_stokes_fac_pc->setPhysicalBcCoefs(d_U_star_bc_coefs, d_Phi_bc_coef.get());
-            p_stokes_fac_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+            p_stokes_fac_pc->setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
         }
         else
         {
@@ -1374,7 +1374,7 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
         {
             p_stokes_linear_solver->setInitialGuessNonzero(true);
             if (has_velocity_nullspace || has_pressure_nullspace)
-                p_stokes_linear_solver->setNullspace(false, d_nul_vecs);
+                p_stokes_linear_solver->setNullSpace(false, d_nul_vecs);
         }
         d_stokes_solver->initializeSolverState(*d_sol_vec, *d_rhs_vec);
         d_stokes_solver_needs_init = false;
