@@ -2354,7 +2354,7 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
         K2 = 0.5;
         break;
     default:
-        TBOX_ERROR("this statment should not be reached");
+        TBOX_ERROR("this statement should not be reached");
     }
     PoissonSpecifications U_problem_coefs(d_object_name + "::U_problem_coefs");
     U_problem_coefs.setCConstant(K1 * rho / dt + K2 * lambda);
