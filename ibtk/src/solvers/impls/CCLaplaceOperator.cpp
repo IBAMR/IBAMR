@@ -84,6 +84,12 @@ CCLaplaceOperator::~CCLaplaceOperator()
     return;
 } // ~CCLaplaceOperator()
 
+unsigned int
+CCLaplaceOperator::getMinimumGhostCellWidth() const
+{
+    return CELLG;
+} // getMinimumGhostCellWidth
+
 void
 CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {

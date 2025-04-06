@@ -97,6 +97,11 @@ public:
     //\{
 
     /*!
+     * \brief Get the minimum ghost cell width for input vectors.
+     */
+    unsigned int getMinimumGhostCellWidth() const override;
+
+    /*!
      * \brief Compute hierarchy dependent data required for computing y=F[x] and
      * z=F[x]+y.
      *

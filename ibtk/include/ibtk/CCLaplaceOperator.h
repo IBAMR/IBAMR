@@ -66,6 +66,11 @@ public:
     //\{
 
     /*!
+     * \brief Get the minimum ghost cell width for input vectors.
+     */
+    unsigned int getMinimumGhostCellWidth() const override;
+
+    /*!
      * \brief Compute y=Ax.
      *
      * Before calling this function, the form of the vectors x and y should be

@@ -430,6 +430,12 @@ INSStaggeredWavePropConvectiveOperator::applyConvectiveOperator(const int U_idx,
     return;
 } // applyConvectiveOperator
 
+unsigned int
+INSStaggeredWavePropConvectiveOperator::getMinimumGhostCellWidth() const
+{
+    return d_k + 1;
+} // getMinimumGhostCellWidth
+
 void
 INSStaggeredWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
                                                                 const SAMRAIVectorReal<NDIM, double>& out)

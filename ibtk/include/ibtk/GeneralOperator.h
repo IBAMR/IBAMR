@@ -124,6 +124,11 @@ public:
     virtual SAMRAI::tbox::Pointer<HierarchyMathOps> getHierarchyMathOps() const;
 
     /*!
+     * \brief Get the minimum ghost cell width for input vectors.
+     */
+    virtual unsigned int getMinimumGhostCellWidth() const;
+
+    /*!
      * \brief Compute \f$y=F[x]\f$.
      *
      * Before calling apply(), the form of the vectors \a x and \a y should be

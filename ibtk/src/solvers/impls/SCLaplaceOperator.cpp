@@ -96,6 +96,12 @@ SCLaplaceOperator::~SCLaplaceOperator()
     return;
 } // ~SCLaplaceOperator()
 
+unsigned int
+SCLaplaceOperator::getMinimumGhostCellWidth() const
+{
+    return SIDEG;
+} // getMinimumGhostCellWidth
+
 void
 SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& y)
 {
