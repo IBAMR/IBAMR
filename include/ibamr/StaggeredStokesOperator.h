@@ -235,9 +235,6 @@ protected:
     std::vector<IBTK::HierarchyGhostCellInterpolation::InterpolationTransactionComponent> d_transaction_comps;
     SAMRAI::tbox::Pointer<IBTK::HierarchyGhostCellInterpolation> d_hier_bdry_fill, d_no_fill;
 
-    // Scratch data.
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_x, d_b;
-
     std::string d_refine_type = "NONE";
     std::string d_coarsen_type = "CUBIC_COARSEN";
     std::string d_bdry_extrap_type = "LINEAR";
