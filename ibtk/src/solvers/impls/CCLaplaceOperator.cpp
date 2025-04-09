@@ -175,10 +175,6 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
-    // Setup solution and rhs vectors.
-    d_x = in.cloneVector(in.getName());
-    d_b = out.cloneVector(out.getName());
-
     // Setup operator state.
     d_hierarchy = in.getPatchHierarchy();
     d_coarsest_ln = in.getCoarsestLevelNumber();
@@ -215,7 +211,7 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp),
+        InterpolationTransactionComponent component(in.getComponentDescriptorIndex(comp),
                                                     DATA_REFINE_TYPE,
                                                     USE_CF_INTERPOLATION,
                                                     DATA_COARSEN_TYPE,
@@ -252,13 +248,6 @@ CCLaplaceOperator::deallocateOperatorState()
 
     // Deallocate hierarchy math operations object.
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
-
-    // Delete the solution and rhs vectors.
-    free_vector_components(*d_x);
-    d_x.setNull();
-
-    free_vector_components(*d_b);
-    d_b.setNull();
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;

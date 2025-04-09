@@ -184,7 +184,6 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     const int P_idx = x.getComponentDescriptorIndex(1);
     const int A_U_idx = y.getComponentDescriptorIndex(0);
     const int A_P_idx = y.getComponentDescriptorIndex(1);
-    const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
     Pointer<SideVariable<NDIM, double> > U_sc_var = x.getComponentVariable(0);
     Pointer<CellVariable<NDIM, double> > P_cc_var = x.getComponentVariable(1);
@@ -194,8 +193,7 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     // Simultaneously fill ghost cell values for all components.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
-    transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx,
-                                                             U_idx,
+    transaction_comps[0] = InterpolationTransactionComponent(U_idx,
                                                              d_refine_type,
                                                              d_use_cf_interpolation,
                                                              d_coarsen_type,
@@ -216,7 +214,7 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
+        d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
@@ -232,25 +230,17 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
                           P_cc_var,
                           d_no_fill,
                           d_new_time);
-    d_hier_math_ops->laplace(A_U_idx,
-                             A_U_sc_var,
-                             d_U_problem_coefs,
-                             U_scratch_idx,
-                             U_sc_var,
-                             d_no_fill,
-                             d_new_time,
-                             1.0,
-                             A_U_idx,
-                             A_U_sc_var);
+    d_hier_math_ops->laplace(
+        A_U_idx, A_U_sc_var, d_U_problem_coefs, U_idx, U_sc_var, d_no_fill, d_new_time, 1.0, A_U_idx, A_U_sc_var);
     d_hier_math_ops->div(A_P_idx,
                          A_P_cc_var,
                          -1.0,
-                         U_scratch_idx,
+                         U_idx,
                          U_sc_var,
                          d_no_fill,
                          d_new_time,
                          /*cf_bdry_synch*/ true);
-    if (d_bc_helper) d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
+    if (d_bc_helper) d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
 
     IBAMR_TIMER_STOP(t_apply);
     return;
@@ -258,27 +248,19 @@ StaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
 
 void
 StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                 const SAMRAIVectorReal<NDIM, double>& out)
+                                                 const SAMRAIVectorReal<NDIM, double>& /*out*/)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
 
-    // Setup solution and rhs vectors.
-    d_x = in.cloneVector(in.getName());
-    d_b = out.cloneVector(out.getName());
-
-    // Allocate scratch data.
-    d_x->allocateVectorData();
-
     // Setup the interpolation transaction information.
     d_U_fill_pattern = new SideNoCornersFillPattern(SIDEG, false, false, true);
     d_P_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
-    d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
-                                                               in.getComponentDescriptorIndex(0),
+    d_transaction_comps[0] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(0),
                                                                d_refine_type,
                                                                d_use_cf_interpolation,
                                                                d_coarsen_type,
@@ -299,7 +281,7 @@ StaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, do
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_x->getPatchHierarchy());
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, in.getPatchHierarchy());
 
     // Initialize hierarchy math ops object.
     if (!d_hier_math_ops_external)
@@ -339,21 +321,6 @@ StaggeredStokesOperator::deallocateOperatorState()
     d_transaction_comps.clear();
     d_U_fill_pattern.setNull();
     d_P_fill_pattern.setNull();
-
-    // Deallocate scratch data.
-    deallocate_vector_data(*d_x);
-
-    // Delete the solution and rhs vectors.
-    d_x->resetLevels(d_x->getCoarsestLevelNumber(),
-                     std::min(d_x->getFinestLevelNumber(), d_x->getPatchHierarchy()->getFinestLevelNumber()));
-    free_vector_components(*d_x);
-
-    d_b->resetLevels(d_b->getCoarsestLevelNumber(),
-                     std::min(d_b->getFinestLevelNumber(), d_b->getPatchHierarchy()->getFinestLevelNumber()));
-    free_vector_components(*d_b);
-
-    d_x.setNull();
-    d_b.setNull();
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
