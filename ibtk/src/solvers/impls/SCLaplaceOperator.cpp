@@ -155,10 +155,9 @@ SCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     {
         Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
         Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
-        const int x_scratch_idx = x.getComponentDescriptorIndex(comp);
-        const int y_idx = y.getComponentDescriptorIndex(comp);
-        d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_scratch_idx, x_sc_var, d_no_fill, 0.0);
         const int x_idx = x.getComponentDescriptorIndex(comp);
+        const int y_idx = y.getComponentDescriptorIndex(comp);
+        d_hier_math_ops->laplace(y_idx, y_sc_var, d_poisson_spec, x_idx, x_sc_var, d_no_fill, 0.0);
         d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
     }
 
@@ -174,10 +173,6 @@ SCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
 
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
-
-    // Setup solution and rhs vectors.
-    d_x = in.cloneVector(in.getName());
-    d_b = out.cloneVector(out.getName());
 
     // Setup operator state.
     d_hierarchy = in.getPatchHierarchy();
@@ -260,13 +255,6 @@ SCLaplaceOperator::deallocateOperatorState()
 
     // Deallocate hierarchy math operations object.
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
-
-    // Delete the solution and rhs vectors.
-    free_vector_components(*d_x);
-    d_x.setNull();
-
-    free_vector_components(*d_b);
-    d_b.setNull();
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;
