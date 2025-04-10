@@ -1,0 +1,209 @@
+#ifndef included_IBTK_CartSideGalerkinDifferenceFCFill
+#define included_IBTK_CartSideGalerkinDifferenceFCFill
+
+#include <ibtk/config.h>
+#include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/ibtk_utilities.h"
+
+#include "Box.h"
+#include "CartesianSideDoubleConservativeLinearRefine.h"//hopefully won't be called
+#include "ComponentSelector.h"
+#include "IntVector.h"
+#include "PatchHierarchy.h"
+#include "RefineOperator.h"
+#include "SideVariable.h"
+#include "tbox/Pointer.h"
+
+#include <set>
+#include <vector>
+
+namespace SAMRAI
+{
+namespace hier
+{
+template <int DIM>
+class CoarseFineBoundary;
+template <int DIM>
+class Patch;
+} // namespace hier
+} // namespace SAMRAI
+
+namespace IBTK
+{
+// fill fine ghosts with coarse values
+class CartSideGalerkinDifferenceCFFill : public CoarseFineBoundaryRefinePatchStrategy
+{
+public:
+	// constructor
+	CartSideGalerkinDifferenceCFFill();
+
+	// destructor
+	~CartSideGalerkinDifferenceCFFill():;
+
+	// set data associated with given list of patch data indices at patch boundary that 
+    // intersect physical domain boundary
+    // data components set correspond to "scratch" components
+	// input 
+	//	patch (patch on which to fill boundary data) 
+	//	fill_time (simulation time)
+	//	ghost_width_to_fill (int vector w ghost width to fill over scratch components)
+	void setPhysicalBoundaryConditions(SAMRAI::hier::Patch<NDIM>& patch,
+									   double fill_time,
+									   const SAMRAI::hier,IntVector<NDIM>& ghost_width_to_fill) override;
+
+	/*!
+     * Function to return maximum stencil width needed over user-defined data
+     * interpolation operations.  This is needed to determine the correct
+     * interpolation data dependencies.
+     */
+    SAMRAI::hier::IntVector<NDIM> getRefineOpStencilWidth() const override;
+
+    /*!
+     * Function to perform user-defined preprocess data refine operations.  This
+     * member function is called before standard refine operations (expressed
+     * using concrete subclasses of the SAMRAI::xfer::RefineOperator base
+     * class).  The preprocess function must refine data from the scratch
+     * components of the coarse patch into the scratch components of the fine
+     * patch on the specified fine box region.  Recall that the scratch
+     * components are specified in calls to the registerRefine() function in the
+     * SAMRAI::xfer::RefineAlgorithm class.
+     *
+     * Presently, the implementation does nothing.
+     *
+     * \param fine      Fine patch containing destination data.
+     * \param coarse    Coarse patch containing source data.
+     * \param fine_box  Box region on fine patch into which data is refined.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     */
+    void preprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                          const SAMRAI::hier::Patch<NDIM>& coarse,
+                          const SAMRAI::hier::Box<NDIM>& fine_box,
+                          const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+
+    /*!
+     * Function to perform user-defined postprocess data refine operations.
+     * This member function is called after standard refine operations
+     * (expressed using concrete subclasses of the SAMRAI::xfer::RefineOperator
+     * base class).  The postprocess function must refine data from the scratch
+     * components of the coarse patch into the scratch components of the fine
+     * patch on the specified fine box region.  Recall that the scratch
+     * components are specified in calls to the registerRefine() function in the
+     * SAMRAI::xfer::RefineAlgorithm class.
+     *
+     * This function computes a quadratic approximation in the tangential direction. To complete the approximation of
+     * ghost cells, computeNormalExtension() must be called after postprocessRefine().
+     *
+     * \param fine      Fine patch containing destination data.
+     * \param coarse    Coarse patch containing source data.
+     * \param fine_box  Box region on fine patch into which data is refined.
+     * \param ratio     Integer vector containing ratio relating index space between coarse and fine patches.
+     */
+    void postprocessRefine(SAMRAI::hier::Patch<NDIM>& fine,
+                           const SAMRAI::hier::Patch<NDIM>& coarse,
+                           const SAMRAI::hier::Box<NDIM>& fine_box,
+                           const SAMRAI::hier::IntVector<NDIM>& ratio) override;
+
+	//\}
+
+    /*!
+     * \name Extension of SAMRAI::xfer::RefinePatchStrategy interface to support more
+     * complex coarse-fine interface discretizations.
+     */
+    //\{
+
+    /*!
+     * Whether or not to employ a consistent interpolation scheme at "Type 2"
+     * coarse-fine interface ghost cells.
+     */
+    void setConsistentInterpolationScheme(bool consistent_type_2_bdry) override;
+
+    /*!
+     * \brief Reset the patch data index operated upon by this class.
+     */
+    void setPatchDataIndex(int patch_data_index) override;
+
+    /*!
+     * \brief Reset the patch data indices operated upon by this class.
+     */
+    void setPatchDataIndices(const std::set<int>& patch_data_indices) override;
+
+    /*!
+     * \brief Reset the patch data indices operated upon by this class.
+     */
+    void setPatchDataIndices(const SAMRAI::hier::ComponentSelector& patch_data_indices) override;
+
+    /*!
+     * Set the patch hierarchy used in constructing coarse-fine interface
+     * boundary boxes.
+     */
+    void setPatchHierarchy(SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy) override;
+
+    /*!
+     * Clear the patch hierarchy used in constructing coarse-fine interface
+     * boundary boxes.
+     */
+    void clearPatchHierarchy() override;
+
+    /*!
+     * Compute the normal extension of fine data at coarse-fine interfaces.
+     *
+     * This function assumes that the first ghost cell is filled with a reasonable value, see the class description.
+     */
+    void computeNormalExtension(SAMRAI::hier::Patch<NDIM>& patch,
+                                const SAMRAI::hier::IntVector<NDIM>& ratio,
+                                const SAMRAI::hier::IntVector<NDIM>& ghost_width_to_fill) override;
+
+    //\}
+
+protected:
+private:
+    /*!
+     * \brief Copy constructor.
+     *
+     * \note This constructor is not implemented and should not be used.
+     *
+     * \param from The value to copy to this object.
+     */
+    CartSideGalerkinDifferenceCFFill(const CartSideGalerkinDifferenceCFFill& from) = delete;
+
+    /*!
+     * \brief Assignment operator.
+     *
+     * \note This operator is not implemented and should not be used.
+     *
+     * \param that The value to assign to this object.
+     *
+     * \return A reference to this object.
+     */
+    CartSideGalerkinDifferenceCFFill& operator=(const CartSideGalerkinDifferenceCFFill& that) = delete;
+
+    /*!
+     * The patch data indices corresponding to the "scratch" patch data that is
+     * operated on by this class.
+     */
+    std::set<int> d_patch_data_indices;
+
+    /*!
+     * Boolean value indicating whether we are enforcing a consistent
+     * interpolation scheme at "Type 2" coarse-fine interface ghost cells.
+     */
+    bool d_consistent_type_2_bdry = false;
+
+    /*!
+     * Refine operator employed to fill coarse grid ghost cell values.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::xfer::RefineOperator<NDIM> > d_refine_op =
+		new CartesianSideDoubleConservativeLinearRefine<NDIM>();
+
+    /*!
+     * Cached hierarchy-related information.
+     */
+    SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
+    std::vector<SAMRAI::hier::CoarseFineBoundary<NDIM> > d_cf_boundary;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, int> > d_sc_indicator_var =
+        new SAMRAI::pdat::SideVariable<NDIM, int>("CartSideGalerkinDifferenceCFFill::sc_indicator_var");
+    int d_sc_indicator_idx = IBTK::invalid_index;
+};
+} // namespace IBTK
+
+#endif // #ifndef included_IBTK_CartSideGalerkinDifferenceCFFill

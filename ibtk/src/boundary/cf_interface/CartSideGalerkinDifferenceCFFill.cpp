@@ -1,0 +1,458 @@
+#include "ibtk/CartSideLinearGalerkinDifferenceCFFill.h"
+
+#include "BoundaryBox.h"
+#include "CoarseFineBoundary.h"
+#include "ComponentSelector.h"
+#include "Patch.h"
+#include "PatchHierarchy.h"
+#include "PatchLevel.h"
+#include "RefineAlgorithm.h"
+#include "RefineOperator.h"             
+#include "RefineSchedule.h"
+#include "SideData.h"
+#include "SideVariable.h"
+#include "Variable.h"
+#include "VariableContext.h"
+#include "VariableDatabase.h"
+#include "tbox/Array.h"
+
+#include <algorithm>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
+    
+#include "ibtk/namespaces.h" // IWYU pragma: keep
+
+// FORTRAN ROUTINES !!! TODO
+#if (NDIM == 2)
+#define SC_LIN_GALERKIN_DIFFERENCE_FILL_FC IBTK_FC_FUNC(sclingalerkindifferencefill2d, SCLINGALERKDIFFFILL2D)
+#endif
+#if (NDIM == 3)
+#define SC_LIN_GALERKIN_DIFFERENCE_FILL_FC IBTK_FC_FUNC(sclingalerkindifferencefill3d, SCLINGALERKINDIFFFERENCEILL3D)
+#endif
+// fortran function interfaces
+extern "C"
+{
+}
+
+namespace IBTK
+{
+
+namespace
+{
+static const int REFINE_OP_STENCIL_WIDTH = 1;
+static const int GHOST_WIDTH_TO_TILL = 1;
+} // namespace
+
+
+// public
+CartSideLinearGalerkinDifferenceCFFill::CartSideLinearGalerkinDifferenceCFFill()
+{
+	// set up scratch
+	VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+	Pointer<VariableContext> context = var_db->getContext("CartSideLinearGalerkinDifferenceCFFill::CONTEXT");
+	if (var_db->checkVariableExists(d_sc_indicator_var->getName());
+	{
+		d_sc_indicator_var = var_db->getVariable(d_sc_indicator_var->getName());
+		d_sc_indicator_idx = var_db->mapVariableAndContextToIndex(d_sc_indicator_var, context);
+	}
+	else
+	{
+		d_sc_indicator_indx = var_db_>registerVariableAndContext(d_sc_indicator_var, context, GHOST_WIDTH_TO_FILL);
+	}
+	return;
+} // 
+	
+CartSideLinearGalerkinDifferenceCFFill::~CartSideLinearGalerkinDifferenceCFFill()
+{
+    clearPatchHierarchy();
+    return;
+} // ~CartSideLinearGalerkinDifferenceCFFill
+
+void
+CartSideLinearGalerkinDifferenceCFFill::setPhysicalBoundaryConditions(Patch<NDIM>& /*patch*/,
+                                                                      const double /*fill_time*/,
+                                                                      const IntVector<NDIM>& /*ghost_width_to_fill*/)
+{
+    // intentionally blank
+    return;
+} // setPhysicalBoundaryConditions
+
+IntVector<NDIM>
+CartSideLinearGalerkinDifferenceCFFill::getRefineOpStencilWidth() const
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_refine_op->getStencilWidth().max() <= REFINE_OP_STENCIL_WIDTH);
+#endif
+    return REFINE_OP_STENCIL_WIDTH;
+} // getRefineOpStencilWidth
+
+void
+CartSideLinearGalerkinDifferenceCFFill::preprocessRefine(Patch<NDIM>& /*fine*/,
+                                                         const Patch<NDIM>& /*coarse*/,
+                                                         const Box<NDIM>& /*fine_box*/,
+                                                         const IntVector<NDIM>& /*ratio*/)
+{
+    // intentionally blank
+    return;
+} // preprocessRefine
+
+void
+CartSideLinearGalerkinDifferenceCFFill::postprocessRefine(Patch<NDIM>& fine,
+                                                          const Patch<NDIM>& coarse,
+                                                          const Box<NDIM>& fine_box,
+                                                          const IntVector<NDIM>& ratio)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hierarchy);
+#endif
+    // Ensure that the fine patch is located on the expected destination level;
+    // if not, we are not guaranteed to have appropriate coarse-fine interface
+    // boundary box information.
+    if (!fine.inHierarchy())
+    {
+        for (const auto& patch_data_index : d_patch_data_indices)
+        {
+            d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index, fine_box, ratio);
+        }
+        return;
+    }
+#if !defined(NDEBUG)
+    else
+    {
+        // Ensure the fine patch corresponds to the expected patch in the cached
+        // patch hierarchy.
+        const int patch_num = fine.getPatchNumber();
+        const int fine_patch_level_num = fine.getPatchLevelNumber();
+        Pointer<PatchLevel<NDIM> > fine_level = d_hierarchy->getPatchLevel(fine_patch_level_num);
+        TBOX_ASSERT(&fine == fine_level->getPatch(patch_num).getPointer());
+    }
+#endif
+    // Get the co-dimension 1 cf boundary boxes.
+    const int patch_num = fine.getPatchNumber();
+    const int fine_patch_level_num = fine.getPatchLevelNumber();
+    const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes =
+        d_cf_boundary[fine_patch_level_num].getBoundaries(patch_num, 1);
+    if (cf_bdry_codim1_boxes.size() == 0) return;
+
+    // Get the patch data.
+    for (const auto& patch_data_index : d_patch_data_indices)
+    {
+        Pointer<SideData<NDIM, double> > fdata = fine.getPatchData(patch_data_index);
+        Pointer<SideData<NDIM, double> > cdata = coarse.getPatchData(patch_data_index);
+        Pointer<SideData<NDIM, int> > indicator_data = fine.getPatchData(d_sc_indicator_idx);
+#if !defined(NDEBUG)
+        TBOX_ASSERT(fdata);
+        TBOX_ASSERT(cdata);
+        TBOX_ASSERT(cdata->getDepth() == fdata->getDepth());
+        TBOX_ASSERT(indicator_data);
+#endif
+        const int U_fine_ghosts = (fdata->getGhostCellWidth()).max();
+        const int U_crse_ghosts = (cdata->getGhostCellWidth()).max();
+        const int indicator_ghosts = (indicator_data->getGhostCellWidth()).max();
+#if !defined(NDEBUG)
+        if (U_fine_ghosts != (fdata->getGhostCellWidth()).min())
+        {
+            TBOX_ERROR("CartSideLinearGalerkinDifferenceCFFill::postprocessRefine():\n"
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+        }
+        if (U_crse_ghosts != (cdata->getGhostCellWidth()).min())
+        {
+            TBOX_ERROR("CartSideLinearGalerkinDifferenceCFFill::postprocessRefine():\n"
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+        }
+        TBOX_ASSERT((indicator_data->getGhostCellWidth()).max() == GHOST_WIDTH_TO_FILL);
+        TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
+#endif
+        const int data_depth = fdata->getDepth();
+        const IntVector<NDIM> ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom_fine = fine.getPatchGeometry();
+        const Box<NDIM>& patch_box_fine = fine.getBox();
+        const Box<NDIM>& patch_box_crse = coarse.getBox();
+        for (int k = 0; k < cf_bdry_codim1_boxes.size(); ++k)
+        {
+            const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
+            const Box<NDIM> bc_fill_box = pgeom_fine->getBoundaryFillBox(bdry_box, patch_box_fine, ghost_width_to_fill);
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const int* const indicator0 = indicator_data->getPointer(0);
+            const int* const indicator1 = indicator_data->getPointer(1);
+#if (NDIM == 3)
+            const int* const indicator2 = indicator_data->getPointer(2);
+#endif
+            for (int depth = 0; depth < data_depth; ++depth)
+            {
+                double* const U_fine0 = fdata->getPointer(0, depth);
+                double* const U_fine1 = fdata->getPointer(1, depth);
+#if (NDIM == 3)
+                double* const U_fine2 = fdata->getPointer(2, depth);
+#endif
+                const double* const U_crse0 = cdata->getPointer(0, depth);
+                const double* const U_crse1 = cdata->getPointer(1, depth);
+#if (NDIM == 3)
+                const double* const U_crse2 = cdata->getPointer(2, depth);
+#endif
+                SC_QUAD_TANGENTIAL_INTERPOLATION_FC(U_fine0,
+                                                    U_fine1,
+#if (NDIM == 3)
+                                                    U_fine2,
+#endif
+                                                    U_fine_ghosts,
+                                                    U_crse0,
+                                                    U_crse1,
+#if (NDIM == 3)
+                                                    U_crse2,
+#endif
+                                                    U_crse_ghosts,
+                                                    indicator0,
+                                                    indicator1,
+#if (NDIM == 3)
+                                                    indicator2,
+#endif
+                                                    indicator_ghosts,
+                                                    patch_box_fine.lower(0),
+                                                    patch_box_fine.upper(0),
+                                                    patch_box_fine.lower(1),
+                                                    patch_box_fine.upper(1),
+#if (NDIM == 3)
+                                                    patch_box_fine.lower(2),                                                    patch_box_fine.upper(2),
+#endif
+                                                    patch_box_crse.lower(0),
+                                                    patch_box_crse.upper(0),
+                                                    patch_box_crse.lower(1),
+                                                    patch_box_crse.upper(1),
+#if (NDIM == 3)
+                                                    patch_box_crse.lower(2),
+                                                    patch_box_crse.upper(2),
+#endif
+                                                    location_index,
+                                                    ratio,
+                                                    bc_fill_box.lower(),
+                                                    bc_fill_box.upper());
+            }
+        }
+    }
+    return;
+} // postprocessRefine
+
+void
+CartSideLinearGalerkinDifferenceCFFill::setConsistentInterpolationScheme(const bool consistent_type_2_bdry)
+{
+    d_consistent_type_2_bdry = consistent_type_2_bdry;
+    return;
+} // setConsistentInterpolationScheme
+
+void
+CartSideLinearGalerkinDifferenceCFFill::setPatchDataIndex(const int patch_data_index)
+{
+    std::set<int> patch_data_indices;
+    patch_data_indices.insert(patch_data_index);
+    setPatchDataIndices(patch_data_indices);
+    return;
+} // setPatchDataIndex
+
+void
+CartSideLinearGalerkinDifferenceCFFill::setPatchDataIndices(const std::set<int>& patch_data_indices)
+{
+    d_patch_data_indices.clear();
+    d_patch_data_indices = patch_data_indices;
+    return;
+} // setPatchDataIndices
+
+void
+CartSideLinearGalerkinDifferenceCFFill::setPatchDataIndices(const ComponentSelector& patch_data_indices)
+{
+    std::set<int> patch_data_index_set;
+    for (int l = 0; l < patch_data_indices.getSize(); ++l)
+    {
+        if (patch_data_indices.isSet(l))
+        {
+            const int patch_data_index = l;
+            patch_data_index_set.insert(patch_data_index);
+        }
+    }
+    setPatchDataIndices(patch_data_index_set);
+    return;
+} // setPatchDataIndices
+
+void
+CartSideLinearGalerkinDifferenceCFFill::setPatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(hierarchy);
+#endif
+    if (d_hierarchy) clearPatchHierarchy();
+    d_hierarchy = hierarchy;
+    const int finest_level_number = d_hierarchy->getFinestLevelNumber();
+
+    d_cf_boundary.resize(finest_level_number + 1);
+    const IntVector<NDIM>& max_ghost_width = GHOST_WIDTH_TO_FILL;
+    for (int ln = 0; ln <= finest_level_number; ++ln)
+    {
+        d_cf_boundary[ln] = CoarseFineBoundary<NDIM>(*d_hierarchy, ln, max_ghost_width);
+    }
+
+    Pointer<RefineAlgorithm<NDIM> > refine_alg = new RefineAlgorithm<NDIM>();
+    Pointer<RefineOperator<NDIM> > refine_op = nullptr;
+    refine_alg->registerRefine(d_sc_indicator_idx, // destination
+                               d_sc_indicator_idx, // source
+                               d_sc_indicator_idx, // temporary work space
+                               refine_op);
+    for (int ln = 0; ln <= finest_level_number; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_sc_indicator_idx))
+        {
+            level->allocatePatchData(d_sc_indicator_idx, 0.0);
+        }
+        else
+        {
+            level->setTime(0.0, d_sc_indicator_idx);
+        }
+        for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<SideData<NDIM, int> > sc_indicator_data = patch->getPatchData(d_sc_indicator_idx);
+            sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
+            sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
+        }
+        refine_alg->createSchedule(d_hierarchy->getPatchLevel(ln))->fillData(0.0);
+    }
+	return;
+) // set patch hierarchy
+
+void
+CartSideLinearGalerkinDifferenceCFFill::clearPatchHierarchy()
+{
+    d_hierarchy.setNull();
+    d_cf_boundary.clear();
+    return;
+} // clearPatchHierarchy
+
+oid
+CartSideLinearGalerkinDifferenceCFFill::computeNormalExtension(Patch<NDIM>& patch,
+                                                               const IntVector<NDIM>& ratio,
+                                                               const IntVector<NDIM>& /*ghost_width_to_fill*/)
+{
+#if !defined(NDEBUG)
+    TBOX_ASSERT(d_hierarchy);
+#endif
+    // Ensure that the fine patch is located on the expected destination level;
+    // if not, we are not guaranteed to have appropriate coarse-fine interface
+    // boundary box information.
+    if (!patch.inHierarchy())
+    {
+        return;
+    }
+#if !defined(NDEBUG)
+    else
+    {
+        const int patch_num = patch.getPatchNumber();
+        const int patch_level_num = patch.getPatchLevelNumber();
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(patch_level_num);
+        TBOX_ASSERT(&patch == level->getPatch(patch_num).getPointer());
+    }
+#endif
+    // Get the co-dimension 1 cf boundary boxes.
+    const int patch_num = patch.getPatchNumber();
+    const int patch_level_num = patch.getPatchLevelNumber();
+    const Array<BoundaryBox<NDIM> >& cf_bdry_codim1_boxes = d_cf_boundary[patch_level_num].getBoundaries(patch_num, 1);
+    const int n_cf_bdry_codim1_boxes = cf_bdry_codim1_boxes.size();
+
+    // Check to see if there are any co-dimension 1 coarse-fine boundary boxes
+    // associated with the patch; if not, there is nothing to do.
+    if (n_cf_bdry_codim1_boxes == 0) return;
+
+    // Get the patch data.
+    for (const auto& patch_data_index : d_patch_data_indices)
+    {
+        Pointer<SideData<NDIM, double> > data = patch.getPatchData(patch_data_index);
+        SideData<NDIM, double> data_copy(data->getBox(), data->getDepth(), data->getGhostCellWidth());
+        data_copy.copyOnBox(*data, data->getGhostBox());
+        Pointer<SideData<NDIM, int> > indicator_data = patch.getPatchData(d_sc_indicator_idx);
+#if !defined(NDEBUG)
+        TBOX_ASSERT(data);
+        TBOX_ASSERT(indicator_data);
+#endif
+        const int U_ghosts = (data->getGhostCellWidth()).max();
+        const int W_ghosts = (data_copy.getGhostCellWidth()).max();
+        const int indicator_ghosts = (indicator_data->getGhostCellWidth()).max();
+#if !defined(NDEBUG)
+        if (U_ghosts != (data->getGhostCellWidth()).min())
+        {
+            TBOX_ERROR("CartSideLinearGalerkinDifferenceCFFill::computeNormalExtension():\n"
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+        }
+        if (W_ghosts != (data_copy.getGhostCellWidth()).min())
+        {
+            TBOX_ERROR("CartSideLinearGalerkinDifferenceCFFill::computeNormalExtension():\n"
+                       << "   patch data does not have uniform ghost cell widths" << std::endl);
+        }
+        TBOX_ASSERT((indicator_data->getGhostCellWidth()).max() == GHOST_WIDTH_TO_FILL);
+        TBOX_ASSERT((indicator_data->getGhostCellWidth()).min() == GHOST_WIDTH_TO_FILL);
+#endif
+        const int data_depth = data->getDepth();
+        const IntVector<NDIM> ghost_width_to_fill = GHOST_WIDTH_TO_FILL;
+        Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch.getPatchGeometry();
+        const Box<NDIM>& patch_box = patch.getBox();
+        for (int k = 0; k < n_cf_bdry_codim1_boxes; ++k)
+        {
+            const BoundaryBox<NDIM>& bdry_box = cf_bdry_codim1_boxes[k];
+            const Box<NDIM> bc_fill_box = pgeom->getBoundaryFillBox(bdry_box, patch_box, ghost_width_to_fill);
+            const unsigned int location_index = bdry_box.getLocationIndex();
+            const int* const indicator0 = indicator_data->getPointer(0);
+            const int* const indicator1 = indicator_data->getPointer(1);
+#if (NDIM == 3)
+            const int* const indicator2 = indicator_data->getPointer(2);
+#endif
+            for (int depth = 0; depth < data_depth; ++depth)
+            {
+                double* const U0 = data->getPointer(0, depth);
+                double* const U1 = data->getPointer(1, depth);
+#if (NDIM == 3)
+                double* const U2 = data->getPointer(2, depth);
+#endif
+                const double* const W0 = data_copy.getPointer(0, depth);
+                const double* const W1 = data_copy.getPointer(1, depth);
+#if (NDIM == 3)
+                const double* const W2 = data_copy.getPointer(2, depth);
+#endif
+                SC_QUAD_NORMAL_INTERPOLATION_FC(U0,
+                                                U1,
+#if (NDIM == 3)
+                                                U2,
+#endif
+                                                U_ghosts,
+                                                W0,
+                                                W1,
+#if (NDIM == 3)
+                                                W2,
+#endif
+                                                W_ghosts,
+                                                indicator0,
+                                                indicator1,
+#if (NDIM == 3)
+                                                indicator2,
+#endif
+                                                indicator_ghosts,
+                                                patch_box.lower(0),
+                                                patch_box.upper(0),
+                                                patch_box.lower(1),
+                                                patch_box.upper(1),
+#if (NDIM == 3)
+                                                patch_box.lower(2),
+                                                patch_box.upper(2),
+#endif
+                                                location_index,
+                                                ratio,
+                                                bc_fill_box.lower(),
+                                                bc_fill_box.upper());
+            }
+        }
+    }
+    return;
+} // computeNormalExtension
+
+
+} //namespace IBTK
+	
