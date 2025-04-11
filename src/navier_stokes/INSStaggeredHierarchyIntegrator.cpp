@@ -1613,10 +1613,6 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
 
     // Synchronize solution and right-hand-side data before solve.
     using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
-    SynchronizationTransactionComponent sol_synch_transaction =
-        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
-    d_side_synch_op->resetTransactionComponent(sol_synch_transaction);
-    d_side_synch_op->synchronizeData(current_time);
     SynchronizationTransactionComponent rhs_synch_transaction =
         SynchronizationTransactionComponent(rhs_vec->getComponentDescriptorIndex(0), d_F_coarsen_type);
     d_side_synch_op->resetTransactionComponent(rhs_synch_transaction);
@@ -1630,19 +1626,10 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
 void
 INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec,
                                                     const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs_vec,
-                                                    const double current_time,
+                                                    const double /*current_time*/,
                                                     const double /*new_time*/,
                                                     const int cycle_num)
 {
-    // Synchronize solution data after solve.
-    using SynchronizationTransactionComponent = SideDataSynchronization::SynchronizationTransactionComponent;
-    SynchronizationTransactionComponent sol_synch_transaction =
-        SynchronizationTransactionComponent(sol_vec->getComponentDescriptorIndex(0), d_U_coarsen_type);
-    d_side_synch_op->synchronizeData(current_time);
-    SynchronizationTransactionComponent default_synch_transaction =
-        SynchronizationTransactionComponent(d_U_scratch_idx, d_U_coarsen_type);
-    d_side_synch_op->resetTransactionComponent(default_synch_transaction);
-
     // Pull out solution components.
     d_hier_sc_data_ops->copyData(d_U_new_idx, sol_vec->getComponentDescriptorIndex(0));
     d_hier_cc_data_ops->copyData(d_P_new_idx, sol_vec->getComponentDescriptorIndex(1));
