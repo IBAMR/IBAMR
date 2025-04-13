@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2021 - 2021 by the IBAMR developers
+## Copyright (c) 2021 - 2025 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -14,7 +14,7 @@
 name: Pull/push
 on:
   # Trigger the workflow on push or pull request,
-  # but only when targeting the main branch
+  # but only when targeting the master branch
   push:
     branches:
       - master
@@ -31,17 +31,17 @@ jobs:
       matrix:
         include:
           - name: "Arch Linux 2025, with libMesh"
-            key: "libmesh"
+            key: "arch-cmake-libmesh"
             cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel"
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
           - name: "Arch Linux 2025, without libMesh"
-            key: "no-libmesh"
+            key: "arch-cmake-no-libmesh"
             cmake_flags: ""
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
           - name: "Ubuntu 20.04, with libMesh"
-            key: "libmesh"
+            key: "ubuntu-cmake-libmesh"
             cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=OPT"
             cxx_flags: ""
             os: "ubuntu"
@@ -61,29 +61,19 @@ jobs:
           git config --global --add safe.directory '*'
           ./scripts/formatting/download-clang-format
           ./scripts/formatting/check-indentation
-      - name: Create keys
-        id: keys
-        run: |
-          echo "key1=$(( ${{ github.run_number }} - 1))" >> $GITHUB_ENV
-          echo "key2=$(( ${{ github.run_number }} - 2))" >> $GITHUB_ENV
-          echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
-          echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
-          echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: ccache
         id: cache
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ github.run_number }}
+          key: ibamr-${{ matrix.key }}-feature-cache-${{ github.ref_name }}
           restore-keys: |
-            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key1 }}
-            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key2 }}
-            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key3 }}
-            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key4 }}
-            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-${{ env.key5 }}
-            ${{ runner.os }}-build-${{ matrix.os }}-cmake-${{ matrix.key }}-
+            ibamr-${{ matrix.key }}-feature-cache-${{ github.ref_name }}
+            ibamr-${{ matrix.key }}-master-cache-
+            ibamr-${{ matrix.key }}-
+            ibamr-
       - name: Configure IBAMR
         id: configure
         run: |
@@ -100,7 +90,6 @@ jobs:
         id: build-library
         run: |
           cd build
-          ls
           ninja -j4
           ccache --show-stats
       - name: Compile IBAMR tests
@@ -160,29 +149,19 @@ jobs:
           git config --global --add safe.directory '*'
           ./scripts/formatting/download-clang-format
           ./scripts/formatting/check-indentation
-      - name: Create keys
-        id: keys
-        run: |
-          echo "key1=$(( ${{ github.run_number }} - 1))" >> $GITHUB_ENV
-          echo "key2=$(( ${{ github.run_number }} - 2))" >> $GITHUB_ENV
-          echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
-          echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
-          echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: ccache
         id: cache
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-archlinux-autotools-${{ github.run_number }}
+          key: ibamr-arch-autotools-libmesh-feature-cache-${{ github.ref_name }}
           restore-keys: |
-            ${{ runner.os }}-build-archlinux-autotools-${{ env.key1 }}
-            ${{ runner.os }}-build-archlinux-autotools-${{ env.key2 }}
-            ${{ runner.os }}-build-archlinux-autotools-${{ env.key3 }}
-            ${{ runner.os }}-build-archlinux-autotools-${{ env.key4 }}
-            ${{ runner.os }}-build-archlinux-autotools-${{ env.key5 }}
-            ${{ runner.os }}-build-archlinux-autotools-
+            ibamr-arch-autotools-libmesh-feature-cache-${{ github.ref_name }}
+            ibamr-arch-autotools-libmesh-master-cache-
+            ibamr-arch-autotools-libmesh-
+            ibamr-
       - name: Configure IBAMR
         id: configure
         run: |
@@ -201,7 +180,6 @@ jobs:
         id: build-library
         run: |
           cd build
-          ls
           make -j4
           ccache --show-stats
       - name: Compile IBAMR tests
