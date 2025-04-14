@@ -80,7 +80,8 @@ jobs:
           mkdir build
           cd build
           FLAGS="${{ matrix.cmake_flags }} -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai"
-          cmake $FLAGS -DNUMDIFF_ROOT=/numdiff/ \
+          # add a subshell to ensure flags are passed as separate arguments
+          cmake $(echo "$FLAGS") -DNUMDIFF_ROOT=/numdiff/ \
                 -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
                 -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -D_GLIBCXX_ASSERTIONS ${{ matrix.cxx_flags }}" \
                 -DCMAKE_Fortran_FLAGS="-O3 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" \

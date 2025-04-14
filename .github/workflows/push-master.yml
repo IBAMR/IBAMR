@@ -77,16 +77,20 @@ jobs:
         include:
           - name: "Arch Linux 2025, with libMesh"
             key: "arch-cmake-libmesh"
+            ccache_eviction_flags: "--evict-older-than 1d"
             cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel"
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
           - name: "Arch Linux 2025, without libMesh"
             key: "arch-cmake-no-libmesh"
+            ccache_eviction_flags: "--evict-older-than 1d"
             cmake_flags: ""
             cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
             os: "archlinux"
           - name: "Ubuntu 20.04, with libMesh"
             key: "ubuntu-cmake-libmesh"
+            # no-op since this version of ccache does not support --evict-older-than
+            ccache_eviction_flags: "--version"
             cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=OPT"
             cxx_flags: ""
             os: "ubuntu"
@@ -118,7 +122,8 @@ jobs:
           mkdir build
           cd build
           FLAGS="${{ matrix.cmake_flags }} -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai"
-          cmake $FLAGS -DNUMDIFF_ROOT=/numdiff/ \
+          # add a subshell to ensure flags are passed as separate arguments
+          cmake $(echo "$FLAGS") -DNUMDIFF_ROOT=/numdiff/ \
                 -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
                 -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -D_GLIBCXX_ASSERTIONS ${{ matrix.cxx_flags }}" \
                 -DCMAKE_Fortran_FLAGS="-O3 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" \
@@ -140,7 +145,8 @@ jobs:
         id: clear-old-cache-entries
         run: |
           cd build
-          ccache --evict-older-than 1d
+          # add a subshell to ensure flags are passed as separate arguments
+          ccache $(echo "${{ matrix.ccache_eviction_flags }}")
 
   # build IBAMR with autotools
   build_ibamr_archlinux_016_autotools:
