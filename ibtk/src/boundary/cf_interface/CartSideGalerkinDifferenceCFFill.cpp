@@ -114,6 +114,7 @@ CartSideLinearGalerkinDifferenceCFFill::postprocessRefine(Patch<NDIM>& fine,
     {
         for (const auto& patch_data_index : d_patch_data_indices)
         {
+            // this should not be used hopefully
             d_refine_op->refine(fine, coarse, patch_data_index, patch_data_index, fine_box, ratio);
         }
         return;
@@ -180,55 +181,78 @@ CartSideLinearGalerkinDifferenceCFFill::postprocessRefine(Patch<NDIM>& fine,
 #if (NDIM == 3)
             const int* const indicator2 = indicator_data->getPointer(2);
 #endif
+
             for (int depth = 0; depth < data_depth; ++depth)
             {
-                double* const U_fine0 = fdata->getPointer(0, depth);
-                double* const U_fine1 = fdata->getPointer(1, depth);
-#if (NDIM == 3)
-                double* const U_fine2 = fdata->getPointer(2, depth);
-#endif
-                const double* const U_crse0 = cdata->getPointer(0, depth);
-                const double* const U_crse1 = cdata->getPointer(1, depth);
-#if (NDIM == 3)
-                const double* const U_crse2 = cdata->getPointer(2, depth);
-#endif
-                SC_QUAD_TANGENTIAL_INTERPOLATION_FC(U_fine0,
-                                                    U_fine1,
-#if (NDIM == 3)
-                                                    U_fine2,
-#endif
-                                                    U_fine_ghosts,
-                                                    U_crse0,
-                                                    U_crse1,
-#if (NDIM == 3)
-                                                    U_crse2,
-#endif
-                                                    U_crse_ghosts,
-                                                    indicator0,
-                                                    indicator1,
-#if (NDIM == 3)
-                                                    indicator2,
-#endif
-                                                    indicator_ghosts,
-                                                    patch_box_fine.lower(0),
-                                                    patch_box_fine.upper(0),
-                                                    patch_box_fine.lower(1),
-                                                    patch_box_fine.upper(1),
-#if (NDIM == 3)
-                                                    patch_box_fine.lower(2),                                                    patch_box_fine.upper(2),
-#endif
-                                                    patch_box_crse.lower(0),
-                                                    patch_box_crse.upper(0),
-                                                    patch_box_crse.lower(1),
-                                                    patch_box_crse.upper(1),
-#if (NDIM == 3)
-                                                    patch_box_crse.lower(2),
-                                                    patch_box_crse.upper(2),
-#endif
-                                                    location_index,
-                                                    ratio,
-                                                    bc_fill_box.lower(),
-                                                    bc_fill_box.upper());
+                for (int dim = 0; dim < NDIM; dim++){
+                    double* const U_fine0 = fdata->getPointer(dim, depth);
+                    const double* const U_crse0 = cdata->getPointer(dim, depth);
+                    int ibeg = max(bc_fill_box.lower(dim),patch_box_fine.lower(dim));
+                    int iend = min(bc_fill_box.upper(dim),patch_box_fine.upper(dim));
+                    int jbeg = max(bc_fill_box.lower(1-dim),patch_box_fine.lower(1-dim));
+                    int jend = min(bc_fill_box.upper(1-dim),patch_box_fine.upper(1-dim));
+                    // let's review what everything is
+                    // U_fine012 fine side 012 data
+                    // U_fine_ghosts seems like integer ghost cell width
+                    // U_crse012 coarse side 012 data
+                    // u coarse ghosts seems like integer with coarse ghost cell width
+                    // indicator012 pointer to fine patch data 012 using patch indicator index
+                    // indicator ghosts uses sc indicator index not patch data
+                    // patch box indices for fine and coarse
+                    // location index indicates the location of the boundary box in relation to the location of the associated patch
+                    // ratio should be refinement ratio
+                    // boundary fill box is from patch geometry
+
+                    if (location_index==0 || location_index==1){
+                        for (int j=jbeg;j<=jend; j++){
+                            if (j < 0)
+                                int j_c = (j+1)/ratio(1-dim) - 1;
+                            else
+                                int j_c = j/ratio(1-dim);
+                            for (int i=bc_fill_box.lower(dim),i<=bc_fill_box.upper(dim),i++){
+                                if (i<0)
+                                    int i_c = (i+1)/ratio(dim)-1;
+                                else
+                                    int i_c = i/ratio(dim);
+                                int j_wgt = (j%2) ? 1 : -1;
+                                if (dim==0)
+                                    U_fine(i,j) = .75*U_crse(i_c,j_c)+.25*U_crse(i_c,j_c+j_wgt);
+                                else
+                                    if (i%2)
+                                        U_fine(j,i) = .5*U_crse(j_c,i_c)+.5*U_crse(j_c+j_wgt,i_c) +
+                                                   .5*U_crse(j_c,i_c+1)+.5*U_crse(j_c+j_wgt,i_c+1);
+                                    else
+                                        U_fine(j,i) = U_crse(j_c,i_c)+U_crse(j_c+j_wgt,i_c);
+                            }
+                        }
+                        // set upper and lower x side of patch
+                    }
+                    else if (location_index==2 || location_index==3){
+                        // set upper and lower y side of patch 
+                        for (int j=bc_fill_box.lower(1-dim),j<=bc_fill_box.upper(1-dim),j++){
+                            if (j < 0)
+                                int j_c = (j+1)/ratio(1-dim) - 1;
+                            else
+                                int j_c = j/ratio(1-dim);
+                            for (int i=ibeg;i<=iend; i++){
+                                if (i<0)
+                                    int i_c = (i+1)/ratio(dim)-1;
+                                else
+                                    int i_c = i/ratio(dim);
+                                int j_wgt = (j%2) ? 1 : -1;
+
+                                if (dim==0)
+                                    if (i%2)
+                                        U_fine(i,j) = .5*U_crse(i_c,j_c)+.5*U_crse(i_c,j_c+j_wgt) +
+                                                   .5*U_crse(i_c+1,j_c)+.5*U_crse(i_c+1,j_c+j_wgt);
+                                    else
+                                        U_fine(i,j) = U_crse(i_c,j_c)+U_crse(i_c,j_c+j_wgt);
+                                else
+                                    U_fine(j,i) = .75*U_crse(j_c,i_c)+.25*U_crse(j_c+j_wgt,i_c);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -407,46 +431,33 @@ CartSideLinearGalerkinDifferenceCFFill::computeNormalExtension(Patch<NDIM>& patc
 #endif
             for (int depth = 0; depth < data_depth; ++depth)
             {
-                double* const U0 = data->getPointer(0, depth);
-                double* const U1 = data->getPointer(1, depth);
-#if (NDIM == 3)
-                double* const U2 = data->getPointer(2, depth);
-#endif
-                const double* const W0 = data_copy.getPointer(0, depth);
-                const double* const W1 = data_copy.getPointer(1, depth);
-#if (NDIM == 3)
-                const double* const W2 = data_copy.getPointer(2, depth);
-#endif
-                SC_QUAD_NORMAL_INTERPOLATION_FC(U0,
-                                                U1,
-#if (NDIM == 3)
-                                                U2,
-#endif
-                                                U_ghosts,
-                                                W0,
-                                                W1,
-#if (NDIM == 3)
-                                                W2,
-#endif
-                                                W_ghosts,
-                                                indicator0,
-                                                indicator1,
-#if (NDIM == 3)
-                                                indicator2,
-#endif
-                                                indicator_ghosts,
-                                                patch_box.lower(0),
-                                                patch_box.upper(0),
-                                                patch_box.lower(1),
-                                                patch_box.upper(1),
-#if (NDIM == 3)
-                                                patch_box.lower(2),
-                                                patch_box.upper(2),
-#endif
-                                                location_index,
-                                                ratio,
-                                                bc_fill_box.lower(),
-                                                bc_fill_box.upper());
+                for (int dim = 0; dim < NDIM; dim++){
+                    double* const U = data->getPointer(dim, depth);
+                    const double* const W = data_copy->getPointer(dim, depth);
+                    int ibeg = max(bc_fill_box.lower(dim),patch_box_fine.lower(dim));
+                    int iend = min(bc_fill_box.upper(dim),patch_box_fine.upper(dim));
+                    int jbeg = max(bc_fill_box.lower(1-dim),patch_box_fine.lower(1-dim));
+                    int jend = min(bc_fill_box.upper(1-dim),patch_box_fine.upper(1-dim));
+
+                    if (dim==1 & (location_index==0 || location_index==1)){
+                        for (int j=jbeg;j<=jend; j++){
+                            for (int i=bc_fill_box.lower(dim),i<=bc_fill_box.upper(dim),i++){
+                                int j_wgt = (j%2) ? 1 : -1;
+                                U(j,i) = W(j,i) - W(j+j_wgt,i);
+                            }
+                        }
+                        // set upper and lower x side of patch
+                    }
+                    else if (dim==0 & (location_index==2 || location_index==3)){
+                        // set upper and lower y side of patch 
+                        for (int j=bc_fill_box.lower(1-dim),j<=bc_fill_box.upper(1-dim),j++){
+                            for (int i=ibeg;i<=iend; i++){
+                                int j_wgt = (j%2) ? 1 : -1;
+                                U(i,j) = W(i,j) - W(i,j+j_wgt);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
