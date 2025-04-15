@@ -105,21 +105,21 @@ FACPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorRe
     // Set the initial guess to equal zero.
     x.setToScalar(0.0, /*interior_only*/ false);
 
-    // Clone the right-hand-side vector to avoid modifying it during the
-    // preconditioning operation.
-    SAMRAIScopedVectorCopy<double> f(b);
-    SAMRAIScopedVectorDuplicate<double> r(b);
-
     // Apply a single FAC cycle.
     if (d_cycle_type == V_CYCLE && d_num_pre_sweeps == 0)
     {
         // V-cycle MG without presmoothing keeps the residual equal to the
         // initial right-hand-side vector f, so we can simply use that vector
         // for the residual in the FAC algorithm.
-        FACVCycleNoPreSmoothing(x, f, d_finest_ln);
+        FACVCycleNoPreSmoothing(x, b, d_finest_ln);
     }
     else
     {
+        // Clone the right-hand-side vector to avoid modifying it during the
+        // preconditioning operation.
+        SAMRAIScopedVectorCopy<double> f(b);
+        SAMRAIScopedVectorDuplicate<double> r(b);
+
         switch (d_cycle_type)
         {
         case F_CYCLE:
