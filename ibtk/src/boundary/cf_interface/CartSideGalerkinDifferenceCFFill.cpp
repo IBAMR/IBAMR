@@ -203,6 +203,9 @@ CartSideLinearGalerkinDifferenceCFFill::postprocessRefine(Patch<NDIM>& fine,
                     // ratio should be refinement ratio
                     // boundary fill box is from patch geometry
 
+                    //TODO need to add a check for corner case -- want it handled by aligned axis refinement
+                    // i.e. for u we want it on li = 0/1 and for v we want li = 2/3
+
                     if (location_index==0 || location_index==1){
                         for (int j=jbeg;j<=jend; j++){
                             if (j < 0)
