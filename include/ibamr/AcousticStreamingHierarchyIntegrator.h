@@ -453,6 +453,21 @@ public:
                                          SAMRAI::solv::RobinBcCoefStrategy<NDIM>* brinkman_bc);
 
     /*!
+     * \brief Register level set function to perform contour integral to evaluate acoustic radiation force.
+     */
+    void registerContourVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > var,
+                                 SAMRAI::solv::RobinBcCoefStrategy<NDIM>* bc_coef,
+                                 double val = 0.0);
+
+    /*!
+     * \brief Get the contour variables registered with this class.
+     */
+    const std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >& getContourVariables() const
+    {
+        return d_contour_vars;
+    } // getContourVariables
+
+    /*!
      * \brief Get the Brinkman penalization objects for the first-order velocity registered with this class.
      */
     const std::vector<SAMRAI::tbox::Pointer<IBAMR::BrinkmanPenalizationStrategy> >&
@@ -820,6 +835,20 @@ protected:
     std::vector<int> d_brinkman_current_idx, d_brinkman_new_idx, d_brinkman_scratch_idx;
     std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_brinkman_bcs;
 
+    /*!
+     * Contour variables registered with this integrator.
+     */
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > > d_contour_vars;
+    std::vector<int> d_contour_idx;
+    std::vector<double> d_contour_val;
+    std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*> d_contour_bcs;
+
+    /*!
+     * Boolean to determine whether to write contour integrals to an output file.
+     */
+    bool d_write_contour_integrals = false;
+    std::vector<std::unique_ptr<std::ofstream> > d_contour_integral_stream;
+
     /*
      * Variable to set how often the preconditioner is reinitialized.
      */
@@ -927,7 +956,9 @@ private:
                                     double current_time,
                                     double new_time,
                                     int cycle_num);
-
+    /*!
+     * Pull the solution out of SAMRAI vectors and reset the solver right hand side vectors.
+     */
     void resetSolverVectors(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol1_vec,
                             const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& rhs1_vec,
                             const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> >& sol2_vec,
@@ -935,6 +966,11 @@ private:
                             double current_time,
                             double new_time,
                             int cycle_num);
+
+    /*!
+     * Compute contour integrals to evaluate acoustic radiation force.
+     */
+    void computeAcousticRadiationForce(double time);
 };
 } // namespace IBAMR
 

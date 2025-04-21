@@ -77,6 +77,17 @@ struct SolidLevelSetResetter
     double side;
 };
 
+// Struct to reset contour level set
+struct ContourLevelSetResetter
+{
+    Pointer<HierarchyIntegrator> time_integrator;
+    int contour_idx;
+
+    // "Circular" geometry
+    IBTK::VectorNd center;
+    double R;
+};
+
 void
 reset_hump_level_set_callback_fcn(double current_time, double new_time, int /*cycle_num*/, void* ctx)
 {
@@ -175,6 +186,45 @@ reset_planar_level_set_callback_fcn(double current_time, double new_time, int /*
 
     return;
 } // reset_solid_level_set_callback_fcn
+
+void
+reset_contour_level_set_callback_fcn(double /*current_time*/, double /*new_time*/, int /*num_cycles*/, void* ctx)
+{
+    ContourLevelSetResetter* resetter = static_cast<ContourLevelSetResetter*>(ctx);
+
+    Pointer<PatchHierarchy<NDIM> > patch_hier = resetter->time_integrator->getPatchHierarchy();
+    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
+
+    const int& patch_idx = resetter->contour_idx;
+
+    for (int ln = 0; ln <= hier_finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* patch_X_lower = patch_geom->getXLower();
+            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
+            const double* const patch_dx = patch_geom->getDx();
+
+            Pointer<CellData<NDIM, double> > contour_data = patch->getPatchData(patch_idx);
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                const hier::Index<NDIM>& ci = it();
+                IBTK::VectorNd coord = IBTK::VectorNd::Zero();
+                for (int d = 0; d < NDIM; ++d)
+                {
+                    coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
+                }
+                (*contour_data)(ci) = std::sqrt(std::pow(coord[0] - resetter->center[0], 2) +
+                                                std::pow(coord[1] - resetter->center[1], 2)) - resetter->R;
+            }
+        }
+    }
+    return;
+} // reset_contour_level_set_callback_fcn
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -394,6 +444,18 @@ main(int argc, char* argv[])
             (geometry_type == "PLANAR" ? &reset_planar_level_set_callback_fcn : &reset_hump_level_set_callback_fcn);
         time_integrator->registerIntegrateHierarchyCallback(fcn_ptr, static_cast<void*>(&solid_level_set_resetter));
 
+        // Create level set for the contour integration and register it with acoustic integrator
+        const std::string& ls_name_contour = "ARF";
+        Pointer<CellVariable<NDIM, double> > phi_var_contour = new CellVariable<NDIM, double>(ls_name_contour);
+        ContourLevelSetResetter contour_level_set_resetter;
+        contour_level_set_resetter.time_integrator = time_integrator;
+        contour_level_set_resetter.center[0] = input_db->getDouble("Contour_XCOM");
+        contour_level_set_resetter.center[1] = input_db->getDouble("Contour_YCOM");
+        contour_level_set_resetter.R = input_db->getDouble("Contour_Radius");
+        time_integrator->registerContourVariable(phi_var_contour, ls_bc_coef, /*contour_value*/ 0.0);
+        time_integrator->registerIntegrateHierarchyCallback(reset_contour_level_set_callback_fcn,
+                                                            static_cast<void*>(&contour_level_set_resetter));
+
         // Set up visualization plot file writers.
         Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
@@ -408,6 +470,12 @@ main(int argc, char* argv[])
         solid_level_set_resetter.ls_idx = fo_brinkman->getLevelSetCurrentPatchIndex();
         fcn_ptr(0.0, 0.0, -1, static_cast<void*>(&solid_level_set_resetter));
         solid_level_set_resetter.ls_idx = fo_brinkman->getLevelSetNewPatchIndex();
+
+        // Set the contour level set patch index
+        VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+        contour_level_set_resetter.contour_idx =
+            var_db->mapVariableAndContextToIndex(phi_var_contour, time_integrator->getCurrentContext());
+        reset_contour_level_set_callback_fcn(0.0, 0.0, -1, static_cast<void*>(&contour_level_set_resetter));
 
         // Remove the AppInitializer
         app_initializer.setNull();
