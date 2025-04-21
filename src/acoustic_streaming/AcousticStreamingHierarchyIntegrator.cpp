@@ -903,6 +903,18 @@ AcousticStreamingHierarchyIntegrator::registerBrinkmanPenalizationStrategy(
 } // registerBrinkmanPenalizationStrategy
 
 void
+AcousticStreamingHierarchyIntegrator::registerContourVariable(Pointer<CellVariable<NDIM, double> > var,
+                                                              RobinBcCoefStrategy<NDIM>* bc_coef,
+                                                              double val)
+{
+    d_contour_vars.push_back(var);
+    d_contour_idx.push_back(IBTK::invalid_index);
+    d_contour_bcs.push_back(bc_coef);
+    d_contour_val.push_back(val);
+    return;
+} // registerContourVariable
+
+void
 AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierarchy<NDIM> > hierarchy,
                                                                     Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
 {
@@ -1180,6 +1192,37 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
         so_brinkman_force->registerSolidLevelSet(current_idx, new_idx, scratch_idx, brinkman_bc);
     }
 
+    // Register contour variables that are maintained by the AcousticStreamingHierarchyIntegrator.
+    unsigned int num_contours = d_contour_vars.size();
+    for (unsigned k = 0; k < num_contours; ++k)
+    {
+        auto& contour_idx = d_contour_idx[k];
+        auto& var = d_contour_vars[k];
+        registerVariable(contour_idx, var, cell_ghosts, getCurrentContext());
+    }
+    if (num_contours && d_write_contour_integrals)
+    {
+        bool from_restart = RestartManager::getManager()->isFromRestart();
+        if (IBTK_MPI::getRank() == 0)
+        {
+            d_contour_integral_stream.resize(num_contours);
+            for (unsigned k = 0; k < num_contours; ++k)
+            {
+                std::string filename = "ContourIntegral_" + d_contour_vars[k]->getName();
+                if (from_restart)
+                {
+                    d_contour_integral_stream[k].reset(new std::ofstream(filename.c_str(), std::fstream::app));
+                    d_contour_integral_stream[k]->precision(10);
+                }
+                else
+                {
+                    d_contour_integral_stream[k].reset(new std::ofstream(filename.c_str(), std::fstream::out));
+                    d_contour_integral_stream[k]->precision(10);
+                }
+            }
+        }
+    }
+
     // Register scratch variables that are maintained by the
     // AcousticStreamingHierarchyIntegrator.
 #if (NDIM == 3)
@@ -1283,6 +1326,13 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
         {
             auto& var = d_brinkman_vars[k];
             auto& idx = d_brinkman_current_idx[k];
+            d_visit_writer->registerPlotQuantity(var->getName(), "SCALAR", idx, 0);
+        }
+
+        for (unsigned k = 0; k < num_contours; ++k)
+        {
+            auto& var = d_contour_vars[k];
+            auto& idx = d_contour_idx[k];
             d_visit_writer->registerPlotQuantity(var->getName(), "SCALAR", idx, 0);
         }
     }
@@ -1775,9 +1825,15 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
     // Reset the solution and right-hand-side vectors.
     resetSolverVectors(d_sol1_vec, d_rhs1_vec, d_sol2_vec, d_rhs2_vec, current_time, new_time, cycle_num);
 
+    // Compute acoustic radiation force at the last cycle.
+    if (d_current_num_cycles == cycle_num + 1)
+    {
+        computeAcousticRadiationForce(new_time);
+    }
+
     // Re-update viscosity if it is maintained by the integrator
     // using the newest available data from INS and advection-diffusion solvers
-    if (d_current_num_cycles == cycle_num + 1)
+    /*if (d_current_num_cycles == cycle_num + 1)
     {
         for (unsigned k = 0; k < d_reset_mu_fcns.size(); ++k)
         {
@@ -1790,7 +1846,7 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
                                new_time,
                                d_reset_mu_fcns_ctx[k]);
         }
-    }
+    }*/
 
     return;
 } // integrateHierarchySpecialized
@@ -2304,6 +2360,7 @@ AcousticStreamingHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database>
     db->putBool("stokes_drift_bc", d_use_stokes_drift_bc);
     db->putBool("stokes_drift_mass_src", d_use_stokes_drift_mass_src);
     db->putBool("explicitly_remove_nullspace", d_explicitly_remove_so_nullspace);
+    db->putBool("write_contour_integrals", d_write_contour_integrals);
     return;
 } // putToDatabaseSpecialized
 
@@ -2325,6 +2382,9 @@ AcousticStreamingHierarchyIntegrator::getFromInput(Pointer<Database> input_db, c
         if (input_db->keyExists("stokes_drift_bc")) d_use_stokes_drift_bc = input_db->getBool("stokes_drift_bc");
         if (input_db->keyExists("stokes_drift_mass_src"))
             d_use_stokes_drift_mass_src = input_db->getBool("stokes_drift_mass_src");
+
+        if (input_db->keyExists("write_contour_integrals"))
+            d_write_contour_integrals = input_db->getBool("write_contour_integrals");
 
         if (input_db->keyExists("num_cycles")) d_num_cycles = input_db->getInteger("num_cycles");
         if (input_db->keyExists("cfl"))
@@ -2510,6 +2570,8 @@ AcousticStreamingHierarchyIntegrator::getFromRestart()
     d_coupled_system = db->getBool("coupled_system");
     d_use_stokes_drift_bc = db->getBool("stokes_drift_bc");
     d_use_stokes_drift_mass_src = db->getBool("stokes_drift_mass_src");
+
+    d_write_contour_integrals = db->getBool("write_contour_integrals");
 
     return;
 } // getFromRestart
@@ -3477,6 +3539,189 @@ AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
 
     return;
 } // resetSolverVectors
+
+void
+AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
+{
+    unsigned int num_contours = d_contour_vars.size();
+    if (num_contours == 0) return;
+
+    // Perform contour integrations to determine acoustic radiation force.
+    // We need to fill ghost cells of U1, P1, U2 and P2.
+    // We have already filled ghost cells of first-order velocity and pressure.
+    // Fill ghost cells of U2 and P2 scratch data
+    d_U2_bdry_bc_fill_op->fillData(time);
+
+    auto P2_bc_coef = dynamic_cast<VCStaggeredStokesPressureBcCoef*>(d_P2_bc_coef);
+    P2_bc_coef->setTargetVelocityPatchDataIndex(d_U2_scratch_idx);
+    d_P2_bdry_bc_fill_op->fillData(time);
+
+    for (unsigned k = 0; k < num_contours; ++k)
+    {
+        auto& contour_idx = d_contour_idx[k];
+        auto& bc_coef = d_contour_bcs[k];
+        auto& contour_val = d_contour_val[k];
+
+        typedef HierarchyGhostCellInterpolation::InterpolationTransactionComponent InterpolationTransactionComponent;
+        InterpolationTransactionComponent transaction_comp(
+            contour_idx, "CONSERVATIVE_LINEAR_REFINE", false, "CONSERVATIVE_COARSEN", "LINEAR", false, bc_coef);
+
+        Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
+        hier_bdry_fill->initializeOperatorState(transaction_comp, d_hierarchy);
+        hier_bdry_fill->fillData(time);
+
+        // Zero out the vectors.
+        IBTK::Vector3d radiation_force = IBTK::Vector3d::Zero();
+        const int coarsest_ln = 0;
+        const int finest_ln = d_hierarchy->getFinestLevelNumber();
+        for (int ln = finest_ln; ln >= coarsest_ln; --ln)
+        {
+            // Assumes that the contour is placed on the finest level
+            if (ln < finest_ln) continue;
+
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            for (PatchLevel<NDIM>::Iterator p(level); p; p++)
+            {
+                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                const Box<NDIM>& patch_box = patch->getBox();
+                const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                const double* const patch_dx = patch_geom->getDx();
+                double cell_vol = 1.0;
+                for (unsigned int d = 0; d < NDIM; ++d) cell_vol *= patch_dx[d];
+
+                // Get the required patch data
+                Pointer<CellData<NDIM, double> > contour_data = patch->getPatchData(contour_idx);
+
+                Pointer<SideData<NDIM, double> > U2_data = patch->getPatchData(d_U2_scratch_idx);
+                Pointer<CellData<NDIM, double> > p2_data = patch->getPatchData(d_P2_scratch_idx);
+                Pointer<SideData<NDIM, double> > U1_real_data = patch->getPatchData(d_U1_real_idx);
+                Pointer<SideData<NDIM, double> > U1_imag_data = patch->getPatchData(d_U1_imag_idx);
+                Pointer<CellData<NDIM, double> > p1_real_data = patch->getPatchData(d_p1_real_idx);
+                Pointer<CellData<NDIM, double> > p1_imag_data = patch->getPatchData(d_p1_imag_idx);
+
+                Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(d_mu_scratch_idx);
+                Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(d_rho_scratch_idx);
+                Pointer<CellData<NDIM, double> > lambda_data = nullptr;
+                if (d_lambda_var) lambda_data = patch->getPatchData(d_lambda_scratch_idx);
+
+                auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
+
+                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                {
+                    // Compute the required area element
+                    const double dS = cell_vol / patch_dx[axis];
+
+                    for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
+                    {
+                        SideIndex<NDIM> s_i(it(), axis, SideIndex<NDIM>::Lower);
+                        CellIndex<NDIM> c_l = s_i.toCell(SideIndex<NDIM>::Lower);
+                        CellIndex<NDIM> c_u = s_i.toCell(SideIndex<NDIM>::Upper);
+                        const double phi_lower = (*contour_data)(c_l);
+                        const double phi_upper = (*contour_data)(c_u);
+
+                        // If not within a band near the body, do not use this cell in the force calculation
+                        if ((phi_lower - contour_val) * (phi_upper - contour_val) >= 0.0) continue;
+
+                        // Compute the required unit normal
+                        IBTK::Vector3d n = IBTK::Vector3d::Zero();
+                        n(axis) = signof(phi_upper - phi_lower);
+
+                        // Compute pressure on the face using simple averaging (n. -p I) * dA
+                        const IBTK::Vector3d pn = 0.5 * n * ((*p2_data)(c_l) + (*p2_data)(c_u));
+
+                        // Shear viscosity traction force :=  mu(grad u + grad u ^ T).n
+                        // Estimate shear viscosity on the face using simple averaging
+                        const double mu_side = 0.5 * ((*mu_data)(c_l) + (*mu_data)(c_u));
+                        IBTK::Vector3d viscous_trac = IBTK::Vector3d::Zero();
+                        for (unsigned int d = 0; d < NDIM; ++d)
+                        {
+                            if (d == axis)
+                            {
+                                viscous_trac(axis) = (2.0 * mu_side) / (2.0 * patch_dx[axis]) *
+                                                     ((*U2_data)(SideIndex<NDIM>(c_u, axis, SideIndex<NDIM>::Upper)) -
+                                                      (*U2_data)(SideIndex<NDIM>(c_l, axis, SideIndex<NDIM>::Lower)));
+                            }
+                            else
+                            {
+                                CellIndex<NDIM> offset(0);
+                                offset(d) = 1;
+
+                                viscous_trac(d) =
+                                    mu_side / (2.0 * patch_dx[d]) *
+                                        ((*U2_data)(SideIndex<NDIM>(c_u + offset, axis, SideIndex<NDIM>::Lower)) -
+                                         (*U2_data)(SideIndex<NDIM>(c_u - offset, axis, SideIndex<NDIM>::Lower))) +
+                                    mu_side / (2.0 * patch_dx[axis]) *
+                                        ((*U2_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Upper)) +
+                                         (*U2_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Lower)) -
+                                         (*U2_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) -
+                                         (*U2_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower)));
+                            }
+                        }
+
+                        // Compute bulk viscosity traction
+                        IBTK::Vector3d bulk_trac = IBTK::Vector3d::Zero();
+                        if (d_lambda_var)
+                        {
+                            double div_lower = 0.0, div_upper = 0.0;
+                            for (int d = 0; d < NDIM; ++d)
+                            {
+                                div_upper += ((*U2_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Upper)) -
+                                              (*U2_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Lower))) /
+                                             patch_dx[d];
+                                div_lower += ((*U2_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) -
+                                              (*U2_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower))) /
+                                             patch_dx[d];
+                            }
+                            bulk_trac = n * 0.5 * ((*lambda_data)(c_u)*div_upper + (*lambda_data)(c_l)*div_lower);
+                        }
+
+                        // Compute convective traction: <rho (U1.n) U1>
+                        IBTK::Vector3d U1_real_vec = IBTK::Vector3d::Zero();
+                        IBTK::Vector3d U1_imag_vec = IBTK::Vector3d::Zero();
+                        for (int d = 0; d < NDIM; ++d)
+                        {
+                            if (d == axis)
+                            {
+                                U1_real_vec(d) = (*U1_real_data)(s_i);
+                                U1_imag_vec(d) = (*U1_imag_data)(s_i);
+                            }
+                            else
+                            {
+                                U1_real_vec(d) =
+                                    0.25 * ((*U1_real_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Upper)) +
+                                            (*U1_real_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Lower)) +
+                                            (*U1_real_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) +
+                                            (*U1_real_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower)));
+                                U1_imag_vec(d) =
+                                    0.25 * ((*U1_imag_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Upper)) +
+                                            (*U1_imag_data)(SideIndex<NDIM>(c_u, d, SideIndex<NDIM>::Lower)) +
+                                            (*U1_imag_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Upper)) +
+                                            (*U1_imag_data)(SideIndex<NDIM>(c_l, d, SideIndex<NDIM>::Lower)));
+                            }
+                        }
+                        const double rho_side = (*rho_data)(s_i);
+                        IBTK::Vector3d convective_trac =
+                            0.5 * ((U1_real_vec.dot(n)) * U1_real_vec + (U1_imag_vec.dot(n)) * U1_imag_vec) * rho_side;
+
+                        // Add up the pressure force: n.(-pI)dS, shear viscosity force: (mu*(grad U + grad U)^T).ndS,
+                        // bulk viscosity force: n. (lambda div U2)dS, and convective force: <rho (U1.n) U1> dS
+                        radiation_force +=
+                            (-pn * dS) + (n(axis) * viscous_trac * dS) + (bulk_trac * dS) + (-convective_trac * dS);
+                    }
+                }
+            }
+        }
+        IBTK_MPI::sumReduction(radiation_force.data(), radiation_force.size());
+
+        if (d_write_contour_integrals && IBTK_MPI::getRank() == 0)
+        {
+            *(d_contour_integral_stream[k]) << time << '\t' << radiation_force[0] << '\t' << radiation_force[1] << '\t'
+                                            << radiation_force[2] << std::endl;
+        }
+    }
+
+    return;
+} // computeAcousticRadiationForce
 
 //////////////////////////////////////////////////////////////////////////////
 

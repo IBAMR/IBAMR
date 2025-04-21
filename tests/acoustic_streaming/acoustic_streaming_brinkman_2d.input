@@ -21,6 +21,9 @@ side = WIDTH/3.0
 YCOM = (1/3.0)*side*0.866
 H0 = 0.0
 H1 = WIDTH
+Contour_XCOM = LENGTH/2.0
+Contour_YCOM = WIDTH/2.0
+Contour_Radius = WIDTH/8.0
 
 FOVelocityInitialConditions {
 
@@ -293,6 +296,7 @@ AcousticStreamingHierarchyIntegrator {
    stokes_drift_mass_src = TRUE
    rho_vc_interpolation_type = "VC_AVERAGE_INTERP"
    mu_vc_interpolation_type  = "VC_AVERAGE_INTERP"
+   write_contour_integrals = TRUE
 
    first_order_solver_db {
       ksp_type          = "fgmres"
