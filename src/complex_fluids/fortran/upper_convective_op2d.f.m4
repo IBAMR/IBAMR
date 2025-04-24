@@ -96,6 +96,7 @@ c
      &        - rhs_data(i0,i1,1)
             r_data(i0,i1,2) = c_data(i0,i1,2)
      &        - qyy*du_dy - qxx*dv_dx
+     &        - qxy*du_dx - qxy*dv_dy
      &        - rhs_data(i0,i1,2)
          enddo
       enddo
