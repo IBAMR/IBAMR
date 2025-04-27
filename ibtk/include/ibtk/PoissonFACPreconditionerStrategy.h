@@ -21,6 +21,7 @@
 #include <ibtk/config.h>
 
 #include "ibtk/CoarseFineBoundaryRefinePatchStrategy.h"
+#include "ibtk/FACPreconditioner.h"
 #include "ibtk/FACPreconditionerStrategy.h"
 #include "ibtk/RobinPhysBdryPatchStrategy.h"
 #include "ibtk/ibtk_utilities.h"
@@ -102,8 +103,14 @@ namespace IBTK
  coarse_solver_max_iterations = 10            // see setCoarseSolverMaxIterations()
  \endverbatim
 */
-class PoissonFACPreconditionerStrategy : public FACPreconditionerStrategy<double>
+template <class T>
+class PoissonFACPreconditionerStrategy : public FACPreconditionerStrategy<T>
 {
+protected:
+    using FACPreconditionerStrategy<T>::d_is_initialized;
+    using FACPreconditionerStrategy<T>::d_object_name;
+    using FACPreconditionerStrategy<T>::d_solution_time;
+
 public:
     /*!
      * \brief Constructor.
@@ -238,7 +245,7 @@ public:
     /*!
      * \brief Zero the supplied vector.
      */
-    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& vec, int level_num) override;
+    void setToZero(SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& vec, int level_num) override;
 
     /*!
      * \brief Restrict the residual quantity to the specified level from the
@@ -248,8 +255,8 @@ public:
      * \param dst destination residual
      * \param dst_ln destination level number
      */
-    void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                          SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+    void restrictResidual(const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& src,
+                          SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& dst,
                           int dst_ln) override;
 
     /*!
@@ -260,8 +267,8 @@ public:
      * \param dst destination error vector
      * \param dst_ln destination level number of data transfer
      */
-    void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                      SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+    void prolongError(const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& src,
+                      SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& dst,
                       int dst_ln) override;
 
     /*!
@@ -272,8 +279,8 @@ public:
      * \param dst destination error vector
      * \param dst_ln destination level number of data transfer
      */
-    void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& src,
-                                SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& dst,
+    void prolongErrorAndCorrect(const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& src,
+                                SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& dst,
                                 int dst_ln) override;
 
     /*!
@@ -293,8 +300,8 @@ public:
      * \param solution solution vector u
      * \param rhs right hand side vector f
      */
-    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs) override;
+    void initializeOperatorState(const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& solution,
+                                 const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& rhs) override;
 
     /*!
      * \brief Remove all hierarchy-dependent data.
@@ -311,8 +318,8 @@ protected:
     /*!
      * \brief Compute implementation-specific hierarchy-dependent data.
      */
-    virtual void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& solution,
-                                                    const SAMRAI::solv::SAMRAIVectorReal<NDIM, double>& rhs,
+    virtual void initializeOperatorStateSpecialized(const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& solution,
+                                                    const SAMRAI::solv::SAMRAIVectorReal<NDIM, T>& rhs,
                                                     int coarsest_reset_ln,
                                                     int finest_reset_ln) = 0;
 
@@ -370,7 +377,7 @@ protected:
     /*
      * Solution and rhs vectors.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_solution, d_rhs;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, T> > d_solution, d_rhs;
 
     /*
      * Reference patch hierarchy and range of levels involved in the solve.
@@ -387,7 +394,7 @@ protected:
      * HierarchyDataOpsReal objects restricted to a single level of the patch
      * hierarchy.
      */
-    std::vector<SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, double> > > d_level_data_ops;
+    std::vector<SAMRAI::tbox::Pointer<SAMRAI::math::HierarchyDataOpsReal<NDIM, T> > > d_level_data_ops;
 
     /*
      * Level operators, used to compute composite-grid residuals.

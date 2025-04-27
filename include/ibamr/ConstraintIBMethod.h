@@ -614,7 +614,7 @@ private:
     std::unique_ptr<SAMRAI::solv::PoissonSpecifications> d_velcorrection_projection_spec;
     SAMRAI::tbox::Pointer<IBTK::CCLaplaceOperator> d_velcorrection_projection_op;
     SAMRAI::tbox::Pointer<IBTK::PETScKrylovPoissonSolver> d_velcorrection_projection_solver;
-    SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator> d_velcorrection_projection_fac_op;
+    SAMRAI::tbox::Pointer<IBTK::CCPoissonPointRelaxationFACOperator<double> > d_velcorrection_projection_fac_op;
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_velcorrection_projection_fac_pc_db;
     SAMRAI::tbox::Pointer<IBTK::FACPreconditioner<double> > d_velcorrection_projection_fac_pc;
 
