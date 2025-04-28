@@ -85,11 +85,25 @@ namespace IBAMR
 class CFUpperConvectiveOperator : public ConvectiveOperator
 {
 public:
-    // Constructor
+    /*!
+     * Constructor that takes in a string for the convective operator. The convective operator type must be one of
+     * "DEFAULT", "CENTERED", "CUI", "PPM", or "WAVE_PROP"
+     */
     CFUpperConvectiveOperator(const std::string& object_name,
                               SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                               const std::string& convective_op_type,
+                              ConvectiveDifferencingType difference_type,
+                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
+                              const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
+
+    /*!
+     * Constructor that takes in a convective operator
+     */
+    CFUpperConvectiveOperator(const std::string& object_name,
+                              SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > Q_var,
+                              SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                              SAMRAI::tbox::Pointer<ConvectiveOperator> convective_op,
                               ConvectiveDifferencingType difference_type,
                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
                               const std::vector<SAMRAI::solv::RobinBcCoefStrategy<NDIM>*>& u_bc_coefs);
@@ -118,6 +132,7 @@ public:
     void registerCFStrategy(SAMRAI::tbox::Pointer<IBAMR::CFStrategy> cf_strategy);
 
 private:
+    void commonConstructor(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
     // Hierarchy configuration.
     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > d_hierarchy;
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
