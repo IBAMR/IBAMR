@@ -89,7 +89,8 @@ build_triplet = @build@
 host_triplet = @host@
 EXTRA_PROGRAMS = cf_relaxation_op_01_2d$(EXEEXT) \
 	cf_relaxation_op_01_3d$(EXEEXT) cf_forcing_op_01_2d$(EXEEXT) \
-	cf_forcing_op_01_3d$(EXEEXT) cf_four_roll_mill$(EXEEXT)
+	cf_forcing_op_01_3d$(EXEEXT) cf_four_roll_mill$(EXEEXT) \
+	cf_ucd_2d$(EXEEXT) cf_ucd_3d$(EXEEXT)
 subdir = tests/complex_fluids
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/add_rpath.m4 \
@@ -165,6 +166,18 @@ cf_relaxation_op_01_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
 	$(cf_relaxation_op_01_3d_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
+am_cf_ucd_2d_OBJECTS = cf_ucd_2d-cf_ucd.$(OBJEXT)
+cf_ucd_2d_OBJECTS = $(am_cf_ucd_2d_OBJECTS)
+cf_ucd_2d_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+cf_ucd_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(cf_ucd_2d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_cf_ucd_3d_OBJECTS = cf_ucd_3d-cf_ucd.$(OBJEXT)
+cf_ucd_3d_OBJECTS = $(am_cf_ucd_3d_OBJECTS)
+cf_ucd_3d_DEPENDENCIES = $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+cf_ucd_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(cf_ucd_3d_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -185,7 +198,9 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/cf_forcing_op_01_3d-cf_forcing_op_01.Po \
 	./$(DEPDIR)/cf_four_roll_mill-cf_four_roll_mill.Po \
 	./$(DEPDIR)/cf_relaxation_op_01_2d-cf_relaxation_op_01.Po \
-	./$(DEPDIR)/cf_relaxation_op_01_3d-cf_relaxation_op_01.Po
+	./$(DEPDIR)/cf_relaxation_op_01_3d-cf_relaxation_op_01.Po \
+	./$(DEPDIR)/cf_ucd_2d-cf_ucd.Po \
+	./$(DEPDIR)/cf_ucd_3d-cf_ucd.Po
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -208,11 +223,13 @@ am__v_CXXLD_1 =
 SOURCES = $(cf_forcing_op_01_2d_SOURCES) \
 	$(cf_forcing_op_01_3d_SOURCES) $(cf_four_roll_mill_SOURCES) \
 	$(cf_relaxation_op_01_2d_SOURCES) \
-	$(cf_relaxation_op_01_3d_SOURCES)
+	$(cf_relaxation_op_01_3d_SOURCES) $(cf_ucd_2d_SOURCES) \
+	$(cf_ucd_3d_SOURCES)
 DIST_SOURCES = $(cf_forcing_op_01_2d_SOURCES) \
 	$(cf_forcing_op_01_3d_SOURCES) $(cf_four_roll_mill_SOURCES) \
 	$(cf_relaxation_op_01_2d_SOURCES) \
-	$(cf_relaxation_op_01_3d_SOURCES)
+	$(cf_relaxation_op_01_3d_SOURCES) $(cf_ucd_2d_SOURCES) \
+	$(cf_ucd_3d_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -513,6 +530,12 @@ cf_forcing_op_01_3d_SOURCES = cf_forcing_op_01.cpp
 cf_four_roll_mill_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 cf_four_roll_mill_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 cf_four_roll_mill_SOURCES = cf_four_roll_mill.cpp
+cf_ucd_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+cf_ucd_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+cf_ucd_2d_SOURCES = cf_ucd.cpp
+cf_ucd_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+cf_ucd_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+cf_ucd_3d_SOURCES = cf_ucd.cpp
 all: all-am
 
 .SUFFIXES:
@@ -568,6 +591,14 @@ cf_relaxation_op_01_3d$(EXEEXT): $(cf_relaxation_op_01_3d_OBJECTS) $(cf_relaxati
 	@rm -f cf_relaxation_op_01_3d$(EXEEXT)
 	$(AM_V_CXXLD)$(cf_relaxation_op_01_3d_LINK) $(cf_relaxation_op_01_3d_OBJECTS) $(cf_relaxation_op_01_3d_LDADD) $(LIBS)
 
+cf_ucd_2d$(EXEEXT): $(cf_ucd_2d_OBJECTS) $(cf_ucd_2d_DEPENDENCIES) $(EXTRA_cf_ucd_2d_DEPENDENCIES) 
+	@rm -f cf_ucd_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(cf_ucd_2d_LINK) $(cf_ucd_2d_OBJECTS) $(cf_ucd_2d_LDADD) $(LIBS)
+
+cf_ucd_3d$(EXEEXT): $(cf_ucd_3d_OBJECTS) $(cf_ucd_3d_DEPENDENCIES) $(EXTRA_cf_ucd_3d_DEPENDENCIES) 
+	@rm -f cf_ucd_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(cf_ucd_3d_LINK) $(cf_ucd_3d_OBJECTS) $(cf_ucd_3d_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -579,6 +610,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cf_four_roll_mill-cf_four_roll_mill.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cf_relaxation_op_01_2d-cf_relaxation_op_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cf_relaxation_op_01_3d-cf_relaxation_op_01.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cf_ucd_2d-cf_ucd.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cf_ucd_3d-cf_ucd.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -679,6 +712,34 @@ cf_relaxation_op_01_3d-cf_relaxation_op_01.obj: cf_relaxation_op_01.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cf_relaxation_op_01.cpp' object='cf_relaxation_op_01_3d-cf_relaxation_op_01.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cf_relaxation_op_01_3d_CXXFLAGS) $(CXXFLAGS) -c -o cf_relaxation_op_01_3d-cf_relaxation_op_01.obj `if test -f 'cf_relaxation_op_01.cpp'; then $(CYGPATH_W) 'cf_relaxation_op_01.cpp'; else $(CYGPATH_W) '$(srcdir)/cf_relaxation_op_01.cpp'; fi`
+
+cf_ucd_2d-cf_ucd.o: cf_ucd.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cf_ucd_2d_CXXFLAGS) $(CXXFLAGS) -MT cf_ucd_2d-cf_ucd.o -MD -MP -MF $(DEPDIR)/cf_ucd_2d-cf_ucd.Tpo -c -o cf_ucd_2d-cf_ucd.o `test -f 'cf_ucd.cpp' || echo '$(srcdir)/'`cf_ucd.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/cf_ucd_2d-cf_ucd.Tpo $(DEPDIR)/cf_ucd_2d-cf_ucd.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cf_ucd.cpp' object='cf_ucd_2d-cf_ucd.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cf_ucd_2d_CXXFLAGS) $(CXXFLAGS) -c -o cf_ucd_2d-cf_ucd.o `test -f 'cf_ucd.cpp' || echo '$(srcdir)/'`cf_ucd.cpp
+
+cf_ucd_2d-cf_ucd.obj: cf_ucd.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cf_ucd_2d_CXXFLAGS) $(CXXFLAGS) -MT cf_ucd_2d-cf_ucd.obj -MD -MP -MF $(DEPDIR)/cf_ucd_2d-cf_ucd.Tpo -c -o cf_ucd_2d-cf_ucd.obj `if test -f 'cf_ucd.cpp'; then $(CYGPATH_W) 'cf_ucd.cpp'; else $(CYGPATH_W) '$(srcdir)/cf_ucd.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/cf_ucd_2d-cf_ucd.Tpo $(DEPDIR)/cf_ucd_2d-cf_ucd.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cf_ucd.cpp' object='cf_ucd_2d-cf_ucd.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cf_ucd_2d_CXXFLAGS) $(CXXFLAGS) -c -o cf_ucd_2d-cf_ucd.obj `if test -f 'cf_ucd.cpp'; then $(CYGPATH_W) 'cf_ucd.cpp'; else $(CYGPATH_W) '$(srcdir)/cf_ucd.cpp'; fi`
+
+cf_ucd_3d-cf_ucd.o: cf_ucd.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cf_ucd_3d_CXXFLAGS) $(CXXFLAGS) -MT cf_ucd_3d-cf_ucd.o -MD -MP -MF $(DEPDIR)/cf_ucd_3d-cf_ucd.Tpo -c -o cf_ucd_3d-cf_ucd.o `test -f 'cf_ucd.cpp' || echo '$(srcdir)/'`cf_ucd.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/cf_ucd_3d-cf_ucd.Tpo $(DEPDIR)/cf_ucd_3d-cf_ucd.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cf_ucd.cpp' object='cf_ucd_3d-cf_ucd.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cf_ucd_3d_CXXFLAGS) $(CXXFLAGS) -c -o cf_ucd_3d-cf_ucd.o `test -f 'cf_ucd.cpp' || echo '$(srcdir)/'`cf_ucd.cpp
+
+cf_ucd_3d-cf_ucd.obj: cf_ucd.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cf_ucd_3d_CXXFLAGS) $(CXXFLAGS) -MT cf_ucd_3d-cf_ucd.obj -MD -MP -MF $(DEPDIR)/cf_ucd_3d-cf_ucd.Tpo -c -o cf_ucd_3d-cf_ucd.obj `if test -f 'cf_ucd.cpp'; then $(CYGPATH_W) 'cf_ucd.cpp'; else $(CYGPATH_W) '$(srcdir)/cf_ucd.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/cf_ucd_3d-cf_ucd.Tpo $(DEPDIR)/cf_ucd_3d-cf_ucd.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='cf_ucd.cpp' object='cf_ucd_3d-cf_ucd.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(cf_ucd_3d_CXXFLAGS) $(CXXFLAGS) -c -o cf_ucd_3d-cf_ucd.obj `if test -f 'cf_ucd.cpp'; then $(CYGPATH_W) 'cf_ucd.cpp'; else $(CYGPATH_W) '$(srcdir)/cf_ucd.cpp'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -816,6 +877,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/cf_four_roll_mill-cf_four_roll_mill.Po
 	-rm -f ./$(DEPDIR)/cf_relaxation_op_01_2d-cf_relaxation_op_01.Po
 	-rm -f ./$(DEPDIR)/cf_relaxation_op_01_3d-cf_relaxation_op_01.Po
+	-rm -f ./$(DEPDIR)/cf_ucd_2d-cf_ucd.Po
+	-rm -f ./$(DEPDIR)/cf_ucd_3d-cf_ucd.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -866,6 +929,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/cf_four_roll_mill-cf_four_roll_mill.Po
 	-rm -f ./$(DEPDIR)/cf_relaxation_op_01_2d-cf_relaxation_op_01.Po
 	-rm -f ./$(DEPDIR)/cf_relaxation_op_01_3d-cf_relaxation_op_01.Po
+	-rm -f ./$(DEPDIR)/cf_ucd_2d-cf_ucd.Po
+	-rm -f ./$(DEPDIR)/cf_ucd_3d-cf_ucd.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

@@ -140,19 +140,19 @@ c
             r_data(i0,i1,i2,3) =
      &        c_data(i0,i1,i2,3)
      &        - qyy_ij*dw_dy - qzz_ij*dv_dz
-     &        + qyz_ij*du_dx - qxz_ij*dv_dx
+     &        - qyz_ij*(dv_dy + dw_dz) - qxz_ij*dv_dx
      &        - qxy_ij*dw_dx
      &        - rhs_data(i0,i1,i2,3)
             r_data(i0,i1,i2,4) =
      &        c_data(i0,i1,i2,4)
      &        - qxx_ij*dw_dx - qzz_ij*du_dz
-     &        + qxz_ij*dv_dy - qyz_ij*du_dy
+     &        - qxz_ij*(du_dx + dw_dz) - qyz_ij*du_dy
      &        - qxy_ij*dw_dy
      &        - rhs_data(i0,i1,i2,4)
             r_data(i0,i1,i2,5) =
      &        c_data(i0,i1,i2,5)
      &        - qxx_ij*dv_dx - qyy_ij*du_dy
-     &        + qxy_ij*dw_dz - qxz_ij*dv_dz
+     &        - qxy_ij*(du_dx + dv_dy) - qxz_ij*dv_dz
      &        - qyz_ij*du_dz
      &        - rhs_data(i0,i1,i2,5)
           enddo

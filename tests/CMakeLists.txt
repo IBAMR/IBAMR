@@ -115,9 +115,11 @@ SETUP_3D(coarsen rt0_coarsen_01.cpp)
 SETUP(complex_fluids cf_four_roll_mill.cpp IBAMR2d)
 SETUP_2D(complex_fluids cf_relaxation_op_01.cpp)
 SETUP_2D(complex_fluids cf_forcing_op_01.cpp)
+SETUP_2D(complex_fluids cf_ucd.cpp)
 
 SETUP_3D(complex_fluids cf_relaxation_op_01.cpp)
 SETUP_3D(complex_fluids cf_forcing_op_01.cpp)
+SETUP_3D(complex_fluids cf_ucd.cpp)
 
 # external:
 SETUP(external eelgenerator3d.cpp IBAMR2d)
