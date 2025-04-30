@@ -488,12 +488,12 @@ AdvectorPredictorCorrectorHyperbolicPatchOps::registerModelVariables(HyperbolicL
             {
                 d_visit_writer->registerPlotQuantity(Q_var->getName(), "SCALAR", Q_idx);
             }
+            else if (depth == NDIM)
+            {
+                d_visit_writer->registerPlotQuantity(Q_var->getName(), "VECTOR", Q_idx);
+            }
             else
             {
-                if (depth == NDIM)
-                {
-                    d_visit_writer->registerPlotQuantity(Q_var->getName(), "VECTOR", Q_idx);
-                }
                 for (int d = 0; d < depth; ++d)
                 {
                     d_visit_writer->registerPlotQuantity(
