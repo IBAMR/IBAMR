@@ -174,7 +174,7 @@ public:
      *
      */
     libMesh::NumericVector<double>*
-    getMeshCoordinates(bool is_current_configuration, std::string time, unsigned int part);
+    getInteractionConfiguration(std::string time, unsigned int part);
 
     /*!
      * Register relevant part to use discontinuous element type family

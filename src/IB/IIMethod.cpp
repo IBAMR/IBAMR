@@ -234,9 +234,9 @@ IIMethod::getFEDataManager(const unsigned int part) const
 } // getFEDataManager
 
 NumericVector<double>*
-IIMethod::getMeshCoordinates(bool is_current_configuration, std::string time, unsigned int part)
+IIMethod::getInteractionConfiguration(std::string time, unsigned int part)
 {
-    if (is_current_configuration)
+    if (d_use_current_mesh_configuration_for_interactions)
     {
         NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
         NumericVector<double>* X_vec = nullptr;
@@ -258,7 +258,7 @@ IIMethod::getMeshCoordinates(bool is_current_configuration, std::string time, un
         }
         else if (time == "ib_ghost")
         {
-            // already assigned X_ghost_vec
+            return X_ghost_vec;
         }
         else
         {
@@ -269,9 +269,6 @@ IIMethod::getMeshCoordinates(bool is_current_configuration, std::string time, un
     else
     { // reference configuration
         EquationSystems* equation_systems = d_fe_data_managers[part]->getEquationSystems();
-        const MeshBase& mesh = equation_systems->get_mesh();
-        const unsigned int dim = mesh.mesh_dimension();
-        std::unique_ptr<QBase> qrule;
         System& X_system = equation_systems->get_system(COORDS_SYSTEM_NAME);
         const DofMap& X_dof_map = X_system.get_dof_map();
         FEDataManager::SystemDofMapCache& X_dof_map_cache =
@@ -282,7 +279,7 @@ IIMethod::getMeshCoordinates(bool is_current_configuration, std::string time, un
         return X0_vec;
     }
 
-} // getMeshCoordinates
+} // getInteractionConfiguration
 
 void
 IIMethod::registerDisconElemFamilyForTraction(const unsigned int part,
@@ -897,8 +894,8 @@ IIMethod::interpolateVelocity(const int u_data_idx,
         NumericVector<double>* U_n_vec = nullptr;
         NumericVector<double>* U_t_vec = nullptr;
         NumericVector<double>* X_vec = nullptr;
-        NumericVector<double>* X_ghost_vec =
-            getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "ib_ghost", part);
+        NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+
         const std::array<PetscVector<double>*, NDIM> DU_jump_ghost_vec = {
             d_use_u_interp_correction ? d_DU_jump_IB_ghost_vecs[part][0] : nullptr,
             d_use_u_interp_correction ? d_DU_jump_IB_ghost_vecs[part][1] : nullptr,
@@ -911,21 +908,21 @@ IIMethod::interpolateVelocity(const int u_data_idx,
             U_vec = d_U_current_vecs[part];
             U_n_vec = d_U_n_current_vecs[part];
             U_t_vec = d_U_t_current_vecs[part];
-            X_vec = getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "current", part);
+            X_vec = getInteractionConfiguration("current", part);
         }
         else if (MathUtilities<double>::equalEps(data_time, d_half_time))
         {
             U_vec = d_U_half_vecs[part];
             U_n_vec = d_U_n_half_vecs[part];
             U_t_vec = d_U_t_half_vecs[part];
-            X_vec = getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "current", part);
+            X_vec = getInteractionConfiguration("current", part);
         }
         else if (MathUtilities<double>::equalEps(data_time, d_new_time))
         {
             U_vec = d_U_new_vecs[part];
             U_n_vec = d_U_n_new_vecs[part];
             U_t_vec = d_U_t_new_vecs[part];
-            X_vec = getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "current", part);
+            X_vec = getInteractionConfiguration("current", part);
         }
         copy_and_synch(*X_vec, *X_ghost_vec);
 
@@ -1625,18 +1622,17 @@ IIMethod::computeFluidTraction(const double data_time, unsigned int part)
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_vec = getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "current", part);
+        X_vec = getInteractionConfiguration("current", part);
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        X_vec = getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "half", part);
+        X_vec = getInteractionConfiguration("half", part);
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_vec = getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "half", part);
+        X_vec = getInteractionConfiguration("half", part);
     }
-    NumericVector<double>* X_ghost_vec =
-        getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "ib_ghost", part);
+    NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
     copy_and_synch(*X_vec, *X_ghost_vec);
 
     WSS_in_vec = d_WSS_in_half_vecs[part];
@@ -2067,8 +2063,8 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
     NumericVector<double>* P_out_vec = d_P_out_half_vecs[part];
     NumericVector<double>* P_jump_ghost_vec = d_P_jump_IB_ghost_vecs[part];
     NumericVector<double>* X_vec = nullptr;
-    NumericVector<double>* X_ghost_vec =
-        getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "ib_ghost", part);
+    NumericVector<double>* X_ghost_vec = d_X_IB_ghost_vecs[part];
+
 
     std::unique_ptr<NumericVector<double> > P_in_rhs_vec = (*P_in_vec).zero_clone();
     P_in_rhs_vec->zero();
@@ -2080,15 +2076,15 @@ IIMethod::extrapolatePressureForTraction(const int p_data_idx, const double data
 
     if (MathUtilities<double>::equalEps(data_time, d_current_time))
     {
-        X_vec = getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "current", part);
+        X_vec = getInteractionConfiguration("current", part);
     }
     else if (MathUtilities<double>::equalEps(data_time, d_half_time))
     {
-        X_vec = getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "half", part);
+        X_vec = getInteractionConfiguration("half", part);
     }
     else if (MathUtilities<double>::equalEps(data_time, d_new_time))
     {
-        X_vec = getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "new", part);
+        X_vec = getInteractionConfiguration("new", part);
     }
     copy_and_synch(*X_vec, *X_ghost_vec);
 
@@ -2588,7 +2584,8 @@ IIMethod::computeLagrangianForce(const double data_time)
         VectorValue<double>& F_integral = d_lag_surface_force_integral[part];
         F_integral.zero();
 
-        NumericVector<double>* X_vec = getMeshCoordinates(true, "half", part);
+        NumericVector<double>* X_vec = d_X_half_vecs[part];
+        copy_and_synch(*X_vec, *X_ghost_vec);
         double surface_area = 0.0;
 
         NumericVector<double>* P_jump_vec = d_use_pressure_jump_conditions ? d_P_jump_half_vecs[part] : nullptr;
@@ -2987,9 +2984,8 @@ IIMethod::spreadForce(const int f_data_idx,
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
         auto X_vec = static_cast<PetscVector<double>*>(
-            getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "half", part));
-        auto X_ghost_vec = static_cast<PetscVector<double>*>(
-            getMeshCoordinates(d_use_current_mesh_configuration_for_interactions, "ib_ghost", part));
+            getInteractionConfiguration("half", part));
+        auto X_ghost_vec = static_cast<PetscVector<double>*>(d_X_IB_ghost_vecs[part]);
         PetscVector<double>* F_vec = d_F_half_vecs[part];
         PetscVector<double>* F_ghost_vec = d_F_IB_ghost_vecs[part];
         X_vec->localize(*X_ghost_vec);
@@ -4434,7 +4430,7 @@ IIMethod::getFromInput(Pointer<Database> db, bool /*is_from_restart*/)
         d_default_interp_spec.use_nodal_quadrature = db->getBool("interp_use_nodal_quadrature");
     else if (db->isBool("IB_use_nodal_quadrature"))
         d_default_interp_spec.use_nodal_quadrature = db->getBool("IB_use_nodal_quadrature");
-    if (db->isBool("use_current_mesh_configuration"))
+    if (db->isBool("use_current_mesh_configuration_for_interactions"))
         d_use_current_mesh_configuration_for_interactions =
             db->getBool("use_current_mesh_configuration_for_interactions");
 
