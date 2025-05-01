@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -170,15 +170,15 @@ PETScKrylovLinearSolver::setPreconditioner(Pointer<LinearSolver> pc_solver)
 } // setPreconditioner
 
 void
-PETScKrylovLinearSolver::setNullspace(
+PETScKrylovLinearSolver::setNullSpace(
     const bool contains_constant_vec,
     const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& nullspace_basis_vecs)
 {
-    deallocateNullspaceData();
-    KrylovLinearSolver::setNullspace(contains_constant_vec, nullspace_basis_vecs);
-    resetMatNullspace();
+    deallocateNullSpaceData();
+    KrylovLinearSolver::setNullSpace(contains_constant_vec, nullspace_basis_vecs);
+    resetMatNullSpace();
     return;
-} // setNullspace
+} // setNullSpace
 
 bool
 PETScKrylovLinearSolver::solveSystem(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDIM, double>& b)
@@ -349,7 +349,7 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     IBTK_CHKERRQ(ierr);
 
     // Configure the nullspace object.
-    resetMatNullspace();
+    resetMatNullSpace();
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
@@ -389,7 +389,7 @@ PETScKrylovLinearSolver::deallocateSolverState()
     d_b.setNull();
 
     // Deallocate the nullspace object.
-    deallocateNullspaceData();
+    deallocateNullSpaceData();
 
     // Destroy the KSP solver.
     if (d_managing_petsc_ksp)
@@ -606,7 +606,7 @@ PETScKrylovLinearSolver::resetKSPPC()
 } // resetKSPPC
 
 void
-PETScKrylovLinearSolver::resetMatNullspace()
+PETScKrylovLinearSolver::resetMatNullSpace()
 {
     if (!d_petsc_ksp) return;
     int ierr;
@@ -663,10 +663,10 @@ PETScKrylovLinearSolver::resetMatNullspace()
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // resetMatNullspace
+} // resetMatNullSpace
 
 void
-PETScKrylovLinearSolver::deallocateNullspaceData()
+PETScKrylovLinearSolver::deallocateNullSpaceData()
 {
     // Deallocate PETSc data structures.
     if (d_petsc_nullsp)
@@ -699,7 +699,7 @@ PETScKrylovLinearSolver::deallocateNullspaceData()
     }
     d_nullspace_constant_vec.setNull();
     return;
-} // deallocateNullspaceData
+} // deallocateNullSpaceData
 
 PetscErrorCode
 PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)

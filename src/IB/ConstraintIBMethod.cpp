@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -289,7 +289,7 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
 
         // NOTE: We always use homogeneous Neumann boundary conditions for the
         // velocity correction projection Poisson solver.
-        d_velcorrection_projection_solver->setNullspace(true);
+        d_velcorrection_projection_solver->setNullSpace(true);
     }
     else
     {
@@ -2027,7 +2027,7 @@ ConstraintIBMethod::applyProjection()
 
     // NOTE: We always use homogeneous Neumann boundary conditions for the
     // velocity correction projection Poisson solver.
-    d_velcorrection_projection_solver->setNullspace(true);
+    d_velcorrection_projection_solver->setNullSpace(true);
 
     // Solve the projection Poisson problem.
     d_velcorrection_projection_solver->initializeSolverState(sol_vec, rhs_vec);

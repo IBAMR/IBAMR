@@ -1,6 +1,6 @@
 ## ---------------------------------------------------------------------
 ##
-## Copyright (c) 2021 - 2021 by the IBAMR developers
+## Copyright (c) 2021 - 2025 by the IBAMR developers
 ## All rights reserved.
 ##
 ## This file is part of IBAMR.
@@ -14,7 +14,7 @@
 name: Pull/push
 on:
   # Trigger the workflow on push or pull request,
-  # but only when targeting the main branch
+  # but only when targeting the master branch
   push:
     branches:
       - master
@@ -24,36 +24,36 @@ on:
 
 jobs:
   # build IBAMR with CMake and run tests
-  build_ibamr:
+  build_ibamr_cmake_016:
     runs-on: ubuntu-latest
-    name: Build IBAMR and run tests
+    name: Build IBAMR and run tests (0.16 dependencies ${{ matrix.name }})
+    strategy:
+      matrix:
+        include:
+          - name: "Arch Linux 2025, with libMesh"
+            key: "arch-cmake-libmesh"
+            cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel"
+            cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
+            os: "archlinux"
+          - name: "Arch Linux 2025, without libMesh"
+            key: "arch-cmake-no-libmesh"
+            cmake_flags: ""
+            cxx_flags: "-ftrivial-auto-var-init=pattern -fuse-ld=mold -D_FORTIFY_SOURCE=3"
+            os: "archlinux"
+          - name: "Ubuntu 20.04, with libMesh"
+            key: "ubuntu-cmake-libmesh"
+            cmake_flags: "-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=OPT"
+            cxx_flags: ""
+            os: "ubuntu"
+
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.14-bundled-deps'
+      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-${{ matrix.os }}'
     env:
-      # For now, hardwire the configuration since we have only one.
-      # This is used by ctest_configure.cmake to initialize the
-      # CMake cache by including
-      # `.github/cmake/configure_${CMAKE_CONFIGURATION}.cmake`
-      # so it is possible to run the same container with different
-      # values to build different configurations (e.g., release vs
-      # debug, with/without in situ processing, static analysis).
-      CMAKE_CONFIGURATION: fedora33
-
-      # If this variable is set, cause any build warnings to
-      # be treated as an error (causing the build to fail before
-      # testing and preventing merging).
-      CTEST_NO_WARNINGS_ALLOWED: true
-      CMAKE_GENERATOR: Unix Makefiles
-
-      # Delete old files in the cache (10G, the default limit, is GitHub's limit
-      # for all cached artifacts)
       CCACHE_MAXSIZE: 250M
-      # For uniformity, always explicitly define the compilation cache instead
-      # of relying on how ccache interacts with XDG_CACHE_HOME
       CCACHE_DIR: /compilationcache
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         id: git
       - name: Verify that clang-format was run
         id: format
@@ -61,334 +61,55 @@ jobs:
           git config --global --add safe.directory '*'
           ./scripts/formatting/download-clang-format
           ./scripts/formatting/check-indentation
-      - name: Create keys
-        id: keys
-        run: |
-          echo "key1=$(( ${{ github.run_number }} - 1))" >> $GITHUB_ENV
-          echo "key2=$(( ${{ github.run_number }} - 2))" >> $GITHUB_ENV
-          echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
-          echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
-          echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
       - name: Populate ccache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: ccache
         id: cache
         with:
           path: ${{ env.CCACHE_DIR }}
-          # A fundamental problem with the cache is that it is identified by a
-          # single key and, should a cache with that key already exist, the
-          # cache will not be updated. This makes sense for things like NPM but
-          # not so much for ccache, since we get a new and unique cache each
-          # time we rebuild the library with a new branch.
-          #
-          # To get around this, always make the key unique and rely on
-          # restore-keys to find the highest-indexed key available. Explicitly
-          # try to restore things from the most recent builds.
-          key: ${{ runner.os }}-build-cmake-libmesh-${{ github.run_number }}
+          key: ibamr-${{ matrix.key }}-feature-cache-${{ github.ref_name }}
           restore-keys: |
-            ${{ runner.os }}-build-cmake-libmesh-${{ env.key1 }}
-            ${{ runner.os }}-build-cmake-libmesh-${{ env.key2 }}
-            ${{ runner.os }}-build-cmake-libmesh-${{ env.key3 }}
-            ${{ runner.os }}-build-cmake-libmesh-${{ env.key4 }}
-            ${{ runner.os }}-build-cmake-libmesh-${{ env.key5 }}
-            ${{ runner.os }}-build-cmake-libmesh-
-            ${{ runner.os }}-build-cmake
+            ibamr-${{ matrix.key }}-feature-cache-${{ github.ref_name }}
+            ibamr-${{ matrix.key }}-master-cache-
+            ibamr-${{ matrix.key }}-
+            ibamr-
       - name: Configure IBAMR
         id: configure
         run: |
-          # HDF5 is installed in a weird way on Fedora - since we aren't using
-          # modules we have to intervene manually
-          pushd ../
-          mkdir -p hdf5-shim
-          ln -s /usr/include/mpich-x86_64 hdf5-shim/include
-          ln -s /usr/lib64/mpich/lib hdf5-shim/lib
-          export HDF5_ROOT=$(pwd)/hdf5-shim
-          popd
-          # If configuration fails we still want to save the output files:
-          set +e
-          bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
-          configure_status=$?
-          set -e
-          # The directory /build/ibamr is hardcoded in cmake/github_ci.cmake
-          #
-          # Archive doesn't like absolute paths to files so dump everything in ~/
-          find /build -name CMakeConfigureLog.yaml -exec cp {} ./ \;
-          ccache --show-stats
-          exit $configure_status
-      - name: Archive CMakeConfigureLog.yaml
-        if: always()
-        uses: actions/upload-artifact@v1
-        with:
-          name: fedora33-CMakeError.log
-          path: CMakeConfigureLog.yaml
-      - name: Compile IBAMR
-        id: build-library
-        run: |
-          cd /build/ibamr
-          make -j2
-          ccache --show-stats
-      - name: Compile IBAMR examples
-        id: build-examples
-        run: |
-          cd /build/ibamr
-          make -j2 examples
-          ccache --show-stats
-      - name: Compile IBAMR tests
-        id: build-tests
-        run: |
-          cd /build/ibamr
-          make -j2 tests
-          ccache --show-stats
-      - name: Test IBAMR
-        id: test
-        run: |
-          bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
-          ccache --show-stats
-
-  # build IBAMR with CMake, no libMesh, and run tests
-  build_ibamr_no_libmesh:
-    runs-on: ubuntu-latest
-    name: Build IBAMR and run tests (no libMesh)
-    container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.14-bundled-deps'
-    env:
-      CMAKE_CONFIGURATION: fedora33_no_libmesh
-
-      # If this variable is set, cause any build warnings to
-      # be treated as an error (causing the build to fail before
-      # testing and preventing merging).
-      CTEST_NO_WARNINGS_ALLOWED: true
-      CMAKE_GENERATOR: Unix Makefiles
-
-      CCACHE_MAXSIZE: 250M
-      CCACHE_DIR: /compilationcache
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v3
-        id: git
-      - name: Verify that clang-format was run
-        id: format
-        run: |
-          git config --global --add safe.directory '*'
-          ./scripts/formatting/download-clang-format
-          ./scripts/formatting/check-indentation
-      - name: Create keys
-        id: keys
-        run: |
-          echo "key1=$(( ${{ github.run_number }} - 1))" >> $GITHUB_ENV
-          echo "key2=$(( ${{ github.run_number }} - 2))" >> $GITHUB_ENV
-          echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
-          echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
-          echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate ccache
-        uses: actions/cache@v3
-        env:
-          cache-name: ccache
-        id: cache
-        with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-cmake-no-libmesh-${{ github.run_number }}
-          restore-keys: |
-            ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key1 }}
-            ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key2 }}
-            ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key3 }}
-            ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key4 }}
-            ${{ runner.os }}-build-cmake-no-libmesh-${{ env.key5 }}
-            ${{ runner.os }}-build-cmake-no-libmesh-
-      - name: Configure IBAMR
-        id: configure
-        run: |
-          # HDF5 is installed in a weird way on Fedora - since we aren't using
-          # modules we have to intervene manually
-          pushd ../
-          mkdir -p hdf5-shim
-          ln -s /usr/include/mpich-x86_64 hdf5-shim/include
-          ln -s /usr/lib64/mpich/lib hdf5-shim/lib
-          export HDF5_ROOT=$(pwd)/hdf5-shim
-          popd
-          bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
-          ccache --show-stats
-      - name: Compile IBAMR
-        id: build-library
-        run: |
-          cd /build/ibamr
-          make -j2
-          ccache --show-stats
-      - name: Compile IBAMR examples
-        id: build-examples
-        run: |
-          cd /build/ibamr
-          make -j2 examples
-          ccache --show-stats
-      - name: Compile IBAMR tests
-        id: build-tests
-        run: |
-          cd /build/ibamr
-          make -j2 tests
-          ccache --show-stats
-      - name: Test IBAMR
-        id: test
-        run: |
-          bash -c "ctest --output-on-failure -VV -S .github/cmake/ctest_test.cmake"
-
-  # build IBAMR with autotools
-  build_ibamr_autotools:
-    runs-on: ubuntu-latest
-    name: Build IBAMR (autotools)
-    container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.14-bundled-deps'
-    env:
-      CMAKE_GENERATOR: Unix Makefiles
-
-      CCACHE_MAXSIZE: 250M
-      CCACHE_DIR: /compilationcache
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v3
-        id: git
-      - name: Verify that clang-format was run
-        id: format
-        run: |
-          git config --global --add safe.directory '*'
-          ./scripts/formatting/download-clang-format
-          ./scripts/formatting/check-indentation
-      - name: Create keys
-        id: keys
-        run: |
-          echo "key1=$(( ${{ github.run_number }} - 1))" >> $GITHUB_ENV
-          echo "key2=$(( ${{ github.run_number }} - 2))" >> $GITHUB_ENV
-          echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
-          echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
-          echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate ccache
-        uses: actions/cache@v3
-        env:
-          cache-name: ccache
-        id: cache
-        with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-autotools-${{ github.run_number }}
-          restore-keys: |
-            ${{ runner.os }}-build-autotools-${{ env.key1 }}
-            ${{ runner.os }}-build-autotools-${{ env.key2 }}
-            ${{ runner.os }}-build-autotools-${{ env.key3 }}
-            ${{ runner.os }}-build-autotools-${{ env.key4 }}
-            ${{ runner.os }}-build-autotools-${{ env.key5 }}
-            ${{ runner.os }}-build-autotools-
-      - name: Configure IBAMR (autotools)
-        id: configure
-        run: |
-          source /etc/profile.d/modules.sh
-          module load mpi
-          export CC="ccache $(which mpicc)"
-          export CXX="ccache $(which mpic++)"
-          # we are just compiling things so go for speed
-          export CFLAGS="-O0"
-          export CXXFLAGS="-O0"
-          export FFLAGS="-O0"
           mkdir build
           cd build
-          ../configure PETSC_DIR=/petsc/ --with-samrai=/samrai \
-          --enable-libmesh --with-libmesh=/libmesh --with-libmesh-method=opt
-          ccache --show-stats
-      - name: archive
-        if: always()
-        uses: actions/upload-artifact@v1
-        with:
-          name: autotools-config.log
-          path: build/config.log
-      - name: Compile IBAMR (autotools)
-        id: build-library
-        run: |
-          source /etc/profile.d/modules.sh
-          module load mpi
-          export CC="ccache $(which mpicc)"
-          export CXX="ccache $(which mpic++)"
-          echo "CC=${CC}"
-          echo "CXX=${CXX}"
-          cd build
-          make -j2
-          ccache --show-stats
-      - name: Compile IBAMR examples
-        id: build-examples
-        run: |
-          source /etc/profile.d/modules.sh
-          module load mpi
-          cd build
-          make -j2 examples
-          ccache --show-stats
-      - name: Compile IBAMR tests
-        id: build-tests
-        run: |
-          source /etc/profile.d/modules.sh
-          module load mpi
-          cd build
-          make -j2 tests
-          ccache --show-stats
-
-  # build IBAMR with CMake when we use custom, not system, installations of dependencies
-  build_ibamr_archlinux:
-    runs-on: ubuntu-latest
-    name: Build IBAMR with a non-system MPI
-    container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.14-custom-deps'
-    env:
-      CMAKE_CONFIGURATION: archlinux
-      CTEST_NO_WARNINGS_ALLOWED: true
-      CMAKE_GENERATOR: Unix Makefiles
-
-      CCACHE_MAXSIZE: 250M
-      CCACHE_DIR: /compilationcache
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v3
-        id: git
-      - name: Verify that clang-format was run
-        id: format
-        run: |
-          git config --global --add safe.directory '*'
-          ./scripts/formatting/download-clang-format
-          ./scripts/formatting/check-indentation
-      - name: Create keys
-        id: keys
-        run: |
-          echo "key1=$(( ${{ github.run_number }} - 1))" >> $GITHUB_ENV
-          echo "key2=$(( ${{ github.run_number }} - 2))" >> $GITHUB_ENV
-          echo "key3=$(( ${{ github.run_number }} - 3))" >> $GITHUB_ENV
-          echo "key4=$(( ${{ github.run_number }} - 4))" >> $GITHUB_ENV
-          echo "key5=$(( ${{ github.run_number }} - 5))" >> $GITHUB_ENV
-      - name: Populate ccache
-        uses: actions/cache@v3
-        env:
-          cache-name: ccache
-        id: cache
-        with:
-          path: ${{ env.CCACHE_DIR }}
-          key: ${{ runner.os }}-build-archlinux-cmake-${{ github.run_number }}
-          restore-keys: |
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key1 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key2 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key3 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key4 }}
-            ${{ runner.os }}-build-archlinux-cmake-${{ env.key5 }}
-            ${{ runner.os }}-build-archlinux-cmake-
-      - name: Configure IBAMR
-        id: configure
-        run: |
-          bash -c "ctest -VV -S .github/cmake/ctest_configure.cmake"
+          FLAGS="${{ matrix.cmake_flags }} -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai"
+          # add a subshell to ensure flags are passed as separate arguments
+          cmake $(echo "$FLAGS") -DNUMDIFF_ROOT=/numdiff/ \
+                -GNinja -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)" \
+                -DCMAKE_CXX_FLAGS="-O1 -Wall -Wextra -Wpedantic -Werror -Wno-deprecated-declarations -D_GLIBCXX_ASSERTIONS ${{ matrix.cxx_flags }}" \
+                -DCMAKE_Fortran_FLAGS="-O3 -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-compare-reals" \
+                ../
           ccache --show-stats
       - name: Compile IBAMR
         id: build-library
         run: |
-          cd /build/ibamr
-          make -j2
+          cd build
+          ninja -j4
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          cd build
+          ninja -j4 tests
+          ccache --show-stats
+      - name: Test IBAMR
+        id: test
+        run: |
+          cd build
+          runuser -u build -- ./attest --verbose --test-timeout=120 -j4 -E 'mpirun=[3-9]|explicit_ex2_3d|explicit_ex5_3d|explicit_ex8_2d|nwt_cylinder|cib_double_shell.in|cib_double_shell.cholesky.in|poiseuille_flow'
           ccache --show-stats
       - name: Install IBAMR
         id: install
         run: |
-          cd /build/ibamr
-          make install
+          cd build
+          ninja install
       - name: compile a sample project with an uninstalled IBAMR
         id: sampleproject1
         run: |
@@ -409,3 +130,68 @@ jobs:
           cmake -DIBAMR_ROOT=/ibamr .
           make
           ./project
+
+  # build IBAMR with autotools
+  build_ibamr_archlinux_016_autotools:
+    runs-on: ubuntu-latest
+    name: Build IBAMR and run tests (autotools, 0.16 dependencies, Arch Linux 2025)
+    container:
+      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-archlinux'
+    env:
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /compilationcache
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        id: git
+      - name: Verify that clang-format was run
+        id: format
+        run: |
+          git config --global --add safe.directory '*'
+          ./scripts/formatting/download-clang-format
+          ./scripts/formatting/check-indentation
+      - name: Populate ccache
+        uses: actions/cache@v4
+        env:
+          cache-name: ccache
+        id: cache
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ibamr-arch-autotools-libmesh-feature-cache-${{ github.ref_name }}
+          restore-keys: |
+            ibamr-arch-autotools-libmesh-feature-cache-${{ github.ref_name }}
+            ibamr-arch-autotools-libmesh-master-cache-
+            ibamr-arch-autotools-libmesh-
+            ibamr-
+      - name: Configure IBAMR
+        id: configure
+        run: |
+          export CC="ccache $(which mpicc)"
+          export CXX="ccache $(which mpic++)"
+          # we are just compiling things so go for speed
+          export CFLAGS="-O0"
+          export CXXFLAGS="-O0"
+          export FFLAGS="-O0"
+          mkdir build
+          cd build
+          ../configure PETSC_DIR=/petsc/ --with-samrai=/samrai \
+          --enable-libmesh --with-libmesh=/libmesh --with-libmesh-method=devel
+          ccache --show-stats
+      - name: Compile IBAMR
+        id: build-library
+        run: |
+          cd build
+          make -j4
+          ccache --show-stats
+      - name: Compile IBAMR tests
+        id: build-tests
+        run: |
+          cd build
+          make -j4 tests
+          ccache --show-stats
+      - name: Compile IBAMR examples
+        id: build-examples
+        run: |
+          cd build
+          make -j4 examples
+          ccache --show-stats

@@ -60,15 +60,15 @@ StaggeredStokesFACPreconditioner::setVelocityPoissonSpecifications(const Poisson
 } // setVelocityPoissonSpecifications
 
 void
-StaggeredStokesFACPreconditioner::setComponentsHaveNullspace(const bool has_velocity_nullspace,
+StaggeredStokesFACPreconditioner::setComponentsHaveNullSpace(const bool has_velocity_nullspace,
                                                              const bool has_pressure_nullspace)
 {
-    StaggeredStokesSolver::setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+    StaggeredStokesSolver::setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
     Pointer<StaggeredStokesFACPreconditionerStrategy> p_fac_strategy = d_fac_strategy;
-    if (p_fac_strategy) p_fac_strategy->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
+    if (p_fac_strategy) p_fac_strategy->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
 
     return;
-} // setComponentsHaveNullspace
+} // setComponentsHaveNullSpace
 
 void
 StaggeredStokesFACPreconditioner::setPhysicalBcCoefs(const std::vector<RobinBcCoefStrategy<NDIM>*>& U_bc_coefs,

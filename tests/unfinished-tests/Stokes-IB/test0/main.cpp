@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2019 - 2023 by the IBAMR developers
+// Copyright (c) 2019 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -150,14 +150,14 @@ public:
         return;
     } // setPhysicalBcCoefs
 
-    void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace)
+    void setComponentsHaveNullSpace(const bool has_velocity_nullspace, const bool has_pressure_nullspace)
     {
-        StaggeredStokesSolver::setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
-        d_fac_pc->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
-        d_fac_op->setComponentsHaveNullspace(d_has_velocity_nullspace, d_has_pressure_nullspace);
+        StaggeredStokesSolver::setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
+        d_fac_pc->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
+        d_fac_op->setComponentsHaveNullSpace(d_has_velocity_nullspace, d_has_pressure_nullspace);
 
         return;
-    } // setComponentsHaveNullspace
+    } // setComponentsHaveNullSpace
 
     void initializeSolver(Vec x, Vec b)
     {
@@ -789,7 +789,7 @@ main(int argc, char* argv[])
         stokes_ib_solver->setTimeInterval(current_time, new_time);
         stokes_ib_solver->setSolutionTime(new_time);
         stokes_ib_solver->registerSAJ(SAJ, u_dof_index_idx, p_dof_index_idx);
-        stokes_ib_solver->setComponentsHaveNullspace(false, true);
+        stokes_ib_solver->setComponentsHaveNullSpace(false, true);
         stokes_ib_solver->initializeSolver(eul_sol_petsc_vec, eul_rhs_petsc_vec);
         stokes_ib_solver->solveSystem(eul_sol_petsc_vec, eul_rhs_petsc_vec);
 

@@ -83,10 +83,13 @@ static Timer* t_deallocate_solver_state;
 
 StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner(
     const std::string& object_name,
-    Pointer<Database> /*input_db*/,
+    Pointer<Database> input_db,
     const std::string& /*default_options_prefix*/)
-    : StaggeredStokesBlockPreconditioner(/*needs_velocity_solver*/ true,
-                                         /*needs_pressure_solver*/ true)
+    : StaggeredStokesBlockPreconditioner(
+          /*needs_velocity_solver*/ input_db ?
+              (input_db->keyExists("skip_velocity_solve") ? !input_db->getBool("skip_velocity_solve") : true) :
+              true,
+          /*needs_pressure_solver*/ true)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
 
@@ -215,10 +218,20 @@ StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, doub
     // U^* := inv(rho/dt - K*mu*L) F_U
     //
     // An approximate Helmholtz solver is used.
-    d_velocity_solver->setHomogeneousBc(true);
-    auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
-    if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
-    d_velocity_solver->solveSystem(*U_vec, *F_U_vec);
+    if (d_needs_velocity_solver)
+    {
+        d_velocity_solver->setHomogeneousBc(true);
+        auto p_velocity_solver = dynamic_cast<LinearSolver*>(d_velocity_solver.getPointer());
+        if (p_velocity_solver) p_velocity_solver->setInitialGuessNonzero(false);
+        d_velocity_solver->solveSystem(*U_vec, *F_U_vec);
+    }
+    else
+    {
+        TBOX_ASSERT(!d_U_problem_coefs.cIsZero());
+        d_velocity_data_ops->scale(U_vec->getComponentDescriptorIndex(0),
+                                   1.0 / d_U_problem_coefs.getCConstant(),
+                                   F_U_vec->getComponentDescriptorIndex(0));
+    }
 
     // (2) Solve the pressure sub-problem.
     //
@@ -311,7 +324,7 @@ StaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, doub
                           U_sc_var);
 
     // Account for nullspace vectors.
-    correctNullspace(U_vec, P_vec);
+    correctNullSpace(U_vec, P_vec);
 
     // Deallocate scratch data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)

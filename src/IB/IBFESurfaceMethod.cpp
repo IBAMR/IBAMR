@@ -173,6 +173,9 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      const std::string& restart_read_dirname,
                                      unsigned int restart_restore_number)
 {
+    // Check if the mesh dimention is compatable with the IBStategy
+    TBOX_ASSERT(mesh->mesh_dimension() == mesh->spatial_dimension() - 1);
+
     commonConstructor(object_name,
                       input_db,
                       std::vector<MeshBase*>(1, mesh),
@@ -192,6 +195,12 @@ IBFESurfaceMethod::IBFESurfaceMethod(const std::string& object_name,
                                      unsigned int restart_restore_number)
     : d_num_parts(static_cast<int>(meshes.size()))
 {
+    // Check if the mesh dimention is compatable with the IBStategy
+    for (libMesh::MeshBase* mesh : meshes)
+    {
+        TBOX_ASSERT(mesh->mesh_dimension() == mesh->spatial_dimension() - 1);
+    }
+
     commonConstructor(
         object_name, input_db, meshes, max_levels, register_for_restart, restart_read_dirname, restart_restore_number);
     return;

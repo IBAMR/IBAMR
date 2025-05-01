@@ -1807,7 +1807,7 @@ INSCollocatedHierarchyIntegrator::regridProjection()
     if (p_regrid_projection_solver)
     {
         p_regrid_projection_solver->setInitialGuessNonzero(false);
-        p_regrid_projection_solver->setNullspace(true);
+        p_regrid_projection_solver->setNullSpace(true);
     }
 
     // Allocate temporary data.
@@ -2041,7 +2041,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
             if (p_velocity_solver)
             {
                 p_velocity_solver->setInitialGuessNonzero(true);
-                if (has_velocity_nullspace) p_velocity_solver->setNullspace(false, d_U_nul_vecs);
+                if (has_velocity_nullspace) p_velocity_solver->setNullSpace(false, d_U_nul_vecs);
             }
             d_velocity_solver->initializeSolverState(*d_U_scratch_vec, *d_U_rhs_vec);
             d_velocity_solver_needs_init = false;
@@ -2065,7 +2065,7 @@ INSCollocatedHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double c
             if (p_pressure_solver)
             {
                 p_pressure_solver->setInitialGuessNonzero(true);
-                if (has_pressure_nullspace) p_pressure_solver->setNullspace(true);
+                if (has_pressure_nullspace) p_pressure_solver->setNullSpace(true);
             }
             d_pressure_solver->initializeSolverState(*d_Phi_vec, *d_Phi_rhs_vec);
             d_pressure_solver_needs_init = false;

@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -85,7 +85,7 @@ public:
     /*!
      * \brief Set if velocity and pressure have nullspace.
      */
-    void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace) override;
+    void setComponentsHaveNullSpace(const bool has_velocity_nullspace, const bool has_pressure_nullspace) override;
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify

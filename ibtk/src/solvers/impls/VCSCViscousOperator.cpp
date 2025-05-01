@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2023 by the IBAMR developers
+// Copyright (c) 2017 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -137,8 +137,7 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     std::vector<InterpolationTransactionComponent> transaction_comps;
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent x_component(d_x->getComponentDescriptorIndex(comp),
-                                                      x.getComponentDescriptorIndex(comp),
+        InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp),
                                                       DATA_REFINE_TYPE,
                                                       USE_CF_INTERPOLATION,
                                                       DATA_COARSEN_TYPE,
@@ -165,8 +164,7 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
     {
         Pointer<SideVariable<NDIM, double> > x_sc_var = x.getComponentVariable(comp);
         Pointer<SideVariable<NDIM, double> > y_sc_var = y.getComponentVariable(comp);
-        Pointer<SideVariable<NDIM, double> > x_scratch_var = d_x->getComponentVariable(comp);
-        const int x_scratch_idx = d_x->getComponentDescriptorIndex(comp);
+        const int x_idx = x.getComponentDescriptorIndex(comp);
         const int y_idx = y.getComponentDescriptorIndex(comp);
         d_hier_math_ops->vc_laplace(y_idx,
                                     y_sc_var,
@@ -178,13 +176,12 @@ VCSCViscousOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<N
 #elif (NDIM == 3)
                                     Pointer<EdgeVariable<NDIM, double> >(nullptr),
 #endif
-                                    x_scratch_idx,
+                                    x_idx,
                                     x_sc_var,
                                     Pointer<HierarchyGhostCellInterpolation>(nullptr),
                                     d_solution_time,
                                     d_D_interp_type,
                                     d_poisson_spec.cIsVariable() ? d_poisson_spec.getCPatchDataId() : -1);
-        const int x_idx = x.getComponentDescriptorIndex(comp);
         d_bc_helpers[comp]->copyDataAtDirichletBoundaries(y_idx, x_idx);
     }
 
@@ -200,13 +197,6 @@ VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
 
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
-
-    // Setup solution and rhs vectors.
-    d_x = in.cloneVector(in.getName());
-    d_b = out.cloneVector(out.getName());
-
-    // Allocate scratch data.
-    d_x->allocateVectorData();
 
     // Setup operator state.
     d_hierarchy = in.getPatchHierarchy();
@@ -248,8 +238,7 @@ VCSCViscousOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double
     d_transaction_comps.clear();
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
-        InterpolationTransactionComponent component(d_x->getComponentDescriptorIndex(comp),
-                                                    in.getComponentDescriptorIndex(comp),
+        InterpolationTransactionComponent component(in.getComponentDescriptorIndex(comp),
                                                     DATA_REFINE_TYPE,
                                                     USE_CF_INTERPOLATION,
                                                     DATA_COARSEN_TYPE,
@@ -286,16 +275,6 @@ VCSCViscousOperator::deallocateOperatorState()
 
     // Deallocate hierarchy math operations object.
     if (!d_hier_math_ops_external) d_hier_math_ops.setNull();
-
-    // Deallocate scratch data.
-    deallocate_vector_data(*d_x);
-
-    // Delete the solution and rhs vectors.
-    free_vector_components(*d_x);
-    d_x.setNull();
-
-    free_vector_components(*d_b);
-    d_b.setNull();
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;

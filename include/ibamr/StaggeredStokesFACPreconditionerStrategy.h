@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2014 - 2023 by the IBAMR developers
+// Copyright (c) 2014 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -125,7 +125,7 @@ public:
     /*!
      * \brief Set if velocity and pressure have nullspace.
      */
-    virtual void setComponentsHaveNullspace(const bool has_velocity_nullspace, const bool has_pressure_nullspace);
+    virtual void setComponentsHaveNullSpace(const bool has_velocity_nullspace, const bool has_pressure_nullspace);
 
     /*!
      * \brief Set the SAMRAI::solv::RobinBcCoefStrategy objects used to specify
@@ -458,7 +458,7 @@ protected:
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_coarse_solver_db;
 
     /*
-     * Nullspace info.
+     * Null space info.
      */
     bool d_has_velocity_nullspace = false, d_has_pressure_nullspace = false;
 

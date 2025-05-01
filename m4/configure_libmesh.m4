@@ -67,11 +67,11 @@ dnl
 dnl
 dnl 2. Check version numbers:
 dnl
-  AC_MSG_CHECKING([for libMesh version 1.1.0 or newer])
+  AC_MSG_CHECKING([for libMesh version 1.7.0 or newer])
   AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #include <libmesh/libmesh_config.h>
 
-#if LIBMESH_MAJOR_VERSION >= 1 && LIBMESH_MINOR_VERSION >= 1
+#if LIBMESH_MAJOR_VERSION >= 1 && LIBMESH_MINOR_VERSION >= 7
 // OK
 #else
 #error
@@ -79,7 +79,7 @@ dnl
   ]])],[LIBMESH_VERSION_VALID=yes],[LIBMESH_VERSION_VALID=no])
   AC_MSG_RESULT([${LIBMESH_VERSION_VALID}])
   if test "$LIBMESH_VERSION_VALID" = no; then
-    AC_MSG_ERROR([invalid libMesh version detected: please use libMesh 1.1.0 or newer])
+    AC_MSG_ERROR([invalid libMesh version detected: please use libMesh 1.7.0 or newer])
   fi
   AC_MSG_NOTICE([obtaining libMesh configuration information from libmesh_common.h])
 dnl

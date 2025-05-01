@@ -680,14 +680,14 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
     if (p_velocity_solver)
     {
         p_velocity_solver->setInitialGuessNonzero(false);
-        if (has_velocity_nullspace) p_velocity_solver->setNullspace(false, d_U_nul_vecs);
+        if (has_velocity_nullspace) p_velocity_solver->setNullSpace(false, d_U_nul_vecs);
     }
 
     auto p_pressure_solver = dynamic_cast<IBTK::LinearSolver*>(d_pressure_solver.getPointer());
     if (p_pressure_solver)
     {
         p_pressure_solver->setInitialGuessNonzero(false);
-        if (has_pressure_nullspace) p_pressure_solver->setNullspace(true);
+        if (has_pressure_nullspace) p_pressure_solver->setNullSpace(true);
     }
 
     d_velocity_solver->initializeSolverState(x_u_vec, b_u_vec);
@@ -725,7 +725,7 @@ KrylovMobilitySolver::initializeStokesSolver(const SAMRAIVectorReal<NDIM, double
         p_stokes_linear_solver->setInitialGuessNonzero(false);
         if (has_velocity_nullspace || has_pressure_nullspace)
         {
-            p_stokes_linear_solver->setNullspace(false, d_nul_vecs);
+            p_stokes_linear_solver->setNullSpace(false, d_nul_vecs);
         }
         p_stokes_linear_solver->initializeSolverState(sol_vec, rhs_vec);
     }

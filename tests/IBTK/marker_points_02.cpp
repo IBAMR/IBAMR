@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2023 - 2023 by the IBAMR developers
+// Copyright (c) 2023 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -120,8 +120,8 @@ main(int argc, char** argv)
     }
 
     // Set up marker points.
-    EigenAlignedVector<IBTK::Point> positions;
-    EigenAlignedVector<IBTK::Vector> velocities;
+    std::vector<IBTK::Point> positions;
+    std::vector<IBTK::Vector> velocities;
     if (!from_restart)
     {
         for (unsigned int i = 0; i < 10; ++i)

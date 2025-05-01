@@ -609,7 +609,7 @@ CIBMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     }
 
     // Initialize initial center of mass of structures.
-    IBTK::EigenAlignedVector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
+    std::vector<Eigen::Vector3d> X0_com(d_num_rigid_parts, Eigen::Vector3d::Zero());
     std::vector<Pointer<LData> > X0_unshifted_data_vec(finest_ln + 1, Pointer<LData>(nullptr));
     X0_unshifted_data_vec[finest_ln] = d_l_data_manager->getLData("X0_unshifted", finest_ln);
     computeCOMOfStructures(X0_com, X0_unshifted_data_vec);
@@ -685,7 +685,7 @@ CIBMethod::forwardEulerStep(double current_time, double new_time)
     const double dt = d_use_steady_stokes ? 0.0 : (new_time - current_time);
 
     // Fill the rotation matrix of structures with rotation angle 0.5*(W^n)*dt.
-    IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
+    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(d_rot_vel_current, d_quaternion_current, d_quaternion_half, rotation_mat, 0.5 * dt);
 
     // Get the domain limits.
@@ -804,7 +804,7 @@ CIBMethod::midpointStep(double current_time, double new_time)
     int flag_regrid = 0;
 
     // Fill the rotation matrix of structures with rotation angle (W^n+1)*dt.
-    IBTK::EigenAlignedVector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
+    std::vector<Eigen::Matrix3d> rotation_mat(d_num_rigid_parts, Eigen::Matrix3d::Identity(3, 3));
     setRotationMatrix(
         d_use_steady_stokes ? d_rot_vel_new : d_rot_vel_half, d_quaternion_current, d_quaternion_new, rotation_mat, dt);
 
@@ -1794,8 +1794,7 @@ CIBMethod::getFromRestart()
 } // getFromRestart
 
 void
-CIBMethod::computeCOMOfStructures(IBTK::EigenAlignedVector<Eigen::Vector3d>& center_of_mass,
-                                  std::vector<Pointer<LData> >& X_data)
+CIBMethod::computeCOMOfStructures(std::vector<Eigen::Vector3d>& center_of_mass, std::vector<Pointer<LData> >& X_data)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();

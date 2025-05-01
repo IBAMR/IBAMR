@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2017 - 2022 by the IBAMR developers
+// Copyright (c) 2017 - 2024 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -363,7 +363,7 @@ main(int argc, char* argv[])
             Pointer<PETScKrylovLinearSolver> krylov_solver = poisson_solver;
             if (krylov_solver)
             {
-                krylov_solver->setNullspace(false, U_nul_vecs);
+                krylov_solver->setNullSpace(false, U_nul_vecs);
             }
         }
 

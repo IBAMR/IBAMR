@@ -187,6 +187,32 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
       d_Q_bc_coefs(Q_bc_coefs),
       d_u_bc_coefs(u_bc_coefs)
 {
+    commonConstructor(input_db);
+    auto convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
+    d_convec_oper = convective_op_manager->allocateOperator(
+        convective_op_type, d_object_name + "::convec_oper", d_Q_var, input_db, d_difference_form, d_Q_bc_coefs);
+} // Constructor
+
+CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_name,
+                                                     Pointer<CellVariable<NDIM, double> > Q_var,
+                                                     Pointer<Database> input_db,
+                                                     Pointer<ConvectiveOperator> convective_op,
+                                                     ConvectiveDifferencingType difference_form,
+                                                     const std::vector<RobinBcCoefStrategy<NDIM>*>& Q_bc_coefs,
+                                                     const std::vector<RobinBcCoefStrategy<NDIM>*>& u_bc_coefs)
+    : ConvectiveOperator(object_name, difference_form),
+      d_Q_var(Q_var),
+      d_u_adv_var(new SideVariable<NDIM, double>("Complex U var")),
+      d_convec_oper(convective_op),
+      d_Q_bc_coefs(Q_bc_coefs),
+      d_u_bc_coefs(u_bc_coefs)
+{
+    commonConstructor(input_db);
+} // Constructor
+
+void
+CFUpperConvectiveOperator::commonConstructor(Pointer<Database> input_db)
+{
     if (input_db)
     {
         d_interp_type = input_db->getStringWithDefault("interp_type", d_interp_type);
@@ -203,10 +229,7 @@ CFUpperConvectiveOperator::CFUpperConvectiveOperator(const std::string& object_n
     d_u_scratch_idx = var_db->registerVariableAndContext(d_u_adv_var, new_cxt, IntVector<NDIM>(2));
     Pointer<VariableContext> src_cxt = var_db->getContext(d_object_name + "::SOURCE");
     d_s_idx = var_db->registerVariableAndContext(d_Q_var, src_cxt);
-    auto convective_op_manager = AdvDiffConvectiveOperatorManager::getManager();
-    d_convec_oper = convective_op_manager->allocateOperator(
-        convective_op_type, d_object_name + "::convec_oper", d_Q_var, input_db, d_difference_form, d_Q_bc_coefs);
-} // Constructor
+}
 
 CFUpperConvectiveOperator::~CFUpperConvectiveOperator()
 {

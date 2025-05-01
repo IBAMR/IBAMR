@@ -123,14 +123,13 @@ public:
      * Set the marker points stored by this class. This call is collective and
      * @p markers should be the same set of marker points on all processors.
      */
-    virtual void setMarkers(const IBTK::EigenAlignedVector<IBTK::Point>& markers);
+    virtual void setMarkers(const std::vector<IBTK::Point>& markers);
 
     /*!
      * Collect all marker point positions and velocities. This call is
      * collective.
      */
-    virtual std::pair<IBTK::EigenAlignedVector<IBTK::Point>, IBTK::EigenAlignedVector<IBTK::Vector> >
-    collectAllMarkers() const;
+    virtual std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> > collectAllMarkers() const;
 
     /*!
      * Write marker plot data. This function does nothing if there are no markers.
@@ -230,9 +229,9 @@ private:
      */
     struct RegridData
     {
-        IBTK::EigenAlignedVector<IBTK::Point> d_marker_positions;
+        std::vector<IBTK::Point> d_marker_positions;
 
-        IBTK::EigenAlignedVector<IBTK::Vector> d_marker_velocities;
+        std::vector<IBTK::Vector> d_marker_velocities;
     };
 
     /*!

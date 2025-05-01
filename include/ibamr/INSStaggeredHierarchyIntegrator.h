@@ -396,7 +396,7 @@ private:
      * Boundary condition and data synchronization operators.
      */
     SAMRAI::tbox::Pointer<StaggeredStokesPhysicalBoundaryHelper> d_bc_helper;
-    SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_side_synch_op;
+    SAMRAI::tbox::Pointer<IBTK::SideDataSynchronization> d_U_rhs_side_synch_op;
 
     /*
      * Hierarchy operators and solvers.

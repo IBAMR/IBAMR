@@ -243,8 +243,8 @@ public:
      */
     void updateMeshPosition(double current_time,
                             double new_time,
-                            const IBTK::EigenAlignedVector<Eigen::Vector3d>& U,
-                            const IBTK::EigenAlignedVector<Eigen::Vector3d>& W);
+                            const std::vector<Eigen::Vector3d>& U,
+                            const std::vector<Eigen::Vector3d>& W);
 
     /*!
      * Compute the Lagrangian force at the specified time within the current
@@ -391,7 +391,7 @@ protected:
     /*!
      * \brief Compute the center of mass of the mesh.
      */
-    void computeCenterOfMass(IBTK::EigenAlignedVector<Eigen::Vector3d>& center_of_mass,
+    void computeCenterOfMass(std::vector<Eigen::Vector3d>& center_of_mass,
                              std::vector<SAMRAI::tbox::Pointer<IBTK::LData> >& X_data);
 
     /*
@@ -424,8 +424,8 @@ protected:
     /*
      * Rigid body motion of the Lagrangian mesh.
      */
-    IBTK::EigenAlignedVector<Eigen::Vector3d> d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_new;
-    IBTK::EigenAlignedVector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_new;
+    std::vector<Eigen::Vector3d> d_center_of_mass_initial, d_center_of_mass_current, d_center_of_mass_new;
+    std::vector<Eigen::Quaterniond> d_quaternion_current, d_quaternion_new;
 
     /*
      * The LDataManager is used to coordinate the distribution of Lagrangian

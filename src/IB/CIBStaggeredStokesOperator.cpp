@@ -133,7 +133,6 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     const int P_idx = u_p.getComponentDescriptorIndex(1);
     const int A_U_idx = g_f.getComponentDescriptorIndex(0);
     const int A_P_idx = g_f.getComponentDescriptorIndex(1);
-    const int U_scratch_idx = d_x->getComponentDescriptorIndex(0);
 
     Pointer<SideVariable<NDIM, double> > U_sc_var = u_p.getComponentVariable(0);
     Pointer<CellVariable<NDIM, double> > P_cc_var = u_p.getComponentVariable(1);
@@ -143,8 +142,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     // Simultaneously fill ghost cell values for u and p.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     std::vector<InterpolationTransactionComponent> transaction_comps(2);
-    transaction_comps[0] = InterpolationTransactionComponent(U_scratch_idx,
-                                                             U_idx,
+    transaction_comps[0] = InterpolationTransactionComponent(U_idx,
                                                              d_refine_type,
                                                              d_use_cf_interpolation,
                                                              d_coarsen_type,
@@ -165,7 +163,7 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     d_hier_bdry_fill->resetTransactionComponents(transaction_comps);
     d_hier_bdry_fill->setHomogeneousBc(d_homogeneous_bc);
     StaggeredStokesPhysicalBoundaryHelper::setupBcCoefObjects(
-        d_U_bc_coefs, d_P_bc_coef, U_scratch_idx, P_idx, d_homogeneous_bc);
+        d_U_bc_coefs, d_P_bc_coef, U_idx, P_idx, d_homogeneous_bc);
     d_hier_bdry_fill->fillData(d_solution_time);
     StaggeredStokesPhysicalBoundaryHelper::resetBcCoefObjects(d_U_bc_coefs, d_P_bc_coef);
     d_hier_bdry_fill->resetTransactionComponents(d_transaction_comps);
@@ -178,16 +176,8 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
     // (a) Momentum equation.
     d_hier_math_ops->grad(A_U_idx, A_U_sc_var, /*cf_bdry_synch*/ false, 1.0, P_idx, P_cc_var, d_no_fill, half_time);
-    d_hier_math_ops->laplace(A_U_idx,
-                             A_U_sc_var,
-                             d_U_problem_coefs,
-                             U_scratch_idx,
-                             U_sc_var,
-                             d_no_fill,
-                             half_time,
-                             1.0,
-                             A_U_idx,
-                             A_U_sc_var);
+    d_hier_math_ops->laplace(
+        A_U_idx, A_U_sc_var, d_U_problem_coefs, U_idx, U_sc_var, d_no_fill, half_time, 1.0, A_U_idx, A_U_sc_var);
 
     d_cib_strategy->setConstraintForce(L, half_time, -1.0 * d_scale_spread);
     ib_method_ops->spreadForce(A_U_idx, nullptr, std::vector<Pointer<RefineSchedule<NDIM> > >(), half_time);
@@ -200,16 +190,16 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
     d_hier_math_ops->div(A_P_idx,
                          A_P_cc_var,
                          -1.0,
-                         U_scratch_idx,
+                         U_idx,
                          U_sc_var,
                          d_no_fill,
                          half_time,
                          /*cf_bdry_synch*/ true);
-    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_scratch_idx);
+    d_bc_helper->copyDataAtDirichletBoundaries(A_U_idx, U_idx);
 
     // (c) Rigid body velocity constraint.
     d_cib_strategy->setInterpolatedVelocityVector(V, half_time);
-    ib_method_ops->interpolateVelocity(U_scratch_idx,
+    ib_method_ops->interpolateVelocity(U_idx,
                                        std::vector<Pointer<CoarsenSchedule<NDIM> > >(),
                                        std::vector<Pointer<RefineSchedule<NDIM> > >(),
                                        half_time);
@@ -245,19 +235,12 @@ CIBStaggeredStokesOperator::apply(Vec x, Vec y)
 
 void
 CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>& in,
-                                                    const SAMRAIVectorReal<NDIM, double>& out)
+                                                    const SAMRAIVectorReal<NDIM, double>& /*out*/)
 {
     IBAMR_TIMER_START(t_initialize_operator_state);
 
     // Deallocate the operator state if the operator is already initialized.
     if (d_is_initialized) deallocateOperatorState();
-
-    // Setup solution and rhs vectors.
-    d_x = in.cloneVector(in.getName());
-    d_b = out.cloneVector(out.getName());
-
-    // Allocate scratch data.
-    d_x->allocateVectorData();
 
     // Setup the interpolation transaction information.
     //
@@ -267,8 +250,7 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
     d_P_fill_pattern = nullptr;
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.resize(2);
-    d_transaction_comps[0] = InterpolationTransactionComponent(d_x->getComponentDescriptorIndex(0),
-                                                               in.getComponentDescriptorIndex(0),
+    d_transaction_comps[0] = InterpolationTransactionComponent(in.getComponentDescriptorIndex(0),
                                                                d_refine_type,
                                                                d_use_cf_interpolation,
                                                                d_coarsen_type,
@@ -289,7 +271,7 @@ CIBStaggeredStokesOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM,
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_x->getPatchHierarchy());
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, in.getPatchHierarchy());
 
     // Initialize hierarchy math ops object.
     if (!d_hier_math_ops_external)
@@ -328,21 +310,6 @@ CIBStaggeredStokesOperator::deallocateOperatorState()
     d_transaction_comps.clear();
     d_U_fill_pattern.setNull();
     d_P_fill_pattern.setNull();
-
-    // Deallocate scratch data.
-    deallocate_vector_data(*d_x);
-
-    // Delete the solution and rhs vectors.
-    d_x->resetLevels(d_x->getCoarsestLevelNumber(),
-                     std::min(d_x->getFinestLevelNumber(), d_x->getPatchHierarchy()->getFinestLevelNumber()));
-    free_vector_components(*d_x);
-
-    d_b->resetLevels(d_b->getCoarsestLevelNumber(),
-                     std::min(d_b->getFinestLevelNumber(), d_b->getPatchHierarchy()->getFinestLevelNumber()));
-    free_vector_components(*d_b);
-
-    d_x.setNull();
-    d_b.setNull();
 
     // Indicate that the operator is NOT initialized.
     d_is_initialized = false;

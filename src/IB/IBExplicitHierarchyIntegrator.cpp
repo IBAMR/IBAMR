@@ -523,7 +523,7 @@ IBExplicitHierarchyIntegrator::getNumberOfMarkers() const
 }
 
 void
-IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>& markers)
+IBExplicitHierarchyIntegrator::setMarkers(const std::vector<IBTK::Point>& markers)
 {
     if (d_marker_kernel.size() == 0)
     {
@@ -544,7 +544,7 @@ IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>&
         d_ib_data.setFlag(d_u_half_idx);
     }
 
-    EigenAlignedVector<IBTK::Vector> velocities(markers.size());
+    std::vector<IBTK::Vector> velocities(markers.size());
     // Eigen 'bug': no default initialization
     IBTK::Vector v;
     v.fill(0.0);
@@ -561,7 +561,7 @@ IBExplicitHierarchyIntegrator::setMarkers(const EigenAlignedVector<IBTK::Point>&
     d_marker_velocities_set = false;
 } // setMarkers
 
-std::pair<EigenAlignedVector<IBTK::Point>, EigenAlignedVector<IBTK::Vector> >
+std::pair<std::vector<IBTK::Point>, std::vector<IBTK::Vector> >
 IBExplicitHierarchyIntegrator::collectAllMarkers() const
 {
     if (d_markers)
@@ -569,8 +569,8 @@ IBExplicitHierarchyIntegrator::collectAllMarkers() const
     else
     {
         // Some older compilers cannot convert just '{}' into a std::pair so help it out
-        EigenAlignedVector<IBTK::Point> positions;
-        EigenAlignedVector<IBTK::Vector> velocities;
+        std::vector<IBTK::Point> positions;
+        std::vector<IBTK::Vector> velocities;
         return std::make_pair(positions, velocities);
     }
 } // collectAllMarkers

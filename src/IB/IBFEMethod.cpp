@@ -371,6 +371,9 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
     : FEMechanicsBase(object_name, input_db, mesh, register_for_restart, restart_read_dirname, restart_restore_number),
       d_source_system_name(SOURCE_SYSTEM_NAME_VAL)
 {
+    // Check if the mesh dimention is compatable with the IBStategy
+    TBOX_ASSERT(mesh->mesh_dimension() == mesh->spatial_dimension());
+
     commonConstructor(input_db, max_levels);
     return;
 } // IBFEMethod
@@ -390,6 +393,12 @@ IBFEMethod::IBFEMethod(const std::string& object_name,
                       restart_restore_number),
       d_source_system_name(SOURCE_SYSTEM_NAME_VAL)
 {
+    // Check if the mesh dimention is compatable with the IBStategy
+    for (libMesh::MeshBase* mesh : meshes)
+    {
+        TBOX_ASSERT(mesh->mesh_dimension() == mesh->spatial_dimension());
+    }
+
     commonConstructor(input_db, max_levels);
     return;
 } // IBFEMethod
