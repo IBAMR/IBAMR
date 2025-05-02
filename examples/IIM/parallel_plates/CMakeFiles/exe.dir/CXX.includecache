@@ -1,0 +1,34 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/mfacci/sfw/ibamr/IBAMR/examples/IIM/parallel_plates/read_file.C
+iostream
+-
+mpi.h
+-
+vector
+-
+cassert
+-
+fstream
+-
+
+/home/mfacci/sfw/linux/openmpi/4.0.2/include/mpi.h
+stddef.h
+-
+mpi_portable_platform.h
+/home/mfacci/sfw/linux/openmpi/4.0.2/include/mpi_portable_platform.h
+openmpi/ompi/mpi/cxx/mpicxx.h
+/home/mfacci/sfw/linux/openmpi/4.0.2/include/openmpi/ompi/mpi/cxx/mpicxx.h
+
+/home/mfacci/sfw/linux/openmpi/4.0.2/include/mpi_portable_platform.h
+omp.h
+/home/mfacci/sfw/linux/openmpi/4.0.2/include/omp.h
+omp.h
+/home/mfacci/sfw/linux/openmpi/4.0.2/include/omp.h
+
