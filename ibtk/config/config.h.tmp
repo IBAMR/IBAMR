@@ -62,6 +62,8 @@ _Pragma("GCC diagnostic ignored \"-Wunneeded-internal-declaration\"")
 
 #endif // #ifdef IBTK_HAVE_PRAGMA_KEYWORD
 
+#include <ibtk/samrai_compatability.h>
+
 #include <ibtk/IBTK_CHKERRQ.h>
 #include <ibtk/compiler_hints.h>
 #include <ibtk/ibtk_utilities.h>
