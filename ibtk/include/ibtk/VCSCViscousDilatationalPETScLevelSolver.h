@@ -13,8 +13,8 @@
 
 /////////////////////////////// INCLUDE GUARD ////////////////////////////////
 
-#ifndef included_IBTK_VCSCViscousPETScLevelSolver
-#define included_IBTK_VCSCViscousPETScLevelSolver
+#ifndef included_IBTK_VCSCViscousDilatationalPETScLevelSolver
+#define included_IBTK_VCSCViscousDilatationalPETScLevelSolver
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
@@ -41,30 +41,32 @@ class SAMRAIVectorReal;
 namespace IBTK
 {
 /*!
- * \brief Class VCSCViscousPETScLevelSolver is a subclass of SCPoissonPETScLevelSolver
+ * \brief Class VCSCViscousDilatationalPETScLevelSolver is a subclass of SCPoissonPETScLevelSolver
  * class which solves vector-valued elliptic equation of the form
- * \f$ \mbox{$L \vec{u}$} = C \vec{u} + \nabla \cdot \mu (\nabla \vec{u} + (\nabla \vec{u})^T) = \vec{f} \f$
+ * \f$ \mbox{$L \vec{u}$} = C \vec{u} + \nabla \cdot \mu (\nabla \vec{u} + (\nabla \vec{u})^T) + \nabla (\lambda \nabla
+ \cdot \vec{u})= \vec{f} \f$
  * on a \em single SAMRAI::hier::PatchLevel
  * using <A HREF="http://www.mcs.anl.gov/petsc/petsc-as">PETSc</A>.
  *
  * This solver class uses the PETSc library to solve linear equations of the
- * form \f$ C \vec{u} + \nabla \cdot \mu (\nabla \vec{u} + (\nabla \vec{u})^T) = \vec{f} \f$,
- * in which \f$ C \f$ and \f$ \mu \f$ are spacially varying coefficients,
- * and \f$ \vec{u}\f$ and \f$ \vec{f}\f$ are side-centered arrays. The discretization
- * is second-order accurate. For physical problems $\mu$ is negative and $C$ is positive.
+ * form \f$ C u + \nabla \cdot \mu (\nabla \vec{u} + (\nabla \vec{u})^T) + \nabla (\lambda \nabla \cdot \vec{u}) = f
+ \f$,
+ * in which \f$ C \f$, \f$ \mu \f$ and \f$ \lambda \f$ are spacially varying coefficients,
+ * and \f$\vec{u}\f$ and \f$\vec{f}\f$ are side-centered quantities. The discretization
+ * is second-order accurate. For physical problems $\mu$ and $\lambda$ are negative and $C$ is positive.
  * The class does not modify the signs of these quantities, and uses whatever the user
- * sets in the SAMRAI::solv::PoissonSpecifications object.
+ * sets in the IBTK::ProblemSpecification object.
  *
  * Robin boundary conditions may be specified through the interface class
  * SAMRAI::solv::RobinBcCoefStrategy.
  *
  * The user must perform the following steps to use class
- * VCSCViscousPETScLevelSolver:
+ * VCSCViscousDilatationalPETScLevelSolver:
  *
- * -# Create a VCSCViscousPETScLevelSolver object.
- * -# Set the problem specification via setPoissonSpecifications(),
+ * -# Create a VCSCViscousDilatationalPETScLevelSolver object.
+ * -# Set the problem specification via setProblemSpecification(),
  *    setPhysicalBcCoef(), and setHomogeneousBc().
- * -# Initialize VCSCViscousPETScLevelSolver object using the function
+ * -# Initialize VCSCViscousDilatationalPETScLevelSolver object using the function
  *    initializeSolverState().
  * -# Solve the linear system using the member function solveSystem(), passing
  *    in SAMRAI::solv::SAMRAIVectorReal objects corresponding to \f$\vec{u}\f$ and
@@ -85,36 +87,36 @@ namespace IBTK
  * Computer Science Division.  For more information about \em PETSc, see <A
  * HREF="http://www.mcs.anl.gov/petsc">http://www.mcs.anl.gov/petsc</A>.
  */
-class VCSCViscousPETScLevelSolver : public SCPoissonPETScLevelSolver
+class VCSCViscousDilatationalPETScLevelSolver : public SCPoissonPETScLevelSolver
 {
 public:
     /*!
      * \brief Constructor.
      */
-    VCSCViscousPETScLevelSolver(std::string object_name,
-                                SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
-                                std::string default_options_prefix);
+    VCSCViscousDilatationalPETScLevelSolver(std::string object_name,
+                                            SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
+                                            std::string default_options_prefix);
 
     /*!
      * \brief Destructor.
      */
-    ~VCSCViscousPETScLevelSolver();
+    ~VCSCViscousDilatationalPETScLevelSolver();
 
     /*!
-     * \brief Static function to construct a VCSCViscousPETScLevelSolver.
+     * \brief Static function to construct a VCSCViscousDilatationalPETScLevelSolver.
      */
     static SAMRAI::tbox::Pointer<PoissonSolver> allocate_solver(const std::string& object_name,
                                                                 SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db,
                                                                 const std::string& default_options_prefix)
     {
-        return new VCSCViscousPETScLevelSolver(object_name, input_db, default_options_prefix);
+        return new VCSCViscousDilatationalPETScLevelSolver(object_name, input_db, default_options_prefix);
     } // allocate_solver
 
     /*!
      * \brief Set the interpolation type to be used in interpolating the
      * viscosity.
      */
-    void setViscosityInterpolationType(IBTK::VCInterpType mu_interp_type);
+    void setShearViscosityInterpolationType(IBTK::VCInterpType mu_interp_type);
 
 protected:
     /*!
@@ -139,7 +141,7 @@ private:
      *
      * \note This constructor is not implemented and should not be used.
      */
-    VCSCViscousPETScLevelSolver() = delete;
+    VCSCViscousDilatationalPETScLevelSolver() = delete;
 
     /*!
      * \brief Copy constructor.
@@ -148,7 +150,7 @@ private:
      *
      * \param from The value to copy to this object.
      */
-    VCSCViscousPETScLevelSolver(const VCSCViscousPETScLevelSolver& from) = delete;
+    VCSCViscousDilatationalPETScLevelSolver(const VCSCViscousDilatationalPETScLevelSolver& from) = delete;
 
     /*!
      * \brief Assignment operator.
@@ -159,7 +161,7 @@ private:
      *
      * \return A reference to this object.
      */
-    VCSCViscousPETScLevelSolver& operator=(const VCSCViscousPETScLevelSolver& that) = delete;
+    VCSCViscousDilatationalPETScLevelSolver& operator=(const VCSCViscousDilatationalPETScLevelSolver& that) = delete;
 
     /*
      * The interpolation type to be used for viscosity
@@ -170,4 +172,4 @@ private:
 
 //////////////////////////////////////////////////////////////////////////////
 
-#endif // #ifndef included_IBTK_VCSCViscousPETScLevelSolver
+#endif // #ifndef included_IBTK_VCSCViscousDilatationalPETScLevelSolver
