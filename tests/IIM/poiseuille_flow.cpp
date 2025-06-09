@@ -234,8 +234,13 @@ main(int argc, char* argv[])
         for (unsigned int i = 0; i < nn; i++)
         {
             Elem* elem = lower_mesh.add_elem(new Edge2);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = lower_mesh.node_ptr(i);
             elem->set_node(1) = lower_mesh.node_ptr(i + 1);
+#else
+            elem->set_node(0, lower_mesh.node_ptr(i));
+            elem->set_node(1, lower_mesh.node_ptr(i + 1));
+#endif
             if (i == 0) boundary_info_lower.add_side(elem, 0, 0);
             if (i == (nn - 1)) boundary_info_lower.add_side(elem, 1, 1);
         }
@@ -261,8 +266,13 @@ main(int argc, char* argv[])
         for (unsigned int i = 0; i < nn; i++)
         {
             Elem* elem = upper_mesh.add_elem(new Edge2);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = upper_mesh.node_ptr(i);
             elem->set_node(1) = upper_mesh.node_ptr(i + 1);
+#else
+            elem->set_node(0, upper_mesh.node_ptr(i));
+            elem->set_node(1, upper_mesh.node_ptr(i + 1));
+#endif
             if (i == 0) boundary_info_upper.add_side(elem, 0, 0);
             if (i == (nn - 1)) boundary_info_upper.add_side(elem, 1, 1);
         }
