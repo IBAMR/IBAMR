@@ -229,20 +229,34 @@ main(int argc, char* argv[])
             for (unsigned int i = 0; i <= NRi_elem - 2; i++)
             {
                 Elem* elem = cylinder_mesh_thin.add_elem(new Quad4);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
                 elem->set_node(0) = cylinder_mesh_thin.node_ptr(idx(NRi_elem, i, j));
                 elem->set_node(1) = cylinder_mesh_thin.node_ptr(idx(NRi_elem, i + 1, j));
                 elem->set_node(2) = cylinder_mesh_thin.node_ptr(idx(NRi_elem, i + 1, j + 1));
                 elem->set_node(3) = cylinder_mesh_thin.node_ptr(idx(NRi_elem, i, j + 1));
+#else
+                elem->set_node(0, cylinder_mesh_thin.node_ptr(idx(NRi_elem, i, j)));
+                elem->set_node(1, cylinder_mesh_thin.node_ptr(idx(NRi_elem, i + 1, j)));
+                elem->set_node(2, cylinder_mesh_thin.node_ptr(idx(NRi_elem, i + 1, j + 1)));
+                elem->set_node(3, cylinder_mesh_thin.node_ptr(idx(NRi_elem, i, j + 1)));
+#endif
             }
         }
 
         for (unsigned int j = 0; j <= NXi_elem - 1; j++)
         {
             Elem* elem = cylinder_mesh_thin.add_elem(new Quad4);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = cylinder_mesh_thin.node_ptr(idx(NRi_elem, NRi_elem - 1, j));
             elem->set_node(1) = cylinder_mesh_thin.node_ptr(idx(NRi_elem, 0, j));
             elem->set_node(2) = cylinder_mesh_thin.node_ptr(idx(NRi_elem, 0, j + 1));
             elem->set_node(3) = cylinder_mesh_thin.node_ptr(idx(NRi_elem, NRi_elem - 1, j + 1));
+#else
+            elem->set_node(0, cylinder_mesh_thin.node_ptr(idx(NRi_elem, NRi_elem - 1, j)));
+            elem->set_node(1, cylinder_mesh_thin.node_ptr(idx(NRi_elem, 0, j)));
+            elem->set_node(2, cylinder_mesh_thin.node_ptr(idx(NRi_elem, 0, j + 1)));
+            elem->set_node(3, cylinder_mesh_thin.node_ptr(idx(NRi_elem, NRi_elem - 1, j + 1)));
+#endif
         }
 
         MeshBase::const_element_iterator el_end = cylinder_mesh_thin.elements_end();

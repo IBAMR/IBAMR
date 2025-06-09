@@ -113,7 +113,11 @@ QuadratureData::QuadratureData(const QuadratureData::key_type quad_key) : d_key(
     const int dim = get_dim(elem_type);
 
     std::unique_ptr<QBase> quad_rule = QBase::build(quad_type, dim, order);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
     quad_rule->init(elem_type);
+#else
+    quad_rule->init(elem_type, /*p_level=*/0, /*simple_type_only=*/true);
+#endif
     d_points = quad_rule->get_points();
     d_weights = quad_rule->get_weights();
 }

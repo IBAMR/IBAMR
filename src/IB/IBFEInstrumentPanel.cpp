@@ -259,9 +259,15 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
             elem->set_id(i);
             // libMesh will delete elem
             elem = d_meter_meshes[meter_idx]->add_elem(elem);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = d_meter_meshes[meter_idx]->node_ptr(d_num_perim_nodes[meter_idx]);
             elem->set_node(1) = d_meter_meshes[meter_idx]->node_ptr(i);
             elem->set_node(2) = d_meter_meshes[meter_idx]->node_ptr((i + 1) % d_num_perim_nodes[meter_idx]);
+#else
+            elem->set_node(0, d_meter_meshes[meter_idx]->node_ptr(d_num_perim_nodes[meter_idx]));
+            elem->set_node(1, d_meter_meshes[meter_idx]->node_ptr(i));
+            elem->set_node(2, d_meter_meshes[meter_idx]->node_ptr((i + 1) % d_num_perim_nodes[meter_idx]));
+#endif
         }
         d_meter_meshes[meter_idx]->allow_renumbering(false);
         d_meter_meshes[meter_idx]->prepare_for_use();

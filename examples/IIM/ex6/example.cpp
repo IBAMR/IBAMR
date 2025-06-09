@@ -91,7 +91,7 @@ block_tether_force_function(VectorValue<double>& F,
                             double /*time*/,
                             void* /*ctx*/)
 {
-    const libMesh::Point cp_elem = elem->centroid();
+    const libMesh::Point cp_elem = elem->vertex_average();
 
     if (cp_elem(0) < 0.25)
     {
@@ -126,7 +126,7 @@ FSI_tether_force_function(VectorValue<double>& F,
     // we look up the element in the solid mesh that the current boundary
     // element was extracted from.
     const Elem* const interior_parent = elem->interior_parent();
-    const libMesh::Point cp_elem = elem->centroid();
+    const libMesh::Point cp_elem = elem->vertex_average();
 
     // We define "arbitrary" velocity and displacement fields on the solid mesh.
     // Here we look up their values.
@@ -187,7 +187,7 @@ solid_surface_force_function(VectorValue<double>& F,
     MeshBase& mesh_bndry = boundary_systems->get_mesh();
     std::unique_ptr<Elem> side_elem = elem->side_ptr(side);
 
-    const libMesh::Point cp_elem = elem->centroid();
+    const libMesh::Point cp_elem = elem->vertex_average();
 
     if (cp_elem(0) < 0.25)
     {
@@ -259,7 +259,7 @@ PK1_dev_stress_function(TensorValue<double>& PP,
 
 #endif
 
-    const libMesh::Point cp_elem = elem->centroid();
+    const libMesh::Point cp_elem = elem->vertex_average();
 
     if (cp_elem(0) < 0.25) // if ( r < 0.05 )
     {
@@ -296,7 +296,7 @@ beam_PK1_dil_stress_function(TensorValue<double>& PP,
     double J = FF.det();
     TensorValue<double> FF_inv_trans = tensor_inverse_transpose(FF, NDIM);
 
-    const libMesh::Point cp_elem = elem->centroid();
+    const libMesh::Point cp_elem = elem->vertex_average();
 
     if (cp_elem(0) < 0.25)
     {
