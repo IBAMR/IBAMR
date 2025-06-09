@@ -659,7 +659,7 @@ FEDataManager::reinitElementMappings()
                     bool inside_patch = true;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                        X_dof_map.dof_indices(n, X_idxs, d);
                         X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
                         // Due to how SAMRAI computes patch boundaries, even if the
                         // patch's domain is [0, 1]^2 the patches on the boundary
@@ -1086,7 +1086,7 @@ FEDataManager::spread(const int f_data_idx,
                     bool inside_patch = true;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                        X_dof_map.dof_indices(n, X_idxs, d);
                         X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
                         inside_patch =
                             inside_patch && (X[d] >= patch_x_lower[d]) &&
@@ -1096,7 +1096,7 @@ FEDataManager::spread(const int f_data_idx,
                     {
                         for (unsigned int i = 0; i < n_vars; ++i)
                         {
-                            IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
+                            F_dof_map.dof_indices(n, F_idxs, i);
                             for (const auto& F_idx : F_idxs)
                             {
                                 F_x_dX_node.push_back(
@@ -1861,7 +1861,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     bool inside_patch = true;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                        X_dof_map.dof_indices(n, X_idxs, d);
                         X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
                         inside_patch =
                             inside_patch && (X[d] >= patch_x_lower[d]) &&
@@ -1873,7 +1873,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                         X_node.insert(X_node.end(), &X[0], &X[0] + NDIM);
                         for (unsigned int i = 0; i < n_vars; ++i)
                         {
-                            IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
+                            F_dof_map.dof_indices(n, F_idxs, i);
                             F_node_idxs.insert(F_node_idxs.end(), F_idxs.begin(), F_idxs.end());
                         }
                     }
@@ -3007,7 +3007,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                     const Node* const n = patch_nodes[k];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                        X_dof_map.dof_indices(n, X_idxs, d);
                         X_qp[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
                     }
                     const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
