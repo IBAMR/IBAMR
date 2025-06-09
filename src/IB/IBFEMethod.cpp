@@ -2568,8 +2568,11 @@ IBFEMethod::imposeJumpConditions(const int f_data_idx,
                 // Skip Dirichlet boundaries.
                 if (is_dirichlet_bdry(elem, side, boundary_info, G_dof_map)) continue;
 
-                // Construct a side element.
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
                 std::unique_ptr<Elem> side_elem = elem->build_side_ptr(side, /*proxy*/ false);
+#else
+                std::unique_ptr<Elem> side_elem = elem->build_side_ptr(side);
+#endif
                 const unsigned int n_node_side = side_elem->n_nodes();
                 for (int d = 0; d < NDIM; ++d)
                 {

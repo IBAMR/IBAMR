@@ -247,7 +247,6 @@ tether_FSI_force_function_beam(VectorValue<double>& F,
     // we look up the element in the solid mesh that the current boundary
     // element was extracted from.
     const Elem* const interior_parent = elem->interior_parent();
-    const libMesh::Point cp_elem = elem->centroid();
 
     // We define "arbitrary" velocity and displacement fields on the solid mesh.
     // Here we look up their values.

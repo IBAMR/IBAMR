@@ -228,20 +228,34 @@ main(int argc, char* argv[])
             for (unsigned int i = 0; i <= NRi_elem - 2; i++)
             {
                 Elem* elem = inner_mesh.add_elem(new Quad4);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
                 elem->set_node(0) = inner_mesh.node_ptr(idx(NRi_elem, i, j));
                 elem->set_node(1) = inner_mesh.node_ptr(idx(NRi_elem, i + 1, j));
                 elem->set_node(2) = inner_mesh.node_ptr(idx(NRi_elem, i + 1, j + 1));
                 elem->set_node(3) = inner_mesh.node_ptr(idx(NRi_elem, i, j + 1));
+#else
+                elem->set_node(0, inner_mesh.node_ptr(idx(NRi_elem, i, j)));
+                elem->set_node(1, inner_mesh.node_ptr(idx(NRi_elem, i + 1, j)));
+                elem->set_node(2, inner_mesh.node_ptr(idx(NRi_elem, i + 1, j + 1)));
+                elem->set_node(3, inner_mesh.node_ptr(idx(NRi_elem, i, j + 1)));
+#endif
             }
         }
 
         for (unsigned int j = 0; j <= NXi_elem - 1; j++)
         {
             Elem* elem = inner_mesh.add_elem(new Quad4);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = inner_mesh.node_ptr(idx(NRi_elem, NRi_elem - 1, j));
             elem->set_node(1) = inner_mesh.node_ptr(idx(NRi_elem, 0, j));
             elem->set_node(2) = inner_mesh.node_ptr(idx(NRi_elem, 0, j + 1));
             elem->set_node(3) = inner_mesh.node_ptr(idx(NRi_elem, NRi_elem - 1, j + 1));
+#else
+            elem->set_node(0, inner_mesh.node_ptr(idx(NRi_elem, NRi_elem - 1, j)));
+            elem->set_node(1, inner_mesh.node_ptr(idx(NRi_elem, 0, j)));
+            elem->set_node(2, inner_mesh.node_ptr(idx(NRi_elem, 0, j + 1)));
+            elem->set_node(3, inner_mesh.node_ptr(idx(NRi_elem, NRi_elem - 1, j + 1)));
+#endif
         }
 
         const auto el_end = inner_mesh.elements_end();

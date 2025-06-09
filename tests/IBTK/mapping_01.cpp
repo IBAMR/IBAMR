@@ -68,7 +68,11 @@ test(LibMeshInit& init)
     for (const libMesh::QuadratureType quad_type : quad_types)
     {
         std::unique_ptr<QBase> quad = QBase::build(quad_type, dim, THIRD);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
         quad->init(elem_type);
+#else
+        quad->init(elem_type, 0, true);
+#endif
         FEType fe_type(order, fe_family);
         std::unique_ptr<FEBase> libmesh_fe = FEBase::build(dim, fe_type);
         libmesh_fe->attach_quadrature_rule(quad.get());
