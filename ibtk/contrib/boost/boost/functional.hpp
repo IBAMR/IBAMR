@@ -21,7 +21,7 @@ namespace boost
     namespace functional
     {
         namespace detail {
-#if defined(_HAS_AUTO_PTR_ETC) && !_HAS_AUTO_PTR_ETC
+#if 1
             // std::unary_function and std::binary_function were both removed
             // in C++17.
 
