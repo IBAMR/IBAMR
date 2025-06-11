@@ -83,17 +83,12 @@ IBFEInstrumentPanel::initializeHierarchyIndependentData(IBFEMethod* const ib_met
     // Get boundary information.
     std::vector<dof_id_type> nodes;
     std::vector<boundary_id_type> bcs;
-    // new API in 1.4.0
-#if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
-    boundary_info.build_node_list(nodes, bcs);
-#else
     const std::vector<std::tuple<dof_id_type, boundary_id_type> > node_list = boundary_info.build_node_list();
     for (const std::tuple<dof_id_type, boundary_id_type>& pair : node_list)
     {
         nodes.push_back(std::get<0>(pair));
         bcs.push_back(std::get<1>(pair));
     }
-#endif
 
     // Check to make sure there are node sets to work with.
     if (nodes.size() == 0 || bcs.size() == 0 || (nodes.size() != bcs.size()))
