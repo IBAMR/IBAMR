@@ -288,11 +288,7 @@ FELagrangeMapping<dim, spacedim, n_nodes>::FELagrangeMapping(
       d_n_nodes(n_nodes == -1 ? static_cast<int>(get_n_nodes(std::get<0>(quad_key))) : n_nodes)
 {
     if (n_nodes != -1) TBOX_ASSERT(d_n_nodes == n_nodes);
-#if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
-    TBOX_ASSERT(d_n_nodes <= 27);
-#else
     TBOX_ASSERT(d_n_nodes <= static_cast<int>(libMesh::Elem::max_n_nodes));
-#endif
     typename decltype(d_dphi)::extent_gen extents;
     d_dphi.resize(extents[d_n_nodes][this->d_quadrature_data.size()]);
 
@@ -318,13 +314,7 @@ FELagrangeMapping<dim, spacedim, n_nodes>::fillTransforms(const libMesh::Elem* e
     TBOX_ASSERT(this->d_update_flags & FEUpdateFlags::update_contravariants);
     TBOX_ASSERT(d_n_nodes <= static_cast<int>(elem->n_nodes()));
 
-    // max_n_nodes is a constant defined by libMesh - currently 27
-#if LIBMESH_VERSION_LESS_THAN(1, 4, 0)
-    double xs[27][spacedim];
-#else
     double xs[libMesh::Elem::max_n_nodes][spacedim];
-#endif
-
     const int n_nodes_ = n_nodes == -1 ? d_n_nodes : n_nodes;
     for (int i = 0; i < n_nodes_; ++i)
     {
