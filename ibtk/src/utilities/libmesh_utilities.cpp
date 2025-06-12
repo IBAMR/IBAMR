@@ -19,11 +19,7 @@
 
 #include "tbox/Utilities.h"
 
-#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
-#include "libmesh/mesh_tools.h"
-#else
 #include "libmesh/bounding_box.h"
-#endif
 #include "libmesh/dof_map.h"
 #include "libmesh/elem.h"
 #include "libmesh/enum_elem_type.h"
@@ -356,7 +352,7 @@ write_node_partitioning(const std::string& file_name, const libMesh::System& pos
     }
 }
 
-std::vector<libMeshWrappers::BoundingBox>
+std::vector<libMesh::BoundingBox>
 get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
                                  const libMesh::System& X_system,
                                  const libMesh::QuadratureType quad_type,
@@ -374,7 +370,7 @@ get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
     auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
     X_ghost_vec = *X_system.solution;
 
-    std::vector<libMeshWrappers::BoundingBox> bboxes;
+    std::vector<libMesh::BoundingBox> bboxes;
 
     std::vector<std::vector<libMesh::dof_id_type> > dof_indices(NDIM);
     boost::multi_array<double, 2> X_node;
@@ -457,7 +453,7 @@ get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
     return bboxes;
 } // get_local_element_bounding_boxes
 
-std::vector<libMeshWrappers::BoundingBox>
+std::vector<libMesh::BoundingBox>
 get_local_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
     const unsigned int spacedim = mesh.spatial_dimension();
@@ -467,7 +463,7 @@ get_local_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::S
     auto& X_ghost_vec = dynamic_cast<libMesh::PetscVector<double>&>(*X_ghost_vec_ptr);
     X_ghost_vec = *X_system.solution;
 
-    std::vector<libMeshWrappers::BoundingBox> bboxes;
+    std::vector<libMesh::BoundingBox> bboxes;
     bboxes.reserve(mesh.n_local_elem());
 
     std::vector<libMesh::dof_id_type> dof_indices;
@@ -526,9 +522,8 @@ get_local_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::S
     return bboxes;
 } // get_local_element_bounding_boxes
 
-std::vector<libMeshWrappers::BoundingBox>
-get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                  const std::vector<libMeshWrappers::BoundingBox>& local_bboxes)
+std::vector<libMesh::BoundingBox>
+get_global_element_bounding_boxes(const libMesh::MeshBase& mesh, const std::vector<libMesh::BoundingBox>& local_bboxes)
 {
     const std::size_t n_elem = mesh.n_elem();
     std::vector<double> flattened_bboxes(2 * LIBMESH_DIM * n_elem);
@@ -550,7 +545,7 @@ get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
         MPI_IN_PLACE, flattened_bboxes.data(), flattened_bboxes.size(), MPI_DOUBLE, MPI_SUM, mesh.comm().get());
     TBOX_ASSERT(ierr == 0);
 
-    std::vector<libMeshWrappers::BoundingBox> global_bboxes(n_elem);
+    std::vector<libMesh::BoundingBox> global_bboxes(n_elem);
     for (unsigned int e = 0; e < n_elem; ++e)
     {
         for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
@@ -562,7 +557,7 @@ get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
     return global_bboxes;
 } // get_local_element_bounding_boxes
 
-std::vector<libMeshWrappers::BoundingBox>
+std::vector<libMesh::BoundingBox>
 get_global_element_bounding_boxes(const libMesh::MeshBase& mesh, const libMesh::System& X_system)
 {
     static_assert(NDIM <= LIBMESH_DIM,
