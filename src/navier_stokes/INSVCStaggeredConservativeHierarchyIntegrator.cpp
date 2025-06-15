@@ -1253,7 +1253,6 @@ INSVCStaggeredConservativeHierarchyIntegrator::updateOperatorsAndSolvers(const d
     // (inertial) flows. The steady-state variable viscosity Stokes sytem is handled by the non-conservative integrator.
     d_vc_projection_pc_spec.d_D_idx = d_pressure_D_idx;
     d_vc_projection_pc_spec.d_D_is_const = false;
-    d_vc_projection_pc_spec.d_steady_state = false;
     d_vc_projection_pc_spec.d_theta = 1.0 / dt;
 
     // Ensure that solver components are appropriately reinitialized at the

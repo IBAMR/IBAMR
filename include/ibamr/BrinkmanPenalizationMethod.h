@@ -101,6 +101,11 @@ public:
     void demarcateBrinkmanZone(int u_idx, double time, int cycle_num) override;
 
     /*!
+     * \brief Define the Heaviside function based on the level set function registered with this class.
+     */
+    void defineHeavisideFunction(int H_idx) override;
+
+    /*!
      * \brief Write out object state to the given database.
      */
     void putToDatabase(SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> db) override;

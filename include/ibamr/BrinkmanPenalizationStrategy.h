@@ -74,6 +74,11 @@ public:
     virtual void demarcateBrinkmanZone(int u_idx, double time, int cycle_num) = 0;
 
     /*!
+     * \brief Define the Heaviside/indicator function where the body is present.
+     */
+    virtual void defineHeavisideFunction(int H_idx);
+
+    /*!
      * \brief Postprocess routine after computing Brinkman penalization related terms.
      *
      * \note An empty implementation is provided by default.

@@ -1355,10 +1355,9 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         // Set the coefficient to correct velocity after pressure is computed within the preconditioner.
         // For the steady Stokes case, the projection preconditioner uses D = -1 to correct velocity after
         // pressure calculation.
-        d_vc_projection_pc_spec.d_steady_state = rho_is_zero;
         d_vc_projection_pc_spec.d_D_const = rho_is_zero ? -1.0 : -1.0 / rho;
         d_vc_projection_pc_spec.d_D_is_const = true;
-        d_vc_projection_pc_spec.d_theta = 0.0;
+        d_vc_projection_pc_spec.d_theta = rho_is_zero ? 0.0 : 1.0 / dt;
     }
     else
     {
@@ -1385,7 +1384,6 @@ INSVCStaggeredNonConservativeHierarchyIntegrator::updateOperatorsAndSolvers(cons
         // Set the coefficient to correct velocity and pressure after the PPE is solved within the preconditioner.
         d_vc_projection_pc_spec.d_D_idx = d_pressure_D_idx;
         d_vc_projection_pc_spec.d_D_is_const = false;
-        d_vc_projection_pc_spec.d_steady_state = false;
         d_vc_projection_pc_spec.d_theta = 1.0 / dt;
     }
 

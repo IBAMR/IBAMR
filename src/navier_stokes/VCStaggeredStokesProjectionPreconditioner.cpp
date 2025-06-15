@@ -165,9 +165,6 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     const bool deallocate_at_completion = !d_is_initialized;
     if (!d_is_initialized) initializeSolverState(x, b);
 
-    // Determine whether we are solving a steady-state problem.
-    const bool& steady_state = vc_projection_spec.d_steady_state;
-
     // Get the vector components.
     const int F_U_idx = b.getComponentDescriptorIndex(0);
     const int F_P_idx = b.getComponentDescriptorIndex(1);
@@ -254,7 +251,7 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     //
     // so that
     //
-    //    Phi := inv(-L_rho) * F_phi = inv(L_rho) * (-F_P - D U^*)
+    //    Phi := inv(-L_rho) * F_phi = inv(-L_rho) * (-F_P - D U^*)
     //    P   := (-1/dt*inv(L_rho) + 2*mu*k) * F_phi = -1/dt*Phi + 2*mu*k*F_phi
     //
     // in which L_rho = D*inv(rho)*G, and mu is a diagonal matrix of viscosities
@@ -285,16 +282,17 @@ VCStaggeredStokesProjectionPreconditioner::solveSystem(SAMRAIVectorReal<NDIM, do
     p_pressure_solver->setInitialGuessNonzero(false);
     d_pressure_solver->solveSystem(*Phi_scratch_vec, *F_Phi_vec);
 
-    if (steady_state)
+    // Scale F_phi by 2*mu*k and update pressure (mu_cc = -mu*k)
+    // P = theta*Phi + 2*mu*(-F_P - D U^*)
+    const bool var_theta = vc_projection_spec.d_theta_idx != IBTK::invalid_index;
+    d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, vc_projection_spec.d_mu_cc_idx);
+    if (var_theta)
     {
-        d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, vc_projection_spec.d_mu_cc_idx);
-        d_pressure_data_ops->scale(P_idx, -2.0, d_F_Phi_idx);
+        d_pressure_data_ops->multiply(P_idx, vc_projection_spec.d_theta_idx, d_Phi_scratch_idx);
+        d_pressure_data_ops->linearSum(P_idx, 1.0, P_idx, -2.0, d_F_Phi_idx);
     }
     else
     {
-        // Scale F_phi by 2*mu*k and update pressure (mu_cc = -mu*k)
-        // P = theta*Phi + 2*mu*(-F_P - D U^*)
-        d_pressure_data_ops->multiply(d_F_Phi_idx, d_F_Phi_idx, vc_projection_spec.d_mu_cc_idx);
         d_pressure_data_ops->linearSum(P_idx, vc_projection_spec.d_theta, d_Phi_scratch_idx, -2.0, d_F_Phi_idx);
     }
 

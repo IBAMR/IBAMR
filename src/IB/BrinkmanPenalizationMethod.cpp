@@ -172,6 +172,42 @@ BrinkmanPenalizationMethod::demarcateBrinkmanZone(int u_idx, double time, int /*
 } // demarcateBrinkmanZone
 
 void
+BrinkmanPenalizationMethod::defineHeavisideFunction(int H_idx)
+{
+    Pointer<PatchHierarchy<NDIM> > patch_hier = d_time_integrator->getPatchHierarchy();
+    const int coarsest_ln = 0;
+    const int finest_ln = patch_hier->getFinestLevelNumber();
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
+        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+        {
+            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
+            const Box<NDIM>& patch_box = patch->getBox();
+            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const double* const patch_dx = patch_geom->getDx();
+            const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
+            double vol_cell = 1.0;
+            for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
+            const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
+
+            Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(d_ls_new_idx);
+            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
+            for (Box<NDIM>::Iterator it(patch_box); it; it++)
+            {
+                const hier::Index<NDIM>& ci = it();
+                const double& phi = (*ls_data)(ci);
+                const double Hphi = IBTK::smooth_heaviside(phi, alpha);
+
+                (*H_data)(ci) = 1.0 - Hphi;
+            }
+        }
+    }
+    return;
+} // defineHeavisideFunction
+
+void
 BrinkmanPenalizationMethod::putToDatabase(Pointer<Database> db)
 {
     db->putDouble("penalty_factor", d_penalty_factor);

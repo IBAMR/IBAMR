@@ -823,6 +823,11 @@ protected:
     int d_rho_linear_op_idx;       // side centered
 
     /*
+     * Patch data index for Heaviside variable used in the projection preconditioner
+     */
+    int d_heaviside_cc_idx;
+
+    /*
      * Variable to indicate the type of interpolation to be done for rho and mu.
      */
     IBTK::VCInterpType d_rho_vc_interp_type, d_mu_vc_interp_type;
