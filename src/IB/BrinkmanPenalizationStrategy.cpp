@@ -64,6 +64,12 @@ BrinkmanPenalizationStrategy::preprocessComputeBrinkmanPenalization(double /*cur
 } // preprocessComputeBrinkmanPenalization
 
 void
+BrinkmanPenalizationStrategy::defineHeavisideFunction(int /*H_idx*/)
+{
+    return;
+} // defineHeavisideFunction
+
+void
 BrinkmanPenalizationStrategy::postprocessComputeBrinkmanPenalization(double /*current_time*/,
                                                                      double /*new_time*/,
                                                                      int /*num_cycles*/)

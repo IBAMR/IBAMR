@@ -88,8 +88,8 @@ struct VCStaggeredStokesProjectionPCSpec : public IBTK::ProblemSpecification
         d_div_coef_idx = IBTK::invalid_index;
         d_D_const = std::numeric_limits<double>::signaling_NaN();
         d_D_is_const = false;
-        d_steady_state = false;
         d_theta = std::numeric_limits<double>::signaling_NaN();
+        d_theta_idx = IBTK::invalid_index;
     } // reset
 
     int d_D_idx = IBTK::invalid_index, d_mu_cc_idx = IBTK::invalid_index;
@@ -98,9 +98,11 @@ struct VCStaggeredStokesProjectionPCSpec : public IBTK::ProblemSpecification
 
     double d_D_const = std::numeric_limits<double>::signaling_NaN();
 
+    bool d_D_is_const = false;
+
     double d_theta = std::numeric_limits<double>::signaling_NaN();
 
-    bool d_D_is_const = false, d_steady_state = false;
+    int d_theta_idx = IBTK::invalid_index;
 
 }; // VCStaggeredStokesProjectionPCSpec
 

@@ -1401,6 +1401,11 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     d_rho_linear_op_idx = var_db->registerVariableAndContext(
         rho_sc_linear_op_var, var_db->getContext(d_object_name + "::rho_linear_op_var"), wide_ghosts);
 
+    Pointer<CellVariable<NDIM, double> > heaviside_cc_var = new CellVariable<NDIM, double>(d_object_name + "_H_cc_var",
+                                                                                           /*depth*/ 1);
+    d_heaviside_cc_idx = var_db->registerVariableAndContext(
+        heaviside_cc_var, var_db->getContext(d_object_name + "::H_cc"), /*ghost_cells*/ 0);
+
     // Setup a specialized coarsen algorithm.
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
     Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U2_var, d_U_coarsen_type);
@@ -1507,6 +1512,7 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         level->allocatePatchData(d_pressure_D_idx, current_time);
         level->allocatePatchData(d_projection_D_idx, current_time);
         level->allocatePatchData(d_mu_interp_idx, current_time);
+        level->allocatePatchData(d_heaviside_cc_idx, current_time);
 
         // These variables should persist even after integrateHierarchy(). We do not deallocate them explicitly.
         if (!level->checkAllocated(d_mu_linear_op_idx)) level->allocatePatchData(d_mu_linear_op_idx, current_time);
@@ -1643,6 +1649,7 @@ AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double curre
         level->deallocatePatchData(d_pressure_D_idx);
         level->deallocatePatchData(d_projection_D_idx);
         level->deallocatePatchData(d_mu_interp_idx);
+        level->deallocatePatchData(d_heaviside_cc_idx);
     }
 
     // Postprocess Brinkman penalization objects.
@@ -2935,19 +2942,24 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     d_vc_stokes_op_spec.reset();
     d_vc_projection_pc_spec.reset();
 
+    // Define the Heaviside function to mark the presence of immersed bodies
+    // This will be used to estimate pressure in the projection preconditioner
+    d_hier_cc_data_ops->setToScalar(d_heaviside_cc_idx, 0.0);
+    for (auto& so_brinkman_force : d_so_brinkman_force)
+    {
+        so_brinkman_force->defineHeavisideFunction(d_heaviside_cc_idx);
+    }
+    d_vc_projection_pc_spec.d_theta_idx = d_heaviside_cc_idx;
+
     if (has_brinkman_force)
     {
         d_vc_stokes_op_spec.d_C_idx = d_velocity_C_idx;
         d_vc_stokes_op_spec.d_C_is_const = false;
-        d_vc_projection_pc_spec.d_steady_state = false;
-        d_vc_projection_pc_spec.d_theta = 1.0;
     }
     else
     {
         d_vc_stokes_op_spec.d_C_const = 0.0; // pure Stokes problem
         d_vc_stokes_op_spec.d_C_is_const = true;
-        d_vc_projection_pc_spec.d_steady_state = true;
-        d_vc_projection_pc_spec.d_theta = 0.0;
     }
 
     d_vc_stokes_op_spec.d_D_idx = d_velocity_D_idx;

@@ -219,7 +219,8 @@ reset_contour_level_set_callback_fcn(double /*current_time*/, double /*new_time*
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
                 (*contour_data)(ci) = std::sqrt(std::pow(coord[0] - resetter->center[0], 2) +
-                                                std::pow(coord[1] - resetter->center[1], 2)) - resetter->R;
+                                                std::pow(coord[1] - resetter->center[1], 2)) -
+                                      resetter->R;
             }
         }
     }
