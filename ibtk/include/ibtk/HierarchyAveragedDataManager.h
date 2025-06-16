@@ -18,6 +18,8 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include <ibtk/config.h>
+
 #include <ibtk/SnapshotCache.h>
 #include <ibtk/ibtk_utilities.h>
 
