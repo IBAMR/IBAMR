@@ -2944,10 +2944,13 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
 
     // Define the Heaviside function to mark the presence of immersed bodies
     // This will be used to estimate pressure in the projection preconditioner
-    d_hier_cc_data_ops->setToScalar(d_heaviside_cc_idx, 0.0);
-    for (auto& so_brinkman_force : d_so_brinkman_force)
+    if (has_brinkman_force)
     {
-        so_brinkman_force->defineHeavisideFunction(d_heaviside_cc_idx);
+        d_hier_cc_data_ops->setToScalar(d_heaviside_cc_idx, 1.0);
+    }
+    else
+    {
+        d_hier_cc_data_ops->setToScalar(d_heaviside_cc_idx, 0.0);
     }
     d_vc_projection_pc_spec.d_theta_idx = d_heaviside_cc_idx;
 
