@@ -69,12 +69,9 @@ struct SolidLevelSetResetter
     Pointer<HierarchyIntegrator> time_integrator;
     int ls_idx;
 
-    // "PLANAR" geometry
-    double H0, H1;
-
-    // "HUMP" geometry
+    // "CYLINDER" geometry
     IBTK::VectorNd center;
-    double side;
+    double radius;
 };
 
 // Struct to reset contour level set
@@ -89,7 +86,7 @@ struct ContourLevelSetResetter
 };
 
 void
-reset_hump_level_set_callback_fcn(double current_time, double new_time, int /*cycle_num*/, void* ctx)
+reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*cycle_num*/, void* ctx)
 {
     SolidLevelSetResetter* resetter = static_cast<SolidLevelSetResetter*>(ctx);
 
@@ -126,60 +123,10 @@ reset_hump_level_set_callback_fcn(double current_time, double new_time, int /*cy
 
                 auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
 
-                static const double k = sqrt(3.0);
-                const double& r = (resetter->side) / 2.0;
-                p[0] = std::abs(p[0]) - r;
-                p[1] = p[1] + r / k;
-                if ((p[0] + k * p[1]) > 0.0)
-                {
-                    const double x = (p[0] - k * p[1]) / 2.0;
-                    const double y = (-k * p[0] - p[1]) / 2.0;
-                    p[0] = x;
-                    p[1] = y;
-                }
-                p[0] = p[0] - clamp(p[0], -2.0 * r, 0.0);
-                const double distance = -std::sqrt(p[0] * p[0] + p[1] * p[1]) * signof(p[1]);
+                const double distance = std::sqrt(std::pow(coord[0] - resetter->center[0], 2) +
+                                                  std::pow(coord[1] - resetter->center[1], 2)) -
+                                        resetter->radius;
                 (*ls_data)(ci) = distance;
-            }
-        }
-    }
-
-    return;
-} // reset_solid_level_set_callback_fcn
-
-void
-reset_planar_level_set_callback_fcn(double current_time, double new_time, int /*cycle_num*/, void* ctx)
-{
-    SolidLevelSetResetter* resetter = static_cast<SolidLevelSetResetter*>(ctx);
-
-    Pointer<PatchHierarchy<NDIM> > patch_hier = resetter->time_integrator->getPatchHierarchy();
-    const int hier_finest_ln = patch_hier->getFinestLevelNumber();
-
-    const int& patch_idx = resetter->ls_idx;
-
-    for (int ln = 0; ln <= hier_finest_ln; ++ln)
-    {
-        Pointer<PatchLevel<NDIM> > patch_level = patch_hier->getPatchLevel(ln);
-        for (PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
-        {
-            Pointer<Patch<NDIM> > patch = patch_level->getPatch(p());
-            const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
-            const double* patch_X_lower = patch_geom->getXLower();
-            const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
-            const double* const patch_dx = patch_geom->getDx();
-
-            Pointer<CellData<NDIM, double> > ls_data = patch->getPatchData(patch_idx);
-            for (Box<NDIM>::Iterator it(patch_box); it; it++)
-            {
-                const hier::Index<NDIM>& ci = it();
-                IBTK::VectorNd coord = IBTK::VectorNd::Zero();
-                for (int d = 0; d < NDIM; ++d)
-                {
-                    coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
-                }
-
-                (*ls_data)(ci) = std::min(coord[1] - resetter->H0, resetter->H1 - coord[1]);
             }
         }
     }
@@ -432,17 +379,13 @@ main(int argc, char* argv[])
         time_integrator->registerBrinkmanPenalizationStrategy(fo_brinkman, so_brinkman, phi_var_solid, ls_bc_coef);
 
         // Reset solid geometry
-        std::string geometry_type = input_db->getString("GEOMETRY");
         SolidLevelSetResetter solid_level_set_resetter;
         solid_level_set_resetter.time_integrator = time_integrator;
         solid_level_set_resetter.center[0] = input_db->getDouble("XCOM");
         solid_level_set_resetter.center[1] = input_db->getDouble("YCOM");
-        solid_level_set_resetter.side = input_db->getDouble("side");
-        solid_level_set_resetter.H0 = input_db->getDouble("H0");
-        solid_level_set_resetter.H1 = input_db->getDouble("H1");
+        solid_level_set_resetter.radius = input_db->getDouble("radius");
 
-        auto fcn_ptr =
-            (geometry_type == "PLANAR" ? &reset_planar_level_set_callback_fcn : &reset_hump_level_set_callback_fcn);
+        auto fcn_ptr = &reset_solid_level_set_callback_fcn;
         time_integrator->registerIntegrateHierarchyCallback(fcn_ptr, static_cast<void*>(&solid_level_set_resetter));
 
         // Create level set for the contour integration and register it with acoustic integrator
@@ -539,6 +482,13 @@ main(int argc, char* argv[])
                 pout << "\nWriting timer data...\n\n";
                 TimerManager::getManager()->print(plog);
             }
+        }
+
+        if (IBTK_MPI::getRank() == 0)
+        {
+            std::ifstream in_file("ContourIntegral_ARF");
+            std::ofstream out_file("output");
+            out_file << in_file.rdbuf();
         }
 
         if (dump_viz_data && uses_visit)
