@@ -308,7 +308,7 @@ main(int argc, char* argv[])
                         }
                         const double& X0 = posn[0];
                         const double& X1 = posn[1];
-                        double U2;
+                        double U2 = std::numeric_limits<double>::signaling_NaN();
                         if (bdry_normal_axis == 0)
                         {
                             U2 = (-3 * std::pow(X0, 2) * (std::pow(X0, 2) + std::pow(X1, 2)) +
@@ -438,7 +438,7 @@ main(int argc, char* argv[])
                                 }
                                 const double& X0 = posn[0];
                                 const double& X1 = posn[1];
-                                double U2;
+                                double U2 = std::numeric_limits<double>::signaling_NaN();
                                 if (axis == 0)
                                 {
                                     U2 = (-3 * std::pow(X0, 2) * (std::pow(X0, 2) + std::pow(X1, 2)) +
