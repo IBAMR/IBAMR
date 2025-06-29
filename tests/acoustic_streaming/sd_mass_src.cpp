@@ -159,7 +159,6 @@ main(int argc, char* argv[])
         // rho0 = "rho0 + rho1(X0^2*X1)"
         const double rho0 = input_db->getDouble("RHO0");
         const double rho1 = input_db->getDouble("RHO1");
-        const double omega = input_db->getDouble("OMEGA");
         for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
         {
             Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
@@ -174,7 +173,6 @@ main(int argc, char* argv[])
                 Pointer<SideData<NDIM, double> > U1_real_data = patch->getPatchData(U1_real_idx);
                 Pointer<SideData<NDIM, double> > U1_imag_data = patch->getPatchData(U1_imag_idx);
                 Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
-                const Box<NDIM>& ghost_box = U1_real_data->getGhostBox();
                 const Box<NDIM>& patch_box = patch->getBox();
                 const hier::Index<NDIM>& patch_lower = patch_box.lower();
                 Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();

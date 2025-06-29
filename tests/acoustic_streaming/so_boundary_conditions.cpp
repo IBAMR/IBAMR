@@ -138,7 +138,6 @@ main(int argc, char* argv[])
                 Pointer<Patch<NDIM> > patch = level->getPatch(p());
                 Pointer<SideData<NDIM, double> > U1_real_data = patch->getPatchData(U1_real_idx);
                 Pointer<SideData<NDIM, double> > U1_imag_data = patch->getPatchData(U1_imag_idx);
-                const Box<NDIM>& ghost_box = U1_real_data->getGhostBox();
                 const Box<NDIM>& patch_box = patch->getBox();
                 const hier::Index<NDIM>& patch_lower = patch_box.lower();
                 Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
@@ -330,7 +329,7 @@ main(int argc, char* argv[])
 
                         const double error = std::abs((*gcoef_data)(i, 0) - U2);
                         double area = 1.0;
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             if (d != bdry_normal_axis) area *= dx[d];
                         }
@@ -460,7 +459,7 @@ main(int argc, char* argv[])
 
                                 const double error = std::abs((*gcoef_data)(i, 0) - U2);
                                 double area = 1.0;
-                                for (int d = 0; d < NDIM; ++d)
+                                for (unsigned int d = 0; d < NDIM; ++d)
                                 {
                                     if (d != bdry_normal_axis) area *= dx[d];
                                 }
