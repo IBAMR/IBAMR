@@ -3621,7 +3621,7 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
 
                 auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
 
-                for (unsigned int axis = 0; axis < NDIM; ++axis)
+                for (int axis = 0; axis < NDIM; ++axis)
                 {
                     // Compute the required area element
                     const double dS = cell_vol / patch_dx[axis];
@@ -3693,7 +3693,7 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
                         // Compute convective traction: <rho (U1.n) U1>
                         IBTK::Vector3d U1_real_vec = IBTK::Vector3d::Zero();
                         IBTK::Vector3d U1_imag_vec = IBTK::Vector3d::Zero();
-                        for (unsigned int d = 0; d < NDIM; ++d)
+                        for (int d = 0; d < NDIM; ++d)
                         {
                             if (d == axis)
                             {

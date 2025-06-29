@@ -93,7 +93,6 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
-        const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
@@ -103,7 +102,7 @@ SOAcousticStreamingBrinkmanPenalization::computeBrinkmanVelocity(int b_idx, doub
         Pointer<SideData<NDIM, double> > Ur = patch->getPatchData(d_U1_real_idx);
         Pointer<SideData<NDIM, double> > Ui = patch->getPatchData(d_U1_imag_idx);
 
-        for (unsigned int axis = 0; axis < NDIM; ++axis)
+        for (int axis = 0; axis < NDIM; ++axis)
         {
             for (Box<NDIM>::Iterator it(SideGeometry<NDIM>::toSideBox(patch_box, axis)); it; it++)
             {
