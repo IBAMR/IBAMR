@@ -78,7 +78,7 @@ public:
      *
      */
     virtual void
-    setNearNullspace(const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
+    setNearNullSpace(const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
                          near_nullspace_basis_vecs =
                              std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >());
 
@@ -98,7 +98,7 @@ public:
      * \brief Get the basis vectors for the near nullspace of the linear system.
      */
     virtual const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
-    getNearNullspaceBasisVectors() const;
+    getNearNullSpaceBasisVectors() const;
 
     //\}
 

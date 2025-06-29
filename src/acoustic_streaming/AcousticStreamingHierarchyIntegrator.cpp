@@ -3048,8 +3048,8 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
         if (p_velocity_solver)
         {
             p_velocity_solver->setInitialGuessNonzero(false);
-            if (has_velocity_nullspace) p_velocity_solver->setNullspace(false, d_U2_null_vecs);
-            if (has_velocity_near_nullspace) p_velocity_solver->setNearNullspace(d_U2_near_null_vecs);
+            if (has_velocity_nullspace) p_velocity_solver->setNullSpace(false, d_U2_null_vecs);
+            if (has_velocity_near_nullspace) p_velocity_solver->setNearNullSpace(d_U2_near_null_vecs);
         }
         d_velocity_solver->initializeSolverState(*d_U2_scratch_vec, *d_U2_rhs_vec);
         d_velocity_solver_needs_init = false;
@@ -3070,7 +3070,7 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
         if (p_pressure_solver)
         {
             p_pressure_solver->setInitialGuessNonzero(false);
-            if (has_pressure_nullspace) p_pressure_solver->setNullspace(true);
+            if (has_pressure_nullspace) p_pressure_solver->setNullSpace(true);
         }
         d_pressure_solver->initializeSolverState(*d_P2_scratch_vec, *d_P2_rhs_vec);
         d_pressure_solver_needs_init = false;
@@ -3081,7 +3081,7 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     d_stokes_solver->setPhysicalBoundaryHelper(d_bc_helper);
     d_stokes_solver->setSolutionTime(new_time);
     d_stokes_solver->setTimeInterval(current_time, new_time);
-    d_stokes_solver->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+    d_stokes_solver->setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
 
     auto p_stokes_linear_solver = dynamic_cast<LinearSolver*>(d_stokes_solver.getPointer());
     auto p_stokes_krylov_solver = dynamic_cast<KrylovLinearSolver*>(p_stokes_linear_solver);
@@ -3094,7 +3094,7 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
         p_stokes_krylov_solver->getPreconditioner().getPointer());
 
     p_stokes_block_pc->setPhysicalBcCoefs(d_U2_star_bc_coefs, d_Phi_bc_coef);
-    p_stokes_block_pc->setComponentsHaveNullspace(has_velocity_nullspace, has_pressure_nullspace);
+    p_stokes_block_pc->setComponentsHaveNullSpace(has_velocity_nullspace, has_pressure_nullspace);
 
     p_vc_stokes_proj_pc->setProblemSpecification(&d_vc_projection_pc_spec);
 
@@ -3107,7 +3107,7 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
                  << std::endl;
 
         p_stokes_linear_solver->setInitialGuessNonzero(true);
-        if (has_velocity_nullspace || has_pressure_nullspace) p_stokes_linear_solver->setNullspace(false, d_null2_vecs);
+        if (has_velocity_nullspace || has_pressure_nullspace) p_stokes_linear_solver->setNullSpace(false, d_null2_vecs);
 
         d_stokes_solver->initializeSolverState(*d_sol2_vec, *d_rhs2_vec);
         d_stokes_solver_needs_init = false;

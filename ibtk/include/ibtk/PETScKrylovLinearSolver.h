@@ -364,7 +364,7 @@ private:
      * \brief Reset the Mat near nullspace object to correspond to the supplied
      * nullspace basis vectors.
      */
-    void resetMatNearNullspace();
+    void resetMatNearNullSpace();
 
     /*!
      * \brief Destroy data allocated to describe nullspace.
@@ -374,7 +374,7 @@ private:
     /*!
      * \brief Destroy data allocated to describe the near nullspace.
      */
-    void deallocateNearNullspaceData();
+    void deallocateNearNullSpaceData();
 
     /*!
      * \name Static functions for use by PETSc KSP and MatShell objects.

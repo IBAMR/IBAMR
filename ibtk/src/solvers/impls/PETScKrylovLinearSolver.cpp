@@ -349,8 +349,8 @@ PETScKrylovLinearSolver::initializeSolverState(const SAMRAIVectorReal<NDIM, doub
     IBTK_CHKERRQ(ierr);
 
     // Configure the nullspace objects.
-    resetMatNullspace();
-    resetMatNearNullspace();
+    resetMatNullSpace();
+    resetMatNearNullSpace();
 
     // Indicate that the solver is initialized.
     d_reinitializing_solver = false;
@@ -390,8 +390,8 @@ PETScKrylovLinearSolver::deallocateSolverState()
     d_b.setNull();
 
     // Deallocate the nullspace objects.
-    deallocateNullspaceData();
-    deallocateNearNullspaceData();
+    deallocateNullSpaceData();
+    deallocateNearNullSpaceData();
 
     // Destroy the KSP solver.
     if (d_managing_petsc_ksp)
@@ -668,7 +668,7 @@ PETScKrylovLinearSolver::resetMatNullSpace()
 } // resetMatNullspace
 
 void
-PETScKrylovLinearSolver::resetMatNearNullspace()
+PETScKrylovLinearSolver::resetMatNearNullSpace()
 {
     if (!d_petsc_ksp) return;
 
@@ -693,7 +693,7 @@ PETScKrylovLinearSolver::resetMatNearNullspace()
         IBTK_CHKERRQ(ierr);
     }
     return;
-} // resetMatNearNullspace
+} // resetMatNearNullSpace
 
 void
 PETScKrylovLinearSolver::deallocateNullSpaceData()
@@ -732,7 +732,7 @@ PETScKrylovLinearSolver::deallocateNullSpaceData()
 } // deallocateNullspaceData
 
 void
-PETScKrylovLinearSolver::deallocateNearNullspaceData()
+PETScKrylovLinearSolver::deallocateNearNullSpaceData()
 {
     // Deallocate PETSc data structures.
     if (d_petsc_near_nullsp)
@@ -753,7 +753,7 @@ PETScKrylovLinearSolver::deallocateNearNullspaceData()
     d_petsc_near_nullspace_basis_vecs.clear();
 
     return;
-} // deallocateNearNullspaceData
+} // deallocateNearNullSpaceData
 
 PetscErrorCode
 PETScKrylovLinearSolver::MatVecMult_SAMRAI(Mat A, Vec x, Vec y)

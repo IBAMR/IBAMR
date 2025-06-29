@@ -56,11 +56,11 @@ LinearSolver::setNullSpace(const bool nullspace_containsconstant_vec,
 } // setNullSpace
 
 void
-LinearSolver::setNearNullspace(const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& near_nullspace_basis_vecs)
+LinearSolver::setNearNullSpace(const std::vector<Pointer<SAMRAIVectorReal<NDIM, double> > >& near_nullspace_basis_vecs)
 {
     d_near_nullspace_basis_vecs = near_nullspace_basis_vecs;
     return;
-} // setNearNullspace
+} // setNearNullSpace
 
 void
 LinearSolver::setInitialGuessNonzero(bool initial_guess_nonzero)
@@ -82,10 +82,10 @@ LinearSolver::getNullSpaceBasisVectors() const
 } // getNullSpaceBasisVectors
 
 const std::vector<SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > >&
-LinearSolver::getNearNullspaceBasisVectors() const
+LinearSolver::getNearNullSpaceBasisVectors() const
 {
     return d_near_nullspace_basis_vecs;
-} // getNearNullspaceBasisVectors
+} // getNearNullSpaceBasisVectors
 
 bool
 LinearSolver::getInitialGuessNonzero() const

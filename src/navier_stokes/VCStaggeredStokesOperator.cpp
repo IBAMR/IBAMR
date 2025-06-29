@@ -171,7 +171,7 @@ VCStaggeredStokesOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVector
                                          1.0,
                                          vc_stokes_op_spec.d_L_idx,
                                          Pointer<CellVariable<NDIM, double> >(nullptr),
-                                         U_scratch_idx,
+                                         U_idx,
                                          U_sc_var,
                                          d_no_fill,
                                          d_new_time,
