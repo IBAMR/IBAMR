@@ -3648,7 +3648,7 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
                         // Estimate shear viscosity on the face using simple averaging
                         const double mu_side = 0.5 * ((*mu_data)(c_l) + (*mu_data)(c_u));
                         IBTK::Vector3d viscous_trac = IBTK::Vector3d::Zero();
-                        for (unsigned int d = 0; d < NDIM; ++d)
+                        for (int d = 0; d < NDIM; ++d)
                         {
                             if (d == axis)
                             {
