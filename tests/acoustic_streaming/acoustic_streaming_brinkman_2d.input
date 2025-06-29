@@ -16,8 +16,8 @@ h = LENGTH/Nx
 PERIODIC_BC = 0
 
 XCOM = LENGTH/4.0
-radius = 5.0e-6
 YCOM = WIDTH/2.0
+Radius = 5.0e-6
 Contour_XCOM = LENGTH/4.0
 Contour_YCOM = WIDTH/2.0
 Contour_Radius = 10.0e-6

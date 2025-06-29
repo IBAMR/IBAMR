@@ -86,7 +86,7 @@ struct ContourLevelSetResetter
 };
 
 void
-reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*cycle_num*/, void* ctx)
+reset_solid_level_set_callback_fcn(double /*current_time*/, double /*new_time*/, int /*cycle_num*/, void* ctx)
 {
     SolidLevelSetResetter* resetter = static_cast<SolidLevelSetResetter*>(ctx);
 
@@ -116,12 +116,6 @@ reset_solid_level_set_callback_fcn(double current_time, double new_time, int /*c
                 {
                     coord[d] = patch_X_lower[d] + patch_dx[d] * (static_cast<double>(ci(d) - patch_lower_idx(d)) + 0.5);
                 }
-                IBTK::VectorNd p = coord - resetter->center;
-
-                auto clamp = [](double x, double minval, double maxval)
-                { return std::min(std::max(x, minval), maxval); };
-
-                auto signof = [](const double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); };
 
                 const double distance = std::sqrt(std::pow(coord[0] - resetter->center[0], 2) +
                                                   std::pow(coord[1] - resetter->center[1], 2)) -
@@ -383,7 +377,7 @@ main(int argc, char* argv[])
         solid_level_set_resetter.time_integrator = time_integrator;
         solid_level_set_resetter.center[0] = input_db->getDouble("XCOM");
         solid_level_set_resetter.center[1] = input_db->getDouble("YCOM");
-        solid_level_set_resetter.radius = input_db->getDouble("radius");
+        solid_level_set_resetter.radius = input_db->getDouble("Radius");
 
         auto fcn_ptr = &reset_solid_level_set_callback_fcn;
         time_integrator->registerIntegrateHierarchyCallback(fcn_ptr, static_cast<void*>(&solid_level_set_resetter));
