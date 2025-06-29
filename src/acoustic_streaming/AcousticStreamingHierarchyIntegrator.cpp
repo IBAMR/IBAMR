@@ -3485,9 +3485,9 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectorsSOSystem(Pointer<SAMRAIV
 
 void
 AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol1_vec,
-                                                         const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs1_vec,
+                                                         const Pointer<SAMRAIVectorReal<NDIM, double> >& /*rhs1_vec*/,
                                                          const Pointer<SAMRAIVectorReal<NDIM, double> >& sol2_vec,
-                                                         const Pointer<SAMRAIVectorReal<NDIM, double> >& rhs2_vec,
+                                                         const Pointer<SAMRAIVectorReal<NDIM, double> >& /*rhs2_vec*/,
                                                          const double current_time,
                                                          const double /*new_time*/,
                                                          const int /*cycle_num*/)
@@ -3693,7 +3693,7 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
                         // Compute convective traction: <rho (U1.n) U1>
                         IBTK::Vector3d U1_real_vec = IBTK::Vector3d::Zero();
                         IBTK::Vector3d U1_imag_vec = IBTK::Vector3d::Zero();
-                        for (int d = 0; d < NDIM; ++d)
+                        for (unsigned int d = 0; d < NDIM; ++d)
                         {
                             if (d == axis)
                             {

@@ -153,7 +153,7 @@ SOAcousticStreamingBcCoefs::setBcCoefsFromFOMassFlux(Pointer<ArrayData<NDIM, dou
                                                      Pointer<ArrayData<NDIM, double> >& gcoef_data,
                                                      const Patch<NDIM>& patch,
                                                      const BoundaryBox<NDIM>& bdry_box,
-                                                     double fill_time) const
+                                                     double /*fill_time*/) const
 {
     // Patch data for first-order velocity and density
     Pointer<SideData<NDIM, double> > U1_real_data = patch.getPatchData(d_U1_real_idx);
@@ -239,7 +239,7 @@ SOAcousticStreamingBcCoefs::setBcCoefsFromStokesDrift(Pointer<ArrayData<NDIM, do
                                                       Pointer<ArrayData<NDIM, double> >& gcoef_data,
                                                       const Patch<NDIM>& patch,
                                                       const BoundaryBox<NDIM>& bdry_box,
-                                                      double fill_time) const
+                                                      double /*fill_time*/) const
 {
     // Patch data for first-order velocity.
     Pointer<SideData<NDIM, double> > Ur = patch.getPatchData(d_U1_real_idx);
