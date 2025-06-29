@@ -83,7 +83,6 @@ BrinkmanPenalizationMethod::computeBrinkmanVelocity(int u_idx, double time, int 
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
-        const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
@@ -141,7 +140,6 @@ BrinkmanPenalizationMethod::demarcateBrinkmanZone(int u_idx, double time, int /*
         const Box<NDIM>& patch_box = patch->getBox();
         Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
         const double* const patch_dx = patch_geom->getDx();
-        const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
         double vol_cell = 1.0;
         for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
         const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
@@ -187,7 +185,6 @@ BrinkmanPenalizationMethod::defineHeavisideFunction(int H_idx)
             const Box<NDIM>& patch_box = patch->getBox();
             Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
-            const double h_min = *(std::min_element(patch_dx, patch_dx + NDIM));
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
             const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
