@@ -1284,6 +1284,7 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
 
         if (d_output_U2)
         {
+            d_visit_writer->registerPlotQuantity("U2", "VECTOR", d_U2_plot_idx);
             for (unsigned int d = 0; d < NDIM; ++d)
             {
                 if (d == 0) d_visit_writer->registerPlotQuantity("U2_x", "SCALAR", d_U2_plot_idx, d);
@@ -1401,10 +1402,13 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
     d_rho_linear_op_idx = var_db->registerVariableAndContext(
         rho_sc_linear_op_var, var_db->getContext(d_object_name + "::rho_linear_op_var"), wide_ghosts);
 
-    Pointer<CellVariable<NDIM, double> > heaviside_cc_var = new CellVariable<NDIM, double>(d_object_name + "_H_cc_var",
-                                                                                           /*depth*/ 1);
-    d_heaviside_cc_idx = var_db->registerVariableAndContext(
-        heaviside_cc_var, var_db->getContext(d_object_name + "::H_cc"), /*ghost_cells*/ 0);
+    d_temp_sc_var = new SideVariable<NDIM, double>(d_object_name + "::temp_sc");
+    d_temp_sc_idx = var_db->registerVariableAndContext(d_temp_sc_var, getCurrentContext(), no_ghosts);
+
+    Pointer<CellVariable<NDIM, double> > theta_cc_var = new CellVariable<NDIM, double>(d_object_name + "_theta_cc_var",
+                                                                                       /*depth*/ 1);
+    d_theta_cc_idx = var_db->registerVariableAndContext(
+        theta_cc_var, var_db->getContext(d_object_name + "::theta_cc"), /*ghost_cells*/ 0);
 
     // Setup a specialized coarsen algorithm.
     Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
@@ -1512,7 +1516,8 @@ AcousticStreamingHierarchyIntegrator::preprocessIntegrateHierarchy(const double 
         level->allocatePatchData(d_pressure_D_idx, current_time);
         level->allocatePatchData(d_projection_D_idx, current_time);
         level->allocatePatchData(d_mu_interp_idx, current_time);
-        level->allocatePatchData(d_heaviside_cc_idx, current_time);
+        level->allocatePatchData(d_temp_sc_idx, current_time);
+        level->allocatePatchData(d_theta_cc_idx, current_time);
 
         // These variables should persist even after integrateHierarchy(). We do not deallocate them explicitly.
         if (!level->checkAllocated(d_mu_linear_op_idx)) level->allocatePatchData(d_mu_linear_op_idx, current_time);
@@ -1635,6 +1640,7 @@ AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double curre
     }
 
     // Deallocate scratch data.
+    deallocate_vector_data(*d_rhs1_vec);
     deallocate_vector_data(*d_U2_rhs_vec);
     deallocate_vector_data(*d_P2_rhs_vec);
 
@@ -1649,7 +1655,8 @@ AcousticStreamingHierarchyIntegrator::postprocessIntegrateHierarchy(double curre
         level->deallocatePatchData(d_pressure_D_idx);
         level->deallocatePatchData(d_projection_D_idx);
         level->deallocatePatchData(d_mu_interp_idx);
-        level->deallocatePatchData(d_heaviside_cc_idx);
+        level->deallocatePatchData(d_temp_sc_idx);
+        level->deallocatePatchData(d_theta_cc_idx);
     }
 
     // Postprocess Brinkman penalization objects.
@@ -2367,6 +2374,7 @@ AcousticStreamingHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database>
     db->putBool("stokes_drift_bc", d_use_stokes_drift_bc);
     db->putBool("stokes_drift_mass_src", d_use_stokes_drift_mass_src);
     db->putBool("explicitly_remove_nullspace", d_explicitly_remove_so_nullspace);
+    db->putBool("steady_state_system", d_steady_state_system);
     db->putBool("write_contour_integrals", d_write_contour_integrals);
     return;
 } // putToDatabaseSpecialized
@@ -2413,6 +2421,15 @@ AcousticStreamingHierarchyIntegrator::getFromInput(Pointer<Database> input_db, c
             d_explicitly_remove_so_nullspace = input_db->getBool("explicitly_remove_so_nullspace");
         else if (input_db->keyExists("explicitly_remove_second_order_nullspace"))
             d_explicitly_remove_so_nullspace = input_db->getBool("explicitly_remove_second_order_nullspace");
+
+        if (input_db->keyExists("steady_system"))
+            d_steady_state_system = input_db->getBool("steady_system");
+        else if (input_db->keyExists("steady_state_system"))
+            d_steady_state_system = input_db->getBool("steady_state_system");
+        else if (input_db->keyExists("steady_state_so_system"))
+            d_steady_state_system = input_db->getBool("steady_state_so_system");
+        else if (input_db->keyExists("steady_state_second_order_system"))
+            d_steady_state_system = input_db->getBool("steady_state_second_order_system");
     }
 
     // Get the interpolation type for the material properties
@@ -2575,6 +2592,7 @@ AcousticStreamingHierarchyIntegrator::getFromRestart()
     d_explicitly_remove_so_nullspace = db->getBool("explicitly_remove_nullspace");
 
     d_coupled_system = db->getBool("coupled_system");
+    d_steady_state_system = db->getBool("steady_state_system");
     d_use_stokes_drift_bc = db->getBool("stokes_drift_bc");
     d_use_stokes_drift_mass_src = db->getBool("stokes_drift_mass_src");
 
@@ -2898,6 +2916,7 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     const double K = 1.0;
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    const double dt = new_time - current_time;
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         // Operate on a single level at a time
@@ -2909,10 +2928,20 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
         d_hier_ec_data_ops->resetLevels(ln, ln);
 #endif
 
-        // C_sc = L(x,t^n+1)
+        // C_sc = (rho / dt)
+        if (!d_steady_state_system)
+        {
+            d_hier_sc_data_ops->scale(d_velocity_C_idx, 1.0 / dt, d_rho_scratch_idx, /*interior_only*/ true);
+        }
+        else
+        {
+            d_hier_sc_data_ops->setToScalar(d_velocity_C_idx, 0.0, /*interior_only*/ true);
+        }
+
+        // C_sc += L(x,t^n+1)
         if (has_brinkman_force)
         {
-            d_hier_sc_data_ops->copyData(d_velocity_C_idx, d_velocity_L_idx, /*interior_only*/ false);
+            d_hier_sc_data_ops->axpy(d_velocity_C_idx, 1.0, d_velocity_L_idx, d_velocity_C_idx, /*interior_only*/ true);
         }
         // D_{ec,nc} = -K * mu
         // Lambda{cc} = -K * Lambda
@@ -2942,19 +2971,19 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     d_vc_stokes_op_spec.reset();
     d_vc_projection_pc_spec.reset();
 
-    // Define the Heaviside function to mark the presence of immersed bodies
+    // Define theta variable to indicate the presence of immersed bodies or time-dependent system
     // This will be used to estimate pressure in the projection preconditioner
-    if (has_brinkman_force)
+    if (has_brinkman_force || !d_steady_state_system)
     {
-        d_hier_cc_data_ops->setToScalar(d_heaviside_cc_idx, 1.0);
+        d_hier_cc_data_ops->setToScalar(d_theta_cc_idx, 1.0);
     }
     else
     {
-        d_hier_cc_data_ops->setToScalar(d_heaviside_cc_idx, 0.0);
+        d_hier_cc_data_ops->setToScalar(d_theta_cc_idx, 0.0);
     }
-    d_vc_projection_pc_spec.d_theta_idx = d_heaviside_cc_idx;
+    d_vc_projection_pc_spec.d_theta_idx = d_theta_cc_idx;
 
-    if (has_brinkman_force)
+    if (has_brinkman_force || !d_steady_state_system)
     {
         d_vc_stokes_op_spec.d_C_idx = d_velocity_C_idx;
         d_vc_stokes_op_spec.d_C_is_const = false;
@@ -2975,15 +3004,26 @@ AcousticStreamingHierarchyIntegrator::updateOperatorsAndSolvers(const double cur
     }
 
     // Set the coefficients for the pressure solver within the projection preconditioner
-    // D_sc = -rho/chi inside Brinkman zone and -rho outside.
-    d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 1.0, /*interior_only*/ false);
-    for (auto& so_brinkman_force : d_so_brinkman_force)
+    // Steady Stokes: D_sc = -rho/chi inside Brinkman zone and -rho outside.
+    // Unsteady Stokes: D_sc = -rho/(chi+ rho/dt) inside Brinkman zone and -rho/(rho/dt) outside.
+    // Note the factor of rho in D_sc comes from the density-weighted divergence operator.
+    if (d_steady_state_system)
     {
-        so_brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
+        d_hier_sc_data_ops->setToScalar(d_velocity_L_idx, 1.0, /*interior_only*/ false);
+        for (auto& so_brinkman_force : d_so_brinkman_force)
+        {
+            so_brinkman_force->demarcateBrinkmanZone(d_velocity_L_idx, new_time, cycle_num);
+        }
+        d_hier_sc_data_ops->reciprocal(d_projection_D_idx,
+                                       d_velocity_L_idx,
+                                       /*interior_only*/ false);
     }
-    d_hier_sc_data_ops->reciprocal(d_projection_D_idx,
-                                   d_velocity_L_idx,
-                                   /*interior_only*/ false);
+    else
+    {
+        d_hier_sc_data_ops->reciprocal(d_projection_D_idx,
+                                       d_velocity_C_idx,
+                                       /*interior_only*/ false);
+    }
     d_hier_sc_data_ops->scale(d_projection_D_idx,
                               -1.0,
                               d_projection_D_idx,
@@ -3425,6 +3465,21 @@ AcousticStreamingHierarchyIntegrator::setupSolverVectorsSOSystem(Pointer<SAMRAIV
                                                                  double new_time,
                                                                  int cycle_num)
 {
+    // Add time dependent term to the RHS of second-order system
+    // RHS^n += 1/dt*(rho*U)^n
+    if (!d_steady_state_system)
+    {
+        const double dt = new_time - current_time;
+        const int f_idx = rhs2_vec->getComponentDescriptorIndex(0);
+
+        d_hier_sc_data_ops->multiply(d_temp_sc_idx, d_rho_current_idx, d_U2_current_idx, /*interior_only*/ true);
+        d_hier_sc_data_ops->axpy(f_idx,
+                                 1.0 / dt,
+                                 d_temp_sc_idx,
+                                 f_idx,
+                                 /*interior_only*/ true);
+    }
+
     // Account for body forcing terms.
     if (d_F2_fcn)
     {
