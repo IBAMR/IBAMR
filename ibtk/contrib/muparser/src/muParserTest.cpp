@@ -1415,7 +1415,7 @@ namespace mu
 
 			\return 1 in case of a failure, 0 otherwise.
 		*/
-		int ParserTester::EqnTestLocalized(const string_type& a_str, double a_fRes, bool a_fPass)
+		int ParserTester::EqnTestLocalized(const string_type& a_str, double a_fRes, bool /*a_fPass*/)
 		{
 			ParserTester::c_iCount++;
 
