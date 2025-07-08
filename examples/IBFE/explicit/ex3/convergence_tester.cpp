@@ -161,11 +161,11 @@ main(int argc, char* argv[])
         {
             char temp_buf[128];
 
-            sprintf(temp_buf, "%05d.samrai.%05d", coarse_iteration_num, IBTK_MPI::getRank());
+            std::snprintf(temp_buf, sizeof(temp_buf), "%05d.samrai.%05d", coarse_iteration_num, IBTK_MPI::getRank());
             string coarse_file_name = coarse_hier_dump_dirname + "/" + "hier_data.";
             coarse_file_name += temp_buf;
 
-            sprintf(temp_buf, "%05d.samrai.%05d", fine_iteration_num, IBTK_MPI::getRank());
+            std::snprintf(temp_buf, sizeof(temp_buf), "%05d.samrai.%05d", fine_iteration_num, IBTK_MPI::getRank());
             string fine_file_name = fine_hier_dump_dirname + "/" + "hier_data.";
             fine_file_name += temp_buf;
 
@@ -381,21 +381,21 @@ main(int argc, char* argv[])
 
             Mesh mesh_coarse(init.comm(), NDIM);
             file_name = coarse_hier_dump_dirname + "/" + "fe_mesh.";
-            sprintf(temp_buf, "%05d", coarse_iteration_num);
+            std::snprintf(temp_buf, sizeof(temp_buf), "%05d", coarse_iteration_num);
             file_name += temp_buf;
             file_name += ".xda";
             mesh_coarse.read(file_name);
 
             Mesh mesh_fine(init.comm(), NDIM);
             file_name = fine_hier_dump_dirname + "/" + "fe_mesh.";
-            sprintf(temp_buf, "%05d", fine_iteration_num);
+            std::snprintf(temp_buf, sizeof(temp_buf), "%05d", fine_iteration_num);
             file_name += temp_buf;
             file_name += ".xda";
             mesh_fine.read(file_name);
 
             EquationSystems equation_systems_coarse(mesh_coarse);
             file_name = coarse_hier_dump_dirname + "/" + "fe_equation_systems.";
-            sprintf(temp_buf, "%05d", coarse_iteration_num);
+            std::snprintf(temp_buf, sizeof(temp_buf), "%05d", coarse_iteration_num);
             file_name += temp_buf;
             equation_systems_coarse.read(
                 file_name,
@@ -403,7 +403,7 @@ main(int argc, char* argv[])
 
             EquationSystems equation_systems_fine(mesh_fine);
             file_name = fine_hier_dump_dirname + "/" + "fe_equation_systems.";
-            sprintf(temp_buf, "%05d", fine_iteration_num);
+            std::snprintf(temp_buf, sizeof(temp_buf), "%05d", fine_iteration_num);
             file_name += temp_buf;
             equation_systems_fine.read(
                 file_name,
