@@ -1222,6 +1222,7 @@ AcousticStreamingHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<Patc
             }
         }
     }
+    d_acoustic_radiation_force.resize(num_contours);
 
     // Register scratch variables that are maintained by the
     // AcousticStreamingHierarchyIntegrator.
@@ -1839,11 +1840,8 @@ AcousticStreamingHierarchyIntegrator::integrateHierarchySpecialized(const double
     // Reset the solution and right-hand-side vectors.
     resetSolverVectors(d_sol1_vec, d_rhs1_vec, d_sol2_vec, d_rhs2_vec, current_time, new_time, cycle_num);
 
-    // Compute acoustic radiation force at the last cycle.
-    if (d_current_num_cycles == cycle_num + 1)
-    {
-        computeAcousticRadiationForce(new_time);
-    }
+    // Compute acoustic radiation force for displacing particles etc.
+    computeAcousticRadiationForce(new_time, cycle_num);
 
     // Re-update viscosity if it is maintained by the integrator
     // using the newest available data from INS and advection-diffusion solvers
@@ -3611,7 +3609,7 @@ AcousticStreamingHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVec
 } // resetSolverVectors
 
 void
-AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
+AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time, int cycle_num)
 {
     unsigned int num_contours = d_contour_vars.size();
     if (num_contours == 0) return;
@@ -3783,7 +3781,10 @@ AcousticStreamingHierarchyIntegrator::computeAcousticRadiationForce(double time)
         }
         IBTK_MPI::sumReduction(radiation_force.data(), radiation_force.size());
 
-        if (d_write_contour_integrals && IBTK_MPI::getRank() == 0)
+        std::copy(radiation_force.data(), radiation_force.data() + NDIM, d_acoustic_radiation_force[k].begin());
+
+        // Output radiation force in stream files at the last cycle
+        if (d_current_num_cycles == cycle_num + 1 && d_write_contour_integrals && IBTK_MPI::getRank() == 0)
         {
             *(d_contour_integral_stream[k]) << time << '\t' << radiation_force[0] << '\t' << radiation_force[1] << '\t'
                                             << radiation_force[2] << std::endl;

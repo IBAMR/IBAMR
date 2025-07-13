@@ -486,6 +486,14 @@ public:
     } // getSOBrinkmanPenalizationStrategy
 
     /*!
+     * \brief Get the acoustic radiation force acting on the bodies registered with this class.
+     */
+    const std::vector<std::array<double, NDIM> >& getAcousticRadiationForce() const
+    {
+        return d_acoustic_radiation_force;
+    } // getAcousticRadiationForce
+
+    /*!
      * \brief Get the variables associated with the Brinkman penalization objects registered with this class.
      */
     const std::vector<SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > >&
@@ -865,6 +873,11 @@ protected:
     bool d_write_contour_integrals = false;
     std::vector<std::unique_ptr<std::ofstream> > d_contour_integral_stream;
 
+    /*!
+     * Acoustic radiation force acting on the body
+     */
+    std::vector<std::array<double, NDIM> > d_acoustic_radiation_force;
+
     /*
      * Variable to set how often the preconditioner is reinitialized.
      */
@@ -986,7 +999,7 @@ private:
     /*!
      * Compute contour integrals to evaluate acoustic radiation force.
      */
-    void computeAcousticRadiationForce(double time);
+    void computeAcousticRadiationForce(double time, int cycle_num);
 };
 } // namespace IBAMR
 

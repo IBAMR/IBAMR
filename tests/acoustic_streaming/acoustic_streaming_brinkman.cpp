@@ -71,7 +71,10 @@ struct SolidLevelSetResetter
 
     // "CYLINDER" geometry
     IBTK::VectorNd center;
-    double radius;
+    double R;
+
+    // Rigid body velocity of the structure.
+    IBTK::VectorNd trans_vel = IBTK::VectorNd::Zero();
 };
 
 // Struct to reset contour level set
@@ -119,7 +122,7 @@ reset_solid_level_set_callback_fcn(double /*current_time*/, double /*new_time*/,
 
                 const double distance = std::sqrt(std::pow(coord[0] - resetter->center[0], 2) +
                                                   std::pow(coord[1] - resetter->center[1], 2)) -
-                                        resetter->radius;
+                                        resetter->R;
                 (*ls_data)(ci) = distance;
             }
         }
@@ -377,7 +380,7 @@ main(int argc, char* argv[])
         solid_level_set_resetter.time_integrator = time_integrator;
         solid_level_set_resetter.center[0] = input_db->getDouble("XCOM");
         solid_level_set_resetter.center[1] = input_db->getDouble("YCOM");
-        solid_level_set_resetter.radius = input_db->getDouble("Radius");
+        solid_level_set_resetter.R = input_db->getDouble("Radius");
 
         auto fcn_ptr = &reset_solid_level_set_callback_fcn;
         time_integrator->registerIntegrateHierarchyCallback(fcn_ptr, static_cast<void*>(&solid_level_set_resetter));
@@ -454,6 +457,15 @@ main(int argc, char* argv[])
             pout << "Simulation time is " << loop_time << "\n";
             pout << "+++++++++++++++++++++++++++++++++++++++++++++++++++\n";
             pout << "\n";
+
+            // Update the center of mass position of the immersed solid and integration contour
+            const auto& arf = time_integrator->getAcousticRadiationForce();
+            for (int d = 0; d < NDIM; ++d)
+            {
+                solid_level_set_resetter.trans_vel[d] += arf[0][d] * dt;
+                solid_level_set_resetter.center[d] += solid_level_set_resetter.trans_vel[d] * dt;
+                contour_level_set_resetter.center[d] += solid_level_set_resetter.trans_vel[d] * dt;
+            }
 
             // At specified intervals, write visualization and restart files,
             // print out timer data, and store hierarchy data for post
