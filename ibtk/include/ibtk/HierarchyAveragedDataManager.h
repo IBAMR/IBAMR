@@ -236,7 +236,6 @@ private:
     /*
      * Data for tracking mean flow quantities.
      */
-    unsigned int d_num_averaging_cycles = 0;
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > d_var;
     int d_scratch_idx = IBTK::invalid_index;
     std::string d_mean_refine_type = "CONSERVATIVE_LINEAR_REFINE";
