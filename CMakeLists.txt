@@ -825,6 +825,20 @@ detected by IBAMR. This is not allowed.")
     # Note that we don't technically require ExodusII - even though we have
     # AppInitializer::getExodusIIFilename() we never actually use ExodusII APIs.
 
+    # Export some information about libMesh:
+    CHECK_CXX_SOURCE_COMPILES(
+      "
+      #include <libmesh/libmesh_config.h>
+      #ifdef LIBMESH_HAVE_EXODUS_API
+      // OK
+      #else
+      #error
+      #endif
+      int main() {}
+      "
+      LIBMESH_WITH_EXODUS_II
+      )
+
     SET(CMAKE_REQUIRED_FLAGS "")
     SET(CMAKE_REQUIRED_INCLUDES "")
   ENDIF()

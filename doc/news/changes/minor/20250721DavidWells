@@ -1,0 +1,4 @@
+Improved: The CMake configuration now exports basic information about our
+external dependencies.
+<br>
+(David Wells, 2025/07/21)
