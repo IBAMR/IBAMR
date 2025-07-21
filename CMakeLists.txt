@@ -353,6 +353,28 @@ ELSE()
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/Eigen DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
   INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/ibtk/contrib/eigen/unsupported DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/eigen)
   INSTALL(TARGETS BUNDLED_EIGEN3 EXPORT IBAMRTargets)
+
+  # version info:
+  SET(_eigen3_macros
+    "${CMAKE_SOURCE_DIR}/ibtk/contrib/eigen/Eigen/src/Core/util/Macros.h")
+  FILE(STRINGS "${_eigen3_macros}" EIGEN3_VERSION_MAJOR_LINE
+    REGEX "#define.*EIGEN_WORLD_VERSION")
+  STRING(REGEX REPLACE "^.*EIGEN_WORLD_VERSION.* ([0-9]+).*" "\\1"
+    EIGEN3_VERSION_MAJOR "${EIGEN3_VERSION_MAJOR_LINE}"
+  )
+  FILE(STRINGS "${_eigen3_macros}" EIGEN3_VERSION_MINOR_LINE
+    REGEX "#define.*EIGEN_MAJOR_VERSION")
+  STRING(REGEX REPLACE "^.*EIGEN_MAJOR_VERSION.* ([0-9]+).*" "\\1"
+    EIGEN3_VERSION_MINOR "${EIGEN3_VERSION_MINOR_LINE}"
+  )
+  FILE(STRINGS "${_eigen3_macros}" EIGEN3_VERSION_SUBMINOR_LINE
+    REGEX "#define.*EIGEN_MINOR_VERSION")
+  STRING(REGEX REPLACE "^.*EIGEN_MINOR_VERSION.* ([0-9]+).*" "\\1"
+    EIGEN3_VERSION_SUBMINOR "${EIGEN3_VERSION_SUBMINOR_LINE}"
+  )
+
+SET(Eigen3_VERSION "${EIGEN3_VERSION_MAJOR}.${EIGEN3_VERSION_MINOR}\
+.${EIGEN3_VERSION_SUBMINOR}")
 ENDIF()
 
 #
@@ -412,11 +434,21 @@ IF(${IBAMR_USE_BUNDLED_MUPARSER})
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/contrib/muparser)
 
   INSTALL(TARGETS BUNDLED_MUPARSER EXPORT IBAMRTargets COMPONENT library)
+
+  SET(_muparser_def "${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserDef.h")
 ELSE()
   MESSAGE(STATUS "Found external muParser")
   MESSAGE(STATUS "MUPARSER_INCLUDE_DIRS: ${MUPARSER_INCLUDE_DIRS}")
   MESSAGE(STATUS "MUPARSER_LIBRARIES: ${MUPARSER_LIBRARIES}")
+
+  FIND_FILE(_muparser_def muParserDef.h HINTS ${MUPARSER_INCLUDE_DIRS} NO_DEFAULT_PAT)
 ENDIF()
+
+# muParser version info:
+FILE(STRINGS "${_muparser_def}" MUPARSER_VERSION_LINE
+  REGEX "#define.*MUP_VERSION")
+STRING(REGEX REPLACE "^ *#.* MUP_VERSION .*\"([0-9.]+)\"" "\\1"
+  MUPARSER_VERSION "${MUPARSER_VERSION_LINE}")
 
 #
 # HDF5:
@@ -443,6 +475,12 @@ IF(${HYPRE_INCLUDE_DIRS} STREQUAL "HYPRE_INCLUDE_DIRS-NOTFOUND" OR
   MESSAGE(FATAL_ERROR "Unable to find a valid HYPRE installation.")
 ENDIF()
 
+# hypre version info:
+FILE(STRINGS "${HYPRE_ROOT}/include/HYPRE_config.h" HYPRE_VERSION_LINE
+  REGEX "^ *#.*HYPRE_RELEASE_VERSION")
+STRING(REGEX REPLACE "^ *#.* HYPRE_RELEASE_VERSION \"([0-9.]+)\"" "\\1"
+  HYPRE_VERSION "${HYPRE_VERSION_LINE}")
+
 #
 # SAMRAI:
 #
@@ -465,11 +503,11 @@ STRING(REGEX REPLACE "^.*SAMRAI_VERSION_MINOR.* ([0-9]+).*" "\\1"
 FILE(STRINGS "${SAMRAI_ROOT}/include/SAMRAI_config.h" SAMRAI_VERSION_PATCHLEVEL_LINE
   REGEX "#define.*SAMRAI_VERSION_PATCHLEVEL")
 STRING(REGEX REPLACE "^.*SAMRAI_VERSION_PATCHLEVEL.* ([0-9]+).*" "\\1"
-  SAMRAI_VERSION_PATCHLEVEL "${SAMRAI_VERSION_PATCHLEVEL_LINE}"
+  SAMRAI_VERSION_SUBMINOR "${SAMRAI_VERSION_PATCHLEVEL_LINE}"
   )
-SET(SAMRAI_VERSION_STRING "${SAMRAI_VERSION_MAJOR}.${SAMRAI_VERSION_MINOR}\
-.${SAMRAI_VERSION_PATCHLEVEL}")
-MESSAGE(STATUS "Found SAMRAI ${SAMRAI_VERSION_STRING} at ${SAMRAI_ROOT}")
+SET(SAMRAI_VERSION "${SAMRAI_VERSION_MAJOR}.${SAMRAI_VERSION_MINOR}\
+.${SAMRAI_VERSION_SUBMINOR}")
+MESSAGE(STATUS "Found SAMRAI ${SAMRAI_VERSION} at ${SAMRAI_ROOT}")
 
 # samrai libs:
 SET(SAMRAI_INCLUDE_DIRS "${SAMRAI_ROOT}/include")
@@ -786,6 +824,20 @@ detected by IBAMR. This is not allowed.")
     # Note that we don't technically require ExodusII - even though we have
     # AppInitializer::getExodusIIFilename() we never actually use ExodusII APIs.
 
+    # Export some information about libMesh:
+    CHECK_CXX_SOURCE_COMPILES(
+      "
+      #include <libmesh/libmesh_config.h>
+      #ifdef LIBMESH_HAVE_EXODUS_API
+      // OK
+      #else
+      #error
+      #endif
+      int main() {}
+      "
+      LIBMESH_WITH_EXODUS_II
+      )
+
     SET(CMAKE_REQUIRED_FLAGS "")
     SET(CMAKE_REQUIRED_INCLUDES "")
   ENDIF()
@@ -811,10 +863,10 @@ IF(NOT "${SILO_ROOT}" STREQUAL "")
       SILO_VERSION_MAJOR "${SILO_VERSION_LINE}")
     STRING(REGEX REPLACE ".*Silo_version_[0-9]+_([0-9]+).*" "\\1"
       SILO_VERSION_MINOR "${SILO_VERSION_LINE}")
-    SET(SILO_VERSION_STRING "${SILO_VERSION_MAJOR}.${SILO_VERSION_MINOR}")
+    SET(SILO_VERSION "${SILO_VERSION_MAJOR}.${SILO_VERSION_MINOR}")
 
     # that didn't work - try the configuration file:
-    IF ("${SILO_VERSION_STRING}" STREQUAL ".")
+    IF ("${SILO_VERSION}" STREQUAL ".")
       SET(_silo_settings_file "")
       IF(EXISTS "${SILO_ROOT}/lib/libsilo.settings")
         SET(_silo_settings_file "${SILO_ROOT}/lib/libsilo.settings")
@@ -829,17 +881,17 @@ silo.h, libsilo.settings, or libsiloh5.settings.")
 fallback check")
       FILE(STRINGS "${_silo_settings_file}" SILO_VERSION_LINE
         REGEX "Silo Version")
-      STRING(REGEX REPLACE ".*: *([0-9]+.[0-9]+)" "\\1" SILO_VERSION_STRING
+      STRING(REGEX REPLACE ".*: *([0-9]+.[0-9]+)" "\\1" SILO_VERSION
         "${SILO_VERSION_LINE}")
     ENDIF()
 
-    IF("${SILO_VERSION_STRING}" STREQUAL ".")
+    IF("${SILO_VERSION}" STREQUAL ".")
       MESSAGE(FATAL_ERROR "Unable to parse the SILO version string.")
     ENDIF()
 
-    MESSAGE(STATUS "Found SILO ${SILO_VERSION_STRING} at ${SILO_ROOT}")
+    MESSAGE(STATUS "Found SILO ${SILO_VERSION} at ${SILO_ROOT}")
 
-    IF(${SILO_VERSION_STRING} VERSION_LESS "4.11")
+    IF(${SILO_VERSION} VERSION_LESS "4.11")
       MESSAGE(FATAL_ERROR "IBAMR is incompatible with Silo versions prior to
 4.11. Either disable Silo or use a newer version.")
     ENDIF()
