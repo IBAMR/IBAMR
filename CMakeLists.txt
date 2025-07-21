@@ -466,11 +466,11 @@ STRING(REGEX REPLACE "^.*SAMRAI_VERSION_MINOR.* ([0-9]+).*" "\\1"
 FILE(STRINGS "${SAMRAI_ROOT}/include/SAMRAI_config.h" SAMRAI_VERSION_PATCHLEVEL_LINE
   REGEX "#define.*SAMRAI_VERSION_PATCHLEVEL")
 STRING(REGEX REPLACE "^.*SAMRAI_VERSION_PATCHLEVEL.* ([0-9]+).*" "\\1"
-  SAMRAI_VERSION_PATCHLEVEL "${SAMRAI_VERSION_PATCHLEVEL_LINE}"
+  SAMRAI_VERSION_SUBMINOR "${SAMRAI_VERSION_PATCHLEVEL_LINE}"
   )
-SET(SAMRAI_VERSION_STRING "${SAMRAI_VERSION_MAJOR}.${SAMRAI_VERSION_MINOR}\
-.${SAMRAI_VERSION_PATCHLEVEL}")
-MESSAGE(STATUS "Found SAMRAI ${SAMRAI_VERSION_STRING} at ${SAMRAI_ROOT}")
+SET(SAMRAI_VERSION "${SAMRAI_VERSION_MAJOR}.${SAMRAI_VERSION_MINOR}\
+.${SAMRAI_VERSION_SUBMINOR}")
+MESSAGE(STATUS "Found SAMRAI ${SAMRAI_VERSION} at ${SAMRAI_ROOT}")
 
 # samrai libs:
 SET(SAMRAI_INCLUDE_DIRS "${SAMRAI_ROOT}/include")
@@ -812,10 +812,10 @@ IF(NOT "${SILO_ROOT}" STREQUAL "")
       SILO_VERSION_MAJOR "${SILO_VERSION_LINE}")
     STRING(REGEX REPLACE ".*Silo_version_[0-9]+_([0-9]+).*" "\\1"
       SILO_VERSION_MINOR "${SILO_VERSION_LINE}")
-    SET(SILO_VERSION_STRING "${SILO_VERSION_MAJOR}.${SILO_VERSION_MINOR}")
+    SET(SILO_VERSION "${SILO_VERSION_MAJOR}.${SILO_VERSION_MINOR}")
 
     # that didn't work - try the configuration file:
-    IF ("${SILO_VERSION_STRING}" STREQUAL ".")
+    IF ("${SILO_VERSION}" STREQUAL ".")
       SET(_silo_settings_file "")
       IF(EXISTS "${SILO_ROOT}/lib/libsilo.settings")
         SET(_silo_settings_file "${SILO_ROOT}/lib/libsilo.settings")
@@ -830,17 +830,17 @@ silo.h, libsilo.settings, or libsiloh5.settings.")
 fallback check")
       FILE(STRINGS "${_silo_settings_file}" SILO_VERSION_LINE
         REGEX "Silo Version")
-      STRING(REGEX REPLACE ".*: *([0-9]+.[0-9]+)" "\\1" SILO_VERSION_STRING
+      STRING(REGEX REPLACE ".*: *([0-9]+.[0-9]+)" "\\1" SILO_VERSION
         "${SILO_VERSION_LINE}")
     ENDIF()
 
-    IF("${SILO_VERSION_STRING}" STREQUAL ".")
+    IF("${SILO_VERSION}" STREQUAL ".")
       MESSAGE(FATAL_ERROR "Unable to parse the SILO version string.")
     ENDIF()
 
-    MESSAGE(STATUS "Found SILO ${SILO_VERSION_STRING} at ${SILO_ROOT}")
+    MESSAGE(STATUS "Found SILO ${SILO_VERSION} at ${SILO_ROOT}")
 
-    IF(${SILO_VERSION_STRING} VERSION_LESS "4.11")
+    IF(${SILO_VERSION} VERSION_LESS "4.11")
       MESSAGE(FATAL_ERROR "IBAMR is incompatible with Silo versions prior to
 4.11. Either disable Silo or use a newer version.")
     ENDIF()
