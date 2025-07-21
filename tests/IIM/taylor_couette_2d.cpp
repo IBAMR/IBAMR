@@ -1081,7 +1081,7 @@ compute_velocity_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Write out the result in a file.
     string file_name = data_dump_dirname + "/" + "u_y_";
     char temp_buf[128];
-    sprintf(temp_buf, "%.8f", data_time);
+    std::snprintf(temp_buf, sizeof(temp_buf), "%.8f", data_time);
     file_name += temp_buf;
 
     MPI_Status status;
@@ -1202,7 +1202,7 @@ compute_pressure_profile(Pointer<PatchHierarchy<NDIM> > patch_hierarchy,
     // Write out the result in a file.
     string file_name = data_dump_dirname + "/" + "p_";
     char temp_buf[128];
-    sprintf(temp_buf, "%.8f", data_time);
+    std::snprintf(temp_buf, sizeof(temp_buf), "%.8f", data_time);
     file_name += temp_buf;
 
     MPI_Status status;
