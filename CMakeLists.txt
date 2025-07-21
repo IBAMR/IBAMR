@@ -405,7 +405,6 @@ IF(${IBAMR_USE_BUNDLED_MUPARSER})
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserError.h
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserFixes.h
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserInt.h
-    ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserStack.h
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserTemplateMagic.h
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserTest.h
     ${CMAKE_SOURCE_DIR}/ibtk/contrib/muparser/include/muParserToken.h
