@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------
 //
-// Copyright (c) 2022 - 2022 by the IBAMR developers
+// Copyright (c) 2022 - 2025 by the IBAMR developers
 // All rights reserved.
 //
 // This file is part of IBAMR.
@@ -17,6 +17,8 @@
 #define included_IBTK_HierarchyAveragedDataManager
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
+
+#include <ibtk/config.h>
 
 #include <ibtk/SnapshotCache.h>
 #include <ibtk/ibtk_utilities.h>

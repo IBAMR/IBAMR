@@ -41,7 +41,7 @@ for FILE in $FILES ; do
   # copyright year. let's err on the safe side and take the last
   # 3 commits.)
   last_year=`git log -n 3 --date=short --format="format:%cd %s" $FILE | \
-              grep -E -i -v "update.*copyright|copyright.*update" | \
+              grep -E -i -v "Merge pull request|Update.*copyright|update.*copyright|copyright.*update" | \
              head -n 1 | \
              perl -p -e 's/^(\d\d\d\d)-.*/\1/g;'`
 
