@@ -195,3 +195,129 @@ jobs:
           cd build
           make -j4 examples
           ccache --show-stats
+
+  # build on macOS
+  macos:
+    runs-on: macos-15
+    name: Build IBAMR (macOS 15)
+    env:
+      CCACHE_MAXSIZE: 250M
+      CCACHE_DIR: /tmp/ibamr-ccache
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+        id: git
+      - name: Verify that clang-format was run
+        id: format
+        run: |
+          git config --global --add safe.directory '*'
+      - name: Populate ccache
+        uses: actions/cache@v4
+        env:
+          cache-name: ccache
+        id: cache
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ibamr-macos-feature-cache-${{ github.ref_name }}
+          restore-keys: |
+            ibamr-macos-feature-cache-${{ github.ref_name }}
+            ibamr-macos-master-cache-
+            ibamr-macos-
+      - name: setup homebrew dependencies
+        run: |
+          brew install ccache cmake curl hdf5-mpi hypre ninja open-mpi petsc
+      - name: list HDF5 info
+        run: |
+          brew --prefix hdf5-mpi
+          file $(brew --prefix hdf5-mpi)
+          ls $(brew --prefix hdf5-mpi)
+          find $(brew --prefix hdf5-mpi)
+      - name: Install SAMRAI
+        run: |
+          mkdir -p ~/unpack-samrai
+          cd ~/unpack-samrai
+          curl -LO https://github.com/IBAMR/IBSAMRAI2/archive/refs/tags/2025.01.09.tar.gz
+          tar xf 2025.01.09.tar.gz
+          cd IBSAMRAI2-2025.01.09
+          mkdir -p build
+          cd build
+
+          export CC="$(which mpicc)"
+          export CXX="$(which mpic++)"
+          export FC="$(which gfortran)"
+          export CFLAGS="-fPIC -O1"
+          export CXXFLAGS="-fPIC -O1 -std=c++11"
+          export FFLAGS="-fPIC -O1"
+          mkdir -p "$HOME/Applications"
+          ../configure --prefix="$HOME/Applications/samrai" \
+             --with-F77="$FC"                               \
+             --with-hdf5="$(brew --prefix hdf5-mpi)"        \
+             --without-hypre                                \
+             --enable-shared=on                             \
+             --without-blaslapack                           \
+             --without-cubes                                \
+             --without-eleven                               \
+             --without-petsc                                \
+             --without-sundials                             \
+             --without-x                                    \
+             --with-doxygen                                 \
+             --enable-dcomplex                              \
+             --enable-debug                                 \
+             --disable-opt                                  \
+             --enable-implicit-template-instantiation       \
+             --enable-dcomplex                              \
+             --disable-deprecated
+
+          make -j4
+          make -j4 install
+      - name: Configure IBAMR
+        id: configure
+        run: |
+          STARTING_DIRECTORY="$(pwd)"
+          rm -rf build
+          mkdir -p build
+          cd build
+          set +e
+          WARNING_FLAGS="-Wall -Wextra -Wpedantic -Werror"
+          DISABLED_WARNINGS="-Wno-nested-anon-types -Wno-deprecated-builtins"
+          cmake                                                                                   \
+              -GNinja                                                                             \
+              -DCMAKE_C_COMPILER="$(which mpicc)"                                                 \
+              -DCMAKE_C_FLAGS="-std=c17"                                                          \
+              -DCMAKE_CXX_COMPILER="$(which mpic++)"                                              \
+              -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)"                                     \
+              -DCMAKE_CXX_FLAGS="-O1 $WARNING_FLAGS $DISABLED_WARNINGS -std=c++17"                \
+              -DCMAKE_Fortran_COMPILER="$(which mpifort)"                                         \
+              -DCMAKE_Fortran_FLAGS="-O2 $WARNING_FLAGS -Wno-unused-parameter -Wno-compare-reals" \
+              -DHDF5_ROOT="$(brew --prefix hdf5-mpi)"                                             \
+              -DHYPRE_ROOT="$(brew --prefix hypre)"                                               \
+              -DPETSC_ROOT="$(brew --prefix petsc)"                                               \
+              -DSAMRAI_ROOT="$HOME/Applications/samrai"                                           \
+              ../
+          configure_status=$?
+          # make it easier to find log files by moving them into our starting directory
+          touch "$STARTING_DIRECTORY/CMakeConfigureLog.yaml"
+          find ./ -name CMakeConfigureLog.yaml -exec cp {} "$STARTING_DIRECTORY" \;
+          touch "$STARTING_DIRECTORY/compile_commands.json"
+          find ./ -name compile_commands.json  -exec cp {} "$STARTING_DIRECTORY" \;
+          set -e
+          ccache --show-stats
+          exit $configure_status
+      - name: Archive CMakeConfigureLog.yaml
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-CMakeConfigureLog.yaml
+          path: CMakeConfigureLog.yaml
+      - name: Archive compile_commands.json
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-compile_commands.json
+          path: compile_commands.json
+      - name: Compile library
+        id: compile-library
+        run: |
+          cd build
+          ninja -j4
+          ccache --show-stats
