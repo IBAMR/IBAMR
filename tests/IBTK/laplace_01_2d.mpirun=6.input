@@ -10,6 +10,11 @@ Main {
    log_file_name = "output"
    log_all_nodes = FALSE
 
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+
 
    timer_enabled = TRUE
 }

@@ -21,11 +21,14 @@
 
 #include <BergerRigoutsos.h>
 #include <CartesianGridGeometry.h>
+#include <CartesianPatchGeometry.h>
 #include <GriddingAlgorithm.h>
 #include <LoadBalancer.h>
 #include <StandardTagAndInitialize.h>
 
 #include <ibtk/app_namespaces.h>
+
+#include "../tests.h"
 
 /*******************************************************************************
  * For each run, the input filename must be given on the command line.  In all *
@@ -225,12 +228,40 @@ main(int argc, char* argv[])
         const double l2_norm = e_vec.L2Norm();
         const double l1_norm = e_vec.L1Norm();
 
-        if (IBTK_MPI::getRank() == 0)
+        plog << "|e|_oo = " << max_norm << "\n";
+        plog << "|e|_2  = " << l2_norm << "\n";
+        plog << "|e|_1  = " << l1_norm << "\n";
+
         {
-            std::ofstream out("output");
-            out << "|e|_oo = " << max_norm << "\n";
-            out << "|e|_2  = " << l2_norm << "\n";
-            out << "|e|_1  = " << l1_norm << "\n";
+            std::ostringstream out;
+            for (int ln = 0; ln <= finest_level; ++ln)
+            {
+                tbox::Pointer<hier::PatchLevel<NDIM> > patch_level = patch_hierarchy->getPatchLevel(ln);
+                out << std::setprecision(20);
+                out << "rank: " << IBTK_MPI::getRank() << " level: " << ln << " boxes:\n";
+                for (typename hier::PatchLevel<NDIM>::Iterator p(patch_level); p; p++)
+                {
+                    const hier::Box<NDIM> box = patch_level->getPatch(p())->getBox();
+                    Pointer<CartesianPatchGeometry<NDIM> > patch_geometry =
+                        patch_level->getPatch(p())->getPatchGeometry();
+                    out << "  " << box << '\n';
+
+                    out << "  x_lo = ";
+                    for (int d = 0; d < NDIM - 1; ++d) out << patch_geometry->getXLower()[d] << ", ";
+                    out << patch_geometry->getXLower()[NDIM - 1] << std::endl;
+
+                    out << "  x_up = ";
+                    for (int d = 0; d < NDIM - 1; ++d) out << patch_geometry->getXUpper()[d] << ", ";
+                    out << patch_geometry->getXUpper()[NDIM - 1] << std::endl;
+
+                    out << "  dx   = ";
+                    for (int d = 0; d < NDIM - 1; ++d) out << patch_geometry->getDx()[d] << ", ";
+                    out << patch_geometry->getDx()[NDIM - 1] << std::endl;
+                }
+
+                if (ln != finest_level) out << std::endl;
+            }
+            print_strings_on_plog_0(out.str());
         }
 
         // Finally, we clean up the output by setting error values on patches
@@ -258,5 +289,12 @@ main(int argc, char* argv[])
                 }
             }
         }
+
+        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        visit_data_writer->registerPlotQuantity(u_cc_var->getName(), "SCALAR", u_cc_idx);
+        visit_data_writer->registerPlotQuantity(f_cc_var->getName(), "SCALAR", f_cc_idx);
+        visit_data_writer->registerPlotQuantity(f_approx_cc_var->getName(), "SCALAR", f_approx_cc_idx);
+        visit_data_writer->registerPlotQuantity(e_cc_var->getName(), "SCALAR", e_cc_idx);
+        visit_data_writer->writePlotData(patch_hierarchy, 0, 0.0);
     }
 } // run_example

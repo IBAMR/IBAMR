@@ -11,6 +11,11 @@ Main {
    log_file_name = "output"
    log_all_nodes = FALSE
 
+// visualization dump parameters
+   viz_writer = "VisIt"
+   viz_dump_dirname = "viz2d"
+   visit_number_procs_per_file = 1
+
 // timer dump parameters
    timer_enabled = TRUE
 }
@@ -25,7 +30,7 @@ CartesianGeometry {
 }
 
 GriddingAlgorithm {
-   max_levels = 3                 // Maximum number of levels in hierarchy.
+   max_levels = 2                 // Maximum number of levels in hierarchy.
 
    ratio_to_coarser {
       level_1 = 4, 4, 4           // vector ratio to next coarser level
