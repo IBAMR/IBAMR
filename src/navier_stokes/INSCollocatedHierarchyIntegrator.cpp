@@ -764,12 +764,6 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
         if (d_output_U)
         {
             d_visit_writer->registerPlotQuantity("U", "VECTOR", d_U_current_idx, 0, d_U_scale);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                if (d == 0) d_visit_writer->registerPlotQuantity("U_x", "SCALAR", d_U_current_idx, d, d_U_scale);
-                if (d == 1) d_visit_writer->registerPlotQuantity("U_y", "SCALAR", d_U_current_idx, d, d_U_scale);
-                if (d == 2) d_visit_writer->registerPlotQuantity("U_z", "SCALAR", d_U_current_idx, d, d_U_scale);
-            }
         }
 
         if (d_output_P)
@@ -780,12 +774,6 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
         if (d_F_fcn && d_output_F)
         {
             d_visit_writer->registerPlotQuantity("F", "VECTOR", d_F_current_idx, 0, d_F_scale);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                if (d == 0) d_visit_writer->registerPlotQuantity("F_x", "SCALAR", d_F_current_idx, d, d_F_scale);
-                if (d == 1) d_visit_writer->registerPlotQuantity("F_y", "SCALAR", d_F_current_idx, d, d_F_scale);
-                if (d == 2) d_visit_writer->registerPlotQuantity("F_z", "SCALAR", d_F_current_idx, d, d_F_scale);
-            }
         }
 
         if (d_Q_fcn && d_output_Q)
@@ -795,18 +783,8 @@ INSCollocatedHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHie
 
         if (d_output_Omega)
         {
-#if (NDIM == 2)
-            d_visit_writer->registerPlotQuantity("Omega", "SCALAR", d_Omega_idx, 0, d_Omega_scale);
-#endif
-#if (NDIM == 3)
-            d_visit_writer->registerPlotQuantity("Omega", "VECTOR", d_Omega_idx, 0, d_Omega_scale);
-            for (unsigned int d = 0; d < NDIM; ++d)
-            {
-                if (d == 0) d_visit_writer->registerPlotQuantity("Omega_x", "SCALAR", d_Omega_idx, d, d_Omega_scale);
-                if (d == 1) d_visit_writer->registerPlotQuantity("Omega_y", "SCALAR", d_Omega_idx, d, d_Omega_scale);
-                if (d == 2) d_visit_writer->registerPlotQuantity("Omega_z", "SCALAR", d_Omega_idx, d, d_Omega_scale);
-            }
-#endif
+            d_visit_writer->registerPlotQuantity(
+                "Omega", ((NDIM == 2) ? "SCALAR" : "VECTOR"), d_Omega_idx, 0, d_Omega_scale);
         }
 
         if (d_output_Div_U)
