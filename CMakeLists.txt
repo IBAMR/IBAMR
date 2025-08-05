@@ -441,14 +441,22 @@ ELSE()
   MESSAGE(STATUS "MUPARSER_INCLUDE_DIRS: ${MUPARSER_INCLUDE_DIRS}")
   MESSAGE(STATUS "MUPARSER_LIBRARIES: ${MUPARSER_LIBRARIES}")
 
-  FIND_FILE(_muparser_def muParserDef.h HINTS ${MUPARSER_INCLUDE_DIRS} NO_DEFAULT_PAT)
+  FIND_FILE(_muparser_def muParserDef.h HINTS ${MUPARSER_INCLUDE_DIRS} NO_DEFAULT_PATH)
 ENDIF()
 
 # muParser version info:
 FILE(STRINGS "${_muparser_def}" MUPARSER_VERSION_LINE
-  REGEX "#define.*MUP_VERSION")
-STRING(REGEX REPLACE "^ *#.* MUP_VERSION .*\"([0-9.]+)\"" "\\1"
-  MUPARSER_VERSION "${MUPARSER_VERSION_LINE}")
+  REGEX "^[ \t]*#[ \t]*define[ \t]+MUP_VERSION[ \t]*_T")
+# The 2.3 release series encodes the version in a different place
+IF("${MUPARSER_VERSION_LINE}" STREQUAL "")
+  FILE(STRINGS "${_muparser_def}" MUPARSER_VERSION_LINE
+    REGEX "ParserVersion[ \t]*=.*\"[0-9.]+.*\"")
+  STRING(REGEX REPLACE ".*ParserVersion[ \t]*=.*\"([0-9.]+).*\".*" "\\1"
+    MUPARSER_VERSION "${MUPARSER_VERSION_LINE}")
+ELSE()
+  STRING(REGEX REPLACE ".*MUP_VERSION.*\"([0-9.]+)\".*" "\\1"
+    MUPARSER_VERSION "${MUPARSER_VERSION_LINE}")
+ENDIF()
 
 #
 # HDF5:
