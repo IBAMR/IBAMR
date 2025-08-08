@@ -235,8 +235,8 @@ INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual nor
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 2.90081e-06
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 1.59307e-05
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 2.90096e-06
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 1.59309e-05
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -245,5 +245,5 @@ Simulation time is 0.015625
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
- Force components: 0.000729184	-8.22472e-05	-6.60282e-05
- Fluid traction components: 0.00568804	-0.000633366	-0.000508465
+ Force components: 0.000729543	-8.22874e-05	-6.60605e-05
+ Fluid traction components: 0.00568813	-0.000633376	-0.000508473
