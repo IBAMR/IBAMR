@@ -514,11 +514,7 @@ main(int argc, char** argv)
                     // at data_time = t the bottom face is at z = t and the top face is at z = 1 + t
                     std::unique_ptr<Elem> side_ptr = elem.side_ptr(side_n);
 
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-                    const double z = side_ptr->centroid()(2);
-#else
                     const double z = side_ptr->vertex_average()(2);
-#endif
                     // include a simple correction velocity for the 4th test only (note that it needs to be a linear
                     // field)
                     double u_corr = (data_time == 3 ? 1.0 : 0.0);

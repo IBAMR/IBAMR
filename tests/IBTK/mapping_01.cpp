@@ -63,9 +63,7 @@ test(LibMeshInit& init)
     std::vector<libMesh::QuadratureType> quad_types;
     quad_types.push_back(QGAUSS);
     quad_types.push_back(QGRID);
-#if !LIBMESH_VERSION_LESS_THAN(1, 5, 0)
     quad_types.push_back(QNODAL);
-#endif
 
     for (const libMesh::QuadratureType quad_type : quad_types)
     {

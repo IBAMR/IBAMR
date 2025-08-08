@@ -229,48 +229,6 @@ get_JxW(quadrature_key_type key,
     }
 }
 IBTK_ENABLE_EXTRA_WARNINGS
-
-#if LIBMESH_VERSION_LESS_THAN(1, 6, 0)
-// libMesh's box intersection code is slow and not in a header (i.e., cannot be
-// inlined). This is problematic for us since we presently call this function
-// for every element on every patch: i.e., for N patches on the current
-// processor and K *total* (i.e., on all processors) elements we call this
-// function K*N times, which takes up a lot of time in regrids. For example:
-// switching to this function lowers the time required to get to the end of the
-// first time step in the TAVR model by 20%.
-inline bool
-bbox_intersects(const libMeshWrappers::BoundingBox& a, const libMeshWrappers::BoundingBox& b)
-{
-    const libMesh::Point& a_lower = a.first;
-    const libMesh::Point& a_upper = a.second;
-
-    const libMesh::Point& b_lower = b.first;
-    const libMesh::Point& b_upper = b.second;
-
-    // Since boxes are tensor products of line intervals it suffices to check
-    // that the line segments for each coordinate axis overlap.
-    for (unsigned int d = 0; d < NDIM; ++d)
-    {
-        // Line segments can intersect in two ways:
-        // 1. They can overlap.
-        // 2. One can be inside the other.
-        //
-        // In the first case we want to see if either end point of the second
-        // line segment lies within the first. In the second case we can simply
-        // check that one end point of the first line segment lies in the second
-        // line segment. Note that we don't need, in the second case, to do two
-        // checks since that case is already covered by the first.
-        if (!((a_lower(d) <= b_lower(d) && b_lower(d) <= a_upper(d)) ||
-              (a_lower(d) <= b_upper(d) && b_upper(d) <= a_upper(d))) &&
-            !((b_lower(d) <= a_lower(d) && a_lower(d) <= b_upper(d))))
-        {
-            return false;
-        }
-    }
-
-    return true;
-}
-#endif
 } // namespace
 
 FEData::FEData(std::string object_name, EquationSystems& equation_systems, const bool register_for_restart)
@@ -659,7 +617,7 @@ FEDataManager::reinitElementMappings()
                     bool inside_patch = true;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                        X_dof_map.dof_indices(n, X_idxs, d);
                         X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
                         // Due to how SAMRAI computes patch boundaries, even if the
                         // patch's domain is [0, 1]^2 the patches on the boundary
@@ -1086,7 +1044,7 @@ FEDataManager::spread(const int f_data_idx,
                     bool inside_patch = true;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                        X_dof_map.dof_indices(n, X_idxs, d);
                         X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
                         inside_patch =
                             inside_patch && (X[d] >= patch_x_lower[d]) &&
@@ -1096,7 +1054,7 @@ FEDataManager::spread(const int f_data_idx,
                     {
                         for (unsigned int i = 0; i < n_vars; ++i)
                         {
-                            IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
+                            F_dof_map.dof_indices(n, F_idxs, i);
                             for (const auto& F_idx : F_idxs)
                             {
                                 F_x_dX_node.push_back(
@@ -1861,7 +1819,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                     bool inside_patch = true;
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                        X_dof_map.dof_indices(n, X_idxs, d);
                         X[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
                         inside_patch =
                             inside_patch && (X[d] >= patch_x_lower[d]) &&
@@ -1873,7 +1831,7 @@ FEDataManager::interpWeighted(const int f_data_idx,
                         X_node.insert(X_node.end(), &X[0], &X[0] + NDIM);
                         for (unsigned int i = 0; i < n_vars; ++i)
                         {
-                            IBTK::get_nodal_dof_indices(F_dof_map, n, i, F_idxs);
+                            F_dof_map.dof_indices(n, F_idxs, i);
                             F_node_idxs.insert(F_node_idxs.end(), F_idxs.begin(), F_idxs.end());
                         }
                     }
@@ -2752,7 +2710,7 @@ FEDataManager::zeroExteriorValues(const CartesianPatchGeometry<NDIM>& patch_geom
     std::size_t n_qp = X_qp.size() / NDIM;
     TBOX_ASSERT(n_qp * NDIM == X_qp.size());
     TBOX_ASSERT(F_qp.size() == n_vars * n_qp);
-    libMeshWrappers::BoundingBox patch_box;
+    libMesh::BoundingBox patch_box;
 
     for (unsigned int d = 0; d < NDIM; ++d)
     {
@@ -3007,7 +2965,7 @@ FEDataManager::updateQuadPointCountData(const int coarsest_ln, const int finest_
                     const Node* const n = patch_nodes[k];
                     for (unsigned int d = 0; d < NDIM; ++d)
                     {
-                        IBTK::get_nodal_dof_indices(X_dof_map, n, d, X_idxs);
+                        X_dof_map.dof_indices(n, X_idxs, d);
                         X_qp[d] = X_local_soln[X_petsc_vec->map_global_to_local_index(X_idxs[0])];
                     }
                     const hier::Index<NDIM> i = IndexUtilities::getCellIndex(X_qp, grid_geom, ratio);
@@ -3137,9 +3095,8 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
     // be a bit paranoid by computing bounding boxes for elements as the union
     // of the bounding box of the nodes and the bounding box of the quadrature
     // points:
-    const std::vector<libMeshWrappers::BoundingBox> local_nodal_bboxes =
-        get_local_element_bounding_boxes(mesh, X_system);
-    const std::vector<libMeshWrappers::BoundingBox> local_qp_bboxes =
+    const std::vector<libMesh::BoundingBox> local_nodal_bboxes = get_local_element_bounding_boxes(mesh, X_system);
+    const std::vector<libMesh::BoundingBox> local_qp_bboxes =
         get_local_element_bounding_boxes(mesh,
                                          X_system,
                                          d_default_interp_spec.quad_type,
@@ -3149,25 +3106,13 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
                                          d_default_interp_spec.allow_rules_with_negative_weights,
                                          dx_0);
     TBOX_ASSERT(local_nodal_bboxes.size() == local_qp_bboxes.size());
-    std::vector<libMeshWrappers::BoundingBox> local_bboxes;
+    std::vector<libMesh::BoundingBox> local_bboxes;
     for (std::size_t box_n = 0; box_n < local_nodal_bboxes.size(); ++box_n)
     {
         local_bboxes.emplace_back(local_nodal_bboxes[box_n]);
-#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
-        // no BoundingBox::union_with in libMesh 1.1
-        auto& box = local_bboxes.back();
-        auto& other_box = local_qp_bboxes[box_n];
-        for (unsigned int d = 0; d < LIBMESH_DIM; ++d)
-        {
-            box.first(d) = std::min(box.first(d), other_box.first(d));
-            box.second(d) = std::max(box.second(d), other_box.second(d));
-        }
-#else
         local_bboxes.back().union_with(local_qp_bboxes[box_n]);
-#endif
     }
-    const std::vector<libMeshWrappers::BoundingBox> global_bboxes =
-        get_global_element_bounding_boxes(mesh, local_bboxes);
+    const std::vector<libMesh::BoundingBox> global_bboxes = get_global_element_bounding_boxes(mesh, local_bboxes);
 
     int local_patch_num = 0;
     for (PatchLevel<NDIM>::Iterator p(level); p; p++, ++local_patch_num)
@@ -3177,7 +3122,7 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         const Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
         const double* const dx = pgeom->getDx();
         // TODO: reimplement this with an rtree description of SAMRAI's patches
-        libMeshWrappers::BoundingBox patch_bbox;
+        libMesh::BoundingBox patch_bbox;
         for (unsigned int d = 0; d < NDIM; ++d)
         {
             patch_bbox.first(d) = pgeom->getXLower()[d] - dx[d] * d_associated_elem_ghost_width(d);
@@ -3190,20 +3135,14 @@ FEDataManager::collectActivePatchElements(std::vector<std::vector<Elem*> >& acti
         }
 
         auto el_it = mesh.elements_begin();
-        for (const libMeshWrappers::BoundingBox& bbox : global_bboxes)
+        for (const libMesh::BoundingBox& bbox : global_bboxes)
         {
             if ((*el_it)->active())
             {
                 const int elem_ln = getPatchLevel(*el_it);
                 if (coarsest_elem_ln <= elem_ln && elem_ln <= finest_elem_ln)
                 {
-#if LIBMESH_VERSION_LESS_THAN(1, 6, 0)
-                    if (bbox_intersects(bbox, patch_bbox)) elems.insert(*el_it);
-#else
-                    // New versions of libMesh have this function's performance
-                    // problems fixed
                     if (bbox.intersects(patch_bbox)) elems.insert(*el_it);
-#endif
                 }
             }
             ++el_it;

@@ -98,11 +98,7 @@ public:
         for (MeshBase::element_iterator el = d_mesh.elements_begin(); el != el_end; ++el)
         {
             Elem* elem = *el;
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-            const libMesh::Point centroid = elem->centroid();
-#else
             const libMesh::Point centroid = elem->vertex_average();
-#endif
 #if NDIM == 2
             if (centroid(1) > 0.0)
                 elem->subdomain_id() = 1;

@@ -229,11 +229,7 @@ main(int argc, char** argv)
             const MeshBase::element_iterator el_end = mesh.active_elements_end();
             for (MeshBase::element_iterator el = mesh.active_elements_begin(); el != el_end; ++el)
             {
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-                const libMesh::Point centroid = (*el)->centroid();
-#else
                 const libMesh::Point centroid = (*el)->vertex_average();
-#endif
                 if (centroid.norm() > 0.75 * R)
                 {
                     (*el)->subdomain_id() = outer_id;
@@ -252,11 +248,7 @@ main(int argc, char** argv)
             for (MeshBase::element_iterator el = mesh.elements_begin(); el != el_end; ++el)
             {
                 Elem* elem = *el;
-#if LIBMESH_VERSION_LESS_THAN(1, 7, 0)
-                const libMesh::Point centroid = elem->centroid();
-#else
                 const libMesh::Point centroid = elem->vertex_average();
-#endif
 
                 if (centroid(1) > 0.0) elem->set_refinement_flag(Elem::REFINE);
             }
