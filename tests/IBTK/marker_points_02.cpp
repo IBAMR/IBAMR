@@ -244,6 +244,7 @@ main(int argc, char** argv)
                 const auto all_keys_1 = step_db->getAllKeys();
                 for (int i = 0; i < all_keys_1.size(); ++i) plog << all_keys_1[i] << '\n';
 
+                std::vector<int> ids(marker_points.getNumberOfMarkers());
                 std::vector<double> xs(marker_points.getNumberOfMarkers());
                 std::vector<double> ys(marker_points.getNumberOfMarkers());
                 std::vector<double> pxs(marker_points.getNumberOfMarkers());
@@ -252,6 +253,7 @@ main(int argc, char** argv)
                 std::vector<double> zs(marker_points.getNumberOfMarkers());
                 std::vector<double> pzs(marker_points.getNumberOfMarkers());
 #endif
+                step_db->getIntegerArray("id", ids.data(), marker_points.getNumberOfMarkers());
                 step_db->getDoubleArray("x", xs.data(), marker_points.getNumberOfMarkers());
                 step_db->getDoubleArray("y", ys.data(), marker_points.getNumberOfMarkers());
                 step_db->getDoubleArray("px", pxs.data(), marker_points.getNumberOfMarkers());
@@ -273,48 +275,55 @@ main(int argc, char** argv)
 #endif
                     TBOX_ASSERT(X == pair.first[k]);
                     TBOX_ASSERT(V == pair.second[k]);
+                    TBOX_ASSERT(k == unsigned(ids[k]));
+
+                    plog << ids[k] << ": "
+                         << "X = " << xs[k] << ", " << ys[k] << " V = " << pxs[k] << ", " << pys[k] << '\n';
                 }
             }
         }
     }
 
-    if (collective_print)
+    if (!test_h5part)
     {
-        auto all_points = marker_points.collectAllMarkers();
-        for (unsigned int k = 0; k < marker_points.getNumberOfMarkers(); ++k)
+        if (collective_print)
         {
-            plog << "X = ";
-            for (unsigned int d = 0; d < NDIM - 1; ++d)
+            auto all_points = marker_points.collectAllMarkers();
+            for (unsigned int k = 0; k < marker_points.getNumberOfMarkers(); ++k)
             {
-                plog << all_points.first[k][d] << ", ";
-            }
-            plog << all_points.first[k][NDIM - 1] << " V = ";
-            for (unsigned int d = 0; d < NDIM - 1; ++d)
-            {
-                plog << all_points.second[k][d] << ", ";
-            }
-            plog << all_points.second[k][NDIM - 1] << '\n';
-        }
-    }
-    else
-    {
-        std::ostringstream out;
-        for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
-        {
-            int local_patch_num = 0;
-            Pointer<PatchLevel<NDIM> > current_level = patch_hierarchy->getPatchLevel(ln);
-            for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
-            {
-                if (rank == current_level->getMappingForPatch(p))
+                plog << "X = ";
+                for (unsigned int d = 0; d < NDIM - 1; ++d)
                 {
-                    out << "level = " << ln << " patch = " << current_level->getPatch(p)->getBox() << std::endl;
-                    test(marker_points.getMarkerPatch(ln, local_patch_num), out);
-
-                    ++local_patch_num;
+                    plog << all_points.first[k][d] << ", ";
                 }
+                plog << all_points.first[k][NDIM - 1] << " V = ";
+                for (unsigned int d = 0; d < NDIM - 1; ++d)
+                {
+                    plog << all_points.second[k][d] << ", ";
+                }
+                plog << all_points.second[k][NDIM - 1] << '\n';
             }
         }
+        else
+        {
+            std::ostringstream out;
+            for (int ln = 0; ln <= patch_hierarchy->getFinestLevelNumber(); ++ln)
+            {
+                int local_patch_num = 0;
+                Pointer<PatchLevel<NDIM> > current_level = patch_hierarchy->getPatchLevel(ln);
+                for (int p = 0; p < current_level->getNumberOfPatches(); ++p)
+                {
+                    if (rank == current_level->getMappingForPatch(p))
+                    {
+                        out << "level = " << ln << " patch = " << current_level->getPatch(p)->getBox() << std::endl;
+                        test(marker_points.getMarkerPatch(ln, local_patch_num), out);
 
-        print_strings_on_plog_0(out.str());
+                        ++local_patch_num;
+                    }
+                }
+            }
+
+            print_strings_on_plog_0(out.str());
+        }
     }
 }
