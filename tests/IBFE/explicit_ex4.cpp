@@ -560,7 +560,10 @@ main(int argc, char** argv)
         if (input_db->getBoolWithDefault("test_markers", false) && time_integrator->getNumberOfMarkers() == 0)
         {
             add_markers();
+            tbox::pout << "\nAdded new markers before main time loop.\n\n";
         }
+        else if (time_integrator->getNumberOfMarkers() != 0)
+            tbox::pout << "\nMarkers added from restart file.\n\n";
 
         // Write out initial visualization data.
         int iteration_num = time_integrator->getIntegratorStep();
@@ -673,6 +676,7 @@ main(int argc, char** argv)
             if (iteration_num == 90 && input_db->getBoolWithDefault("test_markers_90", false))
             {
                 add_markers();
+                tbox::pout << "\nAdded new markers at time step 90.\n\n";
             }
 
             // third test for markers: make sure we can reset them to
@@ -680,10 +684,12 @@ main(int argc, char** argv)
             if (iteration_num == 50 && input_db->getBoolWithDefault("test_vanishing_markers", false))
             {
                 time_integrator->setMarkers({});
+                tbox::pout << "\nCleared markers at time step 50.\n\n";
             }
             if (iteration_num == 70 && input_db->getBoolWithDefault("test_vanishing_markers", false))
             {
                 add_markers();
+                tbox::pout << "\nAdded new markers at time step 70.\n\n";
             }
 
             // fourth test for markers: make sure that things are set up
@@ -691,6 +697,7 @@ main(int argc, char** argv)
             if (iteration_num == 75 && input_db->getBoolWithDefault("test_restart_markers", false))
             {
                 time_integrator->setMarkers({});
+                tbox::pout << "Cleared markers at time step 75.\n\n";
             }
         }
 

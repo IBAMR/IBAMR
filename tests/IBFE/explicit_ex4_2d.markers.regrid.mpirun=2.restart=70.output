@@ -2,6 +2,9 @@
 IBFEMethod: mesh part 0 is using FIRST order LAGRANGE finite elements.
 
 IBHierarchyIntegrator::initializePatchHierarchy(): tag_buffer = 2
+
+Markers added from restart file.
+
 Total number of elems: 122
 Total number of DoFs: 2139
 
@@ -19,12 +22,12 @@ IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian force
 FEProjector::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: IB force system
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.5867061461747200091e-13
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 2.5862094729845119782e-13
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 FEProjector::buildDiagonalL2MassMatrix(): building diagonal L2 mass matrix for system: IB velocity system
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.012301027303276656361
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.012301027303276658095
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.51216357879616003501
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
@@ -154,6 +157,8 @@ Simulation time is 0.146484
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
 0.146484375000 0.124443499862
+Cleared markers at time step 75.
+
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 75
