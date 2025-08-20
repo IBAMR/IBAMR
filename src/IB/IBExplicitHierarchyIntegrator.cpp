@@ -513,6 +513,39 @@ IBExplicitHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHierar
     return;
 } // initializeHierarchyIntegrator
 
+void
+IBExplicitHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                                        Pointer<GriddingAlgorithm<NDIM> > gridding_alg)
+{
+    IBHierarchyIntegrator::initializePatchHierarchy(hierarchy, gridding_alg);
+
+    // Check if there is marker data to load from restart
+    if (RestartManager::getManager()->isFromRestart())
+    {
+        Pointer<Database> restart_db = RestartManager::getManager()->getRootDatabase();
+        if (restart_db->keyExists(d_object_name + "::markers"))
+        {
+            if (d_marker_kernel.size() == 0)
+            {
+                TBOX_ERROR(d_object_name
+                           << "::initializePatchHierarchy():\n To use marker points the IB kernel must be specified in "
+                              "the input database via IB_delta_fcn.");
+            }
+            d_markers = new MarkerPatchHierarchy(d_object_name + "::markers", d_hierarchy, {}, {});
+            // from marker restart
+            d_marker_velocities_set = true;
+            if (d_u_half_idx == IBTK::invalid_index)
+            {
+                VariableDatabase<NDIM>* var_db = VariableDatabase<NDIM>::getDatabase();
+                d_u_half_idx = var_db->registerClonedPatchDataIndex(getVelocityVariable(), d_u_idx);
+                d_ib_data.setFlag(d_u_half_idx);
+            }
+        }
+    }
+
+    return;
+} // initializePatchHierarchy
+
 std::size_t
 IBExplicitHierarchyIntegrator::getNumberOfMarkers() const
 {
@@ -602,7 +635,6 @@ void
 IBExplicitHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     IBHierarchyIntegrator::regridHierarchyBeginSpecialized();
-
     if (d_markers)
     {
         d_regrid_temporary_data = new IBExplicitHierarchyIntegrator::RegridData();
@@ -654,13 +686,6 @@ IBExplicitHierarchyIntegrator::getFromRestart()
     {
         TBOX_ERROR(d_object_name << ":  Restart file version different than class version." << std::endl);
     }
-
-    if (db->isDatabase(d_object_name + "::markers"))
-    {
-        // MarkerPatchHierarchy will access the restart database itself
-        d_markers = new MarkerPatchHierarchy(d_object_name + "::markers", d_hierarchy, {}, {});
-    }
-
     return;
 } // getFromRestart
 
