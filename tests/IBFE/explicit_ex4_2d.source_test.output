@@ -28,16 +28,24 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 11
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.3730300296385233243e-15
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 3.3730300296377628623e-15
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 8
-INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.2690272033227826945e-15
+INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 4.2690272032459310763e-15
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0033334021315537332511
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.0033334021315537332511
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.0033334021315537323837
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.0033334021315537323837
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -58,14 +66,18 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 9
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000000000000
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003332502493
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.006665904624
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003332089372
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.006665491504
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -73,7 +85,7 @@ At end       of timestep # 1
 Simulation time is 0.000976562
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-0.000976562500 0.125750010247
+0.000976562500 0.125750006981
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 2
@@ -86,14 +98,18 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000000000000
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003331629317
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.009997533942
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003331215401
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.009996706905
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -101,7 +117,7 @@ At end       of timestep # 2
 Simulation time is 0.00146484
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-0.001464843750 0.125807644142
+0.001464843750 0.125807634353
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 3
@@ -114,14 +130,18 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000000000000
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003330756466
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.013328290408
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003330341731
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.013327048636
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -129,7 +149,7 @@ At end       of timestep # 3
 Simulation time is 0.00195312
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-0.001953125000 0.125865278451
+0.001953125000 0.125865262143
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 4
@@ -142,14 +162,18 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000000000000
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003329883821
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.016658174229
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003329468277
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.016656516913
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -157,7 +181,7 @@ At end       of timestep # 4
 Simulation time is 0.00244141
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-0.002441406250 0.125922913171
+0.002441406250 0.125922890348
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 5
@@ -170,14 +194,18 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000000000000
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003329011200
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.019987185429
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003328594853
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.019985111765
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -185,7 +213,7 @@ At end       of timestep # 5
 Simulation time is 0.00292969
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-0.002929687500 0.125980548302
+0.002929687500 0.125980518966
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 6
@@ -198,14 +226,18 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000000000000
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003328139090
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.023315324520
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003327721731
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.023312833496
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -213,7 +245,7 @@ At end       of timestep # 6
 Simulation time is 0.00341797
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-0.003417968750 0.126038183840
+0.003417968750 0.126038147995
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 7
@@ -226,14 +258,18 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000000000000
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003327269153
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.026642593673
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003326851056
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.026639684552
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -241,7 +277,7 @@ At end       of timestep # 7
 Simulation time is 0.00390625
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-0.003906250000 0.126095819785
+0.003906250000 0.126095777434
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 8
@@ -254,14 +290,18 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000000000000
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003326399323
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.029968992995
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003325980512
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.029965665063
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -269,7 +309,7 @@ At end       of timestep # 8
 Simulation time is 0.00439453
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-0.004394531250 0.126153456135
+0.004394531250 0.126153407281
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 At beginning of timestep # 9
@@ -282,14 +322,18 @@ IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian force to the E
 IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
 IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::integrateHierarchy(): solving the incompressible Navier-Stokes equations
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve number of iterations = 7
 INSStaggeredHierarchyIntegrator::integrateHierarchy(): stokes solve residual norm        = 0.000000000000
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
 IBHierarchyIntegrator::integrateHierarchy(): performing Lagrangian midpoint-rule step
 IBHierarchyIntegrator::integrateHierarchy(): interpolating Eulerian fluid pressure to the Lagrangian mesh
 IBHierarchyIntegrator::postprocessIntegrateHierarchy(): interpolating Eulerian velocity to the Lagrangian mesh
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003325529503
-IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.033294522498
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): CFL number = 0.003325110005
+IBHierarchyIntegrator::postprocessIntegrateHierarchy(): Eulerian estimate of upper bound on IB point displacement since last regrid = 0.033290775068
 IBHierarchyIntegrator::advanceHierarchy(): synchronizing updated data
 IBHierarchyIntegrator::advanceHierarchy(): resetting time dependent data
 
@@ -297,4 +341,4 @@ At end       of timestep # 9
 Simulation time is 0.00488281
 +++++++++++++++++++++++++++++++++++++++++++++++++++
 
-0.004882812500 0.126211092888
+0.004882812500 0.126211037535

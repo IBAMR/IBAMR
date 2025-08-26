@@ -232,6 +232,12 @@ public:
 
 protected:
     /*!
+     * Compute the values of the fluid sources which may be provided by
+     * d_ib_method_ops.
+     */
+    virtual void computeFluidSources(const int data_idx, const double data_time);
+
+    /*!
      * Perform necessary data movement, workload estimation, and logging prior
      * to regridding.
      */
@@ -511,7 +517,7 @@ protected:
         /*!
          * \brief Constructor.
          */
-        IBEulerianSourceFunction(const IBHierarchyIntegrator* ib_solver);
+        IBEulerianSourceFunction(IBHierarchyIntegrator* ib_solver);
 
         /*!
          * \brief Destructor.
@@ -529,7 +535,19 @@ protected:
         bool isTimeDependent() const override;
 
         /*!
-         * Set the data on the patch interior.
+         * \brief Set the data on the patch interiors on the specified levels of
+         * the patch hierarchy.
+         */
+        void setDataOnPatchHierarchy(const int data_idx,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
+                                     SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                     const double data_time,
+                                     const bool initial_time = false,
+                                     const int coarsest_ln = IBTK::invalid_level_number,
+                                     const int finest_ln = IBTK::invalid_level_number) override;
+
+        /*!
+         * Necessary override of setDataOnPatch - use setDataOnPatchHierarchy instead.
          */
         void setDataOnPatch(int data_idx,
                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > var,
@@ -569,7 +587,7 @@ protected:
          */
         IBEulerianSourceFunction& operator=(const IBEulerianSourceFunction& that) = delete;
 
-        const IBHierarchyIntegrator* const d_ib_solver;
+        IBHierarchyIntegrator* d_ib_solver;
     };
 
     friend class IBEulerianSourceFunction;
