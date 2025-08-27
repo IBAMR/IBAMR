@@ -435,7 +435,7 @@ protected:
     /*!
      * Pure virtual method to project the velocity field following a regridding operation.
      */
-    virtual void regridProjection() = 0;
+    virtual void regridProjection(const bool initial_time) = 0;
 
     /*!
      * Update the current CFL number (i.e., at the end of a timestep).

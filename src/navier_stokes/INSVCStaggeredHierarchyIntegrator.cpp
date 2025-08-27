@@ -1514,7 +1514,7 @@ INSVCStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(c
     {
         plog << d_object_name << "::initializeCompositeHierarchyData():\n"
              << "  projecting the interpolated velocity field\n";
-        regridProjection();
+        regridProjection(initial_time);
         d_do_regrid_projection = false;
     }
     return;
