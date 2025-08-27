@@ -16,7 +16,11 @@ IBHierarchyIntegrator::advanceHierarchy(): time interval = [0,0.00048828125], dt
 IBHierarchyIntegrator::advanceHierarchy(): regridding prior to timestep 0
 IBHierarchyIntegrator::regridHierarchy(): starting Lagrangian data movement
 IBHierarchyIntegrator::regridHierarchy(): regridding the patch hierarchy
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 IBHierarchyIntegrator::regridHierarchy(): finishing Lagrangian data movement
+IBHierarchyIntegrator::integrateHierarchy(): computing Lagrangian fluid source strength
+IBHierarchyIntegrator::integrateHierarchy(): spreading Lagrangian fluid source strength to the Eulerian grid
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing convective operator
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing velocity subdomain solver
 INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(): initializing pressure subdomain solver
