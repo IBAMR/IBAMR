@@ -1518,9 +1518,9 @@ INSCollocatedHierarchyIntegrator::getStableTimestep(Pointer<Patch<NDIM> > patch)
 
 void
 INSCollocatedHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(const double /*init_data_time*/,
-                                                                              const bool /*initial_time*/)
+                                                                              const bool initial_time)
 {
-    regridProjection();
+    regridProjection(initial_time);
     return;
 } // initializeCompositeHierarchyDataSpecialized
 
@@ -1761,7 +1761,7 @@ INSCollocatedHierarchyIntegrator::setupPlotDataSpecialized()
 } // setupPlotDataSpecialized
 
 void
-INSCollocatedHierarchyIntegrator::regridProjection()
+INSCollocatedHierarchyIntegrator::regridProjection(const bool initial_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -1816,6 +1816,10 @@ INSCollocatedHierarchyIntegrator::regridProjection()
     scratch_idxs.setFlag(d_Phi_idx);
     scratch_idxs.setFlag(d_Grad_Phi_cc_idx);
     scratch_idxs.setFlag(d_Grad_Phi_fc_idx);
+    if (d_Q_fcn)
+    {
+        scratch_idxs.setFlag(d_Q_scratch_idx);
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1831,6 +1835,11 @@ INSCollocatedHierarchyIntegrator::regridProjection()
                             d_U_var,
                             d_U_bdry_bc_fill_op,
                             d_integrator_time);
+
+    if (d_Q_fcn)
+    {
+        d_Q_fcn->setDataOnPatchHierarchy(d_Q_scratch_idx, d_Q_var, d_hierarchy, d_integrator_time, initial_time);
+    }
 
     // Setup the right-hand side vector for the projection-Poisson solve.
     d_hier_math_ops->div(d_Div_U_idx,

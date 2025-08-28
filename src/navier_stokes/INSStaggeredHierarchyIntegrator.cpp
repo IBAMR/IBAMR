@@ -1754,7 +1754,8 @@ INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
-    // Do not coarsen or refine any plot data. Also ensure that the divergence is allocated.
+    // Do not coarsen or refine any plot data. Also ensure the divergence and
+    // sources are allocated.
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
@@ -1766,6 +1767,15 @@ INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
         {
             level->allocatePatchData(d_Div_U_idx);
         }
+        if (d_Q_fcn && !level->checkAllocated(d_Q_scratch_idx))
+        {
+            level->allocatePatchData(d_Q_scratch_idx);
+        }
+    }
+
+    if (d_Q_fcn)
+    {
+        d_Q_fcn->setDataOnPatchHierarchy(d_Q_scratch_idx, d_Q_var, d_hierarchy, d_integrator_time);
     }
 
     // Determine the divergence of the velocity field before regridding.
@@ -1784,12 +1794,43 @@ INSStaggeredHierarchyIntegrator::regridHierarchyBeginSpecialized()
     d_div_U_norm_1_pre = d_hier_cc_data_ops->L1Norm(d_Div_U_idx, wgt_cc_idx);
     d_div_U_norm_2_pre = d_hier_cc_data_ops->L2Norm(d_Div_U_idx, wgt_cc_idx);
     d_div_U_norm_oo_pre = d_hier_cc_data_ops->maxNorm(d_Div_U_idx, wgt_cc_idx);
+
+    // We don't need to communicate source or divergence data.
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_Div_U_idx);
+        if (d_Q_fcn)
+        {
+            level->deallocatePatchData(d_Q_scratch_idx);
+        }
+    }
+
     return;
 } // regridHierarchyBeginSpecialized
 
 void
 INSStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
 {
+    const int coarsest_ln = 0;
+    const int finest_ln = d_hierarchy->getFinestLevelNumber();
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_Div_U_idx))
+        {
+            level->allocatePatchData(d_Div_U_idx);
+        }
+        if (d_Q_fcn && !level->checkAllocated(d_Q_scratch_idx))
+        {
+            level->allocatePatchData(d_Q_scratch_idx);
+        }
+    }
+    if (d_Q_fcn)
+    {
+        d_Q_fcn->setDataOnPatchHierarchy(d_Q_scratch_idx, d_Q_var, d_hierarchy, d_integrator_time);
+    }
+
     const int wgt_cc_idx = d_hier_math_ops->getCellWeightPatchDescriptorIndex();
     // Determine the divergence of the velocity field after regridding.
     d_hier_math_ops->div(d_Div_U_idx,
@@ -1809,6 +1850,17 @@ INSStaggeredHierarchyIntegrator::regridHierarchyEndSpecialized()
     d_do_regrid_projection = d_div_U_norm_1_post > d_regrid_max_div_growth_factor * d_div_U_norm_1_pre ||
                              d_div_U_norm_2_post > d_regrid_max_div_growth_factor * d_div_U_norm_2_pre ||
                              d_div_U_norm_oo_post > d_regrid_max_div_growth_factor * d_div_U_norm_oo_pre;
+
+    for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        level->deallocatePatchData(d_Div_U_idx);
+        if (d_Q_fcn)
+        {
+            level->deallocatePatchData(d_Q_scratch_idx);
+        }
+    }
+
     return;
 } // regridHierarchyEndSpecialized
 
@@ -1821,7 +1873,7 @@ INSStaggeredHierarchyIntegrator::initializeCompositeHierarchyDataSpecialized(con
     {
         plog << d_object_name << "::initializeCompositeHierarchyData():\n"
              << "  projecting the interpolated velocity field\n";
-        regridProjection();
+        regridProjection(initial_time);
         d_do_regrid_projection = false;
     }
     return;
@@ -2163,7 +2215,7 @@ INSStaggeredHierarchyIntegrator::setupPlotDataSpecialized()
 } // setupPlotDataSpecialized
 
 void
-INSStaggeredHierarchyIntegrator::regridProjection()
+INSStaggeredHierarchyIntegrator::regridProjection(const bool initial_time)
 {
     const int coarsest_ln = 0;
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
@@ -2216,10 +2268,19 @@ INSStaggeredHierarchyIntegrator::regridProjection()
     ComponentSelector scratch_idxs;
     scratch_idxs.setFlag(d_U_scratch_idx);
     scratch_idxs.setFlag(d_P_scratch_idx);
+    if (d_Q_fcn)
+    {
+        scratch_idxs.setFlag(d_Q_scratch_idx);
+    }
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
         Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
         level->allocatePatchData(scratch_idxs, d_integrator_time);
+    }
+
+    if (d_Q_fcn)
+    {
+        d_Q_fcn->setDataOnPatchHierarchy(d_Q_scratch_idx, d_Q_var, d_hierarchy, d_integrator_time, initial_time);
     }
 
     // Setup the right-hand-side vector for the projection-Poisson solve.
@@ -2232,7 +2293,7 @@ INSStaggeredHierarchyIntegrator::regridProjection()
                          d_integrator_time,
                          /*synch_cf_bdry*/ false,
                          +1.0,
-                         d_Q_current_idx,
+                         d_Q_scratch_idx,
                          d_Q_var);
     const double Div_U_mean = (1.0 / volume) * d_hier_cc_data_ops->integral(d_Div_U_idx, wgt_cc_idx);
     d_hier_cc_data_ops->addScalar(d_Div_U_idx, d_Div_U_idx, -Div_U_mean);

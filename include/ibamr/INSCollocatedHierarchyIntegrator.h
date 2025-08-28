@@ -221,7 +221,7 @@ protected:
     /*!
      * Project the velocity field following a regridding operation.
      */
-    void regridProjection() override;
+    void regridProjection(const bool initial_time) override;
 
 private:
     /*!
