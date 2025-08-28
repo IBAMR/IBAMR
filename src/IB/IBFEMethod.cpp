@@ -1154,7 +1154,19 @@ void
 IBFEMethod::computeLagrangianFluidSource(double data_time)
 {
     IBAMR_TIMER_START(t_compute_lagrangian_fluid_source);
-    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
+    // We may be calling this function prior to regridding - in that case, we
+    // are outside of the normal timestepping loop, and we should compute values
+    // in the current structural configuration (instead of the half timestep)
+    std::string data_time_str;
+    if (std::isnan(d_current_time))
+    {
+        data_time_str = "current";
+    }
+    else
+    {
+        data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
+    }
+
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
         if (!d_lag_body_source_part[part]) continue;
@@ -1180,7 +1192,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         fe.evalQuadraturePoints();
         fe.evalQuadratureWeights();
         fe.registerSystem(Q_system);
-        NumericVector<double>& X_vec = d_X_vecs->get("half", part);
+        NumericVector<double>& X_vec = d_X_vecs->get(data_time_str, part);
         const size_t X_sys_idx = fe.registerInterpolatedSystem(X_system, vars, vars, &X_vec);
         std::vector<size_t> Q_fcn_system_idxs;
         fe.setupInterpolatedSystemDataIndexes(
@@ -1243,7 +1255,7 @@ IBFEMethod::computeLagrangianFluidSource(double data_time)
         }
 
         // Solve for Q.
-        NumericVector<double>& Q_vec = d_Q_vecs->get("half", part);
+        NumericVector<double>& Q_vec = d_Q_vecs->get(data_time_str, part);
         d_primary_fe_data_managers[part]->computeL2Projection(
             Q_vec, *Q_rhs_vec, getSourceSystemName(), d_use_consistent_mass_matrix);
     }
@@ -1260,8 +1272,20 @@ IBFEMethod::spreadFluidSource(const int q_data_idx,
     IBAMR_TIMER_START(t_spread_fluid_source);
     std::vector<PetscVector<double>*> X_IB_ghost_vecs = d_X_IB_vecs->getIBGhosted("tmp");
     std::vector<PetscVector<double>*> Q_IB_ghost_vecs = d_Q_IB_vecs->getIBGhosted("tmp");
-    TBOX_ASSERT(IBTK::rel_equal_eps(data_time, d_half_time));
-    batch_vec_copy({ d_X_vecs->get("half"), d_Q_vecs->get("half") }, { X_IB_ghost_vecs, Q_IB_ghost_vecs });
+
+    // Same as computeLagrangianFluidSource:
+    std::string data_time_str;
+    if (std::isnan(d_current_time))
+    {
+        data_time_str = "current";
+    }
+    else
+    {
+        data_time_str = get_data_time_str(data_time, d_current_time, d_new_time);
+    }
+
+    batch_vec_copy({ d_X_vecs->get(data_time_str), d_Q_vecs->get(data_time_str) },
+                   { X_IB_ghost_vecs, Q_IB_ghost_vecs });
     batch_vec_ghost_update({ X_IB_ghost_vecs, Q_IB_ghost_vecs }, INSERT_VALUES, SCATTER_FORWARD);
 
     if (d_use_scratch_hierarchy)

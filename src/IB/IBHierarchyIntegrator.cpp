@@ -496,6 +496,44 @@ IBHierarchyIntegrator::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > h
 /////////////////////////////// PROTECTED ////////////////////////////////////
 
 void
+IBHierarchyIntegrator::computeFluidSources(const int data_idx, const double data_time)
+{
+    bool deallocate = false;
+    for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+    {
+        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        if (!level->checkAllocated(d_q_idx))
+        {
+            level->allocatePatchData(d_q_idx, data_time);
+            deallocate = true;
+        }
+    }
+
+    if (d_enable_logging)
+        plog << d_object_name << "::integrateHierarchy(): computing Lagrangian fluid source strength\n";
+    d_ib_method_ops->computeLagrangianFluidSource(data_time);
+    if (d_enable_logging)
+        plog << d_object_name
+             << "::integrateHierarchy(): spreading Lagrangian fluid source "
+                "strength to the Eulerian grid\n";
+
+    d_hier_pressure_data_ops->setToScalar(d_q_idx, 0.0, false);
+    // NOTE: This does not correctly treat the case in which the structure
+    // is close to the physical boundary.
+    d_ib_method_ops->spreadFluidSource(d_q_idx, nullptr, getProlongRefineSchedules(d_object_name + "::q"), data_time);
+    d_hier_cc_data_ops->copyData(data_idx, d_q_idx);
+
+    if (deallocate)
+    {
+        for (int ln = 0; ln <= d_hierarchy->getFinestLevelNumber(); ++ln)
+        {
+            Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+            level->deallocatePatchData(d_q_idx);
+        }
+    }
+}
+
+void
 IBHierarchyIntegrator::regridHierarchyBeginSpecialized()
 {
     // This must be done here since (if a load balancer is used) it effects
