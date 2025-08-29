@@ -870,7 +870,7 @@ INSStaggeredHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHier
                          d_F_coarsen_type,
                          d_F_refine_type,
                          d_F_fcn,
-                         d_output_F);
+                         d_registered_for_restart || d_output_F);
     }
     else
     {
