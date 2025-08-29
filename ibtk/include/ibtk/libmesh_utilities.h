@@ -23,24 +23,20 @@
 #ifdef IBTK_HAVE_LIBMESH
 
 #include "ibtk/IBTK_CHKERRQ.h"
+#include "ibtk/ibtk_utilities.h"
 
 #include "tbox/Utilities.h"
 
 IBTK_DISABLE_EXTRA_WARNINGS
-#include "libmesh/libmesh_config.h"
-#include "libmesh/libmesh_version.h"
-
-#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
-#include "libmesh/mesh_tools.h"
-#else
 #include "libmesh/bounding_box.h"
-#endif
 #include "libmesh/dof_map.h"
 #include "libmesh/dof_object.h"
 #include "libmesh/edge.h"
 #include "libmesh/equation_systems.h"
 #include "libmesh/face.h"
 #include "libmesh/fe.h"
+#include "libmesh/libmesh_config.h"
+#include "libmesh/libmesh_version.h"
 #include "libmesh/petsc_vector.h"
 #include "libmesh/point.h"
 #include "libmesh/quadrature_gauss.h"
@@ -65,12 +61,10 @@ namespace libMeshWrappers
 {
 /**
  * Compatibility type alias for supporting older versions of libMesh.
+ *
+ * @deprecated Use libMesh::BoundingBox instead.
  */
-#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
-using BoundingBox = libMesh::MeshTools::BoundingBox;
-#else
-using BoundingBox = libMesh::BoundingBox;
-#endif
+using BoundingBox IBTK_DEPRECATED("Use libMesh::BoundingBox instead.") = libMesh::BoundingBox;
 } // namespace libMeshWrappers
 
 /**
@@ -1346,42 +1340,17 @@ struct DofObjectComp
  * the DoFs corresponding to basis functions with node value functionals. This
  * compatibility function either calls that function directly or uses our own
  * implementation if the present libMesh is too old.
+ *
+ * @deprecated Use DofMap::dof_indices() instead.
  */
+IBTK_DEPRECATED("Use DofMap::dof_indices() instead.")
 inline void
 get_nodal_dof_indices(const libMesh::DofMap& dof_map,
                       const libMesh::Node* const node,
                       const unsigned int variable_n,
                       std::vector<libMesh::dof_id_type>& nodal_indices)
 {
-#if LIBMESH_VERSION_LESS_THAN(1, 2, 0)
-    // See dof_map.C, circa line 2208
-
-    // We only call this function with variable numbers 0, 1, or 2, so skip
-    // implementing some stuff
-    TBOX_ASSERT(variable_n != libMesh::invalid_uint);
-
-    nodal_indices.clear();
-    const unsigned int system_n = dof_map.sys_number();
-
-    // Get the dof numbers
-    const libMesh::Variable& var = dof_map.variable(variable_n);
-    if (var.type().family == libMesh::SCALAR)
-    {
-        dof_map.SCALAR_dof_indices(nodal_indices, variable_n);
-    }
-    else
-    {
-        const int n_components = node->n_comp(system_n, variable_n);
-        for (int component_n = 0; component_n != n_components; ++component_n)
-        {
-            libmesh_assert_not_equal_to(node->dof_number(system_n, variable_n, component_n),
-                                        libMesh::DofObject::invalid_id);
-            nodal_indices.push_back(node->dof_number(system_n, variable_n, component_n));
-        }
-    }
-#else
     dof_map.dof_indices(node, nodal_indices, variable_n);
-#endif
 }
 
 /**
@@ -1578,14 +1547,14 @@ void write_node_partitioning(const std::string& file_name, const libMesh::System
  * range of finite double precision values. They are still included in the
  * output vector so that that vector can be indexed by element ids.
  */
-std::vector<libMeshWrappers::BoundingBox> get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                                                           const libMesh::System& X_system,
-                                                                           libMesh::QuadratureType quad_type,
-                                                                           libMesh::Order quad_order,
-                                                                           bool use_adaptive_quadrature,
-                                                                           double point_density,
-                                                                           bool allow_rules_with_negative_weights,
-                                                                           double patch_dx_min);
+std::vector<libMesh::BoundingBox> get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                   const libMesh::System& X_system,
+                                                                   libMesh::QuadratureType quad_type,
+                                                                   libMesh::Order quad_order,
+                                                                   bool use_adaptive_quadrature,
+                                                                   double point_density,
+                                                                   bool allow_rules_with_negative_weights,
+                                                                   double patch_dx_min);
 
 /**
  * Compute bounding boxes for each local (i.e., owned by the current
@@ -1596,8 +1565,8 @@ std::vector<libMeshWrappers::BoundingBox> get_local_element_bounding_boxes(const
  * range of finite double precision values. They are still included in the
  * output vector so that that vector can be indexed by element ids.
  */
-std::vector<libMeshWrappers::BoundingBox> get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                                                           const libMesh::System& X_system);
+std::vector<libMesh::BoundingBox> get_local_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                   const libMesh::System& X_system);
 
 /**
  * Get the global list of bounding boxes from the local list.
@@ -1607,9 +1576,8 @@ std::vector<libMeshWrappers::BoundingBox> get_local_element_bounding_boxes(const
  * range of finite double precision values. They are still included in the
  * output vector so that that vector can be indexed by element ids.
  */
-std::vector<libMeshWrappers::BoundingBox>
-get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                  const std::vector<libMeshWrappers::BoundingBox>& local_bboxes);
+std::vector<libMesh::BoundingBox>
+get_global_element_bounding_boxes(const libMesh::MeshBase& mesh, const std::vector<libMesh::BoundingBox>& local_bboxes);
 
 /**
  * Compute bounding boxes for all elements in @p mesh with coordinates given
@@ -1620,8 +1588,8 @@ get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
  * range of finite double precision values. They are still included in the
  * output vector so that that vector can be indexed by element ids.
  */
-std::vector<libMeshWrappers::BoundingBox> get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
-                                                                            const libMesh::System& X_system);
+std::vector<libMesh::BoundingBox> get_global_element_bounding_boxes(const libMesh::MeshBase& mesh,
+                                                                    const libMesh::System& X_system);
 } // namespace IBTK
 
 //////////////////////////////////////////////////////////////////////////////

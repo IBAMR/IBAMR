@@ -144,26 +144,21 @@ test(LibMeshInit& init,
         else
         {
             // the non-nodal box should be a subset of the nodal one
-#if !LIBMESH_VERSION_LESS_THAN(1, 2, 0)
             libMeshWrappers::BoundingBox box_union(box_2);
             box_union.union_with(box_1);
             TBOX_ASSERT(box_union.min() == box_2.min());
             TBOX_ASSERT(box_union.max() == box_2.max());
-#endif
 
             // box 2 should be a superset of box 1: i.e., the corners of box 1
             // should be in box 2
-#if !LIBMESH_VERSION_LESS_THAN(1, 4, 0)
             TBOX_ASSERT(box_2.signed_distance(box_1.min()) <= 0.0);
             TBOX_ASSERT(box_2.signed_distance(box_1.max()) <= 0.0);
-#endif
         }
         out << box_2.first << ", " << box_2.second << std::endl;
 
         // Since X is just the initial coordinates of the mesh, we should
         // match the bounding box which is computed directly from the
         // element too.
-#if !LIBMESH_VERSION_LESS_THAN(1, 2, 0)
         libMeshWrappers::BoundingBox box_3 = (*el_it)->loose_bounding_box();
         if (order == FIRST)
         {
@@ -177,14 +172,11 @@ test(LibMeshInit& init,
         box_union.union_with(box_2);
         TBOX_ASSERT((box_union.min() - box_3.min()).norm() < std::max(1.0, box_union.min().norm()) * 1e-16);
         TBOX_ASSERT((box_union.max() - box_3.max()).norm() < std::max(1.0, box_union.max().norm()) * 1e-16);
-#endif
 
         // box 3 should be a superset of box 2: i.e., the corners of box 2
         // should be in box 3
-#if !LIBMESH_VERSION_LESS_THAN(1, 4, 0)
         TBOX_ASSERT(box_2.signed_distance(box_1.min()) <= 0.0);
         TBOX_ASSERT(box_2.signed_distance(box_1.max()) <= 0.0);
-#endif
     }
 }
 
