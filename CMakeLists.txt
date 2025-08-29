@@ -604,10 +604,22 @@ libMesh, it may have) to NOT use 64 bit indices.")
   STRING(REGEX REPLACE "^PETSC_CC_INCLUDES =(.*)" "\\1" _petsc_raw_includes ${_petsc_raw_includes})
   SEPARATE_ARGUMENTS(_petsc_raw_includes)
   # Get rid of preceding -Is (CMake wants just directory names):
+  SET(PETSC_INCLUDE_DIRS)
   FOREACH(_include ${_petsc_raw_includes})
-    STRING(REGEX REPLACE "^-I" "" _directory "${_include}")
-    LIST(APPEND PETSC_INCLUDE_DIRS ${_directory})
+    STRING(FIND "${_include}" "-I" _include_index)
+    IF("${_include_index}" STREQUAL "0")
+      STRING(REGEX REPLACE "^-I" "" _directory "${_include}")
+      LIST(APPEND PETSC_INCLUDE_DIRS ${_directory})
+
+      IF(NOT IS_DIRECTORY "${_directory}")
+          MESSAGE(WARNING "\
+The PETSc include directory '${_directory}' either does not exist or isn't a \
+directory. While this is not a fatal error, it usually indicates that \
+something is wrong with the PETSc installation.")
+      ENDIF()
+    ENDIF()
   ENDFOREACH()
+  MESSAGE(STATUS "PETSC_INCLUDE_DIRS: ${PETSC_INCLUDE_DIRS}")
 
   FILE(STRINGS ${PETSC_VARIABLES_FILE} PETSC_LIBRARIES REGEX "^PETSC_WITH_EXTERNAL_LIB =.*")
   STRING(REGEX REPLACE "^PETSC_WITH_EXTERNAL_LIB =(.*)" "\\1" PETSC_LIBRARIES ${PETSC_LIBRARIES})
@@ -696,8 +708,18 @@ CMake.")
     # Get rid of preceding -Is (CMake wants just directory names):
     SET(LIBMESH_INCLUDE_DIRS)
     FOREACH(_include ${_libmesh_raw_includes})
-      STRING(REGEX REPLACE "^-I" "" _directory "${_include}")
-      LIST(APPEND LIBMESH_INCLUDE_DIRS ${_directory})
+      STRING(FIND "${_include}" "-I" _include_index)
+      IF("${_include_index}" STREQUAL "0")
+        STRING(REGEX REPLACE "^-I" "" _directory "${_include}")
+        LIST(APPEND LIBMESH_INCLUDE_DIRS ${_directory})
+
+        IF(NOT IS_DIRECTORY "${_directory}")
+          MESSAGE(WARNING "\
+The libMesh include directory '${_directory}' either does not exist or isn't a \
+directory. While this is not a fatal error, it usually indicates that \
+something is wrong with the libMesh installation.")
+        ENDIF()
+      ENDIF()
     ENDFOREACH()
     MESSAGE(STATUS "LIBMESH_INCLUDE_DIRS: ${LIBMESH_INCLUDE_DIRS}")
 
