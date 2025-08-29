@@ -1461,8 +1461,18 @@ FEDataManager::prolongData(const int f_data_idx,
                             }
                             static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
                             const libMesh::Point ref_coords =
-                                FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
-                            if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
+#if LIBMESH_VERSION_LESS_THAN(1, 8, 0)
+                                FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, /*secure=*/false);
+#else
+                                FEMap::inverse_map(dim, elem, p, TOL, /*secure=*/false);
+#endif
+                            if (
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
+                                FEInterface::on_reference_element(ref_coords, elem->type(), TOL)
+#else
+                                elem->on_reference_element(ref_coords, TOL)
+#endif
+                            )
                             {
                                 intersection_ref_coords.push_back(ref_coords);
                                 intersection_indices.push_back(i_s);
@@ -2280,8 +2290,18 @@ FEDataManager::restrictData(const int f_data_idx,
                             }
                             static const double TOL = std::sqrt(std::numeric_limits<double>::epsilon());
                             const libMesh::Point ref_coords =
-                                FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, false);
-                            if (FEInterface::on_reference_element(ref_coords, elem->type(), TOL))
+#if LIBMESH_VERSION_LESS_THAN(1, 8, 0)
+                                FEInterface::inverse_map(dim, X_fe_type, elem, p, TOL, /*secure=*/false);
+#else
+                                FEMap::inverse_map(dim, elem, p, TOL, /*secure=*/false);
+#endif
+                            if (
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
+                                FEInterface::on_reference_element(ref_coords, elem->type(), TOL)
+#else
+                                elem->on_reference_element(ref_coords, TOL)
+#endif
+                            )
                             {
                                 intersection_ref_coords.push_back(ref_coords);
                                 intersection_indices.push_back(i_s);
@@ -2407,7 +2427,11 @@ FEDataManager::updateQuadratureRule(std::unique_ptr<QBase>& qrule,
     {
         qrule = type == QGRID ? std::make_unique<QGrid>(elem_dim, order) : QBase::build(type, elem_dim, order);
         qrule->allow_rules_with_negative_weights = allow_rules_with_negative_weights;
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
         qrule->init(elem_type, elem_p_level);
+#else
+        qrule->init(*elem);
+#endif
         qrule_updated = true;
     }
     return qrule_updated;

@@ -299,14 +299,14 @@ main(int argc, char** argv)
                 IBTK::Point X;
                 for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
                 {
-                    IBTK::get_nodal_dof_indices(X_dof_map, *node_iter, var_n, X_idxs);
+                    X_dof_map.dof_indices(*node_iter, X_idxs, var_n);
                     X[var_n] = current_X(X_idxs[0]);
                 }
 
                 const auto F = exact_forcing(X);
                 for (unsigned int var_n = 0; var_n < n_vars; ++var_n)
                 {
-                    IBTK::get_nodal_dof_indices(F_dof_map, *node_iter, var_n, F_idxs);
+                    F_dof_map.dof_indices(*node_iter, F_idxs, var_n);
                     current_F.set(F_idxs[0], F[var_n]);
                 }
             }

@@ -113,9 +113,9 @@ test(LibMeshInit& init,
     // Verify that the default settings are the same as both what we get with
     // nodal quadratures and what libMesh computes
     const auto quad_type = use_nodal_quadrature ? (order == FIRST ? QTRAP : QSIMPSON) : QGAUSS;
-    std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_1 =
+    std::vector<libMesh::BoundingBox> nodal_bboxes_1 =
         get_local_element_bounding_boxes(mesh, X_system, quad_type, order, false, 1.0, true, 1.0);
-    std::vector<libMeshWrappers::BoundingBox> nodal_bboxes_2 = get_local_element_bounding_boxes(mesh, X_system);
+    std::vector<libMesh::BoundingBox> nodal_bboxes_2 = get_local_element_bounding_boxes(mesh, X_system);
     TBOX_ASSERT(nodal_bboxes_1.size() == nodal_bboxes_2.size());
 
     const auto el_begin = mesh.local_elements_begin();
@@ -125,8 +125,8 @@ test(LibMeshInit& init,
     {
         const Elem* elem = *el_it;
         if (!elem->active()) continue;
-        const libMeshWrappers::BoundingBox& box_1 = nodal_bboxes_1[i];
-        const libMeshWrappers::BoundingBox& box_2 = nodal_bboxes_2[i];
+        const libMesh::BoundingBox& box_1 = nodal_bboxes_1[i];
+        const libMesh::BoundingBox& box_2 = nodal_bboxes_2[i];
 
         if (use_nodal_quadrature)
         {
@@ -144,7 +144,7 @@ test(LibMeshInit& init,
         else
         {
             // the non-nodal box should be a subset of the nodal one
-            libMeshWrappers::BoundingBox box_union(box_2);
+            libMesh::BoundingBox box_union(box_2);
             box_union.union_with(box_1);
             TBOX_ASSERT(box_union.min() == box_2.min());
             TBOX_ASSERT(box_union.max() == box_2.max());
@@ -159,7 +159,7 @@ test(LibMeshInit& init,
         // Since X is just the initial coordinates of the mesh, we should
         // match the bounding box which is computed directly from the
         // element too.
-        libMeshWrappers::BoundingBox box_3 = (*el_it)->loose_bounding_box();
+        libMesh::BoundingBox box_3 = (*el_it)->loose_bounding_box();
         if (order == FIRST)
         {
             TBOX_ASSERT((box_2.min() - box_3.min()).norm() < std::max(1.0, box_2.min().norm()) * 1e-16);
@@ -168,7 +168,7 @@ test(LibMeshInit& init,
 
         // in both cases check that we are inside the libMesh box: it claims
         // to be a loose fit
-        libMeshWrappers::BoundingBox box_union(box_3);
+        libMesh::BoundingBox box_union(box_3);
         box_union.union_with(box_2);
         TBOX_ASSERT((box_union.min() - box_3.min()).norm() < std::max(1.0, box_union.min().norm()) * 1e-16);
         TBOX_ASSERT((box_union.max() - box_3.max()).norm() < std::max(1.0, box_union.max().norm()) * 1e-16);
