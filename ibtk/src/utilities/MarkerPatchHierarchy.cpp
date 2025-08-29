@@ -604,11 +604,12 @@ MarkerPatchHierarchy::writeH5Part(const std::string& filename,
         }
 
         const hid_t id_dataset_id =
-            H5Dcreate2(group_id, "id", H5T_NATIVE_INT, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+            H5Dcreate2(group_id, "id", H5T_STD_I64LE, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
         TBOX_ASSERT(id_dataset_id >= 0);
         set_samrai_attribute(id_dataset_id, samrai_int_array);
-        std::vector<int> ids(getNumberOfMarkers());
-        herr_t status = H5Dwrite(id_dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, ids.data());
+        std::vector<long> ids(getNumberOfMarkers());
+        std::iota(ids.begin(), ids.end(), 0l);
+        herr_t status = H5Dwrite(id_dataset_id, H5T_NATIVE_LONG, H5S_ALL, H5S_ALL, H5P_DEFAULT, ids.data());
         TBOX_ASSERT(status == 0);
         status = H5Dclose(id_dataset_id);
         TBOX_ASSERT(status == 0);
