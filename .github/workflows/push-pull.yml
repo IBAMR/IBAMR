@@ -225,13 +225,23 @@ jobs:
             ibamr-macos-
       - name: setup homebrew dependencies
         run: |
-          brew install ccache cmake curl hdf5-mpi hypre ninja open-mpi petsc
+          brew install ccache cmake curl gcc hdf5-mpi hypre ninja open-mpi petsc
       - name: list HDF5 info
         run: |
           brew --prefix hdf5-mpi
           file $(brew --prefix hdf5-mpi)
           ls $(brew --prefix hdf5-mpi)
           find $(brew --prefix hdf5-mpi)
+      - name: list gfortran info
+        run: |
+          echo "brew --prefix gcc"
+          brew --prefix gcc
+          echo "file $(brew --prefix gcc)"
+          file $(brew --prefix gcc)
+          echo "ls $(brew --prefix gcc)"
+          ls $(brew --prefix gcc)
+          echo "find -L $(brew --prefix gcc) -name gfortran"
+          find -L $(brew --prefix gcc) -name gfortran
       - name: Install SAMRAI
         run: |
           mkdir -p ~/unpack-samrai
@@ -244,7 +254,7 @@ jobs:
 
           export CC="$(which mpicc)"
           export CXX="$(which mpic++)"
-          export FC="$(which gfortran)"
+          export FC="$(find -L $(brew --prefix gcc) -name gfortran)"
           export CFLAGS="-fPIC -O1"
           export CXXFLAGS="-fPIC -O1 -std=c++11"
           export FFLAGS="-fPIC -O1"
@@ -287,7 +297,7 @@ jobs:
               -DCMAKE_CXX_COMPILER="$(which mpic++)"                                              \
               -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)"                                     \
               -DCMAKE_CXX_FLAGS="-O1 $WARNING_FLAGS $DISABLED_WARNINGS -std=c++17"                \
-              -DCMAKE_Fortran_COMPILER="$(which mpifort)"                                         \
+              -DCMAKE_Fortran_COMPILER="$(find -L $(brew --prefix gcc) -name gfortran)"           \
               -DCMAKE_Fortran_FLAGS="-O2 $WARNING_FLAGS -Wno-unused-parameter -Wno-compare-reals" \
               -DHDF5_ROOT="$(brew --prefix hdf5-mpi)"                                             \
               -DHYPRE_ROOT="$(brew --prefix hypre)"                                               \
