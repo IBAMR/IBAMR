@@ -131,7 +131,11 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
 
     // libMesh values:
     std::unique_ptr<QBase> quad = QBase::build(QGAUSS, dim, THIRD);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
     quad->init(face_elem_type);
+#else
+    quad->init(face_elem_type, 0, true);
+#endif
     FEType fe_type(order, fe_family);
     std::unique_ptr<FEBase> libmesh_fe = FEBase::build(dim, fe_type);
     libmesh_fe->attach_quadrature_rule(quad.get());
@@ -142,7 +146,11 @@ test(LibMeshInit& init, const MeshType mesh_type = MeshType::libmesh)
 
     // IBTK values:
     std::unique_ptr<QBase> quad_2 = QBase::build(QGAUSS, dim, THIRD);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
     quad_2->init(face_elem_type);
+#else
+    quad_2->init(face_elem_type, 0, true);
+#endif
     IBTK::FEValues<dim, spacedim> ibtk_fe(quad_2.get(),
                                           fe_type,
                                           IBTK::update_quadrature_points | IBTK::update_JxW | IBTK::update_phi |

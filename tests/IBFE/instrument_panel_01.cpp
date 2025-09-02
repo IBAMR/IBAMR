@@ -633,14 +633,14 @@ main(int argc, char** argv)
                 Node& node = **node_it;
 
                 // shrink x
-                IBTK::get_nodal_dof_indices(dX_system.get_dof_map(), &node, 0, component_dofs);
+                dX_system.get_dof_map().dof_indices(&node, component_dofs, 0);
                 TBOX_ASSERT(component_dofs.size() == 1);
                 const double current_x = node(0);
                 const double new_x = node(0) * 0.5625;
                 dX_vec.set(component_dofs[0], new_x - current_x);
 
                 // translate z
-                IBTK::get_nodal_dof_indices(dX_system.get_dof_map(), &node, 2, component_dofs);
+                dX_system.get_dof_map().dof_indices(&node, component_dofs, 2);
                 TBOX_ASSERT(component_dofs.size() == 1);
                 dX_vec.set(component_dofs[0], 2.0);
             }
@@ -673,7 +673,7 @@ main(int argc, char** argv)
                 Node& node = **node_it;
                 for (int d = 0; d < NDIM; ++d)
                 {
-                    IBTK::get_nodal_dof_indices(U_system.get_dof_map(), &node, d, component_dofs);
+                    U_system.get_dof_map().dof_indices(&node, component_dofs, d);
                     TBOX_ASSERT(component_dofs.size() == 1);
                     // NOTE: velocity needs to be evaluated using the shifted coordinates!
                     U_vec.set(component_dofs[0], (d + 1) * (node(d) + 3));

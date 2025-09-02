@@ -537,7 +537,7 @@ main(int argc, char** argv)
                 IBTK::Point X_node;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    IBTK::get_nodal_dof_indices(X_system.get_dof_map(), &node, d, X_idxs);
+                    X_system.get_dof_map().dof_indices(&node, X_idxs, d);
                     X_node[d] = X_vec_global[X_idxs[0]];
                 }
 
@@ -726,8 +726,8 @@ main(int argc, char** argv)
                 IBTK::Point U_node;
                 for (unsigned int d = 0; d < NDIM; ++d)
                 {
-                    IBTK::get_nodal_dof_indices(X_system.get_dof_map(), &node, d, X_idxs);
-                    IBTK::get_nodal_dof_indices(U_system.get_dof_map(), &node, d, U_idxs);
+                    X_system.get_dof_map().dof_indices(&node, X_idxs, d);
+                    U_system.get_dof_map().dof_indices(&node, U_idxs, d);
                     X_node[d] = X_vec_global[X_idxs[0]];
                     U_node[d] = U_vec_global[U_idxs[0]];
                 }

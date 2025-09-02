@@ -225,7 +225,13 @@ jobs:
             ibamr-macos-
       - name: setup homebrew dependencies
         run: |
-          brew install ccache cmake curl gcc hdf5-mpi hypre ninja open-mpi petsc
+          # Work around issues with homebrew dependencies being pre-installed by
+          # GitHub
+          brew update
+          for DEPENDENCY in ccache cmake curl gcc hdf5-mpi hypre ninja open-mpi petsc
+          do
+            brew list "$DEPENDENCY" 1>/dev/null 2>&1 || brew install "$DEPENDENCY"
+          done
       - name: list HDF5 info
         run: |
           brew --prefix hdf5-mpi

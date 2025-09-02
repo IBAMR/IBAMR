@@ -118,7 +118,11 @@ QuadratureCache::operator[](const QuadratureCache::key_type& quad_key)
         libMesh::QBase& new_quad =
             *(*d_quadratures.emplace(quad_key, libMesh::QBase::build(quad_type, d_dim, order)).first).second;
         new_quad.allow_rules_with_negative_weights = allow_rules_with_negative_weights;
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
         new_quad.init(elem_type);
+#else
+        new_quad.init(elem_type, /*p_level=*/0, /*simple_type_only=*/true);
+#endif
         return new_quad;
     }
     else

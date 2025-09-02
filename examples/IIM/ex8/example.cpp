@@ -143,7 +143,7 @@ FSI_tether_tube_lower_force_function(VectorValue<double>& F,
     // we look up the element in the solid mesh that the current boundary
     // element was extracted from.
     const Elem* const interior_parent = elem->interior_parent();
-    const libMesh::Point cp_elem = elem->centroid();
+    const libMesh::Point cp_elem = elem->vertex_average();
 
     // We define "arbitrary" velocity and displacement fields on the solid mesh.
     // Here we look up their values.
@@ -198,7 +198,7 @@ FSI_tether_tube_upper_force_function(VectorValue<double>& F,
     // we look up the element in the solid mesh that the current boundary
     // element was extracted from.
     const Elem* const interior_parent = elem->interior_parent();
-    const libMesh::Point cp_elem = elem->centroid();
+    const libMesh::Point cp_elem = elem->vertex_average();
 
     // We define "arbitrary" velocity and displacement fields on the solid mesh.
     // Here we look up their values.
@@ -526,8 +526,13 @@ main(int argc, char* argv[])
         for (unsigned int i = 0; i < nn; i++)
         {
             Elem* elem = line1_mesh.add_elem(new Edge2);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = line1_mesh.node_ptr(i);
             elem->set_node(1) = line1_mesh.node_ptr(i + 1);
+#else
+            elem->set_node(0, line1_mesh.node_ptr(i));
+            elem->set_node(1, line1_mesh.node_ptr(i + 1));
+#endif
             if (i == 0) boundary_info_line1.add_side(elem, 0, 0);
             if (i == (nn - 1)) boundary_info_line1.add_side(elem, 1, 1);
         }
@@ -550,8 +555,13 @@ main(int argc, char* argv[])
         for (unsigned int i = 0; i < nn; i++)
         {
             Elem* elem = line2_mesh.add_elem(new Edge2);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = line2_mesh.node_ptr(i);
             elem->set_node(1) = line2_mesh.node_ptr(i + 1);
+#else
+            elem->set_node(0, line2_mesh.node_ptr(i));
+            elem->set_node(1, line2_mesh.node_ptr(i + 1));
+#endif
             if (i == 0) boundary_info_line2.add_side(elem, 0, 0);
             if (i == (nn - 1)) boundary_info_line2.add_side(elem, 1, 1);
         }
@@ -575,8 +585,13 @@ main(int argc, char* argv[])
         for (unsigned int i = 0; i < nn; i++)
         {
             Elem* elem = line3_mesh.add_elem(new Edge2);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = line3_mesh.node_ptr(i);
             elem->set_node(1) = line3_mesh.node_ptr(i + 1);
+#else
+            elem->set_node(0, line3_mesh.node_ptr(i));
+            elem->set_node(1, line3_mesh.node_ptr(i + 1));
+#endif
             if (i == 0) boundary_info_line3.add_side(elem, 0, 0);
             if (i == (nn - 1)) boundary_info_line3.add_side(elem, 1, 1);
         }
@@ -598,8 +613,13 @@ main(int argc, char* argv[])
         for (unsigned int i = 0; i < nn; i++)
         {
             Elem* elem = line4_mesh.add_elem(new Edge2);
+#if LIBMESH_VERSION_LESS_THAN(1, 9, 0)
             elem->set_node(0) = line4_mesh.node_ptr(i);
             elem->set_node(1) = line4_mesh.node_ptr(i + 1);
+#else
+            elem->set_node(0, line4_mesh.node_ptr(i));
+            elem->set_node(1, line4_mesh.node_ptr(i + 1));
+#endif
             if (i == 0) boundary_info_line4.add_side(elem, 0, 0);
             if (i == (nn - 1)) boundary_info_line4.add_side(elem, 1, 1);
         }
