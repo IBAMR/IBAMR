@@ -1,0 +1,27 @@
+RestartCleaner comprehensive interface test...
+Testing header inclusion and basic compilation...
+Header inclusion: successful
+Testing direct parameter constructor...
+Direct constructor: enabled=true
+Direct constructor: cleanup() call successful
+Testing database constructor and parameter parsing...
+Database constructor: enabled=false
+Database constructor: cleanup() call successful
+Testing database parameter defaults...
+Minimal config: enabled=false
+Database parameter defaults: successful
+Testing MPI environment compatibility...
+MPI is initialized
+MPI rank=0, size=1
+MPI barrier: successful
+Testing constructor disambiguation...
+Constructor disambiguation: successful
+RestartCleaner comprehensive interface test: ALL TESTS PASSED
+Successfully validated:
+  - Header file inclusion and compilation
+  - Direct parameter constructor
+  - Database constructor with parameter parsing
+  - Database parameter defaults
+  - MPI environment compatibility
+  - Constructor disambiguation
+  - Complete IBAMR framework integration
