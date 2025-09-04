@@ -1664,12 +1664,10 @@ INSStaggeredHierarchyIntegrator::resetSolverVectors(const Pointer<SAMRAIVectorRe
 void
 INSStaggeredHierarchyIntegrator::removeNullSpace(const Pointer<SAMRAIVectorReal<NDIM, double> >& sol_vec)
 {
-    if (d_nul_vecs.empty()) return;
     for (const auto& nul_vec : d_nul_vecs)
     {
-        const double sol_dot_nul = sol_vec->dot(nul_vec);
-        const double nul_L2_norm = std::sqrt(nul_vec->dot(nul_vec));
-        sol_vec->axpy(-sol_dot_nul / nul_L2_norm, nul_vec, sol_vec);
+        const double nul_dot_sol = nul_vec->dot(sol_vec);
+        sol_vec->axpy(-nul_dot_sol, nul_vec, sol_vec);
     }
     return;
 }
@@ -2500,6 +2498,19 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
             SynchronizationTransactionComponent(d_U_rhs_vec->getComponentDescriptorIndex(0));
         d_U_rhs_side_synch_op = new SideDataSynchronization();
         d_U_rhs_side_synch_op->initializeOperatorState(U_rhs_synch_transaction, d_hierarchy);
+
+        // Normalize the basis vectors for the nullspace.
+        for (const auto& nul_vec : d_nul_vecs)
+        {
+            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
+            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
+        }
+
+        for (const auto& nul_vec : d_U_nul_vecs)
+        {
+            const double nul_L2_norm = sqrt(nul_vec->dot(nul_vec));
+            nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
+        }
 
         d_vectors_need_init = false;
     }
