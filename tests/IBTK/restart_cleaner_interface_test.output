@@ -1,4 +1,4 @@
-RestartCleaner comprehensive interface test...
+RestartCleaner interface test...
 Testing header inclusion and basic compilation...
 Header inclusion: successful
 Testing direct parameter constructor...
@@ -16,12 +16,4 @@ MPI rank=0, size=1
 MPI barrier: successful
 Testing constructor disambiguation...
 Constructor disambiguation: successful
-RestartCleaner comprehensive interface test: ALL TESTS PASSED
-Successfully validated:
-  - Header file inclusion and compilation
-  - Direct parameter constructor
-  - Database constructor with parameter parsing
-  - Database parameter defaults
-  - MPI environment compatibility
-  - Constructor disambiguation
-  - Complete IBAMR framework integration
+RestartCleaner interface test: ALL TESTS PASSED

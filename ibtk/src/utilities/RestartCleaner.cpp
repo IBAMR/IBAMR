@@ -13,9 +13,9 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
+#include "ibtk/IBTK_MPI.h"
 #include "ibtk/RestartCleaner.h"
 
-#include "ibtk/IBTK_MPI.h"
 #include "tbox/PIO.h"
 #include "tbox/Utilities.h"
 
@@ -51,8 +51,7 @@ RestartCleaner::RestartCleaner(const std::string& restart_base_path,
 #endif
 } // RestartCleaner
 
-RestartCleaner::RestartCleaner(const std::string& object_name,
-                               SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
+RestartCleaner::RestartCleaner(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_object_name(object_name),
       d_enabled(input_db->getBoolWithDefault("enable_cleaner", false)),
       d_keep_restart_count(input_db->getIntegerWithDefault("keep_recent_files", 5)),
@@ -95,19 +94,39 @@ RestartCleaner::cleanup()
 std::vector<int>
 RestartCleaner::getAvailableIterations() const
 {
-    auto dirs = getAllRestartDirs(d_restart_base_path);
     std::vector<int> iterations;
 
-    for (const auto& dir : dirs)
+    // Only perform file system operations on the master processor
+    if (IBTK_MPI::getRank() == 0)
     {
-        int iter = parseIterationNum(dir.filename().string());
-        if (iter >= 0)
+        auto dirs = getAllRestartDirs(d_restart_base_path);
+        for (const auto& dir : dirs)
         {
-            iterations.push_back(iter);
+            int iter = parseIterationNum(dir.filename().string());
+            if (iter >= 0)
+            {
+                iterations.push_back(iter);
+            }
         }
+        std::sort(iterations.begin(), iterations.end());
     }
 
-    std::sort(iterations.begin(), iterations.end());
+    // Broadcast the vector size to all processors
+    int vec_size = static_cast<int>(iterations.size());
+    vec_size = IBTK_MPI::bcast(vec_size, 0);
+
+    // Resize vector on non-master processors
+    if (IBTK_MPI::getRank() != 0)
+    {
+        iterations.resize(vec_size);
+    }
+
+    // Broadcast the vector contents to all processors
+    if (vec_size > 0)
+    {
+        IBTK_MPI::bcast(iterations.data(), vec_size, 0);
+    }
+
     return iterations;
 } // getAvailableIterations
 
@@ -212,11 +231,14 @@ RestartCleaner::keepRecentN() const
     }
 
     // Sort directories by iteration number (ascending order)
-    std::sort(dirs.begin(), dirs.end(), [this](const std::filesystem::path& a, const std::filesystem::path& b) {
-        int iter_a = parseIterationNum(a.filename().string());
-        int iter_b = parseIterationNum(b.filename().string());
-        return iter_a < iter_b;
-    });
+    std::sort(dirs.begin(),
+              dirs.end(),
+              [this](const std::filesystem::path& a, const std::filesystem::path& b)
+              {
+                  int iter_a = parseIterationNum(a.filename().string());
+                  int iter_b = parseIterationNum(b.filename().string());
+                  return iter_a < iter_b;
+              });
 
     // Delete older directories
     size_t dirs_to_delete_count = dirs.size() - d_keep_restart_count;

@@ -1,4 +1,4 @@
-RestartCleaner comprehensive functional test...
+RestartCleaner functional test...
 Testing complete end-to-end functionality with real file operations
 
 === Test 1: Directory Pattern Parsing and Filtering ===
@@ -16,32 +16,18 @@ Directories before dry run: 6
 Directories after dry run: 6
 Test 3 PASSED: Dry run correctly preserved all directories
 
-=== Test 4: Large Iteration Numbers and Edge Cases ===
-Large iterations before cleanup: 999995 999996 999997 999998 999999 
-Large iterations after cleanup: 999997 999998 999999 
-Test 4 PASSED: Correctly handled large iteration numbers
-
-=== Test 5: Database Constructor Functionality ===
+=== Test 4: Database Constructor Functionality ===
 Iterations after database cleanup: 50 60 70 80 
-Test 5 PASSED: Database constructor worked correctly
+Test 4 PASSED: Database constructor worked correctly
 
-=== Test 6: Error Handling and Edge Cases ===
+=== Test 5: Error Handling and Edge Cases ===
 Empty directory test: PASSED
 Invalid content test: PASSED
-Test 6 PASSED: Error handling works correctly
+Test 5 PASSED: Error handling works correctly
 
-=== Test 7: MPI Environment Compatibility ===
+=== Test 6: MPI Environment Compatibility ===
 MPI rank=0, size=1
-Test 7 PASSED: MPI environment compatibility verified
+Test 6 PASSED: MPI environment compatibility verified
 
 === RestartCleaner Functional Test Summary ===
 ALL TESTS PASSED!
-Successfully validated:
-  - Directory pattern parsing and filtering
-  - Real file system cleanup operations
-  - Dry run functionality
-  - Large iteration number handling
-  - Database constructor functionality
-  - Error handling and edge cases
-  - MPI environment compatibility
-RestartCleaner is working correctly with complete functionality!

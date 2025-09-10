@@ -46,31 +46,57 @@
 /*!
  * RestartCleaner  Functional Test, which verifies complete RestartCleaner functionality with real cases:
  *
- * system operations:                                                          
- * 1. Directory pattern parsing and filtering                                 
- * 2. File system cleanup operations                                         
- * 3. Sorting and selection of directories                                    
- * 4. Database constructor parameter handling                                  
- * 5. Error handling and edge cases                                           
- * 6. Dry run functionality                                                    
- *                                                                             
- * \note This is a END-TO-END functional test.        
+ * system operations:
+ * 1. Directory pattern parsing and filtering
+ * 2. File system cleanup operations
+ * 3. Sorting and selection of directories
+ * 4. Database constructor parameter handling
+ * 5. Error handling and edge cases
+ * 6. Dry run functionality
+ *
+ * \note This is a END-TO-END functional test.
  */
 
 namespace
 {
+// RAII guard for automatic test directory cleanup
+class TestDirGuard
+{
+public:
+    explicit TestDirGuard(const std::string& path) : d_path(path)
+    {
+    }
+
+    ~TestDirGuard()
+    {
+        if (!d_path.empty() && std::filesystem::exists(d_path))
+        {
+            std::error_code ec;
+            std::filesystem::remove_all(d_path, ec);
+            // Silently ignore errors in destructor
+        }
+    }
+
+    // Disable copy to prevent double deletion
+    TestDirGuard(const TestDirGuard&) = delete;
+    TestDirGuard& operator=(const TestDirGuard&) = delete;
+
+private:
+    std::string d_path;
+};
+
 void
 create_test_restart_dirs(const std::string& base_path, const std::vector<int>& iterations)
 {
     std::filesystem::create_directories(base_path);
-    
+
     for (int iter : iterations)
     {
         std::ostringstream dirname;
         dirname << "restore." << std::setfill('0') << std::setw(6) << iter;
         std::filesystem::path dir_path = std::filesystem::path(base_path) / dirname.str();
         std::filesystem::create_directories(dir_path);
-        
+
         // Create realistic IBAMR restart files
         for (int i = 0; i < 3; ++i)
         {
@@ -79,7 +105,7 @@ create_test_restart_dirs(const std::string& base_path, const std::vector<int>& i
             file << "SAMRAI restart data file " << i << " for iteration " << iter << std::endl;
             file.close();
         }
-        
+
         // Create subdirectory with hierarchy data
         std::filesystem::path sub_dir = dir_path / "hier_data";
         std::filesystem::create_directories(sub_dir);
@@ -94,12 +120,12 @@ void
 create_invalid_dirs(const std::string& base_path, const std::vector<std::string>& dir_names)
 {
     std::filesystem::create_directories(base_path);
-    
+
     for (const auto& name : dir_names)
     {
         std::filesystem::path dir_path = std::filesystem::path(base_path) / name;
         std::filesystem::create_directories(dir_path);
-        
+
         // Create dummy files to make directories realistic
         std::filesystem::path test_file = dir_path / "invalid_data.txt";
         std::ofstream file(test_file);
@@ -108,21 +134,12 @@ create_invalid_dirs(const std::string& base_path, const std::vector<std::string>
     }
 }
 
-void
-cleanup_test_dirs(const std::string& base_path)
-{
-    if (std::filesystem::exists(base_path))
-    {
-        std::filesystem::remove_all(base_path);
-    }
-}
-
 int
 count_dirs_matching_pattern(const std::string& base_path)
 {
     int count = 0;
     if (!std::filesystem::exists(base_path)) return 0;
-    
+
     std::regex pattern(R"(restore\.\d{6})");
     for (const auto& entry : std::filesystem::directory_iterator(base_path))
     {
@@ -135,7 +152,7 @@ count_dirs_matching_pattern(const std::string& base_path)
             }
         }
     }
-    
+
     return count;
 }
 } // namespace
@@ -145,11 +162,11 @@ main(int argc, char** argv)
 {
     // Initialize IBAMR and libraries
     IBTKInit ibtk_init(argc, argv, MPI_COMM_WORLD);
-    
+
     // Initialize with proper configuration
     Pointer<AppInitializer> app_initializer = new AppInitializer(argc, argv, "output");
 
-    pout << "RestartCleaner comprehensive functional test..." << std::endl;
+    pout << "RestartCleaner functional test..." << std::endl;
     pout << "Testing complete end-to-end functionality with real file operations" << std::endl;
 
     int test_failures = 0;
@@ -158,36 +175,37 @@ main(int argc, char** argv)
     pout << "\n=== Test 1: Directory Pattern Parsing and Filtering ===" << std::endl;
     {
         const std::string test_dir = "test_restart_parsing";
-        
+        TestDirGuard guard(test_dir); // RAII cleanup
+
         // Create mix of valid and invalid directories
-        std::vector<int> valid_iterations = {1, 100, 200, 300, 1000, 2500, 3000, 5000, 999999};
+        std::vector<int> valid_iterations = { 1, 100, 200, 300, 1000, 2500, 3000, 5000, 999999 };
         std::vector<std::string> invalid_names = {
             "restore.12345",        // 5 digits
-            "restore.1234567",      // 7 digits  
+            "restore.1234567",      // 7 digits
             "restore.abc123",       // contains letters
             "restore_invalid",      // wrong format
             "other_directory",      // completely different
             "restore.",             // no digits
             "restore.000100_backup" // extra suffix
         };
-        
+
         create_test_restart_dirs(test_dir, valid_iterations);
         create_invalid_dirs(test_dir, invalid_names);
-        
+
         try
         {
             RestartCleaner cleaner(test_dir, 20, "KEEP_RECENT_N", true); // Keep all, dry run
             auto parsed_iterations = cleaner.getAvailableIterations();
-            
+
             pout << "Valid iterations detected: ";
             for (int iter : parsed_iterations) pout << iter << " ";
             pout << std::endl;
-            
+
             // Check count - should ignore invalid directories
             if (parsed_iterations.size() != valid_iterations.size())
             {
-                pout << "FAILED: Expected " << valid_iterations.size() 
-                     << " valid iterations, found " << parsed_iterations.size() << std::endl;
+                pout << "FAILED: Expected " << valid_iterations.size() << " valid iterations, found "
+                     << parsed_iterations.size() << std::endl;
                 test_failures++;
             }
             else
@@ -210,40 +228,39 @@ main(int argc, char** argv)
             pout << "FAILED: Exception in parsing test: " << e.what() << std::endl;
             test_failures++;
         }
-        
-        cleanup_test_dirs(test_dir);
     }
 
     // Test 2: Cleanup functionality with real file deletion
     pout << "\n=== Test 2: Real File System Cleanup Operations ===" << std::endl;
     {
         const std::string test_dir = "test_restart_cleanup";
-        std::vector<int> iterations = {100, 200, 300, 400, 500, 600, 700, 800};
-        
+        TestDirGuard guard(test_dir); // RAII cleanup
+        std::vector<int> iterations = { 100, 200, 300, 400, 500, 600, 700, 800 };
+
         create_test_restart_dirs(test_dir, iterations);
-        
+
         try
         {
             int dirs_before = count_dirs_matching_pattern(test_dir);
             pout << "Directories before cleanup: " << dirs_before << std::endl;
-            
+
             // Perform actual cleanup (keep 3 most recent)
             RestartCleaner cleaner(test_dir, 3, "KEEP_RECENT_N", false); // NOT dry run
             cleaner.cleanup();
-            
+
             int dirs_after = count_dirs_matching_pattern(test_dir);
             pout << "Directories after cleanup: " << dirs_after << std::endl;
-            
+
             auto remaining_iterations = cleaner.getAvailableIterations();
             pout << "Remaining iterations: ";
             for (int iter : remaining_iterations) pout << iter << " ";
             pout << std::endl;
-            
+
             // Should keep exactly 3 directories
             if (dirs_after == 3 && remaining_iterations.size() == 3)
             {
                 // Check that we kept the highest 3
-                std::vector<int> expected = {600, 700, 800};
+                std::vector<int> expected = { 600, 700, 800 };
                 if (remaining_iterations == expected)
                 {
                     pout << "Test 2 PASSED: Correctly cleaned up and kept 3 most recent" << std::endl;
@@ -265,30 +282,29 @@ main(int argc, char** argv)
             pout << "FAILED: Exception in cleanup test: " << e.what() << std::endl;
             test_failures++;
         }
-        
-        cleanup_test_dirs(test_dir);
     }
 
     // Test 3: Dry run functionality verification
     pout << "\n=== Test 3: Dry Run Functionality Verification ===" << std::endl;
     {
         const std::string test_dir = "test_restart_dryrun";
-        std::vector<int> iterations = {10, 20, 30, 40, 50, 60};
-        
+        TestDirGuard guard(test_dir); // RAII cleanup
+        std::vector<int> iterations = { 10, 20, 30, 40, 50, 60 };
+
         create_test_restart_dirs(test_dir, iterations);
-        
+
         try
         {
             int dirs_before = count_dirs_matching_pattern(test_dir);
             pout << "Directories before dry run: " << dirs_before << std::endl;
-            
+
             // Create dry run cleaner (should not delete anything)
             RestartCleaner cleaner(test_dir, 2, "KEEP_RECENT_N", true); // dry_run = true
             cleaner.cleanup();
-            
+
             int dirs_after = count_dirs_matching_pattern(test_dir);
             pout << "Directories after dry run: " << dirs_after << std::endl;
-            
+
             // All directories should still exist after dry run
             if (dirs_before == dirs_after && dirs_after == 6)
             {
@@ -305,18 +321,17 @@ main(int argc, char** argv)
             pout << "FAILED: Exception in dry run test: " << e.what() << std::endl;
             test_failures++;
         }
-        
-        cleanup_test_dirs(test_dir);
     }
 
     // Test 4: Database constructor functionality
     pout << "\n=== Test 4: Database Constructor Functionality ===" << std::endl;
     {
         const std::string test_dir = "test_restart_database";
-        std::vector<int> iterations = {10, 20, 30, 40, 50, 60, 70, 80};
-        
+        TestDirGuard guard(test_dir); // RAII cleanup
+        std::vector<int> iterations = { 10, 20, 30, 40, 50, 60, 70, 80 };
+
         create_test_restart_dirs(test_dir, iterations);
-        
+
         try
         {
             // Create database configuration
@@ -326,10 +341,10 @@ main(int argc, char** argv)
             db->putInteger("keep_recent_files", 4);
             db->putBool("log_cleaning_actions", true);
             db->putString("cleanup_strategy", "KEEP_RECENT_N");
-            
+
             Pointer<Database> db_ptr = db;
             RestartCleaner cleaner("DatabaseCleaner", db_ptr);
-            
+
             if (!cleaner.isEnabled())
             {
                 pout << "FAILED: Database cleaner should be enabled" << std::endl;
@@ -338,15 +353,15 @@ main(int argc, char** argv)
             else
             {
                 cleaner.cleanup();
-                
+
                 // Should keep 4 recent (database specified value)
                 auto iterations_after = cleaner.getAvailableIterations();
                 pout << "Iterations after database cleanup: ";
                 for (int iter : iterations_after) pout << iter << " ";
                 pout << std::endl;
-                
+
                 // Should keep: 50, 60, 70, 80
-                std::vector<int> expected = {50, 60, 70, 80};
+                std::vector<int> expected = { 50, 60, 70, 80 };
                 if (iterations_after == expected)
                 {
                     pout << "Test 4 PASSED: Database constructor worked correctly" << std::endl;
@@ -363,8 +378,6 @@ main(int argc, char** argv)
             pout << "FAILED: Exception in database test: " << e.what() << std::endl;
             test_failures++;
         }
-        
-        cleanup_test_dirs(test_dir);
     }
 
     // Test 5: Error handling and edge cases
@@ -374,8 +387,9 @@ main(int argc, char** argv)
         {
             // Test empty directory
             const std::string empty_dir = "test_empty_dir";
+            TestDirGuard empty_guard(empty_dir); // RAII cleanup
             std::filesystem::create_directories(empty_dir);
-            
+
             RestartCleaner cleaner(empty_dir, 5, "KEEP_RECENT_N", true);
             auto result = cleaner.getAvailableIterations();
             if (result.empty())
@@ -387,15 +401,14 @@ main(int argc, char** argv)
                 pout << "FAILED: Empty directory should return empty vector" << std::endl;
                 test_failures++;
             }
-            
-            cleanup_test_dirs(empty_dir);
-            
+
             // Test directory with no valid restore directories
             const std::string invalid_dir = "test_invalid_content";
+            TestDirGuard invalid_guard(invalid_dir); // RAII cleanup
             std::filesystem::create_directories(invalid_dir);
             std::filesystem::create_directories(invalid_dir + "/not_a_restore_dir");
             std::filesystem::create_directories(invalid_dir + "/restore_wrong_format");
-            
+
             RestartCleaner cleaner2(invalid_dir, 5, "KEEP_RECENT_N", true);
             auto result2 = cleaner2.getAvailableIterations();
             if (result2.empty())
@@ -407,9 +420,7 @@ main(int argc, char** argv)
                 pout << "FAILED: Directory with no valid restores should return empty vector" << std::endl;
                 test_failures++;
             }
-            
-            cleanup_test_dirs(invalid_dir);
-            
+
             if (test_failures == 0)
             {
                 pout << "Test 5 PASSED: Error handling works correctly" << std::endl;
@@ -430,10 +441,10 @@ main(int argc, char** argv)
             int rank = IBTK_MPI::getRank();
             int size = IBTK_MPI::getNodes();
             pout << "MPI rank=" << rank << ", size=" << size << std::endl;
-            
+
             // Test MPI barrier (used in RestartCleaner::cleanup())
             IBTK_MPI::barrier();
-            
+
             pout << "Test 6 PASSED: MPI environment compatibility verified" << std::endl;
         }
         catch (const std::exception& e)
@@ -448,14 +459,6 @@ main(int argc, char** argv)
     if (test_failures == 0)
     {
         pout << "ALL TESTS PASSED!" << std::endl;
-        pout << "Successfully validated:" << std::endl;
-        pout << "  - Directory pattern parsing and filtering" << std::endl;
-        pout << "  - Real file system cleanup operations" << std::endl;
-        pout << "  - Dry run functionality" << std::endl;
-        pout << "  - Database constructor functionality" << std::endl;
-        pout << "  - Error handling and edge cases" << std::endl;
-        pout << "  - MPI environment compatibility" << std::endl;
-        pout << "RestartCleaner is working correctly!" << std::endl;
         return 0;
     }
     else

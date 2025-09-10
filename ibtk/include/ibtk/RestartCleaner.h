@@ -20,9 +20,10 @@
 
 #include <ibtk/config.h>
 
+#include "ibtk/IBTK_MPI.h"
+
 #include "tbox/Database.h"
 #include "tbox/Pointer.h"
-#include "ibtk/IBTK_MPI.h"
 
 #include <filesystem>
 #include <string>
@@ -36,13 +37,13 @@ namespace IBTK
  * \brief Class RestartCleaner provides functionality to manage restart directories.
  *
  * This class provides methods to automatically clean up old restart directories while
- * keeping the most recent ones. It is designed to work with IBAMR's standard restart 
+ * keeping the most recent ones. It is designed to work with IBAMR's standard restart
  * directory naming convention and integrates with the SAMRAI Database configuration system.
  *
  * The main functionalities include:
  * -# Scan a specified directory for subdirectories matching the pattern "restore.XXXXXX"
  * -# Parse iteration numbers from these directory names
- * -# Sort directories based on iteration numbers  
+ * -# Sort directories based on iteration numbers
  * -# Keep the N most recent directories and delete the rest
  *
  * \note This class assumes restart directories follow the naming pattern "restore.XXXXXX"
@@ -60,21 +61,21 @@ namespace IBTK
  *
  * Constracutor choices:
  * - For IBAMR applications, prefer the Database constructor.
- * - For unit tests or simple scripts, use the direct parameter constructor with dry_run option. 
- * 
+ * - For unit tests or simple scripts, use the direct parameter constructor with dry_run option.
+ *
  * Sample usage:
  * \code
  * // Basic usage with explicit parameters
  * RestartCleaner cleaner("/path/to/restores", 5);
  * cleaner.cleanup();
- * 
+ *
  * // Configuration-driven usage with SAMRAI Database
  * Pointer<Database> restart_db = input_db->getDatabase("RestartCleaner");
  * RestartCleaner cleaner("RestartCleaner", restart_db);
  * if (cleaner.isEnabled()) {
  *     cleaner.cleanup();
  * }
- * 
+ *
  * // Check available iterations
  * auto iterations = cleaner.getAvailableIterations();
  * \endcode
@@ -90,13 +91,13 @@ public:
      *
      * \param restart_base_path  Base directory containing restore folders
      * \param keep_restart_count Number of recent restore directories to keep
-     * \param strategy          Cleanup strategy ("KEEP_RECENT_N")  
+     * \param strategy          Cleanup strategy ("KEEP_RECENT_N")
      * \param dry_run           If true, only report what would be deleted without actually deleting
      */
     explicit RestartCleaner(const std::string& restart_base_path,
-                           int keep_restart_count,
-                           const std::string& strategy = "KEEP_RECENT_N",
-                           bool dry_run = false);
+                            int keep_restart_count,
+                            const std::string& strategy = "KEEP_RECENT_N",
+                            bool dry_run = false);
 
     /*!
      * \brief Primacy constructor using SAMRAI Database configuration for IBAMR.
@@ -109,14 +110,13 @@ public:
      * - 'restart_directory' : String path to restart directory (required if enable_cleaner is true)
      * - 'log_cleaning_actions' : Boolean to enable logging (default: true)
      * - 'cleanup_strategy' : String cleanup strategy (default: "KEEP_RECENT_N")
-     * 
+     *
      * \note dry_run mode is not supported in this constructor.
      *
      * \param object_name Name for this object (used in error messages and logging)
      * \param input_db    Database containing configuration parameters
      */
-    explicit RestartCleaner(const std::string& object_name,
-                           SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
+    explicit RestartCleaner(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db);
 
     /*!
      * \brief Destructor.
@@ -134,8 +134,8 @@ public:
      *
      * In parallel environments, file operations are performed only on the master
      * processor (rank 0) to ensure consistency.
-     * 
-     * \note Call cleanup() after each restart save to maintain only the most recent directories. 
+     *
+     * \note Call cleanup() after each restart save to maintain only the most recent directories.
      *
      * \note This method only performs cleanup if the cleaner is enabled (for Database
      * constructor) or always executes (for explicit parameter constructor).
@@ -171,15 +171,16 @@ private:
     /*!
      * \brief Internal strategy enumeration.
      */
-    enum class CleanupStrategy { 
+    enum class CleanupStrategy
+    {
         KEEP_RECENT_N
     };
-    
+
     /*!
      * \brief Parse strategy string to enum.
      */
     CleanupStrategy parseStrategy(const std::string& strategy_str) const;
-    
+
     /*!
      * \brief Execute cleanup based on current strategy.
      */
@@ -219,7 +220,7 @@ private:
     int d_keep_restart_count;
     bool d_enabled;
     bool d_log_actions;
-    
+
     // Only used by explicit parameter constructor
     bool d_dry_run;
 };
