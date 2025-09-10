@@ -39,8 +39,8 @@ RestartCleaner::RestartCleaner(const std::string& restart_base_path,
                                bool dry_run)
     : d_object_name("RestartCleaner"),
       d_restart_base_path(restart_base_path),
-      d_keep_restart_count(keep_restart_count),
       d_strategy(parseStrategy(strategy)),
+      d_keep_restart_count(keep_restart_count),
       d_enabled(true),
       d_log_actions(true),
       d_dry_run(dry_run)
@@ -53,10 +53,11 @@ RestartCleaner::RestartCleaner(const std::string& restart_base_path,
 
 RestartCleaner::RestartCleaner(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
     : d_object_name(object_name),
-      d_enabled(input_db->getBoolWithDefault("enable_cleaner", false)),
-      d_keep_restart_count(input_db->getIntegerWithDefault("keep_recent_files", 5)),
-      d_log_actions(input_db->getBoolWithDefault("log_cleaning_actions", true)),
+      d_restart_base_path(),
       d_strategy(parseStrategy(input_db->getStringWithDefault("cleanup_strategy", "KEEP_RECENT_N"))),
+      d_keep_restart_count(input_db->getIntegerWithDefault("keep_recent_files", 5)),
+      d_enabled(input_db->getBoolWithDefault("enable_cleaner", false)),
+      d_log_actions(input_db->getBoolWithDefault("log_cleaning_actions", true)),
       d_dry_run(false)
 {
 #if !defined(NDEBUG)
@@ -166,7 +167,7 @@ RestartCleaner::executeStrategy() const
 int
 RestartCleaner::parseIterationNum(const std::string& dirname) const
 {
-    std::regex pattern(R "(restore\.(\d{6}))");
+    std::regex pattern("restore\\.([0-9]{6})");
     std::smatch match;
 
     if (std::regex_match(dirname, match, pattern))
@@ -191,7 +192,7 @@ RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
         TBOX_ERROR(d_object_name << "::getAllRestartDirs(): Path is not a directory: " << restart_dir << std::endl);
     }
 
-    std::regex pattern(R "(restore\.\d{6})");
+    std::regex pattern("restore\\.([0-9]{6})");
 
     try
     {

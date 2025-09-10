@@ -140,7 +140,7 @@ count_dirs_matching_pattern(const std::string& base_path)
     int count = 0;
     if (!std::filesystem::exists(base_path)) return 0;
 
-    std::regex pattern(R "(restore\.\d{6})");
+    std::regex pattern("restore\\.([0-9]{6})");
     for (const auto& entry : std::filesystem::directory_iterator(base_path))
     {
         if (entry.is_directory())
