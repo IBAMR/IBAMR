@@ -166,7 +166,7 @@ RestartCleaner::executeStrategy() const
 int
 RestartCleaner::parseIterationNum(const std::string& dirname) const
 {
-    std::regex pattern(R"(restore\.(\d{6}))");
+    std::regex pattern(R "(restore\.(\d{6}))");
     std::smatch match;
 
     if (std::regex_match(dirname, match, pattern))
@@ -191,7 +191,7 @@ RestartCleaner::getAllRestartDirs(const std::string& restart_dir) const
         TBOX_ERROR(d_object_name << "::getAllRestartDirs(): Path is not a directory: " << restart_dir << std::endl);
     }
 
-    std::regex pattern(R"(restore\.\d{6})");
+    std::regex pattern(R "(restore\.\d{6})");
 
     try
     {
