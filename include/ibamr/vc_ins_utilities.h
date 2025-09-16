@@ -16,7 +16,7 @@
 #ifndef included_IBAMR_vc_ins_utilities
 #define included_IBAMR_vc_ins_utilities
 
-#include <ibtk/config.h>
+#include <ibamr/config.h>
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 #include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
