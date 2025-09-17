@@ -58,10 +58,6 @@ RestartCleaner::RestartCleaner(const std::string& object_name, SAMRAI::tbox::Poi
       d_log_actions(input_db->getBoolWithDefault("log_cleaning_actions", true)),
       d_dry_run(false)
 {
-#if !defined(NDEBUG)
-    TBOX_ASSERT(input_db);
-#endif
-
     if (d_enabled)
     {
         if (input_db->keyExists("restart_directory"))
