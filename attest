@@ -136,12 +136,15 @@ def n_mpi_processes(input_file):
     """Determine the number of MPI processes to use when running a test by
     inspecting the input file. Defaults to 1.
     """
-    mpirun_index = input_file.find("mpirun")
+    dot_index = input_file.find('.')
+    assert dot_index != -1
+    suffix = input_file[dot_index:]
+    mpirun_index = suffix.find("mpirun=")
     if mpirun_index != -1:
-        next_equals_index = input_file.find('=', mpirun_index)
-        next_dot_index = input_file.find('.', mpirun_index)
+        next_equals_index = suffix.find('=', mpirun_index)
+        next_dot_index = suffix.find('.', mpirun_index)
         assert next_equals_index < next_dot_index
-        return int(input_file[next_equals_index + 1:next_dot_index])
+        return int(suffix[next_equals_index + 1:next_dot_index])
 
     return 1
 
@@ -149,13 +152,16 @@ def n_mpi_processes(input_file):
 def expect_error(input_file):
     """Determine if a test is expected to raise an error. Defaults to False.
     """
-    error_index = input_file.find("expect_error")
+    dot_index = input_file.find('.')
+    assert dot_index != -1
+    suffix = input_file[dot_index:]
+    error_index = suffix.find("expect_error=")
     if error_index != -1:
-        next_equals_index = input_file.find('=', error_index)
-        next_dot_index = input_file.find('.', error_index)
+        next_equals_index = suffix.find('=', error_index)
+        next_dot_index = suffix.find('.', error_index)
         assert next_equals_index < next_dot_index
 
-        value = input_file[next_equals_index + 1:next_dot_index].lower()
+        value = suffix[next_equals_index + 1:next_dot_index].lower()
         return string_to_boolean(value)
 
     return False
@@ -165,12 +171,15 @@ def restart_n(input_file):
     """Determine the restart snapshot number to use when restarting the
     simulation. Defaults to zero.
     """
-    restart_index = input_file.find("restart")
+    dot_index = input_file.find('.')
+    assert dot_index != -1
+    suffix = input_file[dot_index:]
+    restart_index = suffix.find("restart=")
     if restart_index != -1:
-        next_equals_index = input_file.find('=', restart_index)
-        next_dot_index = input_file.find('.', restart_index)
+        next_equals_index = suffix.find('=', restart_index)
+        next_dot_index = suffix.find('.', restart_index)
         assert next_equals_index < next_dot_index
-        return int(input_file[next_equals_index + 1:next_dot_index])
+        return int(suffix[next_equals_index + 1:next_dot_index])
 
     return 0
 
