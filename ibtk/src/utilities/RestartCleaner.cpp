@@ -45,10 +45,8 @@ RestartCleaner::RestartCleaner(const std::string& restart_base_path,
       d_log_actions(true),
       d_dry_run(dry_run)
 {
-#if !defined(NDEBUG)
     TBOX_ASSERT(!restart_base_path.empty());
     TBOX_ASSERT(keep_restart_count > 0);
-#endif
 } // RestartCleaner
 
 RestartCleaner::RestartCleaner(const std::string& object_name, SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db)
