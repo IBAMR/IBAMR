@@ -11,13 +11,6 @@
 //
 // ---------------------------------------------------------------------
 
-// Config files
-
-// Define NDIM for SAMRAI template instantiation
-#ifndef NDIM
-#define NDIM 2
-#endif
-
 #include <ibtk/AppInitializer.h>
 #include <ibtk/IBTKInit.h>
 #include <ibtk/IBTK_MPI.h>
