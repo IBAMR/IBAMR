@@ -2512,6 +2512,26 @@ INSStaggeredHierarchyIntegrator::reinitializeOperatorsAndSolvers(const double cu
             nul_vec->scale(1.0 / nul_L2_norm, nul_vec);
         }
 
+#if !defined(NDEBUG)
+        for (unsigned int j = 0; j < d_nul_vecs.size(); ++j)
+        {
+            for (unsigned int i = 0; i < d_nul_vecs.size(); ++i)
+            {
+                auto dot_product = d_nul_vecs[i]->dot(d_nul_vecs[j]);
+                TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
+            }
+        }
+
+        for (unsigned int j = 0; j < d_U_nul_vecs.size(); ++j)
+        {
+            for (unsigned int i = 0; i < d_U_nul_vecs.size(); ++i)
+            {
+                auto dot_product = d_U_nul_vecs[i]->dot(d_U_nul_vecs[j]);
+                TBOX_ASSERT(IBTK::abs_equal_eps(dot_product, (i == j) ? 1.0 : 0.0));
+            }
+        }
+#endif
+
         d_vectors_need_init = false;
     }
 
