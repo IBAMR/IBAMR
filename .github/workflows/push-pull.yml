@@ -336,3 +336,96 @@ jobs:
           cd build
           ninja -j4
           ccache --show-stats
+
+  # test that all headers compile independently of each-other and contain ibtk/config.h or ibamr/config.h
+  build_ibamr_archlinux_header_checks:
+    runs-on: ubuntu-latest
+    name: Basic header checks
+    container:
+      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-archlinux'
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+        id: git
+      - name: Verify that clang-format was run
+        id: format
+        run: |
+          git config --global --add safe.directory '*'
+          ./scripts/formatting/download-clang-format
+          ./scripts/formatting/check-indentation
+      - name: Configure IBAMR
+        id: configure
+        run: |
+          mkdir build
+          cd build
+          FLAGS="-DLIBMESH_ROOT=/libmesh -DLIBMESH_METHOD=devel -DHYPRE_ROOT=/petsc/ -DPETSC_ROOT=/petsc/ -DSAMRAI_ROOT=/samrai"
+          # add a subshell to ensure flags are passed as separate arguments
+          cmake $(echo "$FLAGS") -GNinja ../
+      - name: Verify that headers can be compiled independently
+        id: header-check-compilation
+        run: |
+          print_and_check() {
+              echo $1
+              /usr/bin/mpic++ -O0 -fsyntax-only -DNDIM=2 \
+                -I/samrai/include                        \
+                -I/petsc/include                         \
+                -I/libmesh/include                       \
+                -I/usr/include/eigen3                    \
+                -I./build/ibtk/include                   \
+                -I./ibtk/include                         \
+                -I./include                              \
+                $1
+              status=$?
+              if [ $status -ne 0 ]; then
+                  echo "Header check failed for $1. This usually means a #include is missing."
+                  exit 255
+              else
+                  exit 0
+              fi
+          }
+          export -f print_and_check
+
+          find ./ibtk/include/ibtk -name '*.h' -print0 | xargs -0 -L1 -P4 bash -c 'print_and_check "$0"'
+          find ./include/ibamr -name '*.h' -print0 | xargs -0 -L1 -P4 bash -c 'print_and_check "$0"'
+      - name: Verify that headers contain the correct config file
+        id: header-check-config
+        run: |
+          print_and_check() {
+              grep -q "#include .$1/config.h." "$2"
+              status=$?
+              if [ $status -eq 0 ];
+              then
+                  echo "$2"
+                  exit 0
+              else
+                  echo "$2 is missing #include <$1/config.h>: please add it."
+                  exit 255
+              fi
+          }
+          export -f print_and_check
+
+          find ./ibtk/include/ibtk -name '*.h' -print0 | xargs -0 -L1 -P4 bash -c 'print_and_check ibtk "$0"'
+          find ./include/ibamr -name '*.h' -print0 | grep -v --null-data 'config.h' | xargs -0 -L1 -P4 bash -c 'print_and_check ibamr "$0"'
+      - name: Verify that headers do not include namespaces.h nor app_namespaces.h
+        id: header-check-namespaces-files
+        run: |
+          print_and_check() {
+              echo $1
+              for DIRECTORY in ibamr ibtk
+              do
+                  for HEADER in namespaces.h app_namespaces.h
+                  do
+                      grep -q " *# *include *.$DIRECTORY/$HEADER" "$1"
+                      status=$?
+                      if [ $status -eq 0 ]; then
+                          echo "$1 includes $HEADER, which is not permitted - $HEADER may only be used in source files."
+                          exit 255
+                      fi
+                  done
+              done
+              exit 0
+          }
+          export -f print_and_check
+
+          find ./ibtk/include/ibtk -name '*.h' -print0 | xargs -0 -L1 -P4 bash -c 'print_and_check "$0"'
+          find ./include/ibamr -name '*.h' -print0 | xargs -0 -L1 -P4 bash -c 'print_and_check "$0"'

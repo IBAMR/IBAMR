@@ -20,37 +20,16 @@
 
 #include <ibamr/config.h>
 
+#include "ibamr/AdvDiffHierarchyIntegrator.h"
 #include "ibamr/LSInitStrategy.h"
 
+#include "CellVariable.h"
 #include "tbox/DescribedClass.h"
 #include "tbox/Pointer.h"
 #include "tbox/Serializable.h"
 
 #include <limits>
 #include <string>
-
-namespace SAMRAI
-{
-namespace hier
-{
-template <int DIM>
-class PatchHierarchy;
-}
-namespace pdat
-{
-template <int DIM, class TYPE>
-class CellVariable;
-} // namespace pdat
-namespace tbox
-{
-class Database;
-} // namespace tbox
-} // namespace SAMRAI
-
-namespace IBAMR
-{
-class AdvDiffHierarchyIntegrator;
-} // namespace IBAMR
 
 namespace IBTK
 {
