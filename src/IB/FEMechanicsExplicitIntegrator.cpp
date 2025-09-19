@@ -46,7 +46,7 @@ static Timer* t_preprocess_integrate_data;
 static Timer* t_postprocess_integrate_data;
 static Timer* t_compute_lagrangian_force;
 // Version of FEMechanicsExplicitIntegrator restart file data.
-const int EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION = 0;
+const int EXPLICIT_FE_MECHANICS_INTEGRATOR_VERSION = 1;
 } // namespace
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////

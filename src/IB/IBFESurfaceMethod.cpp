@@ -127,17 +127,18 @@ namespace IBAMR
 namespace
 {
 // Version of IBFESurfaceMethod restart file data.
-static const int IBFE_METHOD_VERSION = 3;
+static const int IBFE_METHOD_VERSION = 4;
 
 std::string
-libmesh_restart_file_name(const std::string& restart_dump_dirname,
+libmesh_restart_file_name(const std::string& object_name,
+                          const std::string& restart_dump_dirname,
                           unsigned int time_step_number,
                           unsigned int part,
                           const std::string& extension)
 {
     std::ostringstream file_name_prefix;
-    file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "." << std::setw(6)
-                     << std::setfill('0') << std::right << time_step_number << "." << extension;
+    file_name_prefix << restart_dump_dirname << "/libmesh_data_" << object_name << "_part_" << part << "."
+                     << std::setw(6) << std::setfill('0') << std::right << time_step_number << "." << extension;
     return file_name_prefix.str();
 }
 } // namespace
@@ -1083,8 +1084,11 @@ IBFESurfaceMethod::initializeFEEquationSystems()
         EquationSystems* equation_systems = d_equation_systems[part].get();
         if (from_restart)
         {
-            const std::string& file_name = libmesh_restart_file_name(
-                d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
+            const std::string& file_name = libmesh_restart_file_name(d_object_name,
+                                                                     d_libmesh_restart_read_dir,
+                                                                     d_libmesh_restart_restore_number,
+                                                                     part,
+                                                                     d_libmesh_restart_file_extension);
             const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? DECODE : READ);
             const int read_mode =
                 EquationSystems::READ_HEADER | EquationSystems::READ_DATA | EquationSystems::READ_ADDITIONAL_DATA;
@@ -1390,8 +1394,8 @@ IBFESurfaceMethod::writeFEDataToRestartFile(const std::string& restart_dump_dirn
 {
     for (unsigned int part = 0; part < d_num_parts; ++part)
     {
-        const std::string& file_name =
-            libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
+        const std::string& file_name = libmesh_restart_file_name(
+            d_object_name, restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
         const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? ENCODE : WRITE);
         const int write_mode = EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA;
         d_equation_systems[part]->write(file_name, xdr_mode, write_mode, /*partition_agnostic*/ true);

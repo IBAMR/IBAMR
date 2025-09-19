@@ -171,7 +171,7 @@ static Timer* t_begin_data_redistribution;
 static Timer* t_end_data_redistribution;
 static Timer* t_apply_gradient_detector;
 // Version of IBFEMethod restart file data.
-const int IBFE_METHOD_VERSION = 7;
+const int IBFE_METHOD_VERSION = 8;
 
 inline boundary_id_type
 get_dirichlet_bdry_ids(const std::vector<boundary_id_type>& bdry_ids)
