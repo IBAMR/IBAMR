@@ -29,8 +29,6 @@
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 
-#include "muParser.h"
-
 namespace SAMRAI
 {
 namespace geom

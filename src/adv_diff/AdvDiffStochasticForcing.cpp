@@ -50,8 +50,6 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
-#include "muParser.h"
-
 #include <algorithm>
 #include <cmath>
 #include <limits>

@@ -27,7 +27,9 @@
 #include "RobinBcCoefStrategy.h"
 #include "tbox/Pointer.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "muParser.h"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <map>
 #include <string>

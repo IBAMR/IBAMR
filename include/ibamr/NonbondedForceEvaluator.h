@@ -30,8 +30,6 @@
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 
-#include "muParser.h"
-
 #include <vector>
 
 namespace IBTK

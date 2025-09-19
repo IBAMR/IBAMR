@@ -80,6 +80,7 @@ _Pragma("GCC diagnostic ignored \"-Wunused-parameter\"")        \
 _Pragma("GCC diagnostic ignored \"-Wparentheses\"")             \
 _Pragma("GCC diagnostic ignored \"-Wdangling-reference\"")      \
 _Pragma("GCC diagnostic ignored \"-Warray-bounds\"")            \
+_Pragma("GCC diagnostic ignored \"-Wnested-anon-types\"")       \
 _Pragma("GCC diagnostic ignored \"-Wunneeded-internal-declaration\"")
 
 #define IBTK_ENABLE_EXTRA_WARNINGS _Pragma("GCC diagnostic pop")
