@@ -199,5 +199,14 @@
 /* Version number of package */
 #undef VERSION
 
+/* Major version of IBTK. */
+#undef VERSION_MAJOR
+
+/* Minor version of IBTK. */
+#undef VERSION_MINOR
+
+/* Subminor version of IBTK. */
+#undef VERSION_SUBMINOR
+
 /* Include the new configuration file. */
 #include <ibtk/config.h>
