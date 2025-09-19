@@ -20,9 +20,10 @@
 
 #include <ibamr/config.h>
 
+#include <ibamr/IBInstrumentationSpec.h>
+
 #include "ibtk/StreamableManager.h"
 
-#include "SAMRAI_config.h"
 #include "tbox/AbstractStream.h"
 #include "tbox/Utilities.h"
 
