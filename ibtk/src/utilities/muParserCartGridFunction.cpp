@@ -44,8 +44,10 @@
 #include "tbox/Pointer.h"
 #include "tbox/Utilities.h"
 
+IBTK_DISABLE_EXTRA_WARNINGS
 #include "muParser.h"
 #include "muParserError.h"
+IBTK_ENABLE_EXTRA_WARNINGS
 
 #include <algorithm>
 #include <map>

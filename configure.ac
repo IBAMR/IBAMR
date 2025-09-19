@@ -20,8 +20,9 @@ AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config/IBAMR_config.h.tmp])
 AX_PREFIX_CONFIG_H([config/IBAMR_config.h],[IBAMR],[config/IBAMR_config.h.tmp])
-# Also copy our own CMake compatibility shim header:
-AC_CONFIG_LINKS([config/ibamr/config.h:$srcdir/config/config.h.tmp])
+# We used to have a sub config.h which we don't need any more. Keep compatibility
+# by replacing it with a link to the real config.h
+AC_CONFIG_LINKS([config/ibamr/config.h:$srcdir/include/ibamr/config.h])
 AM_INIT_AUTOMAKE([1.12 -Wall -Werror dist-bzip2 foreign -Wno-extra-portability subdir-objects])
 AM_SILENT_RULES([yes])
 AM_MAINTAINER_MODE([disable])

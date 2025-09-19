@@ -27,6 +27,10 @@
 // compatible. As such, headers are included in an odd order to keep things
 // working.
 
+#define IBTK_VERSION_GTE(major, minor, subminor)                                          \
+    ((IBTK_VERSION_MAJOR * 10000 + IBTK_VERSION_MINOR * 100 + IBTK_VERSION_SUBMINOR) >= \
+     (major)*10000 + (minor)*100 + (subminor))
+
 #ifdef IBTK_HAVE_PRAGMA_KEYWORD
 // Prevent clang-format from doing strange things to this very long macro:
 // clang-format off

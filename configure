@@ -2717,8 +2717,9 @@ ac_config_headers="$ac_config_headers config/IBAMR_config.h.tmp"
 
 ac_config_commands="$ac_config_commands config/IBAMR_config.h"
 
-# Also copy our own CMake compatibility shim header:
-ac_config_links="$ac_config_links config/ibamr/config.h:$srcdir/config/config.h.tmp"
+# We used to have a sub config.h which we don't need any more. Keep compatibility
+# by replacing it with a link to the real config.h
+ac_config_links="$ac_config_links config/ibamr/config.h:$srcdir/include/ibamr/config.h"
 
 am__api_version='1.16'
 
@@ -43501,7 +43502,7 @@ do
   case $ac_config_target in
     "config/IBAMR_config.h.tmp") CONFIG_HEADERS="$CONFIG_HEADERS config/IBAMR_config.h.tmp" ;;
     "config/IBAMR_config.h") CONFIG_COMMANDS="$CONFIG_COMMANDS config/IBAMR_config.h" ;;
-    "config/ibamr/config.h") CONFIG_LINKS="$CONFIG_LINKS config/ibamr/config.h:$srcdir/config/config.h.tmp" ;;
+    "config/ibamr/config.h") CONFIG_LINKS="$CONFIG_LINKS config/ibamr/config.h:$srcdir/include/ibamr/config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;

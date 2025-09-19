@@ -31,7 +31,9 @@
 #include "tbox/Array.h"
 #include "tbox/Pointer.h"
 
+IBAMR_DISABLE_EXTRA_WARNINGS
 #include "muParser.h"
+IBAMR_ENABLE_EXTRA_WARNINGS
 
 #include <string>
 #include <vector>

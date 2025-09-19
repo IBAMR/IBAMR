@@ -25707,6 +25707,28 @@ DOT_DIR=$DOT_DIR
 
 
 ###########################################################################
+# Version information (requires sed).
+###########################################################################
+ibtk_version_major=$($SED -E "s/^([0-9]+)\..*/\1/" "$srcdir/../VERSION")
+ibtk_version_minor=$($SED -E "s/^[^.]+\.([0-9]+)\.[0-9]+.*/\1/" "$srcdir/../VERSION")
+ibtk_version_subminor=$($SED -E "s/^[^.]+\.[^.]+\.([0-9]+).*/\1/" "$srcdir/../VERSION")
+
+cat >>confdefs.h <<_ACEOF
+#define VERSION_MAJOR $ibtk_version_major
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define VERSION_MINOR $ibtk_version_minor
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define VERSION_SUBMINOR $ibtk_version_subminor
+_ACEOF
+
+
+###########################################################################
 # Checks for optional and required third-party libraries.
 ###########################################################################
 
