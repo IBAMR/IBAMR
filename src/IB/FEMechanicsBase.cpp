@@ -82,7 +82,7 @@ namespace IBAMR
 namespace
 {
 // Version of FEMechanicsBase restart file data.
-const int FE_MECHANICS_BASE_VERSION = 1;
+const int FE_MECHANICS_BASE_VERSION = 2;
 
 static Timer* t_assemble_interior_force_density_rhs;
 
@@ -476,8 +476,8 @@ FEMechanicsBase::writeFEDataToRestartFile(const std::string& restart_dump_dirnam
 {
     for (unsigned int part = 0; part < d_meshes.size(); ++part)
     {
-        const std::string& file_name =
-            libmesh_restart_file_name(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
+        const std::string file_name =
+            getLibMeshRestartFileName(restart_dump_dirname, time_step_number, part, d_libmesh_restart_file_extension);
         const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? ENCODE : WRITE);
         const int write_mode = EquationSystems::WRITE_DATA | EquationSystems::WRITE_ADDITIONAL_DATA;
         d_equation_systems[part]->write(file_name,
@@ -508,7 +508,7 @@ FEMechanicsBase::doInitializeFEEquationSystems()
         d_fe_projectors[part] = std::make_shared<FEProjector>(d_fe_data[part], d_fe_projector_db);
         if (from_restart)
         {
-            const std::string& file_name = libmesh_restart_file_name(
+            const std::string file_name = getLibMeshRestartFileName(
                 d_libmesh_restart_read_dir, d_libmesh_restart_restore_number, part, d_libmesh_restart_file_extension);
             const XdrMODE xdr_mode = (d_libmesh_restart_file_extension == "xdr" ? DECODE : READ);
             const int read_mode =
@@ -1465,6 +1465,18 @@ FEMechanicsBase::initializeVelocity(const unsigned int part)
     copy_and_synch(U_vec, *U_system.current_local_solution, /*close_v_in*/ false);
 }
 
+std::string
+FEMechanicsBase::getLibMeshRestartFileName(const std::string& restart_dump_dirname,
+                                           unsigned int time_step_number,
+                                           unsigned int part,
+                                           const std::string& extension) const
+{
+    std::ostringstream file_name_prefix;
+    file_name_prefix << restart_dump_dirname << "/libmesh_data_" << d_object_name << "_part_" << part << "."
+                     << std::setw(6) << std::setfill('0') << std::right << time_step_number << "." << extension;
+    return file_name_prefix.str();
+}
+
 void
 FEMechanicsBase::setup_system_vectors(EquationSystems* equation_systems,
                                       const std::vector<std::string>& system_names,
@@ -1478,18 +1490,6 @@ void
 FEMechanicsBase::setup_system_vector(System& system, const std::string& vector_name)
 {
     IBTK::setup_system_vector(system, vector_name, RestartManager::getManager()->isFromRestart());
-}
-
-std::string
-FEMechanicsBase::libmesh_restart_file_name(const std::string& restart_dump_dirname,
-                                           unsigned int time_step_number,
-                                           unsigned int part,
-                                           const std::string& extension)
-{
-    std::ostringstream file_name_prefix;
-    file_name_prefix << restart_dump_dirname << "/libmesh_data_part_" << part << "." << std::setw(6)
-                     << std::setfill('0') << std::right << time_step_number << "." << extension;
-    return file_name_prefix.str();
 }
 
 /////////////////////////////// PRIVATE //////////////////////////////////////
