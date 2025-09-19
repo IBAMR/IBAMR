@@ -85,6 +85,7 @@ public:
      *
      * @deprecated Use setBrinkmanPenaltyFactor() instead.
      */
+    IBTK_DEPRECATED("Use setBrinkmanPenaltyFactor() instead.")
     virtual void setBrinkmanCoefficient(double chi);
 
     /*!
@@ -113,10 +114,9 @@ public:
      * @deprecated Use getBrinkmanPenaltyFactor() instead.
      *
      */
+    IBTK_DEPRECATED("Use getBrinkmanPenaltyFactor() instead.")
     double getBrinkmanCoefficient() const
     {
-        IBTK_DEPRECATED_MEMBER_FUNCTION2(
-            "BrinkmanPenalizationStrategy", "getBrinkmanCoefficient", "getBrinkmanPenaltyFactor");
         return d_penalty_factor;
     } // getBrinkmanCoefficient
 

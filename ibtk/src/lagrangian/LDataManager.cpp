@@ -860,7 +860,6 @@ LDataManager::registerLSiloDataWriter(Pointer<LSiloDataWriter> silo_writer)
 void
 LDataManager::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_idx)
 {
-    IBTK_DEPRECATED_MEMBER_FUNCTION1("LDataManager", "registerLoadBalancer");
 #if !defined(NDEBUG)
     TBOX_ASSERT(load_balancer);
 #endif

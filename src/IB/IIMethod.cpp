@@ -468,8 +468,11 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
             d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
         d_X_half_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_X_current_vecs[part]->clone().release()); // WARNING: must be manually deleted
+        IBTK_DISABLE_EXTRA_WARNINGS
+        // Disable warnings so we can call a deprecated function
         d_X_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedCoordsVector(/*localize_data*/ false));
+        IBTK_ENABLE_EXTRA_WARNINGS
 
         d_U_systems[part] = &d_equation_systems[part]->get_system(VELOCITY_SYSTEM_NAME);
         d_U_current_vecs[part] = dynamic_cast<PetscVector<double>*>(d_U_systems[part]->current_local_solution.get());
@@ -496,30 +499,39 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
 
         d_F_systems[part] = &d_equation_systems[part]->get_system(FORCE_SYSTEM_NAME);
         d_F_half_vecs[part] = dynamic_cast<PetscVector<double>*>(d_F_systems[part]->current_local_solution.get());
+        // Same here and below
+        IBTK_DISABLE_EXTRA_WARNINGS
         d_F_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
             d_fe_data_managers[part]->buildGhostedSolutionVector(FORCE_SYSTEM_NAME, /*localize_data*/ false));
+        IBTK_ENABLE_EXTRA_WARNINGS
 
         if (d_use_pressure_jump_conditions)
         {
             d_P_jump_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_JUMP_SYSTEM_NAME);
             d_P_jump_half_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_P_jump_systems[part]->current_local_solution.get());
+            IBTK_DISABLE_EXTRA_WARNINGS
             d_P_jump_IB_ghost_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
                     PRESSURE_JUMP_SYSTEM_NAME, /*localize_data*/ false));
+            IBTK_ENABLE_EXTRA_WARNINGS
 
+            IBTK_DISABLE_EXTRA_WARNINGS
             d_P_in_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_IN_SYSTEM_NAME);
             d_P_in_half_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_P_in_systems[part]->current_local_solution.get());
             d_P_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
                 d_fe_data_managers[part]->buildGhostedSolutionVector(PRESSURE_IN_SYSTEM_NAME, /*localize_data*/ false));
+            IBTK_ENABLE_EXTRA_WARNINGS
 
+            IBTK_DISABLE_EXTRA_WARNINGS
             d_P_out_systems[part] = &d_equation_systems[part]->get_system(PRESSURE_OUT_SYSTEM_NAME);
             d_P_out_half_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_P_out_systems[part]->current_local_solution.get());
             d_P_out_IB_ghost_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
                     PRESSURE_OUT_SYSTEM_NAME, /*localize_data*/ false));
+            IBTK_ENABLE_EXTRA_WARNINGS
         }
 
         if (d_use_velocity_jump_conditions)
@@ -529,23 +541,29 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
                 d_DU_jump_systems[part][d] = &d_equation_systems[part]->get_system(VELOCITY_JUMP_SYSTEM_NAME[d]);
                 d_DU_jump_half_vecs[part][d] =
                     dynamic_cast<PetscVector<double>*>(d_DU_jump_systems[part][d]->current_local_solution.get());
+                IBTK_DISABLE_EXTRA_WARNINGS
                 d_DU_jump_IB_ghost_vecs[part][d] =
                     dynamic_cast<PetscVector<double>*>(d_fe_data_managers[part]->buildGhostedSolutionVector(
                         VELOCITY_JUMP_SYSTEM_NAME[d], /*localize_data*/ false));
+                IBTK_ENABLE_EXTRA_WARNINGS
             }
             if (d_use_u_interp_correction)
             {
                 d_WSS_in_systems[part] = &d_equation_systems[part]->get_system(WSS_IN_SYSTEM_NAME);
                 d_WSS_in_half_vecs[part] =
                     dynamic_cast<PetscVector<double>*>(d_WSS_in_systems[part]->current_local_solution.get());
+                IBTK_DISABLE_EXTRA_WARNINGS
                 d_WSS_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_IN_SYSTEM_NAME, /*localize_data*/ false));
+                IBTK_ENABLE_EXTRA_WARNINGS
 
                 d_WSS_out_systems[part] = &d_equation_systems[part]->get_system(WSS_OUT_SYSTEM_NAME);
+                IBTK_DISABLE_EXTRA_WARNINGS
                 d_WSS_out_half_vecs[part] =
                     dynamic_cast<PetscVector<double>*>(d_WSS_out_systems[part]->current_local_solution.get());
                 d_WSS_out_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
                     d_fe_data_managers[part]->buildGhostedSolutionVector(WSS_OUT_SYSTEM_NAME, /*localize_data*/ false));
+                IBTK_ENABLE_EXTRA_WARNINGS
             }
         }
         if (d_use_velocity_jump_conditions && d_use_pressure_jump_conditions && d_use_u_interp_correction)
@@ -553,14 +571,18 @@ IIMethod::preprocessIntegrateData(double current_time, double new_time, int /*nu
             d_TAU_in_systems[part] = &d_equation_systems[part]->get_system(TAU_IN_SYSTEM_NAME);
             d_TAU_in_half_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_TAU_in_systems[part]->current_local_solution.get());
+            IBTK_DISABLE_EXTRA_WARNINGS
             d_TAU_in_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
                 d_fe_data_managers[part]->buildGhostedSolutionVector(TAU_IN_SYSTEM_NAME, /*localize_data*/ false));
+            IBTK_ENABLE_EXTRA_WARNINGS
 
             d_TAU_out_systems[part] = &d_equation_systems[part]->get_system(TAU_OUT_SYSTEM_NAME);
             d_TAU_out_half_vecs[part] =
                 dynamic_cast<PetscVector<double>*>(d_TAU_out_systems[part]->current_local_solution.get());
+            IBTK_DISABLE_EXTRA_WARNINGS
             d_TAU_out_IB_ghost_vecs[part] = dynamic_cast<PetscVector<double>*>(
                 d_fe_data_managers[part]->buildGhostedSolutionVector(TAU_OUT_SYSTEM_NAME, /*localize_data*/ false));
+            IBTK_ENABLE_EXTRA_WARNINGS
         }
 
         // Initialize X^{n+1/2} and X^{n+1} to equal X^{n}, and initialize
@@ -3272,17 +3294,6 @@ IIMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
     d_is_initialized = true;
     return;
 } // initializePatchHierarchy
-
-void
-IIMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
-{
-    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IIMethod", "registerLoadBalancer");
-    TBOX_ASSERT(load_balancer);
-    d_load_balancer = load_balancer;
-    d_workload_idx = workload_data_idx;
-
-    return;
-} // registerLoadBalancer
 
 void
 IIMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)

@@ -1413,16 +1413,6 @@ IBFEMethod::initializePatchHierarchy(Pointer<PatchHierarchy<NDIM> > hierarchy,
 } // initializePatchHierarchy
 
 void
-IBFEMethod::registerLoadBalancer(Pointer<LoadBalancer<NDIM> > load_balancer, int workload_data_idx)
-{
-    IBAMR_DEPRECATED_MEMBER_FUNCTION1("IBFEMethod", "registerLoadBalancer");
-    TBOX_ASSERT(load_balancer);
-    d_load_balancer = load_balancer;
-    d_workload_idx = workload_data_idx;
-    return;
-} // registerLoadBalancer
-
-void
 IBFEMethod::addWorkloadEstimate(Pointer<PatchHierarchy<NDIM> > hierarchy, const int workload_data_idx)
 {
     IBAMR_TIMER_START(t_add_workload_estimate);

@@ -198,6 +198,7 @@ public:
      *
      * @deprecated The equation systems object should be set by the constructor.
      */
+    IBTK_DEPRECATED("The equation systems object should be set in the constructor.")
     void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
 
     /*!
@@ -556,7 +557,8 @@ public:
      * \note The default value for this string is "coordinates system".
      */
     IBTK_DEPRECATED(
-        "use FEDataManager::getCurrentCoordinatesSystemName() and FEDataManager::setCurrentCoordinatesSystemName() to "
+        "use FEDataManager::getCurrentCoordinatesSystemName() and "
+        "FEDataManager::setCurrentCoordinatesSystemName() to "
         "access the current coordinates system name.")
     std::string& COORDINATES_SYSTEM_NAME;
 
@@ -635,6 +637,9 @@ public:
      * @deprecated This function is deprecated since the FEData constructor now
      * requires an EquationSystems argument.
      */
+    IBTK_DEPRECATED(
+        "This function is deprecated since the FEData constructor now requires "
+        "an EquationSystems argument.")
     void setEquationSystems(libMesh::EquationSystems* equation_systems, int level_number);
 
     /*!
@@ -752,6 +757,9 @@ public:
      * @deprecated Use buildIBGhostedVector() instead which clones a vector
      * with the same ghost region.
      */
+    IBTK_DEPRECATED(
+        "Use buildIBGhostedVector() instead which clones a vector with the same "
+        "ghost region.")
     libMesh::NumericVector<double>* buildGhostedSolutionVector(const std::string& system_name,
                                                                bool localize_data = true);
 
@@ -771,6 +779,7 @@ public:
      *
      * @deprecated Use buildIBGhostedVector() instead.
      */
+    IBTK_DEPRECATED("Use buildIBGhostedVector() instead.")
     libMesh::NumericVector<double>* buildGhostedCoordsVector(bool localize_data = true);
 
     /*!

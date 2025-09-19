@@ -438,7 +438,9 @@ class IBFEDirectForcingKinematics;
 class IBFEMethod : public FEMechanicsBase, public IBStrategy
 {
 public:
-    IBTK_DEPRECATED("Use IBFEMethod::getSourceSystemName() to access the source system name.")
+    IBTK_DEPRECATED(
+        "Use IBFEMethod::getSourceSystemName() to access the "
+        "source system name.")
     static const std::string SOURCE_SYSTEM_NAME;
 
     /*!
@@ -748,16 +750,6 @@ public:
         int integrator_step,
         double init_data_time,
         bool initial_time) override;
-
-    /*!
-     * Register a load balancer and work load patch data index with the IB
-     * strategy object.
-     *
-     * @deprecated This method is no longer necessary with the current
-     * workload estimation scheme.
-     */
-    void registerLoadBalancer(SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > load_balancer,
-                              int workload_data_idx) override;
 
     /*!
      * Add the estimated computational work from the current object (i.e., the
@@ -1082,12 +1074,6 @@ protected:
     bool d_has_lag_body_source_parts = false;
     std::vector<bool> d_lag_body_source_part;
     std::vector<LagBodySourceFcnData> d_lag_body_source_fcn_data;
-
-    /*!
-     * Nonuniform load balancing data structures.
-     */
-    SAMRAI::tbox::Pointer<SAMRAI::mesh::LoadBalancer<NDIM> > d_load_balancer;
-    int d_workload_idx = IBTK::invalid_index;
 
     /**
      * The optional second (i.e., scratch) hierarchy. This hierarchy is only

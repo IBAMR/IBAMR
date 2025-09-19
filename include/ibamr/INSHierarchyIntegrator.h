@@ -206,6 +206,7 @@ public:
      *
      * @deprecated Use registerVelocityDivergenceFunction() instead.
      */
+    IBTK_DEPRECATED("Use registerVelocityDivergenceFunction() instead.")
     void registerFluidSourceFunction(SAMRAI::tbox::Pointer<IBTK::CartGridFunction> Q_fcn);
 
     /*!
@@ -235,6 +236,7 @@ public:
      *
      * @deprecated Use getVelocityDivergenceVariable() instead.
      */
+    IBTK_DEPRECATED("Use getVelocityDivergenceVariable() instead.")
     SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > getFluidSourceVariable() const;
 
     /*!
