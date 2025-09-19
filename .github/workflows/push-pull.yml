@@ -295,14 +295,13 @@ jobs:
           cd build
           set +e
           WARNING_FLAGS="-Wall -Wextra -Wpedantic -Werror"
-          DISABLED_WARNINGS="-Wno-nested-anon-types -Wno-deprecated-builtins"
           cmake                                                                                   \
               -GNinja                                                                             \
               -DCMAKE_C_COMPILER="$(which mpicc)"                                                 \
               -DCMAKE_C_FLAGS="-std=c17"                                                          \
               -DCMAKE_CXX_COMPILER="$(which mpic++)"                                              \
               -DCMAKE_CXX_COMPILER_LAUNCHER="$(which ccache)"                                     \
-              -DCMAKE_CXX_FLAGS="-O1 $WARNING_FLAGS $DISABLED_WARNINGS -std=c++17"                \
+              -DCMAKE_CXX_FLAGS="-O1 $WARNING_FLAGS -std=c++17"                                   \
               -DCMAKE_Fortran_COMPILER="$(find -L $(brew --prefix gcc) -name gfortran)"           \
               -DCMAKE_Fortran_FLAGS="-O2 $WARNING_FLAGS -Wno-unused-parameter -Wno-compare-reals" \
               -DHDF5_ROOT="$(brew --prefix hdf5-mpi)"                                             \
