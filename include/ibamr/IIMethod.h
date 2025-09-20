@@ -171,6 +171,14 @@ public:
     };
 
     /*!
+     * Returns either the current configuration or the
+     * reference configuration of the interface at the specified time.
+     *
+     */
+    libMesh::NumericVector<double>*
+    getInteractionConfiguration(std::string time, unsigned int part);
+
+    /*!
      * Register relevant part to use discontinuous element type family
      * for the calculation of jumps plus traction quantities. This option should be used for geometries with sharp
      * corners. The acceptable options are CONSTANT MONOMIAL,  FIRST order MONOMIAL, or FIRST order L2_LAGRANGE.
@@ -623,6 +631,7 @@ protected:
     std::vector<bool> d_use_discon_elem_for_jumps = { false };
     std::vector<bool> d_use_tangential_velocity = { false };
     std::vector<bool> d_normalize_pressure_jump = { false };
+    bool d_use_current_mesh_configuration_for_interactions = true;
     const unsigned int d_num_parts = 1;
     std::vector<IBTK::FEDataManager*> d_fe_data_managers;
     SAMRAI::hier::IntVector<NDIM> d_ghosts = 0;
