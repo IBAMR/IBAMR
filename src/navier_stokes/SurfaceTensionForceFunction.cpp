@@ -332,8 +332,8 @@ SurfaceTensionForceFunction::setDataOnPatchHierarchy(const int data_idx,
         d_phi_idx, "CONSERVATIVE_LINEAR_REFINE", true, "CONSERVATIVE_COARSEN", "LINEAR", false, phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> C_fill_op = new HierarchyGhostCellInterpolation();
     Pointer<HierarchyGhostCellInterpolation> phi_fill_op = new HierarchyGhostCellInterpolation();
-    C_fill_op->initializeOperatorState(C_transaction, hierarchy, coarsest_ln, finest_ln);
-    phi_fill_op->initializeOperatorState(phi_transaction, hierarchy, coarsest_ln, finest_ln);
+    C_fill_op->initializeOperatorState(C_transaction, hierarchy, "DEFAULT_FILL", coarsest_ln, finest_ln);
+    phi_fill_op->initializeOperatorState(phi_transaction, hierarchy, "DEFAULT_FILL", coarsest_ln, finest_ln);
 
     C_fill_op->fillData(data_time);
     phi_fill_op->fillData(data_time);

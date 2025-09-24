@@ -1126,11 +1126,11 @@ AdvDiffConservativeMassScalarTransportRKIntegrator::initializeSTSIntegrator(
 
     // Initialize the interpolation operators.
     d_hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_rho_bdry_fill->initializeOperatorState(d_rho_transaction_comps, d_hierarchy);
+    d_hier_rho_bdry_fill->initializeOperatorState(d_rho_transaction_comps, d_hierarchy, "DEFAULT_FILL");
     d_hier_gamma_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_gamma_bdry_fill->initializeOperatorState(d_gamma_transaction_comps, d_hierarchy);
+    d_hier_gamma_bdry_fill->initializeOperatorState(d_gamma_transaction_comps, d_hierarchy, "DEFAULT_FILL");
     d_hier_Q_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_Q_bdry_fill->initializeOperatorState(d_Q_transaction_comps, d_hierarchy);
+    d_hier_Q_bdry_fill->initializeOperatorState(d_Q_transaction_comps, d_hierarchy, "DEFAULT_FILL");
 
     // Allocate data.
     for (int ln = d_coarsest_ln; ln <= d_finest_ln; ++ln)
