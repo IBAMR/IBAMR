@@ -563,7 +563,7 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
     {
         d_level_bdry_fill_ops[finest_level_num] = new HierarchyGhostCellInterpolation();
         d_level_bdry_fill_ops[finest_level_num]->initializeOperatorState(
-            U_P_components, d_hierarchy, coarsest_level_num, finest_level_num);
+            U_P_components, d_hierarchy, "DEFAULT_FILL", coarsest_level_num, finest_level_num);
     }
     else
     {

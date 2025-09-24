@@ -360,7 +360,7 @@ CFINSForcing::setDataOnPatchHierarchy(const int data_idx,
                                                                  nullptr,
                                                                  d_interp_type);
     HierarchyGhostCellInterpolation ghost_fill_op;
-    ghost_fill_op.initializeOperatorState(ghost_cell_components, hierarchy);
+    ghost_fill_op.initializeOperatorState(ghost_cell_components, hierarchy, "DEFAULT_FILL");
     ghost_fill_op.fillData(data_time);
 
     // Convert evolved quantity including ghost cells to conformation tensor.

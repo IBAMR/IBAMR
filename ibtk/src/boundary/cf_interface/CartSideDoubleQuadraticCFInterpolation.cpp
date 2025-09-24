@@ -409,7 +409,7 @@ CartSideDoubleQuadraticCFInterpolation::setPatchHierarchy(Pointer<PatchHierarchy
             sc_indicator_data->fillAll(0, sc_indicator_data->getGhostBox());
             sc_indicator_data->fillAll(1, sc_indicator_data->getBox());
         }
-        refine_alg->createSchedule(d_hierarchy->getPatchLevel(ln))->fillData(0.0);
+        refine_alg->createSchedule("DEFAULT_FILL", d_hierarchy->getPatchLevel(ln))->fillData(0.0);
     }
     return;
 } // setPatchHierarchy

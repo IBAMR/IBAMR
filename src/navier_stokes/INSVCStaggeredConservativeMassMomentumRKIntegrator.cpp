@@ -1510,9 +1510,9 @@ INSVCStaggeredConservativeMassMomentumRKIntegrator::initializeSTSIntegrator(
 
     // Initialize the interpolation operators.
     d_hier_rho_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_rho_bdry_fill->initializeOperatorState(d_rho_transaction_comps, d_hierarchy);
+    d_hier_rho_bdry_fill->initializeOperatorState(d_rho_transaction_comps, d_hierarchy, "DEFAULT_FILL");
     d_hier_v_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_v_bdry_fill->initializeOperatorState(d_v_transaction_comps, d_hierarchy);
+    d_hier_v_bdry_fill->initializeOperatorState(d_v_transaction_comps, d_hierarchy, "DEFAULT_FILL");
 
     // Initialize the BC helper.
     d_bc_helper = new StaggeredStokesPhysicalBoundaryHelper();

@@ -433,7 +433,7 @@ BrinkmanAdvDiffBcHelper::computeDampingCoefficient(int C_idx, Pointer<CellVariab
                                               false,
                                               d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
         Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-        hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+        hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy, "DEFAULT_FILL");
         hier_bdry_fill->fillData(d_new_time);
 
         // Computing the normal at the edges (resp. faces) for 2D (resp. 3D) cases.
@@ -553,7 +553,7 @@ BrinkmanAdvDiffBcHelper::computeDiffusionCoefficient(int D_idx,
                                               d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
     }
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy, "DEFAULT_FILL");
     hier_bdry_fill->fillData(d_new_time);
 
     const int coarsest_ln = 0;
@@ -794,7 +794,7 @@ BrinkmanAdvDiffBcHelper::computeForcing(int F_idx, Pointer<CellVariable<NDIM, do
                                                   false,
                                                   d_adv_diff_solver->getPhysicalBcCoefs(ls_solid_var));
             Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-            hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+            hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy, "DEFAULT_FILL");
             hier_bdry_fill->fillData(d_new_time);
 
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)

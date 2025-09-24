@@ -298,7 +298,7 @@ INSCollocatedWavePropConvectiveOperator::initializeOperatorState(const SAMRAIVec
 
     // Initialize the interpolation operators.
     d_hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy);
+    d_hier_bdry_fill->initializeOperatorState(d_transaction_comps, d_hierarchy, "DEFAULT_FILL");
 
     d_is_initialized = true;
 

@@ -686,7 +686,7 @@ EnthalpyHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_idx
                                                                false,
                                                                d_T_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(T_transaction_comps, d_hierarchy);
+    hier_bdry_fill->initializeOperatorState(T_transaction_comps, d_hierarchy, "DEFAULT_FILL");
     hier_bdry_fill->fillData(new_time);
 
     // Compute gradient of temperature.

@@ -260,7 +260,7 @@ IBFEPostProcessor::interpolateVariables(const double data_time)
     }
 
     HierarchyGhostCellInterpolation ghost_fill_op;
-    ghost_fill_op.initializeOperatorState(d_scalar_interp_fill_transactions, hierarchy);
+    ghost_fill_op.initializeOperatorState(d_scalar_interp_fill_transactions, hierarchy, "DEFAULT_FILL");
     ghost_fill_op.fillData(data_time);
 
     // Interpolate variables.
