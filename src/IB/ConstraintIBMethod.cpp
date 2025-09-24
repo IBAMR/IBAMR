@@ -2041,7 +2041,7 @@ ConstraintIBMethod::applyProjection()
     InterpolationTransactionComponent Phi_bc_component(
         d_phi_idx, "LINEAR_REFINE", true, "CUBIC_COARSEN", "LINEAR", false, &d_velcorrection_projection_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> Phi_bdry_bc_fill_op = new HierarchyGhostCellInterpolation();
-    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy);
+    Phi_bdry_bc_fill_op->initializeOperatorState(Phi_bc_component, d_hierarchy, "DEFAULT_FILL");
 
     // Fill the physical boundary conditions for Phi.
     Phi_bdry_bc_fill_op->setHomogeneousBc(true);
@@ -2376,7 +2376,7 @@ ConstraintIBMethod::copyFluidVariable(int copy_from_idx, int copy_to_idx)
     transaction_comps.push_back(component);
 
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, coarsest_ln, finest_ln);
+    hier_bdry_fill->initializeOperatorState(transaction_comps, d_hierarchy, "DEFAULT_FILL", coarsest_ln, finest_ln);
     const bool homogeneous_bc = true;
     hier_bdry_fill->setHomogeneousBc(homogeneous_bc);
     hier_bdry_fill->fillData(0.0);

@@ -132,7 +132,7 @@ CarmanKozenyDragForce::computeBrinkmanVelocity(int u_idx, double time, int /*cyc
                                                                  d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy, "DEFAULT_FILL");
     hier_bdry_fill->fillData(time);
 
     // Set the rigid body velocity in u_idx
@@ -241,7 +241,7 @@ CarmanKozenyDragForce::demarcateBrinkmanZone(int u_idx, double time, int /*cycle
                                                                  d_adv_diff_solver->getPhysicalBcCoefs(d_H_var));
 
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy);
+    hier_bdry_fill->initializeOperatorState(phi_transaction_comps, patch_hierarchy, "DEFAULT_FILL");
     hier_bdry_fill->fillData(time);
 
     int finest_ln = patch_hierarchy->getFinestLevelNumber();
