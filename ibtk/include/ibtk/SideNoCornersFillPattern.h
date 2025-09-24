@@ -27,8 +27,6 @@
 #include "VariableFillPattern.h"
 #include "tbox/Pointer.h"
 
-#include <string>
-
 namespace SAMRAI
 {
 namespace hier
@@ -47,10 +45,17 @@ namespace IBTK
 /*!
  * \brief Class SideCellNoCornersFillPattern is a concrete implementation of the
  * abstract base class SAMRAI::xfer::VariableFillPattern.  It is used to
- * calculate overlaps according to a pattern which limits overlaps to the
- * cell-centered ghost region surrounding a patch, excluding all corners.  In
- * 3D, it is also possible to configure this fill pattern object also to exclude
- * all edges.
+ * calculate overlaps according to a pattern that limits overlaps to the
+ * cell-centered ghost region surrounding a patch on the target level,
+ * excluding all corners (and, in 3D, patch edges).
+ *
+ * On levels other than the target level (or in cases in which the target level
+ * cannot be determined), the overlap pattern defaults to that provided by class
+ * SAMRAI::pdat::SideOverlap.
+ *
+ * Note that for side-centered variables, class SideNoCornersFillPattern will
+ * reduce but generally will not eliminate corner coupling at patch boundaries
+ * because of the way that side overlaps are computed.
  */
 class SideNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 {
@@ -58,13 +63,13 @@ public:
     /*!
      * \brief Constructor.
      *
-     * \note Parameters include_edges_on_dst_level and
-     * include_edges_on_src_level have no effect for 2D problems.
+     * \param stencil_width        the width to fill
+     * \param overwrite_interior   whether to include the patch interior
+     *
+     * \note The parameter overwrite_interior takes precedence over the value
+     * passed in to the function calculateOverlap on the target patch level.
      */
-    SideNoCornersFillPattern(int stencil_width,
-                             bool include_dst_patch_box,
-                             bool include_edges_on_dst_level,
-                             bool include_edges_on_src_level);
+    SideNoCornersFillPattern(int stencil_width, bool overwrite_interior);
 
     /*!
      * \brief Destructor
@@ -177,9 +182,7 @@ private:
     SideNoCornersFillPattern& operator=(const SideNoCornersFillPattern& that) = delete;
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
-    const bool d_include_dst_patch_box;
-    const bool d_include_edges_on_dst_level;
-    const bool d_include_edges_on_src_level;
+    const bool d_overwrite_interior;
     int d_target_level_num = IBTK::invalid_level_number;
 };
 } // namespace IBTK

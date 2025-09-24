@@ -203,7 +203,7 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     d_fill_pattern = nullptr;
     if (d_poisson_spec.dIsConstant())
     {
-        d_fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+        d_fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
     }
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     d_transaction_comps.clear();
