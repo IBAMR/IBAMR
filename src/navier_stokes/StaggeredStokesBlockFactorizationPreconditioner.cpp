@@ -398,7 +398,7 @@ StaggeredStokesBlockFactorizationPreconditioner::initializeSolverState(const SAM
                                                           fill_pattern);
     d_P_bdry_fill_op = new HierarchyGhostCellInterpolation();
     d_P_bdry_fill_op->setHomogeneousBc(true);
-    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy);
+    d_P_bdry_fill_op->initializeOperatorState(P_scratch_component, d_hierarchy, "DEFAULT_FILL");
 
     d_is_initialized = true;
 

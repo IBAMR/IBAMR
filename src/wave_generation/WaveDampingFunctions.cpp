@@ -421,7 +421,7 @@ callConservedWaveAbsorbingCallbackFunction(double current_time,
                                                       false,
                                                       phi_bc_coef);
     Pointer<HierarchyGhostCellInterpolation> hier_bdry_fill = new HierarchyGhostCellInterpolation();
-    hier_bdry_fill->initializeOperatorState(phi_transaction, patch_hierarchy);
+    hier_bdry_fill->initializeOperatorState(phi_transaction, patch_hierarchy, "DEFAULT_FILL");
     hier_bdry_fill->fillData(new_time);
 
     // Create the functor and set its options
