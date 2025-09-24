@@ -297,6 +297,7 @@ public:
      */
     void initializeOperatorState(InterpolationTransactionComponent transaction_comp,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 const std::string& fill_pattern = "DEFAULT_FILL",
                                  int coarsest_ln = invalid_level_number,
                                  int finest_ln = invalid_level_number);
 
@@ -307,6 +308,7 @@ public:
      */
     void initializeOperatorState(const std::vector<InterpolationTransactionComponent>& transaction_comps,
                                  SAMRAI::tbox::Pointer<SAMRAI::hier::PatchHierarchy<NDIM> > hierarchy,
+                                 const std::string& fill_pattern = "DEFAULT_FILL",
                                  int coarsest_ln = invalid_level_number,
                                  int finest_ln = invalid_level_number);
 
@@ -374,6 +376,8 @@ private:
     int d_coarsest_ln = IBTK::invalid_level_number, d_finest_ln = IBTK::invalid_level_number;
 
     // Cached communications algorithms and schedules.
+    std::string d_fill_pattern;
+
     SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenAlgorithm<NDIM> > d_coarsen_alg;
     std::unique_ptr<SAMRAI::xfer::CoarsenPatchStrategy<NDIM> > d_coarsen_strategy;
     std::vector<SAMRAI::tbox::Pointer<SAMRAI::xfer::CoarsenSchedule<NDIM> > > d_coarsen_scheds;
