@@ -58,14 +58,8 @@ class CellNoCornersFillPattern : public SAMRAI::xfer::VariableFillPattern<NDIM>
 public:
     /*!
      * \brief Constructor.
-     *
-     * \note Parameters include_edges_on_dst_level and
-     * include_edges_on_src_level have no effect for 2D problems.
      */
-    CellNoCornersFillPattern(int stencil_width,
-                             bool include_dst_patch_box,
-                             bool include_edges_on_dst_level,
-                             bool include_edges_on_src_level);
+    CellNoCornersFillPattern(int stencil_width, bool overwrite_interior);
 
     /*!
      * \brief Destructor.
@@ -178,9 +172,7 @@ private:
     CellNoCornersFillPattern& operator=(const CellNoCornersFillPattern& that) = delete;
 
     SAMRAI::hier::IntVector<NDIM> d_stencil_width;
-    const bool d_include_dst_patch_box;
-    const bool d_include_edges_on_dst_level;
-    const bool d_include_edges_on_src_level;
+    const bool d_overwrite_interior;
     int d_target_level_num = IBTK::invalid_level_number;
 };
 } // namespace IBTK

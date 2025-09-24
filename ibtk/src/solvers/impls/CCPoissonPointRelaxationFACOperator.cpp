@@ -858,7 +858,7 @@ CCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
+    Pointer<CellNoCornersFillPattern> fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ false);
     InterpolationTransactionComponent transaction_comp(sol_idx,
                                                        DATA_REFINE_TYPE,
                                                        USE_CF_INTERPOLATION,
@@ -968,7 +968,7 @@ CCPoissonPointRelaxationFACOperator::initializeOperatorStateSpecialized(const SA
     d_bc_op = new CartCellRobinPhysBdryOp(d_scratch_idx, d_bc_coefs, false);
 
     // Setup fill pattern spec objects.
-    d_op_stencil_fill_pattern = new CellNoCornersFillPattern(CELLG, true, false, false);
+    d_op_stencil_fill_pattern = new CellNoCornersFillPattern(CELLG, /*overwrite_interior*/ true);
 
     // Get overlap information for setting patch boundary conditions.
     d_patch_bc_box_overlap.resize(d_finest_ln + 1);

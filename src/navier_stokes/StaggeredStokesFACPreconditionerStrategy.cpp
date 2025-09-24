@@ -536,8 +536,10 @@ StaggeredStokesFACPreconditionerStrategy::computeResidual(SAMRAIVectorReal<NDIM,
 
     // Fill ghost-cell values.
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
-    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, true);
-    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, true);
+    Pointer<VariableFillPattern<NDIM> > sc_fill_pattern =
+        new SideNoCornersFillPattern(d_gcw, /*overwrite_interior*/ false);
+    Pointer<VariableFillPattern<NDIM> > cc_fill_pattern =
+        new CellNoCornersFillPattern(d_gcw, /*overwrite_interior*/ false);
     InterpolationTransactionComponent U_scratch_component(U_sol_idx,
                                                           DATA_REFINE_TYPE,
                                                           USE_CF_INTERPOLATION,
@@ -672,8 +674,8 @@ StaggeredStokesFACPreconditionerStrategy::initializeOperatorState(const SAMRAIVe
     d_P_bc_op = new CartCellRobinPhysBdryOp(d_cell_scratch_idx, d_P_bc_coef, false);
     d_U_cf_bdry_op = new CartSideDoubleQuadraticCFInterpolation();
     d_P_cf_bdry_op = new CartCellDoubleQuadraticCFInterpolation();
-    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(d_gcw, false, false, false);
-    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(d_gcw, false, false, false);
+    d_U_op_stencil_fill_pattern = new SideNoCornersFillPattern(d_gcw, /*overwrite_interior*/ false);
+    d_P_op_stencil_fill_pattern = new CellNoCornersFillPattern(d_gcw, /*overwrite_interior*/ false);
     d_U_synch_fill_pattern = new SideSynchCopyFillPattern();
 
     // Initialize the coarse level solvers when needed.
