@@ -441,12 +441,6 @@ PhaseChangeHierarchyIntegrator::initializeHierarchyIntegrator(Pointer<PatchHiera
     if (d_visit_writer && d_output_temp_k)
     {
         d_visit_writer->registerPlotQuantity("temperature_kappa", "VECTOR", d_D_cc_current_idx, 0);
-        for (unsigned int d = 0; d < NDIM; ++d)
-        {
-            if (d == 0) d_visit_writer->registerPlotQuantity("temp_kappa_x", "SCALAR", d_D_cc_current_idx, d);
-            if (d == 1) d_visit_writer->registerPlotQuantity("temp_kappa_y", "SCALAR", d_D_cc_current_idx, d);
-            if (d == 2) d_visit_writer->registerPlotQuantity("temp_kappa_z", "SCALAR", d_D_cc_current_idx, d);
-        }
     }
 
     d_U_old_var = new FaceVariable<NDIM, double>(d_object_name + "::U_old");
