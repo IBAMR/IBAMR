@@ -14,6 +14,8 @@
 ## Process this file with automake to produce Makefile.in
 include $(top_srcdir)/config/Make-rules
 
-EXTRA_DIST = patchsmoothers2d.f.m4 patchsmoothers3d.f.m4
-BUILT_SOURCES = patchsmoothers2d.f patchsmoothers3d.f
+EXTRA_DIST = f32patchsmoothers2d.f.m4 f32patchsmoothers3d.f.m4 \
+             f64patchsmoothers2d.f.m4 f64patchsmoothers3d.f.m4
+BUILT_SOURCES = f32patchsmoothers2d.f f32patchsmoothers3d.f \
+                f64patchsmoothers2d.f f64patchsmoothers3d.f
 CLEANFILES = ${BUILT_SOURCES}

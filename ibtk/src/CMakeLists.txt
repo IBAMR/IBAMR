@@ -40,7 +40,8 @@ SET(FORTRAN_SRC_BASE
   refine_ops/fortran/divpreservingrefine
   refine_ops/fortran/cart_side_refine
 
-  solvers/impls/fortran/patchsmoothers
+  solvers/impls/fortran/f32patchsmoothers
+  solvers/impls/fortran/f64patchsmoothers
   )
 
 FOREACH(_d ${IBAMR_DIMENSIONS})

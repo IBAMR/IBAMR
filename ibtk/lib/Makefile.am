@@ -392,7 +392,8 @@ $(top_builddir)/src/math/fortran/rot2d.f \
 $(top_builddir)/src/math/fortran/strain2d.f \
 $(top_builddir)/src/refine_ops/fortran/cart_side_refine2d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine2d.f \
-$(top_builddir)/src/solvers/impls/fortran/patchsmoothers2d.f
+$(top_builddir)/src/solvers/impls/fortran/f32patchsmoothers2d.f \
+$(top_builddir)/src/solvers/impls/fortran/f64patchsmoothers2d.f
 
 libIBTK3d_a_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
 libIBTK3d_a_SOURCES = $(DIM_INDEPENDENT_SOURCES) $(DIM_DEPENDENT_SOURCES) \
@@ -415,4 +416,5 @@ $(top_builddir)/src/math/fortran/miscmath3d.f \
 $(top_builddir)/src/math/fortran/vclaplace3d.f \
 $(top_builddir)/src/refine_ops/fortran/cart_side_refine3d.f \
 $(top_builddir)/src/refine_ops/fortran/divpreservingrefine3d.f \
-$(top_builddir)/src/solvers/impls/fortran/patchsmoothers3d.f
+$(top_builddir)/src/solvers/impls/fortran/f32patchsmoothers3d.f \
+$(top_builddir)/src/solvers/impls/fortran/f64patchsmoothers3d.f

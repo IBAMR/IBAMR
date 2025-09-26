@@ -12,7 +12,7 @@ c
 c ---------------------------------------------------------------------
 
 define(NDIM,3)dnl
-define(REAL,`double precision')dnl
+define(REAL,`real')dnl
 define(INTEGER,`integer')dnl
 include(SAMRAI_FORTDIR/pdat_m4arrdim3d.i)dnl
 c
@@ -23,7 +23,7 @@ c     C U. Both D and C coefficients are constant.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_const_dc_3d(
+      subroutine f32_smooth_gs_const_dc_3d(
      &     U,U_gcw,
      &     D,C,
      &     F,F_gcw,
@@ -65,7 +65,7 @@ c
       fac0 = D/(dx(0)*dx(0))
       fac1 = D/(dx(1)*dx(1))
       fac2 = D/(dx(2)*dx(2))
-      fac = 0.5d0/(fac0+fac1+fac2-0.5d0*C)
+      fac = 0.5/(fac0+fac1+fac2-0.5*C)
 
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
@@ -90,7 +90,7 @@ c     are constant.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_rb_const_dc_3d(
+      subroutine f32_smooth_gs_rb_const_dc_3d(
      &     U,U_gcw,
      &     D,C,
      &     F,F_gcw,
@@ -136,7 +136,7 @@ c
       fac0 = D/(dx(0)*dx(0))
       fac1 = D/(dx(1)*dx(1))
       fac2 = D/(dx(2)*dx(2))
-      fac = 0.5d0/(fac0+fac1+fac2-0.5d0*C)
+      fac = 0.5/(fac0+fac1+fac2-0.5*C)
 
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
@@ -164,7 +164,7 @@ c     NOTE: The solution U is unmodified at masked degrees of freedom.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine gssmoothmask3d(
+      subroutine f32_gssmoothmask3d(
      &     U,U_gcw,
      &     alpha,beta,
      &     F,F_gcw,
@@ -211,7 +211,7 @@ c
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
       fac2 = alpha/(dx(2)*dx(2))
-      fac = 0.5d0/(fac0+fac1+fac2-0.5d0*beta)
+      fac = 0.5/(fac0+fac1+fac2-0.5*beta)
 
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
@@ -239,7 +239,7 @@ c     NOTE: The solution U is unmodified at masked degrees of freedom.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine rbgssmoothmask3d(
+      subroutine f32_rbgssmoothmask3d(
      &     U,U_gcw,
      &     alpha,beta,
      &     F,F_gcw,
@@ -290,7 +290,7 @@ c
       fac0 = alpha/(dx(0)*dx(0))
       fac1 = alpha/(dx(1)*dx(1))
       fac2 = alpha/(dx(2)*dx(2))
-      fac = 0.5d0/(fac0+fac1+fac2-0.5d0*beta)
+      fac = 0.5/(fac0+fac1+fac2-0.5*beta)
 
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
@@ -323,7 +323,7 @@ c     D is constant.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_const_d_var_c_3d(
+      subroutine f32_smooth_gs_const_d_var_c_3d(
      &     U,U_gcw,
      &     D,
      &     C,C_gcw,
@@ -371,7 +371,7 @@ c
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
-               fac = 0.5d0/(fac0+fac1+fac2-0.5d0*C(i0,i1,i2))
+               fac = 0.5/(fac0+fac1+fac2-0.5*C(i0,i1,i2))
                U(i0,i1,i2) = fac*(
      &              fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
      &              fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
@@ -392,7 +392,7 @@ c     D is constant.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_rb_const_d_var_c_3d(
+      subroutine f32_smooth_gs_rb_const_d_var_c_3d(
      &     U,U_gcw,
      &     D,
      &     C, C_gcw,
@@ -445,7 +445,7 @@ c
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
                if ( mod(i0+i1+i2,2) .eq. red_or_black ) then
-                  fac = 0.5d0/(fac0+fac1+fac2-0.5d0*C(i0,i1,i2))
+                  fac = 0.5/(fac0+fac1+fac2-0.5*C(i0,i1,i2))
                   U(i0,i1,i2) = fac*(
      &                 fac0*(U(i0-1,i1,i2)+U(i0+1,i1,i2)) +
      &                 fac1*(U(i0,i1-1,i2)+U(i0,i1+1,i2)) +
@@ -469,7 +469,7 @@ c     D = (D0,D1) with constant C coefficient.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_var_d_const_c_3d(
+      subroutine f32_smooth_gs_var_d_const_c_3d(
      &     U,U_gcw,
      &     D0,D1,D2,D_gcw,
      &     C,
@@ -530,7 +530,7 @@ c
                facl1 = D1(i0,i1,i2)/(hy*hy)
                facu2 = D2(i0,i1,i2+1)/(hz*hz)
                facl2 = D2(i0,i1,i2)/(hz*hz)
-               fac   = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2-C)
+               fac   = 1.0/(facu0+facl0+facu1+facl1+facu2+facl2-C)
                U(i0,i1,i2) = fac*(
      &             facu0*U(i0+1,i1,i2) +
      &             facl0*U(i0-1,i1,i2) +
@@ -557,7 +557,7 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_rb_var_d_const_c_3d(
+      subroutine f32_smooth_gs_rb_var_d_const_c_3d(
      &     U,U_gcw,
      &     D0,D1,D2,D_gcw,
      &     C,
@@ -623,7 +623,7 @@ c
                   facl1 = D1(i0,i1,i2)/(hy*hy)
                   facu2 = D2(i0,i1,i2+1)/(hz*hz)
                   facl2 = D2(i0,i1,i2)/(hz*hz)
-                  fac  = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2-C)
+                  fac  = 1.0/(facu0+facl0+facu1+facl1+facu2+facl2-C)
                   U(i0,i1,i2) = fac*(
      &                facu0*U(i0+1,i1,i2) +
      &                facl0*U(i0-1,i1,i2) +
@@ -650,7 +650,7 @@ c     D = (D0,D1) and cell-centered C coefficient.
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_var_dc_3d(
+      subroutine f32_smooth_gs_var_dc_3d(
      &     U,U_gcw,
      &     D0,D1,D2,D_gcw,
      &     C,C_gcw,
@@ -711,7 +711,7 @@ c
                facl1 = D1(i0,i1,i2)/(hy*hy)
                facu2 = D2(i0,i1,i2+1)/(hz*hz)
                facl2 = D2(i0,i1,i2)/(hz*hz)
-               fac   = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2
+               fac   = 1.0/(facu0+facl0+facu1+facl1+facu2+facl2
      &                  -C(i0,i1,i2))
                U(i0,i1,i2) = fac*(
      &             facu0*U(i0+1,i1,i2) +
@@ -739,7 +739,7 @@ c
 c
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine smooth_gs_rb_var_dc_3d(
+      subroutine f32_smooth_gs_rb_var_dc_3d(
      &     U,U_gcw,
      &     D0,D1,D2,D_gcw,
      &     C,C_gcw,
@@ -805,7 +805,7 @@ c
                   facl1 = D1(i0,i1,i2)/(hy*hy)
                   facu2 = D2(i0,i1,i2+1)/(hz*hz)
                   facl2 = D2(i0,i1,i2)/(hz*hz)
-                  fac  = 1.d0/(facu0+facl0+facu1+facl1+facu2+facl2
+                  fac  = 1.0/(facu0+facl0+facu1+facl1+facu2+facl2
      &                   -C(i0,i1,i2))
                   U(i0,i1,i2) = fac*(
      &                facu0*U(i0+1,i1,i2) +
@@ -831,7 +831,7 @@ c  The smoother is written for side-centered vector fields (u0, u1, u2) and (f0,
 c  with edge-centered coefficient mu and side-centered coefficient (c0,c1,c2)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vcgssmooth3d(
+      subroutine f32_vcgssmooth3d(
      &     u0,u1,u2,u_gcw,
      &     f0,f1,f2,f_gcw,
      &     c0,c1,c2,c_gcw,
@@ -889,11 +889,11 @@ c
 c
 c     Perform a single Gauss-Seidel sweep.
 c
-      fac0 = 1.d0/(dx(0))
-      fac1 = 1.d0/(dx(1))
-      fac2 = 1.d0/(dx(2))
+      fac0 = 1.0/(dx(0))
+      fac1 = 1.0/(dx(1))
+      fac2 = 1.0/(dx(2))
 
-      fac = 2.d0*fac0**2.d0
+      fac = 2.0*fac0**2.0
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0+1
@@ -936,17 +936,17 @@ c
                endif
 
                dnr =  alpha*(fac*(mu_upper + mu_lower) +
-     &             fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
-     &             fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
+     &             fac1**2.0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
+     &             fac2**2.0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
 
                nmr = -f0(i0,i1,i2) + alpha*(fac*(
      &           mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+
-     &           fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
+     &           fac1**2.0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
      &             mu2(i0,i1,i2)*u0(i0,i1-1,i2))+
      &           fac0*fac1*(mu2(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
      &            u1(i0-1,i1+1,i2))-mu2(i0,i1,i2)*(u1(i0,i1,i2)-
      &           u1(i0-1,i1,i2)))+
-     &           fac2**2.d0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+
+     &           fac2**2.0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+
      &             mu1(i0,i1,i2)*u0(i0,i1,i2-1))+
      &           fac0*fac2*(mu1(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
      &             u2(i0-1,i1,i2+1))-mu1(i0,i1,i2)*(u2(i0,i1,i2)-
@@ -957,7 +957,7 @@ c
          enddo
       enddo
 
-      fac = 2.d0*fac1**2.d0
+      fac = 2.0*fac1**2.0
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1+1
             do i0 = ilower0,iupper0
@@ -1000,17 +1000,17 @@ c
                endif
 
                dnr = alpha*(fac*(mu_upper + mu_lower)+
-     &            fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
-     &            fac2**2.d0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
+     &            fac0**2.0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
+     &            fac2**2.0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
 
                nmr = -f1(i0,i1,i2) + alpha*(fac*(
      &          mu_upper*u1(i0,i1+1,i2) + mu_lower*u1(i0,i1-1,i2))+
-     &          fac0**2.d0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) +
+     &          fac0**2.0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) +
      &             mu2(i0,i1,i2)*u1(i0-1,i1,i2))+
      &          fac0*fac1*(mu2(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
      &             u0(i0+1,i1-1,i2))-
      &             mu2(i0,i1,i2)*(u0(i0,i1,i2)-u0(i0,i1-1,i2)))+
-     &          fac2**2.d0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+
+     &          fac2**2.0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+
      &             mu0(i0,i1,i2)*u1(i0,i1,i2-1))+
      &           fac1*fac2*(mu0(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
      &             u2(i0,i1-1,i2+1))-mu0(i0,i1,i2)*(u2(i0,i1,i2)-
@@ -1022,7 +1022,7 @@ c
          enddo
       enddo
 
-      fac = 2.d0*fac2**2.d0
+      fac = 2.0*fac2**2.0
       do i2 = ilower2,iupper2+1
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -1066,17 +1066,17 @@ c
                 endif
 
                dnr = alpha*(fac*(mu_upper + mu_lower)+
-     &          fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
-     &          fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
+     &          fac0**2.0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
+     &          fac1**2.0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
 
                nmr = -f2(i0,i1,i2) + alpha*(fac*(
      &         mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+
-     &         fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
+     &         fac1**2.0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
      &           mu0(i0,i1,i2)*u2(i0,i1-1,i2))+
      &         fac1*fac2*(mu0(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
      &          u1(i0,i1+1,i2-1))-mu0(i0,i1,i2)*(u1(i0,i1,i2)-
      &         u1(i0,i1,i2-1)))+
-     &         fac0**2.d0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+
+     &         fac0**2.0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+
      &           mu1(i0,i1,i2)*u2(i0-1,i1,i2))+
      &         fac0*fac2*(mu1(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
      &           u0(i0+1,i1,i2-1))-mu1(i0,i1,i2)*(u0(i0,i1,i2)-
@@ -1101,7 +1101,7 @@ c  The smoother is written for side-centered vector fields (u0, u1, u2) and (f0,
 c  with edge-centered coefficient mu and side-centered coefficient (c0,c1,c2)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vcrbgssmooth3d(
+      subroutine f32_vcrbgssmooth3d(
      &     u0,u1,u2,u_gcw,
      &     f0,f1,f2,f_gcw,
      &     c0,c1,c2,c_gcw,
@@ -1163,11 +1163,11 @@ c     Perform a single "red" or "black"  Gauss-Seidel sweep.
 c
       red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
 
-      fac0 = 1.d0/(dx(0))
-      fac1 = 1.d0/(dx(1))
-      fac2 = 1.d0/(dx(2))
+      fac0 = 1.0/(dx(0))
+      fac1 = 1.0/(dx(1))
+      fac2 = 1.0/(dx(2))
 
-      fac = 2.d0*fac0**2.d0
+      fac = 2.0*fac0**2.0
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0+1
@@ -1211,17 +1211,17 @@ c
                endif
 
                   dnr =  alpha*(fac*(mu_upper + mu_lower) +
-     &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
-     &                fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
+     &                fac1**2.0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
+     &                fac2**2.0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
 
                   nmr = -f0(i0,i1,i2) + alpha*(fac*(
      &              mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+
-     &              fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
+     &              fac1**2.0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
      &                mu2(i0,i1,i2)*u0(i0,i1-1,i2))+
      &              fac0*fac1*(mu2(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
      &               u1(i0-1,i1+1,i2))-mu2(i0,i1,i2)*(u1(i0,i1,i2)-
      &              u1(i0-1,i1,i2)))+
-     &              fac2**2.d0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+
+     &              fac2**2.0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+
      &                mu1(i0,i1,i2)*u0(i0,i1,i2-1))+
      &              fac0*fac2*(mu1(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
      &                u2(i0-1,i1,i2+1))-mu1(i0,i1,i2)*(u2(i0,i1,i2)-
@@ -1233,7 +1233,7 @@ c
          enddo
       enddo
 
-      fac = 2.d0*fac1**2.d0
+      fac = 2.0*fac1**2.0
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1+1
             do i0 = ilower0,iupper0
@@ -1278,17 +1278,17 @@ c
 
 
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
-     &               fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
-     &               fac2**2.d0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
+     &               fac0**2.0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
+     &               fac2**2.0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
 
                   nmr = -f1(i0,i1,i2) + alpha*(fac*(
      &             mu_upper*u1(i0,i1+1,i2) + mu_lower*u1(i0,i1-1,i2))+
-     &             fac0**2.d0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) +
+     &             fac0**2.0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) +
      &                mu2(i0,i1,i2)*u1(i0-1,i1,i2))+
      &             fac0*fac1*(mu2(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
      &                u0(i0+1,i1-1,i2))-
      &                mu2(i0,i1,i2)*(u0(i0,i1,i2)-u0(i0,i1-1,i2)))+
-     &             fac2**2.d0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+
+     &             fac2**2.0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+
      &                mu0(i0,i1,i2)*u1(i0,i1,i2-1))+
      &              fac1*fac2*(mu0(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
      &                u2(i0,i1-1,i2+1))-mu0(i0,i1,i2)*(u2(i0,i1,i2)-
@@ -1300,7 +1300,7 @@ c
          enddo
       enddo
 
-      fac = 2.d0*fac2**2.d0
+      fac = 2.0*fac2**2.0
       do i2 = ilower2,iupper2+1
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -1348,17 +1348,17 @@ c
                 endif
 
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
-     &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
-     &             fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
+     &             fac0**2.0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
+     &             fac1**2.0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
 
                   nmr = -f2(i0,i1,i2) + alpha*(fac*(
      &            mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+
-     &            fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
+     &            fac1**2.0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
      &              mu0(i0,i1,i2)*u2(i0,i1-1,i2))+
      &            fac1*fac2*(mu0(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
      &             u1(i0,i1+1,i2-1))-mu0(i0,i1,i2)*(u1(i0,i1,i2)-
      &            u1(i0,i1,i2-1)))+
-     &            fac0**2.d0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+
+     &            fac0**2.0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+
      &              mu1(i0,i1,i2)*u2(i0-1,i1,i2))+
      &            fac0*fac2*(mu1(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
      &              u0(i0+1,i1,i2-1))-mu1(i0,i1,i2)*(u0(i0,i1,i2)-
@@ -1388,7 +1388,7 @@ c  The smoother is written for side-centered vector fields (u0, u1, u2) and (f0,
 c  with edge-centered coefficient mu and side-centered coefficient (c0,c1,c2)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vcgssmoothmask3d(
+      subroutine f32_vcgssmoothmask3d(
      &     u0,u1,u2,u_gcw,
      &     f0,f1,f2,f_gcw,
      &     mask0,mask1,mask2,mask_gcw,
@@ -1451,11 +1451,11 @@ c
 c
 c     Perform a single Gauss-Seidel sweep.
 c
-      fac0 = 1.d0/(dx(0))
-      fac1 = 1.d0/(dx(1))
-      fac2 = 1.d0/(dx(2))
+      fac0 = 1.0/(dx(0))
+      fac1 = 1.0/(dx(1))
+      fac2 = 1.0/(dx(2))
 
-      fac = 2.d0*fac0**2.d0
+      fac = 2.0*fac0**2.0
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0+1
@@ -1499,17 +1499,17 @@ c
                endif
 
                   dnr =  alpha*(fac*(mu_upper + mu_lower) +
-     &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
-     &                fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
+     &                fac1**2.0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
+     &                fac2**2.0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
 
                   nmr = -f0(i0,i1,i2) + alpha*(fac*(
      &              mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+
-     &              fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
+     &              fac1**2.0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
      &                mu2(i0,i1,i2)*u0(i0,i1-1,i2))+
      &              fac0*fac1*(mu2(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
      &               u1(i0-1,i1+1,i2))-mu2(i0,i1,i2)*(u1(i0,i1,i2)-
      &              u1(i0-1,i1,i2)))+
-     &              fac2**2.d0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+
+     &              fac2**2.0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+
      &                mu1(i0,i1,i2)*u0(i0,i1,i2-1))+
      &              fac0*fac2*(mu1(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
      &                u2(i0-1,i1,i2+1))-mu1(i0,i1,i2)*(u2(i0,i1,i2)-
@@ -1521,7 +1521,7 @@ c
          enddo
       enddo
 
-      fac = 2.d0*fac1**2.d0
+      fac = 2.0*fac1**2.0
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1+1
             do i0 = ilower0,iupper0
@@ -1565,17 +1565,17 @@ c
                   endif
 
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
-     &               fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
-     &               fac2**2.d0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
+     &               fac0**2.0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
+     &               fac2**2.0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
 
                   nmr = -f1(i0,i1,i2) + alpha*(fac*(
      &             mu_upper*u1(i0,i1+1,i2) + mu_lower*u1(i0,i1-1,i2))+
-     &             fac0**2.d0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) +
+     &             fac0**2.0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) +
      &                mu2(i0,i1,i2)*u1(i0-1,i1,i2))+
      &             fac0*fac1*(mu2(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
      &                u0(i0+1,i1-1,i2))-
      &                mu2(i0,i1,i2)*(u0(i0,i1,i2)-u0(i0,i1-1,i2)))+
-     &             fac2**2.d0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+
+     &             fac2**2.0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+
      &                mu0(i0,i1,i2)*u1(i0,i1,i2-1))+
      &              fac1*fac2*(mu0(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
      &                u2(i0,i1-1,i2+1))-mu0(i0,i1,i2)*(u2(i0,i1,i2)-
@@ -1587,7 +1587,7 @@ c
          enddo
       enddo
 
-      fac = 2.d0*fac2**2.d0
+      fac = 2.0*fac2**2.0
       do i2 = ilower2,iupper2+1
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -1635,17 +1635,17 @@ c
                   endif
 
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
-     &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
-     &             fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
+     &             fac0**2.0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
+     &             fac1**2.0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
 
                   nmr = -f2(i0,i1,i2) + alpha*(fac*(
      &            mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+
-     &            fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
+     &            fac1**2.0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
      &              mu0(i0,i1,i2)*u2(i0,i1-1,i2))+
      &            fac1*fac2*(mu0(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
      &             u1(i0,i1+1,i2-1))-mu0(i0,i1,i2)*(u1(i0,i1,i2)-
      &            u1(i0,i1,i2-1)))+
-     &            fac0**2.d0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+
+     &            fac0**2.0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+
      &              mu1(i0,i1,i2)*u2(i0-1,i1,i2))+
      &            fac0*fac2*(mu1(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
      &              u0(i0+1,i1,i2-1))-mu1(i0,i1,i2)*(u0(i0,i1,i2)-
@@ -1673,7 +1673,7 @@ c  The smoother is written for side-centered vector fields (u0, u1, u2) and (f0,
 c  with edge-centered coefficient mu and side-centered coefficient (c0,c1,c2)
 ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 c
-      subroutine vcrbgssmoothmask3d(
+      subroutine f32_vcrbgssmoothmask3d(
      &     u0,u1,u2,u_gcw,
      &     f0,f1,f2,f_gcw,
      &     mask0,mask1,mask2,mask_gcw,
@@ -1740,11 +1740,11 @@ c     Perform a single"red" or "black"  Gauss-Seidel sweep.
 c
       red_or_black = mod(red_or_black,2) ! "red" = 0, "black" = 1
 
-      fac0 = 1.d0/(dx(0))
-      fac1 = 1.d0/(dx(1))
-      fac2 = 1.d0/(dx(2))
+      fac0 = 1.0/(dx(0))
+      fac1 = 1.0/(dx(1))
+      fac2 = 1.0/(dx(2))
 
-      fac = 2.d0*fac0**2.d0
+      fac = 2.0*fac0**2.0
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0+1
@@ -1789,17 +1789,17 @@ c
                endif
 
                   dnr =  alpha*(fac*(mu_upper + mu_lower) +
-     &                fac1**2.d0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
-     &                fac2**2.d0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
+     &                fac1**2.0*(mu2(i0,i1+1,i2) + mu2(i0,i1,i2))+
+     &                fac2**2.0*(mu1(i0,i1,i2+1) + mu1(i0,i1,i2))) - c
 
                   nmr = -f0(i0,i1,i2) + alpha*(fac*(
      &              mu_upper*u0(i0+1,i1,i2) + mu_lower*u0(i0-1,i1,i2))+
-     &              fac1**2.d0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
+     &              fac1**2.0*(mu2(i0,i1+1,i2)*u0(i0,i1+1,i2)+
      &                mu2(i0,i1,i2)*u0(i0,i1-1,i2))+
      &              fac0*fac1*(mu2(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
      &               u1(i0-1,i1+1,i2))-mu2(i0,i1,i2)*(u1(i0,i1,i2)-
      &              u1(i0-1,i1,i2)))+
-     &              fac2**2.d0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+
+     &              fac2**2.0*(mu1(i0,i1,i2+1)*u0(i0,i1,i2+1)+
      &                mu1(i0,i1,i2)*u0(i0,i1,i2-1))+
      &              fac0*fac2*(mu1(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
      &                u2(i0-1,i1,i2+1))-mu1(i0,i1,i2)*(u2(i0,i1,i2)-
@@ -1811,7 +1811,7 @@ c
          enddo
       enddo
 
-      fac = 2.d0*fac1**2.d0
+      fac = 2.0*fac1**2.0
       do i2 = ilower2,iupper2
          do i1 = ilower1,iupper1+1
             do i0 = ilower0,iupper0
@@ -1856,17 +1856,17 @@ c
                   endif
 
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
-     &               fac0**2.d0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
-     &               fac2**2.d0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
+     &               fac0**2.0*(mu2(i0+1,i1,i2) + mu2(i0,i1,i2))+
+     &               fac2**2.0*(mu0(i0,i1,i2+1) + mu0(i0,i1,i2))) - c
 
                   nmr = -f1(i0,i1,i2) + alpha*(fac*(
      &             mu_upper*u1(i0,i1+1,i2) + mu_lower*u1(i0,i1-1,i2))+
-     &             fac0**2.d0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) +
+     &             fac0**2.0*(mu2(i0+1,i1,i2)*u1(i0+1,i1,i2) +
      &                mu2(i0,i1,i2)*u1(i0-1,i1,i2))+
      &             fac0*fac1*(mu2(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
      &                u0(i0+1,i1-1,i2))-
      &                mu2(i0,i1,i2)*(u0(i0,i1,i2)-u0(i0,i1-1,i2)))+
-     &             fac2**2.d0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+
+     &             fac2**2.0*(mu0(i0,i1,i2+1)*u1(i0,i1,i2+1)+
      &                mu0(i0,i1,i2)*u1(i0,i1,i2-1))+
      &              fac1*fac2*(mu0(i0,i1,i2+1)*(u2(i0,i1,i2+1)-
      &                u2(i0,i1-1,i2+1))-mu0(i0,i1,i2)*(u2(i0,i1,i2)-
@@ -1878,7 +1878,7 @@ c
          enddo
       enddo
 
-      fac = 2.d0*fac2**2.d0
+      fac = 2.0*fac2**2.0
       do i2 = ilower2,iupper2+1
          do i1 = ilower1,iupper1
             do i0 = ilower0,iupper0
@@ -1927,17 +1927,17 @@ c
                 endif
 
                   dnr = alpha*(fac*(mu_upper + mu_lower)+
-     &             fac0**2.d0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
-     &             fac1**2.d0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
+     &             fac0**2.0*(mu1(i0+1,i1,i2) + mu1(i0,i1,i2))+
+     &             fac1**2.0*(mu0(i0,i1+1,i2) + mu0(i0,i1,i2))) - c
 
                   nmr = -f2(i0,i1,i2) + alpha*(fac*(
      &            mu_upper*u2(i0,i1,i2+1) + mu_lower*u2(i0,i1,i2-1))+
-     &            fac1**2.d0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
+     &            fac1**2.0*(mu0(i0,i1+1,i2)*u2(i0,i1+1,i2)+
      &              mu0(i0,i1,i2)*u2(i0,i1-1,i2))+
      &            fac1*fac2*(mu0(i0,i1+1,i2)*(u1(i0,i1+1,i2)-
      &             u1(i0,i1+1,i2-1))-mu0(i0,i1,i2)*(u1(i0,i1,i2)-
      &            u1(i0,i1,i2-1)))+
-     &            fac0**2.d0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+
+     &            fac0**2.0*(mu1(i0+1,i1,i2)*u2(i0+1,i1,i2)+
      &              mu1(i0,i1,i2)*u2(i0-1,i1,i2))+
      &            fac0*fac2*(mu1(i0+1,i1,i2)*(u0(i0+1,i1,i2)-
      &              u0(i0+1,i1,i2-1))-mu1(i0,i1,i2)*(u0(i0,i1,i2)-
