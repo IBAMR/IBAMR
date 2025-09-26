@@ -269,7 +269,7 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
                                        << std::endl);
         }
 
-        d_velcorrection_projection_fac_op = new CCPoissonPointRelaxationFACOperator(
+        d_velcorrection_projection_fac_op = new CCPoissonPointRelaxationFACOperator<double>(
             d_object_name + ":: ConstraintIBMethodProjection::PoissonFACOperator",
             d_velcorrection_projection_fac_pc_db,
             "");

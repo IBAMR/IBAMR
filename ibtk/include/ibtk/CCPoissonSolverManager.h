@@ -67,6 +67,12 @@ public:
     static const std::string PETSC_LEVEL_SOLVER;
 
     /*!
+     * Default mixed-precision solver types automatically provided by the
+     * manager class.
+     */
+    static const std::string MP_POINT_RELAXATION_FAC_PRECONDITIONER;
+
+    /*!
      * Return a pointer to the instance of the solver manager.  Access to
      * CCPoissonSolverManager objects is mediated by the getManager()
      * function.
