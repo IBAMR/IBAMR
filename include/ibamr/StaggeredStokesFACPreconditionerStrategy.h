@@ -99,7 +99,7 @@ namespace IBAMR
  level solver
  \endverbatim
 */
-class StaggeredStokesFACPreconditionerStrategy : public IBTK::FACPreconditionerStrategy
+class StaggeredStokesFACPreconditionerStrategy : public IBTK::FACPreconditionerStrategy<double>
 {
 public:
     /*!
