@@ -45,13 +45,16 @@ public:
     /*!
      * Constructor. Sets up a vector equivalent to @p vector.
      */
-    SAMRAIScopedVectorCopy(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE> >& vector,
+    template <typename INPUT_TYPE = TYPE>
+    SAMRAIScopedVectorCopy(const SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, INPUT_TYPE> >& vector,
                            const std::string& name = "");
 
     /*!
      * Constructor. Sets up a vector equivalent to @p vector.
      */
-    SAMRAIScopedVectorCopy(const SAMRAI::solv::SAMRAIVectorReal<NDIM, TYPE>& vector, const std::string& name = "");
+    template <typename INPUT_TYPE = TYPE>
+    SAMRAIScopedVectorCopy(const SAMRAI::solv::SAMRAIVectorReal<NDIM, INPUT_TYPE>& vector,
+                           const std::string& name = "");
 };
 } // namespace IBTK
 

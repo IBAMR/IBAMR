@@ -19,8 +19,9 @@ ADD_CUSTOM_TARGET(tests)
 # 2. all input and output files in these source directories are symlinked into
 #    their corresponding build directories.
 SET(TEST_DIRECTORIES CIB ConstraintIB IB IBFE IIM IMP IBTK adv_diff advect coarsen
-  complex_fluids external fe_mechanics interpolate level_set multiphase_flow
-  navier_stokes physical_boundary refine spread vc_navier_stokes wave_tank)
+  complex_fluids external fe_mechanics interpolate level_set multiprecision
+  multiphase_flow navier_stokes physical_boundary refine spread vc_navier_stokes
+  wave_tank)
 
 FOREACH(_dir ${TEST_DIRECTORIES})
   ADD_CUSTOM_TARGET("tests-${_dir}")
@@ -140,6 +141,10 @@ IF(${IBAMR_HAVE_LIBMESH})
   SETUP_3D(level_set fe_surface_distance.cpp)
 ENDIF()
 SETUP_2D(level_set relaxation_ls.cpp)
+
+# multiprecision:
+SETUP_2D(multiprecision type_conversion_01.cpp IBAMR2d)
+SETUP_3D(multiprecision type_conversion_01.cpp IBAMR3d)
 
 # multiphase_flow:
 SETUP(multiphase_flow free_falling_cyl_cib.cpp IBAMR2d)
