@@ -12,15 +12,15 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "LevelSetInitialCondition.h"
-
 #include <SAMRAI_config.h>
+
+#include "LevelSetInitialCondition.h"
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
 LevelSetInitialCondition::LevelSetInitialCondition(const std::string& object_name,
                                                    const double initial_horizontal_interface_position,
-                                                   std::vector<std::pair<double, IBTK::VectorNd> > bubbles_position,
+                                                   std::vector<std::pair<double, IBTK::VectorNd>> bubbles_position,
                                                    const bool center_bubble_required)
     : d_object_name(object_name),
       d_initial_horizontal_interface_position(initial_horizontal_interface_position),
@@ -40,19 +40,19 @@ LevelSetInitialCondition::isTimeDependent() const
 
 void
 LevelSetInitialCondition::setDataOnPatch(const int data_idx,
-                                         Pointer<Variable<NDIM> > /*var*/,
-                                         Pointer<Patch<NDIM> > patch,
+                                         Pointer<Variable<NDIM>> /*var*/,
+                                         Pointer<Patch<NDIM>> patch,
                                          const double /*data_time*/,
                                          const bool initial_time,
-                                         Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                         Pointer<PatchLevel<NDIM>> /*patch_level*/)
 {
     // Set the temperature function throughout the domain
     if (initial_time)
     {
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(data_idx);
+        Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(data_idx);
 
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* patch_X_lower = patch_geom->getXLower();
         const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
         const double* const patch_dx = patch_geom->getDx();

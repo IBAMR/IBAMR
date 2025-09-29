@@ -36,7 +36,7 @@ callLSLocateInterfaceCallbackFunction(int D_idx,
 /////////////////////////////// PUBLIC //////////////////////////////////////
 LSLocateInterface::LSLocateInterface(const std::string& object_name,
                                      Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                     Pointer<CellVariable<NDIM, double> > ls_var,
+                                     Pointer<CellVariable<NDIM, double>> ls_var,
                                      const double initial_interface_position)
     : d_object_name(object_name),
       d_adv_diff_solver(adv_diff_solver),
@@ -59,7 +59,7 @@ LSLocateInterface::setLevelSetPatchData(int D_idx,
                                         double /*time*/,
                                         bool initial_time)
 {
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -81,19 +81,19 @@ LSLocateInterface::setLevelSetPatchData(int D_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(D_idx);
+            Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(D_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
 
                 // Get physical coordinates
                 IBTK::Vector coord = IBTK::Vector::Zero();
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
                 const double* patch_X_lower = patch_geom->getXLower();
                 const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
                 const double* const patch_dx = patch_geom->getDx();

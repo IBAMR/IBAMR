@@ -140,14 +140,13 @@ public:
     /*!
      * Register the specific heat \f$ C_p \f$ variable.
      */
-    void
-    registerSpecificHeatVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > specific_heat_var,
-                                 bool output_Cp = false);
+    void registerSpecificHeatVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> specific_heat_var,
+                                      bool output_Cp = false);
 
     /*!
      * Register the density \f$ \rho \f$ variable.
      */
-    void registerDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > rho_var,
+    void registerDensityVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> rho_var,
                                  bool output_rho = false);
 
     /*!
@@ -186,14 +185,14 @@ public:
     /*!
      * \brief Register liquid fraction variable \f$ \varphi \f$.
      */
-    virtual void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+    virtual void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
                                                 bool output_lf_var = true);
 
     /*!
      * \brief Register gradient of liquid fraction variable.
      */
     virtual void registerLiquidFractionGradientVariable(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_gradient_var,
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_gradient_var,
         bool output_lf_gradient_var = true);
 
     /*!
@@ -204,7 +203,7 @@ public:
     /*!
      * \brief Register temperature variable \f$ T \f$.
      */
-    void registerTemperatureVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > T_var,
+    void registerTemperatureVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> T_var,
                                      bool output_T_var = true);
 
     /*!
@@ -340,10 +339,9 @@ protected:
     /*!
      * Reset cached hierarchy dependent data for solvers and operators.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
+    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
 
     /*!
      * Bound the liquid fraction, if necessary.

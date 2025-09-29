@@ -29,7 +29,7 @@ class HierarchyMathOps;
 }
 
 /*
- * Pre processing call back function to be hooked into IBAMR:LInitStrategy
+ * Pre processing call back function to be hooked into IBAMR:LSInitStrategy
  */
 
 void callLSLocateInterfaceCallbackFunction(int D_idx,
@@ -42,7 +42,7 @@ class LSLocateInterface
 {
     /*!
      * \brief class LSLocateInterface is a utility class which is used to identify
-     * the nterface for level set computations
+     * the interface for level set computations
      */
 public:
     /*!
@@ -50,7 +50,7 @@ public:
      */
     LSLocateInterface(const std::string& object_name,
                       SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > ls_var,
+                      SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> ls_var,
                       const double bubble_radius);
 
     /*!
@@ -95,7 +95,7 @@ private:
     /*!
      * Level set variable
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_ls_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_ls_var;
 
     /*!
      * Radius of a bubble
