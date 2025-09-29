@@ -13,32 +13,33 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "ibamr/INSVCStaggeredHierarchyIntegrator.h"
-#include "ibamr/LaserSourceFunction.h"
-#include "ibamr/ibamr_enums.h"
+#include <ibamr/INSVCStaggeredHierarchyIntegrator.h>
+#include <ibamr/LaserSourceFunction.h>
+#include <ibamr/ibamr_enums.h>
 
-#include "ibtk/CartGridFunction.h"
-#include "ibtk/HierarchyGhostCellInterpolation.h"
+#include <ibtk/CartGridFunction.h>
+#include <ibtk/HierarchyGhostCellInterpolation.h>
 
-#include "BasePatchLevel.h"
-#include "Box.h"
-#include "CartesianPatchGeometry.h"
-#include "CellData.h"
-#include "CellIndex.h"
-#include "CellVariable.h"
-#include "HierarchyCellDataOpsReal.h"
-#include "IntVector.h"
-#include "Patch.h"
-#include "PatchData.h"
-#include "PatchHierarchy.h"
-#include "PatchLevel.h"
-#include "SideData.h"
-#include "Variable.h"
-#include "VariableContext.h"
-#include "VariableDatabase.h"
-#include "tbox/Database.h"
-#include "tbox/Pointer.h"
-#include "tbox/Utilities.h"
+#include <tbox/Database.h>
+#include <tbox/Pointer.h>
+#include <tbox/Utilities.h>
+
+#include <BasePatchLevel.h>
+#include <Box.h>
+#include <CartesianPatchGeometry.h>
+#include <CellData.h>
+#include <CellIndex.h>
+#include <CellVariable.h>
+#include <HierarchyCellDataOpsReal.h>
+#include <IntVector.h>
+#include <Patch.h>
+#include <PatchData.h>
+#include <PatchHierarchy.h>
+#include <PatchLevel.h>
+#include <SideData.h>
+#include <Variable.h>
+#include <VariableContext.h>
+#include <VariableDatabase.h>
 
 #include <algorithm>
 #include <cmath>
@@ -46,7 +47,7 @@
 #include <string>
 #include <vector>
 
-#include "ibamr/namespaces.h" // IWYU pragma: keep
+#include <ibamr/namespaces.h> // IWYU pragma: keep
 
 namespace SAMRAI
 {
@@ -93,7 +94,7 @@ namespace IBAMR
 LaserSourceFunction::LaserSourceFunction(const std::string& object_name,
                                          Pointer<Database> input_db,
                                          Pointer<PhaseChangeHierarchyIntegrator> phase_change_solver,
-                                         Pointer<Variable<NDIM> > phi_var)
+                                         Pointer<Variable<NDIM>> phi_var)
     : CartGridFunction(object_name), d_phase_change_solver(phase_change_solver), d_phi_var(phi_var)
 {
     // Set some default values
@@ -127,8 +128,8 @@ LaserSourceFunction::isTimeDependent() const
 
 void
 LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
-                                             Pointer<Variable<NDIM> > var,
-                                             Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                             Pointer<Variable<NDIM>> var,
+                                             Pointer<PatchHierarchy<NDIM>> hierarchy,
                                              const double data_time,
                                              const bool initial_time,
                                              const int coarsest_ln_in,
@@ -139,7 +140,7 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 #endif
 
     // Get the newest patch data index for the Heaviside variable
-    Pointer<CellVariable<NDIM, double> > phi_cc_var = d_phi_var;
+    Pointer<CellVariable<NDIM, double>> phi_cc_var = d_phi_var;
 #if !defined(NDEBUG)
     TBOX_ASSERT(!phi_cc_var.isNull());
 #endif
@@ -248,13 +249,13 @@ LaserSourceFunction::setDataOnPatchHierarchy(const int data_idx,
 
 void
 LaserSourceFunction::setDataOnPatch(const int data_idx,
-                                    Pointer<Variable<NDIM> > /*var*/,
-                                    Pointer<Patch<NDIM> > patch,
+                                    Pointer<Variable<NDIM>> /*var*/,
+                                    Pointer<Patch<NDIM>> patch,
                                     const double /*data_time*/,
                                     const bool initial_time,
-                                    Pointer<PatchLevel<NDIM> > /*level*/)
+                                    Pointer<PatchLevel<NDIM>> /*level*/)
 {
-    Pointer<CellData<NDIM, double> > f_cc_data = patch->getPatchData(data_idx);
+    Pointer<CellData<NDIM, double>> f_cc_data = patch->getPatchData(data_idx);
 
 #if !defined(NDEBUG)
     TBOX_ASSERT(f_cc_data);
@@ -264,7 +265,7 @@ LaserSourceFunction::setDataOnPatch(const int data_idx,
     if (initial_time) return;
 
     const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CellData<NDIM, double> > grad_H_data = patch->getPatchData(d_grad_H_scratch_idx);
+    Pointer<CellData<NDIM, double>> grad_H_data = patch->getPatchData(d_grad_H_scratch_idx);
 #if !defined(NDEBUG)
     TBOX_ASSERT(grad_H_data);
 #endif
@@ -301,23 +302,23 @@ LaserSourceFunction::convertToHeaviside(int H_idx,
                                         int phi_idx,
                                         int coarsest_ln,
                                         int finest_ln,
-                                        Pointer<PatchHierarchy<NDIM> > patch_hierarchy)
+                                        Pointer<PatchHierarchy<NDIM>> patch_hierarchy)
 {
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const double* const patch_dx = patch_geom->getDx();
             double vol_cell = 1.0;
             for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
             const double alpha = d_num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_idx);
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
                 CellIndex<NDIM> ci(it());
@@ -334,20 +335,20 @@ LaserSourceFunction::mollifyData(int smooth_H_idx,
                                  int coarsest_ln,
                                  int finest_ln,
                                  double data_time,
-                                 Pointer<PatchHierarchy<NDIM> > hierarchy,
+                                 Pointer<PatchHierarchy<NDIM>> hierarchy,
                                  Pointer<HierarchyGhostCellInterpolation> fill_op)
 {
     if (d_kernel_fcn == "none") return;
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > smooth_H_data = patch->getPatchData(smooth_H_idx);
+            Pointer<CellData<NDIM, double>> smooth_H_data = patch->getPatchData(smooth_H_idx);
             CellData<NDIM, double> H_data(patch_box, /*depth*/ 1, smooth_H_data->getGhostCellWidth());
 
             H_data.copy(*smooth_H_data);

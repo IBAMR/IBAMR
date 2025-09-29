@@ -12,14 +12,14 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "ibamr/AdvDiffCUIConvectiveOperator.h"
-#include "ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h"
-#include "ibamr/AdvDiffConvectiveOperatorManager.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/EnthalpyHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
+#include <ibamr/AdvDiffCUIConvectiveOperator.h>
+#include <ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h>
+#include <ibamr/AdvDiffConvectiveOperatorManager.h>
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/EnthalpyHierarchyIntegrator.h>
+#include <ibamr/ibamr_enums.h>
+#include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CartGridFunction.h>
@@ -172,20 +172,20 @@ static const double H_LIM = 0.5;
 
 // Copy data from a side-centered variable to a face-centered variable.
 void
-copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy<NDIM> > hierarchy)
+copy_side_to_face(const int U_fc_idx, const int U_sc_idx, Pointer<PatchHierarchy<NDIM>> hierarchy)
 {
     const int coarsest_ln = 0;
     const int finest_ln = hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const hier::Index<NDIM>& ilower = patch->getBox().lower();
             const hier::Index<NDIM>& iupper = patch->getBox().upper();
-            Pointer<SideData<NDIM, double> > U_sc_data = patch->getPatchData(U_sc_idx);
-            Pointer<FaceData<NDIM, double> > U_fc_data = patch->getPatchData(U_fc_idx);
+            Pointer<SideData<NDIM, double>> U_sc_data = patch->getPatchData(U_sc_idx);
+            Pointer<FaceData<NDIM, double>> U_fc_data = patch->getPatchData(U_fc_idx);
 #if !defined(NDEBUG)
             TBOX_ASSERT(U_sc_data->getGhostCellWidth().min() == U_sc_data->getGhostCellWidth().max());
             TBOX_ASSERT(U_fc_data->getGhostCellWidth().min() == U_fc_data->getGhostCellWidth().max());
@@ -813,7 +813,7 @@ EnthalpyHierarchyIntegrator::postprocessIntegrateHierarchy(const double current_
 } // postprocessIntegrateHierarchy
 
 void
-EnthalpyHierarchyIntegrator::registerSpecificEnthalpyVariable(Pointer<CellVariable<NDIM, double> > h_var,
+EnthalpyHierarchyIntegrator::registerSpecificEnthalpyVariable(Pointer<CellVariable<NDIM, double>> h_var,
                                                               const bool output_h_var)
 {
     d_h_var = h_var;
@@ -855,7 +855,7 @@ EnthalpyHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 } // putToDatabaseSpecialized
 
 void
-EnthalpyHierarchyIntegrator::registerLevelSetVariable(Pointer<CellVariable<NDIM, double> > phi_var)
+EnthalpyHierarchyIntegrator::registerLevelSetVariable(Pointer<CellVariable<NDIM, double>> phi_var)
 {
     d_phi_var = phi_var;
     return;
@@ -863,7 +863,7 @@ EnthalpyHierarchyIntegrator::registerLevelSetVariable(Pointer<CellVariable<NDIM,
 
 void
 EnthalpyHierarchyIntegrator::registerLiquidFractionVariableForExtrapolation(
-    Pointer<CellVariable<NDIM, double> > lf_extrap_var)
+    Pointer<CellVariable<NDIM, double>> lf_extrap_var)
 {
     d_lf_extrap_var = lf_extrap_var;
     return;
@@ -873,7 +873,7 @@ EnthalpyHierarchyIntegrator::registerLiquidFractionVariableForExtrapolation(
 
 void
 EnthalpyHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
@@ -1321,18 +1321,29 @@ EnthalpyHierarchyIntegrator::computeAdvectionVelocityForExtrapolation(int u_adv_
     const int finest_ln = d_hierarchy->getFinestLevelNumber();
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = d_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = d_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            Pointer<CartesianPatchGeometry<NDIM> > pgeom = patch->getPatchGeometry();
+            Pointer<CartesianPatchGeometry<NDIM>> pgeom = patch->getPatchGeometry();
             const double* const dx = pgeom->getDx();
 
-            Pointer<SideData<NDIM, double> > u_sc_data = patch->getPatchData(d_u_adv_sc_lf_extrap_current_idx);
-            Pointer<SideData<NDIM, double> > normal_data = patch->getPatchData(d_normal_lf_extrap_current_idx);
-            Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
+            Pointer<SideData<NDIM, double>> u_sc_data = patch->getPatchData(d_u_adv_sc_lf_extrap_current_idx);
+            Pointer<SideData<NDIM, double>> normal_data = patch->getPatchData(d_normal_lf_extrap_current_idx);
+            Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_scratch_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_scratch_idx);
+
+            const int required_phi_ghost_width = 1;
+            const int phi_ghost_width = phi_data->getGhostCellWidth().max();
+
+            if (phi_ghost_width < required_phi_ghost_width)
+            {
+                TBOX_ERROR("EnthalpyHierarchyIntegrator::computeAdvectionVelocityForExtrapolation:\n"
+                           << "Ghost cell width for phi variable is small.\n"
+                           << "Minimum ghost cell width equired: " << required_phi_ghost_width << "\n"
+                           << "Provided: " << phi_ghost_width << "\n");
+            }
 
             // computes normal_data = grad(phi_data)
             SC_NORMAL_FC(normal_data->getPointer(0, 0),
@@ -1395,7 +1406,7 @@ EnthalpyHierarchyIntegrator::computeAdvectionVelocityForExtrapolation(int u_adv_
 
 Pointer<CellConvectiveOperator>
 EnthalpyHierarchyIntegrator::getLiquidFractionExtrapConvectiveOperator(
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_extrap_var)
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_extrap_var)
 {
     // Allocate convective operator. // using H_bc for lf_var.
     std::vector<RobinBcCoefStrategy<NDIM>*> lf_bc_coef = getPhysicalBcCoefs(d_H_var);

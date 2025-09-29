@@ -12,9 +12,9 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "LiquidFractionInitialCondition.h"
-
 #include <SAMRAI_config.h>
+
+#include "LiquidFractionInitialCondition.h"
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
@@ -34,19 +34,19 @@ LiquidFractionInitialCondition::isTimeDependent() const
 
 void
 LiquidFractionInitialCondition::setDataOnPatch(const int data_idx,
-                                               Pointer<Variable<NDIM> > /*var*/,
-                                               Pointer<Patch<NDIM> > patch,
+                                               Pointer<Variable<NDIM>> /*var*/,
+                                               Pointer<Patch<NDIM>> patch,
                                                const double /*data_time*/,
                                                const bool initial_time,
-                                               Pointer<PatchLevel<NDIM> > /*patch_level*/)
+                                               Pointer<PatchLevel<NDIM>> /*patch_level*/)
 {
     // Set the temperature function throughout the domain
     if (initial_time)
     {
         const Box<NDIM>& patch_box = patch->getBox();
-        Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(data_idx);
+        Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(data_idx);
 
-        Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+        Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
         const double* patch_X_lower = patch_geom->getXLower();
         const hier::Index<NDIM>& patch_lower_idx = patch_box.lower();
         const double* const patch_dx = patch_geom->getDx();
