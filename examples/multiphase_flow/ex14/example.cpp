@@ -64,7 +64,7 @@ mask_surface_tension_force(int F_idx,
                            void* ctx)
 {
     MaskSurfaceTensionForceCtx* mask_surface_tension_force_ctx = static_cast<MaskSurfaceTensionForceCtx*>(ctx);
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
@@ -72,15 +72,15 @@ mask_surface_tension_force(int F_idx,
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
             const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
 
-            Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
-            Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
+            Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
+            Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
 
             for (unsigned int axis = 0; axis < NDIM; axis++)
             {
@@ -101,7 +101,7 @@ mask_surface_tension_force(int F_idx,
 
 struct ComputeVariableSurfaceTensionCoefCtx
 {
-    Pointer<CellVariable<NDIM, double> > T_var;
+    Pointer<CellVariable<NDIM, double>> T_var;
     Pointer<AdvDiffHierarchyIntegrator> adv_diff_hier_integrator;
     Pointer<INSVCStaggeredHierarchyIntegrator> ins_hier_integrator;
     double sigma0;
@@ -111,7 +111,7 @@ struct ComputeVariableSurfaceTensionCoefCtx
 
 void
 compute_surface_tension_coef_function(int F_idx,
-                                      Pointer<Patch<NDIM> > patch,
+                                      Pointer<Patch<NDIM>> patch,
                                       int /*integrator_step*/,
                                       double /*time*/,
                                       double /*current_time*/,
@@ -132,8 +132,8 @@ compute_surface_tension_coef_function(int F_idx,
         compute_variable_surface_tension_coef_ctx->adv_diff_hier_integrator->getScratchContext());
 
     const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(T_scratch_idx);
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
+    Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(T_scratch_idx);
+    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
 
     for (unsigned int axis = 0; axis < NDIM; axis++)
     {
@@ -152,7 +152,7 @@ compute_surface_tension_coef_function(int F_idx,
 
 void
 compute_marangoni_coef_function(int F_idx,
-                                Pointer<Patch<NDIM> > patch,
+                                Pointer<Patch<NDIM>> patch,
                                 int /*integrator_step*/,
                                 double /*time*/,
                                 double /*current_time*/,
@@ -164,7 +164,7 @@ compute_marangoni_coef_function(int F_idx,
 
     const double dsigma_dT0 = compute_variable_surface_tension_coef_ctx->dsigma_dT0;
     const Box<NDIM>& patch_box = patch->getBox();
-    Pointer<SideData<NDIM, double> > F_data = patch->getPatchData(F_idx);
+    Pointer<SideData<NDIM, double>> F_data = patch->getPatchData(F_idx);
 
     for (unsigned int axis = 0; axis < NDIM; axis++)
     {
@@ -241,18 +241,18 @@ main(int argc, char* argv[])
             app_initializer->getComponentDatabase("AdvDiffSemiImplicitHierarchyIntegrator"));
         time_integrator->registerAdvDiffHierarchyIntegrator(adv_diff_integrator);
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -269,7 +269,7 @@ main(int argc, char* argv[])
 #endif
 
         // register level set
-        Pointer<CellVariable<NDIM, double> > ls_var = new CellVariable<NDIM, double>("ls_var");
+        Pointer<CellVariable<NDIM, double>> ls_var = new CellVariable<NDIM, double>("ls_var");
         adv_diff_integrator->registerTransportedQuantity(ls_var, true);
         adv_diff_integrator->setDiffusionCoefficient(ls_var, 0.0);
 
@@ -284,7 +284,7 @@ main(int argc, char* argv[])
             ls_var, &IBAMR::LevelSetUtilities::setLSDataPatchHierarchy, static_cast<void*>(&setSetLSProperties));
 
         // register temperature
-        Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("Temperature");
+        Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
         adv_diff_integrator->registerTransportedQuantity(T_var, true);
 
         // set Advection velocity.
@@ -325,10 +325,10 @@ main(int argc, char* argv[])
         }
 
         // Setup the INS maintained material properties.
-        Pointer<SideVariable<NDIM, double> > rho_sc_var = new SideVariable<NDIM, double>("rho_sc_var");
+        Pointer<SideVariable<NDIM, double>> rho_sc_var = new SideVariable<NDIM, double>("rho_sc_var");
         time_integrator->registerMassDensityVariable(rho_sc_var);
 
-        Pointer<CellVariable<NDIM, double> > mu_var = new CellVariable<NDIM, double>("mu");
+        Pointer<CellVariable<NDIM, double>> mu_var = new CellVariable<NDIM, double>("mu");
         time_integrator->registerViscosityVariable(mu_var);
 
         // Register callback function for tagging refined cells for level set data
@@ -344,7 +344,7 @@ main(int argc, char* argv[])
         // necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > T_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> T_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TemperatureBcCoefs"))
         {
             T_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -352,7 +352,7 @@ main(int argc, char* argv[])
             adv_diff_integrator->setPhysicalBcCoef(T_var, T_bc_coef.get());
         }
 
-        vector<std::unique_ptr<RobinBcCoefStrategy<NDIM> > > u_bc_coefs(NDIM);
+        vector<std::unique_ptr<RobinBcCoefStrategy<NDIM>>> u_bc_coefs(NDIM);
         if (periodic_shift.min() == 0)
         {
             for (unsigned int d = 0; d < NDIM; ++d)
@@ -377,7 +377,7 @@ main(int argc, char* argv[])
             });
         }
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > rho_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> rho_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("DensityBcCoefs"))
         {
             rho_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -385,7 +385,7 @@ main(int argc, char* argv[])
             time_integrator->registerMassDensityBoundaryConditions(rho_bc_coef.get());
         }
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > mu_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> mu_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ViscosityBcCoefs"))
         {
             mu_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -393,7 +393,7 @@ main(int argc, char* argv[])
             time_integrator->registerViscosityBoundaryConditions(mu_bc_coef.get());
         }
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > ls_bc_coef = NULL;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> ls_bc_coef = NULL;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("LevelSetBcCoefs"))
         {
             ls_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -470,7 +470,7 @@ main(int argc, char* argv[])
         time_integrator->registerBodyForceFunction(eul_forces);
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -501,14 +501,14 @@ main(int argc, char* argv[])
         const int H_cloned_idx = var_db->registerClonedPatchDataIndex(ls_var, phi_idx);
 
         // Interpolating side-centered velocity to cell-centered
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > U_sc_var =
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> U_sc_var =
             time_integrator->getVelocityVariable();
         const int U_sc_idx = var_db->mapVariableAndContextToIndex(U_sc_var, time_integrator->getCurrentContext());
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > U_cc_var;
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> U_cc_var;
         U_cc_var = new CellVariable<NDIM, double>("U_cc", NDIM);
         int U_cc_idx = var_db->registerVariableAndContext(U_cc_var, var_db->getContext("U_cc"), 0);
 
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > v_var;
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> v_var;
         v_var = new CellVariable<NDIM, double>("v_cc");
         int v_idx = var_db->registerVariableAndContext(v_var, var_db->getContext("v_cc"), 0);
 
@@ -569,23 +569,23 @@ main(int argc, char* argv[])
             // Calculate Heaviside function and compute the rise velocity.
             for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
             {
-                Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+                Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
 
                 for (PatchLevel<NDIM>::Iterator p(level); p; p++)
                 {
-                    Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                    Pointer<Patch<NDIM>> patch = level->getPatch(p());
                     const Box<NDIM>& patch_box = patch->getBox();
-                    const Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                    const Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
                     const double* patch_dx = patch_geom->getDx();
 
                     double vol_cell = 1.0;
                     for (int d = 0; d < NDIM; ++d) vol_cell *= patch_dx[d];
                     const double alpha = num_interface_cells * std::pow(vol_cell, 1.0 / static_cast<double>(NDIM));
 
-                    Pointer<CellData<NDIM, double> > U_cc_data = patch->getPatchData(U_cc_idx);
-                    Pointer<CellData<NDIM, double> > v_data = patch->getPatchData(v_idx);
-                    Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_idx);
-                    Pointer<CellData<NDIM, double> > H_cloned_data = patch->getPatchData(H_cloned_idx);
+                    Pointer<CellData<NDIM, double>> U_cc_data = patch->getPatchData(U_cc_idx);
+                    Pointer<CellData<NDIM, double>> v_data = patch->getPatchData(v_idx);
+                    Pointer<CellData<NDIM, double>> phi_data = patch->getPatchData(phi_idx);
+                    Pointer<CellData<NDIM, double>> H_cloned_data = patch->getPatchData(H_cloned_idx);
 
                     for (Box<NDIM>::Iterator it(patch_box); it; it++)
                     {

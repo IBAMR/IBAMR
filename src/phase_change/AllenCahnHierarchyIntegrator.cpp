@@ -1382,7 +1382,7 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
 
 void
 AllenCahnHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {

@@ -97,18 +97,18 @@ main(int argc, char* argv[])
         time_integrator = new AllenCahnHierarchyIntegrator(
             "AllenCahnHierarchyIntegrator", app_initializer->getComponentDatabase("AllenCahnHierarchyIntegrator"));
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -116,16 +116,16 @@ main(int argc, char* argv[])
                                         load_balancer);
 
         // register liquid fraction
-        Pointer<CellVariable<NDIM, double> > lf_var = new CellVariable<NDIM, double>("lf_var");
+        Pointer<CellVariable<NDIM, double>> lf_var = new CellVariable<NDIM, double>("lf_var");
         Pointer<AllenCahnHierarchyIntegrator> ac_hier_integrator = time_integrator;
         ac_hier_integrator->registerLiquidFractionVariable(lf_var, true);
 
         // register liquid fraction gradient
-        Pointer<CellVariable<NDIM, double> > lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient_var", NDIM);
+        Pointer<CellVariable<NDIM, double>> lf_gradient_var = new CellVariable<NDIM, double>("lf_gradient_var", NDIM);
         ac_hier_integrator->registerLiquidFractionGradientVariable(lf_gradient_var, true);
 
         // register Heaviside
-        Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("heaviside_var");
+        Pointer<CellVariable<NDIM, double>> H_var = new CellVariable<NDIM, double>("heaviside_var");
         time_integrator->registerTransportedQuantity(H_var, true);
         time_integrator->setDiffusionCoefficient(H_var, 0.0);
 
@@ -133,7 +133,7 @@ main(int argc, char* argv[])
         ac_hier_integrator->registerHeavisideVariable(H_var);
 
         // register temperature
-        Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("Temperature");
+        Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
         ac_hier_integrator->registerTemperatureVariable(T_var, true);
 
         Pointer<CartGridFunction> H_init = new muParserCartGridFunction(
@@ -152,17 +152,17 @@ main(int argc, char* argv[])
             new LiquidFractionInitialCondition("lf_init", init_liquid_solid_interface_position);
         ac_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
 
-        Pointer<CellVariable<NDIM, double> > rho_cc_var = new CellVariable<NDIM, double>("rho_cc_var");
+        Pointer<CellVariable<NDIM, double>> rho_cc_var = new CellVariable<NDIM, double>("rho_cc_var");
         ac_hier_integrator->registerDensityVariable(rho_cc_var, true);
 
-        Pointer<CellVariable<NDIM, double> > Cp_var = new CellVariable<NDIM, double>("Cp");
+        Pointer<CellVariable<NDIM, double>> Cp_var = new CellVariable<NDIM, double>("Cp");
         ac_hier_integrator->registerSpecificHeatVariable(Cp_var, true);
 
         // Create Eulerian boundary condition specification objects (when
         // necessary).
         const IntVector<NDIM>& periodic_shift = grid_geometry->getPeriodicShift();
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > H_bc_coef;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> H_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("HeavisideBcCoefs"))
         {
             H_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -170,7 +170,7 @@ main(int argc, char* argv[])
             time_integrator->setPhysicalBcCoef(H_var, H_bc_coef.get());
         }
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > T_bc_coef;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> T_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("TemperatureBcCoefs"))
         {
             T_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -178,7 +178,7 @@ main(int argc, char* argv[])
             ac_hier_integrator->setTemperaturePhysicalBcCoef(T_var, T_bc_coef.get());
         }
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > lf_bc_coef;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> lf_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("LiquidFractionBcCoefs"))
         {
             lf_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -186,7 +186,7 @@ main(int argc, char* argv[])
             ac_hier_integrator->setLiquidFractionPhysicalBcCoef(lf_var, lf_bc_coef.get());
         }
 
-        std::unique_ptr<RobinBcCoefStrategy<NDIM> > k_bc_coef;
+        std::unique_ptr<RobinBcCoefStrategy<NDIM>> k_bc_coef;
         if (!(periodic_shift.min() > 0) && input_db->keyExists("ThermalConductivityBcCoefs"))
         {
             k_bc_coef = std::make_unique<muParserRobinBcCoefs>(
@@ -245,7 +245,7 @@ main(int argc, char* argv[])
             &IBAMR::PhaseChangeUtilities::callTagLiquidFractionCellsCallbackFunction, static_cast<void*>(&tagger));
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);

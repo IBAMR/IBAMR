@@ -33,7 +33,7 @@ public:
      */
     LevelSetInitialCondition(const std::string& object_name,
                              const double initial_horizontal_interface_position,
-                             std::vector<std::pair<double, IBTK::Vector> > bubbles_position,
+                             std::vector<std::pair<double, IBTK::Vector>> bubbles_position,
                              const bool center_bubble_required);
 
     /*!
@@ -51,11 +51,11 @@ public:
      * \brief Evaluate the function on the patch interior.
      */
     void setDataOnPatch(const int data_idx,
-                        Pointer<SAMRAI::hier::Variable<NDIM> > var,
-                        Pointer<Patch<NDIM> > patch,
+                        Pointer<SAMRAI::hier::Variable<NDIM>> var,
+                        Pointer<Patch<NDIM>> patch,
                         const double data_time,
                         const bool initial_time = false,
-                        Pointer<PatchLevel<NDIM> > patch_level = Pointer<PatchLevel<NDIM> >(NULL)) override;
+                        Pointer<PatchLevel<NDIM>> patch_level = Pointer<PatchLevel<NDIM>>(NULL)) override;
 
     //\}
 
@@ -88,7 +88,7 @@ private:
     /*!
      * Initial position and radii of bubbles.
      */
-    std::vector<std::pair<double, IBTK::Vector> > d_bubbles_position;
+    std::vector<std::pair<double, IBTK::Vector>> d_bubbles_position;
 
     /*!
      * Boolean to specify whether the center bubble is considered.
