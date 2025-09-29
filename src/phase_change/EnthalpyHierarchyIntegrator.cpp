@@ -1333,6 +1333,17 @@ EnthalpyHierarchyIntegrator::computeAdvectionVelocityForExtrapolation(int u_adv_
             Pointer<CellData<NDIM, double> > phi_data = patch->getPatchData(phi_scratch_idx);
             Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
 
+            const int required_phi_ghost_width = 1;
+            const int phi_ghost_width = phi_data->getGhostCellWidth().max();
+
+            if (phi_ghost_width < required_phi_ghost_width)
+            {
+                TBOX_ERROR("EnthalpyHierarchyIntegrator::computeAdvectionVelocityForExtrapolation:\n"
+                           << "Ghost cell width for phi variable is small.\n"
+                           << "Minimum ghost cell width equired: " << required_phi_ghost_width << "\n"
+                           << "Provided: " << phi_ghost_width << "\n");
+            }
+
             // computes normal_data = grad(phi_data)
             SC_NORMAL_FC(normal_data->getPointer(0, 0),
                          normal_data->getPointer(0, 1),

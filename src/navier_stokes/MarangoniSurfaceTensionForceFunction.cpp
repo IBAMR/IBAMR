@@ -390,6 +390,16 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
                              /*gcw*/ IntVector<NDIM>(2));
     Pointer<CellData<NDIM, double> > Phi = patch->getPatchData(d_phi_idx);
 
+    const int required_phi_ghost_width = getMinimumGhostWidth(d_kernel_fcn);
+    const int phi_ghost_width = Phi->getGhostCellWidth().max();
+
+    if (phi_ghost_width < required_phi_ghost_width)
+    {
+        TBOX_ERROR("MarangoniSurfaceTensionForceFunction::setDataOnPatchSide: ghost cell width for phi is small.\n"
+                   << "Minimum ghost cell width required: " << required_phi_ghost_width << "\n"
+                   << "Provided: " << phi_ghost_width << "\n");
+    }
+
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),
 #if (NDIM == 3)

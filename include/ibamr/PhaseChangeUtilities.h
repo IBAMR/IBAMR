@@ -16,6 +16,8 @@
 #ifndef included_IBAMR_PhaseChangeUtilities
 #define included_IBAMR_PhaseChangeUtilities
 
+#include <ibamr/config.h>
+
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
 #include "tbox/Pointer.h"
