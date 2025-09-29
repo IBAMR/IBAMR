@@ -186,8 +186,8 @@ namespace IBAMR
 MarangoniSurfaceTensionForceFunction::MarangoniSurfaceTensionForceFunction(const std::string& object_name,
                                                                            const Pointer<Database> input_db,
                                                                            AdvDiffHierarchyIntegrator* adv_diff_solver,
-                                                                           Pointer<Variable<NDIM> > level_set_var,
-                                                                           Pointer<Variable<NDIM> > T_var,
+                                                                           Pointer<Variable<NDIM>> level_set_var,
+                                                                           Pointer<Variable<NDIM>> T_var,
                                                                            RobinBcCoefStrategy<NDIM>* T_bc_coef)
     : SurfaceTensionForceFunction(object_name, input_db, adv_diff_solver, level_set_var)
 {
@@ -391,6 +391,16 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
                              /*gcw*/ IntVector<NDIM>(2));
     Pointer<CellData<NDIM, double>> Phi = patch->getPatchData(d_phi_idx);
 
+    const int required_phi_ghost_width = getMinimumGhostWidth(d_kernel_fcn);
+    const int phi_ghost_width = Phi->getGhostCellWidth().max();
+
+    if (phi_ghost_width < required_phi_ghost_width)
+    {
+        TBOX_ERROR("MarangoniSurfaceTensionForceFunction::setDataOnPatchSide: ghost cell width for phi is small.\n"
+                   << "Minimum ghost cell width required: " << required_phi_ghost_width << "\n"
+                   << "Provided: " << phi_ghost_width << "\n");
+    }
+
     SC_NORMAL_FC(N.getPointer(0, 0),
                  N.getPointer(0, 1),
 #if (NDIM == 3)
@@ -419,7 +429,7 @@ MarangoniSurfaceTensionForceFunction::setDataOnPatchSide(Pointer<SideData<NDIM, 
 
     // Find the gradient of T at the side-center.
     SideData<NDIM, double> grad_T(patch_box, /*depth*/ NDIM, /*gcw*/ IntVector<NDIM>(2));
-    Pointer<CellData<NDIM, double> > T_data = patch->getPatchData(d_T_scratch_idx);
+    Pointer<CellData<NDIM, double>> T_data = patch->getPatchData(d_T_scratch_idx);
     SC_NORMAL_FC(grad_T.getPointer(0, 0),
                  grad_T.getPointer(0, 1),
 #if (NDIM == 3)

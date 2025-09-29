@@ -847,7 +847,7 @@ PhaseChangeHierarchyIntegrator::putToDatabaseSpecialized(Pointer<Database> db)
 /////////////////////////////// PROTECTED ////////////////////////////////////
 void
 PhaseChangeHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {

@@ -117,7 +117,7 @@ public:
     /*!
      * \brief Register liquid fraction variable \f$ \varphi \f$.
      */
-    void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+    void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
                                         bool output_lf_var = true) override;
 
     /*!
@@ -167,10 +167,9 @@ protected:
     /*!
      * Reset cached hierarchy dependent data for solvers and operators.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
+    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
 
 private:
     /*!
