@@ -35,9 +35,6 @@
 
 #include <string>
 
-// IBAMR INCLUDES
-#include <ibamr/app_namespaces.h>
-
 namespace SAMRAI
 {
 namespace hier
