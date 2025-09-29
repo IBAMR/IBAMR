@@ -29,7 +29,7 @@ class HierarchyMathOps;
 }
 
 /*
- * Pre processing call back function to be hooked into IBAMR:LInitStrategy
+ * Pre processing call back function to be hooked into IBAMR:LSInitStrategy
  */
 
 void callLSLocateInterfaceCallbackFunction(int D_idx,
@@ -42,7 +42,7 @@ class LSLocateInterface
 {
     /*!
      * \brief class LSLocateInterface is a utility class which is used to identify
-     * the nterface for level set computations
+     * the interface for level set computations
      */
 public:
     /*!

@@ -132,12 +132,12 @@ c     This fortran rouine is used to compute both \grad T and \grad \phi.
 c     But the \grad \phi is computed in the ghost cell as well which is
 c     used in the curvature calculation later.
 
-      if (U_gcw .eq. 1.d0) then
-            i_normal = 1.d0
-            i_tangential = 0.d0
+      if (U_gcw .eq. 1) then
+            i_normal = 1
+            i_tangential = 0
       else
-            i_normal = 2.d0
-            i_tangential = 1.d0
+            i_normal = 2
+            i_tangential = 1
       endif
       
       fac0 = 1.d0/(dx(0))
