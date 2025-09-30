@@ -165,6 +165,7 @@ main(int argc, char* argv[])
         std::vector<VectorNd> x_pt(2);
         for (int d = 0; d < NDIM; ++d) x_pt[0][d] = 0.7;
         for (int d = 0; d < NDIM; ++d) x_pt[1][d] = 0.2;
+
         // Cell centered
         pout << "Interpolating cell centered values\n";
         std::vector<double> interped_val = interpolate(x_pt, cc_idx, cc_var, 1, patch_hierarchy, "IB_4");

@@ -42,6 +42,19 @@ flatten_eig_vec(const std::vector<IBTK::VectorNd>& eig_vec)
     return X_vec;
 }
 
+// Checks if a vector is the same on all ranks. If the min and max reduction are equal, the elements are the same.
+template <typename T>
+bool
+check_consistent_across_ranks(std::vector<T> data)
+{
+    std::vector<T> copied = data;
+    // Do a max reduction
+    IBTK_MPI::maxReduction(data.data(), data.size());
+    IBTK_MPI::minReduction(copied.data(), copied.size());
+    return std::equal(
+        data.begin(), data.begin() + data.size(), copied.data(), [](T v1, T v2) -> bool { return v1 == v2; });
+}
+
 std::vector<double>
 interpolate(const VectorNd& X,
             const int data_idx,
@@ -70,6 +83,15 @@ interpolate(const std::vector<VectorNd>& X,
     std::vector<std::vector<double> > Q_data_ln_vec(finest_ln + 1, std::vector<double>(X.size() * actual_depth, 0.0));
     // Flatten the vector of VectorNd to a single list of doubles.
     std::vector<double> X_data = flatten_eig_vec(X);
+#ifndef NDEBUG
+    if (!check_consistent_across_ranks(X_data))
+    {
+        std::ostringstream msg;
+        msg << "The input data is not consistent across ranks. The function IBTK::interpolate currently requires that "
+               "the points are synchronized across all MPI ranks.";
+        TBOX_ERROR(msg.str());
+    }
+#endif
     for (int ln = finest_ln; ln >= coarsest_ln; --ln)
     {
         Pointer<PatchLevel<NDIM> > level = hierarchy->getPatchLevel(ln);
