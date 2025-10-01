@@ -1184,7 +1184,8 @@ AllenCahnHierarchyIntegrator::getAllenCahnEquationHelmholtzRHSOperator(Pointer<C
     const std::string& name = lf_var->getName();
     if (!d_lf_rhs_op)
     {
-        d_lf_rhs_op = new CCLaplaceOperator(d_object_name + "::helmholtz_rhs_op::" + name, /*homogeneous_bc*/ false);
+        d_lf_rhs_op = new CCLaplaceOperator(
+            d_object_name + "::helmholtz_rhs_op::" + name, /*input_db*/ nullptr, /*homogeneous_bc*/ false);
         d_lf_rhs_op_needs_init = true;
     }
     return d_lf_rhs_op;

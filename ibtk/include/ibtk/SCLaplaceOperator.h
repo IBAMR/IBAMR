@@ -55,7 +55,9 @@ public:
      * \brief Constructor for class SCLaplaceOperator initializes the operator
      * coefficients and boundary conditions to default values.
      */
-    SCLaplaceOperator(std::string object_name, bool homogeneous_bc = true);
+    SCLaplaceOperator(std::string object_name,
+                      SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> input_db = nullptr,
+                      bool homogeneous_bc = true);
 
     /*!
      * \brief Destructor.
@@ -138,6 +140,18 @@ protected:
 
     // Dirichlet boundary condition utilities.
     std::vector<SAMRAI::tbox::Pointer<StaggeredPhysicalBoundaryHelper> > d_bc_helpers;
+
+    // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost
+    // cell values.
+    std::string d_data_refine_type = "NONE";
+    bool d_use_cf_interpolation = true;
+    std::string d_data_coarsen_type = "CUBIC_COARSEN";
+
+    // Type of extrapolation to use at physical boundaries.
+    std::string d_bdry_extrap_type = "LINEAR";
+
+    // Whether to enforce consistent interpolated values at Type 2 coarse-fine interface ghost cells.
+    bool d_use_consistent_type_2_bdry = false;
 
 private:
     /*!

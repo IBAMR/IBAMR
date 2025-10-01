@@ -1041,7 +1041,8 @@ PhaseChangeHierarchyIntegrator::getEnergyEquationHelmholtzRHSOperator(Pointer<Ce
     const std::string& name = T_var->getName();
     if (!d_T_rhs_op)
     {
-        d_T_rhs_op = new CCLaplaceOperator(d_object_name + "::helmholtz_rhs_op::" + name, /*homogeneous_bc*/ false);
+        d_T_rhs_op = new CCLaplaceOperator(
+            d_object_name + "::helmholtz_rhs_op::" + name, /*input_db*/ nullptr, /*homogeneous_bc*/ false);
         d_T_rhs_op_needs_init = true;
     }
     return d_T_rhs_op;
