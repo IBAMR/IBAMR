@@ -88,7 +88,8 @@ allocate_petsc_krylov_solver(const std::string& object_name,
 {
     Pointer<PETScKrylovPoissonSolver> krylov_solver =
         new PETScKrylovPoissonSolver(object_name, input_db, default_options_prefix);
-    krylov_solver->setOperator(new SCLaplaceOperator(object_name + "::laplace_operator"));
+    auto operator_db = (input_db && input_db->isDatabase("laplace_op")) ? input_db->getDatabase("laplace_op") : nullptr;
+    krylov_solver->setOperator(new SCLaplaceOperator(object_name + "::laplace_op", operator_db));
     return krylov_solver;
 } // allocate_petsc_krylov_solver
 } // namespace

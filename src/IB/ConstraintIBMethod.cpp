@@ -250,7 +250,9 @@ ConstraintIBMethod::ConstraintIBMethod(std::string object_name,
         d_velcorrection_projection_spec.reset(
             new PoissonSpecifications(d_object_name + "::ConstraintIBMethodProjection::Spec"));
         d_velcorrection_projection_op =
-            new CCLaplaceOperator(d_object_name + "ConstraintIBMethodProjection::PoissonOperator", true);
+            new CCLaplaceOperator(d_object_name + "ConstraintIBMethodProjection::PoissonOperator",
+                                  /*input_db*/ nullptr,
+                                  /*homogeneous_bc*/ true);
         d_velcorrection_projection_op->setPoissonSpecifications(*d_velcorrection_projection_spec);
         d_velcorrection_projection_op->setPhysicalBcCoef(&d_velcorrection_projection_bc_coef);
 

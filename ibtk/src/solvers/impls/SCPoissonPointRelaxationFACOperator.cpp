@@ -180,20 +180,6 @@ static const int DEFAULT_DATA_DEPTH = 1;
 // Number of ghosts cells used for each variable quantity.
 static const int SIDEG = 1;
 
-// Types of refining and coarsening to perform prior to setting coarse-fine
-// boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE = "NONE";
-static const bool USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Type of extrapolation to use at physical boundaries; used only to evaluate
-// composite grid residuals.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells; used only to evaluate composite grid residuals.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
-
 enum SmootherType
 {
     PATCH_GAUSS_SEIDEL,
@@ -302,6 +288,14 @@ SCPoissonPointRelaxationFACOperator::SCPoissonPointRelaxationFACOperator(const s
                           "SCPoissonPointRelaxationFACOperator.\n"
                        << "         use ``coarse_solver_db'' input entry instead.\n";
         }
+
+        if (input_db->isString("data_refine_type")) d_data_refine_type = input_db->getString("data_refine_type");
+        if (input_db->isBool("use_cf_interpolation"))
+            d_use_cf_interpolation = input_db->getBool("use_cf_interpolation");
+        if (input_db->isString("data_coarsen_type")) d_data_coarsen_type = input_db->getString("data_coarsen_type");
+        if (input_db->isString("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        if (input_db->isBool("use_consistent_type_2_bdry"))
+            d_use_consistent_type_2_bdry = input_db->getBool("use_consistent_type_2_bdry");
     }
 
     // Configure the coarse level solver.
@@ -672,11 +666,11 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     Pointer<SideNoCornersFillPattern> fill_pattern = new SideNoCornersFillPattern(d_gcw.max(), false, false, true);
     InterpolationTransactionComponent transaction_comp(sol_idx,
-                                                       DATA_REFINE_TYPE,
-                                                       USE_CF_INTERPOLATION,
-                                                       DATA_COARSEN_TYPE,
-                                                       BDRY_EXTRAP_TYPE,
-                                                       CONSISTENT_TYPE_2_BDRY,
+                                                       d_data_refine_type,
+                                                       d_use_cf_interpolation,
+                                                       d_data_coarsen_type,
+                                                       d_bdry_extrap_type,
+                                                       d_use_consistent_type_2_bdry,
                                                        d_bc_coefs,
                                                        fill_pattern);
     if (d_level_bdry_fill_ops[finest_level_num])
@@ -692,11 +686,11 @@ SCPoissonPointRelaxationFACOperator::computeResidual(SAMRAIVectorReal<NDIM, doub
     d_level_bdry_fill_ops[finest_level_num]->setHomogeneousBc(true);
     d_level_bdry_fill_ops[finest_level_num]->fillData(d_solution_time);
     InterpolationTransactionComponent default_transaction_comp(d_solution->getComponentDescriptorIndex(0),
-                                                               DATA_REFINE_TYPE,
-                                                               USE_CF_INTERPOLATION,
-                                                               DATA_COARSEN_TYPE,
-                                                               BDRY_EXTRAP_TYPE,
-                                                               CONSISTENT_TYPE_2_BDRY,
+                                                               d_data_refine_type,
+                                                               d_use_cf_interpolation,
+                                                               d_data_coarsen_type,
+                                                               d_bdry_extrap_type,
+                                                               d_use_consistent_type_2_bdry,
                                                                d_bc_coefs,
                                                                fill_pattern);
     d_level_bdry_fill_ops[finest_level_num]->resetTransactionComponent(default_transaction_comp);

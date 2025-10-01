@@ -726,6 +726,7 @@ AdvDiffHierarchyIntegrator::getHelmholtzRHSOperator(Pointer<CellVariable<NDIM, d
     {
         const std::string& name = Q_var->getName();
         d_helmholtz_rhs_ops[l] = new CCLaplaceOperator(d_object_name + "::helmholtz_rhs_op::" + name,
+                                                       /*input_db*/ nullptr,
                                                        /*homogeneous_bc*/ false);
         d_helmholtz_rhs_ops_need_init[l] = true;
     }
