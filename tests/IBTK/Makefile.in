@@ -109,7 +109,9 @@ EXTRA_PROGRAMS = mpi_type_wrappers$(EXEEXT) poisson_01_2d$(EXEEXT) \
 	nodal_interpolation_01_2d$(EXEEXT) \
 	nodal_interpolation_01_3d$(EXEEXT) curl_01_2d$(EXEEXT) \
 	curl_01_3d$(EXEEXT) marker_points_01_2d$(EXEEXT) \
-	marker_points_02_2d$(EXEEXT) $(am__EXEEXT_1)
+	marker_points_02_2d$(EXEEXT) \
+	interpolation_utilities_2d$(EXEEXT) \
+	interpolation_utilities_3d$(EXEEXT) $(am__EXEEXT_1)
 @LIBMESH_ENABLED_TRUE@am__append_1 = elem_hmax_01 elem_hmax_02 jacobian_calc_01 bounding_boxes_01_2d \
 @LIBMESH_ENABLED_TRUE@bounding_boxes_01_3d mapping_01 fe_values_01 fe_values_02 \
 @LIBMESH_ENABLED_TRUE@multilevel_fe_01_2d multilevel_fe_01_3d subdomain_level_translation_01 \
@@ -342,6 +344,26 @@ ibtk_mpi_DEPENDENCIES = $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 ibtk_mpi_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(ibtk_mpi_CXXFLAGS) \
 	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_interpolation_utilities_2d_OBJECTS =  \
+	interpolation_utilities_2d-interpolation_utilities.$(OBJEXT)
+interpolation_utilities_2d_OBJECTS =  \
+	$(am_interpolation_utilities_2d_OBJECTS)
+interpolation_utilities_2d_DEPENDENCIES = $(IBAMR2d_LIBS) \
+	$(IBAMR_LIBS)
+interpolation_utilities_2d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(interpolation_utilities_2d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+am_interpolation_utilities_3d_OBJECTS =  \
+	interpolation_utilities_3d-interpolation_utilities.$(OBJEXT)
+interpolation_utilities_3d_OBJECTS =  \
+	$(am_interpolation_utilities_3d_OBJECTS)
+interpolation_utilities_3d_DEPENDENCIES = $(IBAMR3d_LIBS) \
+	$(IBAMR_LIBS)
+interpolation_utilities_3d_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
+	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
+	$(interpolation_utilities_3d_CXXFLAGS) $(CXXFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 am__jacobian_calc_01_SOURCES_DIST = jacobian_calc_01.cpp
 @LIBMESH_ENABLED_TRUE@am_jacobian_calc_01_OBJECTS = jacobian_calc_01-jacobian_calc_01.$(OBJEXT)
 jacobian_calc_01_OBJECTS = $(am_jacobian_calc_01_OBJECTS)
@@ -620,6 +642,8 @@ am__depfiles_remade =  \
 	./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po \
 	./$(DEPDIR)/ibtk_init-ibtk_init.Po \
 	./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po \
+	./$(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Po \
+	./$(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Po \
 	./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po \
 	./$(DEPDIR)/laplace_01_2d-laplace_01.Po \
 	./$(DEPDIR)/laplace_01_3d-laplace_01.Po \
@@ -682,14 +706,15 @@ SOURCES = $(bounding_boxes_01_2d_SOURCES) \
 	$(helmholtz_2d_SOURCES) $(helmholtz_3d_SOURCES) \
 	$(hierarchy_avg_data_01_2d_SOURCES) \
 	$(hierarchy_callbacks_SOURCES) $(ibtk_init_SOURCES) \
-	$(ibtk_mpi_SOURCES) $(jacobian_calc_01_SOURCES) \
-	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
-	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
-	$(ldata_01_SOURCES) $(mapping_01_SOURCES) \
-	$(marker_points_01_2d_SOURCES) $(marker_points_02_2d_SOURCES) \
-	$(mpi_type_wrappers_SOURCES) $(multilevel_fe_01_2d_SOURCES) \
-	$(multilevel_fe_01_3d_SOURCES) \
+	$(ibtk_mpi_SOURCES) $(interpolation_utilities_2d_SOURCES) \
+	$(interpolation_utilities_3d_SOURCES) \
+	$(jacobian_calc_01_SOURCES) $(laplace_01_2d_SOURCES) \
+	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
+	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
+	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
+	$(mapping_01_SOURCES) $(marker_points_01_2d_SOURCES) \
+	$(marker_points_02_2d_SOURCES) $(mpi_type_wrappers_SOURCES) \
+	$(multilevel_fe_01_2d_SOURCES) $(multilevel_fe_01_3d_SOURCES) \
 	$(nodal_interpolation_01_2d_SOURCES) \
 	$(nodal_interpolation_01_3d_SOURCES) \
 	$(phys_boundary_ops_2d_SOURCES) \
@@ -718,13 +743,14 @@ DIST_SOURCES = $(am__bounding_boxes_01_2d_SOURCES_DIST) \
 	$(helmholtz_2d_SOURCES) $(helmholtz_3d_SOURCES) \
 	$(hierarchy_avg_data_01_2d_SOURCES) \
 	$(hierarchy_callbacks_SOURCES) $(ibtk_init_SOURCES) \
-	$(ibtk_mpi_SOURCES) $(am__jacobian_calc_01_SOURCES_DIST) \
-	$(laplace_01_2d_SOURCES) $(laplace_01_3d_SOURCES) \
-	$(laplace_02_2d_SOURCES) $(laplace_02_3d_SOURCES) \
-	$(laplace_03_2d_SOURCES) $(laplace_03_3d_SOURCES) \
-	$(ldata_01_SOURCES) $(am__mapping_01_SOURCES_DIST) \
-	$(marker_points_01_2d_SOURCES) $(marker_points_02_2d_SOURCES) \
-	$(mpi_type_wrappers_SOURCES) \
+	$(ibtk_mpi_SOURCES) $(interpolation_utilities_2d_SOURCES) \
+	$(interpolation_utilities_3d_SOURCES) \
+	$(am__jacobian_calc_01_SOURCES_DIST) $(laplace_01_2d_SOURCES) \
+	$(laplace_01_3d_SOURCES) $(laplace_02_2d_SOURCES) \
+	$(laplace_02_3d_SOURCES) $(laplace_03_2d_SOURCES) \
+	$(laplace_03_3d_SOURCES) $(ldata_01_SOURCES) \
+	$(am__mapping_01_SOURCES_DIST) $(marker_points_01_2d_SOURCES) \
+	$(marker_points_02_2d_SOURCES) $(mpi_type_wrappers_SOURCES) \
 	$(am__multilevel_fe_01_2d_SOURCES_DIST) \
 	$(am__multilevel_fe_01_3d_SOURCES_DIST) \
 	$(nodal_interpolation_01_2d_SOURCES) \
@@ -1188,6 +1214,12 @@ snapshot_cache_01_2d_SOURCES = snapshot_cache_01.cpp
 hierarchy_avg_data_01_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
 hierarchy_avg_data_01_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
 hierarchy_avg_data_01_2d_SOURCES = hierarchy_avg_data_01.cpp
+interpolation_utilities_2d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=2
+interpolation_utilities_2d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR2d_LIBS) $(IBAMR_LIBS)
+interpolation_utilities_2d_SOURCES = interpolation_utilities.cpp
+interpolation_utilities_3d_CXXFLAGS = $(AM_CXXFLAGS) -DNDIM=3
+interpolation_utilities_3d_LDADD = $(IBAMR_LDFLAGS) $(IBAMR3d_LIBS) $(IBAMR_LIBS)
+interpolation_utilities_3d_SOURCES = interpolation_utilities.cpp
 all: all-am
 
 .SUFFIXES:
@@ -1314,6 +1346,14 @@ ibtk_init$(EXEEXT): $(ibtk_init_OBJECTS) $(ibtk_init_DEPENDENCIES) $(EXTRA_ibtk_
 ibtk_mpi$(EXEEXT): $(ibtk_mpi_OBJECTS) $(ibtk_mpi_DEPENDENCIES) $(EXTRA_ibtk_mpi_DEPENDENCIES) 
 	@rm -f ibtk_mpi$(EXEEXT)
 	$(AM_V_CXXLD)$(ibtk_mpi_LINK) $(ibtk_mpi_OBJECTS) $(ibtk_mpi_LDADD) $(LIBS)
+
+interpolation_utilities_2d$(EXEEXT): $(interpolation_utilities_2d_OBJECTS) $(interpolation_utilities_2d_DEPENDENCIES) $(EXTRA_interpolation_utilities_2d_DEPENDENCIES) 
+	@rm -f interpolation_utilities_2d$(EXEEXT)
+	$(AM_V_CXXLD)$(interpolation_utilities_2d_LINK) $(interpolation_utilities_2d_OBJECTS) $(interpolation_utilities_2d_LDADD) $(LIBS)
+
+interpolation_utilities_3d$(EXEEXT): $(interpolation_utilities_3d_OBJECTS) $(interpolation_utilities_3d_DEPENDENCIES) $(EXTRA_interpolation_utilities_3d_DEPENDENCIES) 
+	@rm -f interpolation_utilities_3d$(EXEEXT)
+	$(AM_V_CXXLD)$(interpolation_utilities_3d_LINK) $(interpolation_utilities_3d_OBJECTS) $(interpolation_utilities_3d_LDADD) $(LIBS)
 
 jacobian_calc_01$(EXEEXT): $(jacobian_calc_01_OBJECTS) $(jacobian_calc_01_DEPENDENCIES) $(EXTRA_jacobian_calc_01_DEPENDENCIES) 
 	@rm -f jacobian_calc_01$(EXEEXT)
@@ -1464,6 +1504,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibtk_init-ibtk_init.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_2d-laplace_01.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/laplace_01_3d-laplace_01.Po@am__quote@ # am--include-marker
@@ -1846,6 +1888,34 @@ ibtk_mpi-ibtk_mpi.obj: ibtk_mpi.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='ibtk_mpi.cpp' object='ibtk_mpi-ibtk_mpi.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(ibtk_mpi_CXXFLAGS) $(CXXFLAGS) -c -o ibtk_mpi-ibtk_mpi.obj `if test -f 'ibtk_mpi.cpp'; then $(CYGPATH_W) 'ibtk_mpi.cpp'; else $(CYGPATH_W) '$(srcdir)/ibtk_mpi.cpp'; fi`
+
+interpolation_utilities_2d-interpolation_utilities.o: interpolation_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolation_utilities_2d_CXXFLAGS) $(CXXFLAGS) -MT interpolation_utilities_2d-interpolation_utilities.o -MD -MP -MF $(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Tpo -c -o interpolation_utilities_2d-interpolation_utilities.o `test -f 'interpolation_utilities.cpp' || echo '$(srcdir)/'`interpolation_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Tpo $(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolation_utilities.cpp' object='interpolation_utilities_2d-interpolation_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolation_utilities_2d_CXXFLAGS) $(CXXFLAGS) -c -o interpolation_utilities_2d-interpolation_utilities.o `test -f 'interpolation_utilities.cpp' || echo '$(srcdir)/'`interpolation_utilities.cpp
+
+interpolation_utilities_2d-interpolation_utilities.obj: interpolation_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolation_utilities_2d_CXXFLAGS) $(CXXFLAGS) -MT interpolation_utilities_2d-interpolation_utilities.obj -MD -MP -MF $(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Tpo -c -o interpolation_utilities_2d-interpolation_utilities.obj `if test -f 'interpolation_utilities.cpp'; then $(CYGPATH_W) 'interpolation_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolation_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Tpo $(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolation_utilities.cpp' object='interpolation_utilities_2d-interpolation_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolation_utilities_2d_CXXFLAGS) $(CXXFLAGS) -c -o interpolation_utilities_2d-interpolation_utilities.obj `if test -f 'interpolation_utilities.cpp'; then $(CYGPATH_W) 'interpolation_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolation_utilities.cpp'; fi`
+
+interpolation_utilities_3d-interpolation_utilities.o: interpolation_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolation_utilities_3d_CXXFLAGS) $(CXXFLAGS) -MT interpolation_utilities_3d-interpolation_utilities.o -MD -MP -MF $(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Tpo -c -o interpolation_utilities_3d-interpolation_utilities.o `test -f 'interpolation_utilities.cpp' || echo '$(srcdir)/'`interpolation_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Tpo $(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolation_utilities.cpp' object='interpolation_utilities_3d-interpolation_utilities.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolation_utilities_3d_CXXFLAGS) $(CXXFLAGS) -c -o interpolation_utilities_3d-interpolation_utilities.o `test -f 'interpolation_utilities.cpp' || echo '$(srcdir)/'`interpolation_utilities.cpp
+
+interpolation_utilities_3d-interpolation_utilities.obj: interpolation_utilities.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolation_utilities_3d_CXXFLAGS) $(CXXFLAGS) -MT interpolation_utilities_3d-interpolation_utilities.obj -MD -MP -MF $(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Tpo -c -o interpolation_utilities_3d-interpolation_utilities.obj `if test -f 'interpolation_utilities.cpp'; then $(CYGPATH_W) 'interpolation_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolation_utilities.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Tpo $(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='interpolation_utilities.cpp' object='interpolation_utilities_3d-interpolation_utilities.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(interpolation_utilities_3d_CXXFLAGS) $(CXXFLAGS) -c -o interpolation_utilities_3d-interpolation_utilities.obj `if test -f 'interpolation_utilities.cpp'; then $(CYGPATH_W) 'interpolation_utilities.cpp'; else $(CYGPATH_W) '$(srcdir)/interpolation_utilities.cpp'; fi`
 
 jacobian_calc_01-jacobian_calc_01.o: jacobian_calc_01.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(jacobian_calc_01_CXXFLAGS) $(CXXFLAGS) -MT jacobian_calc_01-jacobian_calc_01.o -MD -MP -MF $(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Tpo -c -o jacobian_calc_01-jacobian_calc_01.o `test -f 'jacobian_calc_01.cpp' || echo '$(srcdir)/'`jacobian_calc_01.cpp
@@ -2421,6 +2491,8 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
 	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po
+	-rm -f ./$(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Po
+	-rm -f ./$(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Po
 	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
@@ -2519,6 +2591,8 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/hierarchy_callbacks-hierarchy_callbacks.Po
 	-rm -f ./$(DEPDIR)/ibtk_init-ibtk_init.Po
 	-rm -f ./$(DEPDIR)/ibtk_mpi-ibtk_mpi.Po
+	-rm -f ./$(DEPDIR)/interpolation_utilities_2d-interpolation_utilities.Po
+	-rm -f ./$(DEPDIR)/interpolation_utilities_3d-interpolation_utilities.Po
 	-rm -f ./$(DEPDIR)/jacobian_calc_01-jacobian_calc_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_2d-laplace_01.Po
 	-rm -f ./$(DEPDIR)/laplace_01_3d-laplace_01.Po
