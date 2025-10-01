@@ -256,12 +256,24 @@ INSStaggeredHierarchyIntegrator {
    stokes_solver_db {
       ksp_type = "fgmres"
    }
+   stokes_precond_db {
+      Phi_data_refine_type = "NONE"
+      Phi_use_cf_interpolation = TRUE
+      Phi_data_coarsen_type = "CUBIC_COARSEN"
+      Phi_bdry_extrap_type = "LINEAR"
+   }
 
    velocity_solver_type = "PETSC_KRYLOV_SOLVER"
    velocity_precond_type = "POINT_RELAXATION_FAC_PRECONDITIONER"
    velocity_solver_db {
       ksp_type = "richardson"
       max_iterations = 1
+      laplace_op {
+         data_refine_type = "NONE"
+         use_cf_interpolation = TRUE
+         data_coarsen_type = "CUBIC_COARSEN"
+         bdry_extrap_type = "LINEAR"
+      }
    }
    velocity_precond_db {
       num_pre_sweeps  = 0
@@ -277,6 +289,10 @@ INSStaggeredHierarchyIntegrator {
          split_solver_type    = "PFMG"
          enable_logging       = FALSE
       }
+      data_refine_type = "NONE"
+      use_cf_interpolation = TRUE
+      data_coarsen_type = "CUBIC_COARSEN"
+      bdry_extrap_type = "LINEAR"
    }
 
    pressure_solver_type = "PETSC_KRYLOV_SOLVER"
@@ -284,6 +300,12 @@ INSStaggeredHierarchyIntegrator {
    pressure_solver_db {
       ksp_type = "richardson"
       max_iterations = 1
+      laplace_op {
+         data_refine_type = "NONE"
+         use_cf_interpolation = TRUE
+         data_coarsen_type = "CUBIC_COARSEN"
+         bdry_extrap_type = "LINEAR"
+      }
    }
    pressure_precond_db {
       num_pre_sweeps  = 0
@@ -300,6 +322,10 @@ INSStaggeredHierarchyIntegrator {
          num_post_relax_steps = 3
          enable_logging       = FALSE
       }
+      data_refine_type = "NONE"
+      use_cf_interpolation = TRUE
+      data_coarsen_type = "CUBIC_COARSEN"
+      bdry_extrap_type = "LINEAR"
    }
 
    regrid_projection_solver_type = "PETSC_KRYLOV_SOLVER"
@@ -322,6 +348,10 @@ INSStaggeredHierarchyIntegrator {
          num_post_relax_steps = 3
          enable_logging       = FALSE
       }
+      data_refine_type = "NONE"
+      use_cf_interpolation = TRUE
+      data_coarsen_type = "CUBIC_COARSEN"
+      bdry_extrap_type = "LINEAR"
    }
 }
 
