@@ -301,6 +301,7 @@ AC_CONFIG_FILES([
   tests/complex_fluids/Makefile
   tests/CIB/Makefile
   tests/ConstraintIB/Makefile
+  tests/external/Makefile
   tests/fe_mechanics/Makefile
   tests/IB/Makefile
   tests/IBFE/Makefile

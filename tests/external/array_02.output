@@ -1,0 +1,66 @@
+Test empty tbox::Array<A>
+Test tbox::Array<A>(1)
+  A::A() 0
+  A::~A() 0
+Test assignment of array tbox::Array<A>
+  A::A() 1
+  A::A() 2
+  A::A() 3
+  A::A() 4
+  A::A() 5
+  A::~A() 1
+  Assignment complete
+  A::~A() 2
+  A::~A() 3
+  A::~A() 4
+  A::~A() 5
+Test tbox::Array<A>::setNull()
+  A::A() 6
+  A::A() 7
+  A::A() 8
+  A::A() 9
+  A::~A() 6
+  A::~A() 7
+  A::~A() 8
+  A::~A() 9
+  setNull() complete
+Test tbox::Array<A>::resizeArray()
+  A::A() 10
+  A::A() 11
+  A::A() 12
+  A::A() 13
+  A::A() 14
+  A::A() 15
+  A::A() 16
+  A::~A() 10
+  A::~A() 11
+  A::~A() 12
+  A::~A() 13
+  resizeArray() complete
+  A::~A() 14
+  A::~A() 15
+  A::~A() 16
+Test empty tbox::Array<double>
+Test tbox::Array<double>(1)
+Test assignment of array tbox::Array<double>
+  Assignment complete
+Test tbox::Array<double>::setNull()
+  setNull() complete
+Test tbox::Array<double>::resizeArray()
+  resizeArray() complete
+Test empty tbox::Array<std::string>
+Test tbox::Array<std::string>(1)
+Test assignment of array tbox::Array<std::string>
+  Assignment complete
+Test tbox::Array<std::string>::setNull()
+  setNull() complete
+Test tbox::Array<std::string>::resizeArray()
+  resizeArray() complete
+Test empty tbox::Array<std::vector<double>>
+Test tbox::Array<std::vector<double>>(1)
+Test assignment of array tbox::Array<std::vector<double>>
+  Assignment complete
+Test tbox::Array<std::vector<double>>::setNull()
+  setNull() complete
+Test tbox::Array<std::vector<double>>::resizeArray()
+  resizeArray() complete
