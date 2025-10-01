@@ -183,6 +183,18 @@ private:
     // Scratch data.
     SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_Phi_var, d_F_Phi_var;
     int d_Phi_scratch_idx = IBTK::invalid_index, d_F_Phi_idx = IBTK::invalid_index;
+
+    // Types of refining and coarsening to perform prior to setting coarse-fine boundary and physical boundary ghost
+    // cell values.
+    std::string d_Phi_data_refine_type = "NONE";
+    bool d_Phi_use_cf_interpolation = true;
+    std::string d_Phi_data_coarsen_type = "CUBIC_COARSEN";
+
+    // Type of extrapolation to use at physical boundaries.
+    std::string d_Phi_bdry_extrap_type = "LINEAR";
+
+    // Whether to enforce consistent interpolated values at Type 2 coarse-fine interface ghost cells.
+    bool d_Phi_use_consistent_type_2_bdry = false;
 };
 } // namespace IBAMR
 
