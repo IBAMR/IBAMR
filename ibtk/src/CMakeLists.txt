@@ -142,6 +142,7 @@ SET(CXX_SRC
   solvers/wrappers/PETScMatLOWrapper.cpp
   solvers/wrappers/PETScSNESJacobianJOWrapper.cpp
   solvers/wrappers/PETScPCLSWrapper.cpp
+  solvers/impls/IdentityOperator.cpp
   solvers/impls/CCPoissonPETScLevelSolver.cpp
   solvers/impls/PoissonSolver.cpp
   solvers/impls/NewtonKrylovSolverManager.cpp

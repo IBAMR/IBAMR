@@ -114,6 +114,7 @@ DIM_DEPENDENT_SOURCES = \
 ../src/solvers/impls/CCPoissonPointRelaxationFACOperator.cpp \
 ../src/solvers/impls/CCPoissonSolverManager.cpp \
 ../src/solvers/impls/FACPreconditioner.cpp \
+../src/solvers/impls/IdentityOperator.cpp \
 ../src/solvers/impls/KrylovLinearSolverManager.cpp \
 ../src/solvers/impls/KrylovLinearSolverPoissonSolverInterface.cpp \
 ../src/solvers/impls/LaplaceOperator.cpp \
@@ -252,6 +253,7 @@ pkg_include_HEADERS += \
 ../include/ibtk/HierarchyMathOps.h \
 ../include/ibtk/IBTK_MPI.h \
 ../include/ibtk/IBTKInit.h \
+../include/ibtk/IdentityOperator.h \
 ../include/ibtk/IndexUtilities.h \
 ../include/ibtk/JacobianOperator.h \
 ../include/ibtk/KrylovLinearSolver.h \
