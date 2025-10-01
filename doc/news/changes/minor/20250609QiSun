@@ -1,2 +1,0 @@
-Fix: Updated the IIM velocity-interpolation scheme to the version proposed by Tan et al. in “An Immersed Interface Method for the Incompressible Navier–Stokes Equations with Discontinuous Viscosity Across the Interface.”
-(Qi Sun, 2025/06/09)

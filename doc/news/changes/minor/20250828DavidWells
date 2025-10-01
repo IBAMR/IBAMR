@@ -1,8 +1,0 @@
-Fixed: Fluid sources and sinks are now computed before regridding. This fixes a
-bug where sources were not set, which caused arbitrary values to be added to the
-divergence, which in turn caused arbitrary values in the velocity field.
-
-Furthermore, IBFEMethod now assumes that sources may be computed at any point
-in a timestep (or outside of a timestep).
-<br>
-(David Wells, 2025/08/28)
