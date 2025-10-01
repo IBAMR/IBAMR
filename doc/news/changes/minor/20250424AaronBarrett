@@ -1,3 +1,0 @@
-Fixed: Fixed upper convected derivative in cases of non divergence-free velocity fields.
-<br>
-(Aaron Barrett, 2025/04/24)

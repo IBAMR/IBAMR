@@ -1,0 +1,66 @@
+<h2>Incompatibilities</h2>
+<ol>
+<li>
+Changed: Standardized the spelling of null space.
+<br>
+(Boyce Griffith, 2025/04/14)
+</li>
+</ol>
+
+<h2>Major Changes</h2>
+<ol>
+<li>
+New: Added a class that can compute averages of noise fields over several periods.
+<br>
+(Aaron Barrett, 2025/02/26)
+</li>
+</ol>
+
+<h2>Minor Changes</h2>
+<ol>
+<li>
+Fixed: Fixed upper convected derivative in cases of non divergence-free velocity fields.
+<br>
+(Aaron Barrett, 2025/04/24)
+</li>
+<li>
+Fix: Updated the IIM velocity-interpolation scheme to the version proposed by Tan et al. in “An Immersed Interface Method for the Incompressible Navier–Stokes Equations with Discontinuous Viscosity Across the Interface.”
+(Qi Sun, 2025/06/09)</li>
+<li>
+Improved: The CMake configuration now exports basic information about our
+external dependencies.
+<br>
+(David Wells, 2025/07/21)
+</li>
+<li>
+Fixed: The H5Part marker point output now saves the marker ids.
+<br>
+(David Wells, 2025/08/11)
+</li>
+<li>
+Fixed: Fixed the ability of IBExplicitHierarchyIntegrator to restart any marker
+points it owns.
+<br>
+(Marshall Davey, 2025/08/14)
+</li>
+<li>
+Fixed: Fluid sources and sinks are now computed before regridding. This fixes a
+bug where sources were not set, which caused arbitrary values to be added to the
+divergence, which in turn caused arbitrary values in the velocity field.
+
+Furthermore, IBFEMethod now assumes that sources may be computed at any point
+in a timestep (or outside of a timestep).
+<br>
+(David Wells, 2025/08/28)
+</li>
+<li>
+New: More composite B-spline kernels.
+<br>
+(Aaron Barrett, 2025/05/218)
+</li>
+<li>
+New: Added interpolation functions to easily interpolate Eulerian data to specified positions.
+<br>
+(Aaron Barrett, 2025/05/29)
+</li>
+</ol>

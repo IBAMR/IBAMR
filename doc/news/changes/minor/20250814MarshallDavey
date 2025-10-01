@@ -1,4 +1,0 @@
-Fixed: Fixed the ability of IBExplicitHierarchyIntegrator to restart any marker
-points it owns.
-<br>
-(Marshall Davey, 2025/08/14)
