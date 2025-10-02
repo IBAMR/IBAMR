@@ -94,7 +94,7 @@ then
                     : # don't do anything if we match
                     ;;
                 *)
-                    echo "Libtool version $libtool_version doesn't match, building a new one..."
+                    echo "Libtool version $detected_libtool_version doesn't match, building a new one..."
                     build_autotools=1
             esac
         else
