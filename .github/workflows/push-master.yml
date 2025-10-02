@@ -71,7 +71,7 @@ jobs:
   # build IBAMR with CMake and update the cache
   build_ibamr_cmake_016:
     runs-on: ubuntu-latest
-    name: Build IBAMR (0.16 dependencies ${{ matrix.name }})
+    name: Build IBAMR (0.17 dependencies ${{ matrix.name }})
     strategy:
       matrix:
         include:
@@ -96,7 +96,7 @@ jobs:
             os: "ubuntu"
 
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-${{ matrix.os }}'
+      image: 'docker://wellsd2/ibamr:ibamr-0.17-dependencies-${{ matrix.os }}'
     env:
       CCACHE_MAXSIZE: 250M
       CCACHE_DIR: /compilationcache
@@ -151,9 +151,9 @@ jobs:
   # build IBAMR with autotools
   build_ibamr_archlinux_016_autotools:
     runs-on: ubuntu-latest
-    name: Build IBAMR and run tests (autotools, 0.16 dependencies, Arch Linux 2025)
+    name: Build IBAMR and run tests (autotools, 0.17 dependencies, Arch Linux 2025)
     container:
-      image: 'docker://wellsd2/ibamr:ibamr-0.16-dependencies-archlinux'
+      image: 'docker://wellsd2/ibamr:ibamr-0.17-dependencies-archlinux'
     env:
       CCACHE_MAXSIZE: 250M
       CCACHE_DIR: /compilationcache
