@@ -1,0 +1,4 @@
+Changed: Fixed implementations of CellNoCornersFillPattern and SideNoCornersFillPattern,
+and updated the class constructors to correspond to the new implementation.
+<br>
+(Boyce Griffith, 2025/09/23)
