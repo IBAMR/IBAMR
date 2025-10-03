@@ -212,9 +212,21 @@ input_db {
          use_cf_interpolation   = TRUE                      // from default
          consistent_type_2_bdry = FALSE                     // from default
       }
+      stokes_precond_db {
+         Phi_data_refine_type     = "NONE"                  // input used
+         Phi_use_cf_interpolation = TRUE                    // input used
+         Phi_data_coarsen_type    = "CUBIC_COARSEN"         // input used
+         Phi_bdry_extrap_type     = "LINEAR"                // input used
+      }
       velocity_solver_db {
          ksp_type       = "richardson"                      // input used
          max_iterations = 1                                 // input used
+         laplace_op {
+            data_refine_type     = "NONE"                   // input used
+            use_cf_interpolation = TRUE                     // input used
+            data_coarsen_type    = "CUBIC_COARSEN"          // input used
+            bdry_extrap_type     = "LINEAR"                 // input used
+         }
       }
       velocity_precond_db {
          num_pre_sweeps                 = 0                 // input used
@@ -225,6 +237,10 @@ input_db {
          coarse_solver_rel_residual_tol = 1e-12             // input used
          coarse_solver_abs_residual_tol = 1e-50             // input used
          coarse_solver_max_iterations   = 1                 // input used
+         data_refine_type               = "NONE"            // input used
+         use_cf_interpolation           = TRUE              // input used
+         data_coarsen_type              = "CUBIC_COARSEN"   // input used
+         bdry_extrap_type               = "LINEAR"          // input used
          coarse_solver_db {
             solver_type       = "Split"                     // input used
             split_solver_type = "PFMG"                      // input used
@@ -234,6 +250,12 @@ input_db {
       pressure_solver_db {
          ksp_type       = "richardson"                      // input used
          max_iterations = 1                                 // input used
+         laplace_op {
+            data_refine_type     = "NONE"                   // input used
+            use_cf_interpolation = TRUE                     // input used
+            data_coarsen_type    = "CUBIC_COARSEN"          // input used
+            bdry_extrap_type     = "LINEAR"                 // input used
+         }
       }
       pressure_precond_db {
          num_pre_sweeps                 = 0                 // input used
@@ -244,6 +266,10 @@ input_db {
          coarse_solver_rel_residual_tol = 1e-12             // input used
          coarse_solver_abs_residual_tol = 1e-50             // input used
          coarse_solver_max_iterations   = 1                 // input used
+         data_refine_type               = "NONE"            // input used
+         use_cf_interpolation           = TRUE              // input used
+         data_coarsen_type              = "CUBIC_COARSEN"   // input used
+         bdry_extrap_type               = "LINEAR"          // input used
          coarse_solver_db {
             solver_type          = "PFMG"                   // input used
             num_pre_relax_steps  = 0                        // input used
@@ -263,6 +289,10 @@ input_db {
          coarse_solver_rel_residual_tol = 1e-12             // input used
          coarse_solver_abs_residual_tol = 1e-50             // input used
          coarse_solver_max_iterations   = 1                 // input used
+         data_refine_type               = "NONE"            // input used
+         use_cf_interpolation           = TRUE              // input used
+         data_coarsen_type              = "CUBIC_COARSEN"   // input used
+         bdry_extrap_type               = "LINEAR"          // input used
          coarse_solver_db {
             solver_type          = "PFMG"                   // input used
             num_pre_relax_steps  = 0                        // input used

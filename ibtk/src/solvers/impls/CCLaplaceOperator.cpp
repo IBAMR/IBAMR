@@ -44,19 +44,6 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 
-// Types of refining and coarsening to perform prior to setting coarse-fine
-// boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE = "NONE";
-static const bool USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
-
 // Timers.
 static Timer* t_apply;
 static Timer* t_initialize_operator_state;
@@ -65,9 +52,20 @@ static Timer* t_deallocate_operator_state;
 
 /////////////////////////////// PUBLIC ///////////////////////////////////////
 
-CCLaplaceOperator::CCLaplaceOperator(std::string object_name, const bool homogeneous_bc)
+CCLaplaceOperator::CCLaplaceOperator(std::string object_name, Pointer<Database> input_db, const bool homogeneous_bc)
     : LaplaceOperator(std::move(object_name), homogeneous_bc)
 {
+    if (input_db)
+    {
+        if (input_db->isString("data_refine_type")) d_data_refine_type = input_db->getString("data_refine_type");
+        if (input_db->isBool("use_cf_interpolation"))
+            d_use_cf_interpolation = input_db->getBool("use_cf_interpolation");
+        if (input_db->isString("data_coarsen_type")) d_data_coarsen_type = input_db->getString("data_coarsen_type");
+        if (input_db->isString("bdry_extrap_type")) d_bdry_extrap_type = input_db->getString("bdry_extrap_type");
+        if (input_db->isBool("use_consistent_type_2_bdry"))
+            d_use_consistent_type_2_bdry = input_db->getBool("use_consistent_type_2_bdry");
+    }
+
     // Setup the operator to use default scalar-valued boundary conditions.
     setPhysicalBcCoef(nullptr);
 
@@ -124,11 +122,11 @@ CCLaplaceOperator::apply(SAMRAIVectorReal<NDIM, double>& x, SAMRAIVectorReal<NDI
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         InterpolationTransactionComponent x_component(x.getComponentDescriptorIndex(comp),
-                                                      DATA_REFINE_TYPE,
-                                                      USE_CF_INTERPOLATION,
-                                                      DATA_COARSEN_TYPE,
-                                                      BDRY_EXTRAP_TYPE,
-                                                      CONSISTENT_TYPE_2_BDRY,
+                                                      d_data_refine_type,
+                                                      d_use_cf_interpolation,
+                                                      d_data_coarsen_type,
+                                                      d_bdry_extrap_type,
+                                                      d_use_consistent_type_2_bdry,
                                                       d_bc_coefs,
                                                       d_fill_pattern);
         transaction_comps.push_back(x_component);
@@ -212,11 +210,11 @@ CCLaplaceOperator::initializeOperatorState(const SAMRAIVectorReal<NDIM, double>&
     for (int comp = 0; comp < d_ncomp; ++comp)
     {
         InterpolationTransactionComponent component(in.getComponentDescriptorIndex(comp),
-                                                    DATA_REFINE_TYPE,
-                                                    USE_CF_INTERPOLATION,
-                                                    DATA_COARSEN_TYPE,
-                                                    BDRY_EXTRAP_TYPE,
-                                                    CONSISTENT_TYPE_2_BDRY,
+                                                    d_data_refine_type,
+                                                    d_use_cf_interpolation,
+                                                    d_data_coarsen_type,
+                                                    d_bdry_extrap_type,
+                                                    d_use_consistent_type_2_bdry,
                                                     d_bc_coefs,
                                                     d_fill_pattern);
         d_transaction_comps.push_back(component);

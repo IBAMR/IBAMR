@@ -1,0 +1,4 @@
+Changed: Added input databases to the constructors for several operators and preconditioners.
+These enable runtime configuration of coarse-fine interface discretization details.
+<br>
+(Boyce Griffith, 2025/10/02)

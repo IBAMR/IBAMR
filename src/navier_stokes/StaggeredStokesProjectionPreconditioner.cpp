@@ -60,19 +60,6 @@ namespace
 // Number of ghosts cells used for each variable quantity.
 static const int CELLG = 1;
 
-// Types of refining and coarsening to perform prior to setting coarse-fine
-// boundary and physical boundary ghost cell values.
-static const std::string DATA_REFINE_TYPE = "NONE";
-static const bool USE_CF_INTERPOLATION = true;
-static const std::string DATA_COARSEN_TYPE = "CUBIC_COARSEN";
-
-// Type of extrapolation to use at physical boundaries.
-static const std::string BDRY_EXTRAP_TYPE = "LINEAR";
-
-// Whether to enforce consistent interpolated values at Type 2 coarse-fine
-// interface ghost cells.
-static const bool CONSISTENT_TYPE_2_BDRY = false;
-
 // Timers.
 static Timer* t_solve_system;
 static Timer* t_initialize_solver_state;
@@ -92,6 +79,20 @@ StaggeredStokesProjectionPreconditioner::StaggeredStokesProjectionPreconditioner
           /*needs_pressure_solver*/ true)
 {
     GeneralSolver::init(object_name, /*homogeneous_bc*/ true);
+
+    if (input_db)
+    {
+        if (input_db->isString("Phi_data_refine_type"))
+            d_Phi_data_refine_type = input_db->getString("Phi_data_refine_type");
+        if (input_db->isBool("Phi_use_cf_interpolation"))
+            d_Phi_use_cf_interpolation = input_db->getBool("Phi_use_cf_interpolation");
+        if (input_db->isString("Phi_data_coarsen_type"))
+            d_Phi_data_coarsen_type = input_db->getString("Phi_data_coarsen_type");
+        if (input_db->isString("Phi_bdry_extrap_type"))
+            d_Phi_bdry_extrap_type = input_db->getString("Phi_bdry_extrap_type");
+        if (input_db->isBool("Phi_use_consistent_type_2_bdry"))
+            d_Phi_use_consistent_type_2_bdry = input_db->getBool("Phi_use_consistent_type_2_bdry");
+    }
 
     // Present implementation requires zero initial guess and can perform only
     // one iteration.
@@ -356,11 +357,11 @@ StaggeredStokesProjectionPreconditioner::initializeSolverState(const SAMRAIVecto
     Pointer<VariableFillPattern<NDIM> > fill_pattern = new CellNoCornersFillPattern(CELLG, false, false, true);
     using InterpolationTransactionComponent = HierarchyGhostCellInterpolation::InterpolationTransactionComponent;
     InterpolationTransactionComponent P_scratch_component(d_Phi_scratch_idx,
-                                                          DATA_REFINE_TYPE,
-                                                          USE_CF_INTERPOLATION,
-                                                          DATA_COARSEN_TYPE,
-                                                          BDRY_EXTRAP_TYPE,
-                                                          CONSISTENT_TYPE_2_BDRY,
+                                                          d_Phi_data_refine_type,
+                                                          d_Phi_use_cf_interpolation,
+                                                          d_Phi_data_coarsen_type,
+                                                          d_Phi_bdry_extrap_type,
+                                                          d_Phi_use_consistent_type_2_bdry,
                                                           d_P_bc_coef,
                                                           fill_pattern);
     d_Phi_bdry_fill_op = new HierarchyGhostCellInterpolation();
