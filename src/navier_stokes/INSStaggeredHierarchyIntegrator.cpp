@@ -1257,17 +1257,6 @@ INSStaggeredHierarchyIntegrator::preprocessIntegrateHierarchy(const double curre
     {
         const int U_adv_idx = d_U_adv_vec->getComponentDescriptorIndex(0);
         d_hier_sc_data_ops->copyData(U_adv_idx, d_U_current_idx);
-        for (int ln = finest_ln; ln > coarsest_ln; --ln)
-        {
-            Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-            Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-            Pointer<CoarsenOperator<NDIM> > coarsen_op = grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
-            coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
-            coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-            getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
-            getCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP")
-                ->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-        }
         d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
         d_convective_op->setSolutionTime(current_time);
         d_convective_op->apply(*d_U_adv_vec, *d_N_vec);
@@ -1434,8 +1423,6 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
                                                     const double new_time,
                                                     const int cycle_num)
 {
-    const int coarsest_ln = 0;
-    const int finest_ln = d_hierarchy->getFinestLevelNumber();
     const double dt = new_time - current_time;
     const double half_time = current_time + 0.5 * dt;
     const double rho = d_problem_coefs.getRho();
@@ -1469,18 +1456,6 @@ INSStaggeredHierarchyIntegrator::setupSolverVectors(const Pointer<SAMRAIVectorRe
             {
                 d_hier_sc_data_ops->copyData(U_adv_idx, d_U_new_idx);
                 apply_time = new_time;
-            }
-            for (int ln = finest_ln; ln > coarsest_ln; --ln)
-            {
-                Pointer<CoarsenAlgorithm<NDIM> > coarsen_alg = new CoarsenAlgorithm<NDIM>();
-                Pointer<CartesianGridGeometry<NDIM> > grid_geom = d_hierarchy->getGridGeometry();
-                Pointer<CoarsenOperator<NDIM> > coarsen_op =
-                    grid_geom->lookupCoarsenOperator(d_U_var, d_U_coarsen_type);
-                coarsen_alg->registerCoarsen(U_adv_idx, U_adv_idx, coarsen_op);
-                coarsen_alg->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
-                getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]->coarsenData();
-                getCoarsenAlgorithm(d_object_name + "::CONVECTIVE_OP")
-                    ->resetSchedule(getCoarsenSchedules(d_object_name + "::CONVECTIVE_OP")[ln]);
             }
             d_convective_op->setAdvectionVelocity(d_U_adv_vec->getComponentDescriptorIndex(0));
             d_convective_op->setSolutionTime(apply_time);
