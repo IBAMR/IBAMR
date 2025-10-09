@@ -51,8 +51,8 @@ func = @(lambda) k_s*(dT_s*exp(-lambda^2*diffusivity_ratio)/ (sqrt(pi).*alpha_st
     + k_l*(dT_l*exp(-(lambda*R_rho)^2)/ (sqrt(pi).*alpha_lt*erfc(lambda*R_rho))) ...
     - rho_s*lambda*sqrt(alpha_l)*(L - 0.5*(1-R_rho^2)*lambda^2*alpha_l/time(i));
 
-%  Make sure the solution is physical. If not try some other initial
-%  conditions.
+% Check that the root is physically meaningful. 
+% If not, try a different initial guess for fzero().
 lambda_ke(i) = fzero(func,2.0);
 x_0 = 0.0;
 x_analytical_ke(i) = x_0 + 2*lambda_ke(i)*sqrt(time(i)*alpha_l);

@@ -20,7 +20,7 @@
 
 #include <ibamr/AdvDiffHierarchyIntegrator.h>
 
-#include "tbox/Pointer.h"
+#include <tbox/Pointer.h>
 
 namespace IBTK
 {

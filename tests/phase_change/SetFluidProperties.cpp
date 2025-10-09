@@ -21,7 +21,7 @@
 /////////////////////////////// STATIC ///////////////////////////////////////
 void
 callSetLiquidSolidGasDensityCallbackFunction(int rho_idx,
-                                             Pointer<Variable<NDIM> > rho_var,
+                                             Pointer<Variable<NDIM>> rho_var,
                                              Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                              const int cycle_num,
                                              const double time,
@@ -40,7 +40,7 @@ callSetLiquidSolidGasDensityCallbackFunction(int rho_idx,
 
 void
 callSetLiquidSolidGasSpecificHeatCallbackFunction(int Cp_idx,
-                                                  Pointer<Variable<NDIM> > Cp_var,
+                                                  Pointer<Variable<NDIM>> Cp_var,
                                                   Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                   const int cycle_num,
                                                   const double time,
@@ -59,7 +59,7 @@ callSetLiquidSolidGasSpecificHeatCallbackFunction(int Cp_idx,
 
 void
 callSetLiquidSolidGasConductivityCallbackFunction(int D_idx,
-                                                  Pointer<Variable<NDIM> > D_var,
+                                                  Pointer<Variable<NDIM>> D_var,
                                                   Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                   const int cycle_num,
                                                   const double time,
@@ -78,7 +78,7 @@ callSetLiquidSolidGasConductivityCallbackFunction(int D_idx,
 
 void
 callSetLiquidGasSolidViscosityCallbackFunction(int mu_idx,
-                                               Pointer<Variable<NDIM> > mu_var,
+                                               Pointer<Variable<NDIM>> mu_var,
                                                Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                const int cycle_num,
                                                const double time,
@@ -98,9 +98,9 @@ callSetLiquidGasSolidViscosityCallbackFunction(int mu_idx,
 
 SetFluidProperties::SetFluidProperties(const std::string& object_name,
                                        const Pointer<AdvDiffHierarchyIntegrator> adv_diff_solver,
-                                       const Pointer<CellVariable<NDIM, double> > lf_var,
+                                       const Pointer<CellVariable<NDIM, double>> lf_var,
                                        RobinBcCoefStrategy<NDIM>* lf_bc_coef,
-                                       const Pointer<CellVariable<NDIM, double> > H_var,
+                                       const Pointer<CellVariable<NDIM, double>> H_var,
                                        RobinBcCoefStrategy<NDIM>* H_bc_coef,
                                        const double rho_liquid,
                                        const double rho_solid,
@@ -146,7 +146,7 @@ SetFluidProperties::~SetFluidProperties()
 
 void
 SetFluidProperties::setDensityPatchData(int rho_idx,
-                                        Pointer<Variable<NDIM> > rho_var,
+                                        Pointer<Variable<NDIM>> rho_var,
                                         Pointer<HierarchyMathOps> hier_math_ops,
                                         const int /*cycle_num*/,
                                         const double time,
@@ -184,26 +184,26 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
         TBOX_ERROR("This statement should not be reached");
     }
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     // Set the density based on the cell centered level set
-    Pointer<CellVariable<NDIM, double> > rho_cc_var = rho_var;
+    Pointer<CellVariable<NDIM, double>> rho_cc_var = rho_var;
 
     if (rho_cc_var)
     {
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
 
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
-                const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
-                const Pointer<CellData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
+                const Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_idx);
+                const Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
+                const Pointer<CellData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
                 // Li et al, 2015
                 for (Box<NDIM>::Iterator it(patch_box); it; it++)
                 {
@@ -219,7 +219,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
     }
 
     // Setting side centered density directly
-    Pointer<SideVariable<NDIM, double> > rho_sc_var = rho_var;
+    Pointer<SideVariable<NDIM, double>> rho_sc_var = rho_var;
     if (rho_sc_var)
     {
         RobinBcCoefStrategy<NDIM>* lf_bc_coef = d_lf_bc_coef;
@@ -261,15 +261,15 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
 
         for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
         {
-            Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+            Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
             for (PatchLevel<NDIM>::Iterator p(level); p; p++)
             {
-                Pointer<Patch<NDIM> > patch = level->getPatch(p());
-                Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+                Pointer<Patch<NDIM>> patch = level->getPatch(p());
+                Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
                 const Box<NDIM>& patch_box = patch->getBox();
-                const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_scratch_idx);
-                const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_scratch_idx);
-                Pointer<SideData<NDIM, double> > rho_data = patch->getPatchData(rho_idx);
+                const Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_scratch_idx);
+                const Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_scratch_idx);
+                Pointer<SideData<NDIM, double>> rho_data = patch->getPatchData(rho_idx);
 
                 for (int axis = 0; axis < NDIM; ++axis)
                 {
@@ -305,7 +305,7 @@ SetFluidProperties::setDensityPatchData(int rho_idx,
 
 void
 SetFluidProperties::setDiffusionCoefficientPatchData(int D_idx,
-                                                     Pointer<Variable<NDIM> > /*D_var*/,
+                                                     Pointer<Variable<NDIM>> /*D_var*/,
                                                      SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
                                                      const int /*cycle_num*/,
                                                      const double time,
@@ -342,21 +342,21 @@ SetFluidProperties::setDiffusionCoefficientPatchData(int D_idx,
         TBOX_ERROR("This statement should not be reached");
     }
 
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const Box<NDIM>& patch_box = patch->getBox();
-            const Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
-            const Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
-            Pointer<CellData<NDIM, double> > D_data = patch->getPatchData(D_idx);
+            const Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_idx);
+            const Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double>> D_data = patch->getPatchData(D_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -375,7 +375,7 @@ SetFluidProperties::setDiffusionCoefficientPatchData(int D_idx,
 
 void
 SetFluidProperties::setSpecificHeatPatchData(int Cp_idx,
-                                             Pointer<Variable<NDIM> > /*Cp_var*/,
+                                             Pointer<Variable<NDIM>> /*Cp_var*/,
                                              SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
                                              const int /*cycle_num*/,
                                              const double time,
@@ -413,22 +413,22 @@ SetFluidProperties::setSpecificHeatPatchData(int Cp_idx,
     }
 
     // Set the density based on the level set
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
-            Pointer<CellData<NDIM, double> > Cp_data = patch->getPatchData(Cp_idx);
+            Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double>> Cp_data = patch->getPatchData(Cp_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {
@@ -447,7 +447,7 @@ SetFluidProperties::setSpecificHeatPatchData(int Cp_idx,
 
 void
 SetFluidProperties::setViscosityPatchData(int mu_idx,
-                                          Pointer<Variable<NDIM> > /*mu_var*/,
+                                          Pointer<Variable<NDIM>> /*mu_var*/,
                                           SAMRAI::tbox::Pointer<HierarchyMathOps> hier_math_ops,
                                           const int /*cycle_num*/,
                                           const double time,
@@ -485,22 +485,22 @@ SetFluidProperties::setViscosityPatchData(int mu_idx,
     }
 
     // Set the density based on the level set
-    Pointer<PatchHierarchy<NDIM> > patch_hierarchy = hier_math_ops->getPatchHierarchy();
+    Pointer<PatchHierarchy<NDIM>> patch_hierarchy = hier_math_ops->getPatchHierarchy();
     const int coarsest_ln = 0;
     const int finest_ln = patch_hierarchy->getFinestLevelNumber();
 
     for (int ln = coarsest_ln; ln <= finest_ln; ++ln)
     {
-        Pointer<PatchLevel<NDIM> > level = patch_hierarchy->getPatchLevel(ln);
+        Pointer<PatchLevel<NDIM>> level = patch_hierarchy->getPatchLevel(ln);
         for (PatchLevel<NDIM>::Iterator p(level); p; p++)
         {
-            Pointer<Patch<NDIM> > patch = level->getPatch(p());
-            Pointer<CartesianPatchGeometry<NDIM> > patch_geom = patch->getPatchGeometry();
+            Pointer<Patch<NDIM>> patch = level->getPatch(p());
+            Pointer<CartesianPatchGeometry<NDIM>> patch_geom = patch->getPatchGeometry();
             const Box<NDIM>& patch_box = patch->getBox();
 
-            Pointer<CellData<NDIM, double> > H_data = patch->getPatchData(H_idx);
-            Pointer<CellData<NDIM, double> > lf_data = patch->getPatchData(lf_idx);
-            Pointer<CellData<NDIM, double> > mu_data = patch->getPatchData(mu_idx);
+            Pointer<CellData<NDIM, double>> H_data = patch->getPatchData(H_idx);
+            Pointer<CellData<NDIM, double>> lf_data = patch->getPatchData(lf_idx);
+            Pointer<CellData<NDIM, double>> mu_data = patch->getPatchData(mu_idx);
 
             for (Box<NDIM>::Iterator it(patch_box); it; it++)
             {

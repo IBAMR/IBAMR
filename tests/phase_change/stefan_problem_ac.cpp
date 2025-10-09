@@ -36,13 +36,12 @@
 #include <ibamr/app_namespaces.h>
 
 // Application
-#include "LiquidFractionInitialCondition.h"
-#include "SetFluidProperties.h"
-#include "TemperatureInitialCondition.h"
-
 #include "LiquidFractionInitialCondition.cpp"
+#include "LiquidFractionInitialCondition.h"
 #include "SetFluidProperties.cpp"
+#include "SetFluidProperties.h"
 #include "TemperatureInitialCondition.cpp"
+#include "TemperatureInitialCondition.h"
 
 /*******************************************************************************
  * For each run, the input filename and restart information (if needed) must   *
@@ -101,18 +100,18 @@ main(int argc, char* argv[])
         time_integrator = new AllenCahnHierarchyIntegrator(
             "AllenCahnHierarchyIntegrator", app_initializer->getComponentDatabase("AllenCahnHierarchyIntegrator"));
 
-        Pointer<CartesianGridGeometry<NDIM> > grid_geometry = new CartesianGridGeometry<NDIM>(
+        Pointer<CartesianGridGeometry<NDIM>> grid_geometry = new CartesianGridGeometry<NDIM>(
             "CartesianGeometry", app_initializer->getComponentDatabase("CartesianGeometry"));
-        Pointer<PatchHierarchy<NDIM> > patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
+        Pointer<PatchHierarchy<NDIM>> patch_hierarchy = new PatchHierarchy<NDIM>("PatchHierarchy", grid_geometry);
 
-        Pointer<StandardTagAndInitialize<NDIM> > error_detector =
+        Pointer<StandardTagAndInitialize<NDIM>> error_detector =
             new StandardTagAndInitialize<NDIM>("StandardTagAndInitialize",
                                                time_integrator,
                                                app_initializer->getComponentDatabase("StandardTagAndInitialize"));
-        Pointer<BergerRigoutsos<NDIM> > box_generator = new BergerRigoutsos<NDIM>();
-        Pointer<LoadBalancer<NDIM> > load_balancer =
+        Pointer<BergerRigoutsos<NDIM>> box_generator = new BergerRigoutsos<NDIM>();
+        Pointer<LoadBalancer<NDIM>> load_balancer =
             new LoadBalancer<NDIM>("LoadBalancer", app_initializer->getComponentDatabase("LoadBalancer"));
-        Pointer<GriddingAlgorithm<NDIM> > gridding_algorithm =
+        Pointer<GriddingAlgorithm<NDIM>> gridding_algorithm =
             new GriddingAlgorithm<NDIM>("GriddingAlgorithm",
                                         app_initializer->getComponentDatabase("GriddingAlgorithm"),
                                         error_detector,
@@ -120,12 +119,12 @@ main(int argc, char* argv[])
                                         load_balancer);
 
         // register liquid fraction
-        Pointer<CellVariable<NDIM, double> > lf_var = new CellVariable<NDIM, double>("lf_var");
+        Pointer<CellVariable<NDIM, double>> lf_var = new CellVariable<NDIM, double>("lf_var");
         Pointer<AllenCahnHierarchyIntegrator> ac_hier_integrator = time_integrator;
         ac_hier_integrator->registerLiquidFractionVariable(lf_var, true);
 
         // register Heaviside
-        Pointer<CellVariable<NDIM, double> > H_var = new CellVariable<NDIM, double>("heaviside_var");
+        Pointer<CellVariable<NDIM, double>> H_var = new CellVariable<NDIM, double>("heaviside_var");
         time_integrator->registerTransportedQuantity(H_var, true);
         time_integrator->setDiffusionCoefficient(H_var, 0.0);
 
@@ -133,7 +132,7 @@ main(int argc, char* argv[])
         ac_hier_integrator->registerHeavisideVariable(H_var);
 
         // register temperature
-        Pointer<CellVariable<NDIM, double> > T_var = new CellVariable<NDIM, double>("Temperature");
+        Pointer<CellVariable<NDIM, double>> T_var = new CellVariable<NDIM, double>("Temperature");
         ac_hier_integrator->registerTemperatureVariable(T_var, true);
 
         Pointer<CartGridFunction> H_init = new muParserCartGridFunction(
@@ -152,10 +151,10 @@ main(int argc, char* argv[])
             new LiquidFractionInitialCondition("lf_init", init_liquid_solid_interface_position);
         ac_hier_integrator->setLiquidFractionInitialCondition(lf_var, lf_init);
 
-        Pointer<CellVariable<NDIM, double> > rho_cc_var = new CellVariable<NDIM, double>("rho_cc_var");
+        Pointer<CellVariable<NDIM, double>> rho_cc_var = new CellVariable<NDIM, double>("rho_cc_var");
         ac_hier_integrator->registerDensityVariable(rho_cc_var, true);
 
-        Pointer<CellVariable<NDIM, double> > Cp_var = new CellVariable<NDIM, double>("Cp");
+        Pointer<CellVariable<NDIM, double>> Cp_var = new CellVariable<NDIM, double>("Cp");
         ac_hier_integrator->registerSpecificHeatVariable(Cp_var, true);
 
         // Create Eulerian boundary condition specification objects (when
@@ -239,7 +238,7 @@ main(int argc, char* argv[])
                                                     static_cast<void*>(ptr_SetFluidProperties));
 
         // Set up visualization plot file writers.
-        Pointer<VisItDataWriter<NDIM> > visit_data_writer = app_initializer->getVisItDataWriter();
+        Pointer<VisItDataWriter<NDIM>> visit_data_writer = app_initializer->getVisItDataWriter();
         if (uses_visit)
         {
             time_integrator->registerVisItDataWriter(visit_data_writer);
@@ -278,7 +277,7 @@ main(int argc, char* argv[])
             patch_hierarchy->getPatchLevel(ln)->allocatePatchData(pcm_mass_idx, loop_time);
         }
 
-        Pointer<HierarchyCellDataOpsReal<NDIM, double> > hier_cc_data_ops =
+        Pointer<HierarchyCellDataOpsReal<NDIM, double>> hier_cc_data_ops =
             new HierarchyCellDataOpsReal<NDIM, double>(patch_hierarchy, coarsest_ln, finest_ln);
         std::ofstream pcm_mass_file;
         pcm_mass_file.open("output");

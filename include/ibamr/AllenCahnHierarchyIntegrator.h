@@ -120,7 +120,7 @@ public:
 <<<<<<< HEAD
     void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
 =======
-    void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+    void registerLiquidFractionVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
 >>>>>>> d1d1d32c8 (Changes to the phase change source files and liquid fraction extrapolation)
                                         bool output_lf_var = true) override;
 
@@ -176,10 +176,9 @@ protected:
                                                 int coarsest_level,
                                                 int finest_level) override;
 =======
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
+    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
 >>>>>>> d1d1d32c8 (Changes to the phase change source files and liquid fraction extrapolation)
 
 private:

@@ -34,7 +34,7 @@ class HierarchyMathOps;
  */
 
 void callSetLiquidSolidGasDensityCallbackFunction(int rho_idx,
-                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
+                                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> rho_var,
                                                   SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                   const int cycle_num,
                                                   const double time,
@@ -51,7 +51,7 @@ void callSetLiquidSolidGasDensityCallbackFunction(int rho_idx,
  */
 
 void callSetLiquidSolidGasSpecificHeatCallbackFunction(int Cp_idx,
-                                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Cp_var,
+                                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Cp_var,
                                                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                        const int cycle_num,
                                                        const double time,
@@ -68,7 +68,7 @@ void callSetLiquidSolidGasSpecificHeatCallbackFunction(int Cp_idx,
  */
 
 void callSetLiquidSolidGasConductivityCallbackFunction(int D_idx,
-                                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > D_var,
+                                                       SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> D_var,
                                                        SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                        const int cycle_num,
                                                        const double time,
@@ -85,7 +85,7 @@ void callSetLiquidSolidGasConductivityCallbackFunction(int D_idx,
  * class object.
  */
 void callSetLiquidGasSolidViscosityCallbackFunction(int mu_idx,
-                                                    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
+                                                    SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> mu_var,
                                                     SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                                     const int cycle_num,
                                                     const double time,
@@ -105,9 +105,9 @@ public:
      */
     SetFluidProperties(const std::string& object_name,
                        const SAMRAI::tbox::Pointer<IBAMR::AdvDiffHierarchyIntegrator> adv_diff_solver,
-                       const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var,
+                       const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var,
                        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* lf_bc_coef,
-                       const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > H_var,
+                       const SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> H_var,
                        SAMRAI::solv::RobinBcCoefStrategy<NDIM>* H_bc_coef,
                        const double rho_liquid,
                        const double rho_solid,
@@ -131,7 +131,7 @@ public:
      * Set the diffusion coefficient based on the current Heaviside and liquid fraction information
      */
     void setDensityPatchData(int rho_idx,
-                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > rho_var,
+                             SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> rho_var,
                              SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                              const int cycle_num,
                              const double time,
@@ -142,7 +142,7 @@ public:
      * Set the diffusion coefficient based on the current Heaviside and liquid fraction information
      */
     void setDiffusionCoefficientPatchData(int D_idx,
-                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > D_var,
+                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> D_var,
                                           SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                           const int cycle_num,
                                           const double time,
@@ -153,7 +153,7 @@ public:
      * Set the specific heat based on the current Heaviside and liquid fraction information
      */
     void setSpecificHeatPatchData(int Cp_idx,
-                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > Cp_var,
+                                  SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> Cp_var,
                                   SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                   const int cycle_num,
                                   const double time,
@@ -164,7 +164,7 @@ public:
      * Set the viscosity based on the current Heaviside and liquid fraction information
      */
     void setViscosityPatchData(int mu_idx,
-                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM> > mu_var,
+                               SAMRAI::tbox::Pointer<SAMRAI::hier::Variable<NDIM>> mu_var,
                                SAMRAI::tbox::Pointer<IBTK::HierarchyMathOps> hier_math_ops,
                                const int cycle_num,
                                const double time,
@@ -200,13 +200,13 @@ private:
     /*!
      * Liquid fraction variable and its boundary condition pointer.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_lf_var;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_lf_bc_coef = nullptr;
 
     /*!
      * Heaviside variable and its boundary condition pointer.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_H_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_H_var;
     SAMRAI::solv::RobinBcCoefStrategy<NDIM>* d_H_bc_coef = nullptr;
 
     /*!
