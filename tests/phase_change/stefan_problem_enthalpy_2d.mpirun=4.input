@@ -446,7 +446,7 @@ EnthalpyHierarchyIntegrator {
 }
 
 CarmanKozenyDragForce {
-   penalty_factor      = 1.0                         // deafult 1.0                   
+   penalty_factor      = 1.0                         // deafult 1.0
    use_rho_scale       = TRUE                        // default true
    use_mu_scale        = FALSE                       // default false
 }

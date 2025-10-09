@@ -1382,7 +1382,7 @@ AllenCahnHierarchyIntegrator::computeDivergenceVelocitySourceTerm(int Div_U_F_id
 
 void
 AllenCahnHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {
@@ -1498,9 +1498,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 {
                     // Hybrid profile
                     // 3lf and 3-3lf
-                    if (lf <= 0.133048682404023)
+                    const double x_transition1 = 0.133048682404023;
+                    const double x_transition2 = 0.866951317595975;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = 3.0 * lf;
-                    else if (lf > 0.133048682404023 && lf <= 0.866951317595975)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 3.0 - 3.0 * lf;
@@ -1508,9 +1510,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 else if (d_interpolation_function_profile == "LINEAR_4")
                 {
                     // 4lf and 4-4lf
-                    if (lf <= 0.218078018145755)
+                    const double x_transition1 = 0.218078018145755;
+                    const double x_transition2 = 0.781921981854249;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = 4.0 * lf;
-                    else if (lf > 0.218078018145755 && lf <= 0.781921981854249)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 4.0 - 4.0 * lf;
@@ -1518,9 +1522,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 else if (d_interpolation_function_profile == "LINEAR_2")
                 {
                     // 2lf and 2-2lf
-                    if (lf <= 0.0785105470229893)
+                    const double x_transition1 = 0.0785105470229893;
+                    const double x_transition2 = 0.921489452977004;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = 2.0 * lf;
-                    else if (lf > 0.0785105470229893 && lf <= 0.921489452977004)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 2.0 - 2.0 * lf;
@@ -1528,9 +1534,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 else if (d_interpolation_function_profile == "LINEAR_1")
                 {
                     // lf and 1-lf
-                    if (lf <= 0.0358589525337265)
+                    const double x_transition1 = 0.035858952533726;
+                    const double x_transition2 = 0.964141047466262;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = lf;
-                    else if (lf > 0.0358589525337265 && lf <= 0.964141047466262)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 1.0 - lf;
@@ -1538,9 +1546,11 @@ AllenCahnHierarchyIntegrator::computeInterpolationFunction(int q_firstder_idx,
                 else if (d_interpolation_function_profile == "LINEAR_0.5")
                 {
                     // 0.5*lf and 0.5-0.5*lf
-                    if (lf <= 0.017257145471902)
+                    const double x_transition1 = 0.017257145471902;
+                    const double x_transition2 = 0.982742854528096;
+                    if (lf <= x_transition1)
                         (*q_firstder_data)(ci) = 0.5 * lf;
-                    else if (lf > 0.017257145471902 && lf <= 0.982742854528096)
+                    else if (lf > x_transition1 && lf <= x_transition2)
                         (*q_firstder_data)(ci) = 30.0 * std::pow(lf, 4.0) - 60.0 * std::pow(lf, 3.0) + 30.0 * lf * lf;
                     else
                         (*q_firstder_data)(ci) = 0.5 - 0.5 * lf;

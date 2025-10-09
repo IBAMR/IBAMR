@@ -12,14 +12,14 @@
 // ---------------------------------------------------------------------
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
-#include "ibamr/AdvDiffCUIConvectiveOperator.h"
-#include "ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h"
-#include "ibamr/AdvDiffConvectiveOperatorManager.h"
-#include "ibamr/AdvDiffHierarchyIntegrator.h"
-#include "ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h"
-#include "ibamr/EnthalpyHierarchyIntegrator.h"
-#include "ibamr/ibamr_enums.h"
-#include "ibamr/ibamr_utilities.h"
+#include <ibamr/AdvDiffCUIConvectiveOperator.h>
+#include <ibamr/AdvDiffConservativeMassScalarTransportRKIntegrator.h>
+#include <ibamr/AdvDiffConvectiveOperatorManager.h>
+#include <ibamr/AdvDiffHierarchyIntegrator.h>
+#include <ibamr/AdvDiffSemiImplicitHierarchyIntegrator.h>
+#include <ibamr/EnthalpyHierarchyIntegrator.h>
+#include <ibamr/ibamr_enums.h>
+#include <ibamr/ibamr_utilities.h>
 
 #include <ibtk/CCLaplaceOperator.h>
 #include <ibtk/CartGridFunction.h>
@@ -873,7 +873,7 @@ EnthalpyHierarchyIntegrator::registerLiquidFractionVariableForExtrapolation(
 
 void
 EnthalpyHierarchyIntegrator::resetHierarchyConfigurationSpecialized(
-    const Pointer<BasePatchHierarchy<NDIM> > base_hierarchy,
+    const Pointer<BasePatchHierarchy<NDIM>> base_hierarchy,
     const int coarsest_level,
     const int finest_level)
 {

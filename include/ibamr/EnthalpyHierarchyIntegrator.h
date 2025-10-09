@@ -20,8 +20,8 @@
 
 #include <ibamr/config.h>
 
-#include "ibamr/CellConvectiveOperator.h"
-#include "ibamr/PhaseChangeHierarchyIntegrator.h"
+#include <ibamr/CellConvectiveOperator.h>
+#include <ibamr/PhaseChangeHierarchyIntegrator.h>
 
 namespace IBTK
 {
@@ -123,9 +123,8 @@ public:
     /*!
      * \brief Register specific enthalpy variable \f$ h \f$.
      */
-    virtual void
-    registerSpecificEnthalpyVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > h_var,
-                                     bool output_h_var = true);
+    virtual void registerSpecificEnthalpyVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> h_var,
+                                                  bool output_h_var = true);
 
     /*!
      * Set boundary conditions for \f$ h \f$ variable.
@@ -140,13 +139,13 @@ public:
     /*!
      * \brief Register LevelSet variable \f$ \phi \f$ maintained by AdvDiffHierarchyIntegrator.
      */
-    void registerLevelSetVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > phi_var);
+    void registerLevelSetVariable(SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> phi_var);
 
     /*!
      * \brief Register liquid fraction variable for extrapolation.
      */
     void registerLiquidFractionVariableForExtrapolation(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_var);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_var);
 
 protected:
     /*!
@@ -158,10 +157,9 @@ protected:
     /*!
      * Reset cached hierarchy dependent data for solvers and operators.
      */
-    void
-    resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM> > hierarchy,
-                                           int coarsest_level,
-                                           int finest_level) override;
+    void resetHierarchyConfigurationSpecialized(SAMRAI::tbox::Pointer<SAMRAI::hier::BasePatchHierarchy<NDIM>> hierarchy,
+                                                int coarsest_level,
+                                                int finest_level) override;
 
 private:
     /*!
@@ -248,7 +246,7 @@ private:
      * function will initialize a default convective operator.
      */
     SAMRAI::tbox::Pointer<CellConvectiveOperator> getLiquidFractionExtrapConvectiveOperator(
-        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > lf_extrap_var);
+        SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> lf_extrap_var);
 
     /*!
      * Solver variables.
@@ -303,13 +301,13 @@ private:
     /*!
      * Machineries related to constant extrapolation.
      */
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_lf_extrap_var, d_lf_extrap_rhs_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_phi_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_lf_extrap_interp_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double> > d_u_adv_fc_lf_extrap_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_u_adv_sc_lf_extrap_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double> > d_u_adv_cc_lf_extrap_var;
-    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double> > d_normal_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_lf_extrap_var, d_lf_extrap_rhs_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_phi_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> d_lf_extrap_interp_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::FaceVariable<NDIM, double>> d_u_adv_fc_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_u_adv_sc_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::CellVariable<NDIM, double>> d_u_adv_cc_lf_extrap_var;
+    SAMRAI::tbox::Pointer<SAMRAI::pdat::SideVariable<NDIM, double>> d_normal_lf_extrap_var;
 
     int d_lf_extrap_current_idx = IBTK::invalid_index, d_lf_extrap_new_idx = IBTK::invalid_index,
         d_lf_extrap_scratch_idx = IBTK::invalid_index;
@@ -322,7 +320,7 @@ private:
 
     SAMRAI::tbox::Pointer<SAMRAI::tbox::Database> d_lf_extrap_convective_op_input_db = d_default_convective_op_input_db;
     SAMRAI::tbox::Pointer<CellConvectiveOperator> d_lf_extrap_convective_op = nullptr;
-    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double> > d_lf_extrap_sol, d_lf_extrap_rhs;
+    SAMRAI::tbox::Pointer<SAMRAI::solv::SAMRAIVectorReal<NDIM, double>> d_lf_extrap_sol, d_lf_extrap_rhs;
     bool d_lf_extrap_convective_op_needs_init;
 
     bool d_require_lf_extrapolation = false;

@@ -194,7 +194,7 @@ public:
 <<<<<<< HEAD
                                                          SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
 =======
-                                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM> > patch,
+                                                         SAMRAI::tbox::Pointer<SAMRAI::hier::Patch<NDIM>> patch,
 >>>>>>> d1d1d32c8 (Changes to the phase change source files and liquid fraction extrapolation)
                                                          int cycle_num,
                                                          double time,
