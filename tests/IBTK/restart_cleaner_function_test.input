@@ -1,0 +1,12 @@
+// Input file for RestartCleaner comprehensive functional test
+
+Main {
+   log_file_name = "output"
+   log_all_nodes = FALSE
+   timer_dump_threshold = 0.0
+}
+
+RestartManager {
+   restart_write_dirname = "restart_IBTK"
+   restart_write_interval = 1
+}
