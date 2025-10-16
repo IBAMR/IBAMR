@@ -1,0 +1,142 @@
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(-10,-10),(-1,-1)]
+default overlap, overwrite_interior == false:
+      box: [(-1,-1),(-1,-1)]
+default overlap, overwrite_interior == true:
+      box: [(-1,-1),(-1,-1)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+no corners pattern, overwrite_interior == true:
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(-1,-1),(-1,-1)]
+no corners pattern, overwrite_interior == true:
+      box: [(-1,-1),(-1,-1)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(-10,0),(-1,9)]
+default overlap, overwrite_interior == false:
+      box: [(-1,0),(-1,9)]
+default overlap, overwrite_interior == true:
+      box: [(-1,0),(-1,9)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(-1,0),(-1,9)]
+no corners pattern, overwrite_interior == true:
+      box: [(-1,0),(-1,9)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(-1,0),(-1,9)]
+no corners pattern, overwrite_interior == true:
+      box: [(-1,0),(-1,9)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(-10,10),(-1,19)]
+default overlap, overwrite_interior == false:
+      box: [(-1,10),(-1,10)]
+default overlap, overwrite_interior == true:
+      box: [(-1,10),(-1,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+no corners pattern, overwrite_interior == true:
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(-1,10),(-1,10)]
+no corners pattern, overwrite_interior == true:
+      box: [(-1,10),(-1,10)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(0,-10),(9,-1)]
+default overlap, overwrite_interior == false:
+      box: [(0,-1),(9,-1)]
+default overlap, overwrite_interior == true:
+      box: [(0,-1),(9,-1)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(0,-1),(9,-1)]
+no corners pattern, overwrite_interior == true:
+      box: [(0,-1),(9,-1)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(0,-1),(9,-1)]
+no corners pattern, overwrite_interior == true:
+      box: [(0,-1),(9,-1)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(0,0),(9,9)]
+default overlap, overwrite_interior == false:
+default overlap, overwrite_interior == true:
+      box: [(0,0),(9,9)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+no corners pattern, overwrite_interior == true:
+      box: [(0,0),(9,9)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+no corners pattern, overwrite_interior == true:
+      box: [(0,0),(9,9)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(0,10),(9,19)]
+default overlap, overwrite_interior == false:
+      box: [(0,10),(9,10)]
+default overlap, overwrite_interior == true:
+      box: [(0,10),(9,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(0,10),(9,10)]
+no corners pattern, overwrite_interior == true:
+      box: [(0,10),(9,10)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(0,10),(9,10)]
+no corners pattern, overwrite_interior == true:
+      box: [(0,10),(9,10)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(10,-10),(19,-1)]
+default overlap, overwrite_interior == false:
+      box: [(10,-1),(10,-1)]
+default overlap, overwrite_interior == true:
+      box: [(10,-1),(10,-1)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+no corners pattern, overwrite_interior == true:
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(10,-1),(10,-1)]
+no corners pattern, overwrite_interior == true:
+      box: [(10,-1),(10,-1)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(10,0),(19,9)]
+default overlap, overwrite_interior == false:
+      box: [(10,0),(10,9)]
+default overlap, overwrite_interior == true:
+      box: [(10,0),(10,9)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(10,0),(10,9)]
+no corners pattern, overwrite_interior == true:
+      box: [(10,0),(10,9)]
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(10,0),(10,9)]
+no corners pattern, overwrite_interior == true:
+      box: [(10,0),(10,9)]
+**************************************************
+dst_box: [(0,0),(9,9)]
+src_box: [(10,10),(19,19)]
+default overlap, overwrite_interior == false:
+      box: [(10,10),(10,10)]
+default overlap, overwrite_interior == true:
+      box: [(10,10),(10,10)]
+dst_level_num == src_level_num:
+no corners pattern, overwrite_interior == false:
+no corners pattern, overwrite_interior == true:
+dst_level_num != target_level_num:
+no corners pattern, overwrite_interior == false:
+      box: [(10,10),(10,10)]
+no corners pattern, overwrite_interior == true:
+      box: [(10,10),(10,10)]
