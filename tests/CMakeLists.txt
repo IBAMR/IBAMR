@@ -169,6 +169,8 @@ SETUP_2D(refine cell_no_corners_fill_pattern.cpp)
 SETUP_3D(refine cell_no_corners_fill_pattern.cpp)
 SETUP_2D(refine rt0_refine_01.cpp)
 SETUP_3D(refine rt0_refine_01.cpp)
+SETUP_2D(refine side_no_corners_fill_pattern.cpp)
+SETUP_3D(refine side_no_corners_fill_pattern.cpp)
 
 # spread:
 IF(${IBAMR_HAVE_LIBMESH})
