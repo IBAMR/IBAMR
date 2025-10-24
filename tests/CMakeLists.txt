@@ -156,6 +156,7 @@ SETUP_3D(navier_stokes navier_stokes_01.cpp)
 SETUP_2D(navier_stokes poiseuille_flow_2d.cpp)
 SETUP_2D(navier_stokes stokes_operator.cpp)
 SETUP_3D(navier_stokes stokes_operator.cpp)
+SETUP_2D(navier_stokes ns_convective_operators.cpp)
 
 # physical_boundary:
 SETUP(physical_boundary extrapolation_01.cpp IBAMR2d)
@@ -179,6 +180,7 @@ ENDIF()
 # vc_navier_stokes:
 SETUP_2D(vc_navier_stokes vc_navier_stokes_01.cpp)
 SETUP_3D(vc_navier_stokes vc_navier_stokes_01.cpp)
+SETUP_2D(vc_navier_stokes mass_integrator.cpp)
 
 # wave_tank:
 IF(${IBAMR_HAVE_LIBMESH})
@@ -286,6 +288,7 @@ SETUP_2D(IBTK index_utilities.cpp)
 SETUP_2D(IBTK marker_points_01.cpp)
 SETUP_2D(IBTK marker_points_02.cpp)
 SETUP_2D(IBTK cf_interface.cpp)
+SETUP_2D(IBTK hierarchy_ghost_fill.cpp)
 
 IF(${IBAMR_HAVE_LIBMESH})
   SETUP_3D(IBTK bounding_boxes_01.cpp)
